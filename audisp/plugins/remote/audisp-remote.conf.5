@@ -1,0 +1,64 @@
+.TH AUDISP-REMOTE.CONF: "5" "Mar 2008" "Red Hat" "System Administration Utilities"
+.SH NAME
+audisp-remote.conf \- the audisp-remote configuration file
+.SH DESCRIPTION
+\fBaudisp-remote.conf\fP is the file that controls the configuration of the audit remote logging subsystem. The options that are available are as follows:
+
+.TP
+.I remote_server
+This is a one word character string that is the remote server hostname or address that this daemon will send log information to. This can be the numeric address or a resolvable hostname.
+.TP
+.I port
+This option is an unsigned integer that indicates what port to connect to on the remote machine.
+.TP
+.I transport
+This parameter tells the remote logging app how to send events to the remote system. Valid values are
+.IR tcp ", and " ssl ".
+If set to
+.IR tcp ,
+the remote logging app will just make a normal clear text connection to the remote system.
+.I ssl
+means that it will open an encrypted connection to the remote system.
+.TP
+.I mode
+This parameter tells the remote logging app what strategy to use getting records to the remote system. Valid values are
+.IR immediate ", and " forward " .
+If set to
+.IR immediate ,
+the remote logging app will attempt to send events immediately after getting them.
+.I forward
+means that it will store the events to disk and then attempt to send the records. If the connection cannot be made, it will queue records until it can connection to the remote system. The depth of the queue is controlled by the
+.I queue_depth
+option.
+.TP
+.I queue_depth
+This option is an unsigned integer that determines how many records can be buffered to disk before considering it to be a failure sending. This parameter only affects the
+.I forward
+mode of the
+.I mode
+option. The default depth is 20.
+.TP
+.I fail_action
+This parameter tells the system what action to take whenever there is an error
+detected when sending audit events to the remote system, or if the remote system reports an error. Valid values are
+.IR ignore ", " syslog ", " exec ", " suspend ", " single ", and " halt .
+If set to
+.IR ignore ,
+the audit daemon does nothing.
+.I Syslog
+means that it will issue a warning to syslog.
+.I exec
+/path-to-script will execute the script. You cannot pass parameters to the script.
+.I Suspend
+will cause the remote logging app to stop sending records to the remote system. The logging app will still be alive. The
+.I single
+option will cause the remote logging app to put the computer system in single user mode.
+.I halt
+option will cause the remote logging app to shutdown the computer system.
+
+.SH "SEE ALSO"
+.BR audispd (8),
+.BR audisp-remote(8).
+.SH AUTHOR
+Steve Grubb
+

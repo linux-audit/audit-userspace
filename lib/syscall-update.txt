@@ -1,0 +1,9 @@
+The place where syscall information is gathered is:
+
+include/asm-x86/unistd_32.h
+include/asm-x86/unistd_64.h
+include/asm-s390/unistd.h
+include/asm-powerpc/unistd.h
+include/asm-ia64/unistd.h
+include/asm-alpha/unistd.h
+

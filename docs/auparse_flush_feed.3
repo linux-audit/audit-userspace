@@ -1,0 +1,29 @@
+.TH "AUPARSE_FLUSH_FEED" "3" "May 2007" "Red Hat" "Linux Audit API"
+.SH NAME
+auparse_flush_feed \- flush any unconsumed feed data through parser.
+.SH "SYNOPSIS"
+.B #include <auparse.h>
+.sp
+.nf
+int auparse_feed(auparse_state_t *au);
+.fi
+
+.TP
+.I au
+The audit parse state
+.SH "DESCRIPTION"
+
+.I auparse_flush_feed
+should be called to signal the end of feed input data and flush any pending parse data through the parsing system.
+
+.SH "RETURN VALUE"
+
+Returns -1 if an error occurs; otherwise, 0 for success.
+
+.SH "SEE ALSO"
+
+.BR auparse_feed (3)
+
+
+.SH AUTHOR
+John Dennis

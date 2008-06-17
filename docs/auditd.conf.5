@@ -1,0 +1,240 @@
+.TH AUDITD.CONF: "5" "Sept 2007" "Red Hat" "System Administration Utilities"
+.SH NAME
+auditd.conf \- audit daemon configuration file
+.SH DESCRIPTION
+The file
+.I /etc/audit/auditd.conf
+contains configuration information specific to the audit daemon.
+It should contain one configuration keyword per line, an equal sign,
+and then followed by appropriate configuration information. The
+keywords recognized are:
+.IR  log_file ", " log_format ", " log_group ", "priority_boost ",
+.IR  flush ", " freq ", " num_logs " , " disp_qos " , " dispatcher ",
+.IR  name_format " , " name ", " max_log_file ",
+.IR  max_log_file_action ", " space_left ",
+.IR  action_mail_acct ", " space_left_action ", " admin_space_left ",
+.IR  admin_space_left_action ",
+.IR  disk_full_action ", and " disk_error_action ".
+These keywords are described below.
+
+.TP
+.I log_file
+This keyword specifies the full path name to the log file where audit records
+will be stored. It must be a regular file.
+.TP
+.I log_format
+The log format describes how the information should be stored on disk. There are 2 options: raw and nolog.
+If set to
+.IR RAW ,
+the audit records will be stored in a format exactly as the kernel sends it. If this option is set to
+.I NOLOG
+then all audit information is discarded instead of writing to disk. This mode does not affect data sent to the audit event dispatcher.
+.TP
+.I log_group
+This keyword specifies the group that is applied to the log file's permissions. The default is root. The group name can be either numeric or spelled out.
+.TP
+.I priority_boost
+This is a non-negative number that tells the audit daemon how much of a priority boost it should take. The default is 4. No change is 0.
+.TP
+.I flush
+Valid values are
+.IR none ", " incremental ", " data ",  and " sync ".
+If set to
+.IR none ,
+no special effort is made to flush the audit records to disk. If set to
+.IR incremental ,
+Then the
+.I freq
+parameter is used to determine how often an explicit flush to disk is issued.
+The
+.I data
+parameter tells the audit damon to keep the data portion of the disk file
+sync'd at all times. The
+.I sync
+option tells the audit daemon to keep both the data and meta-data fully
+sync'd with every write to disk.
+.TP
+.I freq
+This is a non-negative number that tells the audit damon how many records to
+write before issuing an explicit flush to disk command. this value is only
+valid when the
+.I flush
+keyword is set to
+.IR incremental .
+.TP
+.I num_logs
+This keyword specifies the number of log files to keep if rotate is given
+as the
+.I max_log_file_action.
+If the number is < 2, logs are not rotated. This number must be 99 or less.
+The default is 0 - which means no rotation. As you increase the number of log files being rotated, you may need to adjust the kernel backlog setting upwards since it takes more time to rotate the files. This is typically done in /etc/audit/audit.rules.
+.TP
+.I disp_qos
+This option controls whether you want blocking/lossless or non-blocking/lossy communication between the audit daemon and the dispatcher. There is a 128k buffer between the audit daemon and dispatcher. This is good enogh for most uses. If lossy is chosen, incoming events going to the dispatcher are discarded when this queue is full. (Events are still written to disk if log_format is not nolog.) Otherwise the auditd daemon will wait for the queue to have an empty spot before logging to disk. The risk is that while the daemon is waiting for network IO, an event is not being recorded to disk. Valid values are: lossy and lossless. Lossy is the default value.
+.TP
+.I dispatcher
+The dispatcher is a program that is started by the audit daemon when it starts up. It will pass a copy of all audit events to that application's stdin. Make sure you trust the application that you add to this line since it runs with root privileges.
+.TP
+.I name_format
+This option controls how computer node names are inserted into the audit event stream. It has the following choices:
+.IR none ", " hostname ", " fqd ", " numeric ", and " user ".
+.IR None
+means that no computer name is inserted into the audit event.
+.IR hostname
+is the name returned by the gethostname syscall. The
+.IR fqd
+means that it takes the hostname and resolves it with dns for a fully qualified
+domain name of that machine.
+.IR Numeric
+is similar to fqd except it resolves the IP address of the machine.
+.IR User
+is an admin defined string from the name option. The default value is
+.IR none ".
+.TP
+.I name
+This is the admin defined string that identifies the machine if
+.IR user
+is given as the
+.IR name_format
+option.
+.TP
+.I max_log_file
+This keyword specifies the maximum file size in megabytes. When this limit
+is reached, it will trigger a configurable action. The value given must be numeric.
+.TP
+.I max_log_file_action
+This parameter tells the system what action to take when the system has
+detected that the max file size limit has been reached. Valid values are
+.IR ignore ", " syslog ", " suspend ", " rotate " and "keep_logs.
+If set to
+.IR ignore ,
+the audit daemon does nothing.
+.IR syslog
+means that it will issue a warning to syslog.
+.IR suspend
+will cause the audit daemon to stop writing records to the disk. The daemon will still be alive. The
+.IR rotate
+option will cause the audit daemon to rotate the logs. It should be noted that logs with higher numbers are older than logs with lower numbers. This is the same convention used by the logrotate utility. The
+.IR keep_logs
+option is similar to rotate except it does not use the num_logs setting. This prevents audit logs from being overwritten.
+.TP
+.I action_mail_acct
+This option should contain a valid email address or alias. The default address is root. If the email address is not local to the machine, you must make sure you have email properly configured on your machine and network. Also, this option requires that /usr/lib/sendmail exists on the machine.
+.TP
+.I space_left
+This is a numeric value in megabytes that tells the audit daemon when
+to perform a configurable action because the system is starting to run low on disk space.
+.TP
+.I space_left_action
+This parameter tells the system what action to take when the system has
+detected that it is starting to get low on disk space.
+Valid values are
+.IR ignore ", " syslog ", " email ", " exec ", " suspend ", " single ", and " halt .
+If set to
+.IR ignore ,
+the audit daemon does nothing.
+.I syslog
+means that it will issue a warning to syslog.
+.I Email
+means that it will send a warning to the email account specified in
+.I action_mail_acct
+as well as sending the message to syslog.
+.I exec
+/path-to-script will execute the script. You cannot pass parameters to the script.
+.I suspend
+will cause the audit daemon to stop writing records to the disk. The daemon will still be alive. The
+.I single
+option will cause the audit daemon to put the computer system in single user mode.
+.I halt
+option will cause the audit daemon to shutdown the computer system.
+.TP
+.I admin_space_left
+This is a numeric value in megabytes that tells the audit daemon when
+to perform a configurable action because the system
+.B is running low
+on disk space. This should be considered the last chance to do something before running out of disk space. The numeric value for this parameter should be lower than the number for space_left.
+.TP
+.I admin_space_left_action
+This parameter tells the system what action to take when the system has
+detected that it
+.B is low on disk space.
+Valid values are
+.IR ignore ", " syslog ", " email ", " exec ", " suspend ", " single ", and " halt .
+If set to
+.IR ignore ,
+the audit daemon does nothing.
+.I Syslog
+means that it will issue a warning to syslog.
+.I Email
+means that it will send a warning to the email account specified in
+.I action_mail_acct
+as well as sending the message to syslog.
+.I exec
+/path-to-script will execute the script. You cannot pass parameters to the script.
+.I Suspend
+will cause the audit daemon to stop writing records to the disk. The daemon will still be alive. The
+.I single
+option will cause the audit daemon to put the computer system in single user mode.
+.I halt
+.TP
+.I disk_full_action
+This parameter tells the system what action to take when the system has
+detected that the partition to which log files are written has become full. Valid values are
+.IR ignore ", " syslog ", " exec ", " suspend ", " single ", and " halt .
+If set to
+.IR ignore ,
+the audit daemon does nothing.
+.I Syslog
+means that it will issue a warning to syslog.
+.I exec
+/path-to-script will execute the script. You cannot pass parameters to the script.
+.I Suspend
+will cause the audit daemon to stop writing records to the disk. The daemon will still be alive. The
+.I single
+option will cause the audit daemon to put the computer system in single user mode.
+.I halt
+option will cause the audit daemon to shutdown the computer system.
+.TP
+.I disk_error_action
+This parameter tells the system what action to take whenever there is an error
+detected when writing audit events to disk or rotating logs. Valid values are
+.IR ignore ", " syslog ", " exec ", " suspend ", " single ", and " halt .
+If set to
+.IR ignore ,
+the audit daemon does nothing.
+.I Syslog
+means that it will issue a warning to syslog.
+.I exec
+/path-to-script will execute the script. You cannot pass parameters to the script.
+.I Suspend
+will cause the audit daemon to stop writing records to the disk. The daemon will still be alive. The
+.I single
+option will cause the audit daemon to put the computer system in single user mode.
+.I halt
+option will cause the audit daemon to shutdown the computer system.
+
+.SH NOTES
+In a CAPP environment, the audit trail is considered so important that access to system resources must be denied if an audit trail cannot be created. In this environment, it would be suggested that /var/log/audit be on its own partition. This is to ensure that space detection is accurate and that no other process comes along and consumes part of it.
+.PP
+The flush parameter should be set to sync or data.
+.PP
+Max_log_file and num_logs need to be adjusted so that you get complete use of your partition. It should be noted that the more files that have to be rotated, the longer it takes to get back to receiving audit events. Max_log_file_action should be set to keep_logs.
+.PP
+Space_left should be set to a number that gives the admin enough time to react to any alert message and perform some maintenance to free up disk space. This would typically involve running the \fBaureport \-t\fP report and moving the oldest logs to an archive area. The value of space_left is site dependant since the rate at which events are generated varies with each deployment. The space_left_action is recommended to be set to email. If you need something like an snmp trap, you can use the exec option to send one.
+.PP
+Admin_space_left should be set to the amount of disk space on the audit partition needed for admin actions to be recorded. Admin_space_left_action would be set to single so that use of the machine is restricted to just the console.
+.PP
+The disk_full_action is triggered when no more room exists on the partition. All access should be terminated since no more audit capability exists. This can be set to either single or halt.
+.PP
+The disk_error_action should be set to syslog, single, or halt depending on your local policies regarding handling of hardware malfunctions.
+
+.SH FILES
+.TP
+.I /etc/audit/auditd.conf
+Audit daemon configuration file
+
+.SH "SEE ALSO"
+.BR auditd (8).
+
+.SH AUTHOR
+Steve Grubb

@@ -1,0 +1,65 @@
+.TH "AUDITD" "8" "Sept 2007" "Red Hat" "System Administration Utilities"
+.SH NAME
+auditd \- The Linux Audit daemon
+.SH SYNOPSIS
+.B auditd
+.RB [ \-f ]\ [ \-l ]\ [ \-n ]\ [ \-s\ disable|enable|nochange ]
+.SH DESCRIPTION
+\fBauditd\fP is the userspace component to the Linux Auditing System. It's responsible for writing audit records to the disk. Viewing the logs is done with the
+.B ausearch
+or
+.B aureport
+utilities. Configuring the audit rules is done with the
+.B auditctl
+utility. During startup, the rules in \fI/etc/audit/audit.rules\fP are read by \fBauditctl\fP. The audit daemon itself has some configuration options that the admin may wish to customize. They are found in the
+.B auditd.conf
+file.
+.SH OPTIONS
+.TP
+.B \-f
+leave the audit daemon in the foreground for debugging. Messages also go to stderr rather than the audit log.
+.TP
+.B \-l
+allow the audit daemon to follow symlinks for config files.
+.TP
+.B \-n
+no fork. This is useful for running off of inittab
+.TP
+.B \-s=\fIENABLE_STATE\fR
+specify when starting if auditd should change the current value for the kernel enabled flag. Valid values for ENABLE_STATE are "disable", "enable" or "nochange". The default is to enable (and disable when auditd terminates). The value of the enabled flag may be changed during the lifetime of auditd using 'auditctl -e'.
+.SH SIGNALS
+.TP
+SIGHUP
+causes auditd to reconfigure. This means that auditd re-reads the configuration file. If there are no syntax errors, it will proceed to implement the requested changes. If the reconfigure is successful, a DAEMON_CONFIG event is recorded in the logs. If not successful, error handling is controlled by space_left_action, admin_space_left_action, disk_full_action, and disk_error_action parameters in auditd.conf.
+
+.TP
+SIGTERM
+caused auditd to discontinue processing audit events, write a shutdown audit event, and exit.
+
+.TP
+SIGUSR1
+causes auditd to immediately rotate the logs. It will consult the max_log_size_action to see if it should keep the logs or not.
+
+.TP
+SIGUSR2
+causes auditd to attemp to resume logging. This is usually used after logging has been suspended.
+
+.SH FILES
+.B /etc/audit/auditd.conf
+- configuration file for audit daemon
+.P
+.B /etc/audit/audit.rules
+- audit rules to be loaded at startup
+
+.SH NOTES
+A boot param of audit=1 should be added to ensure that all processes that run before the audit daemon starts is marked as auditable by the kernel. Not doing that will make a few processes impossible to properly audit.
+
+.SH "SEE ALSO"
+.BR auditd.conf (5),
+.BR audispd (8),
+.BR ausearch (8),
+.BR aureport (8),
+.BR auditctl (8).
+
+.SH AUTHOR
+Steve Grubb

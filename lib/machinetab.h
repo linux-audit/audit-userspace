@@ -1,0 +1,33 @@
+/* machine.h --
+ * Copyright 2005,2006 Red Hat Inc., Durham, North Carolina.
+ * All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+ * Authors:
+ *      Steve Grubb <sgrubb@redhat.com>
+ */
+
+_S(MACH_X86,     "i386"   )
+_S(MACH_X86,     "i486"   )
+_S(MACH_X86,     "i586"   )
+_S(MACH_X86,     "i686"   )
+_S(MACH_86_64,   "x86_64" )
+_S(MACH_IA64,    "ia64"   )
+_S(MACH_PPC64,   "ppc64"  )
+_S(MACH_PPC,     "ppc"    )
+_S(MACH_S390X,   "s390x"  )
+_S(MACH_S390,    "s390"   )
+_S(MACH_ALPHA,   "alpha"  )

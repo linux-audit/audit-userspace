@@ -1,0 +1,5 @@
+gettext_domain = 'system-config-audit'
+glade_file_path = '/usr/share/system-config-audit/system-config-audit.glade'
+localedir = '/usr/share/locale'
+server_path = '/usr/libexec/system-config-audit-server'
+version = '0.4.8'

@@ -1,0 +1,24 @@
+.TH "AUPARSE_INTERPRET_FIELD" "3" "Feb 2007" "Red Hat" "Linux Audit API"
+.SH NAME
+auparse_interpret_field \- get current field's value interpreted
+.SH "SYNOPSIS"
+.B #include <auparse.h>
+.sp
+const char *auparse_interpret_field(auparse_state_t *au);
+
+.SH "DESCRIPTION"
+
+auparse_interpret_field allows access to the interpreted value in the current field of the current record in the current event. The returned value will be destroyed if you call this function again. If you need to interpret another field and keep this value, you will have to copy it for later use.
+
+Examples of things that could be interpreted are: uid, gid, syscall numbers, exit codes, file paths, socket addresses, permissions, modes, and capabilities. There are likely to be more in the future. If a value cannot be interpreted, its original value is returned.
+
+.SH "RETURN VALUE"
+
+Returns NULL if there is an error otherwise a pointer to the interpreted value.
+
+.SH "SEE ALSO"
+
+.BR auparse_get_field_str (3).
+
+.SH AUTHOR
+Steve Grubb

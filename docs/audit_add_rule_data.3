@@ -1,0 +1,55 @@
+.TH "AUDIT_ADD_RULE_DATA" "3" "Oct 2006" "Red Hat" "Linux Audit API"
+.SH NAME
+audit_add_rule_data \- Add new audit rule
+.SH "SYNOPSIS"
+.B #include <libaudit.h>
+.sp
+int audit_add_rule_data (int fd, struct audit_rule_data *rule, int flags, int action);
+
+.SH "DESCRIPTION"
+
+audit_add_rule adds an audit rule to one of several kernel event filters. The filter is specified by the flags argument. Possible values for flags are:
+
+.TP 3
+\(bu
+AUDIT_FILTER_USER - Apply rule to userspace generated messages.
+.TP
+\(bu
+AUDIT_FILTER_TASK - Apply rule at task creation (not syscall).
+.TP
+\(bu
+AUDIT_FILTER_ENTRY - Apply rule at syscall entry.
+.TP
+\(bu
+AUDIT_FILTER_WATCH - Apply rule to file system watches.
+.TP
+\(bu
+AUDIT_FILTER_EXIT - Apply rule at syscall exit.
+.TP
+\(bu
+AUDIT_FILTER_TYPE - Apply rule at audit_log_start.
+.LP
+
+.PP
+The rule's action has two possible values:
+
+.TP 3
+\(bu
+AUDIT_NEVER - Do not build context if rule matches.
+.TP
+\(bu
+AUDIT_ALWAYS - Generate audit record if rule matches.
+.LP
+
+.SH "RETURN VALUE"
+
+The return value is <= 0 on error, otherwise it is the netlink sequence id number. This function can have any error that sendto would encounter.
+
+.SH "SEE ALSO"
+
+.BR audit_delete_rule_data (3),
+.BR audit_add_watch (3),
+.BR auditctl (8).
+
+.SH AUTHOR
+Steve Grubb.

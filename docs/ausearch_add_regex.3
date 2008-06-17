@@ -1,0 +1,26 @@
+.TH "AUSEARCH_ADD_REGEX" "3" "Sept 2007" "Red Hat" "Linux Audit API"
+.SH NAME
+ausearch_add_regex \- use regular expression search rule
+.SH "SYNOPSIS"
+.B #include <auparse.h>
+.sp
+int ausearch_add_regex(auparse_state_t *au, const char *expr);
+
+.SH "DESCRIPTION"
+
+ausearch_add_regex adds one search condition based on regular expressions to the audit search API. The search conditions can then be used to scan logs, files, or buffers for something of interest. You may not use this in combination with any other search expression. The regular expression follows the posix regular expression conventions. The search results are at the record level and not the field.
+
+.SH "RETURN VALUE"
+
+Returns -1 if an error occurs; otherwise, 0 for success.
+
+.SH "SEE ALSO"
+
+.BR ausearch_add_expression (3),
+.BR ausearch_add_item (3),
+.BR ausearch_clear (3),
+.BR ausearch_next_event (3),
+.BR regcomp (3).
+
+.SH AUTHOR
+Steve Grubb

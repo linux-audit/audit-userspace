@@ -1,0 +1,968 @@
+/* ausearch-options.c - parse commandline options and configure ausearch
+ * Copyright 2005-08 Red Hat Inc., Durham, North Carolina.
+ * All Rights Reserved.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+ * Authors:
+ *     Debora Velarde <dvelarde@us.ibm.com>
+ *     Steve Grubb <sgrubb@redhat.com>
+ */
+
+#include "config.h"
+#include <string.h>
+#include <ctype.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <errno.h>
+#include <pwd.h>
+#include <grp.h>
+#include "ausearch-options.h"
+#include "ausearch-time.h"
+#include "libaudit.h"
+
+
+/* Global vars that will be accessed by the main program */
+char *user_file = NULL;
+int force_logs = 0;
+
+/* Global vars that will be accessed by the match model */
+unsigned int event_id = -1;
+gid_t event_gid = -1, event_egid = -1;
+ilist *event_type = NULL;
+pid_t event_pid = -1, event_ppid = -1;
+success_t event_success = S_UNSET;
+int event_exact_match = 0;
+uid_t event_uid = -1, event_euid = -1, event_loginuid = -1;
+int event_syscall = -1;
+int event_ua = 0, event_ga = 0, event_se = 0;
+int just_one = 0;
+int event_session_id = -1;
+const char *event_key = NULL;
+const char *event_node = NULL;
+const char *event_filename = NULL;
+const char *event_exe = NULL;
+const char *event_comm = NULL;
+const char *event_hostname = NULL;
+const char *event_terminal = NULL;
+const char *event_subject = NULL;
+const char *event_object = NULL;
+report_t report_format = RPT_DEFAULT;
+
+struct nv_pair {
+    int        value;
+    const char *name;
+};
+
+
+enum { S_EVENT, S_COMM, S_FILENAME, S_ALL_GID, S_EFF_GID, S_GID, S_HELP,
+S_HOSTNAME, S_INTERP, S_INFILE, S_MESSAGE_TYPE, S_PID, S_SYSCALL, S_OSUCCESS,
+S_TIME_END, S_TIME_START, S_TERMINAL, S_ALL_UID, S_EFF_UID, S_UID, S_LOGINID,
+S_VERSION, S_EXACT_MATCH, S_EXECUTABLE, S_CONTEXT, S_SUBJECT, S_OBJECT,
+S_PPID, S_KEY, S_RAW, S_NODE, S_IN_LOGS, S_JUST_ONE, S_SESSION };
+
+static struct nv_pair optiontab[] = {
+	{ S_EVENT, "-a" },
+	{ S_EVENT, "--event" },
+	{ S_COMM, "-c" },
+	{ S_COMM, "--comm" },
+	{ S_FILENAME, "-f" },
+	{ S_FILENAME, "--file" },
+	{ S_ALL_GID, "-ga" },
+	{ S_ALL_GID, "--gid-all" },
+	{ S_EFF_GID, "-ge" },
+	{ S_EFF_GID, "--gid-effective" },
+	{ S_GID, "-gi" },
+	{ S_GID, "--gid" },
+	{ S_HELP, "-h" },
+	{ S_HELP, "--help" },
+	{ S_HOSTNAME, "-hn" },
+	{ S_HOSTNAME, "--host" },
+	{ S_INTERP, "-i" },
+	{ S_INTERP, "--interpret" },
+	{ S_INFILE, "-if" },
+	{ S_INFILE, "--input" },
+	{ S_IN_LOGS, "--input-logs" },
+	{ S_JUST_ONE, "--just-one" },
+	{ S_KEY, "-k" },
+	{ S_KEY, "--key" },
+	{ S_MESSAGE_TYPE, "-m" },
+	{ S_MESSAGE_TYPE, "--message" },
+	{ S_NODE, "-n" },
+	{ S_NODE, "--node" },
+	{ S_OBJECT, "-o" },
+	{ S_OBJECT, "--object" },
+	{ S_PID, "-p" },
+	{ S_PID, "--pid" },
+	{ S_PPID, "-pp" },
+	{ S_PPID, "--ppid" },
+	{ S_RAW, "-r" },
+	{ S_RAW, "--raw" },
+	{ S_SYSCALL, "-sc" },
+	{ S_SYSCALL, "--syscall" },
+	{ S_CONTEXT, "-se" },
+	{ S_CONTEXT, "--context" },
+	{ S_SESSION, "--session" },
+	{ S_SUBJECT, "-su" },
+	{ S_SUBJECT, "--subject" },
+	{ S_OSUCCESS, "-sv" },
+	{ S_OSUCCESS, "--success" },
+	{ S_TIME_END, "-te"},
+	{ S_TIME_END, "--end"},
+	{ S_TIME_START, "-ts" },
+	{ S_TIME_START, "--start" },
+	{ S_TERMINAL, "-tm" },
+	{ S_TERMINAL, "--terminal" },
+	{ S_ALL_UID, "-ua" },
+	{ S_ALL_UID, "--uid-all" },
+	{ S_EFF_UID, "-ue" },
+	{ S_EFF_UID, "--uid-effective" },
+	{ S_UID, "-ui" },
+	{ S_UID, "--uid" },
+	{ S_LOGINID, "-ul" },
+	{ S_LOGINID, "--loginuid" },
+	{ S_VERSION, "-v" },
+	{ S_VERSION, "--version" },
+	{ S_EXACT_MATCH, "-w" },
+	{ S_EXACT_MATCH, "--word" },
+	{ S_EXECUTABLE, "-x" },
+	{ S_EXECUTABLE, "--executable" }
+};
+#define OPTION_NAMES (sizeof(optiontab)/sizeof(optiontab[0]))
+
+
+static int audit_lookup_option(const char *name)
+{
+        int i;
+
+        for (i = 0; i < OPTION_NAMES; i++)
+                if (!strcmp(optiontab[i].name, name))
+			return optiontab[i].value;
+        return -1;
+}
+
+static void usage(void)
+{
+	printf("usage: ausearch [options]\n"
+	"\t-a,--event <Audit event id>\tsearch based on audit event id\n"
+	"\t-c,--comm  <Comm name>\t\tsearch based on command line name\n"
+	"\t-f,--file  <File name>\t\tsearch based on file name\n"
+	"\t-ga,--gid-all <all Group id>\tsearch based on All group ids\n"
+	"\t-ge,--gid-effective <effective Group id>  search based on Effective\n\t\t\t\t\tgroup id\n"
+	"\t-gi,--gid <Group Id>\t\tsearch based on group id\n"
+	"\t-h,--help\t\t\thelp\n"
+	"\t-hn,--host <Host Name>\t\tsearch based on remote host name\n"
+	"\t-i,--interpret\t\t\tInterpret results to be human readable\n"
+	"\t-if,--input <Input File name>\tuse this file instead of current logs\n"
+	"\t--input-logs\t\t\tUse the logs even if stdin is a pipe\n"
+	"\t--just-one\t\t\tEmit just one event\n"
+	"\t-k,--key  <key string>\t\tsearch based on key field\n"
+	"\t-m,--message  <Message type>\tsearch based on message type\n"
+	"\t-n,--node  <Node name>\t\tsearch based on machine's name\n"
+	"\t-o,--object  <SE Linux Object context> search based on context of object\n"
+	"\t-p,--pid  <Process id>\t\tsearch based on process id\n"
+	"\t-pp,--ppid <Parent Process id>\tsearch based on parent process id\n"
+	"\t-r,--raw\t\t\toutput is completely unformatted\n"
+	"\t-sc,--syscall <SysCall name>\tsearch based on syscall name or number\n"
+	"\t-se,--context <SE Linux context> search based on either subject or\n\t\t\t\t\t object\n"
+	"\t--session <login session id>\tsearch based on login session id\n"
+	"\t-su,--subject <SE Linux context> search based on context of the Subject\n"
+	"\t-sv,--success <Success Value>\tsearch based on syscall or event\n\t\t\t\t\tsuccess value\n"
+	"\t-te,--end [end date] [end time]\tending date & time for search\n"
+	"\t-ts,--start [start date] [start time]\tstarting data & time for search\n"
+	"\t-tm,--terminal <TerMinal>\tsearch based on terminal\n"
+	"\t-ua,--uid-all <all User id>\tsearch based on All user id's\n"
+	"\t-ue,--uid-effective <effective User id>  search based on Effective\n\t\t\t\t\tuser id\n"
+	"\t-ui,--uid <User Id>\t\tsearch based on user id\n"
+	"\t-ul,--loginuid <login id>\tsearch based on the User's Login id\n"
+	"\t-v,--version\t\t\tversion\n"
+	"\t-w,--word\t\t\tstring matches are whole word\n"
+	"\t-x,--executable  <executable name>  search based on excutable name\n"
+	);
+}
+
+static int convert_str_to_msg(const char *optarg)
+{
+	int tmp, retval = 0;
+
+	if (isdigit(optarg[0])) {
+		errno = 0;
+		tmp = strtoul(optarg, NULL, 10);
+		if (errno) {
+	       		fprintf(stderr, 
+			"Numeric message type conversion error (%s) for %s\n",
+				strerror(errno), optarg);
+			retval = -1;
+		}
+	} else {
+		tmp = audit_name_to_msg_type(optarg);
+		if (tmp < 0) 
+		        retval = -1;
+	}
+	if (retval == 0) {
+		if (event_type == NULL) {
+			event_type = malloc(sizeof(ilist));
+			if (event_type == NULL)
+				return -1;
+			ilist_create(event_type);
+		}
+		ilist_append(event_type, tmp, 1, 0);
+	}
+	return retval;
+}
+
+static int parse_msg(const char *optarg)
+{
+	int retval = 0;
+
+	if (strchr(optarg, ',')) {
+		char *ptr, *tmp = strdup(optarg);
+		if (tmp == NULL)
+			return -1;
+		ptr = strtok(tmp, ",");
+		while (ptr) {
+			retval = convert_str_to_msg(ptr);
+			if (retval != 0)
+				break;
+			ptr = strtok(NULL, ",");
+		}
+		free(tmp);
+		return retval;
+	}
+
+	return convert_str_to_msg(optarg);
+}
+
+/*
+ * This function examines the commandline parameters and sets various
+ * search options. It returns a 0 on success and < 0 on failure
+ */
+int check_params(int count, char *vars[])
+{
+	int c = 1;
+	int retval = 0;
+	const char *optarg;
+
+	if (count < 2) {
+		usage();
+		return -1;
+	}
+	while (c < count && retval == 0) {
+		// Go ahead and point to the next argument
+		if (c+1 < count) {
+			if (vars[c+1][0] != '-')
+				optarg = vars[c+1];
+			else
+				optarg = NULL;
+		} else
+			optarg = NULL;
+
+		switch (audit_lookup_option(vars[c])) {
+		case S_EVENT:
+			if (!optarg) {
+				fprintf(stderr, 
+					"Argument is required for %s\n",
+					vars[c]);
+				retval = -1;
+				break;
+			}
+			if (isdigit(optarg[0])) {
+				errno = 0;
+				event_id = strtoul(optarg, NULL, 10);
+				if (errno) {
+					fprintf(stderr,
+					"Illegal value for audit event ID");
+					retval = -1;
+				}
+				c++;
+			} else {
+				fprintf(stderr, 
+			"Audit event id must be a numeric value, was %s\n",
+					optarg);
+				retval = -1;
+			}
+			break;
+		case S_COMM:
+			if (!optarg) {
+				fprintf(stderr, 
+					"Argument is required for %s\n",
+					vars[c]);
+				retval = -1;
+				break;
+			} else {
+				event_comm = strdup(optarg);
+        	                if (event_comm == NULL)
+                	                retval = -1;
+				c++;
+			}
+			break;
+		case S_FILENAME:
+			if (!optarg) {
+				fprintf(stderr, 
+					"Argument is required for %s\n",
+					vars[c]);
+				retval = -1;
+			} else {
+				event_filename = strdup(optarg);
+        	                if (event_filename == NULL)
+                	                retval = -1;
+				c++;
+			}
+			break;
+		case S_KEY:
+			if (!optarg) {
+				fprintf(stderr, 
+					"Argument is required for %s\n",
+					vars[c]);
+				retval = -1;
+			} else {
+				event_key = strdup(optarg);
+        	                if (event_key == NULL)
+                	                retval = -1;
+				c++;
+			}
+			break;
+		case S_ALL_GID:
+			if (!optarg) {
+				fprintf(stderr, 
+					"Argument is required for %s\n",
+					vars[c]);
+				retval = -1;
+				break;
+			}
+                	if (isdigit(optarg[0])) {
+				errno = 0;
+                        	event_gid = strtoul(optarg,NULL,10);
+				if (errno) {
+                        		fprintf(stderr, 
+			"Numeric group ID conversion error (%s) for %s\n",
+						strerror(errno), optarg);
+                                	retval = -1;
+				}
+                	} else {
+				struct group *gr ;
+
+				gr = getgrnam(optarg) ;
+				if (gr == NULL) {
+                        		fprintf(stderr, 
+				"Group ID is non-numeric and unknown (%s)\n",
+						optarg);
+					retval = -1;
+					break;
+				}
+				event_gid = gr->gr_gid;
+                	}
+			event_egid = event_gid;
+			event_ga = 1;
+			c++;
+			break;
+		case S_EFF_GID:
+			if (!optarg) {
+				fprintf(stderr, 
+					"Argument is required for %s\n",
+					vars[c]);
+				retval = -1;
+				break;
+			}
+                	if (isdigit(optarg[0])) {
+				errno = 0;
+                        	event_egid = strtoul(optarg,NULL,10);
+				if (errno) {
+                        		fprintf(stderr, 
+			"Numeric group ID conversion error (%s) for %s\n",
+						strerror(errno), optarg);
+                                	retval = -1;
+				}
+                	} else {
+				struct group *gr ;
+
+				gr = getgrnam(optarg) ;
+				if (gr == NULL) {
+                        		fprintf(stderr, 
+			"Effective group ID is non-numeric and unknown (%s)\n",
+						optarg);
+					retval = -1;
+					break;
+				}
+				event_egid = gr->gr_gid;
+                	}
+			c++;
+			break;
+		case S_GID:
+			if (!optarg) {
+				fprintf(stderr, 
+					"Argument is required for %s\n",
+					vars[c]);
+				retval = -1;
+				break;
+			}
+                	if (isdigit(optarg[0])) {
+				errno = 0;
+                        	event_gid = strtoul(optarg,NULL,10);
+				if (errno) {
+                        		fprintf(stderr, 
+			"Numeric group ID conversion error (%s) for %s\n",
+						strerror(errno), optarg);
+                                	retval = -1;
+				}
+                	} else {
+				struct group *gr ;
+
+				gr = getgrnam(optarg) ;
+				if (gr == NULL) {
+                        		fprintf(stderr, 
+				"Group ID is non-numeric and unknown (%s)\n",
+						optarg);
+					retval = -1;
+					break;
+				}
+				event_gid = gr->gr_gid;
+                	}
+			c++;
+			break;
+		case S_HELP:
+			usage();
+			exit(0);
+			break;
+		case S_HOSTNAME:
+			if (!optarg) {
+				fprintf(stderr, 
+					"Argument is required for %s\n",
+					vars[c]);
+				retval = -1;
+			} else {
+				event_hostname = strdup(optarg);
+				if (event_hostname == NULL)
+					retval = -1;
+				c++;
+			}
+			break;
+		case S_INTERP:
+			if (report_format == RPT_DEFAULT)
+				report_format = RPT_INTERP;
+			else {
+				fprintf(stderr, 
+					"Conflicting output format %s\n",
+					vars[c]);
+        	                retval = -1;
+			}
+			if (optarg) {
+				fprintf(stderr, 
+					"Argument is NOT required for %s\n",
+					vars[c]);
+        	                retval = -1;
+			}
+			break;
+		case S_INFILE:
+			if (!optarg) {
+				fprintf(stderr, 
+					"Argument is required for %s\n",
+					vars[c]);
+				retval = -1;
+			} else {
+				user_file = strdup(optarg);
+				if (user_file == NULL)
+					retval = -1;
+				c++;
+			}
+			break;
+		case S_MESSAGE_TYPE:
+	                if (!optarg) {
+				fprintf(stderr, 
+					"Argument is required for %s\n",
+					vars[c]);
+        	                retval = -1;
+	                } else {
+				if (strcasecmp(optarg, "ALL") != 0) {
+					retval = parse_msg(optarg);
+				}
+				c++;
+			}
+			if (retval < 0) {
+				int i;
+                        	fprintf(stderr, 
+					"Valid message types are: ALL ");
+				for (i=AUDIT_USER;i<=AUDIT_LAST_CRYPTO_MSG;i++){
+					const char *name;
+					if (i == AUDIT_WATCH_INS) // Skip a few
+						i = AUDIT_FIRST_USER_MSG;
+					name = audit_msg_type_to_name(i);
+					if (name)
+		                        	fprintf(stderr, "%s ", name);
+				}
+                        	fprintf(stderr, "\n");
+			}
+			break;
+		case S_OBJECT:
+			if (!optarg) {
+				fprintf(stderr, 
+					"Argument is required for %s\n",
+					vars[c]);
+				retval = -1;
+				break;
+			} else {
+				event_object = strdup(optarg);
+        	                if (event_object == NULL)
+                	                retval = -1;
+				c++;
+			}
+			break;
+		case S_PPID:
+			if (!optarg) {
+				fprintf(stderr, 
+					"Argument is required for %s\n",
+					vars[c]);
+				retval = -1;
+				break;
+			}
+			if (isdigit(optarg[0])) {
+				errno = 0;
+				event_ppid = strtol(optarg,NULL,10);
+				if (errno)
+					retval = -1;
+				c++;
+			} else {
+				fprintf(stderr, 
+			"Parent process id must be a numeric value, was %s\n",
+					optarg);
+				retval = -1;
+			}
+			break;
+		case S_PID:
+			if (!optarg) {
+				fprintf(stderr, 
+					"Argument is required for %s\n",
+					vars[c]);
+				retval = -1;
+				break;
+			}
+			if (isdigit(optarg[0])) {
+				errno = 0;
+				event_pid = strtol(optarg,NULL,10);
+				if (errno)
+					retval = -1;
+				c++;
+			} else {
+				fprintf(stderr, 
+				"Process id must be a numeric value, was %s\n",
+					optarg);
+				retval = -1;
+			}
+			break;
+		case S_RAW:
+			if (report_format == RPT_DEFAULT)
+				report_format = RPT_RAW;
+			else {
+				fprintf(stderr, 
+					"Conflicting output format --raw\n");
+        	                retval = -1;
+			}
+			if (optarg) {
+				fprintf(stderr, 
+					"Argument is NOT required for --raw\n");
+        	                retval = -1;
+			}
+			break;
+		case S_NODE:
+			if (!optarg) {
+				fprintf(stderr, 
+					"Argument is required for %s\n",
+					vars[c]);
+				retval = -1;
+			} else {
+				event_node = strdup(optarg);
+				if (event_node == NULL)
+					retval = -1;
+				c++;
+			}
+			break;
+		case S_SYSCALL:
+			if (!optarg) {
+				fprintf(stderr, 
+					"Argument is required for %s\n",
+					vars[c]);
+				retval = -1;
+				break;
+			}
+			if (optarg && isdigit(optarg[0])) {
+				errno = 0;
+				event_syscall = (int)strtoul(optarg, NULL, 10);
+				if (errno) {
+                        		fprintf(stderr, 
+			"Syscall numeric conversion error (%s) for %s\n",
+						strerror(errno), optarg);
+                                	retval = -1;
+				}
+			} else {
+                                int machine;
+                                machine = audit_detect_machine();
+                                if (machine < 0) {
+                                        fprintf(stderr,
+                                            "Error detecting machine type");
+                                        retval = -1;
+					break;
+                                }
+				event_syscall = audit_name_to_syscall(optarg, 
+					machine);
+				if (event_syscall == -1) {
+					fprintf(stderr, 
+						"Syscall %s not found\n",
+						optarg);
+                                        retval = -1;
+				}
+                        }
+			c++;
+			break;
+		case S_CONTEXT:
+			if (!optarg) {
+				fprintf(stderr, 
+					"Argument is required for %s\n",
+					vars[c]);
+				retval = -1;
+				break;
+			} else {
+				event_subject = strdup(optarg);
+        	                if (event_subject == NULL)
+                	                retval = -1;
+				event_object = strdup(optarg);
+        	                if (event_object == NULL)
+                	                retval = -1;
+				event_se = 1;
+				c++;
+			}
+			break;
+		case S_SUBJECT:
+			if (!optarg) {
+				fprintf(stderr, 
+					"Argument is required for %s\n",
+					vars[c]);
+				retval = -1;
+				break;
+			} else {
+				event_subject = strdup(optarg);
+        	                if (event_subject == NULL)
+                	                retval = -1;
+				c++;
+			}
+			break;
+		case S_OSUCCESS:
+			if (!optarg) {
+				fprintf(stderr, 
+					"Argument is required for %s\n",
+					vars[c]);
+				retval = -1;
+				break;
+			}
+                	if ( (strstr(optarg, "yes")!=NULL) || 
+					(strstr(optarg, "no")!=NULL) ) {
+                        	if (strcmp(optarg, "yes") == 0)
+					event_success = S_SUCCESS;
+				else
+					event_success = S_FAILED;
+                	} else {
+                        	fprintf(stderr, 
+					"Success must be 'yes' or 'no'.\n");
+                        	retval = -1;
+                	}
+			c++;
+			break;
+		case S_SESSION:
+			if (!optarg) {
+				fprintf(stderr, 
+					"Argument is required for %s\n",
+					vars[c]);
+				retval = -1;
+				break;
+			}
+			if (isdigit(optarg[0])) {
+				errno = 0;
+				event_session_id = strtol(optarg,NULL,10);
+				if (errno)
+					retval = -1;
+				c++;
+			} else {
+				fprintf(stderr, 
+				"Session id must be a numeric value, was %s\n",
+					optarg);
+				retval = -1;
+			}
+			break;
+		case S_TIME_END:
+			if (optarg) {
+				if ( (c+2 < count) && vars[c+2] && 
+					(vars[c+2][0] != '-') ) {
+				/* Have both date and time - check order*/
+					if (strchr(optarg, ':')) {
+						if (ausearch_time_end(vars[c+2],
+								 optarg) != 0) 
+							retval = -1;
+					} else {
+						if (ausearch_time_end(optarg, 
+								vars[c+2]) != 0)
+							retval = -1;
+					}
+					c++;			
+				} else {
+					// Check against recognized words
+					int t = lookup_time(optarg);
+					if (t >= 0) {
+						if (ausearch_time_end(optarg,
+								NULL) != 0)
+							retval = -1;
+					} else if ( (strchr(optarg, ':')) == NULL) {
+						/* Only have date */
+						if (ausearch_time_end(optarg,
+								NULL) != 0)
+							retval = -1;
+					} else {
+						/* Only have time */
+						if (ausearch_time_end(NULL,
+								optarg) != 0)
+							retval = -1;
+					}
+				}
+				c++;			
+				break;
+			} 
+			fprintf(stderr, 
+				"%s requires either date and/or time\n",
+				vars[c]);
+			retval = -1;
+			break;
+		case S_TIME_START:
+			if (optarg) {
+				if ( (c+2 < count) && vars[c+2] && 
+					(vars[c+2][0] != '-') ) {
+				/* Have both date and time - check order */
+					if (strchr(optarg, ':')) {
+						if (ausearch_time_start(
+							vars[c+2], optarg) != 0)
+							retval = -1;
+					} else {
+						if (ausearch_time_start(optarg, 
+								vars[c+2]) != 0)
+							retval = -1;
+					}
+					c++;
+				} else {
+					// Check against recognized words
+					int t = lookup_time(optarg);
+					if (t >= 0) {
+						if (ausearch_time_start(optarg,
+							"00:00:00") != 0)
+							retval = -1;
+					}
+					else if ( strchr(optarg, ':') == NULL) {
+						/* Only have date */
+						if (ausearch_time_start(optarg,
+							"00:00:00") != 0)
+							retval = -1;
+					} else {
+						/* Only have time */
+						if (ausearch_time_start(NULL,
+								optarg) != 0)
+							retval = -1;
+					}
+				}
+				c++;
+				break;
+			}
+			fprintf(stderr, 
+				"%s requires either date and/or time\n",
+				vars[c]);
+			retval = -1;
+			break;
+		case S_TERMINAL:
+			if (!optarg) {
+				fprintf(stderr, 
+					"Argument is required for %s\n",
+					vars[c]);
+				retval = -1;
+                	} else { 
+				event_terminal = strdup(optarg);
+				if (event_terminal == NULL)
+        	                        retval = -1;
+				c++;
+			}
+			break;
+		case S_UID:
+			if (!optarg) {
+				fprintf(stderr, 
+					"Argument is required for %s\n",
+					vars[c]);
+				retval = -1;
+				break;
+			}
+                	if (isdigit(optarg[0])) {
+				errno = 0;
+                        	event_uid = strtoul(optarg,NULL,10);
+				if (errno) {
+                        		fprintf(stderr, 
+			"Numeric user ID conversion error (%s) for %s\n",
+						strerror(errno), optarg);
+                                	retval = -1;
+				}
+                	} else {
+				struct passwd *pw;
+
+				pw = getpwnam(optarg);
+				if (pw == NULL) {
+                        		fprintf(stderr, 
+			"Effective user ID is non-numeric and unknown (%s)\n",
+						optarg);
+					retval = -1;
+					break;
+				}
+				event_uid = pw->pw_uid;
+                	}
+			c++;
+			break;
+		case S_EFF_UID:
+			if (!optarg) {
+				fprintf(stderr, 
+					"Argument is required for %s\n",
+					vars[c]);
+				retval = -1;
+				break;
+			}
+                	if (isdigit(optarg[0])) {
+				errno = 0;
+                        	event_euid = strtoul(optarg,NULL,10);
+				if (errno) {
+                        		fprintf(stderr, 
+			"Numeric user ID conversion error (%s) for %s\n",
+						strerror(errno), optarg);
+                                	retval = -1;
+				}
+                	} else {
+				struct passwd *pw ;
+
+				pw = getpwnam(optarg) ;
+				if (pw == NULL) {
+                        		fprintf(stderr, 
+				"User ID is non-numeric and unknown (%s)\n",
+						optarg);
+					retval = -1;
+					break;
+				}
+				event_euid = pw->pw_uid;
+                	}
+			c++;
+			break;
+		case S_ALL_UID:
+			if (!optarg) {
+				fprintf(stderr, 
+					"Argument is required for %s\n",
+					vars[c]);
+				retval = -1;
+				break;
+			}
+                	if (isdigit(optarg[0])) {
+				errno = 0;
+                        	event_uid = strtoul(optarg,NULL,10);
+				if (errno) {
+                        		fprintf(stderr, 
+			"Numeric user ID conversion error (%s) for %s\n",
+						strerror(errno), optarg);
+                                	retval = -1;
+				}
+                	} else {
+				struct passwd *pw ;
+
+				pw = getpwnam(optarg) ;
+				if (pw == NULL) {
+                        		fprintf(stderr, 
+				"User ID is non-numeric and unknown (%s)\n",
+						optarg);
+					retval = -1;
+					break;
+				}
+				event_uid = pw->pw_uid;
+                	}
+			event_ua = 1;
+			event_euid = event_uid;
+			event_loginuid = event_uid;
+			c++;
+			break;
+		case S_LOGINID:
+			if (!optarg) {
+				fprintf(stderr, 
+					"Argument is required for %s\n",
+					vars[c]);
+				retval = -1;
+				break;
+			}
+                        if (isdigit(optarg[0])) {
+				errno = 0;
+                        	event_loginuid = strtoul(optarg,NULL,10);
+				if (errno) {
+                        		fprintf(stderr, 
+			"Numeric user ID conversion error (%s) for %s\n",
+						strerror(errno), optarg);
+                                        retval = -1;
+				}
+                        } else {
+				struct passwd *pw ;
+
+				pw = getpwnam(optarg) ;
+				if (pw == NULL) {
+                        		fprintf(stderr, 
+			"Login user ID is non-numeric and unknown (%s)\n",
+						optarg);
+					retval = -1;
+					break;
+				}
+				event_loginuid = pw->pw_uid;
+                        }
+			c++;
+			break;
+		case S_VERSION:
+	                printf("ausearch version %s\n", VERSION);
+			exit(0);
+			break;
+		case S_EXACT_MATCH:
+			event_exact_match=1;
+			break;
+		case S_IN_LOGS:
+			force_logs = 1;
+			break;
+		case S_JUST_ONE:
+			just_one = 1;
+			break;
+		case S_EXECUTABLE:
+			if (!optarg) {
+				fprintf(stderr, 
+					"Argument is required for %s\n",
+					vars[c]);
+				retval = -1;
+	               	} else { 
+				event_exe = strdup(optarg);
+				if (event_exe == NULL)
+       	                	        retval = -1;
+				c++;
+			}
+			break;
+		default:
+			fprintf(stderr, "%s is an unsupported option\n", 
+				vars[c]);
+			retval = -1;
+			break;
+		}
+		c++;
+	}
+
+	return retval;
+}
+

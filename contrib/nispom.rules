@@ -1,0 +1,122 @@
+##
+## This file contains the a sample audit configuration intended to
+## meet the NISPOM Chapter 8 rules.
+##
+## This file should be saved as /etc/audit/audit.rules.
+##
+## For audit 1.6.5 and higher
+##
+
+## Remove any existing rules
+-D
+
+## Increase buffer size to handle the increased number of messages.
+## Feel free to increase this if the machine panic's
+-b 8192
+
+## Set failure mode to panic
+-f 2
+
+## Audit 1, 1(a) Enough information to determine the date and time of
+## action (e.g., common network time), the system locale of the action,
+## the system entity that initiated or completed the action, the resources
+## involved, and the action involved.
+
+## Things that could affect time
+-a entry,always -F arch=b32 -S adjtimex -S clock_settime -S settimeofday -k time-change
+-a entry,always -F arch=b64 -S adjtimex -S clock_settime -S settimeofday -k time-change
+-w /etc/localtime -p wa -k time-change
+
+## Things that could affect system locale
+-a exit,always -F arch=b32 -S sethostname -k system-locale
+-a exit,always -F arch=b64 -S sethostname -k system-locale
+-w /etc/issue -p wa -k system-locale
+-w /etc/issue.net -p wa -k system-locale
+-w /etc/hosts -p wa -k system-locale
+-w /etc/sysconfig/network -p wa -k system-locale
+
+## Audit 1, 1(b) Successful and unsuccessful logons and logoffs.
+## This is covered by patches to login, gdm, and openssh
+## Might also want to watch these files if needing extra information
+#-w /var/log/faillog -p wa -k logins
+#-w /var/log/lastlog -p wa -k logins
+#-w /var/log/btmp -p wa -k logins
+#-w /var/run/utmp -p wa -k logins
+
+## Audit 1, 1(c) Successful and unsuccessful accesses to
+## security-relevant objects and directories, including
+## creation, open, close, modification, and deletion.
+
+## unsuccessful creation
+-a exit,always -F arch=b32 -S creat -S mkdir -S mknod -S link -S symlink -F exit=-EACCES -k creation
+-a exit,always -F arch=b64 -S creat -S mkdir -S mknod -S link -S symlink -F exit=-EACCES -k creation
+-a exit,always -F arch=b32 -S mkdirat -S mknodat -S linkat -S symlinkat -F exit=-EACCES -k creation
+-a exit,always -F arch=b64 -S mkdirat -S mknodat -S linkat -S symlinkat -F exit=-EACCES -k creation
+
+## unsuccessful open - open and openat may be combined on support arches
+-a exit,always -F arch=b32 -S open -F exit=-EACCES -k open
+-a exit,always -F arch=b64 -S open -F exit=-EACCES -k open
+-a exit,always -F arch=b32 -S open -F exit=-EPERM -k open
+-a exit,always -F arch=b64 -S open -F exit=-EPERM -k open
+-a exit,always -F arch=b32 -S openat -F exit=-EACCES -k open
+-a exit,always -F arch=b64 -S openat -F exit=-EACCES -k open
+-a exit,always -F arch=b32 -S openat -F exit=-EPERM -k open
+-a exit,always -F arch=b64 -S openat -F exit=-EPERM -k open
+
+## unsuccessful close
+-a exit,always -F arch=b32 -S close -F exit=-EACCES -k close
+-a exit,always -F arch=b64 -S close -F exit=-EACCES -k close
+
+## unsuccessful modifications - renameat may be combined on supported arches
+-a exit,always -F arch=b32 -S rename -S truncate -S ftruncate -F exit=-EACCES -k mods
+-a exit,always -F arch=b64 -S rename -S truncate -S ftruncate -F exit=-EACCES -k mods
+-a exit,always -F arch=b32 -S renameat -F exit=-EACCES -k mods
+-a exit,always -F arch=b64 -S renameat -F exit=-EACCES -k mods
+-a exit,always -F perm=a -F exit=-EACCES -k mods
+-a exit,always -F perm=a -F exit=-EPERM -k mods
+
+## unsuccessful deletion - unlinkat may be combined on supported arches
+-a exit,always -F arch=b32 -S rmdir -S unlink -F exit=-EACCES -k delete 
+-a exit,always -F arch=b64 -S rmdir -S unlink -F exit=-EACCES -k delete 
+-a exit,always -F arch=b32 -S unlinkat -F exit=-EACCES -k delete
+-a exit,always -F arch=b64 -S unlinkat -F exit=-EACCES -k delete
+
+## Audit 1, 1(d) Changes in user authenticators.
+## Covered by patches to libpam, passwd, and shadow-utils
+## Might also want to watch these files for changes
+-w /etc/group -p wa -k auth
+-w /etc/passwd -p wa -k auth
+-w /etc/gshadow -p wa -k auth
+-w /etc/shadow -p wa -k auth
+-w /etc/security/opasswd -p wa -k auth
+
+## Audit 1, 1(e) The blocking or blacklisting of a user ID,
+## terminal, or access port and the reason for the action.
+## Covered by patches to pam_tally2 and pam_limits
+
+## Audit 1, 1(f) Denial of access resulting from an excessive
+## number of unsuccessful logon attempts.
+## Covered by patches to pam_tally2
+
+## Audit 1, 2 Audit Trail Protection. The contents of audit trails
+## shall be protected against unauthorized access, modification,
+## or deletion.
+## This should be covered by file permissions, but we can watch it
+## to see any activity
+-w /var/log/audit/ -k audit-logs
+
+## Not specifically required by NISPOM; but common sense items
+## Optional - could indicate someone trying to do something bad or
+## just debugging
+#-a entry,always -F arch=b32 -S ptrace -k paranoid
+#-a entry,always -F arch=b64 -S ptrace -k paranoid
+
+## Optional - could be an attempt to bypass audit or simply legacy program
+#-a exit,always -F arch=b32 -S personality -k paranoid
+#-a exit,always -F arch=b64 -S personality -k paranoid
+
+## Put your own watches after this point
+# -w /your-file -p rwxa -k mykey
+
+## Make the configuration immutable
+#-e 2

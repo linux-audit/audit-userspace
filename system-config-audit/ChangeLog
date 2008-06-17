@@ -1,0 +1,192 @@
+2008-05-21  Miloslav Trmač  <mitr@redhat.com>
+
+	* configure.ac: Release 0.4.8.
+	* NEWS: Update.
+
+	* src/system-config-audit.glade: Fix positioning of field help in
+	rule_dialog.
+
+	* src/audit_rules.py (Rule.command_text): Only use -w if no -F nor -S
+	options are used.  Don't output "-S all" with -w.
+
+	* src/rule_dialog.py (RuleDialog.__rule_arch_focus_out.callback): Don't
+	return focus to the text box.
+
+	* src/field_help.py (__field_help): Add help for AUDIT_FILETYPE.
+	* src/lists.py (field_vars): Add AUDIT_DIR, AUDIT_FILETYPE.
+	(event_types): Add more event types.
+	(file_types, file_type_names, sorted_file_type_names): New variables.
+	* src/util.py (parse_filetype, filetype_string): New functions.
+	* src/audit_rules.py (Field.option_text, Rule.validate)
+	(Rule.command_text AuditRules.__interpret_line)
+	* src/rule_list_dialog.py (_EntryTable.excluded_fields)
+	* src/watch_list_dialog.py (_WatchTable._validate_rule)
+	(_WatchTable._update_row)
+	* src/watch_dialog.py (WatchDialog._load_rule): Treat AUDIT_DIR like
+	AUDIT_WATCH.
+	* src/audit_rules.py (AuditRules.__interpret_line)
+	* src/watch_dialog.py (WatchDialog._save_rule): Use AUDIT_DIR if
+	the path is an existing directory.
+	* src/audit_rules.py (_FileTypeFieldType): New class.
+	(Field.__field_type_map): Add AUDIT_DIR, AUDIT_FILETYPE.
+
+2008-05-15  Miloslav Trmač  <mitr@redhat.com>
+
+	* configure.ac: Release 0.4.7.
+	* NEWS: Update.
+
+	* po/POTFILES.in: Add src/lists.py.
+
+	* src/dialog_base.py (DialogBase.__init__): New parameter parent.
+	All subclasses updated.  All users updated.
+
+	* Makefile.am (pkgdata_PYTHON)
+	* po/POTFILES.in: Add src/key_dialog.py and src/key_list_dialog.py.
+	* src/lists.py (N_): New definition.
+	(ids_severities, ids_types): New lists.
+	* src/util.py (set_combo_option): Loosen the documented assumption.
+	(is_ids_key, parse_ids_key, keys_string): New functions.
+	* src/audit_rules.py (_FilterKeyFieldType.parse_value): Reject invalid
+	IDS keys.
+	(Rule.validate): Reject rules with too long keys.
+	* src/key_dialog.py
+	* src/key_list_dialog.py: New files.
+	* src/rule_table.py (RuleTable._row_set_filter_key)
+	* src/system-config-audit.glade
+	* src/rule_dialog.py (RuleDialog)
+	* src/watch_dialog.py (WatchDialog): Support multiple keys.
+
+2008-05-13  Miloslav Trmač  <mitr@redhat.com>
+
+	* src/auditd_config.py (AuditdConfig.__init__): Update the default value
+	of priority_boost.
+
+2008-05-12  Miloslav Trmač  <mitr@redhat.com>
+
+	* src/audit_rules.py (Rule.command_text): Don't add "-S all" to "user"
+	rules.
+	(AuditRules.__interpret_line): Recognize "-[aAd] user".
+
+2008-03-08  Miloslav Trmač  <mitr@redhat.com>
+
+	* configure.ac: Release 0.4.6.
+	* NEWS: Update.
+
+	* src/system-config-audit.glade
+	* src/global_dialog.py (GlobalDialog._glade_widget_names)
+	(GlobalDialog.__init__, GlobalDialog.__name_format_map)
+	(GlobalDialog._load_config, GlobalDialog._save_config)
+	(GlobalDialog._validate_get_failure, GlobalDialog.__validate_name)
+	(GlobalDialog.__name_format_not_none_toggled)
+	(GlobalDialog.__name_format_user_toggled): Add support for name and
+	name_format.
+
+	* src/auditd_config.py (AuditdConfig.NAME_FQD)
+	(AuditdConfig.NAME_HOSTNAME, AuditdConfig.NAME_NONE)
+	(AuditdConfig.NAME_USER, AuditdConfig.__name_values)
+	(AuditdConfig.__slots__, AuditdConfig.__init__)
+	(AuditdConfig.__interpret_option, AuditdConfig.__option_values)
+	(AuditdConfig.__case_insensitive_values): Add support for name and
+	name_format.
+
+2008-03-07  Miloslav Trmač  <mitr@redhat.com>
+
+	* src/auditd_config.py (AuditdConfig.__slots__)
+	(AuditdConfig.__init__, AuditdConfig.__interpret_option)
+	(AuditdConfig.__option_values): Add support for log_group.  (GUI
+	interface not added for now.)
+
+	* src/global_dialog.py (GlobalDialog.__validate_log_file): Relax
+	permissions check in line with audit-1.6.8.
+
+2008-03-05  Miloslav Trmač  <mitr@redhat.com>
+
+	* src/audit_rules.py (AuditRules.read)
+	* src/auditd_config.py (AuditdConfig.read)
+	* src/event_type_dialog.py (EventTypeDialog._validate_get_failure)
+	* src/rule_dialog.py (RuleDialog._validate_get_failure)
+	(RuleDialog.__rule_syscall_add_clicked)
+	(RuleDialog.__rule_arch_focus_out)
+	(RuleDialog.__rule_field_add_clicked): Be compatible with Python 2.4.
+
+2008-01-24  Miloslav Trmač  <mitr@redhat.com>
+
+	* src/server.h: Fix typos.
+
+2007-11-26  Miloslav Trmač  <mitr@redhat.com>
+
+	* configure.ac: Release 0.4.5.
+	* NEWS: Update.
+
+	* src/server.c (req_read_file): Fix overflow check on architectures
+	where sizeof (off_t) <= sizeof (size_t), e.g. x86_64.
+
+2007-11-18  Miloslav Trmač  <mitr@redhat.com>
+
+	* configure.ac: Release 0.4.4.
+	* NEWS: Update.
+
+2007-11-04  Miloslav Trmač  <mitr@redhat.com>
+
+	* po/POTFILES.in: Add missing src/rule_list_dialog.py.
+
+2007-09-05  Miloslav Trmač  <mitr@redhat.com>
+
+	* autogen.sh: Fix aclocal invocation.
+
+2007-09-02  Miloslav Trmač  <mitr@redhat.com>
+
+	* src/rule_dialog.py (RuleDialog.__rule_field_up_clicked)
+	(RuleDialog.__rule_field_down_clicked): Update the state of up/down
+	buttons after moving an item.
+
+2007-08-28  Miloslav Trmač  <mitr@redhat.com>
+
+	* configure.ac: Release 0.4.3.
+	* NEWS: Update.
+
+	* src/audit_rules.py (Field.option_text): New parameter rule.  Use
+	-p only in rules with -w, -F perm= otherwise.
+	Rule.command_text): Add -k only after -S.
+
+2007-08-02  Miloslav Trmač  <mitr@redhat.com>
+
+	* src/main_window.py (N_): Remove useless definition.
+
+2007-07-23  Miloslav Trmač  <mitr@redhat.com>
+
+	* src/watch_list_dialog.py (_WatchTable._validate_rule): Fix a
+	crash when the rule has no AUDIT_WATCH or AUDIT_PERM field.
+
+2007-07-17  Miloslav Trmač  <mitr@redhat.com>
+
+	* system-config-audit.desktop.in (Categories): Add System, to move the
+	menu entry to the Administration submenu.
+
+2007-06-27  Miloslav Trmač  <mitr@redhat.com>
+
+	* configure.ac: Release 0.4.2.
+	* NEWS: Update.
+
+	* src/audit_rules.py (Field.__field_type_map): Make private.
+	(Field.get_field_type): New class method, to avoid Python 2.5
+	collections.defaultdict.  All users changed.
+
+	* configure.ac (AM_PATH_PYTHON): Require only Python 2.4.
+	(AM_GNU_GETTEXT_VERSION): Require only gettext 0.14.6.
+
+2007-06-21  Miloslav Trmač  <mitr@redhat.com>
+
+	* configure.ac: Release 0.4.1.
+	* NEWS: Update.
+
+	* Makefile.am (install-fedora)
+	(admin/system-config-audit-server.console): New targets
+	(CLEANFILES): Add admin/system-config-audit-server.console
+	(EXTRA_DIST): Add admin/system-config-audit-server.console.in and
+	admin/system-config-audit-server.pam.
+	* README: Document the new install-fedora target.
+	* admin/system-config-audit-server.console.in
+	* admin/system-config-audit-server.pam: New files.
+
+	* Makefile.am (src/server.py): Add a missing dependency.

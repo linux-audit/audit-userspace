@@ -1,0 +1,9 @@
+[Desktop Entry]
+Encoding=UTF-8
+_Name=Audit Configuration
+_Comment=Modify audit configuration
+Exec=system-config-audit
+Terminal=false
+Type=Application
+Icon=logviewer
+Categories=Settings;System;

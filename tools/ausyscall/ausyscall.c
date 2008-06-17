@@ -1,0 +1,116 @@
+/*
+ * ausysvcall.c - A program that lets you map syscall names and numbers 
+ * Copyright (c) 2008 Red Hat Inc., Durham, North Carolina.
+ * All Rights Reserved.
+ *
+ * This software may be freely redistributed and/or modified under the
+ * terms of the GNU General Public License as published by the Free
+ * Software Foundation; either version 2, or (at your option) any
+ * later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; see the file COPYING. If not, write to the
+ * Free Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *
+ * Authors:
+ *   Steve Grubb <sgrubb@redhat.com>
+ */
+
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <ctype.h>
+#include "libaudit.h"
+
+
+void usage(void)
+{
+	fprintf(stderr, "usage: ausyscall [arch] name | number | --dump\n");
+	exit(1);
+}
+
+int main(int argc, char *argv[])
+{
+	int i, rc;
+	int machine=-1, syscall_num=-1, dump=0;
+	const char *name = NULL;
+
+	if (argc > 3) {
+		fputs("Too many arguments\n", stderr);
+		usage();
+	}
+ 
+	for (i=1; i<argc; i++) {
+		if (isdigit(argv[i][0])) {
+			if (syscall_num != -1) {
+				fputs("Two syscall numbers not allowed\n",
+					stderr);
+				usage();
+			}
+			syscall_num = strtol(argv[i], 0, 10);
+		} else if ((rc = audit_name_to_machine(argv[i])) != -1) {
+			if (machine != -1) {
+				fputs("Two machine types not allowed\n",stderr);
+				usage();
+			}
+			machine = rc;
+		} else if (strcmp("--dump", argv[i]) == 0) {
+			dump=1;
+		} else {
+			if (name != NULL) {
+				fputs("Two syscall names not allowed\n",stderr);
+				usage();
+			}
+			name = argv[i];
+		}
+	}
+	if (machine == -1)
+		machine = audit_detect_machine();
+	if (machine == -1) {
+		fprintf(stderr, "Unable to detect machine type\n");
+		return 1;
+	}
+
+	if (dump) {
+		printf("Using %s syscall table:\n",
+			audit_machine_to_name(machine));
+		for (i=0; i<8192; i++) {
+			name = audit_syscall_to_name(i, machine);
+			if (name) 
+				printf("%d\t%s\n", i, name);
+		}
+		return 0;
+	}
+
+	if (name) {
+		rc = audit_name_to_syscall(name, machine);
+		if (rc < 0) {
+			fprintf(stderr,
+				"Unknown syscall %s using %s lookup table\n",
+				name, audit_machine_to_name(machine));
+			return 1;
+		} else
+			printf("%d\n", rc);
+	} else if (syscall_num != -1) {
+		name = audit_syscall_to_name(syscall_num, machine);
+		if (name == NULL) {
+			fprintf(stderr,
+				"Unknown syscall %d using %s lookup table\n",
+				syscall_num, audit_machine_to_name(machine));
+			return 1;
+		} else
+			printf("%s\n", name);
+	} else {
+		fputs("Error - either a syscall name or number must "
+			"be given with an optional arch\n", stderr);
+		return 1;
+	}
+
+	return 0;
+}
+
