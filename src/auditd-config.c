@@ -1051,6 +1051,7 @@ static int disk_full_action_parser(struct nv_pair *nv, int line,
 			}
 			config->disk_full_action = failure_actions[i].option;
 			return 0;
+		}
 	}
 	audit_msg(LOG_ERR, "Option %s not found - line %d", nv->value, line);
 	return 1;
