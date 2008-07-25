@@ -3,6 +3,7 @@
 - Don't free const fcntl strings in auparse (Miloslav Trmac)
 - Fix priority_boost_parse and freq_parse functions INT_MAX compares (chuli)
 - Fix parsing in ausearch user records for acct field (Peng Haitao)
+- Allow only 1 add or delete operation per auditctl rule (Yu Zhiguo)
 
 1.7.4
 - Fix interpreting of keys in syscall records

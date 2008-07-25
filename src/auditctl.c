@@ -165,9 +165,17 @@ static void usage(void)
      );
 }
 
-/* Returns 0 ok, 1 deprecated action, 2 error */
+/*
+ * Returns 0 ok, 1 deprecated action, 2 rule error,
+ * 3 multiple rule insert/delete
+ */
 static int audit_rule_setup(const char *opt, int *flags, int *act)
 {
+	static int multiple = 0;
+
+	if (++multiple != 1)
+		return 3;
+
 	if (strstr(opt, "task")) 
 		*flags = AUDIT_FILTER_TASK;
 	else if (strstr(opt, "entry"))
@@ -530,7 +538,11 @@ static int setopt(int count, char *vars[])
 			retval = -1;
 		} else {
 			rc = audit_rule_setup(optarg, &add, &action);
-			if (rc > 1) {
+			if (rc == 3) {
+				fprintf(stderr,
+		"Multiple rule insert/delete operations are not allowed\n");
+				retval = -1;
+			} else if (rc == 2) {
 				fprintf(stderr, 
 					"Append rule - bad keyword %s\n",
 					optarg);
@@ -550,7 +562,11 @@ static int setopt(int count, char *vars[])
 			retval = -1;
 		} else {
 			rc = audit_rule_setup(optarg, &add, &action);
-			if (rc > 1) {
+			if (rc == 3) {
+				fprintf(stderr,
+		"Multiple rule insert/delete operations are not allowed\n");
+				retval = -1;
+			} else if (rc == 2) {
 				fprintf(stderr,
 				"Add rule - bad keyword %s\n", optarg);
 				retval = -1;
@@ -566,7 +582,11 @@ static int setopt(int count, char *vars[])
 		break;
         case 'd': 
 		rc = audit_rule_setup(optarg, &del, &action);
-		if (rc > 1) {
+		if (rc == 3) {
+			fprintf(stderr,
+		"Multiple rule insert/delete operations are not allowed\n");
+			retval = -1;
+		} else if (rc == 2) {
 			fprintf(stderr, "Delete rule - bad keyword %s\n", 
 				optarg);
 			retval = -1;
