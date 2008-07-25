@@ -379,10 +379,10 @@ static int path_parser(struct nv_pair *nv, int line,
 	if (tdir)
 		dir = dirname(tdir);
 	if (dir == NULL || strlen(dir) < 4) { //  '/var' is shortest dirname
-		free(tdir);
 		audit_msg(LOG_ERR,
 			"The directory name: %s is too short - line %d",
 			dir, line);
+		free(tdir);
 		return 1;
 	}
 
