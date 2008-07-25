@@ -786,7 +786,8 @@ static int parse_user(const lnode *n, search_items *s)
 					term++;
 				saved = *term;
 				*term = 0;
-				s->acct = strdup(str);
+				ptr++;
+				s->acct = strdup(ptr);
 				*term = saved;
 			} else { 
 				/* Handle legacy accts */
@@ -802,11 +803,11 @@ static int parse_user(const lnode *n, search_items *s)
 				}
 				term = end;
 				if (!legacy)
-					s->acct = unescape(str);
+					s->acct = unescape(ptr);
 				else {
 					saved = *term;
 					*term = 0;
-					s->acct = strdup(str);
+					s->acct = strdup(ptr);
 					*term = saved;
 				}
 			}

@@ -2,6 +2,7 @@
 - Update system-config-audit to 0.4.8 (Miloslav Trmac)
 - Don't free const fcntl strings in auparse (Miloslav Trmac)
 - Fix priority_boost_parse and freq_parse functions INT_MAX compares (chuli)
+- Fix parsing in ausearch user records for acct field (Peng Haitao)
 
 1.7.4
 - Fix interpreting of keys in syscall records
