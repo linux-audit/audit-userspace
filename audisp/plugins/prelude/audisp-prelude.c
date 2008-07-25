@@ -522,7 +522,7 @@ static int get_rhost_info(auparse_state_t *au, idmef_source_t *source)
 	if (hostname) {
 		ret = idmef_source_new_node(source, &node);
 		PRELUDE_FAIL_CHECK;
-		idmef_node_set_category(node, IDMEF_NODE_CATEGORY_HOSTS);
+		idmef_node_set_category(node, IDMEF_NODE_CATEGORY_UNKNOWN);
 
 		ret = fill_in_node(node, hostname);
 		PRELUDE_FAIL_CHECK;
@@ -547,7 +547,10 @@ static int do_node_common(auparse_state_t *au, idmef_node_t *node)
 				myhostname = strdup(tmp_name);
 		}
 		name = myhostname;
-	}
+		idmef_node_set_category(node, IDMEF_NODE_CATEGORY_HOSTS);
+	} else
+		idmef_node_set_category(node, IDMEF_NODE_CATEGORY_UNKNOWN);
+
 	if (name) {
 		ret = fill_in_node(node, name);
 		PRELUDE_FAIL_CHECK;
@@ -568,7 +571,6 @@ static int get_node_info(auparse_state_t *au, idmef_source_t *source,
 	if (source) {
 		ret = idmef_source_new_node(source, &node);
 		PRELUDE_FAIL_CHECK;
-		idmef_node_set_category(node, IDMEF_NODE_CATEGORY_HOSTS);
 
 		ret = do_node_common(au, node);
 		PRELUDE_FAIL_CHECK;
@@ -577,7 +579,6 @@ static int get_node_info(auparse_state_t *au, idmef_source_t *source,
 	if (target) {
 		ret = idmef_target_new_node(target, &node);
 		PRELUDE_FAIL_CHECK;
-		idmef_node_set_category(node, IDMEF_NODE_CATEGORY_HOSTS);
 
 		ret = do_node_common(au, node);
 		PRELUDE_FAIL_CHECK;

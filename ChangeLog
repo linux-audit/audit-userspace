@@ -5,6 +5,7 @@
 - Fix parsing in ausearch user records for acct field (Peng Haitao)
 - Allow only 1 add or delete operation per auditctl rule (Yu Zhiguo)
 - Delay freeing file path in auditd-config.c and audispd-pconfig.c (wangf)
+- Update IDMEF node classifications
 
 1.7.4
 - Fix interpreting of keys in syscall records
