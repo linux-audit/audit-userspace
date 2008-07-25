@@ -891,18 +891,13 @@ static int space_action_parser(struct nv_pair *nv, int line,
 		"Email option is specified but %s doesn't seem executable.",
 						 email_command);
 				}
-			}
-			config->space_left_action = failure_actions[i].option;
-			return 0;
-		} else if (i == FA_EXEC) {
-			if (strncasecmp(failure_actions[i].name,
-						 nv->value, 4) == 0){
+			} else if (failure_actions[i].option == FA_EXEC) {
 				if (check_exe_name(nv->option))
 					return 1;
 				config->space_left_exe = strdup(nv->option);
-				config->space_left_action = FA_EXEC;
-				return 0;
 			}
+			config->space_left_action = failure_actions[i].option;
+			return 0;
 		}
 	}
 	audit_msg(LOG_ERR, "Option %s not found - line %d", nv->value, line);
@@ -1020,20 +1015,15 @@ static int admin_space_left_action_parser(struct nv_pair *nv, int line,
 		"Email option is specified but %s doesn't seem executable.",
 						 email_command);
 				}
-			}
-			config->admin_space_left_action =
-						failure_actions[i].option;
-			return 0;
-		} else if (i == FA_EXEC) {
-			if (strncasecmp(failure_actions[i].name,
-							nv->value, 4) == 0){
+			} else if (i == FA_EXEC) {
 				if (check_exe_name(nv->option))
 					return 1;
 				config->admin_space_left_exe = 
 							strdup(nv->option);
-				config->admin_space_left_action = FA_EXEC;
-				return 0;
 			}
+			config->admin_space_left_action = 
+						failure_actions[i].option;
+			return 0;
 		}
 	}
 	audit_msg(LOG_ERR, "Option %s not found - line %d", nv->value, line);
@@ -1049,26 +1039,18 @@ static int disk_full_action_parser(struct nv_pair *nv, int line,
 								nv->value);
 	for (i=0; failure_actions[i].name != NULL; i++) {
 		if (strcasecmp(nv->value, failure_actions[i].name) == 0) {
-			if (failure_actions[i].option != FA_EMAIL) {
-				config->disk_full_action =
-						failure_actions[i].option;
-				return 0;
-			} else {
+			if (failure_actions[i].option == FA_EMAIL) {
 				audit_msg(LOG_ERR, 
 			"Illegal option %s for disk_full_action - line %d",
 					nv->value, line);
 				return 1;
-			}
-		} else if (i == FA_EXEC) {
-			if (strncasecmp(failure_actions[i].name, 
-							nv->value, 4) == 0){
+			} else if (failure_actions[i].option == FA_EXEC) {
 				if (check_exe_name(nv->option))
 					return 1;
 				config->disk_full_exe = strdup(nv->option);
-				config->disk_full_action = FA_EXEC;
-				return 0;
 			}
-		}
+			config->disk_full_action = failure_actions[i].option;
+			return 0;
 	}
 	audit_msg(LOG_ERR, "Option %s not found - line %d", nv->value, line);
 	return 1;
@@ -1083,25 +1065,18 @@ static int disk_error_action_parser(struct nv_pair *nv, int line,
 								nv->value);
 	for (i=0; failure_actions[i].name != NULL; i++) {
 		if (strcasecmp(nv->value, failure_actions[i].name) == 0) {
-			if (failure_actions[i].option != FA_EMAIL) {
-				config->disk_error_action = 
-						failure_actions[i].option;
-				return 0;
-			} else {
+			if (failure_actions[i].option == FA_EMAIL) {
 				audit_msg(LOG_ERR, 
 			"Illegal option %s for disk_error_action - line %d",
 					nv->value, line);
 				return 1;
-			}
-		} else if (i == FA_EXEC) {
-			if (strncasecmp(failure_actions[i].name,
-							nv->value, 4) == 0){
+			} else if (i == FA_EXEC) {
 				if (check_exe_name(nv->option))
 					return 1;
 				config->disk_error_exe = strdup(nv->option);
-				config->disk_error_action = FA_EXEC;
-				return 0;
 			}
+			config->disk_error_action = FA_EXEC;
+			return 0;
 		}
 	}
 	audit_msg(LOG_ERR, "Option %s not found - line %d", nv->value, line);
