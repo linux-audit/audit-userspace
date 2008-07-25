@@ -1109,39 +1109,31 @@ int main(int argc, char *argv[])
 
 	set_aumessage_mode(MSG_STDERR, DBG_NO);
 
+	if (argc == 1) {
+		usage();
+		return 1;
+	}
+#ifndef DEBUG
+	/* Make sure we are root */
+	if (getuid() != 0) {
+		fprintf(stderr, "You must be root to run this program.\n");
+		return 4;
+	}
+#endif
 	/* Check where the rules are coming from: commandline or file */
 	if ((argc == 3) && (strcmp(argv[1], "-R") == 0)) {
-#ifndef DEBUG
-		/* Make sure we are root */
-		if (getuid() != 0) {
-			fprintf(stderr, 
-				"You must be root to run this program.\n");
-			return 4;
-		}
-#endif
 		if (fileopt(argv[2]))
 			return 1;
 		else
 			return 0;
 	} else {
-		if (argc == 1) {
-			usage();
-			return 1;
-		}
-#ifndef DEBUG
-		/* Make sure we are root */
-		if (getuid() != 0) {
-			fprintf(stderr, 
-				"You must be root to run this program.\n");
-			return 4;
-		}
-#endif
 		if (reset_vars())
 			return 1;
 		retval = setopt(argc, argv);
 		if (retval == -3)
 			return 0;
 	}
+
 	return handle_request(retval);
 }
 
