@@ -782,7 +782,7 @@ static int freq_parser(struct nv_pair *nv, int line,
 		struct daemon_conf *config)
 {
 	const char *ptr = nv->value;
-	int i;
+	unsigned long i;
 
 	audit_msg(LOG_DEBUG, "freq_parser called with: %s", nv->value);
 
@@ -1112,7 +1112,7 @@ static int priority_boost_parser(struct nv_pair *nv, int line,
 	struct daemon_conf *config)
 {
 	const char *ptr = nv->value;
-	int i;
+	unsigned long i;
 
 	audit_msg(LOG_DEBUG, "priority_boost_parser called with: %s",
 								nv->value);
