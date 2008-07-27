@@ -629,7 +629,7 @@ static int dispatch_parser(struct nv_pair *nv, int line,
 		audit_msg(LOG_ERR, "%s is not owned by root", nv->value);
 		return 1;
 	}
-	if ((buf.st_mode & (S_IRWXU|S_IRWXG|S_IWOTH)) !=
+	if ((buf.st_mode & (S_IRWXU|S_IRWXG|S_IRWXO)) !=
 			   (S_IRWXU|S_IRGRP|S_IXGRP)) {
 		audit_msg(LOG_ERR, "%s permissions should be 0750", nv->value);
 		return 1;
@@ -869,7 +869,7 @@ static int check_exe_name(const char *val)
 		audit_msg(LOG_ERR, "%s is not owned by root", val);
 		return -1;
 	}
-	if ((buf.st_mode & (S_IRWXU|S_IRWXG|S_IWOTH)) !=
+	if ((buf.st_mode & (S_IRWXU|S_IRWXG|S_IRWXO)) !=
 			   (S_IRWXU|S_IRGRP|S_IXGRP)) {
 		audit_msg(LOG_ERR, "%s permissions should be 0750", val);
 		return -1;
