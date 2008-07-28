@@ -220,7 +220,7 @@ int audit_send(int fd, int type, const void *data, unsigned int size)
 		sequence = 1;
 
 	memset(&req, 0, sizeof(req));
-	req.nlh.nlmsg_len = NLMSG_ALIGN(req.nlh.nlmsg_len) + NLMSG_SPACE(size);
+	req.nlh.nlmsg_len = NLMSG_SPACE(size);
 	req.nlh.nlmsg_type = type;
 	req.nlh.nlmsg_flags = NLM_F_REQUEST|NLM_F_ACK;
 	req.nlh.nlmsg_seq = sequence;
