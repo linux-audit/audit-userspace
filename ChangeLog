@@ -9,6 +9,7 @@
 - Apply cleanup of auditctl.c main(). (Yu Zhiguo)
 - Fix parsing of exec options to some auditd actions (Chu Li)
 - Correct permission test on dispatcher and exe name (Chu Li)
+- Disallow using exit field on the entry filter (Zhang Xiliang)
 
 1.7.4
 - Fix interpreting of keys in syscall records

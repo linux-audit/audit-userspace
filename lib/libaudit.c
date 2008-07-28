@@ -870,6 +870,8 @@ int audit_rule_fieldpair_data(struct audit_rule_data **rulep, const char *pair,
 			}
 			break;
 		case AUDIT_EXIT:
+			if (flags == AUDIT_FILTER_ENTRY)
+				return -7;
 			vlen = strlen(v);
 			if (isdigit((char)*(v))) 
 				rule->values[rule->field_count] = 

@@ -281,6 +281,8 @@ int audit_rule_fieldpair(struct audit_rule *rule, const char *pair, int flags)
 			}
 			break;
 		case AUDIT_EXIT:
+			if (flags == AUDIT_FILTER_ENTRY)
+				return -7;
 			vlen = strlen(v);
 			if (isdigit((char)*(v)))
 				rule->values[rule->field_count] =
