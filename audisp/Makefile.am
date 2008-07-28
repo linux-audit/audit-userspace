@@ -27,7 +27,7 @@ INCLUDES = -I.. -I${top_srcdir}/lib
 sbin_PROGRAMS = audispd
 noinst_HEADERS = audispd-config.h audispd-pconfig.h audispd-llist.h \
 	queue.h audispd-builtins.h
-LIBS = -L${top_srcdir}/src/mt -lauditmt 
+LIBS = -L${top_builddir}/src/mt -lauditmt 
 LDADD = -lpthread
 AM_CFLAGS = -D_REENTRANT 
 

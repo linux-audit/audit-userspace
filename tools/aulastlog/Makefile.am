@@ -22,6 +22,7 @@
 
 CONFIG_CLEAN_FILES = Makefile.in *.loT *.rej *.orig
 AUTOMAKE_OPTIONS = no-dependencies
+EXTRA_DIST = $(man_MANS)
 INCLUDES = -I.. -I${top_srcdir}/auparse
 LIBS = -L${top_srcdir}/auparse -lauparse
 bin_PROGRAMS = aulastlog

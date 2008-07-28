@@ -1,5 +1,5 @@
 # Makefile.am--
-# Copyright (C) 2007 International Business Machines  Corp.
+# Copyright (C) 2007,2008 International Business Machines  Corp.
 # All Rights Reserved.
 #
 # This program is free software; you can redistribute it and/or modify
@@ -23,8 +23,8 @@
 INCLUDES = -I.. -I${top_srcdir}/lib -I${top_srcdir}/auparse
 CONFIG_CLEAN_FILES = Makefile.in *.rej *.orig
 AUTOMAKE_OPTIONS = no-dependencies
-EXTRA_DIST = zos-remote.conf audispd-zos-remote.conf \
-	policy/audispd-zos-remote.te policy/audispid-zos-remote.fc\
+EXTRA_DIST = zos-remote.conf audispd-zos-remote.conf
+EXTRA_DATA = policy/audispd-zos-remote.te policy/audispid-zos-remote.fc \
 	policy/audispd-zos-remote.if policy/build.sh policy/install.sh
 LIBS = -L${top_srcdir}/auparse -lauparse
 LDADD = -lpthread -lldap -llber 

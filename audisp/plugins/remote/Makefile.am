@@ -21,7 +21,7 @@
 # 
 
 CONFIG_CLEAN_FILES = Makefile.in *.loT *.rej *.orig
-EXTRA_DIST = au-remote.conf audisp-remote.conf
+EXTRA_DIST = au-remote.conf audisp-remote.conf $(man_MANS)
 AUTOMAKE_OPTIONS = no-dependencies
 INCLUDES = -I.. -I${top_srcdir}/lib 
 prog_confdir = $(sysconfdir)/audisp
