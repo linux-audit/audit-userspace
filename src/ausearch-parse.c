@@ -1441,6 +1441,55 @@ static int parse_simple_message(const lnode *n, search_items *s)
 		}
 	}
 
+	if (event_key) {
+		str = strstr(term, "key=");
+		if (str != NULL) {
+			if (!s->key) {
+				//create
+				s->key = malloc(sizeof(slist));
+				if (s->key == NULL)
+					return 4;
+				slist_create(s->key);
+			}
+			ptr = str + 4;
+			if (*ptr == '"') {
+				ptr++;
+				term = strchr(ptr, '"');
+				if (term != NULL) {
+					*term = 0;
+					if (s->key) {
+						// append
+						snode sn;
+						sn.str = strdup(ptr);
+						sn.key = NULL;
+						sn.hits = 1;
+						slist_append(s->key, &sn);
+					}
+					*term = '"';
+				} else
+					return 5;
+			} else {
+				if (s->key) {
+					char *saved=NULL;
+					char *keyptr = unescape(ptr);
+					char *kptr = strtok_r(keyptr,
+						key_sep, &saved);
+					while (kptr) {
+						snode sn;
+						// append
+						sn.str = strdup(kptr);
+						sn.key = NULL;
+						sn.hits = 1;
+						slist_append(s->key, &sn);
+						kptr = strtok_r(NULL,
+							key_sep, &saved);
+					}
+					free(keyptr);
+				}
+			}
+		}
+	}
+
 	// defaulting this to 1 for these messages. The kernel generally
 	// does not log the res since it can be nothing but success. 
 	// But it can still be overriden below if res= is found in the event
@@ -1457,7 +1506,7 @@ static int parse_simple_message(const lnode *n, search_items *s)
 		errno = 0;
 		s->success = strtoul(ptr, NULL, 10);
 		if (errno)
-			return 4;
+			return 6;
 		if (term)
 			*term = ' ';
 	}
