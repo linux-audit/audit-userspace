@@ -1,5 +1,5 @@
 # Makefile.am --
-# Copyright 2007 Red Hat Inc., Durham, North Carolina.
+# Copyright 2007, 2008 Red Hat Inc., Durham, North Carolina.
 # All Rights Reserved.
 #
 # This library is free software; you can redistribute it and/or
@@ -18,17 +18,14 @@
 #
 # Authors:
 #   Steve Grubb <sgrubb@redhat.com>
+#   Miloslav Trmac <mitr@redhat.com>
 # 
 
 CONFIG_CLEAN_FILES = Makefile.in *.loT *.rej *.orig
-EXTRA_DIST = setup.py auparse_python.c
 
-all:
-	$(PYTHON) setup.py build
+pyexec_LTLIBRARIES = auparse.la
 
-install:
-	$(PYTHON) setup.py install --prefix=$(DESTDIR)/$(PYTHON_PREFIX)
-
-clean-generic:
-	rm -rf build
- 
+auparse_la_SOURCES = auparse_python.c
+auparse_la_CPPFLAGS = $(AM_CPPFLAGS) -I/usr/include/python$(PYTHON_VERSION)
+auparse_la_LDFLAGS = -module -avoid-version
+auparse_la_LIBADD = ../../auparse/libauparse.la ../../lib/libaudit.la

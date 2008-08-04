@@ -75,7 +75,7 @@ Test 3 Done
 Starting Test 4, walk events, records of 1 file...
 event 1 has 4 records
     record 1 of type 1400(AVC) has 11 fields
-    line=1 file=./test.log
+    line=1 file=test.log
     event time: 1170021493.977:293, host=(null)
         type=AVC (AVC)
         seresult=denied (denied)
@@ -90,7 +90,7 @@ event 1 has 4 records
         tclass=dir (dir)
 
     record 2 of type 1300(SYSCALL) has 26 fields
-    line=2 file=./test.log
+    line=2 file=test.log
     event time: 1170021493.977:293, host=(null)
         type=SYSCALL (SYSCALL)
         arch=c000003e (x86_64)
@@ -117,16 +117,16 @@ event 1 has 4 records
         comm="pickup" (pickup)
         exe="/usr/libexec/postfix/pickup" (/usr/libexec/postfix/pickup)
         subj=system_u:system_r:postfix_pickup_t:s0 (system_u:system_r:postfix_pickup_t:s0)
-        key=(null) ((null))
+        key="(null)" ((null))
 
     record 3 of type 1307(CWD) has 2 fields
-    line=3 file=./test.log
+    line=3 file=test.log
     event time: 1170021493.977:293, host=(null)
         type=CWD (CWD)
         cwd="/var/spool/postfix" (/var/spool/postfix)
 
     record 4 of type 1302(PATH) has 10 fields
-    line=4 file=./test.log
+    line=4 file=test.log
     event time: 1170021493.977:293, host=(null)
         type=PATH (PATH)
         item=0 (0)
@@ -141,7 +141,7 @@ event 1 has 4 records
 
 event 2 has 1 records
     record 1 of type 1101(USER_ACCT) has 11 fields
-    line=5 file=./test.log
+    line=5 file=test.log
     event time: 1170021601.340:294, host=(null)
         type=USER_ACCT (USER_ACCT)
         pid=13015 (13015)
@@ -157,7 +157,7 @@ event 2 has 1 records
 
 event 3 has 1 records
     record 1 of type 1103(CRED_ACQ) has 11 fields
-    line=6 file=./test.log
+    line=6 file=test.log
     event time: 1170021601.342:295, host=(null)
         type=CRED_ACQ (CRED_ACQ)
         pid=13015 (13015)
@@ -173,7 +173,7 @@ event 3 has 1 records
 
 event 4 has 1 records
     record 1 of type 1006(LOGIN) has 5 fields
-    line=7 file=./test.log
+    line=7 file=test.log
     event time: 1170021601.343:296, host=(null)
         type=LOGIN (LOGIN)
         pid=13015 (13015)
@@ -183,7 +183,7 @@ event 4 has 1 records
 
 event 5 has 1 records
     record 1 of type 1105(USER_START) has 11 fields
-    line=8 file=./test.log
+    line=8 file=test.log
     event time: 1170021601.344:297, host=(null)
         type=USER_START (USER_START)
         pid=13015 (13015)
@@ -199,7 +199,7 @@ event 5 has 1 records
 
 event 6 has 1 records
     record 1 of type 1104(CRED_DISP) has 11 fields
-    line=9 file=./test.log
+    line=9 file=test.log
     event time: 1170021601.364:298, host=(null)
         type=CRED_DISP (CRED_DISP)
         pid=13015 (13015)
@@ -215,7 +215,7 @@ event 6 has 1 records
 
 event 7 has 1 records
     record 1 of type 1106(USER_END) has 11 fields
-    line=10 file=./test.log
+    line=10 file=test.log
     event time: 1170021601.366:299, host=(null)
         type=USER_END (USER_END)
         pid=13015 (13015)
@@ -276,7 +276,7 @@ event 1 has 4 records
         comm="pickup" (pickup)
         exe="/usr/libexec/postfix/pickup" (/usr/libexec/postfix/pickup)
         subj=system_u:system_r:postfix_pickup_t:s0 (system_u:system_r:postfix_pickup_t:s0)
-        key=(null) ((null))
+        key="(null)" ((null))
 
     record 3 of type 1307(CWD) has 2 fields
     line=3 file=test.log
@@ -432,7 +432,7 @@ event 8 has 4 records
         comm="pickup" (pickup)
         exe="/usr/libexec/postfix/pickup" (/usr/libexec/postfix/pickup)
         subj=system_u:system_r:postfix_pickup_t:s0 (system_u:system_r:postfix_pickup_t:s0)
-        key=(null) ((null))
+        key="(null)" ((null))
 
     record 3 of type 1307(CWD) has 2 fields
     line=3 file=test2.log
@@ -670,7 +670,7 @@ event 1 has 4 records
         comm="pickup" (pickup)
         exe="/usr/libexec/postfix/pickup" (/usr/libexec/postfix/pickup)
         subj=system_u:system_r:postfix_pickup_t:s0 (system_u:system_r:postfix_pickup_t:s0)
-        key=(null) ((null))
+        key="(null)" ((null))
 
     record 3 of type 1307(CWD) has 2 fields
     line=3 file=None

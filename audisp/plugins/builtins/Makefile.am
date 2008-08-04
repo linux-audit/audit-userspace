@@ -21,13 +21,19 @@
 #
 
 CONFIG_CLEAN_FILES = Makefile.in *.rej *.orig
-EXTRA_DIST = af_unix.conf syslog.conf
+CONF_FILES = af_unix.conf syslog.conf
+EXTRA_DIST = $(CONF_FILES)
 plugin_confdir=$(sysconfdir)/audisp/plugins.d
 
 install-data-hook:
 	mkdir -p -m 0750 ${DESTDIR}${plugin_confdir}
-	$(INSTALL_DATA) -D -m 640 ${srcdir}/*.conf ${DESTDIR}${plugin_confdir}
+	for i in $(CONF_FILES); do \
+		$(INSTALL_DATA) -D -m 640 ${srcdir}/"$$i" \
+			${DESTDIR}${plugin_confdir}; \
+	done
 
 uninstall-hook:
-	rm ${DESTDIR}${plugin_confdir}/*
+	for i in $(CONF_FILES); do \
+		rm ${DESTDIR}${plugin_confdir}/"$$i"; \
+	done
 

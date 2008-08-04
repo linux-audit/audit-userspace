@@ -1,5 +1,5 @@
 # Makefile.am -- 
-# Copyright 2005-06 Red Hat Inc., Durham, North Carolina.
+# Copyright 2005-06,2008 Red Hat Inc., Durham, North Carolina.
 # All Rights Reserved.
 #
 # This library is free software; you can redistribute it and/or
@@ -31,8 +31,8 @@ noinst_HEADERS = libaudit.h private.h
 
 libauditmt_a_SOURCES = libaudit.c message.c netlink.c \
 lookup_table.c audit_logging.c deprecated.c
-libauditmt_a_HEADERS: ${top_srcdir}/config.h libaudit.h private.h
-libauditmt_a_DEPENDENCIES = $(libaudit_a_SOURCES) ${top_srcdir}/config.h \
+libauditmt_a_HEADERS: ${top_builddir}/config.h libaudit.h private.h
+libauditmt_a_DEPENDENCIES = $(libaudit_a_SOURCES) ${top_builddir}/config.h \
 	gen_tables.h i386_tables.h ia64_tables.h ppc_tables.h \
 	s390_tables.h s390x_tables.h x86_64_tables.h private.h \
 	actiontabs.h fieldtabs.h flagtabs.h ftypetabs.h \
@@ -58,39 +58,39 @@ deprecated.c: libaudit.h private.h
 gen_tables.h:
 	cp ${top_srcdir}/lib/gen_tables.h .
 i386_tables.h:
-	cp ${top_srcdir}/lib/i386_tables.h .
+	cp ${top_builddir}/lib/i386_tables.h .
 ia64_tables.h:
-	cp ${top_srcdir}/lib/ia64_tables.h .
+	cp ${top_builddir}/lib/ia64_tables.h .
 ppc_tables.h:
-	cp ${top_srcdir}/lib/ppc_tables.h .
+	cp ${top_builddir}/lib/ppc_tables.h .
 s390_tables.h:
-	cp ${top_srcdir}/lib/s390_tables.h .
+	cp ${top_builddir}/lib/s390_tables.h .
 s390x_tables.h:
-	cp ${top_srcdir}/lib/s390x_tables.h .
+	cp ${top_builddir}/lib/s390x_tables.h .
 x86_64_tables.h:
-	cp ${top_srcdir}/lib/x86_64_tables.h .
+	cp ${top_builddir}/lib/x86_64_tables.h .
 private.h:
 	cp ${top_srcdir}/lib/private.h .
 alpha_tables.h:
-	cp ${top_srcdir}/lib/alpha_tables.h .
+	cp ${top_builddir}/lib/alpha_tables.h .
 actiontabs.h:
-	cp ${top_srcdir}/lib/actiontabs.h .
+	cp ${top_builddir}/lib/actiontabs.h .
 fieldtabs.h:
-	cp ${top_srcdir}/lib/fieldtabs.h .
+	cp ${top_builddir}/lib/fieldtabs.h .
 flagtabs.h:
-	cp ${top_srcdir}/lib/flagtabs.h .
+	cp ${top_builddir}/lib/flagtabs.h .
 ftypetabs.h:
-	cp ${top_srcdir}/lib/ftypetabs.h .
+	cp ${top_builddir}/lib/ftypetabs.h .
 machinetabs.h:
-	cp ${top_srcdir}/lib/machinetabs.h .
+	cp ${top_builddir}/lib/machinetabs.h .
 msg_typetabs.h:
-	cp ${top_srcdir}/lib/msg_typetabs.h .
+	cp ${top_builddir}/lib/msg_typetabs.h .
 optabs.h:
-	cp ${top_srcdir}/lib/optabs.h .
+	cp ${top_builddir}/lib/optabs.h .
 errtabs.h:
-	cp ${top_srcdir}/lib/errtabs.h .
+	cp ${top_builddir}/lib/errtabs.h .
 
-lookup_table.o: ${top_srcdir}/config.h gen_tables.h i386_tables.h \
+lookup_table.o: ${top_builddir}/config.h gen_tables.h i386_tables.h \
 	ia64_tables.h ppc_tables.h s390_tables.h s390x_tables.h \
 	x86_64_tables.h alpha_tables.h private.h actiontabs.h \
 	fieldtabs.h flagtabs.h ftypetabs.h machinetabs.h \

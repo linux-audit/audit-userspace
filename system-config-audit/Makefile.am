@@ -59,7 +59,8 @@ install-fedora: install admin/system-config-audit-server.console
 ## Rules
 CLEANFILES = $(applications_DATA) $(bin_SCRIPTS) $(nodist_pkgdata_PYTHON) \
 	admin/system-config-audit-server.console
-DISTCLEANFILES = intltool-extract intltool-merge intltool-update 
+DISTCLEANFILES = $(CLEANFILES) \
+	intltool-extract intltool-merge intltool-update
 EXTRA_DIST = admin/intltool-extract.in admin/intltool-merge.in \
 	admin/intltool-update.in admin/system-config-audit-server.console.in \
 	admin/system-config-audit-server.pam \
@@ -70,7 +71,7 @@ src_system_config_audit_server_SOURCES = src/server.c src/server.h
 src_system_config_audit_server_CPPFLAGS = $(AM_CPPFLAGS) \
 	-DLOCALEDIR='"$(localedir)"' -DSYSCONFDIR='"$(sysconfdir)"' \
 	-I$(top_srcdir)/../lib
-src_system_config_audit_server_LDADD = $(top_srcdir)/../lib/libaudit.la
+src_system_config_audit_server_LDADD = $(top_builddir)/../lib/libaudit.la
 
 admin/system-config-audit-server.console: \
 		admin/system-config-audit-server.console.in Makefile

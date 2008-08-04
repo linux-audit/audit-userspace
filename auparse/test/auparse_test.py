@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 
+import os
+srcdir = os.getenv('srcdir')
 
 buf = ["type=LOGIN msg=audit(1143146623.787:142): login pid=2027 uid=0 old auid=4294967295 new auid=48\ntype=SYSCALL msg=audit(1143146623.875:143): arch=c000003e syscall=188 success=yes exit=0 a0=7fffffa9a9f0 a1=3958d11333 a2=5131f0 a3=20 items=1 pid=2027 auid=48 uid=0 gid=0 euid=0 suid=0 fsuid=0 egid=0 sgid=0 fsgid=0 tty=tty3 comm=\"login\" exe=\"/bin/login\" subj=system_u:system_r:local_login_t:s0-s0:c0.c255\n",
 "type=USER_LOGIN msg=audit(1143146623.879:146): user pid=2027 uid=0 auid=48 msg=\'uid=48: exe=\"/bin/login\" (hostname=?, addr=?, terminal=tty3 res=success)\'\n",
 ]
-files = ["test.log", "test2.log"]
+files = [srcdir + "/test.log", srcdir + "/test2.log"]
 
-import os
 import sys
 import time
 load_path = '../../bindings/python/build/lib.linux-i686-2.4'
@@ -87,7 +88,7 @@ def light_test(au):
 def simple_search(au, source, where):
 
     if source == auparse.AUSOURCE_FILE:
-        au = auparse.AuParser(auparse.AUSOURCE_FILE, "./test.log");
+        au = auparse.AuParser(auparse.AUSOURCE_FILE, srcdir + "/test.log");
         val = "4294967295"
     else:
         au = auparse.AuParser(auparse.AUSOURCE_BUFFER_ARRAY, buf)
@@ -101,7 +102,7 @@ def simple_search(au, source, where):
         print "Found %s = %s" % (au.get_field_name(), au.get_field_str())
 
 def compound_search(au, how):
-    au = auparse.AuParser(auparse.AUSOURCE_FILE, "./test.log");
+    au = auparse.AuParser(auparse.AUSOURCE_FILE, srcdir + "/test.log");
     if how == auparse.AUSEARCH_RULE_AND:
         au.search_add_item("uid", "=", "0", auparse.AUSEARCH_RULE_CLEAR)
         au.search_add_item("pid", "=", "13015", how)
@@ -172,7 +173,7 @@ light_test(au);
 print "Test 3 Done\n"
 
 print "Starting Test 4, walk events, records of 1 file..."
-au = auparse.AuParser(auparse.AUSOURCE_FILE, "./test.log");
+au = auparse.AuParser(auparse.AUSOURCE_FILE, srcdir + "/test.log");
 walk_test(au); 
 print "Test 4 Done\n"
 
@@ -239,7 +240,7 @@ print "Starting Test 9, file feed..."
 au = auparse.AuParser(auparse.AUSOURCE_FEED);
 event_cnt = 1
 au.add_callback(feed_callback, [event_cnt])
-f = open("./test.log");
+f = open(srcdir + "/test.log");
 while True:
     data = f.read(4)
     if not data: break

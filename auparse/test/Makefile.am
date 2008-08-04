@@ -1,5 +1,5 @@
 # Makefile.am -- 
-# Copyright 2006-07 Red Hat Inc., Durham, North Carolina.
+# Copyright 2006-08 Red Hat Inc., Durham, North Carolina.
 # All Rights Reserved.
 #
 # This library is free software; you can redistribute it and/or
@@ -23,36 +23,41 @@
 CONFIG_CLEAN_FILES = Makefile.in *.loT *.rej *.orig
 
 check_PROGRAMS = auparse_test
-check_SCRIPTS = auparse_test.py
-EXTRA_DIST = auparse_test.ref README
+dist_check_SCRIPTS = auparse_test.py
+EXTRA_DIST = auparse_test.ref README test.log test2.log
 
 INCLUDES = -I.. -I${top_srcdir}/lib
 
 auparse_test_SOURCES = auparse_test.c
 auparse_test_LDFLAGS = -static
 auparse_test_LDADD = -L../.libs/ -L../../lib/.libs -lauparse -laudit
-auparse_test_DEPENDENCIES = ../.libs/libauparse.a ../*.c ../*.h
+auparse_test_DEPENDENCIES = ../.libs/libauparse.a \
+	$(srcdir)/../*.c $(srcdir)/../*.h
+
+drop_srcdir = sed 's,$(srcdir)/test,test,'
 
 check: auparse_test
-	LD_LIBRARY_PATH=../.libs ./auparse_test.py > auparse_test.cur
-	diff -u auparse_test.ref auparse_test.cur
+	LD_LIBRARY_PATH=../.libs srcdir=$(srcdir) $(srcdir)/auparse_test.py \
+		| $(drop_srcdir) > auparse_test.cur
+	diff -u $(srcdir)/auparse_test.ref auparse_test.cur
 
 diffcheck: auparse_test
 	./auparse_test > auparse_test.cur
-	diff auparse_test.ref auparse_test.cur
+	diff $(srcdir)/auparse_test.ref auparse_test.cur
 
 memcheck: auparse_test
 	valgrind --leak-check=yes --show-reachable=yes ./auparse_test 
 
 pycheck: auparse_test.py ../../bindings/python/build/*/auparse.so
-	LD_LIBRARY_PATH=../.libs ./auparse_test.py
+	LD_LIBRARY_PATH=../.libs srcdir=$(srcdir) $(srcdir)/auparse_test.py
 
 pydiffcheck: auparse_test.py ../../bindings/python/build/*/auparse.so
-	LD_LIBRARY_PATH=../.libs ./auparse_test.py > auparse_test.cur
-	diff auparse_test.ref auparse_test.cur
+	LD_LIBRARY_PATH=../.libs srcdir=$(srcdir) $(srcdir)/auparse_test.py \
+		| $(drop_srcdir) > auparse_test.cur
+	diff $(srcdir)/auparse_test.ref auparse_test.cur
 
 pymemcheck: auparse_test.py ../../bindings/python/build/*/auparse.so
-	LD_LIBRARY_PATH=../.libs valgrind --leak-check=yes --show-reachable=yes python ./auparse_test.py
+	LD_LIBRARY_PATH=../.libs srcdir=$(srcdir) valgrind --leak-check=yes --show-reachable=yes python $(srcdir)/auparse_test.py
 
 ../../bindings/python/build/*/auparse.so: ../../bindings/python/auparse_python.c
 	cd ../../bindings/python && make
