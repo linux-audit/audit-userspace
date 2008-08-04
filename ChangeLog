@@ -12,6 +12,7 @@
 - Disallow using exit field on the entry filter (Zhang Xiliang)
 - Correct the calculation of nlmsg_len (Yu Zhiguo)
 - Fix parsing of CONFIG_CHANGE events so that search on keys work (Peng Haitao)
+- Fix parsing of filter,action in auditctl
 
 1.7.4
 - Fix interpreting of keys in syscall records

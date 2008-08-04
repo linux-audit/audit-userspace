@@ -60,7 +60,7 @@ extern int delete_all_rules(int fd);
 /* Global vars */
 static int fd = -1;
 static int list_requested = 0;
-static int add = AUDIT_FILTER_UNSET, del = AUDIT_FILTER_UNSET, action = 0;
+static int add = AUDIT_FILTER_UNSET, del = AUDIT_FILTER_UNSET, action = -1;
 static int ignore = 0;
 static int exclude = 0, msgtype_cnt = 0;
 enum { OLD, NEW };
@@ -91,7 +91,7 @@ static int reset_vars(void)
 	audit_elf = 0;
 	add = AUDIT_FILTER_UNSET;
 	del = AUDIT_FILTER_UNSET;
-	action = 0;
+	action = -1;
 	exclude = 0;
 	msgtype_cnt = 0;
 	which = OLD;
@@ -165,38 +165,81 @@ static void usage(void)
      );
 }
 
+static int lookup_filter(const char *str, int *filter)
+{
+	if (strcmp(str, "task") == 0) 
+		*filter = AUDIT_FILTER_TASK;
+	else if (strcmp(str, "entry") == 0)
+		*filter = AUDIT_FILTER_ENTRY;
+	else if (strcmp(str, "exit") == 0)
+		*filter = AUDIT_FILTER_EXIT;
+	else if (strcmp(str, "user") == 0)
+		*filter = AUDIT_FILTER_USER;
+	else if (strcmp(str, "exclude") == 0) {
+		*filter = AUDIT_FILTER_EXCLUDE;
+		exclude = 1;
+	} else
+		return 2;
+	return 0;
+}
+
+static int lookup_action(const char *str, int *act)
+{
+	if (strcmp(str, "never") == 0)
+		*act = AUDIT_NEVER;
+	else if (strcmp(str, "possible") == 0)
+		return 1;
+	else if (strcmp(str, "always") == 0)
+		*act = AUDIT_ALWAYS;
+	else
+		return 2;
+	return 0;
+}
+
 /*
  * Returns 0 ok, 1 deprecated action, 2 rule error,
  * 3 multiple rule insert/delete
  */
-static int audit_rule_setup(const char *opt, int *flags, int *act)
+static int audit_rule_setup(char *opt, int *filter, int *act)
 {
 	static int multiple = 0;
+	int rc;
+	char *p;
 
 	if (++multiple != 1)
 		return 3;
 
-	if (strstr(opt, "task")) 
-		*flags = AUDIT_FILTER_TASK;
-	else if (strstr(opt, "entry"))
-		*flags = AUDIT_FILTER_ENTRY;
-	else if (strstr(opt, "exit"))
-		*flags = AUDIT_FILTER_EXIT;
-	else if (strstr(opt, "user"))
-		*flags = AUDIT_FILTER_USER;
-	else if (strstr(opt, "exclude")) {
-		*flags = AUDIT_FILTER_EXCLUDE;
-		exclude = 1;
-	} else
+	*p = strchr(opt, ',');
+	if (p == NULL || strchr(p+1, ','))
 		return 2;
-	if (strstr(opt, "never"))
-		*act = AUDIT_NEVER;
-	else if (strstr(opt, "possible"))
-		return 1;
-	else if (strstr(opt, "always"))
-		*act = AUDIT_ALWAYS;
-	else
+	*p = 0;
+
+	/* Try opt both ways */
+	if (lookup_filter(opt, filter) == 2) {
+		rc = lookup_action(opt, act);
+		if (rc != 0) {
+			*p = ',';
+			return rc;
+		}
+	}
+
+	/* Repair the string */
+	*p = ',';
+	opt = p+1;
+
+	/* If flags are empty, p+1 must be the filter */
+	if (*filter == AUDIT_FILTER_UNSET)
+		lookup_filter(opt, filter);
+	else {
+		rc = lookup_action(opt, act);
+		if (rc != 0)
+			return rc;
+	}
+
+	/* Make sure we set both */
+	if (*filter == AUDIT_FILTER_UNSET || *act == -1)
 		return 2;
+
 	return 0;
 }
 
