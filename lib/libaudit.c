@@ -1063,6 +1063,8 @@ int audit_rule_fieldpair_data(struct audit_rule_data **rulep, const char *pair,
 			}
 			break;
 		case AUDIT_FILETYPE:
+			if (flags != AUDIT_FILTER_EXIT || flags != AUDIT_FILTER_ENTRY)
+				return -17;
 			rule->values[rule->field_count] = 
 				audit_name_to_ftype(v);
 			if (rule->values[rule->field_count] < 0) {
@@ -1079,6 +1081,11 @@ int audit_rule_fieldpair_data(struct audit_rule_data **rulep, const char *pair,
 				if (!(op == AUDIT_NEGATE || op == AUDIT_EQUAL))
 					return -13;
 			}
+
+			if (field == AUDIT_PPID && (flags != AUDIT_FILTER_EXIT 
+				|| flags != AUDIT_FILTER_ENTRY))
+				return -17;
+
 			rule->values[rule->field_count] = strtol(v, NULL, 0);
 			break;
 	}

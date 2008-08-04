@@ -14,7 +14,7 @@
 - Fix parsing of CONFIG_CHANGE events so that search on keys work (Peng Haitao)
 - Fix parsing of filter,action in auditctl
 - Fix format string of audit status in auditctl (Yu Zhiguo)
-- Better error checking for fields that belong on exit filter (Zhang Xiliang)
+- Better checking of field & filter combinations (Zhang Xiliang)
 
 1.7.4
 - Fix interpreting of keys in syscall records

@@ -832,6 +832,11 @@ static int setopt(int count, char *vars[])
 					"-F unknown file type - %s\n", optarg);
 				retval = -1;
 				break;
+			case -17:
+				fprintf(stderr,
+					"Field %s can only be used with exit and entry filter list\n", optarg);
+				retval = -1;
+				break;
 			default:
 				retval = -1;
 				break;
