@@ -281,7 +281,7 @@ int audit_rule_fieldpair(struct audit_rule *rule, const char *pair, int flags)
 			}
 			break;
 		case AUDIT_EXIT:
-			if (flags == AUDIT_FILTER_ENTRY)
+			if (flags != AUDIT_FILTER_EXIT)
 				return -7;
 			vlen = strlen(v);
 			if (isdigit((char)*(v)))
@@ -426,9 +426,8 @@ int audit_rule_fieldpair(struct audit_rule *rule, const char *pair, int flags)
 		case AUDIT_FILTERKEY:
 			return -10;
                 case AUDIT_DEVMAJOR...AUDIT_INODE:
-                case AUDIT_SUCCESS...AUDIT_SUCCESS:
-
-			if (flags == AUDIT_FILTER_ENTRY)
+                case AUDIT_SUCCESS:
+			if (flags != AUDIT_FILTER_EXIT)
 				return -7;
 			/* fallthrough */
 		default:

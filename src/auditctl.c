@@ -782,7 +782,7 @@ static int setopt(int count, char *vars[])
 				break;
 			case -7:
 				fprintf(stderr,
-			 "Field %s cannot be checked at syscall entry\n",
+			 "Field %s can only be used with exit filter list\n",
 					 optarg);
 				retval = -1;
 				break;
