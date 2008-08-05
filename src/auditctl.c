@@ -837,6 +837,11 @@ static int setopt(int count, char *vars[])
 					"Field %s can only be used with exit and entry filter list\n", optarg);
 				retval = -1;
 				break;
+			case -18:
+				fprintf(stderr,
+					"Field %s can not be used with exclude filter list\n", optarg);
+				retval = -1;
+				break;
 			default:
 				retval = -1;
 				break;

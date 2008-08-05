@@ -1085,6 +1085,9 @@ int audit_rule_fieldpair_data(struct audit_rule_data **rulep, const char *pair,
 			if (field == AUDIT_PPID && (flags != AUDIT_FILTER_EXIT 
 				|| flags != AUDIT_FILTER_ENTRY))
 				return -17;
+			
+			if (flags == AUDIT_FILTER_EXCLUDE)
+				return -18;
 
 			rule->values[rule->field_count] = strtol(v, NULL, 0);
 			break;

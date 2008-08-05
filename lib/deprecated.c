@@ -440,6 +440,9 @@ int audit_rule_fieldpair(struct audit_rule *rule, const char *pair, int flags)
 			if (field == AUDIT_PPID && (flags != AUDIT_FILTER_EXIT
 				|| flags != AUDIT_FILTER_ENTRY))
 				return -17;
+			
+			if (flags == AUDIT_FILTER_EXCLUDE)
+				return -18;
 
 			rule->values[rule->field_count] = strtol(v, NULL, 0);
 			break;
