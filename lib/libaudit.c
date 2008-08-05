@@ -75,6 +75,7 @@ static const struct nv_list failure_actions[] =
   { NULL,		0 }
 };
 
+int audit_permadded hidden = 0;
 int audit_archadded hidden = 0;
 int audit_syscalladded hidden = 0;
 unsigned int audit_elf hidden = 0U;
@@ -920,6 +921,8 @@ int audit_rule_fieldpair_data(struct audit_rule_data **rulep, const char *pair,
 		case AUDIT_SUBJ_SEN:
 		case AUDIT_SUBJ_CLR:
 		case AUDIT_FILTERKEY:
+			if (field == AUDIT_FILTERKEY && !(audit_syscalladded || audit_permadded))
+                                return -19;
 			vlen = strlen(v);
 			if (field == AUDIT_FILTERKEY &&
 					vlen > AUDIT_MAX_KEY_LEN)

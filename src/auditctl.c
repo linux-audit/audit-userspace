@@ -67,7 +67,6 @@ enum { OLD, NEW };
 int which;
 static struct audit_rule  rule;
 static struct audit_rule_data *rule_new = NULL;
-int audit_permadded;
 static char key[AUDIT_MAX_KEY_LEN+1];
 static int keylen;
 static int printed;
@@ -77,6 +76,7 @@ static const char key_sep[2] = { AUDIT_KEY_SEPARATOR, 0 };
 extern int audit_archadded;
 extern int audit_syscalladded;
 extern unsigned int audit_elf;
+extern int audit_permadded;
 
 /*
  * This function will reset everything used for each loop when loading 
@@ -840,6 +840,11 @@ static int setopt(int count, char *vars[])
 			case -18:
 				fprintf(stderr,
 					"Field %s can not be used with exclude filter list\n", optarg);
+				retval = -1;
+				break;
+			case -19:
+				fprintf(stderr,
+					"Key field needs a watch or syscall given prior to it\n");
 				retval = -1;
 				break;
 			default:
