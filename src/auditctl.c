@@ -209,7 +209,7 @@ static int audit_rule_setup(char *opt, int *filter, int *act)
 	if (++multiple != 1)
 		return 3;
 
-	*p = strchr(opt, ',');
+	p = strchr(opt, ',');
 	if (p == NULL || strchr(p+1, ','))
 		return 2;
 	*p = 0;
