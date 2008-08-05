@@ -156,6 +156,7 @@ static int init_prelude(int argc, char *argv[])
 
 		prelude_client_destroy(client,
 					PRELUDE_CLIENT_EXIT_STATUS_FAILURE);
+		prelude_deinit();
 		return -1;
 	}
 	if (mode == M_NORMAL) {
@@ -170,6 +171,7 @@ static int init_prelude(int argc, char *argv[])
 
 		prelude_client_destroy(client,
 					PRELUDE_CLIENT_EXIT_STATUS_FAILURE);
+		prelude_deinit();
 		return -1;
 	}
 	ret = prelude_client_start(client);
@@ -179,6 +181,7 @@ static int init_prelude(int argc, char *argv[])
 
 		prelude_client_destroy(client,
 					PRELUDE_CLIENT_EXIT_STATUS_FAILURE);
+		prelude_deinit();
 		return -1;
 	}
 	return 0;
@@ -259,6 +262,7 @@ int main(int argc, char *argv[])
 	if (client) 
 		prelude_client_destroy(client,
 					PRELUDE_CLIENT_EXIT_STATUS_SUCCESS);
+	prelude_deinit();
 	auparse_destroy(au);
 	free_config(&config);
 	free(myhostname);
