@@ -580,6 +580,8 @@ int audit_add_watch_dir(int type, struct audit_rule_data **rulep,
 	rule->fieldflags[1] = AUDIT_EQUAL;
 	rule->values[1] = AUDIT_PERM_READ | AUDIT_PERM_WRITE |
 				AUDIT_PERM_EXEC | AUDIT_PERM_ATTR;
+	
+	audit_permadded = 1;
 
 	return  0;
 }
@@ -941,6 +943,10 @@ int audit_rule_fieldpair_data(struct audit_rule_data **rulep, const char *pair,
 				rule = *rulep;
 			}
 			strncpy(&rule->buf[offset], v, vlen);
+
+			if(flags && (AUDIT_WATCH || AUDIT_DIR))
+				audit_permadded = 1;
+
 			break;
 		case AUDIT_ARCH:
 			if (audit_syscalladded) 
