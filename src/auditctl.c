@@ -747,7 +747,7 @@ static int setopt(int count, char *vars[])
 					audit_permadded = 1;
 				break;
 			case -1:
-				fprintf(stderr, "-F missing = for %s\n", 
+				fprintf(stderr, "-F missing operator for %s\n", 
 					optarg);
 				retval = -1;
 				break;
@@ -849,7 +849,12 @@ static int setopt(int count, char *vars[])
 				break;
 			case -20:
 				fprintf(stderr,
-					"-F missing value after operation for %s\n", optarg);
+					"-F missing value after operator for %s\n", optarg);
+				retval = -1;
+				break;
+			case -21:
+				fprintf(stderr,
+					"-F value should be a number for %s\n", optarg);
 				retval = -1;
 				break;
 			default:

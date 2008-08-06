@@ -446,6 +446,9 @@ int audit_rule_fieldpair(struct audit_rule *rule, const char *pair, int flags)
 			
 			if (flags == AUDIT_FILTER_EXCLUDE)
 				return -18;
+			
+			if (!isdigit((char)*(v)))
+				return -21;
 
 			rule->values[rule->field_count] = strtol(v, NULL, 0);
 			break;
