@@ -16,6 +16,7 @@
 - Fix format string of audit status in auditctl (Yu Zhiguo)
 - Better checking of field & filter combinations (Zhang Xiliang)
 - Call prelude_deinit when shutting down prelude plugin
+- Make sure value is given after the operator in auditctl rules (Zhang Xiliang)
 
 1.7.4
 - Fix interpreting of keys in syscall records

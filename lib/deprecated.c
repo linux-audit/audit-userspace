@@ -230,6 +230,9 @@ int audit_rule_fieldpair(struct audit_rule *rule, const char *pair, int flags)
 	if (v == NULL || f == v)
 		return -1;
 
+	if (*v == 0)
+		return -20;
+
 	audit_msg(LOG_DEBUG,"pair=%s\n", f);
 	if ((field = audit_name_to_field(f)) < 0) 
 		return -2;

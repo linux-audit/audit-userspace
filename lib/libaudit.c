@@ -823,6 +823,9 @@ int audit_rule_fieldpair_data(struct audit_rule_data **rulep, const char *pair,
 	if (v == NULL || f == v)
 		return -1;
 
+	if (*v == 0)
+		return -20;
+
 	if ((field = audit_name_to_field(f)) < 0) 
 		return -2;
 

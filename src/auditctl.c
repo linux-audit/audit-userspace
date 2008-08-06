@@ -847,6 +847,11 @@ static int setopt(int count, char *vars[])
 					"Key field needs a watch or syscall given prior to it\n");
 				retval = -1;
 				break;
+			case -20:
+				fprintf(stderr,
+					"-F missing value after operation for %s\n", optarg);
+				retval = -1;
+				break;
 			default:
 				retval = -1;
 				break;
