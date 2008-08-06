@@ -737,13 +737,8 @@ static int setopt(int count, char *vars[])
 		switch (rc)
 		{
 			case 0:
-				if (which == OLD && 
-				    	rule.fields[rule.field_count-1] ==
-						AUDIT_PERM)
-					audit_permadded = 1;
-				else if (which == NEW &&
-				    rule_new->fields[rule_new->field_count-1] ==
-						AUDIT_PERM)
+				if (which == NEW && rule_new->fields[rule_new->field_count-1] ==
+							AUDIT_PERM)
 					audit_permadded = 1;
 				break;
 			case -1:
@@ -1380,8 +1375,7 @@ int key_match(struct audit_reply *rep)
 		}
 		if (((field >= AUDIT_SUBJ_USER && field <= AUDIT_OBJ_LEV_HIGH)
                      && field != AUDIT_PPID) || field == AUDIT_WATCH ||
-			field == AUDIT_WATCH || field == AUDIT_DIR ||
-			field == AUDIT_FILTERKEY) {
+			field == AUDIT_DIR || field == AUDIT_FILTERKEY) {
 				boffset += rep->ruledata->values[i];
 		}
 	}
