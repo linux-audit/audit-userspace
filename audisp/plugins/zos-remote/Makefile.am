@@ -22,10 +22,9 @@
 
 INCLUDES = -I.. -I${top_srcdir}/lib -I${top_srcdir}/auparse
 CONFIG_CLEAN_FILES = Makefile.in *.rej *.orig
+SUBDIRS = policy
 AUTOMAKE_OPTIONS = no-dependencies
 EXTRA_DIST = zos-remote.conf audispd-zos-remote.conf
-EXTRA_DATA = policy/audispd-zos-remote.te policy/audispid-zos-remote.fc \
-	policy/audispd-zos-remote.if policy/build.sh policy/install.sh
 LIBS = -L${top_srcdir}/auparse -lauparse
 LDADD = -lpthread -lldap -llber 
 dispatcher_confdir = $(sysconfdir)/audisp

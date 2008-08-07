@@ -32,7 +32,7 @@ plugin_confdir=$(prog_confdir)/plugins.d
 plugin_conf = au-prelude.conf
 sbin_PROGRAMS = audisp-prelude
 noinst_HEADERS = prelude-config.h audisp-int.h
-man_MANS = audisp-prelude.8 audisp-prelude.conf.5
+dist_man_MANS = audisp-prelude.8 audisp-prelude.conf.5
 
 audisp_prelude_SOURCES = audisp-prelude.c prelude-config.c audisp-int.c
 audisp_prelude_CFLAGS = -fPIE -DPIE -g -D_REENTRANT -D_GNU_SOURCE -Wundef
