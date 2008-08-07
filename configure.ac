@@ -125,7 +125,7 @@ fi
 AM_CONDITIONAL(HAVE_PRELUDE, test x$have_prelude = xyes)
 
 AC_CONFIG_SUBDIRS([system-config-audit])
-AC_OUTPUT(Makefile lib/Makefile lib/test/Makefile auparse/Makefile auparse/test/Makefile src/Makefile src/mt/Makefile swig/Makefile docs/Makefile init.d/Makefile audisp/Makefile audisp/plugins/Makefile audisp/plugins/builtins/Makefile audisp/plugins/prelude/Makefile audisp/plugins/remote/Makefile audisp/plugins/zos-remote/Makefile audisp/plugins/zos-remote/policy/Makefile bindings/Makefile bindings/python/Makefile tools/Makefile tools/aulastlog/Makefile tools/ausyscall/Makefile)
+AC_OUTPUT(Makefile lib/Makefile lib/test/Makefile auparse/Makefile auparse/test/Makefile src/Makefile src/mt/Makefile src/libev/Makefile swig/Makefile docs/Makefile init.d/Makefile audisp/Makefile audisp/plugins/Makefile audisp/plugins/builtins/Makefile audisp/plugins/prelude/Makefile audisp/plugins/remote/Makefile audisp/plugins/zos-remote/Makefile audisp/plugins/zos-remote/policy/Makefile bindings/Makefile bindings/python/Makefile tools/Makefile tools/aulastlog/Makefile tools/ausyscall/Makefile)
 
 echo .
 echo "
