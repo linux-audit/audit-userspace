@@ -852,6 +852,10 @@ static int setopt(int count, char *vars[])
 					"-F value should be a number for %s\n", optarg);
 				retval = -1;
 				break;
+			case -22:
+				fprintf(stderr,
+					"-F missing field name before operator for %s\n", optarg);
+				retval = -1;
 			default:
 				retval = -1;
 				break;

@@ -820,8 +820,11 @@ int audit_rule_fieldpair_data(struct audit_rule_data **rulep, const char *pair,
 		op = AUDIT_BIT_MASK;
 	}
 
-	if (v == NULL || f == v)
+	if (v == NULL)
 		return -1;
+	
+	if (*f == 0)
+		return -22;
 
 	if (*v == 0)
 		return -20;

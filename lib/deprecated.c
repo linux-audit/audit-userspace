@@ -227,8 +227,11 @@ int audit_rule_fieldpair(struct audit_rule *rule, const char *pair, int flags)
 		// op = AUDIT_EQUAL;
 	}
 
-	if (v == NULL || f == v)
+	if (v == NULL)
 		return -1;
+	
+	if (*f == 0)
+		return -22;
 
 	if (*v == 0)
 		return -20;
