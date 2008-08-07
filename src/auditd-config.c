@@ -434,14 +434,14 @@ static const struct kw_pair *kw_lookup(const char *val)
 static int log_file_parser(struct nv_pair *nv, int line,
 	struct daemon_conf *config)
 {
-	char *dir = NULL, *tdir, *base;
+	char *dir = NULL, *tdir;
 	DIR *d;
 	int fd, mode;
 	struct stat buf;
 
 	audit_msg(LOG_DEBUG, "log_file_parser called with: %s", nv->value);
 
-	/* split name into dir and basename. */
+	/* get dir from name. */
 	tdir = strdup(nv->value);
 	if (tdir)
 		dir = dirname(tdir);
@@ -453,14 +453,6 @@ static int log_file_parser(struct nv_pair *nv, int line,
 		return 1;
 	}
 
-	base = basename((char *)nv->value);
-	if (base == 0 || strlen(base) == 0) {
-		audit_msg(LOG_ERR, "The file name: %s is too short - line %d", 
-			base, line);
-		free((void *)tdir);
-		return 1;
-	}
-	
 	/* verify the directory path exists */
 	d = opendir(dir);
 	if (d == NULL) {
@@ -577,7 +569,7 @@ static int qos_parser(struct nv_pair *nv, int line,
 static int dispatch_parser(struct nv_pair *nv, int line,
 	struct daemon_conf *config)
 {
-	char *dir = NULL, *tdir, *base;
+	char *dir = NULL, *tdir;
 	int fd;
 	struct stat buf;
 
@@ -587,7 +579,7 @@ static int dispatch_parser(struct nv_pair *nv, int line,
 		return 0;
 	}
 
-	/* split name into dir and basename. */
+	/* get dir from name. */
 	tdir = strdup(nv->value);
 	if (tdir)
 		dir = dirname(tdir);
@@ -600,12 +592,6 @@ static int dispatch_parser(struct nv_pair *nv, int line,
 	}
 
 	free((void *)tdir);
-	base = basename((char *)nv->value);
-	if (base == 0 || strlen(base) == 0) {
-		audit_msg(LOG_ERR, "The file name: %s is too short - line %d",
-			base, line);
-		return 1;
-	}
 	/* if the file exists, see that its regular, owned by root,
 	 * and not world anything */
 	fd = open(nv->value, O_RDONLY);

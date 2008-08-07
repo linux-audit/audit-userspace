@@ -18,6 +18,7 @@
 - Call prelude_deinit when shutting down prelude plugin
 - Make sure value is given after the operator in auditctl rules (Zhang Xiliang)
 - Error when rule require numeric value and one is not given (Zhang Xiliang)
+- Remove unnecessary base name code (Chu Li)
 
 1.7.4
 - Fix interpreting of keys in syscall records

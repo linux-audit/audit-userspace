@@ -361,7 +361,7 @@ static int direction_parser(struct nv_pair *nv, int line,
 static int path_parser(struct nv_pair *nv, int line,
 	plugin_conf_t *config)
 {
-	char *dir = NULL, *tdir, *base;
+	char *dir = NULL, *tdir;
 	struct stat buf;
 
 	if (nv->value == NULL) {
@@ -374,7 +374,7 @@ static int path_parser(struct nv_pair *nv, int line,
 		return 0;
 	}
 
-	/* split name into dir and basename. */
+	/* get dir form name. */
 	tdir = strdup(nv->value);
 	if (tdir)
 		dir = dirname(tdir);
@@ -387,12 +387,6 @@ static int path_parser(struct nv_pair *nv, int line,
 	}
 
 	free((void *)tdir);
-	base = basename((char *)nv->value);
-	if (base == 0 || strlen(base) == 0) {
-		audit_msg(LOG_ERR, "The file name: %s is too short - line %d",
-			base, line);
-		return 1;
-	}
 	/* If the file exists, see that its regular, owned by root,
 	 * and not world anything */
 	if (stat(nv->value, &buf) < 0) {
