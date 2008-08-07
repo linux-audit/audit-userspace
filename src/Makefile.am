@@ -1,5 +1,5 @@
 # Makefile.am-- 
-# Copyright 2004-2006 Red Hat Inc., Durham, North Carolina.
+# Copyright 2004-2006, 2008 Red Hat Inc., Durham, North Carolina.
 # All Rights Reserved.
 #
 # This program is free software; you can redistribute it and/or modify
@@ -22,6 +22,7 @@
 
 CONFIG_CLEAN_FILES = Makefile.in *.rej *.orig 
 AUTOMAKE_OPTIONS = no-dependencies
+SUBDIRS = libev
 INCLUDES = -I.. -I${top_srcdir}/lib
 sbin_PROGRAMS = auditd auditctl aureport ausearch autrace
 LIBS = -Lmt -lauditmt
