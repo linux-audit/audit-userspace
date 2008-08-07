@@ -20,6 +20,7 @@
 - Error when rule require numeric value and one is not given (Zhang Xiliang)
 - Remove unnecessary base name code (Chu Li)
 - Cleanup checking of field name & operator (Zhang Xiliang)
+- Add audit_number_to_errmsg() function for error strings (Zhang Xiliang)
 
 1.7.4
 - Fix interpreting of keys in syscall records

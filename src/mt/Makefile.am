@@ -43,7 +43,7 @@ lib_OBJECTS = $(libauditmt_a_OBJECTS)
 
 libaudit.h:
 	cp ${top_srcdir}/lib/libaudit.h .
-libaudit.c: libaudit.h private.h
+libaudit.c: libaudit.h private.h errormsg.h
 	cp ${top_srcdir}/lib/libaudit.c .
 message.c: libaudit.h
 	cp ${top_srcdir}/lib/message.c .
@@ -89,6 +89,8 @@ optabs.h:
 	cp ${top_builddir}/lib/optabs.h .
 errtabs.h:
 	cp ${top_builddir}/lib/errtabs.h .
+errormsg.h:
+	cp ${top_builddir}/lib/errormsg.h .
 
 lookup_table.o: ${top_builddir}/config.h gen_tables.h i386_tables.h \
 	ia64_tables.h ppc_tables.h s390_tables.h s390x_tables.h \

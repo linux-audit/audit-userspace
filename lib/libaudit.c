@@ -39,6 +39,7 @@
 
 #include "libaudit.h"
 #include "private.h"
+#include "errormsg.h"
 
 /* #defines for the audit failure query  */
 #define CONFIG_FILE "/etc/libaudit.conf"
@@ -1153,3 +1154,28 @@ int audit_detect_machine(void)
 	return -1;
 }
 hidden_def(audit_detect_machine)
+
+void audit_number_to_errmsg(int errnumber, const char *opt)
+{
+	unsigned int i;
+	
+	for (i = 0; i < sizeof(err_msgtab)/sizeof(struct msg_tab); i++) {
+		if (err_msgtab[i].key == errnumber) {
+			switch (err_msgtab[i].position)
+			{
+				case 0:
+					fprintf(stderr, "%s\n", err_msgtab[i].cvalue);
+					break;
+				case 1:
+					fprintf(stderr, "%s %s\n", opt, err_msgtab[i].cvalue);
+					break;
+				case 2:
+					fprintf(stderr, "%s %s\n", err_msgtab[i].cvalue, opt);
+					break;
+				default:
+					break;
+			}
+			return;
+		}
+	}
+}

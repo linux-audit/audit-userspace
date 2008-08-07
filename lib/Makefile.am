@@ -30,7 +30,7 @@ lib_LTLIBRARIES = libaudit.la
 include_HEADERS = libaudit.h
 libaudit_la_SOURCES = libaudit.c message.c netlink.c \
 	lookup_table.c audit_logging.c deprecated.c \
-	private.h $(BUILT_SOURCES)
+	private.h errormsg.h $(BUILT_SOURCES)
 libaudit_la_LIBADD =
 libaudit_la_DEPENDENCIES = $(libaudit_la_SOURCES) ../config.h
 libaudit_la_LDFLAGS = -Wl,-z,relro

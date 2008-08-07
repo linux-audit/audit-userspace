@@ -733,133 +733,16 @@ static int setopt(int count, char *vars[])
 		}
 		if (which == NEW) 
 			rc = audit_rule_fieldpair_data(&rule_new,optarg,flags);
-//FIXME: make this a function
-		switch (rc)
-		{
-			case 0:
-				if (which == NEW && rule_new->fields[rule_new->field_count-1] ==
-							AUDIT_PERM)
-					audit_permadded = 1;
-				break;
-			case -1:
-				fprintf(stderr, "-F missing operator for %s\n", 
-					optarg);
-				retval = -1;
-				break;
-			case -2:
-				fprintf(stderr, "-F unknown field: %s\n", 
-					optarg);
-				retval = -1;
-				break;
-			case -3:
-				fprintf(stderr, 
-					"-F %s must be before -S\n", 
-					optarg);
-				retval = -1;
-				break;
-			case -4:
-				fprintf(stderr, 
-					"-F %s machine type not found\n", 
-					optarg);
-				retval = -1;
-				break;
-			case -5:
-				fprintf(stderr, 
-					"-F %s elf mapping not found\n", 
-					optarg);
-				retval = -1;
-				break;
-			case -6:
-				fprintf(stderr, 
-			"-F %s requested bit level not supported by machine\n", 
-					optarg);
-				retval = -1;
-				break;
-			case -7:
-				fprintf(stderr,
-			 "Field %s can only be used with exit filter list\n",
-					 optarg);
-				retval = -1;
-				break;
-			case -8:
-				fprintf(stderr, 
-					"-F unknown message type - %s\n",
-					 optarg);
-				retval = -1;
-				break;
-			case -9:
-				fprintf(stderr,
-		 "msgtype field can only be used with exclude filter list\n");
-				retval = -1;
-				break;
-			case -10:
-				fprintf(stderr,
-					"Failed upgrading rule\n");
-				retval = -1;
-			case -11:
-				fprintf(stderr,
-					"String value too long\n");
-				retval = -1;
-				break;
-			case -12:
-				fprintf(stderr,
-			"Only msgtype field can be used with exclude filter\n");
-				retval = -1;
-				break;
-			case -13:
-				fprintf(stderr,
-			"Field (%s) only takes = or != operators\n", optarg);
-				retval = -1;
-				break;
-			case -14:
-				fprintf(stderr,
-				"Permission (%s) can only contain \'rwxa\n",
-					optarg);
-				retval = -1;
-				break;
-			case -15:
-				fprintf(stderr, 
-					"-F unknown errno - %s\n", optarg);
-				retval = -1;
-				break;
-			case -16:
-				fprintf(stderr, 
-					"-F unknown file type - %s\n", optarg);
-				retval = -1;
-				break;
-			case -17:
-				fprintf(stderr,
-					"Field %s can only be used with exit and entry filter list\n", optarg);
-				retval = -1;
-				break;
-			case -18:
-				fprintf(stderr,
-					"Field %s can not be used with exclude filter list\n", optarg);
-				retval = -1;
-				break;
-			case -19:
-				fprintf(stderr,
-					"Key field needs a watch or syscall given prior to it\n");
-				retval = -1;
-				break;
-			case -20:
-				fprintf(stderr,
-					"-F missing value after operator for %s\n", optarg);
-				retval = -1;
-				break;
-			case -21:
-				fprintf(stderr,
-					"-F value should be a number for %s\n", optarg);
-				retval = -1;
-				break;
-			case -22:
-				fprintf(stderr,
-					"-F missing field name before operator for %s\n", optarg);
-				retval = -1;
-			default:
-				retval = -1;
-				break;
+
+		if (rc != 0) {
+			audit_number_to_errmsg(rc, optarg);
+			retval = -1;
+		} else {
+			if (which == NEW && rule_new->fields[rule_new->field_count-1] ==
+						AUDIT_PERM)
+				audit_permadded = 1;
 		}
+
 		break;
         case 'm':
 		if (audit_log_user_message( fd, AUDIT_USER, optarg, NULL, 
