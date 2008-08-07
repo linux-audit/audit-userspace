@@ -19,8 +19,6 @@
 # Authors:
 #   Steve Grubb <sgrubb@redhat.com>
 #
-EXTRA_DIST = README ev_epoll.c ev_poll.c ev_select.c
+EXTRA_DIST = README ev_epoll.c ev_poll.c ev_select.c ev.c event.c libev.m4
 noinst_HEADERS = ev.h event.h ev_vars.h ev_wrap.h config.h
-noinst_LTLIBRARIES = libev.la
-libev_la_SOURCES = ev.c event.c
 

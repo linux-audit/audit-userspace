@@ -40,6 +40,7 @@ AM_INIT_AUTOMAKE
 AM_PROG_LIBTOOL
 AC_SUBST(LIBTOOL_DEPS)
 AM_PATH_PYTHON
+m4_include([src/libev/libev.m4])
 
 echo .
 echo Checking for programs
