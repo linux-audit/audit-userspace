@@ -22,6 +22,7 @@
 - Cleanup checking of field name & operator (Zhang Xiliang)
 - Add audit_number_to_errmsg() function for error strings (Zhang Xiliang)
 - Reimplement auditd main loop using libev (DJ Delorie)
+- Update unknown uid/gid messages in audit rule parsing (Cai Xianchao)
 
 1.7.4
 - Fix interpreting of keys in syscall records

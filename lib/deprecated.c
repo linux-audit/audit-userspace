@@ -265,7 +265,7 @@ int audit_rule_fieldpair(struct audit_rule *rule, const char *pair, int flags)
 				if (name_to_uid(v, 
 					&rule->values[rule->field_count])) {
 					audit_msg(LOG_ERR, "Unknown user: %s",
-						pair);
+						v);
 					return -2;
 				}
 			}
@@ -281,7 +281,7 @@ int audit_rule_fieldpair(struct audit_rule *rule, const char *pair, int flags)
 				if (name_to_gid(v, 
 					&rule->values[rule->field_count])) {
 					audit_msg(LOG_ERR, "Unknown group: %s",
-						pair);
+						v);
 					return -2;
 				}
 			}
