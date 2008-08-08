@@ -20,7 +20,9 @@
 #   Steve Grubb <sgrubb@redhat.com>
 #
 EXTRA_DIST = README ev_epoll.c ev_poll.c ev_select.c ev.c libev.m4
-noinst_HEADERS = ev.h ev_vars.h ev_wrap.h 
+AM_CFLAGS = -fPIC -DPIC
 
+noinst_HEADERS = ev.h ev_vars.h ev_wrap.h 
 noinst_LIBRARIES = libev.a
+
 libev_a_SOURCES = ev.c
