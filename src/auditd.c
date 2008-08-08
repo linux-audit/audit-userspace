@@ -45,6 +45,10 @@
 #include "auditd-dispatch.h"
 #include "private.h"
 
+#include "ev.h"
+
+#define EV_STOP() ev_unloop (ev_default_loop (EVFLAG_AUTO), EVUNLOOP_ALL), stop = 1;
+
 #define DEFAULT_BUF_SZ	448
 #define DMSG_SIZE (DEFAULT_BUF_SZ + 48) 
 #define SUCCESS 0
@@ -52,9 +56,6 @@
 
 /* Global Data */
 volatile int stop = 0;
-volatile int hup = 0;
-volatile int rot = 0;
-volatile int resume = 0;
 
 /* Local data */
 static int fd = -1;
@@ -62,6 +63,8 @@ static struct daemon_conf config;
 static const char *pidfile = "/var/run/auditd.pid";
 static int init_pipe[2];
 static int do_fork = 1;
+static struct auditd_reply_list *rep = NULL;
+static int hup_info_requested = 0, usr1_info_requested = 0;
 
 /* Local function prototypes */
 static void close_down(void);
@@ -88,9 +91,9 @@ static void usage(void)
 /*
  * SIGTERM handler
  */ 
-static void term_handler( int sig )
+static void term_handler( struct ev_loop *loop, struct ev_signal *sig, int revents )
 {
-	stop = 1;
+	EV_STOP ();
 }
 
 /*
@@ -104,31 +107,47 @@ static void thread_killer( int sig )
 /*
  * Used with sigalrm to force exit
  */
-static void hup_handler( int sig )
+static void hup_handler( struct ev_loop *loop, struct ev_signal *sig, int revents )
 {
-	hup = 1;
+	int rc;
+
+	rc = audit_request_signal_info(fd);
+	if (rc < 0)
+		send_audit_event(AUDIT_DAEMON_CONFIG, 
+				 "auditd error getting hup info - no change, sending auid=? pid=? subj=? res=failed");
+	else
+		hup_info_requested = 1;
 }
 
 /*
  * Used to force log rotation
  */
-static void user1_handler( int sig )
+static void user1_handler( struct ev_loop *loop, struct ev_signal *sig, int revents )
 {
-	rot = 1;
+	int rc;
+
+	rc = audit_request_signal_info(fd);
+	if (rc < 0)
+		send_audit_event(AUDIT_DAEMON_ROTATE, 
+				 "auditd error getting usr1 info - no change, sending auid=? pid=? subj=? res=failed");
+	else
+		usr1_info_requested = 1;
 }
 
 /*
  * Used to resume logging
  */
-static void user2_handler( int sig )
+static void user2_handler( struct ev_loop *loop, struct ev_signal *sig, int revents )
 {
-	resume = 1;
+	resume_logging();
+	send_audit_event(AUDIT_DAEMON_RESUME, 
+			 "auditd resuming logging, sending auid=? pid=? subj=? res=success");
 }
 
 /*
  * Used with email alerts to cleanup
  */
-static void child_handler( int sig )
+static void child_handler( struct ev_loop *loop, struct ev_signal *sig, int revents )
 {
 	while (waitpid(-1, NULL, WNOHANG) > 0)
 		; /* empty */
@@ -323,19 +342,100 @@ static void tell_parent(int status)
 	} while (rc < 0 && errno == EINTR);
 }
 
+static void netlink_handler( struct ev_loop *loop, struct ev_io *io, int revents )
+{
+	if (rep == NULL) { 
+		if ((rep = malloc(sizeof(*rep))) == NULL) {
+			char emsg[DEFAULT_BUF_SZ];
+			snprintf(emsg, sizeof(emsg), 
+				 "auditd error halt, auid=%u pid=%d res=failed",
+				 audit_getloginuid(), getpid());
+			EV_STOP ();
+			//FIXME add subj
+			send_audit_event(AUDIT_DAEMON_ABORT, emsg);
+			audit_msg(LOG_ERR, 
+				  "Cannot allocate audit reply, exiting");
+			close_down();
+			if (pidfile)
+				unlink(pidfile);
+			shutdown_dispatcher();
+			return;
+		}
+	}
+	if (audit_get_reply(fd, &rep->reply, 
+			    GET_REPLY_NONBLOCKING, 0) > 0) {
+		switch (rep->reply.type)
+		{	/* For now dont process these */
+		case NLMSG_NOOP:
+		case NLMSG_DONE:
+		case NLMSG_ERROR:
+		case AUDIT_GET: /* Or these */
+		case AUDIT_LIST:
+		case AUDIT_LIST_RULES:
+		case AUDIT_FIRST_DAEMON...AUDIT_LAST_DAEMON:
+			break;
+		case AUDIT_SIGNAL_INFO:
+			if (hup_info_requested) {
+				audit_msg(LOG_DEBUG,
+					  "HUP detected, starting config manager");
+				if (start_config_manager(rep)) {
+					send_audit_event(
+						AUDIT_DAEMON_CONFIG, 
+						"auditd error getting hup info - no change,"
+						" sending auid=? pid=? subj=? res=failed");
+				}
+				rep = NULL;
+				hup_info_requested = 0;
+			} else if(usr1_info_requested){
+				char usr1[MAX_AUDIT_MESSAGE_LENGTH];
+				if (rep->reply.len == 24) {
+					snprintf(usr1, 
+						 sizeof(usr1),
+						 "auditd sending auid=? pid=? subj=?");
+				} else {
+					snprintf(usr1, 
+						 sizeof(usr1),
+						 "auditd sending auid=%u pid=%d subj=%s",
+						 rep->reply.signal_info->uid, 
+						 rep->reply.signal_info->pid,
+						 rep->reply.signal_info->ctx);
+				}
+				send_audit_event(
+					AUDIT_DAEMON_ROTATE, 
+					usr1);
+			}
+			break;
+		default:
+			distribute_event(rep);
+			rep = NULL;
+			break;
+		}
+	} else {
+		if (errno == EFBIG) {
+			// FIXME do err action
+		}
+	}
+}
+
 int main(int argc, char *argv[])
 {
 	struct sigaction sa;
 	fd_set read_mask;
-	struct auditd_reply_list *rep = NULL;
 	struct rlimit limit;
-	int hup_info_requested = 0, usr1_info_requested = 0;
 	int i;
 	int opt_foreground = 0, opt_allow_links = 0;
 	enum startup_state opt_startup = startup_enable;
 	int c;
 	extern char *optarg;
 	extern int optind;
+	struct ev_loop *loop;
+	struct ev_io netlink_watcher;
+	struct ev_signal sigterm_watcher;
+	struct ev_signal sighup_watcher;
+	struct ev_signal sigusr1_watcher;
+	struct ev_signal sigusr2_watcher;
+	struct ev_signal sigchld_watcher;
+	int rc;
 
 	/* Get params && set mode */
 	while ((c = getopt(argc, argv, "flns:")) != -1) {
@@ -400,17 +500,6 @@ int main(int argc, char *argv[])
 	sa.sa_handler = SIG_IGN;
 	for (i=1; i<NSIG; i++)
 		sigaction( i, &sa, NULL );
-	/* Set handler for the ones we care about */
-	sa.sa_handler = term_handler;
-	sigaction( SIGTERM, &sa, NULL );
-	sa.sa_handler = hup_handler;
-	sigaction( SIGHUP, &sa, NULL );
-	sa.sa_handler = user1_handler;
-	sigaction( SIGUSR1, &sa, NULL );
-	sa.sa_handler = user2_handler;
-	sigaction( SIGUSR2, &sa, NULL );
-	sa.sa_handler = child_handler;
-	sigaction( SIGCHLD, &sa, NULL );
 
 	atexit(clean_exit);
 
@@ -561,147 +650,50 @@ int main(int argc, char *argv[])
 	if (do_fork)
 		close(init_pipe[1]);
 
-	for (;;) {
-		struct timeval tv;
-		int    retval;
-       
-		if (rep == NULL) { 
-			if ((rep = malloc(sizeof(*rep))) == NULL) {
-				char emsg[DEFAULT_BUF_SZ];
-				snprintf(emsg, sizeof(emsg), 
-			    "auditd error halt, auid=%u pid=%d res=failed",
-				    audit_getloginuid(), getpid());
-				stop = 1;
-//FIXME add subj
-				send_audit_event(AUDIT_DAEMON_ABORT, emsg);
-				audit_msg(LOG_ERR, 
-					"Cannot allocate audit reply, exiting");
-				close_down();
-				if (pidfile)
-					unlink(pidfile);
-				shutdown_dispatcher();
-				return 1;
-			}
-		}
-		
-		/* This will pause for 30 seconds */
-		do {
-			tv.tv_sec = 30;
-			tv.tv_usec = 0;
-			FD_ZERO(&read_mask);
-			FD_SET(fd, &read_mask);
-			retval = select(fd+1, &read_mask, NULL, NULL, &tv);
-		} while (retval == -1 && errno == EINTR && 
-				!stop && !hup && !rot && !resume);
+	loop = ev_default_loop (EVFLAG_NOENV);
 
-		if (!stop && !hup && !rot && !resume && retval > 0) {
-			if (audit_get_reply(fd, &rep->reply, 
-					GET_REPLY_NONBLOCKING, 0) > 0) {
-				switch (rep->reply.type)
-				{	/* For now dont process these */
-					case NLMSG_NOOP:
-					case NLMSG_DONE:
-					case NLMSG_ERROR:
-					case AUDIT_GET: /* Or these */
-					case AUDIT_LIST:
-					case AUDIT_LIST_RULES:
-					case AUDIT_FIRST_DAEMON...AUDIT_LAST_DAEMON:
-						break;
-					case AUDIT_SIGNAL_INFO:
-						if (hup_info_requested) {
-						    audit_msg(LOG_DEBUG,
-				"HUP detected, starting config manager");
-						    if (start_config_manager(rep)) {
-							send_audit_event(
-							AUDIT_DAEMON_CONFIG, 
-				"auditd error getting hup info - no change,"
-				" sending auid=? pid=? subj=? res=failed");
-						    }
-						    rep = NULL;
-						    hup_info_requested = 0;
-						} else if(usr1_info_requested){
-							char usr1[MAX_AUDIT_MESSAGE_LENGTH];
-							if (rep->reply.len == 24) {
-								snprintf(usr1, 
-								sizeof(usr1),
-					"auditd sending auid=? pid=? subj=?");
-							} else {
-								snprintf(usr1, 
-								sizeof(usr1),
-					"auditd sending auid=%u pid=%d subj=%s",
-						rep->reply.signal_info->uid, 
-						rep->reply.signal_info->pid,
-						rep->reply.signal_info->ctx);
-							}
-							send_audit_event(
-							AUDIT_DAEMON_ROTATE, 
-							usr1);
-						}
-						break;
-					default:
-						distribute_event(rep);
-						rep = NULL;
-						break;
-				}
-			} else {
-				if (errno == EFBIG) {
-					// FIXME do err action
-				}
-			}
-		}
-		if (hup) {
-			int rc;
-			hup = 0;
-			rc = audit_request_signal_info(fd);
-			if (rc < 0)
-			    send_audit_event(AUDIT_DAEMON_CONFIG, 
-				"auditd error getting hup info - no change, sending auid=? pid=? subj=? res=failed");
-			else
-				hup_info_requested = 1;
-		}
-		if (rot) {
-			int rc;
-			rot = 0;
-			rc = audit_request_signal_info(fd);
-			if (rc < 0)
-			    send_audit_event(AUDIT_DAEMON_ROTATE, 
-				"auditd error getting usr1 info - no change, sending auid=? pid=? subj=? res=failed");
-			else
-				usr1_info_requested = 1;
-		}
-		if (resume) {
-			resume = 0;
-			resume_logging();
-			send_audit_event(AUDIT_DAEMON_RESUME, 
-				"auditd resuming logging, sending auid=? pid=? subj=? res=success");
-		}
-		if (stop) {
-			/* Write message to log that we are going down */
-			int rc;
+	ev_io_init (&netlink_watcher, netlink_handler, fd, EV_READ);
+	ev_io_start (loop, &netlink_watcher);
 
-			rc = audit_request_signal_info(fd);
-			if (rc > 0) {
-				struct audit_reply trep;
+	ev_signal_init (&sigterm_watcher, term_handler, SIGTERM);
+	ev_signal_start (loop, &sigterm_watcher);
 
-				rc = get_reply(fd, &trep, rc);
-				if (rc > 0) {
-					char txt[MAX_AUDIT_MESSAGE_LENGTH];
-					snprintf(txt, sizeof(txt),
-    	   "auditd normal halt, sending auid=%u pid=%d subj=%s res=success",
-						trep.signal_info->uid,
-						trep.signal_info->pid, 
-						trep.signal_info->ctx); 
-					send_audit_event(AUDIT_DAEMON_END, txt);
-				} 
-			} 
-			if (rc <= 0)
-			    send_audit_event(AUDIT_DAEMON_END, 
-		"auditd normal halt, sending auid=? pid=? subj=? res=success");
-			free(rep);
-			shutdown_dispatcher();
-			break;
-		}
-	}
+	ev_signal_init (&sighup_watcher, hup_handler, SIGHUP);
+	ev_signal_start (loop, &sighup_watcher);
+
+	ev_signal_init (&sigusr1_watcher, user1_handler, SIGUSR1);
+	ev_signal_start (loop, &sigusr1_watcher);
+
+	ev_signal_init (&sigusr2_watcher, user2_handler, SIGUSR2);
+	ev_signal_start (loop, &sigusr2_watcher);
+
+	ev_signal_init (&sigchld_watcher, child_handler, SIGCHLD);
+	ev_signal_start (loop, &sigchld_watcher);
+
+	ev_loop (loop, 0);
+
+	/* Write message to log that we are going down */
+
+	rc = audit_request_signal_info(fd);
+	if (rc > 0) {
+		struct audit_reply trep;
+
+		rc = get_reply(fd, &trep, rc);
+		if (rc > 0) {
+			char txt[MAX_AUDIT_MESSAGE_LENGTH];
+			snprintf(txt, sizeof(txt),
+				 "auditd normal halt, sending auid=%u pid=%d subj=%s res=success",
+				 trep.signal_info->uid,
+				 trep.signal_info->pid, 
+				 trep.signal_info->ctx); 
+			send_audit_event(AUDIT_DAEMON_END, txt);
+		} 
+	} 
+	if (rc <= 0)
+		send_audit_event(AUDIT_DAEMON_END, 
+				 "auditd normal halt, sending auid=? pid=? subj=? res=success");
+	free(rep);
+	shutdown_dispatcher();
 
 	close_down();
 	free_config(&config);

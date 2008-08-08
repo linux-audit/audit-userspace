@@ -21,6 +21,7 @@
 - Remove unnecessary base name code (Chu Li)
 - Cleanup checking of field name & operator (Zhang Xiliang)
 - Add audit_number_to_errmsg() function for error strings (Zhang Xiliang)
+- Reimplement auditd main loop using libev (DJ Delorie)
 
 1.7.4
 - Fix interpreting of keys in syscall records
