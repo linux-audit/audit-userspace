@@ -90,7 +90,7 @@ optabs.h:
 errtabs.h:
 	cp ${top_builddir}/lib/errtabs.h .
 errormsg.h:
-	cp ${top_builddir}/lib/errormsg.h .
+	cp ${top_srcdir}/lib/errormsg.h .
 
 lookup_table.o: ${top_builddir}/config.h gen_tables.h i386_tables.h \
 	ia64_tables.h ppc_tables.h s390_tables.h s390x_tables.h \
