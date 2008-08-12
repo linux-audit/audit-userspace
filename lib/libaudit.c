@@ -850,10 +850,6 @@ int audit_rule_fieldpair_data(struct audit_rule_data **rulep, const char *pair,
 			if (isdigit((char)*(v))) 
 				rule->values[rule->field_count] = 
 					strtol(v, NULL, 0);
-			else if (vlen >= 2 && *(v)=='-' && 
-						(isdigit((char)*(v+1)))) 
-				rule->values[rule->field_count] = 
-					strtol(v, NULL, 0);
 			else {
 				if (audit_name_to_uid(v, 
 					&rule->values[rule->field_count])) {
