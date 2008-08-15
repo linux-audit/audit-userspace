@@ -413,10 +413,6 @@ struct audit_reply {
 	};
 };
 
-struct auditd_reply_list {
-	struct audit_reply reply;
-	struct auditd_reply_list *next;
-};
 //
 // End of ABI control
 //////////////////////////////////////////////////////

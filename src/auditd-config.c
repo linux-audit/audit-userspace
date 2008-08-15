@@ -39,6 +39,8 @@
 #include "libaudit.h"
 #include "private.h"
 
+#define TCP_PORT_MAX 65535
+
 /* Local prototypes */
 struct nv_pair
 {
@@ -103,6 +105,12 @@ static int disk_error_action_parser(struct nv_pair *nv, int line,
 		struct daemon_conf *config);
 static int priority_boost_parser(struct nv_pair *nv, int line,
 		struct daemon_conf *config);
+static int tcp_listen_port_parser(struct nv_pair *nv, int line,
+		struct daemon_conf *config);
+static int tcp_listen_queue_parser(struct nv_pair *nv, int line,
+		struct daemon_conf *config);
+static int tcp_client_ports_parser(struct nv_pair *nv, int line,
+		struct daemon_conf *config);
 static int sanity_check(struct daemon_conf *config);
 
 static const struct kw_pair keywords[] = 
@@ -127,6 +135,9 @@ static const struct kw_pair keywords[] =
   {"disk_full_action",         disk_full_action_parser,		1 },
   {"disk_error_action",        disk_error_action_parser,	1 },
   {"priority_boost",           priority_boost_parser,		0 },
+  {"tcp_listen_port",          tcp_listen_port_parser,          0 },
+  {"tcp_listen_queue",         tcp_listen_queue_parser,         0 },
+  {"tcp_client_ports",         tcp_client_ports_parser,         0 },
   { NULL,                      NULL }
 };
 
@@ -227,6 +238,10 @@ static void clear_config(struct daemon_conf *config)
 	config->disk_full_exe = NULL;
 	config->disk_error_action = FA_SYSLOG;
 	config->disk_error_exe = NULL;
+	config->tcp_listen_port = 0;
+	config->tcp_listen_queue = 5;
+	config->tcp_client_min_port = 0;
+	config->tcp_client_max_port = TCP_PORT_MAX;
 }
 
 static log_test_t log_test = TEST_AUDITD;
@@ -1106,6 +1121,172 @@ static int priority_boost_parser(struct nv_pair *nv, int line,
 		return 1;
 	}
 	config->priority_boost = (unsigned int)i;
+	return 0;
+}
+
+static int tcp_listen_port_parser(struct nv_pair *nv, int line,
+	struct daemon_conf *config)
+{
+	const char *ptr = nv->value;
+	unsigned long i;
+
+	audit_msg(LOG_DEBUG, "tcp_listen_port_parser called with: %s",
+		  nv->value);
+
+	/* check that all chars are numbers */
+	for (i=0; ptr[i]; i++) {
+		if (!isdigit(ptr[i])) {
+			audit_msg(LOG_ERR, 
+				"Value %s should only be numbers - line %d",
+				nv->value, line);
+			return 1;
+		}
+	}
+
+	/* convert to unsigned int */
+	errno = 0;
+	i = strtoul(nv->value, NULL, 10);
+	if (errno) {
+		audit_msg(LOG_ERR, 
+			"Error converting string to a number (%s) - line %d",
+			strerror(errno), line);
+		return 1;
+	}
+	/* Check its range */
+	if (i > TCP_PORT_MAX) {
+		audit_msg(LOG_ERR, 
+			"Error - converted number (%s) is too large - line %d",
+			nv->value, line);
+		return 1;
+	}
+	if (i < 1) {
+		audit_msg(LOG_ERR, 
+			"Error - converted number (%s) is too small - line %d",
+			nv->value, line);
+		return 1;
+	}
+	config->tcp_listen_port = (unsigned int)i;
+	return 0;
+}
+
+static int tcp_listen_queue_parser(struct nv_pair *nv, int line,
+	struct daemon_conf *config)
+{
+	const char *ptr = nv->value;
+	unsigned long i;
+
+	audit_msg(LOG_DEBUG, "tcp_listen_queue_parser called with: %s",
+		  nv->value);
+
+	/* check that all chars are numbers */
+	for (i=0; ptr[i]; i++) {
+		if (!isdigit(ptr[i])) {
+			audit_msg(LOG_ERR, 
+				"Value %s should only be numbers - line %d",
+				nv->value, line);
+			return 1;
+		}
+	}
+
+	/* convert to unsigned int */
+	errno = 0;
+	i = strtoul(nv->value, NULL, 10);
+	if (errno) {
+		audit_msg(LOG_ERR, 
+			"Error converting string to a number (%s) - line %d",
+			strerror(errno), line);
+		return 1;
+	}
+	/* Check its range.  While this value is technically
+	   unlimited, it's limited by the kernel, and we limit it here
+	   for sanity. */
+	if (i > TCP_PORT_MAX) {
+		audit_msg(LOG_ERR, 
+			"Error - converted number (%s) is too large - line %d",
+			nv->value, line);
+		return 1;
+	}
+	if (i < 1) {
+		audit_msg(LOG_ERR, 
+			"Error - converted number (%s) is too small - line %d",
+			nv->value, line);
+		return 1;
+	}
+	config->tcp_listen_queue = (unsigned int)i;
+	return 0;
+}
+
+static int tcp_client_ports_parser(struct nv_pair *nv, int line,
+	struct daemon_conf *config)
+{
+	const char *ptr = nv->value;
+	unsigned long i, minv, maxv;
+	const char *saw_dash = NULL;
+
+	audit_msg(LOG_DEBUG, "tcp_listen_queue_parser called with: %s",
+		  nv->value);
+
+	/* check that all chars are numbers, with an optional inclusive '-'. */
+	for (i=0; ptr[i]; i++) {
+		if (i > 0 && ptr[i] == '-' && ptr[i+1] != '\0') {
+			saw_dash = ptr + i;
+			continue;
+		}
+		if (!isdigit(ptr[i])) {
+			audit_msg(LOG_ERR, 
+				"Value %s should only be numbers, or two numbers separated by a dash - line %d",
+				nv->value, line);
+			return 1;
+		}
+	}
+	for (; ptr[i]; i++) {
+		if (!isdigit(ptr[i])) {
+			audit_msg(LOG_ERR, 
+				"Value %s should only be numbers, or two numbers separated by a dash - line %d",
+				nv->value, line);
+			return 1;
+		}
+	}
+
+	/* convert to unsigned int */
+	errno = 0;
+	maxv = minv = strtoul(nv->value, NULL, 10);
+	if (errno) {
+		audit_msg(LOG_ERR, 
+			"Error converting string to a number (%s) - line %d",
+			strerror(errno), line);
+		return 1;
+	}
+	if (saw_dash) {
+		maxv = strtoul(saw_dash + 1, NULL, 10);
+		if (errno) {
+			audit_msg(LOG_ERR, 
+				  "Error converting string to a number (%s) - line %d",
+				  strerror(errno), line);
+			return 1;
+		}
+	}
+	/* Check their ranges. */
+	if (minv > TCP_PORT_MAX) {
+		audit_msg(LOG_ERR, 
+			"Error - converted number (%d) is too large - line %d",
+			  minv, line);
+		return 1;
+	}
+	if (maxv > TCP_PORT_MAX) {
+		audit_msg(LOG_ERR, 
+			"Error - converted number (%d) is too large - line %d",
+			  maxv, line);
+		return 1;
+	}
+	if (minv > maxv) {
+		audit_msg(LOG_ERR, 
+			"Error - converted range (%d-%d) is reversed - line %d",
+			  minv, maxv, line);
+		return 1;
+	}
+	config->tcp_client_min_port = (unsigned int)minv;
+	config->tcp_client_max_port = (unsigned int)maxv;
 	return 0;
 }
 

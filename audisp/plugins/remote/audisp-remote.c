@@ -30,7 +30,11 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netinet/tcp.h>
 #include "libaudit.h"
+#include "private.h"
 #include "remote-config.h"
 
 #define CONFIG_FILE "/etc/audisp/audisp-remote.conf"
@@ -66,6 +70,56 @@ static void hup_handler( int sig )
 static void reload_config(void)
 {
 	hup = 0;
+}
+
+/*
+ * Handlers for various events coming back from the remote server.
+ * Return -1 if the remote dispatcher should exit.
+ */
+
+/* Loss of sync - got an invalid response.  */
+static int sync_error_handler (const char *why)
+{
+	/* "why" has human-readable details on why we've lost (or will
+	   be losing) sync.  */
+	syslog (LOG_ERR, "lost/losing sync, %s", why);
+	return -1;
+}
+
+static int remote_disk_low_handler (const char *message)
+{
+	syslog (LOG_WARNING, "remote disk low, %s", message);
+	return 0;
+}
+
+static int remote_disk_full_handler (const char *message)
+{
+	syslog (LOG_ERR, "remote disk full, %s", message);
+	return -1;
+}
+
+static int remote_disk_error_handler (const char *message)
+{
+	syslog (LOG_ERR, "remote disk error, %s", message);
+	return -1;
+}
+
+static int remote_server_ending_handler (const char *message)
+{
+	syslog (LOG_INFO, "remote server ending, %s", message);
+	return -1;
+}
+
+static int generic_remote_error_handler (const char *message)
+{
+	stop = 1;
+	syslog(LOG_INFO, "audisp-remote: remote error: %s", message);
+	return -1;
+}
+static int generic_remote_warning_handler (const char *message)
+{
+	syslog(LOG_INFO, "audisp-remote: remote warning: %s", message);
+	return 0;
 }
 
 
@@ -122,6 +176,7 @@ static int init_sock(void)
 	struct addrinfo *ai;
 	struct addrinfo hints;
 	char remote[BUF_SIZE];
+	int one=1;
 
 	memset(&hints, '\0', sizeof(hints));
 	hints.ai_flags = AI_ADDRCONFIG|AI_NUMERICSERV;
@@ -140,12 +195,35 @@ static int init_sock(void)
 		freeaddrinfo(ai);
 		return -1;
 	}
+
+	setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (char *)&one, sizeof (int));
+
+	if (config.local_port != 0) {
+		struct sockaddr_in address;
+		
+		memset (&address, 0, sizeof(address));
+		address.sin_family = htons(AF_INET);
+		address.sin_port = htons(config.local_port);
+		address.sin_addr.s_addr = htonl(INADDR_ANY);
+
+		if ( bind ( sock, (struct sockaddr *)&address, sizeof(address)) ) {
+			syslog(LOG_ERR, "Cannot bind local socket to port %d - exiting",
+			       config.local_port);
+			close(sock);
+			return -1;
+		}
+
+	}
 	if (connect(sock, ai->ai_addr, ai->ai_addrlen)) {
 		syslog(LOG_ERR, "Error connecting to %s: %s - exiting",
 			config.remote_server, strerror(errno));
 		freeaddrinfo(ai);
 		return -1;
 	}
+
+	setsockopt(sock, SOL_SOCKET, SO_KEEPALIVE, (char *)&one, sizeof (int));
+	setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, (char *)&one, sizeof (int));
+
 	freeaddrinfo(ai);
 	return 0;
 }
@@ -166,16 +244,143 @@ static int init_transport(void)
 	return rc;
 }
 
+static int ar_write (int sock, const void *buf, int len)
+{
+	int rc;
+	do {
+		rc = write(sock, buf, len);
+	} while (rc < 0 && errno == EINTR);
+	return rc;
+}
+
+static int ar_read (int sock, void *buf, int len)
+{
+	unsigned char *obuf = buf;
+	int rc = 0, r;
+	while (len > 0) {
+		do {
+			r = read(sock, buf, len);
+		} while (r < 0 && errno == EINTR);
+		if (r < 0)
+			return r;
+		if (r == 0)
+			break;
+		rc += r;
+		buf = (void *)((char *)buf + r);
+		len -= r;
+	}
+	return rc;
+}
+
+static int relay_sock_ascii(const char *s, size_t len)
+{
+	int rc;
+
+	rc = ar_write(sock, s, len);
+	if (rc <= 0) {
+		stop = 1;
+		syslog(LOG_ERR, "connection to %s closed unexpectedly - exiting",
+		       config.remote_server);
+		return -1;
+	}
+
+	return 0;
+}
+
+static int relay_sock_managed(const char *s, size_t len)
+{
+	static int sequence_id = 1;
+	int rc;
+	unsigned char header[AUDIT_RMW_HEADER_SIZE];
+	int hver, mver;
+	uint32_t magic, type, rlen, seq;
+	char msg[MAX_AUDIT_MESSAGE_LENGTH+1];
+
+	sequence_id ++;
+	AUDIT_RMW_PACK_HEADER (header, 0, 0, len, sequence_id);
+	rc = ar_write(sock, header, AUDIT_RMW_HEADER_SIZE);
+	if (rc <= 0) {
+		stop = 1;
+		syslog(LOG_ERR, "connection to %s closed unexpectedly - exiting",
+		       config.remote_server);
+		return -1;
+	}
+
+	rc = ar_write(sock, s, len);
+	if (rc <= 0) {
+		stop = 1;
+		syslog(LOG_ERR, "connection to %s closed unexpectedly - exiting",
+		       config.remote_server);
+		return -1;
+	}
+
+	rc = ar_read (sock, header, AUDIT_RMW_HEADER_SIZE);
+	if (rc < 16) {
+		stop = 1;
+		syslog(LOG_ERR, "connection to %s closed unexpectedly - exiting",
+		       config.remote_server);
+		return -1;
+	}
+
+
+	if (! AUDIT_RMW_IS_MAGIC (header, AUDIT_RMW_HEADER_SIZE))
+		/* FIXME: the right thing to do here is close the socket and start a new one.  */
+		return sync_error_handler ("bad magic number");
+
+	AUDIT_RMW_UNPACK_HEADER (header, hver, mver, type, rlen, seq);
+
+	if (rlen > MAX_AUDIT_MESSAGE_LENGTH)
+		return sync_error_handler ("message too long");
+
+	if (rlen > 0
+	    && ar_read (sock, msg, rlen) < rlen)
+		return sync_error_handler ("ran out of data reading reply");
+	msg[rlen] = 0;
+
+	if (seq != sequence_id)
+		/* FIXME: should we read another header and
+		   see if it matches?  If so, we need to deal
+		   with timeouts.  */
+		return sync_error_handler ("mismatched response");
+
+	/* Specific errors we know how to deal with.  */
+
+	if (type == AUDIT_RMW_TYPE_ENDING)
+		return remote_server_ending_handler (msg);
+	if (type == AUDIT_RMW_TYPE_DISKLOW)
+		return remote_disk_low_handler (msg);
+	if (type == AUDIT_RMW_TYPE_DISKFULL)
+		return remote_disk_full_handler (msg);
+	if (type == AUDIT_RMW_TYPE_DISKERROR)
+		return remote_disk_error_handler (msg);
+
+	/* Generic errors.  */
+	if (type & AUDIT_RMW_TYPE_FATALMASK)
+		return generic_remote_error_handler (msg);
+	if (type & AUDIT_RMW_TYPE_WARNMASK)
+		return generic_remote_warning_handler (msg);
+
+	return 0;
+}
+
 static int relay_sock(const char *s, size_t len)
 {
 	int rc;
 
-	do {
-		rc = write(sock, s, len);
-	} while (rc < 0 && errno == EINTR);
-	if (rc > 0)
-		return 0;
-	return -1;
+	switch (config.format)
+	{
+		case F_MANAGED:
+			rc = relay_sock_managed (s, len);
+			break;
+		case F_ASCII:
+			rc = relay_sock_ascii (s, len);
+			break;
+		default:
+			rc = -1;
+			break;
+	}
+
+	return rc;
 }
 
 static int relay_event(const char *s, size_t len)

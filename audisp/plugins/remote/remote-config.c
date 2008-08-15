@@ -62,6 +62,8 @@ static int server_parser(struct nv_pair *nv, int line,
 		remote_conf_t *config);
 static int port_parser(struct nv_pair *nv, int line, 
 		remote_conf_t *config);
+static int local_port_parser(struct nv_pair *nv, int line, 
+		remote_conf_t *config);
 static int transport_parser(struct nv_pair *nv, int line, 
 		remote_conf_t *config);
 static int mode_parser(struct nv_pair *nv, int line, 
@@ -70,16 +72,20 @@ static int depth_parser(struct nv_pair *nv, int line,
 		remote_conf_t *config);
 static int fail_action_parser(struct nv_pair *nv, int line, 
 		remote_conf_t *config);
+static int format_parser(struct nv_pair *nv, int line, 
+		remote_conf_t *config);
 static int sanity_check(remote_conf_t *config, const char *file);
 
 static const struct kw_pair keywords[] = 
 {
   {"remote_server",    server_parser,		0 },
   {"port",             port_parser,		0 },
+  {"local_port",       local_port_parser,	0 },
   {"transport",        transport_parser,	0 },
   {"mode",             mode_parser,		0 },
   {"queue_depth",      depth_parser,		0 },
   {"fail_action",      fail_action_parser,	0 },
+  {"format",           format_parser,		0 },
   { NULL,             NULL }
 };
 
@@ -107,6 +113,13 @@ static const struct nv_list fail_action_words[] =
   { NULL,  0 }
 };
 
+static const struct nv_list format_words[] =
+{
+  {"ascii",    F_ASCII },
+  {"managed",  F_MANAGED },
+  { NULL,  0 }
+};
+
 /*
  * Set everything to its default value
 */
@@ -114,11 +127,13 @@ void clear_config(remote_conf_t *config)
 {
 	config->remote_server = NULL;
 	config->port = 60;
+	config->local_port = 0;
 	config->port = T_TCP;
 	config->mode = M_IMMEDIATE;
 	config->queue_depth = 20;
 	config->fail_action = F_SYSLOG;
 	config->fail_exe = NULL;
+	config->format = F_MANAGED;
 }
 
 int load_config(remote_conf_t *config, const char *file)
@@ -392,6 +407,46 @@ static int port_parser(struct nv_pair *nv, int line, remote_conf_t *config)
 	return 0;
 }
 
+static int local_port_parser(struct nv_pair *nv, int line, remote_conf_t *config)
+{
+	const char *ptr = nv->value;
+	int i;
+
+	if (strcasecmp (ptr, "any") == 0) {
+		config->local_port = 0;
+		return 0;
+	}
+
+	/* check that all chars are numbers */
+	for (i=0; ptr[i]; i++) {
+		if (!isdigit(ptr[i])) {
+			syslog(LOG_ERR,
+				"Value %s should only be numbers - line %d",
+				nv->value, line);
+			return 1;
+		}
+	}
+
+	/* convert to unsigned int */
+	errno = 0;
+	i = strtoul(nv->value, NULL, 10);
+	if (errno) {
+		syslog(LOG_ERR,
+			"Error converting string to a number (%s) - line %d",
+			strerror(errno), line);
+		return 1;
+	}
+	/* Check its range */
+	if (i > INT_MAX) {
+		syslog(LOG_ERR,
+			"Error - converted number (%s) is too large - line %d",
+			nv->value, line);
+		return 1;
+	}
+	config->local_port = (unsigned int)i;
+	return 0;
+}
+
 static int transport_parser(struct nv_pair *nv, int line, remote_conf_t *config)
 {
 	int i;
@@ -471,6 +526,20 @@ static int fail_action_parser(struct nv_pair *nv, int line,
 				config->fail_action = F_EXEC;
 				return 0;
 			}
+		}
+	}
+	syslog(LOG_ERR, "Option %s not found - line %d", nv->value, line);
+ 	return 1;
+}
+
+static int format_parser(struct nv_pair *nv, int line,
+	remote_conf_t *config)
+{
+	int i;
+	for (i=0; format_words[i].name != NULL; i++) {
+		if (strcasecmp(nv->value, format_words[i].name) == 0) {
+			config->format = format_words[i].option;
+			return 0;
 		}
 	}
 	syslog(LOG_ERR, "Option %s not found - line %d", nv->value, line);

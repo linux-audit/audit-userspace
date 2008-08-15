@@ -24,6 +24,7 @@
 - Reimplement auditd main loop using libev (DJ Delorie)
 - Update unknown uid/gid messages in audit rule parsing (Cai Xianchao)
 - Don't allow negative uid/gid in audtictl rules (Cai Xianchao)
+- Add TCP listener and managed remote protocol features (DJ Delorie)
 
 1.7.4
 - Fix interpreting of keys in syscall records

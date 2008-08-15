@@ -25,12 +25,21 @@
 #define AUDITD_EVENT_H
 
 #include "libaudit.h"
+
+struct auditd_reply_list {
+	struct audit_reply reply;
+	struct auditd_reply_list *next;
+	int ack_socket;
+	unsigned long sequence_id;
+};
+
 #include "auditd-config.h"
 
 void shutdown_events(void);
 int init_event(struct daemon_conf *config);
 void resume_logging(void);
 void enqueue_event(struct auditd_reply_list *rep);
+void enqueue_formatted_event(char *msg, int ack_socket, uint32_t sequence_id);
 void *consumer_thread_main(void *arg);
 
 #endif

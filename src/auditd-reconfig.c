@@ -28,9 +28,9 @@
 #include <unistd.h>
 #include <string.h>
 #include <stdio.h>
-#include "auditd-config.h"
-#include "auditd-event.h"
 #include "libaudit.h"
+#include "auditd-event.h"
+#include "auditd-config.h"
 #include "private.h"
 
 /* This is the configuration manager code */

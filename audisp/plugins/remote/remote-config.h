@@ -27,16 +27,19 @@
 typedef enum { M_IMMEDIATE, M_STORE_AND_FORWARD  } mode_t;
 typedef enum { T_TCP, T_SSL, T_GSSAPI, T_LABELED } transport_t;
 typedef enum { F_IGNORE, F_SYSLOG, F_EXEC, F_SUSPEND, F_SINGLE, F_HALT } fail_t;
+typedef enum { F_ASCII, F_MANAGED } format_t;
 
 typedef struct remote_conf
 {
 	const char *remote_server;
 	unsigned int port;
+	unsigned int local_port;
 	transport_t transport;
 	mode_t mode;
 	unsigned int queue_depth;
 	fail_t fail_action;
 	const char *fail_exe;
+	format_t format;
 } remote_conf_t;
 
 void clear_config(remote_conf_t *config);

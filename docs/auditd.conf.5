@@ -212,6 +212,26 @@ will cause the audit daemon to stop writing records to the disk. The daemon will
 option will cause the audit daemon to put the computer system in single user mode.
 .I halt
 option will cause the audit daemon to shutdown the computer system.
+.TP
+.I tcp_listen_port
+This is a numeric value in the range 1..65535 which, if specified,
+causes auditd to listen on the corresponding TCP port for audit
+records from remote systems.
+.TP
+.I tcp_listen_queue
+This is a numeric value which indicates how many pending (requested
+but unaccepted) connections are allowed.  The default is 5.  Setting
+this too small may cause connections to be rejected if too many hosts
+start up at exactly the same time, such as after a power failure.
+.TP
+.I tcp_client_ports
+This parameter may be a single numeric value or two values separated
+by a dash (no spaces allowed).  It indicates which client ports are
+allowed for incoming connections.  If not specified, any port is
+allowed.  Allowed values are 1..65535.  For example, to require the
+client use a priviledged port, specify
+.I 1-1023
+for this parameter.
 
 .SH NOTES
 In a CAPP environment, the audit trail is considered so important that access to system resources must be denied if an audit trail cannot be created. In this environment, it would be suggested that /var/log/audit be on its own partition. This is to ensure that space detection is accurate and that no other process comes along and consumes part of it.
@@ -227,6 +247,11 @@ Admin_space_left should be set to the amount of disk space on the audit partitio
 The disk_full_action is triggered when no more room exists on the partition. All access should be terminated since no more audit capability exists. This can be set to either single or halt.
 .PP
 The disk_error_action should be set to syslog, single, or halt depending on your local policies regarding handling of hardware malfunctions.
+.PP
+Specifying a single allowed client port may make it difficult for the
+client to restart their audit subsystem, as it will be unable to
+recreate a connection with the same host addresses and ports until the
+connection closure TIME_WAIT state times out.
 
 .SH FILES
 .TP

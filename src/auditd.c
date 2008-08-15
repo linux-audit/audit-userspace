@@ -40,8 +40,8 @@
 #include <getopt.h>
 
 #include "libaudit.h"
-#include "auditd-config.h"
 #include "auditd-event.h"
+#include "auditd-config.h"
 #include "auditd-dispatch.h"
 #include "private.h"
 
@@ -670,7 +670,15 @@ int main(int argc, char *argv[])
 	ev_signal_init (&sigchld_watcher, child_handler, SIGCHLD);
 	ev_signal_start (loop, &sigchld_watcher);
 
-	ev_loop (loop, 0);
+	if (auditd_tcp_listen_init (loop, &config)) {
+		tell_parent (FAILURE);
+		stop = 1;
+	}
+
+	if (!stop)
+		ev_loop (loop, 0);
+
+	auditd_tcp_listen_uninit (loop);
 
 	/* Write message to log that we are going down */
 

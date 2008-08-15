@@ -148,7 +148,76 @@ int init_event(struct daemon_conf *config)
    dequeue'r is responsible for freeing the memory. */
 void enqueue_event(struct auditd_reply_list *rep)
 {
+	char *buf;
+	int len;
+
+	rep->ack_socket = 0;
+	rep->sequence_id = 0;
+
+	switch (consumer_data.config->log_format)
+	{
+	case LF_RAW:
+		buf = format_raw(&rep->reply, consumer_data.config);
+		break;
+	case LF_NOLOG:
+		return;
+	default:
+		audit_msg(LOG_ERR, 
+			  "Illegal log format detected %d", 
+			  consumer_data.config->log_format);
+		return;
+	}
+
+	len = strlen (buf);
+	if (len < MAX_AUDIT_MESSAGE_LENGTH - 1)
+		memcpy (rep->reply.msg.data, buf, len+1);
+	else
+	{
+		/* FIXME: is truncation the right thing to do?  */
+		memcpy (rep->reply.msg.data, buf, MAX_AUDIT_MESSAGE_LENGTH-1);
+		rep->reply.msg.data[MAX_AUDIT_MESSAGE_LENGTH-1] = 0;
+	}
+
 	rep->next = NULL; /* new packet goes at end - so zero this */
+
+	pthread_mutex_lock(&consumer_data.queue_lock);
+	if (consumer_data.head == NULL) {
+		consumer_data.head = consumer_data.tail = rep;
+		pthread_cond_signal(&consumer_data.queue_nonempty);
+	} else {
+		/* FIXME: wait for room on the queue */
+
+		/* OK there's room...add it in */
+		consumer_data.tail->next = rep; /* link in at end */
+		consumer_data.tail = rep; /* move end to newest */
+	}
+	pthread_mutex_unlock(&consumer_data.queue_lock);
+}
+
+/* This function takes a preformatted message and places it on the
+   queue. The dequeue'r is responsible for freeing the memory. */
+void enqueue_formatted_event(char *msg, int ack_socket, uint32_t sequence_id)
+{
+	int len;
+	struct auditd_reply_list *rep;
+
+	rep = (struct auditd_reply_list *) calloc (1, sizeof (*rep));
+	if (rep == NULL) {
+		audit_msg(LOG_ERR, "Cannot allocate audit reply");
+		return;
+	}
+
+	rep->ack_socket = ack_socket;
+	rep->sequence_id = sequence_id;
+
+	len = strlen (msg);
+	if (len < MAX_AUDIT_MESSAGE_LENGTH - 1)
+		memcpy (rep->reply.msg.data, msg, len+1);
+	else {
+		/* FIXME: is truncation the right thing to do?  */
+		memcpy (rep->reply.msg.data, msg, MAX_AUDIT_MESSAGE_LENGTH-1);
+		rep->reply.msg.data[MAX_AUDIT_MESSAGE_LENGTH-1] = 0;
+	}
 
 	pthread_mutex_lock(&consumer_data.queue_lock);
 	if (consumer_data.head == NULL) {
@@ -233,30 +302,8 @@ static void handle_event(struct auditd_consumer_data *data)
 		rotate_logs_now(data);
 	}
 	if (!logging_suspended) {
-		char *buf = NULL;
 
-		switch (data->config->log_format)
-		{
-			case LF_RAW:
-				buf = format_raw(&data->head->reply,
-							data->config);
-				break;
-			case LF_NOLOG:
-				return;
-			default:
-				audit_msg(LOG_ERR, 
-					"Illegal log format detected %d", 
-					data->config->log_format);
-				break;
-		}
-
-		/* The only way buf is NULL is if there is an 
-		 * unidentified format...which is impossible since
-		 * start up would have failed. */
-		if (buf) {
-			write_to_log(buf, data);
-			buf[0] = 0;
-		}
+		write_to_log(data->head->reply.msg.data, data);
 
 		/* See if we need to flush to disk manually */
 		if (data->config->flush == FT_INCREMENTAL) {
@@ -289,12 +336,32 @@ static void handle_event(struct auditd_consumer_data *data)
 	}
 }
 
+static int ar_write (int sock, const void *buf, int len)
+{
+	int rc = 0, w;
+	while (len > 0) {
+		do {
+			w = write(sock, buf, len);
+		} while (w < 0 && errno == EINTR);
+		if (w < 0)
+			return w;
+		if (w == 0)
+			break;
+		rc += w;
+		len -= w;
+		buf = (const void *)((const char *)buf + w);
+	}
+	return rc;
+}
+
 /* This function writes the given buf to the current log file */
 static void write_to_log(const char *buf, struct auditd_consumer_data *data)
 {
 	int rc;
 	FILE *f = data->log_file;
 	struct daemon_conf *config = data->config;
+	int ack_type = AUDIT_RMW_TYPE_ACK;
+	const char *msg = "";
 
 	/* write it to disk */
 	rc = fprintf(f, "%s\n", buf);
@@ -307,20 +374,35 @@ static void write_to_log(const char *buf, struct auditd_consumer_data *data)
 		if (saved_errno == ENOSPC && fs_space_left == 1) {
 			fs_space_left = 0;
 			do_disk_full_action(config);
-		} else 
+			ack_type = AUDIT_RMW_TYPE_DISKFULL;
+			msg = "disk full";
+		} else  {
 			do_disk_error_action("write", config);
+			ack_type = AUDIT_RMW_TYPE_DISKERROR;
+			msg = "disk write error";
+		}
+		
+	} else {
 
-		return;
+		/* check log file size & space left on partition */
+		if (config->daemonize == D_BACKGROUND) {
+			// If either of these fail, I consider it an inconvenience 
+			// as opposed to something that is actionable. There may be
+			// some temporary condition that the system recovers from. 
+			// The real error occurs on write.
+			check_log_file_size(data->log_fd, data);
+			check_space_left(data->log_fd, config);
+		}
 	}
 
-	/* check log file size & space left on partition */
-	if (config->daemonize == D_BACKGROUND) {
-		// If either of these fail, I consider it an inconvenience 
-		// as opposed to something that is actionable. There may be
-		// some temporary condition that the system recovers from. 
-		// The real error occurs on write.
-		check_log_file_size(data->log_fd, data);
-		check_space_left(data->log_fd, config);
+	if (data->head->ack_socket) {
+		unsigned char header[AUDIT_RMW_HEADER_SIZE];
+
+		AUDIT_RMW_PACK_HEADER (header, 0, ack_type, strlen(msg), data->head->sequence_id);
+
+		ar_write (data->head->ack_socket, header, AUDIT_RMW_HEADER_SIZE);
+		if (msg[0])
+			ar_write (data->head->ack_socket, msg, strlen(msg));
 	}
 }
 

@@ -11,6 +11,13 @@ This is a one word character string that is the remote server hostname or addres
 .I port
 This option is an unsigned integer that indicates what port to connect to on the remote machine.
 .TP
+.I local_port
+This option is an unsigned integer that indicates what local port to
+connect from on the local machine.  If unspecified (the default) or
+set to the word
+.I any
+then any available unpriviledged port is used.
+.TP
 .I transport
 This parameter tells the remote logging app how to send events to the remote system. Valid values are
 .IR tcp ", and " ssl ".
@@ -55,7 +62,22 @@ will cause the remote logging app to stop sending records to the remote system. 
 option will cause the remote logging app to put the computer system in single user mode.
 .I halt
 option will cause the remote logging app to shutdown the computer system.
+.TP
+.I format
+This parameter tells the remote logging app what data format will be
+used for the messages sent over the network.  The default is
+.I managed
+which adds some overhead to ensure each message is properly handled on
+the remote end, and to receive status messages from the remote server.
+If
+.I ascii
+is given instead, each message is a simple ASCII text line with no
+overhead at all.
 
+.SH "NOTES"
+Specifying a local port may make it difficult to restart the audit
+subsystem due to the previous connection being in a TIME_WAIT state,
+if you're reconnecting to and from the same hosts and ports as before.
 .SH "SEE ALSO"
 .BR audispd (8),
 .BR audisp-remote(8).
