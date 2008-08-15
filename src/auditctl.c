@@ -63,6 +63,7 @@ static int list_requested = 0;
 static int add = AUDIT_FILTER_UNSET, del = AUDIT_FILTER_UNSET, action = -1;
 static int ignore = 0;
 static int exclude = 0, msgtype_cnt = 0;
+static int multiple = 0;
 enum { OLD, NEW };
 int which;
 static struct audit_rule  rule;
@@ -95,6 +96,7 @@ static int reset_vars(void)
 	exclude = 0;
 	msgtype_cnt = 0;
 	which = OLD;
+	multiple = 0;
 
 	memset(&rule, 0, sizeof(rule));
 	free(rule_new);
@@ -202,7 +204,6 @@ static int lookup_action(const char *str, int *act)
  */
 static int audit_rule_setup(char *opt, int *filter, int *act)
 {
-	static int multiple = 0;
 	int rc;
 	char *p;
 
