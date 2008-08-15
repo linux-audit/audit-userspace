@@ -1,11 +1,12 @@
-To build the package, try this: rpmbuild --rebuild audit-1.7.2-1.src.rpm
+To build the package, try this: rpmbuild --rebuild audit-1.7.5-1.src.rpm
 substituting the proper version.
 
-If you insist on doing it the hard way...
-
+If you insist on doing it the hard way:
 (cd system-config-audit; ./autogen.sh)
-aclocal && autoconf && autoheader && automake
-./configure --sbindir=/sbin --mandir=/usr/share/man --libdir=/lib
+./configure --sbindir=/sbin --with-prelude
 make
 make install
+
+If you want to do this from svn copy precede the above with:
+./autogen.sh
 

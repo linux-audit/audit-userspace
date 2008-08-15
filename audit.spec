@@ -100,7 +100,6 @@ cp -p audisp/plugins/zos-remote/policy/audispd-zos-remote.* zos-remote-policy
 
 %build
 (cd system-config-audit; ./autogen.sh)
-aclocal && autoconf && autoheader && automake
 %configure --sbindir=/sbin --libdir=/%{_lib} --with-prelude
 make %{?_smp_mflags}
 cd zos-remote-policy
@@ -153,6 +152,8 @@ rm -f $RPM_BUILD_ROOT/%{_libdir}/python?.?/site-packages/_audit.a
 rm -f $RPM_BUILD_ROOT/%{_libdir}/python?.?/site-packages/_audit.la
 rm -f $RPM_BUILD_ROOT/%{_libdir}/python?.?/site-packages/_auparse.a
 rm -f $RPM_BUILD_ROOT/%{_libdir}/python?.?/site-packages/_auparse.la
+rm -f $RPM_BUILD_ROOT/%{_libdir}/python?.?/site-packages/auparse.a
+rm -f $RPM_BUILD_ROOT/%{_libdir}/python?.?/site-packages/auparse.la
 
 # On platforms with 32 & 64 bit libs, we need to coordinate the timestamp
 touch -r ./audit.spec $RPM_BUILD_ROOT/etc/libaudit.conf
@@ -250,7 +251,7 @@ fi
 %defattr(-,root,root)
 %attr(755,root,root) %{_libdir}/python?.?/site-packages/_audit.so
 %attr(755,root,root) %{_libdir}/python?.?/site-packages/auparse.so
-%{_libdir}/python?.?/site-packages/auparse-*.egg-info
+#%{_libdir}/python?.?/site-packages/auparse-*.egg-info
 %{python_sitelib}/audit.py*
 
 %files

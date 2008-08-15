@@ -45,7 +45,7 @@ Set limit in messages/sec (\fB0\fP=none). If this \fIrate\fP is non-zero and is 
 Read rules from a \fIfile\fP. The rules must be 1 per line and in the order that they are to be executed in. The rule file must be owned by root and not readable by other users or it will be rejected. The rule file may have comments embedded by starting the line with a '#' character. Rules that are read from a file are identical to what you would type on a command line except they are not preceeded by auditctl (since auditctl is the one executing the file).
 .TP
 .B \-s
-Report status
+Report status. Note that a pid of 0 indicates that the audit daemon is not running.
 .TP
 .BI \-t
 Trim the subtrees after a mount command.
