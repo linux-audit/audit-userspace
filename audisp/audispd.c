@@ -544,7 +544,7 @@ static int event_loop(void)
 	while (stop == 0) {
 		event_t *e;
 		const char *type;
-		char *v, unknown[32];
+		char *v, *ptr, unknown[32];
 		unsigned int len;
 		lnode *conf;
 
@@ -572,6 +572,16 @@ static int event_loop(void)
 		} else
 			len = asprintf(&v, "type=%s msg=%.*s\n", 
 				type, e->hdr.size, e->data);
+		if (len < 0) {
+			free(e); /* Either corrupted event or no memory */
+			continue;
+		}
+
+		/* Strip newlines from event record */
+		ptr = v;
+		while ((ptr = strchr(ptr, 0x0A)) != NULL)
+			*ptr = ' ';
+		v[len] =  0x0A; /* put the last one back on */
 
 		/* Distribute event to the plugins */
 		plist_first(&plugin_conf);
