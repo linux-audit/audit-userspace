@@ -140,7 +140,10 @@ retry:
 		pthread_mutex_unlock(&queue_lock);
 	} else {
 		pthread_mutex_unlock(&queue_lock);
-		pthread_yield(); // Let dequeue thread run to clear queue
+		struct timespec ts;
+		ts.tv_sec = 0;
+		ts.tv_nsec = 2 * 1000 * 1000; // 2 milliseconds
+		nanosleep(&ts, NULL); /* Let other thread try to log it. */
 		retry_cnt++;
 		goto retry;
 	}

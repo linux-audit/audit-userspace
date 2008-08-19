@@ -167,8 +167,12 @@ static void distribute_event(struct auditd_reply_list *rep)
 				rep->reply.type >= AUDIT_FIRST_DAEMON ? 1 : 0;
 		/* Write to local disk */
 		enqueue_event(rep);
-		if (yield)
-			pthread_yield(); /* Let other thread try to log it. */
+		if (yield) {
+			struct timespec ts;
+			ts.tv_sec = 0;
+			ts.tv_nsec = 2 * 1000 * 1000; // 2 milliseconds
+			nanosleep(&ts, NULL); /* Let other thread try to log it. */
+		}
 	} else
 		free(rep);	// This function takes custody of the memory
 

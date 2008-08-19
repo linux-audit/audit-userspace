@@ -1,12 +1,11 @@
 Things that need to be done:
 ===========================
 1.7.5
-* Get remote logging receive working
-* Create aulast command
 * review 2.6.26 kernel for new syscalls
 * Fix ausearch -i to keep the node field in the output
 
 1.7.6
+* Create aulast command
 * Get remote logging flow control working
 * Fix auparse to handle out of order messages
 * Should session number go into logins and AVCs for prelude?
