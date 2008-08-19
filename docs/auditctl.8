@@ -215,22 +215,22 @@ Remove a watch for the file system object at \fIpath\fP.
 Syscall rules get evaluated for each syscall for each program. If you have 10 syscall rules, every program on your system will delay during a syscall while the audit system evaulates each one. Too many syscall rules will hurt performance. Try to combine as many as you can whenever the filter, action, key, and fields are identical. For example:
 
 .nf
-.B auditctl \-a exit,always \-S open \-F success=no
+.B auditctl \-a exit,always \-S open \-F success=0
 .fi
 .nf
-.B auditctl \-a exit,always \-S truncate \-F success=no
+.B auditctl \-a exit,always \-S truncate \-F success=0
 .fi
 
 could be re-written as one rule:
 
 .nf
-.B auditctl \-a exit,always \-S open \-S truncate \-F success=no
+.B auditctl \-a exit,always \-S open \-S truncate \-F success=0
 .fi
 
 Also, try to use file system auditing wherever practical. This improves performance. For example, if you were wanting to capture all failed opens & truncates like above, but were only concerned about files in /etc and didn't care about /usr or /sbin, its possible to use this rule:
 
 .nf
-.B auditctl \-a exit,always \-S open \-S truncate \-F dir=/etc \-F success=no
+.B auditctl \-a exit,always \-S open \-S truncate \-F dir=/etc \-F success=0
 .fi
 
 This will be higher performance since the kernel will not evaluate it each and every syscall. It will be handled by the filesystem auditing code and only checked on filesystem related syscalls.
