@@ -25,6 +25,7 @@
 - Update unknown uid/gid messages in audit rule parsing (Cai Xianchao)
 - Don't allow negative uid/gid in audtictl rules (Cai Xianchao)
 - Add TCP listener and managed remote protocol features (DJ Delorie)
+- Allow config_change audit records with no auid to parse in ausearch/report
 
 1.7.4
 - Fix interpreting of keys in syscall records

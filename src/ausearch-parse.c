@@ -1398,24 +1398,26 @@ static int parse_kernel_anom(const lnode *n, search_items *s)
 // of interest.
 static int parse_simple_message(const lnode *n, search_items *s)
 {
-	char *str, *ptr, *term;
+	char *str, *ptr, *term  = n->message;
 
-	// get loginuid
-	str = strstr(n->message, "auid=");
-	if (str == NULL)
+	// get loginuid - note some kernels don't have auid for CONFIG_CHANGE
+	str = strstr(term, "auid=");
+	if (str == NULL && n->type != AUDIT_CONFIG_CHANGE)
 		return 1;
-	ptr = str + 5;
-	term = strchr(ptr, ' ');
-	if (term)
-		*term = 0;
-	errno = 0;
-	s->loginuid = strtoul(ptr, NULL, 10);
-	if (errno)
-		return 2;
-	if (term)
-		*term = ' ';
-	else
-		term = ptr;
+	if (str) {
+		ptr = str + 5;
+		term = strchr(ptr, ' ');
+		if (term)
+			*term = 0;
+		errno = 0;
+		s->loginuid = strtoul(ptr, NULL, 10);
+		if (errno)
+			return 2;
+		if (term)
+			*term = ' ';
+		else
+			term = ptr;
+	}
 
 	// Now get subj label
 	if (event_subject) {
