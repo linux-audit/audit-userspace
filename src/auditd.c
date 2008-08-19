@@ -43,6 +43,7 @@
 #include "auditd-event.h"
 #include "auditd-config.h"
 #include "auditd-dispatch.h"
+#include "auditd-listen.h"
 #include "private.h"
 
 #include "ev.h"
@@ -67,6 +68,7 @@ static struct auditd_reply_list *rep = NULL;
 static int hup_info_requested = 0, usr1_info_requested = 0;
 
 /* Local function prototypes */
+int send_audit_event(int type, const char *str);
 static void close_down(void);
 static void clean_exit(void);
 static int get_reply(int fd, struct audit_reply *rep, int seq);

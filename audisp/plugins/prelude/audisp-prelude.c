@@ -1054,7 +1054,7 @@ static int avc_alert(auparse_state_t *au, idmef_message_t *idmef,
 	idmef_user_t *suser;
 	idmef_user_id_t *user_id;
 	idmef_impact_type_t impact_type = IDMEF_IMPACT_TYPE_OTHER;
-	char *seperm = NULL;
+	const char *seperm = NULL;
 
 	/* Fill in information about the event's source */
 	ret = idmef_alert_new_source(alert, &source, -1);

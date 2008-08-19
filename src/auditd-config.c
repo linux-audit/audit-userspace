@@ -1269,19 +1269,19 @@ static int tcp_client_ports_parser(struct nv_pair *nv, int line,
 	/* Check their ranges. */
 	if (minv > TCP_PORT_MAX) {
 		audit_msg(LOG_ERR, 
-			"Error - converted number (%d) is too large - line %d",
+			"Error - converted number (%ld) is too large - line %d",
 			  minv, line);
 		return 1;
 	}
 	if (maxv > TCP_PORT_MAX) {
 		audit_msg(LOG_ERR, 
-			"Error - converted number (%d) is too large - line %d",
+			"Error - converted number (%ld) is too large - line %d",
 			  maxv, line);
 		return 1;
 	}
 	if (minv > maxv) {
 		audit_msg(LOG_ERR, 
-			"Error - converted range (%d-%d) is reversed - line %d",
+		     "Error - converted range (%ld-%ld) is reversed - line %d",
 			  minv, maxv, line);
 		return 1;
 	}

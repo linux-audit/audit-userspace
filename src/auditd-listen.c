@@ -96,9 +96,8 @@ static void close_client (struct ev_tcp *client)
 static void client_message (struct ev_tcp *io, unsigned int length, unsigned char *header)
 {
 	unsigned char ch;
-	uint32_t magic, type, mlen, seq;
+	uint32_t type, mlen, seq;
 	int hver, mver;
-	int i;
 
 	if (AUDIT_RMW_IS_MAGIC (header, length)) {
 		AUDIT_RMW_UNPACK_HEADER (header, hver, mver, type, mlen, seq)
@@ -227,7 +226,6 @@ static void auditd_tcp_listen_handler( struct ev_loop *loop, struct ev_io *_io, 
 	int afd;
 	socklen_t aaddrlen;
 	struct sockaddr_in aaddr;
-	struct linger li;
 	struct ev_tcp *client;
 	unsigned char *uaddr;
 
@@ -280,12 +278,11 @@ int auditd_tcp_listen_init ( struct ev_loop *loop, struct daemon_conf *config )
 {
 	struct sockaddr_in address;
 	int one = 1;
-	int flags;
 
 	/* If the port is not set, that means we aren't going to
 	  listen for connections.  */
 	if (config->tcp_listen_port == 0)
-		return;
+		return 0;
 
 	listen_socket = socket (AF_INET, SOCK_STREAM, 0);
 	if (listen_socket == 0) {
@@ -305,15 +302,17 @@ int auditd_tcp_listen_init ( struct ev_loop *loop, struct daemon_conf *config )
 	setsockopt(listen_socket, SOL_SOCKET, SO_REUSEADDR, (char *)&one, sizeof (int));
 
 	if ( bind ( listen_socket, (struct sockaddr *)&address, sizeof(address)) ) {
-        	audit_msg(LOG_ERR, "Cannot bind tcp listener socket to port %d",
-			  config->tcp_listen_port);
+        	audit_msg(LOG_ERR,
+			"Cannot bind tcp listener socket to port %ld",
+			config->tcp_listen_port);
 		close(listen_socket);
 		return 1;
 	}
 
 	listen(listen_socket, config->tcp_listen_queue);
 
-	audit_msg(LOG_DEBUG, "Listening on TCP port %d", config->tcp_listen_port);
+	audit_msg(LOG_DEBUG, "Listening on TCP port %ld",
+		config->tcp_listen_port);
 
 	ev_io_init (&tcp_listen_watcher, auditd_tcp_listen_handler, listen_socket, EV_READ);
 	ev_io_start (loop, &tcp_listen_watcher);

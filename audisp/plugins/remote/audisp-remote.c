@@ -255,7 +255,6 @@ static int ar_write (int sock, const void *buf, int len)
 
 static int ar_read (int sock, void *buf, int len)
 {
-	unsigned char *obuf = buf;
 	int rc = 0, r;
 	while (len > 0) {
 		do {
@@ -293,7 +292,7 @@ static int relay_sock_managed(const char *s, size_t len)
 	int rc;
 	unsigned char header[AUDIT_RMW_HEADER_SIZE];
 	int hver, mver;
-	uint32_t magic, type, rlen, seq;
+	uint32_t type, rlen, seq;
 	char msg[MAX_AUDIT_MESSAGE_LENGTH+1];
 
 	sequence_id ++;

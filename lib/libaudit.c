@@ -1160,13 +1160,16 @@ void audit_number_to_errmsg(int errnumber, const char *opt)
 			switch (err_msgtab[i].position)
 			{
 				case 0:
-					fprintf(stderr, "%s\n", err_msgtab[i].cvalue);
+					fprintf(stderr, "%s\n",
+						err_msgtab[i].cvalue);
 					break;
 				case 1:
-					fprintf(stderr, "%s %s\n", opt, err_msgtab[i].cvalue);
+					fprintf(stderr, "%s %s\n", opt,
+						err_msgtab[i].cvalue);
 					break;
 				case 2:
-					fprintf(stderr, "%s %s\n", err_msgtab[i].cvalue, opt);
+					fprintf(stderr, "%s %s\n",
+						err_msgtab[i].cvalue, opt);
 					break;
 				default:
 					break;

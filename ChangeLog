@@ -27,6 +27,7 @@
 - Add TCP listener and managed remote protocol features (DJ Delorie)
 - Allow config_change audit records with no auid to parse in ausearch/report
 - Attempt to solve scheduler issue where queues overflow
+- Strip the newline off events converted to string in audispd
 
 1.7.4
 - Fix interpreting of keys in syscall records

@@ -472,6 +472,7 @@ extern int        audit_name_to_errno(const char *error);
 extern const char *audit_errno_to_name(int error);
 extern int        audit_name_to_ftype(const char *name);
 extern const char *audit_ftype_to_name(int ftype); 
+extern void audit_number_to_errmsg(int errnumber, const char *opt);
 
 /* AUDIT_GET */
 extern int audit_request_status(int fd);

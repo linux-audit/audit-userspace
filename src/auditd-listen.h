@@ -24,6 +24,8 @@
 #ifndef AUDITD_LISTEN_H
 #define AUDITD_LISTEN_H
 
+#include "ev.h"
+
 int auditd_tcp_listen_init ( struct ev_loop *loop, struct daemon_conf *config );
 void auditd_tcp_listen_uninit ( struct ev_loop *loop );
 
