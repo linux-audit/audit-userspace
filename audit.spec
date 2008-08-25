@@ -323,7 +323,11 @@ fi
 %config(noreplace) %{_sysconfdir}/security/console.apps/system-config-audit-server
 
 %changelog
-* Mon May 19 2008 Steve Grubb <sgrubb@redhat.com> 1.7.5-1
+* Mon Aug 25 2008 Steve Grubb <sgrubb@redhat.com> 1.7.5-1
+- Update system-config-audit to 0.4.8
+- Whole lot of bug fixes - see ChangeLog for details
+- Reimplement auditd main loop using libev
+- Add TCP listener to auditd to receive remote events
 
 * Mon May 19 2008 Steve Grubb <sgrubb@redhat.com> 1.7.4-1
 - Fix interpreting of keys in syscall records

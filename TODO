@@ -1,10 +1,8 @@
 Things that need to be done:
 ===========================
-1.7.5
+1.7.6
 * review 2.6.26 kernel for new syscalls
 * Fix ausearch -i to keep the node field in the output
-
-1.7.6
 * Create aulast command
 * Get remote logging flow control working
 * Fix auparse to handle out of order messages
