@@ -1,3 +1,5 @@
+1.7.6
+
 1.7.5
 - Update system-config-audit to 0.4.8 (Miloslav Trmac)
 - Don't free const fcntl strings in auparse (Miloslav Trmac)
