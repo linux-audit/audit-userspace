@@ -572,16 +572,19 @@ static int event_loop(void)
 		} else
 			len = asprintf(&v, "type=%s msg=%.*s\n", 
 				type, e->hdr.size, e->data);
-		if (len < 0) {
+		if (len <= 0) {
 			free(e); /* Either corrupted event or no memory */
 			continue;
 		}
 
 		/* Strip newlines from event record */
 		ptr = v;
-		while ((ptr = strchr(ptr, 0x0A)) != NULL)
-			*ptr = ' ';
-		v[len] =  0x0A; /* put the last one back on */
+		while ((ptr = strchr(ptr, 0x0A)) != NULL) {
+			if (ptr != &v[len-1])
+				*ptr = ' ';
+			else
+				break; /* Done - exit loop */
+		}
 
 		/* Distribute event to the plugins */
 		plist_first(&plugin_conf);
