@@ -245,7 +245,6 @@ fi
 %{_includedir}/auparse.h
 %{_includedir}/auparse-defs.h
 %{_mandir}/man3/*
-%{_mandir}/man5/ausearch-expression.5.gz
 
 %files libs-python
 %defattr(-,root,root)
@@ -267,6 +266,7 @@ fi
 %attr(644,root,root) %{_mandir}/man8/ausyscall.8.gz
 %attr(644,root,root) %{_mandir}/man5/auditd.conf.5.gz
 %attr(644,root,root) %{_mandir}/man5/audispd.conf.5.gz
+%attr(644,root,root) %{_mandir}/man5/ausearch-expression.5.gz
 %attr(750,root,root) /sbin/auditctl
 %attr(750,root,root) /sbin/auditd
 %attr(755,root,root) /sbin/ausearch
