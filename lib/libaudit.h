@@ -233,6 +233,13 @@ extern "C" {
 #define AUDIT_TTY_SET		1017	/* Set TTY audit status */
 #endif
 
+#ifndef AUDIT_MAC_IPSEC_EVENT
+#define AUDIT_MAC_IPSEC_EVENT   1415    /* Audit an IPSec event */
+#define AUDIT_MAC_UNLBL_STCADD  1416    /* NetLabel: add a static label */
+#define AUDIT_MAC_UNLBL_STCDEL  1417    /* NetLabel: del a static label */
+#endif
+
+
 /* This is for the new operator patch */
 #ifndef AUDIT_BIT_MASK
 #define AUDIT_BIT_MASK			0x08000000
