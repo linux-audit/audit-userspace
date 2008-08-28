@@ -870,8 +870,26 @@ static int parse_user(const lnode *n, search_items *s)
 				*term = 0;
 				s->exe = strdup(str);
 				*term = '"';
-			} else 
-				s->exe = unescape(str);
+			} else {
+				char *end = str;
+				int legacy = 0;
+
+				while (*end != ' ') {
+					if (!isxdigit(*end)) {
+						legacy = 1;
+					}
+					end++;
+				}
+				term = end;
+				if (!legacy)
+					s->exe = unescape(str);
+				else {
+					saved = *term;
+					*term = 0;
+					s->exe = strdup(str);
+					*term = saved;
+				}
+			}
 		}
 	}
 	
