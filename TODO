@@ -1,15 +1,17 @@
 Things that need to be done:
 ===========================
 1.7.6
-* review 2.6.26 kernel for new syscalls
+* review 2.6.27 kernel for new syscalls
 * Fix ausearch -i to keep the node field in the output
-* Create aulast command
 * Get remote logging flow control working
+* Finish remote logging plugin, nss, gssapi, labeled networking.
+
+1.7.7
 * Fix auparse to handle out of order messages
 * Should session number go into logins and AVCs for prelude?
 * add definitions for crypto events
 * auditctl needs to be able to take file names with spaces in rule files
-* Finish remote logging plugin, nss, gssapi, labeled networking.
+* Create aulast command
 
 2.0
 * Consider adding node/machine name to records going to rt interface in daemon    as protocol version 2.
@@ -31,7 +33,6 @@ Things that need to be done:
 2.0.1
 * Fix retry logic in distribute event, buffer is freed by the logger thread
 * Interpret more syscall args: ioctl,[sg]etsockopt,ptrace,fcntl,chmod 
-* Add subject information to audit internal messages
 * interpret contexts
 * Add keywords for time: month-ago
 * Allow -F path!=/var/my/app
