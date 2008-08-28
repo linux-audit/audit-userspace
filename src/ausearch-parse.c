@@ -791,14 +791,12 @@ static int parse_user(const lnode *n, search_items *s)
 				*term = saved;
 			} else { 
 				/* Handle legacy accts */
-				char *end = term;
+				char *end = ptr;
 				int legacy = 0;
 
 				while (*end != ' ') {
-					if (!isxdigit(*end)) {
+					if (!isxdigit(*end))
 						legacy = 1;
-						break;
-					}
 					end++;
 				}
 				term = end;
