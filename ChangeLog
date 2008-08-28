@@ -1,5 +1,6 @@
 1.7.6
 - Update event record list (Yu Zhiguo/Peng Haitao)
+- Add subject to audit daemon events (Chu Li)
 
 1.7.5
 - Update system-config-audit to 0.4.8 (Miloslav Trmac)
