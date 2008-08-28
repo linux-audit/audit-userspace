@@ -235,6 +235,8 @@ extern "C" {
 
 #ifndef AUDIT_MAC_IPSEC_EVENT
 #define AUDIT_MAC_IPSEC_EVENT   1415    /* Audit an IPSec event */
+#endif
+#ifndef AUDIT_MAC_UNLBL_STCADD
 #define AUDIT_MAC_UNLBL_STCADD  1416    /* NetLabel: add a static label */
 #define AUDIT_MAC_UNLBL_STCDEL  1417    /* NetLabel: del a static label */
 #endif
