@@ -1424,7 +1424,9 @@ static int audit_print_reply(struct audit_reply *rep)
 				((rep->rule->flags & AUDIT_FILTER_MASK) != 
 						AUDIT_FILTER_USER) &&
 				((rep->rule->flags & AUDIT_FILTER_MASK) !=
-						AUDIT_FILTER_TASK)) {
+						AUDIT_FILTER_TASK) &&
+				((rep->rule->flags & AUDIT_FILTER_MASK) !=
+						AUDIT_FILTER_EXCLUDE)) {
 				printf(" syscall=");
 				for (sparse = 0, i = 0; 
 					i < (AUDIT_BITMASK_SIZE-1); i++) {
