@@ -39,6 +39,9 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
+#ifdef HAVE_LIBWRAP
+#include <tcpd.h>
+#endif
 #include "libaudit.h"
 #include "auditd-event.h"
 #include "auditd-config.h"
@@ -220,6 +223,22 @@ more_messages:
 	goto read_more;
 }
 
+#ifndef HAVE_LIB_WRAP
+#define auditd_tcpd_check(s) ({ 0; })
+#else
+int allow_severity = LOG_INFO, deny_severity = LOG_NOTICE;
+static int auditd_tcpd_check(int sock)
+{
+	struct request_info request;
+
+	request_init(&request, RQ_DAEMON, "auditd", RQ_FILE, sock, 0);
+	fromhost(&request);
+	if (! hosts_access(&request))
+		return 1;
+	return 0;
+}
+#endif
+
 static void auditd_tcp_listen_handler( struct ev_loop *loop, struct ev_io *_io, int revents )
 {
 	int one=1;
@@ -237,12 +256,20 @@ static void auditd_tcp_listen_handler( struct ev_loop *loop, struct ev_io *_io, 
 		return;
 	}
 
+	if (auditd_tcpd_check(afd)) {
+		close (afd);
+        	audit_msg(LOG_ERR, "TCP connection from %s rejected",
+				sockaddr_to_ip (&aaddr));
+		return;
+	}
+
 	uaddr = (unsigned char *)&aaddr.sin_addr;
 
 	/* Verify it's coming from an authorized port.  We assume the firewall will
 	   block attempts from unauthorized machines.  */
 	if (min_port > ntohs (aaddr.sin_port) || ntohs (aaddr.sin_port) > max_port) {
-        	audit_msg(LOG_ERR, "TCP connection from %s rejected", sockaddr_to_ip (&aaddr));
+        	audit_msg(LOG_ERR, "TCP connection from %s rejected",
+				sockaddr_to_ip (&aaddr));
 		close (afd);
 		return;
 	}

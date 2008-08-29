@@ -3,7 +3,7 @@ substituting the proper version.
 
 If you insist on doing it the hard way:
 (cd system-config-audit; ./autogen.sh)
-./configure --sbindir=/sbin --with-prelude
+./configure --sbindir=/sbin --with-prelude --with-libwrap
 make
 make install
 

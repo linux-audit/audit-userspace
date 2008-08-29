@@ -54,6 +54,8 @@ causes auditd to attemp to resume logging. This is usually used after logging ha
 .SH NOTES
 A boot param of audit=1 should be added to ensure that all processes that run before the audit daemon starts is marked as auditable by the kernel. Not doing that will make a few processes impossible to properly audit.
 
+The audit daemon can receive audit events from other audit daemons via the audisp-remote audispd plugin. The audit daemon may be linked with tcp_wrappers to control which machines can connect. If this is the case, you can add an entry to hosts.allow and deny.
+
 .SH "SEE ALSO"
 .BR auditd.conf (5),
 .BR audispd (8),

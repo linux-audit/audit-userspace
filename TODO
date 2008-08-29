@@ -3,7 +3,6 @@ Things that need to be done:
 1.7.6
 * review 2.6.27 kernel for new syscalls
 * Fix ausearch -i to keep the node field in the output
-* Get remote logging flow control working
 * Finish remote logging plugin, nss, gssapi, labeled networking
 * Expose encryption API for fields
 

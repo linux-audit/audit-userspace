@@ -33,6 +33,7 @@ auditd_SOURCES = auditd.c auditd-event.c auditd-config.c auditd-reconfig.c audit
 auditd_CFLAGS = -fPIE -DPIE -g -D_REENTRANT -D_GNU_SOURCE
 auditd_LDFLAGS = -pie -Wl,-z,relro
 auditd_DEPENDENCIES = mt/libauditmt.a libev/libev.a
+auditd_LDADD = @LIBWRAP_LIBS@
 
 auditctl_SOURCES = auditctl.c auditctl-llist.c delete_all.c
 auditctl_DEPENDENCIES = mt/libauditmt.a 

@@ -14,6 +14,7 @@ URL: http://people.redhat.com/sgrubb/audit/
 Source0: http://people.redhat.com/sgrubb/audit/%{name}-%{version}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildRequires: gettext-devel intltool libtool swig python-devel
+BuildRequires: tcp_wrappers-devel
 BuildRequires: kernel-headers >= 2.6.18
 BuildRequires: automake >= 1.9
 BuildRequires: autoconf >= 2.59
@@ -100,7 +101,7 @@ cp -p audisp/plugins/zos-remote/policy/audispd-zos-remote.* zos-remote-policy
 
 %build
 (cd system-config-audit; ./autogen.sh)
-%configure --sbindir=/sbin --libdir=/%{_lib} --with-prelude
+%configure --sbindir=/sbin --libdir=/%{_lib} --with-prelude --with-libwrap
 make %{?_smp_mflags}
 cd zos-remote-policy
 for selinuxvariant in %{selinux_variants}
