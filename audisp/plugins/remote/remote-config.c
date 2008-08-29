@@ -70,8 +70,6 @@ static int mode_parser(struct nv_pair *nv, int line,
 		remote_conf_t *config);
 static int depth_parser(struct nv_pair *nv, int line, 
 		remote_conf_t *config);
-static int fail_action_parser(struct nv_pair *nv, int line, 
-		remote_conf_t *config);
 static int format_parser(struct nv_pair *nv, int line, 
 		remote_conf_t *config);
 static int network_retry_time_parser(struct nv_pair *nv, int line, 

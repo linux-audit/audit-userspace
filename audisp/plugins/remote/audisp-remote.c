@@ -30,6 +30,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <time.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
@@ -174,15 +175,17 @@ static int do_action (const char *desc, const char *message,
 		return 0;
 	case FA_SINGLE:
 		change_runlevel(SINGLE);
-		return 1;
+		return -1;
 	case FA_HALT:
 		change_runlevel(HALT);
-		return 1;
+		return -1;
 	case FA_STOP:
 		syslog (log_level, "stopping due to %s, %s", desc, message);
 		stop = 1;
-		return 1;
+		return -1;
 	}
+	syslog (log_level, "unhandled action %d", action);
+	return -1;
 }
 
 static int network_failure_handler (const char *message)
@@ -374,6 +377,7 @@ static int stop_sock(void)
 {
 	close (sock);
 	transport_ok = 0;
+	return 0;
 }
 
 static int stop_transport(void)

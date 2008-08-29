@@ -356,7 +356,7 @@ static void netlink_handler( struct ev_loop *loop, struct ev_io *io, int revents
 	if (rep == NULL) { 
 		if ((rep = malloc(sizeof(*rep))) == NULL) {
 			char emsg[DEFAULT_BUF_SZ];
-			if(subj)
+			if (*subj)
 				snprintf(emsg, sizeof(emsg),
 					"auditd error halt, auid=%u pid=%d subj=%s res=failed",
 					audit_getloginuid(), getpid(), subj);
@@ -623,7 +623,7 @@ int main(int argc, char *argv[])
 	/* Tell the kernel we are alive */
 	if (audit_set_pid(fd, getpid(), WAIT_YES) < 0) {
 		char emsg[DEFAULT_BUF_SZ];
-		if(subj)
+		if (*subj)
 			snprintf(emsg, sizeof(emsg),
 				"auditd error halt, auid=%u pid=%d subj=%s res=failed",
 				audit_getloginuid(), getpid(), subj);
@@ -649,7 +649,7 @@ int main(int argc, char *argv[])
 	if (opt_startup != startup_nochange &&
 	    audit_set_enabled(fd, (int)opt_startup) < 0) {
 		char emsg[DEFAULT_BUF_SZ];
-		if(subj)
+		if (*subj)
 			snprintf(emsg, sizeof(emsg),
 				"auditd error halt, auid=%u pid=%d subj=%s res=failed",
 				audit_getloginuid(), getpid(), subj);
@@ -817,14 +817,18 @@ static char *getsubj(char *subj)
 
 	snprintf(filename, sizeof(filename), "/proc/%u/attr/current", pid);
 	fd = open(filename, O_RDONLY);
-	if(fd == -1)
+	if(fd == -1) {
+		subj[0] = 0;
 		return NULL;
+	}
 	do {
 		num_read = read(fd, subj, SUBJ_LEN-1);
 	} while (num_read < 0 && errno == EINTR);
 	close(fd);
-	if(num_read <= 0)
+	if(num_read <= 0) {
+		subj[0] = 0;
 		return NULL;
+	}
 	subj[num_read] = '\0';
 	return subj;
 }
