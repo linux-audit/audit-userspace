@@ -45,23 +45,51 @@ mode of the
 .I mode
 option. The default depth is 20.
 .TP
-.I fail_action
+.I network_failure_action
 This parameter tells the system what action to take whenever there is an error
-detected when sending audit events to the remote system, or if the remote system reports an error. Valid values are
-.IR ignore ", " syslog ", " exec ", " suspend ", " single ", and " halt .
+detected when sending audit events to the remote system. Valid values are
+.IR ignore ", " syslog ", " exec ", " suspend ", " single ", " halt ", and " stop .
 If set to
 .IR ignore ,
 the audit daemon does nothing.
 .I Syslog
-means that it will issue a warning to syslog.
+means that it will issue a warning to syslog.  This is the default.
 .I exec
 /path-to-script will execute the script. You cannot pass parameters to the script.
 .I Suspend
 will cause the remote logging app to stop sending records to the remote system. The logging app will still be alive. The
 .I single
-option will cause the remote logging app to put the computer system in single user mode.
+option will cause the remote logging app to put the computer system in single user mode. The
+.I stop
+option will cause the remote logging app to exit, but leave other plugins running. The
 .I halt
 option will cause the remote logging app to shutdown the computer system.
+.TP
+.I disk_low_action
+Likewise, this parameter tells the system what action to take if the
+remote end signals a disk low error.  The default is to ignore it.
+.TP
+.I disk_full_action
+Likewise, this parameter tells the system what action to take if the
+remote end signals a disk full error.  The default is to ignore it.
+.TP
+.I disk_error_action
+Likewise, this parameter tells the system what action to take if the
+remote end signals a disk error.  The default is to log it to syslog.
+.TP
+.I remote_ending_action
+Likewise, this parameter tells the system what action to take if the
+remote end signals a disk error.  The default is to suspend logging.
+.TP
+.I generic_error_action
+Likewise, this parameter tells the system what action to take if the
+remote end signals an error we don't recognize.  The default is to log
+it to syslog.
+.TP
+.I generic_warning_action
+Likewise, this parameter tells the system what action to take if the
+remote end signals a warning we don't recognize.  The default is to
+log it to syslog.
 .TP
 .I format
 This parameter tells the remote logging app what data format will be
@@ -73,11 +101,43 @@ If
 .I ascii
 is given instead, each message is a simple ASCII text line with no
 overhead at all.
+.TP
+.I network_retry_time
+The time, in seconds, between retries when a network error is
+detected.  Note that this pause applies starting after the second
+attempt, so as to avoid unneeded delays if a reconnect is sufficient
+to fix the problem.  The default is 1 second.
+.TP
+.I max_tries_per_record
+The maximum number of times an attempt is made to deliver each
+message.  The minimum value is one, as even a completely successful
+delivery requires at least one try.  If too many attempts are made,
+the network_failure_action action is performed.  The default is 3.
+.TP
+.I max_time_per_record
+The maximum amount of time, in seconds, spent attempting to deliver
+each message.  Note that both this and
+.I max_tries_per_record
+should be set, as each try may take a long time to time out.  The
+default value is 5 seconds.  If too much time is used on a message,
+the network_failure_action action is performed.
 
 .SH "NOTES"
 Specifying a local port may make it difficult to restart the audit
 subsystem due to the previous connection being in a TIME_WAIT state,
 if you're reconnecting to and from the same hosts and ports as before.
+
+The network failure logic works as follows: The first attempt to
+deliver normally "just works".  If it doesn't, a second attempt is
+immediately made, perhaps after reconnecting to the server.  If
+the second attempt also fails,
+.I audispd-remote
+pauses for the configured time and tries again.  It continues to pause
+and retry until either too many attempts have been made or the allowed
+time expires.  Note that these times govern the maximum amount of time
+the remote server is allowed in order to reboot, if you want to
+maintain logging across a reboot.
+
 .SH "SEE ALSO"
 .BR audispd (8),
 .BR audisp-remote(8).

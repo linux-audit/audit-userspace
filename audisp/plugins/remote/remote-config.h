@@ -26,8 +26,9 @@
 
 typedef enum { M_IMMEDIATE, M_STORE_AND_FORWARD  } mode_t;
 typedef enum { T_TCP, T_SSL, T_GSSAPI, T_LABELED } transport_t;
-typedef enum { F_IGNORE, F_SYSLOG, F_EXEC, F_SUSPEND, F_SINGLE, F_HALT } fail_t;
 typedef enum { F_ASCII, F_MANAGED } format_t;
+typedef enum { FA_IGNORE, FA_SYSLOG, FA_EXEC, FA_SUSPEND,
+	       FA_SINGLE, FA_HALT, FA_STOP } failure_action_t;
 
 typedef struct remote_conf
 {
@@ -37,9 +38,25 @@ typedef struct remote_conf
 	transport_t transport;
 	mode_t mode;
 	unsigned int queue_depth;
-	fail_t fail_action;
-	const char *fail_exe;
 	format_t format;
+	unsigned int network_retry_time;
+	unsigned int max_tries_per_record;
+	unsigned int max_time_per_record;
+
+	failure_action_t network_failure_action;
+	const char *network_failure_exe;
+	failure_action_t disk_low_action;
+	const char *disk_low_exe;
+	failure_action_t disk_full_action;
+	const char *disk_full_exe;
+	failure_action_t disk_error_action;
+	const char *disk_error_exe;
+	failure_action_t remote_ending_action;
+	const char *remote_ending_exe;
+	failure_action_t generic_error_action;
+	const char *generic_error_exe;
+	failure_action_t generic_warning_action;
+	const char *generic_warning_exe;
 } remote_conf_t;
 
 void clear_config(remote_conf_t *config);

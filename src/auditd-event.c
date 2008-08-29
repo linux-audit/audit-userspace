@@ -398,6 +398,9 @@ static void write_to_log(const char *buf, struct auditd_consumer_data *data)
 	if (data->head->ack_socket) {
 		unsigned char header[AUDIT_RMW_HEADER_SIZE];
 
+		if (fs_space_warning)
+			ack_type = AUDIT_RMW_TYPE_DISKLOW;
+
 		AUDIT_RMW_PACK_HEADER (header, 0, ack_type, strlen(msg), data->head->sequence_id);
 
 		ar_write (data->head->ack_socket, header, AUDIT_RMW_HEADER_SIZE);

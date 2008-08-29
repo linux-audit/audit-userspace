@@ -74,6 +74,22 @@ static int fail_action_parser(struct nv_pair *nv, int line,
 		remote_conf_t *config);
 static int format_parser(struct nv_pair *nv, int line, 
 		remote_conf_t *config);
+static int network_retry_time_parser(struct nv_pair *nv, int line, 
+		remote_conf_t *config);
+static int max_tries_per_record_parser(struct nv_pair *nv, int line, 
+		remote_conf_t *config);
+static int max_time_per_record_parser(struct nv_pair *nv, int line, 
+		remote_conf_t *config);
+#define AP(x) static int x##_action_parser(struct nv_pair *nv, int line,  \
+		remote_conf_t *config);
+AP(network_failure)
+AP(disk_low)
+AP(disk_full)
+AP(disk_error)
+AP(remote_ending)
+AP(generic_error)
+AP(generic_warning)
+#undef AP
 static int sanity_check(remote_conf_t *config, const char *file);
 
 static const struct kw_pair keywords[] = 
@@ -84,8 +100,17 @@ static const struct kw_pair keywords[] =
   {"transport",        transport_parser,	0 },
   {"mode",             mode_parser,		0 },
   {"queue_depth",      depth_parser,		0 },
-  {"fail_action",      fail_action_parser,	0 },
   {"format",           format_parser,		0 },
+  {"network_retry_time",     network_retry_time_parser,         0 },
+  {"max_tries_per_record",  max_tries_per_record_parser,      0 },
+  {"max_time_per_record",   max_time_per_record_parser,       0 },
+  {"network_failure_action", network_failure_action_parser,	0 },
+  {"disk_low_action",        disk_low_action_parser,		0 },
+  {"disk_full_action",       disk_full_action_parser,		0 },
+  {"disk_error_action",      disk_error_action_parser,		0 },
+  {"remote_ending_action",   remote_ending_action_parser,	0 },
+  {"generic_error_action",   generic_error_action_parser,	0 },
+  {"generic_warning_action", generic_warning_action_parser,	0 },
   { NULL,             NULL }
 };
 
@@ -104,12 +129,13 @@ static const struct nv_list mode_words[] =
 
 static const struct nv_list fail_action_words[] =
 {
-  {"ignore",   F_IGNORE },
-  {"syslog",   F_SYSLOG },
-  {"exec",     F_EXEC },
-  {"suspend",  F_SUSPEND },
-  {"single",   F_SINGLE },
-  {"halt",     F_HALT },
+  {"ignore",   FA_IGNORE },
+  {"syslog",   FA_SYSLOG },
+  {"exec",     FA_EXEC },
+  {"suspend",  FA_SUSPEND },
+  {"single",   FA_SINGLE },
+  {"halt",     FA_HALT },
+  {"stop",     FA_STOP },
   { NULL,  0 }
 };
 
@@ -131,9 +157,21 @@ void clear_config(remote_conf_t *config)
 	config->port = T_TCP;
 	config->mode = M_IMMEDIATE;
 	config->queue_depth = 20;
-	config->fail_action = F_SYSLOG;
-	config->fail_exe = NULL;
 	config->format = F_MANAGED;
+
+	config->network_retry_time = 1;
+	config->max_tries_per_record = 3;
+	config->max_time_per_record = 5;
+
+#define IA(x,f) config->x##_action = f; config->x##_exe = NULL
+	IA(network_failure, FA_STOP);
+	IA(disk_low, FA_IGNORE);
+	IA(disk_full, FA_IGNORE);
+	IA(disk_error, FA_SYSLOG);
+	IA(remote_ending, FA_SUSPEND);
+	IA(generic_error, FA_SYSLOG);
+	IA(generic_warning, FA_SYSLOG);
+#undef IA
 }
 
 int load_config(remote_conf_t *config, const char *file)
@@ -372,10 +410,10 @@ static int server_parser(struct nv_pair *nv, int line,
 	return 0;
 }
 
-static int port_parser(struct nv_pair *nv, int line, remote_conf_t *config)
+static int parse_uint (struct nv_pair *nv, int line, unsigned int *valp, unsigned int min, unsigned int max)
 {
 	const char *ptr = nv->value;
-	int i;
+	unsigned int i;
 
 	/* check that all chars are numbers */
 	for (i=0; ptr[i]; i++) {
@@ -397,54 +435,30 @@ static int port_parser(struct nv_pair *nv, int line, remote_conf_t *config)
 		return 1;
 	}
 	/* Check its range */
-	if (i > INT_MAX) {
+	if (min != 0 && i < (int)min) {
+		syslog(LOG_ERR,
+			"Error - converted number (%s) is too small - line %d",
+			nv->value, line);
+		return 1;
+	}
+	if (max != 0 && i > max) {
 		syslog(LOG_ERR,
 			"Error - converted number (%s) is too large - line %d",
 			nv->value, line);
 		return 1;
 	}
-	config->port = (unsigned int)i;
+	*valp = (unsigned int)i;
 	return 0;
+}
+
+static int port_parser(struct nv_pair *nv, int line, remote_conf_t *config)
+{
+	return parse_uint (nv, line, &(config->port), 0, INT_MAX);
 }
 
 static int local_port_parser(struct nv_pair *nv, int line, remote_conf_t *config)
 {
-	const char *ptr = nv->value;
-	int i;
-
-	if (strcasecmp (ptr, "any") == 0) {
-		config->local_port = 0;
-		return 0;
-	}
-
-	/* check that all chars are numbers */
-	for (i=0; ptr[i]; i++) {
-		if (!isdigit(ptr[i])) {
-			syslog(LOG_ERR,
-				"Value %s should only be numbers - line %d",
-				nv->value, line);
-			return 1;
-		}
-	}
-
-	/* convert to unsigned int */
-	errno = 0;
-	i = strtoul(nv->value, NULL, 10);
-	if (errno) {
-		syslog(LOG_ERR,
-			"Error converting string to a number (%s) - line %d",
-			strerror(errno), line);
-		return 1;
-	}
-	/* Check its range */
-	if (i > INT_MAX) {
-		syslog(LOG_ERR,
-			"Error - converted number (%s) is too large - line %d",
-			nv->value, line);
-		return 1;
-	}
-	config->local_port = (unsigned int)i;
-	return 0;
+	return parse_uint (nv, line, &(config->local_port), 0, INT_MAX);
 }
 
 static int transport_parser(struct nv_pair *nv, int line, remote_conf_t *config)
@@ -476,54 +490,24 @@ static int mode_parser(struct nv_pair *nv, int line, remote_conf_t *config)
 static int depth_parser(struct nv_pair *nv, int line,
 	remote_conf_t *config)
 {
-	const char *ptr = nv->value;
-	int i;
-
-	/* check that all chars are numbers */
-	for (i=0; ptr[i]; i++) {
-		if (!isdigit(ptr[i])) {
-			syslog(LOG_ERR,
-				"Value %s should only be numbers - line %d",
-				nv->value, line);
-			return 1;
-		}
-	}
-
-	/* convert to unsigned int */
-	errno = 0;
-	i = strtoul(nv->value, NULL, 10);
-	if (errno) {
-		syslog(LOG_ERR,
-			"Error converting string to a number (%s) - line %d",
-			strerror(errno), line);
-		return 1;
-	}
-	/* Check its range */
-	if (i > INT_MAX) {
-		syslog(LOG_ERR,
-			"Error - converted number (%s) is too large - line %d",
-			nv->value, line);
-		return 1;
-	}
-	config->queue_depth = (unsigned int)i;
-	return 0;
+	return parse_uint (nv, line, &(config->queue_depth), 1, INT_MAX);
 }
 
-static int fail_action_parser(struct nv_pair *nv, int line,
-	remote_conf_t *config)
+static int action_parser(struct nv_pair *nv, int line,
+			 failure_action_t *actp, const char **exep)
 {
 	int i;
 	for (i=0; fail_action_words[i].name != NULL; i++) {
 		if (strcasecmp(nv->value, fail_action_words[i].name) == 0) {
-			config->fail_action = fail_action_words[i].option;
+			*actp = fail_action_words[i].option;
 			return 0;
-		} else if (i == F_EXEC) {
+		} else if (i == FA_EXEC) {
 			if (strncasecmp(fail_action_words[i].name,
 							nv->value, 4) == 0){
 				if (check_exe_name(nv->option))
 					return 1;
-				config->fail_exe = strdup(nv->option);
-				config->fail_action = F_EXEC;
+				*exep = strdup(nv->option);
+				*actp = FA_EXEC;
 				return 0;
 			}
 		}
@@ -531,6 +515,22 @@ static int fail_action_parser(struct nv_pair *nv, int line,
 	syslog(LOG_ERR, "Option %s not found - line %d", nv->value, line);
  	return 1;
 }
+
+#define AP(x) \
+static int x##_action_parser(struct nv_pair *nv, int line, \
+	remote_conf_t *config) \
+{ \
+	return action_parser (nv, line, &(config->x##_action), &(config->x##_exe)); \
+} \
+
+AP(network_failure)
+AP(disk_low)
+AP(disk_full)
+AP(disk_error)
+AP(remote_ending)
+AP(generic_error)
+AP(generic_warning)
+#undef AP
 
 static int format_parser(struct nv_pair *nv, int line,
 	remote_conf_t *config)
@@ -544,6 +544,24 @@ static int format_parser(struct nv_pair *nv, int line,
 	}
 	syslog(LOG_ERR, "Option %s not found - line %d", nv->value, line);
  	return 1;
+}
+
+static int network_retry_time_parser(struct nv_pair *nv, int line,
+	remote_conf_t *config)
+{
+	return parse_uint (nv, line, &(config->network_retry_time), 1, INT_MAX);
+}
+
+static int max_tries_per_record_parser(struct nv_pair *nv, int line,
+	remote_conf_t *config)
+{
+	return parse_uint (nv, line, &(config->max_tries_per_record), 1, INT_MAX);
+}
+
+static int max_time_per_record_parser(struct nv_pair *nv, int line,
+	remote_conf_t *config)
+{
+	return parse_uint (nv, line, &(config->max_time_per_record), 1, INT_MAX);
 }
 
 /*
