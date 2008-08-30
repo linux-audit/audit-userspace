@@ -5,6 +5,7 @@
 - Make client error handling in audisp-remote robust (DJ Delorie)
 - Do not list syscalls for rules on the exclude filter (Yu Zhiguo)
 - Add tcp_wrappers support for auditd
+- Updated syscall tables for 2.6.27 kernel
 
 1.7.5
 - Update system-config-audit to 0.4.8 (Miloslav Trmac)
