@@ -1,2 +1,0 @@
-Running "make check" assumes you do not have postfix installed right now.
-If you do, the test will fail.

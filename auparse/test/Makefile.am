@@ -24,7 +24,7 @@ CONFIG_CLEAN_FILES = Makefile.in *.loT *.rej *.orig
 
 check_PROGRAMS = auparse_test
 dist_check_SCRIPTS = auparse_test.py
-EXTRA_DIST = auparse_test.ref README test.log test2.log
+EXTRA_DIST = auparse_test.ref test.log test2.log
 
 INCLUDES = -I.. -I${top_srcdir}/lib
 
