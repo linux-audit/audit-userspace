@@ -37,7 +37,8 @@ auparse_test_DEPENDENCIES = ../.libs/libauparse.a \
 drop_srcdir = sed 's,$(srcdir)/test,test,'
 
 check: auparse_test
-	LD_LIBRARY_PATH=../.libs srcdir=$(srcdir) $(srcdir)/auparse_test.py \
+	LD_LIBRARY_PATH=${top_builddir}/auparse/.libs \
+		srcdir=$(srcdir) $(srcdir)/auparse_test.py \
 		| $(drop_srcdir) > auparse_test.cur
 	diff -u $(srcdir)/auparse_test.ref auparse_test.cur
 
@@ -48,18 +49,20 @@ diffcheck: auparse_test
 memcheck: auparse_test
 	valgrind --leak-check=yes --show-reachable=yes ./auparse_test 
 
-pycheck: auparse_test.py ../../bindings/python/build/*/auparse.so
-	LD_LIBRARY_PATH=../.libs srcdir=$(srcdir) $(srcdir)/auparse_test.py
+pycheck: auparse_test.py ${top_builddir}/bindings/python/build/*/auparse.so
+	LD_LIBRARY_PATH=${top_builddir}/auparse/.libs \
+		srcdir=$(srcdir) $(srcdir)/auparse_test.py
 
-pydiffcheck: auparse_test.py ../../bindings/python/build/*/auparse.so
-	LD_LIBRARY_PATH=../.libs srcdir=$(srcdir) $(srcdir)/auparse_test.py \
+pydiffcheck: auparse_test.py ${top_builddir}/bindings/python/build/*/auparse.so
+	LD_LIBRARY_PATH=${top_builddir}/auparse/.libs \
+		srcdir=$(srcdir) $(srcdir)/auparse_test.py \
 		| $(drop_srcdir) > auparse_test.cur
 	diff $(srcdir)/auparse_test.ref auparse_test.cur
 
-pymemcheck: auparse_test.py ../../bindings/python/build/*/auparse.so
-	LD_LIBRARY_PATH=../.libs srcdir=$(srcdir) valgrind --leak-check=yes --show-reachable=yes python $(srcdir)/auparse_test.py
+pymemcheck: auparse_test.py ${top_builddir}/bindings/python/build/*/auparse.so
+	LD_LIBRARY_PATH=${top_builddir}/auparse/.libs srcdir=$(srcdir) valgrind --leak-check=yes --show-reachable=yes python $(srcdir)/auparse_test.py
 
-../../bindings/python/build/*/auparse.so: ../../bindings/python/auparse_python.c
-	cd ../../bindings/python && make
+${top_builddir}/bindings/python/build/*/auparse.so: ${top_srcdir}/bindings/python/auparse_python.c
+	cd ${top_builddir}/bindings/python && make
 clean-generic:
 	rm -f *.cur
