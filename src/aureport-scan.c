@@ -172,6 +172,14 @@ int classify_conf(const llist *l)
 			if (event_conf_act == C_ADD)
 				rc = 0;
 			break;
+		case AUDIT_MAC_UNLBL_STCADD:
+			if (event_conf_act == C_DEL)
+				rc = 0;
+			break;
+		case AUDIT_MAC_UNLBL_STCDEL:
+			if (event_conf_act == C_ADD)
+				rc = 0;
+			break;
 		default:
 			break;
 	}
@@ -447,7 +455,7 @@ static int per_event_detailed(llist *l)
 			if (report_detail == D_DETAILED) {
 				if (list_find_msg_range(l, 
 						AUDIT_MAC_POLICY_LOAD,
-						AUDIT_MAC_IPSEC_DELSPD)) {
+						AUDIT_MAC_UNLBL_STCDEL)) {
 					print_per_event_item(l);
 					rc = 1;
 				} else {
@@ -472,7 +480,7 @@ static int per_event_detailed(llist *l)
 				rc = 1;
 			} else if (list_find_msg_range(l,
 					AUDIT_MAC_POLICY_LOAD,
-					AUDIT_MAC_IPSEC_DELSPD)) {
+					AUDIT_MAC_UNLBL_STCDEL)) {
 						print_per_event_item(l);
 						rc = 1;
 			}
@@ -684,7 +692,7 @@ static void do_summary_total(llist *l)
 		sd.changes++;
 	list_first(l);
 	if (list_find_msg_range(l, AUDIT_MAC_POLICY_LOAD,
-					AUDIT_MAC_IPSEC_DELSPD))
+					AUDIT_MAC_UNLBL_STCDEL))
 		sd.changes++;
 
 	// add acct changes
@@ -774,7 +782,7 @@ static void do_summary_total(llist *l)
 	// MAC
 	list_first(l);
 	if (list_find_msg_range(l, AUDIT_MAC_POLICY_LOAD,
-					AUDIT_MAC_IPSEC_DELSPD))
+					AUDIT_MAC_UNLBL_STCDEL))
 		sd.mac++;
 	if (list_find_msg_range(l, AUDIT_FIRST_USER_LSPP_MSG, 
 					AUDIT_LAST_USER_LSPP_MSG))

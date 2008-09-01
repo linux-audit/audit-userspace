@@ -211,7 +211,7 @@ int extract_search_items(llist *l)
 			   AUDIT_FIRST_KERN_ANOM_MSG...AUDIT_LAST_KERN_ANOM_MSG:
 				ret = parse_kernel_anom(n, s);
 				break;
-			case AUDIT_MAC_POLICY_LOAD...AUDIT_MAC_IPSEC_DELSPD:
+			case AUDIT_MAC_POLICY_LOAD...AUDIT_MAC_UNLBL_STCDEL:
 				ret = parse_simple_message(n, s);
 				break;
 			case AUDIT_KERNEL:

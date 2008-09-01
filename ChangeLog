@@ -1,5 +1,5 @@
 1.7.6
-- Update event record list (Yu Zhiguo/Peng Haitao)
+- Update event record list and aureport classifications (Yu Zhiguo/Peng Haitao)
 - Add subject to audit daemon events (Chu Li)
 - Fix parsing of acct & exe fields in user records (Peng Haitao)
 - Make client error handling in audisp-remote robust (DJ Delorie)
