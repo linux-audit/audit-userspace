@@ -138,6 +138,8 @@ AC_ARG_WITH(libwrap,
 		;;
 	yes)
 		AC_MSG_RESULT(yes)
+		AC_CHECK_HEADER(tcpd.h, [],
+			AC_MSG_ERROR([Could not find libwrap headers]),)
 		AC_CHECK_LIB(wrap, request_init, [ LIBWRAP_LIBS="-lwrap" ])
 		AC_CHECK_LIB(nsl, yp_get_default_domain, [
 			LIBWRAP_LIBS="$LIBWRAP_LIBS -lnsl" ])
@@ -149,6 +151,9 @@ AC_ARG_WITH(libwrap,
 		else
 			LIBWRAP_LIBS="$withval"
 		fi
+		AC_CHECK_HEADER(tcpd.h, [],
+			AC_MSG_ERROR([Could not find libwrap headers]))
+		AC_CHECK_LIB(wrap, request_init, [])
 		AC_CHECK_LIB(nsl, yp_get_default_domain, [
 			LIBWRAP_LIBS="$LIBWRAP_LIBS -lnsl" ])
 		OLDLIBS="$LIBS"
