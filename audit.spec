@@ -166,10 +166,8 @@ desktop-file-install					\
 	--delete-original				\
 	system-config-audit/system-config-audit.desktop
 
-# This is a reminder to enable it when tests
-# aren't based on postfix uids
-#% check
-#make check
+%check
+make check
 
 %clean
 rm -rf $RPM_BUILD_ROOT

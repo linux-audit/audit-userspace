@@ -30,8 +30,9 @@ INCLUDES = -I.. -I${top_srcdir}/lib
 
 auparse_test_SOURCES = auparse_test.c
 auparse_test_LDFLAGS = -static
-auparse_test_LDADD = -L../.libs/ -L../../lib/.libs -lauparse -laudit
-auparse_test_DEPENDENCIES = ../.libs/libauparse.a \
+auparse_test_LDADD = -L${top_builddir}/auparse/.libs \
+	-L${top_builddir}/lib/.libs -lauparse -laudit
+auparse_test_DEPENDENCIES = ${top_builddir}/auparse/.libs/libauparse.a \
 	$(srcdir)/../*.c $(srcdir)/../*.h
 
 drop_srcdir = sed 's,$(srcdir)/test,test,'
@@ -41,6 +42,7 @@ check: auparse_test
 		srcdir=$(srcdir) $(srcdir)/auparse_test.py \
 		| $(drop_srcdir) > auparse_test.cur
 	diff -u $(srcdir)/auparse_test.ref auparse_test.cur
+	echo -e "===================\nAuparse Test Passes\n==================="
 
 diffcheck: auparse_test
 	./auparse_test > auparse_test.cur
