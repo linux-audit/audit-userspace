@@ -348,7 +348,7 @@ _S(326, "timerfd_gettime")
 _S(327, "signalfd4")
 _S(328, "eventfd2")
 _S(329, "epoll_create1")
-_S(220, "dup3")
+_S(330, "dup3")
 _S(331, "pipe2")
 _S(332, "inotify_init1")
 
