@@ -115,7 +115,6 @@ extern "C" {
 #ifndef AUDIT_EOE
 #define AUDIT_EOE		1320	/* End of event */
 #endif
-#define AUDIT_LAST_EVENT	1399
 
 #define AUDIT_FIRST_SELINUX	1400
 #define AUDIT_LAST_SELINUX	1499
