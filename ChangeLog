@@ -6,6 +6,7 @@
 - Do not list syscalls for rules on the exclude filter (Yu Zhiguo)
 - Add tcp_wrappers support for auditd
 - Updated syscall tables for 2.6.27 kernel
+- Add heartbeat exchange to remote logging protocol (DJ Delorie)
 
 1.7.5
 - Update system-config-audit to 0.4.8 (Miloslav Trmac)

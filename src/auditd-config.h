@@ -74,6 +74,7 @@ struct daemon_conf
 	unsigned long tcp_listen_queue;
 	unsigned long tcp_client_min_port;
 	unsigned long tcp_client_max_port;
+	unsigned long tcp_client_max_idle;
 };
 
 void set_allow_links(int allow);
@@ -90,6 +91,7 @@ int start_config_manager(struct auditd_reply_list *rep);
 void shutdown_config(void);
 void free_config(struct daemon_conf *config);
 
+void periodic_reconfigure(void);
 
 #endif
 

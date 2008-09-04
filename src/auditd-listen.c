@@ -56,6 +56,7 @@ typedef struct ev_tcp {
 	struct sockaddr_in addr;
 	struct ev_tcp *next, *prev;
 	int bufptr;
+	int client_active;
 	unsigned char buffer [MAX_AUDIT_MESSAGE_LENGTH + 17];
 } ev_tcp;
 
@@ -96,6 +97,24 @@ static void close_client (struct ev_tcp *client)
 	free (client);
 }
 
+static int ar_write (int sock, const void *buf, int len)
+{
+	int rc = 0, w;
+	while (len > 0) {
+		do {
+			w = write(sock, buf, len);
+		} while (w < 0 && errno == EINTR);
+		if (w < 0)
+			return w;
+		if (w == 0)
+			break;
+		rc += w;
+		len -= w;
+		buf = (const void *)((const char *)buf + w);
+	}
+	return rc;
+}
+
 static void client_message (struct ev_tcp *io, unsigned int length, unsigned char *header)
 {
 	unsigned char ch;
@@ -109,7 +128,12 @@ static void client_message (struct ev_tcp *io, unsigned int length, unsigned cha
 		header[length] = 0;
 		if (length > 1 && header[length-1] == '\n')
 			header[length-1] = 0;
-		enqueue_formatted_event (header+AUDIT_RMW_HEADER_SIZE, io->io.fd, seq);
+		if (type == AUDIT_RMW_TYPE_HEARTBEAT) {
+			unsigned char ack[AUDIT_RMW_HEADER_SIZE];
+			AUDIT_RMW_PACK_HEADER (ack, 0, AUDIT_RMW_TYPE_ACK, 0, seq);
+			ar_write (io->io.fd, ack, AUDIT_RMW_HEADER_SIZE);
+		} else 
+			enqueue_formatted_event (header+AUDIT_RMW_HEADER_SIZE, io->io.fd, seq);
 		header[length] = ch;
 	} else {
 		header[length] = 0;
@@ -124,6 +148,8 @@ static void auditd_tcp_client_handler( struct ev_loop *loop, struct ev_io *_io, 
 	struct ev_tcp *io = (struct ev_tcp *) _io;
 	int i, r;
 	int total_this_call = 0;
+
+	io->client_active = 1;
 
 	/* The socket is non-blocking, but we have a limited buffer
 	   size.  In the event that we get a packet that's bigger than
@@ -289,6 +315,8 @@ static void auditd_tcp_listen_handler( struct ev_loop *loop, struct ev_io *_io, 
 
 	memset (client, 0, sizeof (struct ev_tcp));
 
+	client->client_active = 1;
+
 	ev_io_init (&(client->io), auditd_tcp_client_handler, afd, EV_READ | EV_ERROR);
 	ev_io_start (loop, &(client->io));
 
@@ -357,5 +385,21 @@ void auditd_tcp_listen_uninit ( struct ev_loop *loop )
 
 	while (client_chain) {
 		close_client (client_chain);
+	}
+}
+
+void auditd_tcp_listen_check_idle (struct ev_loop *loop )
+{
+	struct ev_tcp *ev;
+	int active;
+
+	for (ev = client_chain; ev; ev = ev->next) {
+		active = ev->client_active;
+		ev->client_active = 0;
+		if (active)
+			continue;
+
+		fprintf (stderr, "client %s idle too long\n",
+			sockaddr_to_ip (&(ev->addr)));
 	}
 }

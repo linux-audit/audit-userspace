@@ -68,6 +68,7 @@ static int do_fork = 1;
 static struct auditd_reply_list *rep = NULL;
 static int hup_info_requested = 0, usr1_info_requested = 0;
 static char subj[SUBJ_LEN];
+static struct ev_periodic periodic_watcher;
 
 /* Local function prototypes */
 int send_audit_event(int type, const char *str);
@@ -430,6 +431,25 @@ static void netlink_handler( struct ev_loop *loop, struct ev_io *io, int revents
 	}
 }
 
+static void periodic_handler( struct ev_loop *loop, struct ev_periodic *per, int revents )
+{
+	if (config.tcp_client_max_idle)
+		auditd_tcp_listen_check_idle (loop);
+}
+
+void periodic_reconfigure ()
+{
+	int i;
+	struct ev_loop *loop = ev_default_loop (EVFLAG_AUTO);
+	if (config.tcp_client_max_idle) {
+		ev_periodic_set (&periodic_watcher, ev_now (loop),
+				 config.tcp_client_max_idle, NULL);
+		ev_periodic_start (loop, &periodic_watcher);
+	} else {
+		ev_periodic_stop (loop, &periodic_watcher);
+	}
+}
+
 int main(int argc, char *argv[])
 {
 	struct sigaction sa;
@@ -696,6 +716,11 @@ int main(int argc, char *argv[])
 
 	ev_signal_init (&sigchld_watcher, child_handler, SIGCHLD);
 	ev_signal_start (loop, &sigchld_watcher);
+
+	ev_periodic_init (&periodic_watcher, periodic_handler,
+			  0, config.tcp_client_max_idle, NULL);
+	if (config.tcp_client_max_idle)
+		ev_periodic_start (loop, &periodic_watcher);
 
 	if (auditd_tcp_listen_init (loop, &config)) {
 		tell_parent (FAILURE);

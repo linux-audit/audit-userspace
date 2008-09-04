@@ -154,28 +154,30 @@ void enqueue_event(struct auditd_reply_list *rep)
 	rep->ack_socket = 0;
 	rep->sequence_id = 0;
 
-	switch (consumer_data.config->log_format)
-	{
-	case LF_RAW:
-		buf = format_raw(&rep->reply, consumer_data.config);
-		break;
-	case LF_NOLOG:
-		return;
-	default:
-		audit_msg(LOG_ERR, 
-			  "Illegal log format detected %d", 
-			  consumer_data.config->log_format);
-		return;
-	}
+	if (rep->reply.type != AUDIT_DAEMON_RECONFIG) {
+		switch (consumer_data.config->log_format)
+		{
+		case LF_RAW:
+			buf = format_raw(&rep->reply, consumer_data.config);
+			break;
+		case LF_NOLOG:
+			return;
+		default:
+			audit_msg(LOG_ERR, 
+				  "Illegal log format detected %d", 
+				  consumer_data.config->log_format);
+			return;
+		}
 
-	len = strlen (buf);
-	if (len < MAX_AUDIT_MESSAGE_LENGTH - 1)
-		memcpy (rep->reply.msg.data, buf, len+1);
-	else
-	{
-		/* FIXME: is truncation the right thing to do?  */
-		memcpy (rep->reply.msg.data, buf, MAX_AUDIT_MESSAGE_LENGTH-1);
-		rep->reply.msg.data[MAX_AUDIT_MESSAGE_LENGTH-1] = 0;
+		len = strlen (buf);
+		if (len < MAX_AUDIT_MESSAGE_LENGTH - 1)
+			memcpy (rep->reply.msg.data, buf, len+1);
+		else
+		{
+			/* FIXME: is truncation the right thing to do?  */
+			memcpy (rep->reply.msg.data, buf, MAX_AUDIT_MESSAGE_LENGTH-1);
+			rep->reply.msg.data[MAX_AUDIT_MESSAGE_LENGTH-1] = 0;
+		}
 	}
 
 	rep->next = NULL; /* new packet goes at end - so zero this */
@@ -296,14 +298,29 @@ static void *event_thread_main(void *arg)
 static unsigned int count = 0L;
 static void handle_event(struct auditd_consumer_data *data)
 {
+	char *buf = data->head->reply.msg.data;
+
 	if (data->head->reply.type == AUDIT_DAEMON_RECONFIG) {
 		reconfigure(data);
+		switch (consumer_data.config->log_format)
+		{
+		case LF_RAW:
+			buf = format_raw(&data->head->reply, consumer_data.config);
+			break;
+		case LF_NOLOG:
+			return;
+		default:
+			audit_msg(LOG_ERR, 
+				  "Illegal log format detected %d", 
+				  consumer_data.config->log_format);
+			return;
+		}
 	} else if (data->head->reply.type == AUDIT_DAEMON_ROTATE) {
 		rotate_logs_now(data);
 	}
 	if (!logging_suspended) {
 
-		write_to_log(data->head->reply.msg.data, data);
+		write_to_log(buf, data);
 
 		/* See if we need to flush to disk manually */
 		if (data->config->flush == FT_INCREMENTAL) {
@@ -1202,6 +1219,11 @@ static void reconfigure(struct auditd_consumer_data *data)
 		if (logging_suspended == 0)
 			logging_suspended = saved_suspend;
 	}
+
+	// TCP listener
+
+	oconf->tcp_client_max_idle = nconf->tcp_client_max_idle;
+	periodic_reconfigure ();
 
 	// Next document the results
 	srand(time(NULL));

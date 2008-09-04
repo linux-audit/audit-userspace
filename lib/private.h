@@ -91,6 +91,7 @@ struct auditd_remote_message_wrapper {
 
 /* Version 0 messages.  */
 #define AUDIT_RMW_TYPE_MESSAGE		0x00000000
+#define AUDIT_RMW_TYPE_HEARTBEAT	0x00000001
 #define AUDIT_RMW_TYPE_ACK		0x40000000
 #define AUDIT_RMW_TYPE_ENDING		0x40000001
 #define AUDIT_RMW_TYPE_DISKLOW		0x50000001

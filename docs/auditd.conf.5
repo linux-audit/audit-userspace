@@ -235,6 +235,13 @@ allowed.  Allowed values are 1..65535.  For example, to require the
 client use a priviledged port, specify
 .I 1-1023
 for this parameter.
+.TP
+.I tcp_client_max_idle
+This parameter indicates the number of seconds that a client may be
+idle (i.e. no data from them at all) before auditd complains.  Note
+that this is a global setting, and must be higher than any individual
+client heartbeat setting, preferably by a factor of two.  The default
+is zero, which disables this check.
 
 .SH NOTES
 In a CAPP environment, the audit trail is considered so important that access to system resources must be denied if an audit trail cannot be created. In this environment, it would be suggested that /var/log/audit be on its own partition. This is to ensure that space detection is accurate and that no other process comes along and consumes part of it.

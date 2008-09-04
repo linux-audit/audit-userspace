@@ -31,6 +31,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <time.h>
+#include <sys/select.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
@@ -236,6 +237,10 @@ static int generic_remote_warning_handler (const char *message)
 			  config.generic_warning_action, config.generic_warning_exe);
 }
 
+static void send_heartbeat ()
+{
+	relay_event (0, 0);
+}
 
 int main(int argc, char *argv[])
 {
@@ -270,9 +275,30 @@ int main(int argc, char *argv[])
 			reload_config();
 		}
 
+		if (config.heartbeat_timeout > 0) {
+			fd_set rfd;
+			struct timeval tv;
+			int n;
 
-		/* Now the event loop */
-		while (fgets_unlocked(tmp, MAX_AUDIT_MESSAGE_LENGTH, stdin) &&
+			FD_ZERO (&rfd);
+			FD_SET (fileno (stdin), &rfd);
+			tv.tv_sec = config.heartbeat_timeout;
+			tv.tv_usec = 0;
+
+			n = select (fileno (stdin) + 1, &rfd, NULL, &rfd, &tv);
+
+			if (n <= 0) {
+				/* We attempt a hearbeat if select
+				   fails, which may give us more
+				   heartbeats than we need.  This is
+				   safer than too few heartbeats.  */
+				send_heartbeat ();
+				continue;
+			}
+		}
+
+		/* Now read the [next] message.  */
+		if (fgets_unlocked(tmp, MAX_AUDIT_MESSAGE_LENGTH, stdin) &&
 							hup==0 && stop==0) {
 			if (!suspend) {
 				rc = relay_event(tmp, strnlen(tmp,
@@ -436,6 +462,9 @@ static int relay_sock_ascii(const char *s, size_t len)
 {
 	int rc;
 
+	if (len == 0)
+		return 0;
+
 	if (!transport_ok)
 		if (init_transport ())
 			return -1;
@@ -492,7 +521,9 @@ try_again:
 			goto try_again;
 	}
 
-	AUDIT_RMW_PACK_HEADER (header, 0, 0, len, sequence_id);
+	type = (s != NULL) ? AUDIT_RMW_TYPE_MESSAGE : AUDIT_RMW_TYPE_HEARTBEAT;
+
+	AUDIT_RMW_PACK_HEADER (header, 0, type, len, sequence_id);
 	rc = ar_write(sock, header, AUDIT_RMW_HEADER_SIZE);
 	if (rc <= 0) {
 		if (config.network_failure_action == FA_SYSLOG)
@@ -502,13 +533,16 @@ try_again:
 		goto try_again;
 	}
 
-	rc = ar_write(sock, s, len);
-	if (rc <= 0) {
-		if (config.network_failure_action == FA_SYSLOG)
-			syslog(LOG_ERR, "connection to %s closed unexpectedly",
-			       config.remote_server);
-		stop_transport();
-		goto try_again;
+	if (s != NULL && len > 0)
+	{
+		rc = ar_write(sock, s, len);
+		if (rc <= 0) {
+			if (config.network_failure_action == FA_SYSLOG)
+				syslog(LOG_ERR, "connection to %s closed unexpectedly",
+				       config.remote_server);
+			stop_transport();
+			goto try_again;
+		}
 	}
 
 	rc = ar_read (sock, header, AUDIT_RMW_HEADER_SIZE);

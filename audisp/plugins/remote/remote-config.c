@@ -72,6 +72,8 @@ static int depth_parser(struct nv_pair *nv, int line,
 		remote_conf_t *config);
 static int format_parser(struct nv_pair *nv, int line, 
 		remote_conf_t *config);
+static int heartbeat_timeout_parser(struct nv_pair *nv, int line, 
+		remote_conf_t *config);
 static int network_retry_time_parser(struct nv_pair *nv, int line, 
 		remote_conf_t *config);
 static int max_tries_per_record_parser(struct nv_pair *nv, int line, 
@@ -100,8 +102,9 @@ static const struct kw_pair keywords[] =
   {"queue_depth",      depth_parser,		0 },
   {"format",           format_parser,		0 },
   {"network_retry_time",     network_retry_time_parser,         0 },
-  {"max_tries_per_record",  max_tries_per_record_parser,      0 },
-  {"max_time_per_record",   max_time_per_record_parser,       0 },
+  {"max_tries_per_record",   max_tries_per_record_parser,       0 },
+  {"max_time_per_record",    max_time_per_record_parser,        0 },
+  {"heartbeat_timeout",      heartbeat_timeout_parser,          0 },
   {"network_failure_action", network_failure_action_parser,	0 },
   {"disk_low_action",        disk_low_action_parser,		0 },
   {"disk_full_action",       disk_full_action_parser,		0 },
@@ -160,6 +163,8 @@ void clear_config(remote_conf_t *config)
 	config->network_retry_time = 1;
 	config->max_tries_per_record = 3;
 	config->max_time_per_record = 5;
+
+	config->heartbeat_timeout = 0;
 
 #define IA(x,f) config->x##_action = f; config->x##_exe = NULL
 	IA(network_failure, FA_STOP);
@@ -560,6 +565,12 @@ static int max_time_per_record_parser(struct nv_pair *nv, int line,
 	remote_conf_t *config)
 {
 	return parse_uint (nv, line, &(config->max_time_per_record), 1, INT_MAX);
+}
+
+static int heartbeat_timeout_parser(struct nv_pair *nv, int line,
+	remote_conf_t *config)
+{
+	return parse_uint (nv, line, &(config->heartbeat_timeout), 0, INT_MAX);
 }
 
 /*

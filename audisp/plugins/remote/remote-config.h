@@ -42,6 +42,7 @@ typedef struct remote_conf
 	unsigned int network_retry_time;
 	unsigned int max_tries_per_record;
 	unsigned int max_time_per_record;
+	unsigned int heartbeat_timeout;
 
 	failure_action_t network_failure_action;
 	const char *network_failure_exe;
