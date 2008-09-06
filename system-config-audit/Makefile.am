@@ -102,6 +102,3 @@ src/system-config-audit: src/system-config-audit.in Makefile
 
 @INTLTOOL_DESKTOP_RULE@
 
-clean-generic:
-	rm -rf autom4te*.cache
-
