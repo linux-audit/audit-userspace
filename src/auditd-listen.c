@@ -50,6 +50,8 @@
 #include "ev.h"
 
 extern volatile int stop;
+extern int send_audit_event(int type, const char *str);
+#define DEFAULT_BUF_SZ  192
 
 typedef struct ev_tcp {
 	struct ev_io io;
@@ -71,7 +73,7 @@ static char *sockaddr_to_ip (struct sockaddr_in *addr)
 	unsigned char *uaddr = (unsigned char *)&(addr->sin_addr);
 	static char buf[40];
 
-	sprintf (buf, "%d.%d.%d.%d:%d",
+	snprintf (buf, sizeof(buf), "%d.%d.%d.%d:%d",
 		 uaddr[0], uaddr[1], uaddr[2], uaddr[3], ntohs (addr->sin_port));
 	return buf;
 }
@@ -87,6 +89,11 @@ static void set_close_on_exec (int fd)
 
 static void close_client (struct ev_tcp *client)
 {
+	char emsg[DEFAULT_BUF_SZ];
+
+	snprintf(emsg, sizeof(emsg), "addr=%s port=%d res=success",
+		sockaddr_to_ip (&client->addr), ntohs (client->addr.sin_port));
+	send_audit_event(AUDIT_DAEMON_CLOSE, emsg); 
 	close (client->io.fd);
 	if (client_chain == client)
 		client_chain = client->next;
@@ -273,6 +280,7 @@ static void auditd_tcp_listen_handler( struct ev_loop *loop, struct ev_io *_io, 
 	struct sockaddr_in aaddr;
 	struct ev_tcp *client;
 	unsigned char *uaddr;
+	char emsg[DEFAULT_BUF_SZ];
 
 	/* Accept the connection and see where it's coming from.  */
 	aaddrlen = sizeof(aaddr);
@@ -286,6 +294,10 @@ static void auditd_tcp_listen_handler( struct ev_loop *loop, struct ev_io *_io, 
 		close (afd);
         	audit_msg(LOG_ERR, "TCP connection from %s rejected",
 				sockaddr_to_ip (&aaddr));
+		snprintf(emsg, sizeof(emsg),
+			"addr=%s port=%d res=no", sockaddr_to_ip (&aaddr),
+			ntohs (aaddr.sin_port));
+		send_audit_event(AUDIT_DAEMON_ACCEPT, emsg);
 		return;
 	}
 
@@ -296,6 +308,10 @@ static void auditd_tcp_listen_handler( struct ev_loop *loop, struct ev_io *_io, 
 	if (min_port > ntohs (aaddr.sin_port) || ntohs (aaddr.sin_port) > max_port) {
         	audit_msg(LOG_ERR, "TCP connection from %s rejected",
 				sockaddr_to_ip (&aaddr));
+		snprintf(emsg, sizeof(emsg),
+			"addr=%s port=%d res=no", sockaddr_to_ip (&aaddr),
+			ntohs (aaddr.sin_port));
+		send_audit_event(AUDIT_DAEMON_ACCEPT, emsg);
 		close (afd);
 		return;
 	}
@@ -309,6 +325,10 @@ static void auditd_tcp_listen_handler( struct ev_loop *loop, struct ev_io *_io, 
 	client = (struct ev_tcp *) malloc (sizeof (struct ev_tcp));
 	if (client == NULL) {
         	audit_msg(LOG_CRIT, "Unable to allocate TCP client data");
+		snprintf(emsg, sizeof(emsg),
+			"addr=%s port=%d res=no", sockaddr_to_ip (&aaddr),
+			ntohs (aaddr.sin_port));
+		send_audit_event(AUDIT_DAEMON_ACCEPT, emsg);
 		close (afd);
 		return;
 	}
@@ -327,6 +347,10 @@ static void auditd_tcp_listen_handler( struct ev_loop *loop, struct ev_io *_io, 
 	if (client->next)
 		client->next->prev = client;
 	client_chain = client;
+	snprintf(emsg, sizeof(emsg),
+		"addr=%s port=%d res=success", sockaddr_to_ip (&aaddr),
+		ntohs (aaddr.sin_port));
+	send_audit_event(AUDIT_DAEMON_ACCEPT,emsg);
 }
 
 int auditd_tcp_listen_init ( struct ev_loop *loop, struct daemon_conf *config )

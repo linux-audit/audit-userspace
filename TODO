@@ -1,11 +1,11 @@
 Things that need to be done:
 ===========================
 1.7.6
-* Add event types for connection open and closed
 * Fix ausearch -i to keep the node field in the output
 * Make way to get strstr results in ausyscall - find more that 1 string match
-* Finish remote logging plugin, nss, gssapi, labeled networking
 * Expose encryption API for fields
+* Create auparse_field_type function
+* Finish remote logging plugin gssapi or labeled networking
 
 1.7.7
 * Fix auparse to handle out of order messages

@@ -8,6 +8,7 @@
 - Updated syscall tables for 2.6.27 kernel
 - Add heartbeat exchange to remote logging protocol (DJ Delorie)
 - Apply man page update (Philipp Hahn)
+- Audit connect/disconnect of remote clients
 
 1.7.5
 - Update system-config-audit to 0.4.8 (Miloslav Trmac)

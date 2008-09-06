@@ -87,9 +87,11 @@ extern "C" {
 
 #define AUDIT_FIRST_DAEMON	1200
 #define AUDIT_LAST_DAEMON	1299
-#define AUDIT_DAEMON_RECONFIG	1204	/* Audit daemon should reconfigure */
-#define AUDIT_DAEMON_ROTATE	1205	/* Audit daemon should rotate logs */
-#define AUDIT_DAEMON_RESUME	1206	/* Audit daemon should resume logging */
+#define AUDIT_DAEMON_RECONFIG	1204	/* Auditd should reconfigure */
+#define AUDIT_DAEMON_ROTATE	1205	/* Auditd should rotate logs */
+#define AUDIT_DAEMON_RESUME	1206	/* Auditd should resume logging */
+#define AUDIT_DAEMON_ACCEPT	1207    /* Auditd accepted remote connection */
+#define AUDIT_DAEMON_CLOSE	1208    /* Auditd closed remote connection */
 
 #define AUDIT_FIRST_EVENT	1300
 #define AUDIT_LAST_EVENT	1399
