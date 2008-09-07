@@ -40,7 +40,10 @@ AM_INIT_AUTOMAKE
 AM_PROG_LIBTOOL
 AC_SUBST(LIBTOOL_DEPS)
 AM_PATH_PYTHON
+OLDLIBS="$LIBS"
 m4_include([src/libev/libev.m4])
+libev_LIBS="$LIBS"
+LIBS="$OLDLIBS"
 
 echo .
 echo Checking for programs
@@ -58,8 +61,6 @@ AC_C_CONST
 AC_C_INLINE
 AC_CHECK_SIZEOF([unsigned int])
 AC_CHECK_SIZEOF([unsigned long])
-
-#AC_CHECK_LIB(pthread, pthread_create)
 AM_PROG_CC_C_O
 
 ALLWARNS=""
@@ -170,6 +171,7 @@ if test x"$LIBWRAP_LIBS" != "x"; then
 	AC_DEFINE_UNQUOTED(HAVE_LIBWRAP, [], Define if tcp_wrappers support is enabled )
 fi
 AC_SUBST(LIBWRAP_LIBS)
+AC_SUBST(libev_LIBS)
 
 AC_CONFIG_SUBDIRS([system-config-audit])
 AC_OUTPUT(Makefile lib/Makefile lib/test/Makefile auparse/Makefile auparse/test/Makefile src/Makefile src/mt/Makefile src/libev/Makefile swig/Makefile docs/Makefile init.d/Makefile audisp/Makefile audisp/plugins/Makefile audisp/plugins/builtins/Makefile audisp/plugins/prelude/Makefile audisp/plugins/remote/Makefile audisp/plugins/zos-remote/Makefile audisp/plugins/zos-remote/policy/Makefile bindings/Makefile bindings/python/Makefile tools/Makefile tools/aulastlog/Makefile tools/ausyscall/Makefile)

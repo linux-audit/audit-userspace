@@ -1,10 +1,10 @@
 Things that need to be done:
 ===========================
 1.7.6
-* Fix ausearch -i to keep the node field in the output
+* Create auparse_field_type function
 * Make way to get strstr results in ausyscall - find more that 1 string match
 * Expose encryption API for fields
-* Create auparse_field_type function
+* Fix ausearch -i to keep the node field in the output
 * Finish remote logging plugin gssapi or labeled networking
 
 1.7.7
