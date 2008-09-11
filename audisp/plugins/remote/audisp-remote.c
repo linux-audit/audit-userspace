@@ -21,6 +21,7 @@
  *
  */
 
+#include "config.h"
 #include <stdio.h>
 #include <signal.h>
 #include <syslog.h>
@@ -35,6 +36,11 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
+#ifdef USE_GSSAPI
+#include <gssapi/gssapi.h>
+#include <gssapi/gssapi_generic.h>
+#include <krb5.h>
+#endif
 #include "libaudit.h"
 #include "private.h"
 #include "remote-config.h"
@@ -64,6 +70,18 @@ static int relay_event(const char *s, size_t len);
 static int init_transport(void);
 static int stop_transport(void);
 
+static int ar_read (int, void *, int);
+static int ar_write (int, const void *, int);
+
+#ifdef USE_GSSAPI
+/* We only ever talk to one server, so we don't need per-connection
+   credentials.  These are the ones we talk to the server with.  */
+static gss_cred_id_t service_creds;
+gss_ctx_id_t my_context;
+
+#define REQ_FLAGS GSS_C_MUTUAL_FLAG | GSS_C_REPLAY_FLAG | GSS_C_INTEG_FLAG | GSS_C_CONF_FLAG
+#define USE_GSS (config.gss_principal != NULL)
+#endif
 
 /*
  * SIGTERM handler
@@ -317,6 +335,293 @@ int main(int argc, char *argv[])
 	return 0;
 }
 
+#ifdef USE_GSSAPI
+
+/* Communications under GSS is done by token exchanges.  Each "token"
+   may contain a message, perhaps signed, perhaps encrypted.  The
+   messages within are what we're interested in, but the network sees
+   the tokens.  The protocol we use for transferring tokens is to send
+   the length first, four bytes MSB first, then the token data.  We
+   return nonzero on error.  */
+
+static int recv_token (int s, gss_buffer_t tok)
+{
+	int ret;
+	unsigned char lenbuf[4], char_flags;
+	unsigned int len;
+
+	ret = ar_read(s, (char *) lenbuf, 4);
+	if (ret < 0) {
+		syslog(LOG_ERR, "GSS-API error reading token length");
+		return -1;
+	} else if (!ret) {
+		return 0;
+	} else if (ret != 4) {
+		syslog(LOG_ERR, "GSS-API error reading token length");
+		return -1;
+	}
+
+	len = ((lenbuf[0] << 24)
+	       | (lenbuf[1] << 16)
+	       | (lenbuf[2] << 8)
+	       | lenbuf[3]);
+	tok->length = len;
+
+	tok->value = (char *) malloc(tok->length ? tok->length : 1);
+	if (tok->length && tok->value == NULL) {
+		syslog(LOG_ERR, "Out of memory allocating token data %d %x", tok->length, tok->length);
+		return -1;
+	}
+
+	ret = ar_read(s, (char *) tok->value, tok->length);
+	if (ret < 0) {
+		syslog(LOG_ERR, "GSS-API error reading token data");
+		free(tok->value);
+		return -1;
+	} else if (ret != (int) tok->length) {
+		syslog(LOG_ERR, "GSS-API error reading token data");
+		free(tok->value);
+		return -1;
+	}
+
+	return 0;
+}
+
+/* Same here.  */
+int send_token(int s, gss_buffer_t tok)
+{
+	int     ret;
+	unsigned char lenbuf[4];
+	unsigned int len;
+
+	if (tok->length > 0xffffffffUL)
+		return -1;
+	len = tok->length;
+	lenbuf[0] = (len >> 24) & 0xff;
+	lenbuf[1] = (len >> 16) & 0xff;
+	lenbuf[2] = (len >> 8) & 0xff;
+	lenbuf[3] = len & 0xff;
+
+	ret = ar_write(s, (char *) lenbuf, 4);
+	if (ret < 0) {
+		syslog(LOG_ERR, "GSS-API error sending token length");
+		return -1;
+	} else if (ret != 4) {
+		syslog(LOG_ERR, "GSS-API error sending token length");
+		return -1;
+	}
+
+	ret = ar_write(s, tok->value, tok->length);
+	if (ret < 0) {
+		syslog(LOG_ERR, "GSS-API error sending token data");
+		return -1;
+	} else if (ret != (int) tok->length) {
+		syslog(LOG_ERR, "GSS-API error sending token data");
+		return -1;
+	}
+
+	return 0;
+}
+
+static void gss_failure_2 (const char *msg, int status, int type)
+{
+	OM_uint32 message_context = 0;
+	OM_uint32 min_status = 0;
+	gss_buffer_desc status_string;
+
+	do {
+		gss_display_status (&min_status,
+				    status,
+				    type,
+				    GSS_C_NO_OID,
+				    &message_context,
+				    &status_string);
+
+		syslog (LOG_ERR, "GSS error: %s: %s",
+			msg, (char *)status_string.value);
+
+		gss_release_buffer(&min_status, &status_string);
+	} while (message_context != 0);
+}
+static void gss_failure (const char *msg, int major_status, int minor_status)
+{
+	gss_failure_2 (msg, major_status, GSS_C_GSS_CODE);
+	if (minor_status)
+		gss_failure_2 (msg, minor_status, GSS_C_MECH_CODE);
+}
+
+#define KCHECK(x,f) if (x) { \
+		syslog (LOG_ERR, "krb5 error: %s in %s\n", krb5_get_error_message (kcontext, x), f); \
+		return -1; }
+
+#define KEYTAB_NAME "/etc/audisp/audisp-remote.key"
+#define CCACHE_NAME "FILE:/tmp/audisp-remote.ccache"
+
+/* Each time we connect to the server, we negotiate a set of
+   credentials and a security context.  To do this, we need our own
+   credentials first.  For other Kerbers applications, the user will
+   have called kinit (or otherwise authenticated) first, but we don't
+   have that luxury.  So, we implement part of kinit here.  When our
+   tickets expire, the usual close/open/retry logic has us calling
+   here again, where we re-init and get new tickets.  */
+
+static int negotiate_credentials ()
+{
+	gss_buffer_desc empty_token_buf = { 0, (void *) "" };
+	gss_buffer_t empty_token = &empty_token_buf;
+	gss_buffer_desc send_tok, recv_tok, *token_ptr;
+	gss_ctx_id_t *gss_context = &my_context;
+	gss_buffer_desc name_buf;
+	gss_name_t service_name_e;
+	OM_uint32 major_status, minor_status, init_sec_min_stat;
+	OM_uint32 ret_flags;
+
+	/* Getting an initial ticket is outside the scope of GSS, so
+	   we use Kerberos calls here.  */
+
+	int krberr;
+	krb5_context kcontext = NULL;
+	char *realm_name;
+	krb5_principal audit_princ;
+	krb5_ccache ccache = NULL;
+	krb5_creds my_creds;
+        krb5_get_init_creds_opt options;
+	krb5_keytab keytab = NULL;
+
+	token_ptr = GSS_C_NO_BUFFER;
+	*gss_context = GSS_C_NO_CONTEXT;
+
+	krberr = krb5_init_context (&kcontext);
+	KCHECK (krberr, "krb5_init_context");
+
+	/* This looks up the default real (*our* realm) from
+	   /etc/krb5.conf (or wherever)  */
+	krberr = krb5_get_default_realm (kcontext, &realm_name);
+	KCHECK (krberr, "krb5_get_default_realm");
+	syslog (LOG_ERR, "kerberos principal: auditd/remote@%s\n", realm_name);
+
+	/* Encode our own "name" as auditd/remote@EXAMPLE.COM.  */
+	krberr = krb5_build_principal (kcontext, &audit_princ,
+				       strlen(realm_name), realm_name,
+				       "auditd", "remote", NULL);
+	KCHECK (krberr, "krb5_build_principal");
+
+	/* Locate our machine's key table, where our private key is
+	 * held.  */
+	krberr = krb5_kt_resolve (kcontext, KEYTAB_NAME, &keytab);
+	KCHECK (krberr, "krb5_kt_resolve");
+
+	/* Identify a cache to hold the key in.  The GSS wrappers look
+	   up our credentials here.  */
+	krberr = krb5_cc_resolve (kcontext, CCACHE_NAME, &ccache);
+	KCHECK (krberr, "krb5_cc_resolve");
+
+	setenv("KRB5CCNAME", CCACHE_NAME, 1);
+
+	memset(&my_creds, 0, sizeof(my_creds));
+	memset(&options, 0, sizeof(options));
+	krb5_get_init_creds_opt_set_address_list(&options, NULL);
+	krb5_get_init_creds_opt_set_forwardable(&options, 0);
+	krb5_get_init_creds_opt_set_proxiable(&options, 0);
+	krb5_get_init_creds_opt_set_tkt_life(&options, 24*60*60);
+
+	/* Load our credentials from the key table.  */
+	krberr = krb5_get_init_creds_keytab(kcontext, &my_creds, audit_princ,
+					    keytab, 0, NULL,
+					    &options);
+	KCHECK (krberr, "krb5_get_init_creds_keytab");
+
+	/* Create the cache... */
+	krberr = krb5_cc_initialize(kcontext, ccache, audit_princ);
+	KCHECK (krberr, "krb5_cc_initialize");
+
+	/* ...and store our credentials in it.  */
+	krberr = krb5_cc_store_cred(kcontext, ccache, &my_creds);
+	KCHECK (krberr, "krb5_cc_store_cred");
+
+	/* The GSS code now has a set of credentials for this program.
+	   I.e.  we know who "we" are.  Now we talk to the server to
+	   get its credentials and set up a security context for
+	   encryption.  */
+
+	name_buf.value = (char *)config.gss_principal;
+	name_buf.length = strlen(name_buf.value) + 1;
+	major_status = gss_import_name(&minor_status, &name_buf,
+				       (gss_OID) gss_nt_service_name, &service_name_e);
+	if (major_status != GSS_S_COMPLETE) {
+		gss_failure("importing name", major_status, minor_status);
+		return -1;
+	}
+
+	major_status = gss_acquire_cred(&minor_status,
+					service_name_e, GSS_C_INDEFINITE,
+					GSS_C_NULL_OID_SET, GSS_C_ACCEPT,
+					&service_creds, NULL, NULL);
+	if (major_status != GSS_S_COMPLETE) {
+		gss_failure("acquiring credentials", major_status, minor_status);
+		return -1;
+	}
+
+	/* Someone has to go first.  In this case, it's us.  */
+	if (send_token(sock, empty_token) < 0) {
+		(void) gss_release_name(&minor_status, &service_name_e);
+		return -1;
+	}
+
+	/* The server starts this loop with the token we just sent
+	   (the empty one).  We start this loop with "no token".  */
+	token_ptr = GSS_C_NO_BUFFER;
+	*gss_context = GSS_C_NO_CONTEXT;
+
+	do {
+		/* Give GSS a chance to digest what we have so far.  */
+		major_status = gss_init_sec_context(&init_sec_min_stat, GSS_C_NO_CREDENTIAL,
+						gss_context, service_name_e, NULL, REQ_FLAGS, 0,
+						NULL,	/* no channel bindings */
+						token_ptr, NULL,	/* ignore mech type */
+						&send_tok, &ret_flags, NULL);	/* ignore time_rec */
+
+		if (token_ptr != GSS_C_NO_BUFFER)
+			free(recv_tok.value);
+
+		/* Send the server any tokens requested of us.  */
+		if (send_tok.length != 0) {
+			if (send_token(sock, &send_tok) < 0) {
+				(void) gss_release_buffer(&minor_status, &send_tok);
+				(void) gss_release_name(&minor_status, &service_name_e);
+				return -1;
+			}
+		}
+		(void) gss_release_buffer(&minor_status, &send_tok);
+
+		if (major_status != GSS_S_COMPLETE
+		    && major_status != GSS_S_CONTINUE_NEEDED) {
+			gss_failure("initializing context", major_status,
+				    init_sec_min_stat);
+			(void) gss_release_name(&minor_status, &service_name_e);
+			if (*gss_context != GSS_C_NO_CONTEXT)
+				gss_delete_sec_context(&minor_status, gss_context,
+						       GSS_C_NO_BUFFER);
+			return -1;
+		}
+
+		/* Now get any tokens the sever sends back.  We use
+		   these back at the top of the loop.  */
+		if (major_status == GSS_S_CONTINUE_NEEDED) {
+			if (recv_token(sock, &recv_tok) < 0) {
+				(void) gss_release_name(&minor_status, &service_name_e);
+				return -1;
+			}
+			token_ptr = &recv_tok;
+		}
+	} while (major_status == GSS_S_CONTINUE_NEEDED);
+
+	(void) gss_release_name(&minor_status, &service_name_e);
+
+	return 0;
+}
+#endif
+
 static int init_sock(void)
 {
 	int rc;
@@ -376,6 +681,13 @@ static int init_sock(void)
 	   sending the header and message in separate packets.  */
 	if (config.format == F_MANAGED)
 		setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, (char *)&one, sizeof (int));
+
+#ifdef USE_GSSAPI
+	if (USE_GSS) {
+		if (negotiate_credentials ())
+			return ET_PERMANENT;
+	}
+#endif
 
 	transport_ok = 1;
 
@@ -480,10 +792,150 @@ static int relay_sock_ascii(const char *s, size_t len)
 	return 0;
 }
 
+#ifdef USE_GSSAPI
+
+/* Sending an encrypted message is pretty simple - wrap the message in
+   a token, and send the token.  The server unwraps it to get the
+   original message.  */
+
+static int send_msg_gss (unsigned char *header, const char *msg, uint32_t mlen)
+{
+	OM_uint32 major_status, minor_status;
+	gss_buffer_desc utok, etok;
+	int rc;
+
+	utok.length = AUDIT_RMW_HEADER_SIZE + mlen;
+	utok.value = malloc (utok.length);
+
+	memcpy (utok.value, header, AUDIT_RMW_HEADER_SIZE);
+	memcpy (utok.value+AUDIT_RMW_HEADER_SIZE, msg, mlen);
+
+	major_status = gss_wrap (&minor_status,
+				 my_context,
+				 1,
+				 GSS_C_QOP_DEFAULT,
+				 &utok,
+				 NULL,
+				 &etok);
+	if (major_status != GSS_S_COMPLETE) {
+		gss_failure("encrypting message", major_status, minor_status);
+		free (utok.value);
+		return -1;
+	}
+	rc = send_token (sock, &etok);
+	free (utok.value);
+	(void) gss_release_buffer(&minor_status, &etok);
+
+	return rc ? -1 : 0;
+}
+
+/* Likewise here.  */
+static int recv_msg_gss (unsigned char *header, char *msg, uint32_t *mlen)
+{
+	OM_uint32 major_status, minor_status;
+	gss_buffer_desc utok, etok;
+	int hver, mver, rc;
+	uint32_t type, rlen, seq;
+
+	rc = recv_token (sock, &etok);
+	if (rc)
+		return -1;
+
+	major_status = gss_unwrap (&minor_status, my_context, &etok, &utok, NULL, NULL);
+	if (major_status != GSS_S_COMPLETE) {
+		gss_failure("decrypting message", major_status, minor_status);
+		free (utok.value);
+		return -1;
+	}
+
+	if (utok.length < AUDIT_RMW_HEADER_SIZE) {
+		sync_error_handler ("message too short");
+		return -1;
+	}
+	memcpy (header, utok.value, AUDIT_RMW_HEADER_SIZE);
+
+	if (! AUDIT_RMW_IS_MAGIC (header, AUDIT_RMW_HEADER_SIZE)) {
+		sync_error_handler ("bad magic number");
+		return -1;
+	}
+
+	AUDIT_RMW_UNPACK_HEADER (header, hver, mver, type, rlen, seq);
+
+	if (rlen > MAX_AUDIT_MESSAGE_LENGTH) {
+		sync_error_handler ("message too long");
+		return -1;
+	}
+
+	memcpy (msg, utok.value+AUDIT_RMW_HEADER_SIZE, rlen);
+
+	*mlen = rlen;
+
+	return 0;
+}
+#endif
+
+static int send_msg_tcp (unsigned char *header, const char *msg, uint32_t mlen)
+{
+	int rc;
+
+	rc = ar_write(sock, header, AUDIT_RMW_HEADER_SIZE);
+	if (rc <= 0) {
+		if (config.network_failure_action == FA_SYSLOG)
+			syslog(LOG_ERR, "connection to %s closed unexpectedly",
+			       config.remote_server);
+		return 1;
+	}
+
+	if (msg != NULL && mlen > 0)
+	{
+		rc = ar_write(sock, msg, mlen);
+		if (rc <= 0) {
+			if (config.network_failure_action == FA_SYSLOG)
+				syslog(LOG_ERR, "connection to %s closed unexpectedly",
+				       config.remote_server);
+			return 1;
+		}
+	}
+	return 0;
+}
+
+static int recv_msg_tcp (unsigned char *header, char *msg, uint32_t *mlen)
+{
+	int hver, mver, rc;
+	uint32_t type, rlen, seq;
+
+	rc = ar_read (sock, header, AUDIT_RMW_HEADER_SIZE);
+	if (rc < 16) {
+		if (config.network_failure_action == FA_SYSLOG)
+			syslog(LOG_ERR, "connection to %s closed unexpectedly",
+			       config.remote_server);
+		return -1;
+	}
+
+
+	if (! AUDIT_RMW_IS_MAGIC (header, AUDIT_RMW_HEADER_SIZE)) {
+		/* FIXME: the right thing to do here is close the socket and start a new one.  */
+		sync_error_handler ("bad magic number");
+		return -1;
+	}
+
+	AUDIT_RMW_UNPACK_HEADER (header, hver, mver, type, rlen, seq);
+
+	if (rlen > MAX_AUDIT_MESSAGE_LENGTH) {
+		sync_error_handler ("message too long");
+		return -1;
+	}
+
+	if (rlen > 0
+	    && ar_read (sock, msg, rlen) < rlen) {
+		sync_error_handler ("ran out of data reading reply");
+		return -1;
+	}
+}
+
 static int relay_sock_managed(const char *s, size_t len)
 {
 	static int sequence_id = 1;
-	int rc;
 	unsigned char header[AUDIT_RMW_HEADER_SIZE];
 	int hver, mver;
 	uint32_t type, rlen, seq;
@@ -524,61 +976,35 @@ try_again:
 	type = (s != NULL) ? AUDIT_RMW_TYPE_MESSAGE : AUDIT_RMW_TYPE_HEARTBEAT;
 
 	AUDIT_RMW_PACK_HEADER (header, 0, type, len, sequence_id);
-	rc = ar_write(sock, header, AUDIT_RMW_HEADER_SIZE);
-	if (rc <= 0) {
-		if (config.network_failure_action == FA_SYSLOG)
-			syslog(LOG_ERR, "connection to %s closed unexpectedly",
-			       config.remote_server);
-		stop_transport();
-		goto try_again;
-	}
 
-	if (s != NULL && len > 0)
-	{
-		rc = ar_write(sock, s, len);
-		if (rc <= 0) {
-			if (config.network_failure_action == FA_SYSLOG)
-				syslog(LOG_ERR, "connection to %s closed unexpectedly",
-				       config.remote_server);
-			stop_transport();
+#ifdef USE_GSSAPI
+	if (USE_GSS) {
+		if (send_msg_gss (header, s, len)) {
+			stop_transport ();
 			goto try_again;
 		}
-	}
-
-	rc = ar_read (sock, header, AUDIT_RMW_HEADER_SIZE);
-	if (rc < 16) {
-		if (config.network_failure_action == FA_SYSLOG)
-			syslog(LOG_ERR, "connection to %s closed unexpectedly",
-			       config.remote_server);
-		stop_transport();
+	} else
+#endif
+	if (send_msg_tcp (header, s, len)) {
+		stop_transport ();
 		goto try_again;
 	}
 
-
-	if (! AUDIT_RMW_IS_MAGIC (header, AUDIT_RMW_HEADER_SIZE)) {
-		/* FIXME: the right thing to do here is close the socket and start a new one.  */
-		if (sync_error_handler ("bad magic number"))
-			return -1;
-		stop_transport();
+#ifdef USE_GSSAPI
+	if (USE_GSS) {
+		if (recv_msg_gss (header, msg, &rlen)) {
+			stop_transport ();
+			goto try_again;
+		}
+	} else
+#endif
+	if (recv_msg_tcp (header, msg, &rlen)) {
+		stop_transport ();
 		goto try_again;
 	}
 
 	AUDIT_RMW_UNPACK_HEADER (header, hver, mver, type, rlen, seq);
 
-	if (rlen > MAX_AUDIT_MESSAGE_LENGTH) {
-		if (sync_error_handler ("message too long"))
-			return -1;
-		stop_transport();
-		goto try_again;
-	}
-
-	if (rlen > 0
-	    && ar_read (sock, msg, rlen) < rlen) {
-		if (sync_error_handler ("ran out of data reading reply"))
-			return -1;
-		stop_transport();
-		goto try_again;
-	}
 	msg[rlen] = 0;
 
 	if (seq != sequence_id) {

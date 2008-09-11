@@ -1,8 +1,5 @@
 Things that need to be done:
 ===========================
-1.7.6
-* Finish remote logging plugin gssapi or labeled networking
-
 1.7.7
 * Add dac target for ids keys
 * Fix ausearch -i to keep the node field in the output

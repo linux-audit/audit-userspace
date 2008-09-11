@@ -113,6 +113,10 @@ static int tcp_client_ports_parser(struct nv_pair *nv, int line,
 		struct daemon_conf *config);
 static int tcp_client_max_idle_parser(struct nv_pair *nv, int line,
 		struct daemon_conf *config);
+#ifdef USE_GSSAPI
+static int gss_principal_parser(struct nv_pair *nv, int line,
+		struct daemon_conf *config);
+#endif
 static int sanity_check(struct daemon_conf *config);
 
 static const struct kw_pair keywords[] = 
@@ -141,6 +145,9 @@ static const struct kw_pair keywords[] =
   {"tcp_listen_queue",         tcp_listen_queue_parser,         0 },
   {"tcp_client_ports",         tcp_client_ports_parser,         0 },
   {"tcp_client_max_idle",      tcp_client_max_idle_parser,      0 },
+#ifdef USE_GSSAPI
+  {"gss_principal",            gss_principal_parser,            0 },
+#endif
   { NULL,                      NULL }
 };
 
@@ -246,6 +253,9 @@ static void clear_config(struct daemon_conf *config)
 	config->tcp_client_min_port = 0;
 	config->tcp_client_max_port = TCP_PORT_MAX;
 	config->tcp_client_max_idle = 0;
+#ifdef USE_GSSAPI
+	config->gss_principal = NULL;
+#endif
 }
 
 static log_test_t log_test = TEST_AUDITD;
@@ -1334,6 +1344,23 @@ static int tcp_client_max_idle_parser(struct nv_pair *nv, int line,
 	config->tcp_client_max_idle = (unsigned int)i;
 	return 0;
 }
+
+#ifdef USE_GSSAPI
+static int gss_principal_parser(struct nv_pair *nv, int line,
+	struct daemon_conf *config)
+{
+	const char *ptr = nv->value;
+
+	audit_msg(LOG_DEBUG, "gss_principal_parser called with: %s", nv->value);
+
+	if (strcmp (ptr, "none") == 0) {
+		config->gss_principal = NULL;
+	} else {
+		config->gss_principal = strdup(ptr);
+	}
+	return 0;
+}
+#endif
 
 /*
  * This function is where we do the integrated check of the audit config

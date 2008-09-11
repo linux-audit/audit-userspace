@@ -42,6 +42,10 @@
 #ifdef HAVE_LIBWRAP
 #include <tcpd.h>
 #endif
+#ifdef USE_GSSAPI
+#include <gssapi/gssapi.h>
+#include <gssapi/gssapi_generic.h>
+#endif
 #include "libaudit.h"
 #include "auditd-event.h"
 #include "auditd-config.h"
@@ -59,12 +63,22 @@ typedef struct ev_tcp {
 	struct ev_tcp *next, *prev;
 	int bufptr;
 	int client_active;
+#ifdef USE_GSSAPI
+	/* This holds the negotiated security context for this client.  */
+	gss_ctx_id_t gss_context;
+#endif
 	unsigned char buffer [MAX_AUDIT_MESSAGE_LENGTH + 17];
 } ev_tcp;
 
 static int listen_socket;
 static struct ev_io tcp_listen_watcher;
 static int min_port, max_port;
+#ifdef USE_GSSAPI
+/* This is used to hold our own private key.  */
+static gss_cred_id_t server_creds;
+static int use_gss = 0;
+static char msgbuf[MAX_AUDIT_MESSAGE_LENGTH + 1];
+#endif
 
 static struct ev_tcp *client_chain = 0;
 
@@ -122,6 +136,293 @@ static int ar_write (int sock, const void *buf, int len)
 	return rc;
 }
 
+static int ar_read (int sock, void *buf, int len)
+{
+	int rc = 0, r;
+	while (len > 0) {
+		do {
+			r = read(sock, buf, len);
+		} while (r < 0 && errno == EINTR);
+		if (r < 0)
+			return r;
+		if (r == 0)
+			break;
+		rc += r;
+		len -= r;
+		buf = (void *)((char *)buf + r);
+	}
+	return rc;
+}
+
+#ifdef USE_GSSAPI
+
+/* Communications under GSS is done by token exchanges.  Each "token"
+   may contain a message, perhaps signed, perhaps encrypted.  The
+   messages within are what we're interested in, but the network sees
+   the tokens.  The protocol we use for transferring tokens is to send
+   the length first, four bytes MSB first, then the token data.  We
+   return nonzero on error.  */
+static int recv_token (int s, gss_buffer_t tok)
+{
+	int ret;
+	unsigned char lenbuf[4];
+	unsigned int len;
+
+	ret = ar_read(s, (char *) lenbuf, 4);
+	if (ret < 0) {
+		audit_msg(LOG_ERR, "GSS-API error reading token length");
+		return -1;
+	} else if (!ret) {
+		return 0;
+	} else if (ret != 4) {
+		audit_msg(LOG_ERR, "GSS-API error reading token length");
+		return -1;
+	}
+
+	len = ((lenbuf[0] << 24)
+	       | (lenbuf[1] << 16)
+	       | (lenbuf[2] << 8)
+	       | lenbuf[3]);
+	tok->length = len;
+
+	tok->value = (char *) malloc(tok->length ? tok->length : 1);
+	if (tok->length && tok->value == NULL) {
+		audit_msg(LOG_ERR, "Out of memory allocating token data");
+		return -1;
+	}
+
+	ret = ar_read(s, (char *) tok->value, tok->length);
+	if (ret < 0) {
+		audit_msg(LOG_ERR, "GSS-API error reading token data");
+		free(tok->value);
+		return -1;
+	} else if (ret != (int) tok->length) {
+		audit_msg(LOG_ERR, "GSS-API error reading token data");
+		free(tok->value);
+		return -1;
+	}
+
+	return 1;
+}
+
+/* Same here.  */
+int send_token(int s, gss_buffer_t tok)
+{
+	int     ret;
+	unsigned char lenbuf[4];
+	unsigned int len;
+
+	if (tok->length > 0xffffffffUL)
+		return -1;
+	len = tok->length;
+	lenbuf[0] = (len >> 24) & 0xff;
+	lenbuf[1] = (len >> 16) & 0xff;
+	lenbuf[2] = (len >> 8) & 0xff;
+	lenbuf[3] = len & 0xff;
+
+	ret = ar_write(s, (char *) lenbuf, 4);
+	if (ret < 0) {
+		audit_msg(LOG_ERR, "GSS-API error sending token length");
+		return -1;
+	} else if (ret != 4) {
+		audit_msg(LOG_ERR, "GSS-API error sending token length");
+		return -1;
+	}
+
+	ret = ar_write(s, tok->value, tok->length);
+	if (ret < 0) {
+		audit_msg(LOG_ERR, "GSS-API error sending token data");
+		return -1;
+	} else if (ret != (int) tok->length) {
+		audit_msg(LOG_ERR, "GSS-API error sending token data");
+		return -1;
+	}
+
+	return 0;
+}
+
+
+static void gss_failure_2 (const char *msg, int status, int type)
+{
+	OM_uint32 message_context = 0;
+	OM_uint32 min_status = 0;
+	gss_buffer_desc status_string;
+
+	do {
+		gss_display_status (&min_status,
+				    status,
+				    type,
+				    GSS_C_NO_OID,
+				    &message_context,
+				    &status_string);
+
+		audit_msg (LOG_ERR, "GSS error: %s: %s",
+			   msg, (char *)status_string.value);
+
+		gss_release_buffer(&min_status, &status_string);
+	} while (message_context != 0);
+}
+static void gss_failure (const char *msg, int major_status, int minor_status)
+{
+	gss_failure_2 (msg, major_status, GSS_C_GSS_CODE);
+	if (minor_status)
+		gss_failure_2 (msg, minor_status, GSS_C_MECH_CODE);
+}
+
+/* These are our private credentials, which come from a key file on
+   our server.  They are aquired once, at program start.  */
+static int server_acquire_creds(const char *service_name, gss_cred_id_t *server_creds)
+{
+	gss_buffer_desc name_buf;
+	gss_name_t server_name;
+	OM_uint32 major_status, minor_status;
+
+	name_buf.value = (char *)service_name;
+	name_buf.length = strlen(name_buf.value) + 1;
+	major_status = gss_import_name(&minor_status, &name_buf,
+				       (gss_OID) gss_nt_service_name, &server_name);
+	if (major_status != GSS_S_COMPLETE) {
+		gss_failure("importing name", major_status, minor_status);
+		return -1;
+	}
+
+	major_status = gss_acquire_cred(&minor_status,
+					server_name, GSS_C_INDEFINITE,
+					GSS_C_NULL_OID_SET, GSS_C_ACCEPT,
+					server_creds, NULL, NULL);
+	if (major_status != GSS_S_COMPLETE) {
+		gss_failure("acquiring credentials", major_status, minor_status);
+		return -1;
+	}
+
+	(void) gss_release_name(&minor_status, &server_name);
+
+	audit_msg(LOG_DEBUG, "GSS creds for %s acquired", service_name);
+
+	return 0;
+}
+
+/* This is where we negotiate a security context with the client.  In
+   the case of Kerberos, this is where the key exchange happens.
+   FIXME: While everything else is strictly nonblocking, this
+   negotiation blocks.  */
+static int negotiate_credentials (ev_tcp *io)
+{
+	gss_buffer_desc send_tok, recv_tok;
+	gss_name_t client;
+	OM_uint32 maj_stat, min_stat, acc_sec_min_stat;
+	gss_ctx_id_t *context;
+	OM_uint32 sess_flags;
+
+	context = & io->gss_context;
+	*context = GSS_C_NO_CONTEXT;
+
+	maj_stat = GSS_S_CONTINUE_NEEDED;
+	do {
+		/* STEP 1 - get a token from the client.  */
+
+		if (recv_token(io->io.fd, &recv_tok) <= 0) {
+			audit_msg(LOG_ERR, "TCP session from %s will be closed, error ignored",
+				  sockaddr_to_ip (&io->addr));
+			return -1;
+		}
+		if (recv_tok.length == 0)
+			continue;
+
+		/* STEP 2 - let GSS process that token.  */
+
+		maj_stat = gss_accept_sec_context(&acc_sec_min_stat, context, server_creds,
+						  &recv_tok, GSS_C_NO_CHANNEL_BINDINGS, &client,
+						  NULL, &send_tok, &sess_flags, NULL, NULL);
+		if (recv_tok.value) {
+			free(recv_tok.value);
+			recv_tok.value = NULL;
+		}
+		if (maj_stat != GSS_S_COMPLETE
+		    && maj_stat != GSS_S_CONTINUE_NEEDED) {
+			gss_release_buffer(&min_stat, &send_tok);
+			if (*context != GSS_C_NO_CONTEXT)
+				gss_delete_sec_context(&min_stat, context, GSS_C_NO_BUFFER);
+			gss_failure("accepting context", maj_stat,
+				    acc_sec_min_stat);
+			return -1;
+		}
+
+		/* STEP 3 - send any tokens to the client that GSS may
+		   ask us to send.  */
+
+		if (send_tok.length != 0) {
+			if (send_token(io->io.fd, &send_tok) < 0) {
+				gss_release_buffer(&min_stat, &send_tok);
+				audit_msg(LOG_ERR, "TCP session from %s will be closed, error ignored",
+					  sockaddr_to_ip (&io->addr));
+				if (*context != GSS_C_NO_CONTEXT)
+					gss_delete_sec_context(&min_stat, context, GSS_C_NO_BUFFER);
+				return -1;
+			}
+			gss_release_buffer(&min_stat, &send_tok);
+		}
+	} while (maj_stat == GSS_S_CONTINUE_NEEDED);
+
+	maj_stat = gss_display_name(&min_stat, client, &recv_tok, NULL);
+	if (maj_stat != GSS_S_COMPLETE)
+		gss_failure("displaying name", maj_stat, min_stat);
+	else
+		audit_msg(LOG_INFO, "GSS-API Accepted connection from: %s",
+				(char *)recv_tok.value);
+	gss_release_name(&min_stat, &client);
+	gss_release_buffer(&min_stat, &recv_tok);
+
+	return 0;
+}
+#endif /* USE_GSSAPI */
+
+/* This is called from auditd-event after the message has been logged.
+   The header is already filled in.  */
+static void client_ack (void *ack_data, const unsigned char *header, const char *msg)
+{
+	ev_tcp *io = (ev_tcp *)ack_data;
+#ifdef USE_GSSAPI
+	if (use_gss) {
+		OM_uint32 major_status, minor_status;
+		gss_buffer_desc utok, etok;
+		int rc, mlen;
+
+		mlen = strlen (msg);
+		utok.length = AUDIT_RMW_HEADER_SIZE + mlen;
+		utok.value = malloc (utok.length + 1);
+
+		memcpy (utok.value, header, AUDIT_RMW_HEADER_SIZE);
+		memcpy (utok.value+AUDIT_RMW_HEADER_SIZE, msg, mlen);
+
+		/* Wrapping the message creates a token for the
+		   client.  Then we just have to worry about sending
+		   the token.  */
+
+		major_status = gss_wrap (&minor_status,
+					 io->gss_context,
+					 1,
+					 GSS_C_QOP_DEFAULT,
+					 &utok,
+					 NULL,
+					 &etok);
+		if (major_status != GSS_S_COMPLETE) {
+			gss_failure("encrypting message", major_status, minor_status);
+			free (utok.value);
+			return;
+		}
+		rc = send_token (io->io.fd, &etok);
+		free (utok.value);
+		(void) gss_release_buffer(&minor_status, &etok);
+
+		return;
+	}
+#endif
+	ar_write (io->io.fd, header, AUDIT_RMW_HEADER_SIZE);
+	if (msg[0])
+		ar_write (io->io.fd, msg, strlen(msg));
+}
+
 static void client_message (struct ev_tcp *io, unsigned int length, unsigned char *header)
 {
 	unsigned char ch;
@@ -138,15 +439,15 @@ static void client_message (struct ev_tcp *io, unsigned int length, unsigned cha
 		if (type == AUDIT_RMW_TYPE_HEARTBEAT) {
 			unsigned char ack[AUDIT_RMW_HEADER_SIZE];
 			AUDIT_RMW_PACK_HEADER (ack, 0, AUDIT_RMW_TYPE_ACK, 0, seq);
-			ar_write (io->io.fd, ack, AUDIT_RMW_HEADER_SIZE);
+			client_ack (io, ack, "");
 		} else 
-			enqueue_formatted_event (header+AUDIT_RMW_HEADER_SIZE, io->io.fd, seq);
+			enqueue_formatted_event (header+AUDIT_RMW_HEADER_SIZE, client_ack, io, seq);
 		header[length] = ch;
 	} else {
 		header[length] = 0;
 		if (length > 1 && header[length-1] == '\n')
 			header[length-1] = 0;
-		enqueue_formatted_event (header, 0, 0);
+		enqueue_formatted_event (header, NULL, NULL, 0);
 	}
 }
 
@@ -200,6 +501,48 @@ read_more:
 	total_this_call += r;
 
 more_messages:
+#ifdef USE_GSSAPI
+	/* If we're using GSS at all, everything will be encrypted,
+	   one record per token.  */
+	if (use_gss) {
+		gss_buffer_desc utok, etok;
+		io->bufptr += r;
+		uint32_t len;
+		OM_uint32 major_status, minor_status;
+
+		/* We need at least four bytes to test the length.  If
+		   we have more than four bytes, we can tell if we
+		   have a whole token (or more).  */
+
+		if (io->bufptr < 4)
+			return;
+
+		len = ((io->buffer[0] << 24)
+		       | (io->buffer[1] << 16)
+		       | (io->buffer[2] << 8)
+		       | io->buffer[3]);
+		if (io->bufptr < 4 + len)
+			return;
+		i = len + 4;
+
+		etok.length = len;
+		etok.value = io->buffer + 4;
+
+		/* Unwrapping the token gives us the original message,
+		   which we know is already a single record.  */
+		major_status = gss_unwrap (&minor_status, io->gss_context, &etok, &utok, NULL, NULL);
+
+		if (major_status != GSS_S_COMPLETE) {
+			gss_failure("decrypting message", major_status, minor_status);
+		} else {
+			/* client_message() wants to NUL terminate it,
+			   so copy it to a bigger buffer.  */
+			memcpy (msgbuf, utok.value, utok.length);
+			client_message (io, utok.length, msgbuf);
+			gss_release_buffer(&minor_status, &utok);
+		}
+	} else
+#endif
 	if (AUDIT_RMW_IS_MAGIC (io->buffer, io->bufptr+r)) {
 		uint32_t type, len, seq;
 		int hver, mver;
@@ -219,6 +562,9 @@ more_messages:
 		if (io->bufptr < i)
 			return;
 		
+		/* We have an I-byte message in buffer.  */
+		client_message (io, i, io->buffer);
+
 	} else {
 		/* At this point, the buffer has IO->BUFPTR+R bytes in it.
 		   The first IO->BUFPTR bytes do not have a LF in them (we've
@@ -235,10 +581,10 @@ more_messages:
 			return;
 
 		i ++;
-	}
 
-	/* We have an I-byte message in buffer.  */
-	client_message (io, i, io->buffer);
+		/* We have an I-byte message in buffer.  */
+		client_message (io, i, io->buffer);
+	}
 
 	/* Now copy any remaining bytes to the beginning of the
 	   buffer.  */
@@ -319,7 +665,6 @@ static void auditd_tcp_listen_handler( struct ev_loop *loop, struct ev_io *_io, 
 	setsockopt(afd, SOL_SOCKET, SO_REUSEADDR, (char *)&one, sizeof (int));
 	setsockopt(afd, SOL_SOCKET, SO_KEEPALIVE, (char *)&one, sizeof (int));
 	setsockopt(afd, IPPROTO_TCP, TCP_NODELAY, (char *)&one, sizeof (int));
-	fcntl(afd, F_SETFL, O_NONBLOCK | O_NDELAY);
 	set_close_on_exec (afd);
 
 	client = (struct ev_tcp *) malloc (sizeof (struct ev_tcp));
@@ -338,9 +683,19 @@ static void auditd_tcp_listen_handler( struct ev_loop *loop, struct ev_io *_io, 
 	client->client_active = 1;
 
 	ev_io_init (&(client->io), auditd_tcp_client_handler, afd, EV_READ | EV_ERROR);
-	ev_io_start (loop, &(client->io));
 
 	memcpy (&client->addr, &aaddr, sizeof (struct sockaddr_in));
+
+#ifdef USE_GSSAPI
+	if (negotiate_credentials (client)) {
+		close (afd);
+		free (client);
+		return;
+	}
+#endif
+
+	fcntl(afd, F_SETFL, O_NONBLOCK | O_NDELAY);
+	ev_io_start (loop, &(client->io));
 
 	/* Keep a linked list of active clients.  */
 	client->next = client_chain;
@@ -399,13 +754,29 @@ int auditd_tcp_listen_init ( struct ev_loop *loop, struct daemon_conf *config )
 	min_port = config->tcp_client_min_port;
 	max_port = config->tcp_client_max_port;
 
+#ifdef USE_GSSAPI
+	if (config->gss_principal) {
+		use_gss = 1;
+		server_acquire_creds(config->gss_principal, &server_creds);
+	}
+#endif
+
 	return 0;
 }
 
 void auditd_tcp_listen_uninit ( struct ev_loop *loop )
 {
+#ifdef USE_GSSAPI
+	int status;
+#endif
+
 	ev_io_stop ( loop, &tcp_listen_watcher );
 	close ( listen_socket );
+
+#ifdef USE_GSSAPI
+	use_gss = 0;
+	gss_release_cred(&status, &server_creds);
+#endif
 
 	while (client_chain) {
 		close_client (client_chain);

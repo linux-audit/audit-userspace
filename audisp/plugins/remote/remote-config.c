@@ -74,6 +74,10 @@ static int format_parser(struct nv_pair *nv, int line,
 		remote_conf_t *config);
 static int heartbeat_timeout_parser(struct nv_pair *nv, int line, 
 		remote_conf_t *config);
+#ifdef USE_GSSAPI
+static int gss_principal_parser(struct nv_pair *nv, int line, 
+		remote_conf_t *config);
+#endif
 static int network_retry_time_parser(struct nv_pair *nv, int line, 
 		remote_conf_t *config);
 static int max_tries_per_record_parser(struct nv_pair *nv, int line, 
@@ -105,6 +109,9 @@ static const struct kw_pair keywords[] =
   {"max_tries_per_record",   max_tries_per_record_parser,       0 },
   {"max_time_per_record",    max_time_per_record_parser,        0 },
   {"heartbeat_timeout",      heartbeat_timeout_parser,          0 },
+#ifdef USE_GSSAPI
+  {"gss_principal",          gss_principal_parser,              0 },
+#endif
   {"network_failure_action", network_failure_action_parser,	0 },
   {"disk_low_action",        disk_low_action_parser,		0 },
   {"disk_full_action",       disk_full_action_parser,		0 },
@@ -165,6 +172,9 @@ void clear_config(remote_conf_t *config)
 	config->max_time_per_record = 5;
 
 	config->heartbeat_timeout = 0;
+#ifdef USE_GSSAPI
+	config->gss_principal = NULL;
+#endif
 
 #define IA(x,f) config->x##_action = f; config->x##_exe = NULL
 	IA(network_failure, FA_STOP);
@@ -572,6 +582,21 @@ static int heartbeat_timeout_parser(struct nv_pair *nv, int line,
 {
 	return parse_uint (nv, line, &(config->heartbeat_timeout), 0, INT_MAX);
 }
+
+#ifdef USE_GSSAPI
+static int gss_principal_parser(struct nv_pair *nv, int line,
+	remote_conf_t *config)
+{
+	const char *ptr = nv->value;
+
+	if (strcmp (ptr, "none") == 0) {
+		config->gss_principal = NULL;
+	} else {
+		config->gss_principal = strdup(ptr);
+	}
+	return 0;
+}
+#endif
 
 /*
  * This function is where we do the integrated check of the audispd config

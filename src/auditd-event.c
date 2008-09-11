@@ -151,7 +151,8 @@ void enqueue_event(struct auditd_reply_list *rep)
 	char *buf;
 	int len;
 
-	rep->ack_socket = 0;
+	rep->ack_func = 0;
+	rep->ack_data = 0;
 	rep->sequence_id = 0;
 
 	if (rep->reply.type != AUDIT_DAEMON_RECONFIG) {
@@ -170,8 +171,9 @@ void enqueue_event(struct auditd_reply_list *rep)
 		}
 
 		len = strlen (buf);
-		if (len < MAX_AUDIT_MESSAGE_LENGTH - 1)
+		if (len < MAX_AUDIT_MESSAGE_LENGTH - 1) {
 			memcpy (rep->reply.msg.data, buf, len+1);
+		}
 		else
 		{
 			/* FIXME: is truncation the right thing to do?  */
@@ -198,7 +200,7 @@ void enqueue_event(struct auditd_reply_list *rep)
 
 /* This function takes a preformatted message and places it on the
    queue. The dequeue'r is responsible for freeing the memory. */
-void enqueue_formatted_event(char *msg, int ack_socket, uint32_t sequence_id)
+void enqueue_formatted_event(char *msg, ack_func_type ack_func, void *ack_data, uint32_t sequence_id)
 {
 	int len;
 	struct auditd_reply_list *rep;
@@ -209,7 +211,8 @@ void enqueue_formatted_event(char *msg, int ack_socket, uint32_t sequence_id)
 		return;
 	}
 
-	rep->ack_socket = ack_socket;
+	rep->ack_func = ack_func;
+	rep->ack_data = ack_data;
 	rep->sequence_id = sequence_id;
 
 	len = strlen (msg);
@@ -353,24 +356,6 @@ static void handle_event(struct auditd_consumer_data *data)
 	}
 }
 
-static int ar_write (int sock, const void *buf, int len)
-{
-	int rc = 0, w;
-	while (len > 0) {
-		do {
-			w = write(sock, buf, len);
-		} while (w < 0 && errno == EINTR);
-		if (w < 0)
-			return w;
-		if (w == 0)
-			break;
-		rc += w;
-		len -= w;
-		buf = (const void *)((const char *)buf + w);
-	}
-	return rc;
-}
-
 /* This function writes the given buf to the current log file */
 static void write_to_log(const char *buf, struct auditd_consumer_data *data)
 {
@@ -412,7 +397,7 @@ static void write_to_log(const char *buf, struct auditd_consumer_data *data)
 		}
 	}
 
-	if (data->head->ack_socket) {
+	if (data->head->ack_func) {
 		unsigned char header[AUDIT_RMW_HEADER_SIZE];
 
 		if (fs_space_warning)
@@ -420,9 +405,7 @@ static void write_to_log(const char *buf, struct auditd_consumer_data *data)
 
 		AUDIT_RMW_PACK_HEADER (header, 0, ack_type, strlen(msg), data->head->sequence_id);
 
-		ar_write (data->head->ack_socket, header, AUDIT_RMW_HEADER_SIZE);
-		if (msg[0])
-			ar_write (data->head->ack_socket, msg, strlen(msg));
+		data->head->ack_func (data->head->ack_data, header, msg);
 	}
 }
 

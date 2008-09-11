@@ -242,6 +242,18 @@ idle (i.e. no data from them at all) before auditd complains.  Note
 that this is a global setting, and must be higher than any individual
 client heartbeat setting, preferably by a factor of two.  The default
 is zero, which disables this check.
+.TP
+.I gss_principal
+If specified, GSS (via Kerberos) will be used to encrypt the
+connection with the client.  The client and server will use the
+specified principal to negotiate the encryption.  Given a principal
+named somename@EXAMPLE.COM, where somename is whatever you choose, the
+server will look for a key named like
+.I somename/hostname@EXAMPLE.COM
+stored in
+.I /etc/krb5.keytab
+to authenticate itself, where hostname is the canonical name for the
+server's host, as returned by a DNS lookup of its IP address.
 
 .SH NOTES
 In a CAPP environment, the audit trail is considered so important that access to system resources must be denied if an audit trail cannot be created. In this environment, it would be suggested that /var/log/audit be on its own partition. This is to ensure that space detection is accurate and that no other process comes along and consumes part of it.

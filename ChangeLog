@@ -11,6 +11,7 @@
 - Audit connect/disconnect of remote clients
 - In ausearch, collect pid from AVC records (Peng Haitao)
 - Add auparse_get_field_type function to describe field's contents
+- Add GSS/Kerberos encryption to the remote protocol (DJ Delorie)
 
 1.7.5
 - Update system-config-audit to 0.4.8 (Miloslav Trmac)

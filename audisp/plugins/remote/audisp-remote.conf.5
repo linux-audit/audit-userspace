@@ -121,6 +121,20 @@ each message.  Note that both this and
 should be set, as each try may take a long time to time out.  The
 default value is 5 seconds.  If too much time is used on a message,
 the network_failure_action action is performed.
+.TP
+.I gss_principal
+If specified, GSS (via Kerberos) will be used to encrypt the
+connection to the server.  The client and server will use the
+specified principal to negotiate the encryption.  The client will
+use a key named like
+.I auditd/remote@EXAMPLE.COM
+stored in
+.I /etc/audisp/audisp-remote.key
+to authenticate itself.  The format for the
+.I gss_principal
+is like somename@EXAMPLE.COM, see the auditd.conf man page for
+details.  Note that encryption can only be used with managed
+connections, not plain ASCII.
 
 .SH "NOTES"
 Specifying a local port may make it difficult to restart the audit

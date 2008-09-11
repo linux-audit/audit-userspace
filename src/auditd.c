@@ -439,7 +439,6 @@ static void periodic_handler( struct ev_loop *loop, struct ev_periodic *per, int
 
 void periodic_reconfigure ()
 {
-	int i;
 	struct ev_loop *loop = ev_default_loop (EVFLAG_AUTO);
 	if (config.tcp_client_max_idle) {
 		ev_periodic_set (&periodic_watcher, ev_now (loop),

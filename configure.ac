@@ -78,6 +78,28 @@ if test x"$GCC" = x"yes"; then
     esac
 fi
 
+#gssapi
+AC_ARG_ENABLE(gssapi_krb5,
+	[AS_HELP_STRING([--enable-gssapi-krb5],[Enable GSSAPI Kerberos 5 support @<:@default=no@:>@])],
+        [case "${enableval}" in
+         yes) want_gssapi_krb5="yes" ;;
+          no) want_gssapi_krb5="no" ;;
+           *) AC_MSG_ERROR(bad value ${enableval} for --enable-gssapi-krb5) ;;
+         esac],
+	[want_gssapi_krb5=yes]
+)
+if test $want_gssapi_krb5 = yes; then
+	AC_CHECK_LIB(gssapi_krb5, gss_acquire_cred, [
+		AC_CHECK_HEADER(gssapi/gssapi.h, [
+			AC_DEFINE(USE_GSSAPI,,
+				  Define if you want to use GSSAPI)
+			gss_libs="-lgssapi_krb5"
+			AC_SUBST(gss_libs)
+		])
+	])
+fi
+AM_CONDITIONAL(ENABLE_GSSAPI, test x$want_gssapi_krb5 = xyes)
+
 ALLDEBUG="-g"
 AC_ARG_WITH(debug,
 [  --with-debug            turn on debugging [[default=no]]],

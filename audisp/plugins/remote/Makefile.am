@@ -34,7 +34,7 @@ man_MANS = audisp-remote.8 audisp-remote.conf.5
 
 audisp_remote_SOURCES = audisp-remote.c remote-config.c
 audisp_remote_CFLAGS = -fPIE -DPIE -g -D_REENTRANT -D_GNU_SOURCE -Wundef
-audisp_remote_LDFLAGS = -pie -Wl,-z,relro
+audisp_remote_LDFLAGS = -pie -Wl,-z,relro $(gss_libs)
 
 install-data-hook:
 	mkdir -p -m 0750 ${DESTDIR}${plugin_confdir}
