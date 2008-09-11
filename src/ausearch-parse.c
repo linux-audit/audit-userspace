@@ -1209,11 +1209,26 @@ static int parse_avc(const lnode *n, search_items *s)
 		*term = ' ';
 	}
 
+	// get pid
+	str = strstr(term, "pid=");
+	if (str) {
+		str = str + 4;
+		term = strchr(str, ' ');
+		if (term == NULL)
+			return 3;
+		*term = 0;
+		errno = 0;
+		s->pid = strtoul(str, NULL, 10);
+		if (errno)
+			return 4;
+		*term = ' ';
+	}
+
 	if (event_comm && s->comm == NULL) {
 	// dont do this search unless needed
 		str = strstr(term, "comm=");
 		if (str == NULL) {
-			rc = 3;
+			rc = 5;
 			goto err;
 		}
 		str += 5;
@@ -1221,7 +1236,7 @@ static int parse_avc(const lnode *n, search_items *s)
 			str++;
 			term = strchr(str, '"');
 			if (term == NULL) {
-				rc = 4;
+				rc = 6;
 				goto err;
 			}
 			*term = 0;
@@ -1250,7 +1265,7 @@ static int parse_avc(const lnode *n, search_items *s)
 			str += 9;
 			term = strchr(str, ' ');
 			if (term == NULL) {
-				rc = 5;
+				rc = 7;
 				goto err;
 			}
 			*term = 0;
@@ -1266,7 +1281,7 @@ static int parse_avc(const lnode *n, search_items *s)
 			str += 9;
 			term = strchr(str, ' ');
 			if (term == NULL) {
-				rc = 6;
+				rc = 8;
 				goto err;
 			}
 			*term = 0;
@@ -1278,7 +1293,7 @@ static int parse_avc(const lnode *n, search_items *s)
 	// Now get the class...its at the end, so we do things different
 	str = strstr(term, "tclass=");
 	if (str == NULL) {
-		rc = 7;
+		rc = 9;
 		goto err;
 	}
 	str += 7;
@@ -1292,7 +1307,7 @@ static int parse_avc(const lnode *n, search_items *s)
 	if (audit_avc_init(s) == 0) {
 		alist_append(s->avc, &an);
 	} else {
-		rc = 8;
+		rc = 10;
 		goto err;
 	}
 

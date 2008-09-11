@@ -9,6 +9,7 @@
 - Add heartbeat exchange to remote logging protocol (DJ Delorie)
 - Apply man page update (Philipp Hahn)
 - Audit connect/disconnect of remote clients
+- In ausearch, collect pid from AVC records (Peng Haitao)
 
 1.7.5
 - Update system-config-audit to 0.4.8 (Miloslav Trmac)
