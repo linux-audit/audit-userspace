@@ -10,6 +10,7 @@
 - Apply man page update (Philipp Hahn)
 - Audit connect/disconnect of remote clients
 - In ausearch, collect pid from AVC records (Peng Haitao)
+- Add auparse_get_field_type function to describe field's contents
 
 1.7.5
 - Update system-config-audit to 0.4.8 (Miloslav Trmac)

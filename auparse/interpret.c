@@ -45,6 +45,7 @@
 #include <linux/x25.h>
 #include <linux/if.h>   // FIXME: remove when ipx.h is fixed
 #include <linux/ipx.h>
+#include "auparse-defs.h"
 #include "gen_tables.h"
 
 /* This is from asm/ipc.h. Copying it for now as some platforms
@@ -851,13 +852,13 @@ static const char *print_list(const char *val)
 	return out;
 }
 
-static int audit_lookup_type(const char *name)
+int lookup_type(const char *name)
 {
 	int i;
 
 	if (type_s2i(name, &i) != 0)
 		return i;
-	return -1;
+	return AUPARSE_TYPE_UNCLASSIFIED;
 }
 
 static int is_hex_string(const char *str)
@@ -881,74 +882,75 @@ const char *interpret(const rnode *r)
 
 	/* Do some fixups */
 	if (r->type == AUDIT_EXECVE && name[0] == 'a')
-		type = T_ESCAPED;
+		type = AUPARSE_TYPE_ESCAPED;
 	else if (r->type == AUDIT_AVC && strcmp(name, "saddr") == 0)
 		type = -1;
 	else if (strcmp(name, "acct") == 0) {
 		if (val[0] == '"')
-			type = T_ESCAPED;
+			type = AUPARSE_TYPE_ESCAPED;
 		else if (is_hex_string(val))
-			type = T_ESCAPED;
+			type = AUPARSE_TYPE_ESCAPED;
 		else
 			type = -1;
 	} else
-		type = audit_lookup_type(name);
+		type = lookup_type(name);
 
 	switch(type) {
-		case T_UID:
+		case AUPARSE_TYPE_UID:
 			out = print_uid(val);
 			break;
-		case T_GID:
+		case AUPARSE_TYPE_GID:
 			out = print_gid(val);
 			break;
-		case T_SYSCALL:
+		case AUPARSE_TYPE_SYSCALL:
 			out = print_syscall(val, r);
 			break;
-		case T_ARCH:
+		case AUPARSE_TYPE_ARCH:
 			out = print_arch(val, r->machine);
 			break;
-		case T_EXIT:
+		case AUPARSE_TYPE_EXIT:
 			out = print_exit(val);
 			break;
-		case T_ESCAPED:
+		case AUPARSE_TYPE_ESCAPED:
 			out = print_escaped(val);
                         break;
-		case T_PERM:
+		case AUPARSE_TYPE_PERM:
 			out = print_perm(val);
 			break;
-		case T_MODE:
+		case AUPARSE_TYPE_MODE:
 			out = print_mode(val);
 			break;
-		case T_SOCKADDR:
+		case AUPARSE_TYPE_SOCKADDR:
 			out = print_sockaddr(val);
 			break;
-		case T_FLAGS:
+		case AUPARSE_TYPE_FLAGS:
 			out = print_flags(val);
 			break;
-		case T_PROMISC:
+		case AUPARSE_TYPE_PROMISC:
 			out = print_promiscuous(val);
 			break;
-		case T_CAPABILITY:
+		case AUPARSE_TYPE_CAPABILITY:
 			out = print_capabilities(val);
 			break;
-		case T_SUCCESS:
+		case AUPARSE_TYPE_SUCCESS:
 			out = print_success(val);
 			break;
-		case T_A0:
+		case AUPARSE_TYPE_A0:
 			out = print_a0(val, r);
 			break;
-		case T_A1:
+		case AUPARSE_TYPE_A1:
 			out = print_a1(val, r);
 			break;
-		case T_A2:
+		case AUPARSE_TYPE_A2:
 			out = print_a2(val, r);
 			break; 
-		case T_SIGNAL:
+		case AUPARSE_TYPE_SIGNAL:
 			out = print_signals(val);
 			break; 
-		case T_LIST:
+		case AUPARSE_TYPE_LIST:
 			out = print_list(val);
 			break; 
+		case AUPARSE_TYPE_UNCLASSIFIED:
 		default: {
 			char *out2;
 			if (comma)

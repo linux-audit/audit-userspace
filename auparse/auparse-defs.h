@@ -70,6 +70,15 @@ typedef struct
 /* This indicates why the user supplied callback was invoked */
 typedef enum {AUPARSE_CB_EVENT_READY} auparse_cb_event_t;
 
+/* This determines the type of field at current cursor location */
+enum {  AUPARSE_TYPE_UNCLASSIFIED,  AUPARSE_TYPE_UID, AUPARSE_TYPE_GID,
+	AUPARSE_TYPE_SYSCALL, AUPARSE_TYPE_ARCH, AUPARSE_TYPE_EXIT,
+	AUPARSE_TYPE_ESCAPED, AUPARSE_TYPE_PERM, AUPARSE_TYPE_MODE,
+	AUPARSE_TYPE_SOCKADDR, AUPARSE_TYPE_FLAGS, AUPARSE_TYPE_PROMISC,
+	AUPARSE_TYPE_CAPABILITY, AUPARSE_TYPE_SUCCESS, AUPARSE_TYPE_A0,
+	AUPARSE_TYPE_A1, AUPARSE_TYPE_A2, AUPARSE_TYPE_SIGNAL, 
+	AUPARSE_TYPE_LIST } auparse_type_t;
+
 #ifdef __cplusplus
 }
 #endif

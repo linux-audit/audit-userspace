@@ -40,6 +40,7 @@ nvnode *nvlist_next(nvlist *l) hidden;
 static inline const char *nvlist_get_cur_name(const nvlist *l) {return l->cur->name;}
 static inline const char *nvlist_get_cur_val(const nvlist *l) {return l->cur->val;}
 static inline const char *nvlist_get_cur_val_interp(const nvlist *l) {return l->cur->interp_val;}
+int nvlist_get_cur_type(const rnode *r) hidden;
 const char *nvlist_interp_cur_val(const rnode *r) hidden;
 void nvlist_append(nvlist *l, nvnode *node) hidden;
 

@@ -32,17 +32,15 @@
 extern "C" {
 #endif
 
-/* This is a list of field types that we can interpret */
-enum { T_UID, T_GID, T_SYSCALL, T_ARCH, T_EXIT, T_ESCAPED, T_PERM, T_MODE,
-T_SOCKADDR, T_FLAGS, T_PROMISC, T_CAPABILITY, T_SUCCESS, T_A0, T_A1, T_A2,
-T_SIGNAL, T_LIST };
 
+int lookup_type(const char *name);
 const char *interpret(const rnode *r);
 void aulookup_destroy_uid_list(void);
 void aulookup_destroy_gid_list(void);
 const char *au_unescape(char *buf);
 
 /* Make these hidden to prevent conflicts */
+hidden_proto(lookup_type);
 hidden_proto(interpret);
 hidden_proto(aulookup_destroy_uid_list);
 hidden_proto(aulookup_destroy_gid_list);

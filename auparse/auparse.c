@@ -1319,6 +1319,15 @@ const char *auparse_get_field_str(auparse_state_t *au)
 }
 hidden_def(auparse_get_field_str)
 
+int auparse_get_field_type(auparse_state_t *au)
+{
+        if (au->le.e.sec) {
+                rnode *r = aup_list_get_cur(&au->le);
+                if (r)
+                        return nvlist_get_cur_type(r);
+        }
+	return AUPARSE_TYPE_UNCLASSIFIED;
+}
 
 int auparse_get_field_int(auparse_state_t *au)
 {

@@ -1350,6 +1350,31 @@ AuParser_get_field_str(AuParser *self)
 }
 
 /********************************
+ * auparse_get_field_type
+ ********************************/
+PyDoc_STRVAR(get_field_type_doc,
+"get_field_type() Get current field’s data type value.\n\
+\n\
+get_field_type() returns a value from the auparse_type_t enum that\n\
+describes the kind of data in the current field of the current record\n\
+in the current event.\n\
+\n\
+Returns AUPARSE_TYPE_UNCLASSIFIED if the field’s data type has no\n\
+known description or is an integer. Otherwise it returns another enum.\n\
+Fields with the type AUPARSE_TYPE_ESCAPED must be interpretted to access\n\
+their value since those field’s raw value is encoded.\n\
+");
+static PyObject *
+AuParser_get_field_type(AuParser *self)
+{
+    int value;
+
+    PARSER_CHECK;
+    value = auparse_get_field_type(self->au);
+    return Py_BuildValue("i", value);
+}
+
+/********************************
  * auparse_get_field_int
  ********************************/
 PyDoc_STRVAR(get_field_int_doc,
@@ -1612,4 +1637,24 @@ initauparse(void)
 
     /* auparse_cb_event_t */
     PyModule_AddIntConstant(m, "AUPARSE_CB_EVENT_READY", AUPARSE_CB_EVENT_READY);
+    /* auparse_type_t */
+    PyModule_AddIntConstant(m, "AUPARSE_TYPE_UNCLASSIFIED", AUPARSE_TYPE_UNCLASSIFIED);
+    PyModule_AddIntConstant(m, "AUPARSE_TYPE_UID",     AUPARSE_TYPE_UID);
+    PyModule_AddIntConstant(m, "AUPARSE_TYPE_GID",     AUPARSE_TYPE_GID);
+    PyModule_AddIntConstant(m, "AUPARSE_TYPE_SYSCALL", AUPARSE_TYPE_SYSCALL);
+    PyModule_AddIntConstant(m, "AUPARSE_TYPE_ARCH",    AUPARSE_TYPE_ARCH);
+    PyModule_AddIntConstant(m, "AUPARSE_TYPE_EXIT",    AUPARSE_TYPE_EXIT);
+    PyModule_AddIntConstant(m, "AUPARSE_TYPE_ESCAPED", AUPARSE_TYPE_ESCAPED);
+    PyModule_AddIntConstant(m, "AUPARSE_TYPE_PERM",    AUPARSE_TYPE_PERM);
+    PyModule_AddIntConstant(m, "AUPARSE_TYPE_MODE",    AUPARSE_TYPE_MODE);
+    PyModule_AddIntConstant(m, "AUPARSE_TYPE_SOCKADDR", AUPARSE_TYPE_SOCKADDR);
+    PyModule_AddIntConstant(m, "AUPARSE_TYPE_FLAGS",   AUPARSE_TYPE_FLAGS);
+    PyModule_AddIntConstant(m, "AUPARSE_TYPE_PROMISC", AUPARSE_TYPE_PROMISC);
+    PyModule_AddIntConstant(m, "AUPARSE_TYPE_CAPABILITY", AUPARSE_TYPE_CAPABILITY);
+    PyModule_AddIntConstant(m, "AUPARSE_TYPE_SUCCESS", AUPARSE_TYPE_SUCCESS);
+    PyModule_AddIntConstant(m, "AUPARSE_TYPE_A0",      AUPARSE_TYPE_A0);
+    PyModule_AddIntConstant(m, "AUPARSE_TYPE_A1",      AUPARSE_TYPE_A1);
+    PyModule_AddIntConstant(m, "AUPARSE_TYPE_A2",      AUPARSE_TYPE_A2);
+    PyModule_AddIntConstant(m, "AUPARSE_TYPE_SIGNAL",  AUPARSE_TYPE_SIGNAL);
+    PyModule_AddIntConstant(m, "AUPARSE_TYPE_LIST",    AUPARSE_TYPE_LIST);
 }

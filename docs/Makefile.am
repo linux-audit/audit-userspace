@@ -37,8 +37,9 @@ audit_set_rate_limit.3 audit_update_watch_perms.3 auparse_add_callback.3 \
 auparse_destroy.3 auparse_feed.3 auparse_find_field.3 \
 auparse_find_field_next.3 auparse_first_field.3 auparse_first_record.3 \
 auparse_flush_feed.3 auparse_get_field_int.3 auparse_get_field_name.3 \
-auparse_get_field_str.3 auparse_get_filename.3 auparse_get_line_number.3 \
-auparse_get_milli.3 auparse_get_node.3 auparse_get_num_fields.3 \
+auparse_get_field_str.3 auparse_get_field_type.3 auparse_get_filename.3 \
+auparse_get_line_number.3 auparse_get_milli.3 \
+auparse_get_node.3 auparse_get_num_fields.3 \
 auparse_get_num_records.3 auparse_get_record_text.3 \
 auparse_get_serial.3 auparse_get_time.3 auparse_get_timestamp.3 \
 auparse_get_type.3 auparse_init.3 auparse_interpret_field.3 \

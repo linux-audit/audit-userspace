@@ -94,6 +94,7 @@ const char *auparse_find_field_next(auparse_state_t *au);
 /* Accessors to field data */
 const char *auparse_get_field_name(auparse_state_t *au);
 const char *auparse_get_field_str(auparse_state_t *au);
+int auparse_get_field_type(auparse_state_t *au);
 int auparse_get_field_int(auparse_state_t *au);
 const char *auparse_interpret_field(auparse_state_t *au);
 
