@@ -322,6 +322,19 @@ fi
 %config(noreplace) %{_sysconfdir}/security/console.apps/system-config-audit-server
 
 %changelog
+* Wed Sep 11 2008 Steve Grubb <sgrubb@redhat.com> 1.7.6-1
+- Update event record list and aureport classifications (Yu Zhiguo/Peng Haitao)
+- Add subject to audit daemon events (Chu Li)
+- Fix parsing of acct & exe fields in user records (Peng Haitao)
+- Make client error handling in audisp-remote robust (DJ Delorie)
+- Add tcp_wrappers support for auditd
+- Updated syscall tables for 2.6.27 kernel
+- Add heartbeat exchange to remote logging protocol (DJ Delorie)
+- Audit connect/disconnect of remote clients
+- In ausearch, collect pid from AVC records (Peng Haitao)
+- Add auparse_get_field_type function to describe field's contents
+- Add GSS/Kerberos encryption to the remote protocol (DJ Delorie)
+
 * Mon Aug 25 2008 Steve Grubb <sgrubb@redhat.com> 1.7.5-1
 - Update system-config-audit to 0.4.8
 - Whole lot of bug fixes - see ChangeLog for details
