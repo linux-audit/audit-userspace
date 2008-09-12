@@ -21,19 +21,19 @@
 #
 
 CONFIG_CLEAN_FILES = Makefile.in *.loT *.rej *.orig
-
+AUTOMAKE_OPTIONS = no-dependencies
 check_PROGRAMS = auparse_test 
 dist_check_SCRIPTS = auparse_test.py
 EXTRA_DIST = auparse_test.ref test.log test2.log
 
-INCLUDES = -I.. -I${top_srcdir}/lib
+INCLUDES = -I${top_srcdir}/auparse -I${top_srcdir}/lib
 
 auparse_test_SOURCES = auparse_test.c
 auparse_test_LDFLAGS = -static
 auparse_test_LDADD = -L${top_builddir}/auparse/.libs \
 	-L${top_builddir}/lib/.libs -lauparse -laudit
-auparse_test_DEPENDENCIES = ${top_builddir}/auparse/.libs/libauparse.a \
-	$(srcdir)/../*.c $(srcdir)/../*.h
+#auparse_test_DEPENDENCIES = ${top_builddir}/auparse/.libs/libauparse.a \
+	$(srcdir)/auparse/*.c $(srcdir)/auparse/*.h
 
 drop_srcdir = sed 's,$(srcdir)/test,test,'
 
