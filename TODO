@@ -2,7 +2,6 @@ Things that need to be done:
 ===========================
 1.7.7
 * Add dac target for ids keys
-* Fix ausearch -i to keep the node field in the output
 * Expose encryption API for fields
 * Make way to get strstr results in ausyscall - find more that 1 string match
 * Fix auparse to handle out of order messages

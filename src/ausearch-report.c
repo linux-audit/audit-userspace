@@ -160,7 +160,17 @@ static void output_interpreted(llist *l)
  */
 static void output_interpreted_node(const lnode *n)
 {
-	char *ptr, *str = n->message;
+	char *ptr, *str = n->message, *node = NULL;
+
+	/* Check and see if we start with a node */
+	if (str[0] == 'n') {
+		ptr=strchr(str, ' ');
+		if (ptr) {
+			*ptr = 0;
+			node = str;
+			str = ptr+1;
+		}
+	}
 
 	// First locate time stamp.
 	ptr = strchr(str, '(');
@@ -198,10 +208,14 @@ static void output_interpreted_node(const lnode *n)
 		if (num >= 0) {
 			bptr = audit_msg_type_to_name(num);
 			if (bptr) {
+				if (node)
+					printf("%s ", node);
 				printf("type=%s msg=audit(", bptr);
 				goto no_print;
 			}
 		} 
+		if (node)
+			printf("%s ", node);
 		printf("%s(", str);
 no_print:
 
