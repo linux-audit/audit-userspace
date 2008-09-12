@@ -77,6 +77,8 @@ static int heartbeat_timeout_parser(struct nv_pair *nv, int line,
 #ifdef USE_GSSAPI
 static int gss_principal_parser(struct nv_pair *nv, int line, 
 		remote_conf_t *config);
+static int krb_client_name_parser(struct nv_pair *nv, int line, 
+		remote_conf_t *config);
 #endif
 static int network_retry_time_parser(struct nv_pair *nv, int line, 
 		remote_conf_t *config);
@@ -111,6 +113,7 @@ static const struct kw_pair keywords[] =
   {"heartbeat_timeout",      heartbeat_timeout_parser,          0 },
 #ifdef USE_GSSAPI
   {"gss_principal",          gss_principal_parser,              0 },
+  {"krb_client_name",         krb_client_name_parser,             0 },
 #endif
   {"network_failure_action", network_failure_action_parser,	0 },
   {"disk_low_action",        disk_low_action_parser,		0 },
@@ -174,6 +177,7 @@ void clear_config(remote_conf_t *config)
 	config->heartbeat_timeout = 0;
 #ifdef USE_GSSAPI
 	config->gss_principal = NULL;
+	config->krb_client_name = NULL;
 #endif
 
 #define IA(x,f) config->x##_action = f; config->x##_exe = NULL
@@ -589,11 +593,26 @@ static int gss_principal_parser(struct nv_pair *nv, int line,
 {
 	const char *ptr = nv->value;
 
+	if (config->gss_principal)
+		free ((char *)config->gss_principal);
+
 	if (strcmp (ptr, "none") == 0) {
 		config->gss_principal = NULL;
 	} else {
 		config->gss_principal = strdup(ptr);
 	}
+	return 0;
+}
+
+static int krb_client_name_parser(struct nv_pair *nv, int line,
+	remote_conf_t *config)
+{
+	const char *ptr = nv->value;
+
+	if (config->krb_client_name)
+		free ((char *)config->krb_client_name);
+
+	config->krb_client_name = strdup(ptr);
 	return 0;
 }
 #endif

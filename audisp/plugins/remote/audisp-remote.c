@@ -455,7 +455,7 @@ static void gss_failure (const char *msg, int major_status, int minor_status)
 		return -1; }
 
 #define KEYTAB_NAME "/etc/audisp/audisp-remote.key"
-#define CCACHE_NAME "FILE:/tmp/audisp-remote.ccache"
+#define CCACHE_NAME "MEMORY:audisp-remote"
 
 /* Each time we connect to the server, we negotiate a set of
    credentials and a security context.  To do this, we need our own
@@ -487,6 +487,8 @@ static int negotiate_credentials ()
 	krb5_creds my_creds;
         krb5_get_init_creds_opt options;
 	krb5_keytab keytab = NULL;
+	const char *krb_client_name;
+	char host_name[255];
 
 	token_ptr = GSS_C_NO_BUFFER;
 	*gss_context = GSS_C_NO_CONTEXT;
@@ -498,12 +500,20 @@ static int negotiate_credentials ()
 	   /etc/krb5.conf (or wherever)  */
 	krberr = krb5_get_default_realm (kcontext, &realm_name);
 	KCHECK (krberr, "krb5_get_default_realm");
-	syslog (LOG_ERR, "kerberos principal: auditd/remote@%s\n", realm_name);
 
+	krb_client_name = config.krb_client_name ? config.krb_client_name : "auditd";
+	if (gethostname(host_name, sizeof(host_name)) != 0) {
+		syslog (LOG_ERR, "gethostname: host name longer than %d characters?",
+			sizeof (host_name));
+		return -1;
+	}
+
+	syslog (LOG_ERR, "kerberos principal: %s/%s@%s\n",
+		krb_client_name, host_name, realm_name);
 	/* Encode our own "name" as auditd/remote@EXAMPLE.COM.  */
 	krberr = krb5_build_principal (kcontext, &audit_princ,
 				       strlen(realm_name), realm_name,
-				       "auditd", "remote", NULL);
+				       krb_client_name, host_name, NULL);
 	KCHECK (krberr, "krb5_build_principal");
 
 	/* Locate our machine's key table, where our private key is

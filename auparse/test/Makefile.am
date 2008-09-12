@@ -32,8 +32,6 @@ auparse_test_SOURCES = auparse_test.c
 auparse_test_LDFLAGS = -static
 auparse_test_LDADD = -L${top_builddir}/auparse/.libs \
 	-L${top_builddir}/lib/.libs -lauparse -laudit
-#auparse_test_DEPENDENCIES = ${top_builddir}/auparse/.libs/libauparse.a \
-	$(srcdir)/auparse/*.c $(srcdir)/auparse/*.h
 
 drop_srcdir = sed 's,$(srcdir)/test,test,'
 

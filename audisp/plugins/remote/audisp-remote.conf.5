@@ -125,16 +125,23 @@ the network_failure_action action is performed.
 .I gss_principal
 If specified, GSS (via Kerberos) will be used to encrypt the
 connection to the server.  The client and server will use the
-specified principal to negotiate the encryption.  The client will
-use a key named like
-.I auditd/remote@EXAMPLE.COM
-stored in
-.I /etc/audisp/audisp-remote.key
-to authenticate itself.  The format for the
+specified principal to negotiate the encryption.  The format for the
 .I gss_principal
 is like somename@EXAMPLE.COM, see the auditd.conf man page for
 details.  Note that encryption can only be used with managed
 connections, not plain ASCII.
+.TP
+.I krb_client_name
+This specifies the name portion of the client's own principal.  If
+unspecified, the default is "auditd".  The remainder of the principal
+will consist of the host's fully qualified domain name and the default
+Kerberos realm, like this:
+.I auditd/host14.example.com@EXAMPLE.COM
+(assuming you gave "auditd" as the krb_client_name).  The key for this
+principal must be stored in
+.I /etc/audisp/audisp-remote.key
+on the client machine.
+
 
 .SH "NOTES"
 Specifying a local port may make it difficult to restart the audit

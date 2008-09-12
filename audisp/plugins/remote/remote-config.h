@@ -45,6 +45,7 @@ typedef struct remote_conf
 	unsigned int heartbeat_timeout;
 #ifdef USE_GSSAPI
 	const char *gss_principal;
+	const char *krb_client_name;
 #endif
 
 	failure_action_t network_failure_action;
