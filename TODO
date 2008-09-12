@@ -2,8 +2,11 @@ Things that need to be done:
 ===========================
 1.7.7
 * Add dac target for ids keys
-* Expose encryption API for fields
 * Make way to get strstr results in ausyscall - find more that 1 string match
+* Fix SIGHUP for auditd network settings
+* Expose encryption API for fields
+
+1.7.8
 * Fix auparse to handle out of order messages
 * Should session number go into logins and AVCs for prelude?
 * add definitions for crypto events
