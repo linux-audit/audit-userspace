@@ -27,20 +27,21 @@
 #include <ctype.h>
 #include "libaudit.h"
 
+#define LAST_SYSCALL 1400	// IA64 is in the 1300's right now
 
 void usage(void)
 {
-	fprintf(stderr, "usage: ausyscall [arch] name | number | --dump\n");
+	fprintf(stderr, "usage: ausyscall [arch] name | number | --dump | --exact\n");
 	exit(1);
 }
 
 int main(int argc, char *argv[])
 {
 	int i, rc;
-	int machine=-1, syscall_num=-1, dump=0;
+	int machine=-1, syscall_num=-1, dump=0, exact=0;
 	const char *name = NULL;
 
-	if (argc > 3) {
+	if (argc > 4) {
 		fputs("Too many arguments\n", stderr);
 		usage();
 	}
@@ -61,6 +62,8 @@ int main(int argc, char *argv[])
 			machine = rc;
 		} else if (strcmp("--dump", argv[i]) == 0) {
 			dump=1;
+		} else if (strcmp("--exact", argv[i]) == 0) {
+			exact=1;
 		} else {
 			if (name != NULL) {
 				fputs("Two syscall names not allowed\n",stderr);
@@ -88,14 +91,31 @@ int main(int argc, char *argv[])
 	}
 
 	if (name) {
-		rc = audit_name_to_syscall(name, machine);
-		if (rc < 0) {
-			fprintf(stderr,
-				"Unknown syscall %s using %s lookup table\n",
-				name, audit_machine_to_name(machine));
-			return 1;
-		} else
-			printf("%d\n", rc);
+		if (exact) {
+			rc = audit_name_to_syscall(name, machine);
+			if (rc < 0) {
+				fprintf(stderr,
+					"Unknown syscall %s using %s lookup table\n",
+					name, audit_machine_to_name(machine));
+				return 1;
+			} else
+				printf("%d\n", rc);
+		} else {
+			int found = 0;
+			for (i=0; i< LAST_SYSCALL; i++) {
+				const char *n = audit_syscall_to_name(i, machine);
+				if (n && strcasestr(n, name)) {
+					found = 1;
+					printf("%-18s %d\n", n, i);
+				}
+			}
+			if (!found) {
+				fprintf(stderr,
+					"Unknown syscall %s using %s lookup table\n",
+					name, audit_machine_to_name(machine));
+				return 1;
+			}
+		}
 	} else if (syscall_num != -1) {
 		name = audit_syscall_to_name(syscall_num, machine);
 		if (name == NULL) {

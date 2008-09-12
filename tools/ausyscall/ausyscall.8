@@ -2,9 +2,9 @@
 .SH NAME
 ausyscall \- a program that allows mapping syscall names and numbers
 .SH SYNOPSIS
-.B ausyscall [arch] name | number | --dump
+.B ausyscall [arch] name | number | --dump | --exact
 .SH DESCRIPTION
-\fBausyscall\fP is a program that prints out the mapping from syscall name to number and reverse for the given arch. The arch can be anything returned by uname -m. If arch is not given, the program will take a guess based on the running image. You may give the syscall name or number and it will find the opposite. You can also dump the whole table with the --dump option.
+\fBausyscall\fP is a program that prints out the mapping from syscall name to number and reverse for the given arch. The arch can be anything returned by uname -m. If arch is not given, the program will take a guess based on the running image. You may give the syscall name or number and it will find the opposite. You can also dump the whole table with the --dump option. By default a syscall name lookup will be a substring match meaning that it will try to match all occurances of the given name with syscalls. So giving a name of chown will match both fchown and chown as any other syscall with chown in its name. If this behavior is not desired, pass the --exact flag and it will do an exact string match.
 
 This program can be used to verify syscall numbers on a biarch platform for rule optimization. For example, suppose you had an auditctl rule:
 

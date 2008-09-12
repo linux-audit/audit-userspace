@@ -2,7 +2,6 @@ Things that need to be done:
 ===========================
 1.7.7
 * Add dac target for ids keys
-* Make way to get strstr results in ausyscall - find more that 1 string match
 * Fix SIGHUP for auditd network settings
 * Expose encryption API for fields
 
