@@ -12,3 +12,4 @@ to this project.
 * Dan Walsh for Python bindings
 * John Dennis for rewriting the python bindings and auparse updates
 * Miloslav Trmac for system config audit program
+* DJ Delorie for the remote logging code
