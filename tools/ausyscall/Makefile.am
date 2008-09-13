@@ -23,7 +23,7 @@
 CONFIG_CLEAN_FILES = Makefile.in *.loT *.rej *.orig
 AUTOMAKE_OPTIONS = no-dependencies
 EXTRA_DIST = $(man_MANS)
-INCLUDES = -I.. -I${top_srcdir}/lib
+INCLUDES = -I${top_srcdir} -I${top_srcdir}/lib
 LIBS = -L${top_builddir}/lib -laudit
 bin_PROGRAMS = ausyscall
 man_MANS = ausyscall.8

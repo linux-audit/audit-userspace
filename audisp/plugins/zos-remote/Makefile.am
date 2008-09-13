@@ -20,7 +20,7 @@
 #   Klaus Heinrich Kiwi <klausk@br.ibm.com>
 #
 
-INCLUDES = -I.. -I${top_srcdir}/lib -I${top_srcdir}/auparse
+INCLUDES = -I${top_srcdir} -I${top_srcdir}/lib -I${top_srcdir}/auparse
 CONFIG_CLEAN_FILES = Makefile.in *.rej *.orig
 SUBDIRS = policy
 AUTOMAKE_OPTIONS = no-dependencies

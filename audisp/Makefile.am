@@ -23,7 +23,7 @@
 SUBDIRS = plugins 
 CONFIG_CLEAN_FILES = Makefile.in *.rej *.orig 
 AUTOMAKE_OPTIONS = no-dependencies
-INCLUDES = -I.. -I${top_srcdir}/lib
+INCLUDES = -I${top_srcdir} -I${top_srcdir}/lib
 sbin_PROGRAMS = audispd
 noinst_HEADERS = audispd-config.h audispd-pconfig.h audispd-llist.h \
 	queue.h audispd-builtins.h

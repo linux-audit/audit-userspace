@@ -22,7 +22,7 @@
 
 CONFIG_CLEAN_FILES = Makefile.in *.rej *.orig 
 AUTOMAKE_OPTIONS = no-dependencies
-INCLUDES = -I.. -I${top_srcdir}/lib -I${top_srcdir}/src/libev
+INCLUDES = -I${top_srcdir} -I${top_srcdir}/lib -I${top_srcdir}/src/libev
 sbin_PROGRAMS = auditd auditctl aureport ausearch autrace
 LIBS = -Lmt -lauditmt
 LDADD = -lpthread
