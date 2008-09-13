@@ -113,6 +113,14 @@ This is an action that determines what response should be taken whenever a user 
 .I watched_accounts
 This option is a whitespace and comma separated list of accounts to watch. The accounts may be numeric or alphanumeric. If you want to include a range of accounts, separate them with a dash but no spaces. For example, to watch logins from bin to lp, use "bin-lp". Only succesful logins logins are recorded.
 .TP
+.I detect_watched_syscall
+This is an enabler that determines if the IDS should be detecting whenever a user runs a command that issues a syscall that is being watched. The default is 
+.IR yes ".
+.TP
+.I watched_syscall_act
+This is an action that determines what response should be taken whenever a user runs a command that issues a syscall that is being watched. The default is 
+.IR idmef ".
+.TP
 .I detect_watched_file
 This is an enabler that determines if the IDS should be detecting whenever a user accesses a file that is being watched. The default is 
 .IR yes ".

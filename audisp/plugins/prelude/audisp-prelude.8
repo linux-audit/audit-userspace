@@ -33,11 +33,11 @@ At this point, if you want have audit: forbidden login location, max concurrent 
 
 For performance reasons, some audit events will not produce syscall records which contain additional information about events unless there is at least one audit rule loaded. If you do not have any additional audit rules, edit /etc/audit/audit.rules and add something simple that won't impact performace like this: -w /etc/shadow -p wa. This rule will watch the shadow file for writes or changes to its attributes. The additional audit information provided by having at least one rule will allow the plugin to give a more complete view of the alert it is sending.
 
-If you are wanting to get alerts on watched files or watched execution, you need to add some keys to your audit rules. For example, if you have the following audit watch in /etc/audit/audit.rules:
+If you are wanting to get alerts on watched syscalls, watched files, watched execution, or something becoming executable, you need to add some keys to your audit rules. For example, if you have the following audit watch in /etc/audit/audit.rules:
 
 -w /etc/shadow -p wa
 
-and you want idmef alerts on this, you need to add -k ids-file-med  or something appropriate to signal to the plugin that this message is for it. The format of the key has a fixed format of keywords separated by a dash. It follows the form of ids-type-severity. The type can be either file, exec, or mkexe depending on whether you want the event to be considered a watched_file, watched_exec, or watched_mk_exe. The severity can be either info, low, med, or hi depending on how urgent you would like it to be.
+and you want idmef alerts on this, you need to add -k ids-file-med  or something appropriate to signal to the plugin that this message is for it. The format of the key has a fixed format of keywords separated by a dash. It follows the form of ids-type-severity. The type can be either sys, file, exec, or mkexe depending on whether you want the event to be considered a watched_syscall, watched_file, watched_exec, or watched_mk_exe respectively. The severity can be either info, low, med, or hi depending on how urgent you would like it to be.
 
 .SH FILES
 /etc/audisp/plugins.d/au-prelude.conf, /etc/audit/auditd.conf, /etc/audisp/audispd.conf, /etc/audisp/audisp-prelude.conf

@@ -43,7 +43,7 @@
 typedef enum { AS_LOGIN, AS_MAX_LOGIN_FAIL, AS_MAX_LOGIN_SESS, AS_ABEND,
 	AS_PROM, AS_MAC_STAT, AS_LOGIN_LOCATION, AS_LOGIN_TIME, AS_MAC,
 	AS_AUTH, AS_WATCHED_LOGIN, AS_WATCHED_FILE, AS_WATCHED_EXEC, AS_MK_EXE,
-	AS_MMAP0, AS_TOTAL } as_description_t;
+	AS_MMAP0, AS_WATCHED_SYSCALL, AS_TOTAL } as_description_t;
 const char *assessment_description[AS_TOTAL] = {
  "A user has attempted to login",
  "The maximum allowed login failures for this account has been reached. This could be an attempt to gain access to the account by someone other than the real account holder.",
@@ -59,7 +59,8 @@ const char *assessment_description[AS_TOTAL] = {
  "A user has attempted to access a file that is being watched.",
  "A user has attempted to execute a program that is being watched.",
  "A user has attempted to create an executable program",
- "A program has attempted mmap a fixed memory page at an address sometimes used as part of a kernel exploit"
+ "A program has attempted mmap a fixed memory page at an address sometimes used as part of a kernel exploit",
+ "A user has run a command that issued a watched syscall"
 };
 typedef enum { M_NORMAL, M_TEST } output_t;
 typedef enum { W_NO, W_FILE, W_EXEC, W_MK_EXE } watched_t;
@@ -847,6 +848,40 @@ static int add_serial_number_data(auparse_state_t *au, idmef_alert_t *alert)
         return -1;
 }
 
+static int add_exit_data(auparse_state_t *au, idmef_alert_t *alert)
+{
+	const char *e_ptr;
+
+	if (goto_record_type(au, AUDIT_SYSCALL) == -1)
+		goto err;
+	e_ptr = auparse_find_field(au, "exit");
+	if (e_ptr) {
+		int ret;
+		idmef_additional_data_t *data;
+		prelude_string_t *str;
+		char exit_code[80];
+
+		snprintf(exit_code, sizeof(exit_code), "%d (%s)", 
+			auparse_get_field_int(au),
+			auparse_interpret_field(au)); 
+
+	        ret = idmef_alert_new_additional_data(alert,
+					&data, IDMEF_LIST_APPEND);
+		PRELUDE_FAIL_CHECK;
+
+		ret = idmef_additional_data_new_meaning(data, &str);
+		PRELUDE_FAIL_CHECK;
+
+		prelude_string_set_dup(str, "Audit syscall exit code:");
+		idmef_additional_data_set_type(data,
+					IDMEF_ADDITIONAL_DATA_TYPE_STRING);
+	       	idmef_additional_data_set_string_dup(data, exit_code);
+	}
+	return 0;
+ err:
+        return -1;
+}
+
 static int add_execve_data(auparse_state_t *au, idmef_alert_t *alert)
 {
 	int ret, i, len = 0;
@@ -1496,13 +1531,87 @@ static int auth_failure_alert(auparse_state_t *au, idmef_message_t *idmef,
 }
 
 /*
+ * This is for watched syscall related alerts
+ */
+static int watched_syscall_alert(auparse_state_t *au, idmef_message_t *idmef,
+		idmef_alert_t *alert, idmef_impact_severity_t severity)
+{
+	int ret, rtype;
+	idmef_source_t *source;
+	idmef_target_t *target;
+	idmef_user_t *suser;
+	idmef_user_id_t *user_id;
+	idmef_impact_type_t impact;
+
+	/* Fill in information about the event's source */
+	ret = idmef_alert_new_source(alert, &source, -1);
+	PRELUDE_FAIL_CHECK;
+
+	ret = idmef_source_new_user(source, &suser);
+	PRELUDE_FAIL_CHECK;
+	idmef_user_set_category(suser, IDMEF_USER_CATEGORY_APPLICATION);
+	ret = idmef_user_new_user_id(suser, &user_id, 0);	
+	PRELUDE_FAIL_CHECK;
+	idmef_user_id_set_type(user_id, IDMEF_USER_ID_TYPE_ORIGINAL_USER);
+	ret = get_loginuid_info(au, user_id);
+	PRELUDE_FAIL_CHECK;
+
+	/* We should only analyze the syscall */
+	rtype = goto_record_type(au, AUDIT_SYSCALL);
+	ret = get_tty_info(au, user_id);
+	PRELUDE_FAIL_CHECK;
+
+	ret = get_comm_info(au, source, NULL);
+	PRELUDE_FAIL_CHECK;
+
+	/* Fill in information about the target of the event */
+	ret = idmef_alert_new_target(alert, &target, -1);
+	PRELUDE_FAIL_CHECK;
+
+	auparse_first_record(au);
+	ret = get_node_info(au, source, target);
+	PRELUDE_FAIL_CHECK;
+
+	rtype = goto_record_type(au, AUDIT_CWD);
+	if (rtype == AUDIT_CWD) {
+		ret = get_file_info(au, target, 1);
+		PRELUDE_FAIL_CHECK;
+	}
+	impact = IDMEF_IMPACT_TYPE_OTHER;
+
+	ret = add_serial_number_data(au, alert);
+	PRELUDE_FAIL_CHECK;
+	ret = add_exit_data(au, alert);
+	PRELUDE_FAIL_CHECK;
+
+	/* Describe event */
+	ret = set_classification(alert, "Watched Syscall");
+	PRELUDE_FAIL_CHECK;
+
+	/* Assess impact */
+	ret = do_assessment(alert, au, severity, impact,
+				assessment_description[AS_WATCHED_SYSCALL]);
+	PRELUDE_FAIL_CHECK;
+
+	send_idmef(client, idmef);
+	idmef_message_destroy(idmef);
+
+        return 0;
+
+ err:
+	syslog(LOG_ERR, "watches_syscall_alert: IDMEF error: %s.\n", 
+		prelude_strerror(ret));
+        idmef_message_destroy(idmef);
+        return -1;
+}
+
+/*
  * This is for watched file related alerts
  */
 static int watched_file_alert(auparse_state_t *au, idmef_message_t *idmef,
-		idmef_alert_t *alert, idmef_impact_type_t type,
-		idmef_impact_severity_t severity)
+		idmef_alert_t *alert, idmef_impact_severity_t severity)
 {
-	int ret;
+	int ret, rtype;
 	idmef_source_t *source;
 	idmef_target_t *target;
 	idmef_user_t *suser;
@@ -1536,8 +1645,8 @@ static int watched_file_alert(auparse_state_t *au, idmef_message_t *idmef,
 	ret = get_node_info(au, source, target);
 	PRELUDE_FAIL_CHECK;
 
-	type = goto_record_type(au, AUDIT_CWD);
-	if (type == AUDIT_CWD) {
+	rtype = goto_record_type(au, AUDIT_CWD);
+	if (rtype == AUDIT_CWD) {
 		ret = get_file_info(au, target, 1);
 		PRELUDE_FAIL_CHECK;
 	}
@@ -1571,10 +1680,9 @@ static int watched_file_alert(auparse_state_t *au, idmef_message_t *idmef,
  * This is for watched executable related alerts
  */
 static int watched_exec_alert(auparse_state_t *au, idmef_message_t *idmef,
-		idmef_alert_t *alert, idmef_impact_type_t type,
-		idmef_impact_severity_t severity)
+		idmef_alert_t *alert, idmef_impact_severity_t severity)
 {
-	int ret;
+	int ret, rtype;
 	idmef_source_t *source;
 	idmef_target_t *target;
 	idmef_user_t *suser;
@@ -1608,12 +1716,11 @@ static int watched_exec_alert(auparse_state_t *au, idmef_message_t *idmef,
 	ret = get_node_info(au, source, target);
 	PRELUDE_FAIL_CHECK;
 
-	type = goto_record_type(au, AUDIT_CWD);
-	if (type == AUDIT_CWD) {
+	rtype = goto_record_type(au, AUDIT_CWD);
+	if (rtype == AUDIT_CWD) {
 		ret = get_file_info(au, target, 1);
 		PRELUDE_FAIL_CHECK;
 	}
-	impact = IDMEF_IMPACT_TYPE_FILE;
 
 	ret = add_execve_data(au, alert);
 	PRELUDE_FAIL_CHECK;
@@ -1650,10 +1757,9 @@ static int watched_exec_alert(auparse_state_t *au, idmef_message_t *idmef,
  * This is for watching exe's being made related alerts
  */
 static int watched_mk_exe_alert(auparse_state_t *au, idmef_message_t *idmef,
-		idmef_alert_t *alert, idmef_impact_type_t type,
-		idmef_impact_severity_t severity)
+		idmef_alert_t *alert, idmef_impact_severity_t severity)
 {
-	int ret;
+	int ret, rtype;
 	idmef_source_t *source;
 	idmef_target_t *target;
 	idmef_user_t *suser;
@@ -1687,8 +1793,8 @@ static int watched_mk_exe_alert(auparse_state_t *au, idmef_message_t *idmef,
 	ret = get_node_info(au, source, target);
 	PRELUDE_FAIL_CHECK;
 
-	type = goto_record_type(au, AUDIT_CWD);
-	if (type == AUDIT_CWD) {
+	rtype = goto_record_type(au, AUDIT_CWD);
+	if (rtype == AUDIT_CWD) {
 		ret = get_file_info(au, target, 1);
 		PRELUDE_FAIL_CHECK;
 	}
@@ -1701,11 +1807,6 @@ static int watched_mk_exe_alert(auparse_state_t *au, idmef_message_t *idmef,
 	ret = set_classification(alert, "Executable Created");
 	PRELUDE_FAIL_CHECK;
 
-	/* Assess impact */
-	if (get_loginuid(au) == 0)
-		impact = IDMEF_IMPACT_TYPE_ADMIN;
-	else
-		impact = IDMEF_IMPACT_TYPE_USER;
 	ret = do_assessment(alert, au, severity, impact,
 				assessment_description[AS_MK_EXE]);
 	PRELUDE_FAIL_CHECK;
@@ -1746,11 +1847,13 @@ static int account_is_watched(auparse_state_t *au)
 
 static idmef_impact_type_t lookup_itype(const char *kind)
 {
-	if (strcmp(kind, "file") == 0)
+	if (strcasecmp(kind, "sys") == 0)
+		return IDMEF_IMPACT_TYPE_OTHER;
+	if (strcasecmp(kind, "file") == 0)
 		return IDMEF_IMPACT_TYPE_FILE;
-	if (strcmp(kind, "exec") == 0)
+	if (strcasecmp(kind, "exec") == 0)
 		return IDMEF_IMPACT_TYPE_USER;
-	if (strcmp(kind, "mkexe") == 0)
+	if (strcasecmp(kind, "mkexe") == 0)
 		return IDMEF_IMPACT_TYPE_OTHER;
 	return IDMEF_IMPACT_TYPE_ERROR;
 }
@@ -1771,8 +1874,9 @@ static idmef_impact_severity_t lookup_iseverity(const char *severity)
 static void handle_watched_syscalls(auparse_state_t *au,
 		idmef_message_t **idmef, idmef_alert_t **alert)
 {
-	if (config.watched_file == E_YES || config.watched_exec == E_YES ||
-					    config.watched_mk_exe == E_YES) {
+	if (config.watched_syscall == E_YES || config.watched_file == E_YES ||
+				config.watched_exec == E_YES ||
+				config.watched_mk_exe == E_YES) {
 		const char *keyptr;
 		char *ptr, *kindptr, *ratingptr;
 		char key[AUDIT_MAX_KEY_LEN+1];
@@ -1810,24 +1914,32 @@ static void handle_watched_syscalls(auparse_state_t *au,
 		type = lookup_itype(kindptr);
 		severity = lookup_iseverity(ratingptr);
 
-		if (type == IDMEF_IMPACT_TYPE_FILE &&
+		if (type == IDMEF_IMPACT_TYPE_OTHER && 
+					strcasecmp(kindptr, "sys") == 0 &&
+					config.watched_syscall == E_YES && 
+					config.watched_syscall_act == A_IDMEF) {
+			if (new_alert_common(au, idmef, alert) >= 0)
+				watched_syscall_alert(au, *idmef, *alert,
+							severity);
+		} else if (type == IDMEF_IMPACT_TYPE_FILE &&
 					config.watched_file == E_YES && 
 					config.watched_file_act == A_IDMEF) {
 			if (new_alert_common(au, idmef, alert) >= 0)
 				watched_file_alert(au, *idmef, *alert,
-							type, severity);
+							severity);
 		} else if (type == IDMEF_IMPACT_TYPE_USER &&
 				config.watched_exec == E_YES &&
 				config.watched_exec_act == A_IDMEF) {
 			if (new_alert_common(au, idmef, alert) >= 0)
 				watched_exec_alert(au, *idmef, *alert,
-							type, severity);
+							severity);
 		} else if (type == IDMEF_IMPACT_TYPE_OTHER &&
+				strcasecmp(kindptr, "mkexe") == 0 &&
 				config.watched_mk_exe == E_YES &&
 				config.watched_mk_exe_act == A_IDMEF) {
 			if (new_alert_common(au, idmef, alert) >= 0)
 				watched_mk_exe_alert(au, *idmef, *alert,
-							type, severity);
+							severity);
 		}
 	}
 }

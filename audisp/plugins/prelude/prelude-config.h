@@ -56,6 +56,8 @@ typedef struct prelude_conf
 	enable_t watched_acct;
 	action_t watched_acct_act;
 	ilist watched_accounts;
+	enable_t watched_syscall;
+	action_t watched_syscall_act;
 	enable_t watched_file;
 	action_t watched_file_act;
 	enable_t watched_exec;

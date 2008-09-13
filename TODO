@@ -1,7 +1,6 @@
 Things that need to be done:
 ===========================
 1.7.7
-* Add dac target for ids keys
 * More gssapi bug fixing
 * Fix SIGHUP for auditd network settings
 * Expose encryption API for fields
@@ -27,7 +26,6 @@ Things that need to be done:
 * Add keywords for time: last-boot, last-load, last-relabel.
 * auditctl session id, pgid
 * auditctl should ignore invalid arches for rules
-* Look at supporting binary formats
 * Remove evil getopt cruft in auditctl
 
 2.0.1

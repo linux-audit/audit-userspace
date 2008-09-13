@@ -3,6 +3,7 @@
 - Fix ausearch -i to keep the node field in the output
 - ausyscall now does strstr match on syscall names
 - Makefile cleanup (Philipp Hahn)
+- Add watched syscall support to audisp-prelude
 
 1.7.6
 - Update event record list and aureport classifications (Yu Zhiguo/Peng Haitao)

@@ -359,6 +359,8 @@ static int audit_setup_perms(struct audit_rule_data *rule, const char *opt)
 /* 0 success, -1 failure */
 static int lookup_itype(const char *kind)
 {
+        if (strcmp(kind, "sys") == 0)
+                return 0;
         if (strcmp(kind, "file") == 0)
                 return 0;
         if (strcmp(kind, "exec") == 0)

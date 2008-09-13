@@ -106,6 +106,10 @@ static int watched_acct_act_parser(struct nv_pair *nv, int line,
 		prelude_conf_t *config);
 static int watched_accounts_parser(struct nv_pair *nv, int line, 
 		prelude_conf_t *config);
+static int watched_syscall_parser(struct nv_pair *nv, int line, 
+		prelude_conf_t *config);
+static int watched_syscall_act_parser(struct nv_pair *nv, int line, 
+		prelude_conf_t *config);
 static int watched_file_parser(struct nv_pair *nv, int line, 
 		prelude_conf_t *config);
 static int watched_file_act_parser(struct nv_pair *nv, int line, 
@@ -146,6 +150,8 @@ static const struct kw_pair keywords[] =
   {"detect_watched_acct",        watched_acct_parser,		0 },
   {"watched_acct_action",        watched_acct_act_parser,	0 },
   {"watched_accounts",           watched_accounts_parser,	1 },
+  {"detect_watched_syscall",     watched_syscall_parser,	0 },
+  {"watched_syscall_action",     watched_syscall_act_parser,	0 },
   {"detect_watched_file",        watched_file_parser,		0 },
   {"watched_file_action",        watched_file_act_parser,	0 },
   {"detect_watched_exec",        watched_exec_parser,		0 },
@@ -201,6 +207,8 @@ void clear_config(prelude_conf_t *config)
 	config->group_auth_act = A_IDMEF;
 	config->watched_acct = E_YES;
 	config->watched_acct_act = A_IDMEF;
+	config->watched_syscall = E_YES;
+	config->watched_syscall_act = A_IDMEF;
 	config->watched_file = E_YES;
 	config->watched_file_act = A_IDMEF;
 	config->watched_exec = E_YES;
@@ -708,6 +716,24 @@ static int watched_accounts_parser(struct nv_pair *nv, int line,
 	} while(str);
 
         return 0;
+}
+
+static int watched_syscall_parser(struct nv_pair *nv, int line,
+	prelude_conf_t *config)
+{
+	if (lookup_enabler(nv->value, &config->watched_syscall) == 0)
+		return 0;
+        syslog(LOG_ERR, "Option %s not found - line %d", nv->value, line);
+        return 1;
+}
+
+static int watched_syscall_act_parser(struct nv_pair *nv, int line,
+	prelude_conf_t *config)
+{
+	if (lookup_action(nv->value, &config->watched_syscall_act) == 0)
+		return 0;
+        syslog(LOG_ERR, "Option %s not found - line %d", nv->value, line);
+        return 1;
 }
 
 static int watched_file_parser(struct nv_pair *nv, int line,
