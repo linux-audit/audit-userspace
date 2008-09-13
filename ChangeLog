@@ -5,6 +5,7 @@
 - Makefile cleanup (Philipp Hahn)
 - Add watched syscall support to audisp-prelude
 - Use the right define for tcp_wrappers in auditd
+- Expose encoding API for fields being logged from user space
 
 1.7.6
 - Update event record list and aureport classifications (Yu Zhiguo/Peng Haitao)

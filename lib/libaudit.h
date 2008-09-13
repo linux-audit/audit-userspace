@@ -522,6 +522,10 @@ extern int  audit_delete_rule_data(int fd, struct audit_rule_data *rule,
                                    int flags, int action);
 
 /* The following are for standard formatting of messages */
+extern int audit_value_needs_encoding(const char *str, unsigned int len);
+extern char *audit_encode_value(char *final,const char *buf,unsigned int size);
+extern char *audit_encode_nv_string(const char *name, const char *value,
+	unsigned int vlen);
 extern int audit_log_user_message(int audit_fd, int type, const char *message,
         const char *hostname, const char *addr, const char *tty, int result);
 extern int audit_log_user_comm_message(int audit_fd, int type,

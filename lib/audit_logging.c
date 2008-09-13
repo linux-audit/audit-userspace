@@ -77,9 +77,24 @@ static void _resolve_addr(char buf[], const char *host)
 }
 
 /*
+ * This function checks a string to see if it needs encoding. It
+ * return 1 if needed and 0 if not
+ */
+int audit_value_needs_encoding(const char *str, unsigned int size)
+{
+	int i;
+
+	for (i=0; i<size; i++) {
+		if (str[i] == '"' || str[i] < 0x21 || str[i] > 0x7f)
+			return 1;
+	}
+	return 0;
+}
+
+/*
  * This function does encoding of "untrusted" names just like the kernel
  */
-static char *_audit_c2x(char *final, const char *buf, unsigned int size)
+char *audit_encode_value(char *final, const char *buf, unsigned int size)
 {
 	unsigned int i;
 	char *ptr = final;
@@ -91,6 +106,24 @@ static char *_audit_c2x(char *final, const char *buf, unsigned int size)
 	}
 	*ptr = 0;
 	return final;
+}
+
+char *audit_encode_nv_string(const char *name, const char *value,
+		unsigned int vlen)
+{
+	char *str;
+
+	if (vlen == 0)
+		vlen = strlen(value);
+
+	if (audit_value_needs_encoding(value, vlen)) {
+		char *tmp = malloc(2*vlen + 1);
+		audit_encode_value(tmp, value, vlen);
+		asprintf(&str, "%s=%s", name, tmp);
+		free(tmp);
+	} else
+		asprintf(&str, "%s=\"%s\"", name, value);
+	return str;
 }
 
 /*
@@ -106,14 +139,9 @@ static char *_get_exename(char *exename, int size)
 		strcpy(exename, "\"?\"");
 		audit_msg(LOG_ERR, "get_exename: cannot determine executable");
 	} else {
-		const unsigned char *p = (unsigned char *)tmp;
 		tmp[res] = '\0';
-		while (*p) {
-			if (*p == '"' || *p < 0x21 || *p > 0x7f) {
-				return _audit_c2x(exename, tmp, strlen(tmp));
-			}
-			p++;
-		}
+		if (audit_value_needs_encoding(tmp, res))
+			return audit_encode_value(exename, tmp, res);
 		snprintf(exename, size, "\"%s\"", tmp);
 	}
 	return exename;
@@ -125,23 +153,17 @@ static char *_get_exename(char *exename, int size)
  */
 static char *_get_commname(const char *comm, char *commname, unsigned int size)
 {
-	const unsigned char *p = (const unsigned char *)comm;
-	int found = 0;
+	unsigned int len;
 	
 	if (comm == NULL) {
 		strcpy(commname, "\"?\"");
 		return commname;
 	}
 
-	while (*p) {
-		if (*p == '"' || *p < 0x21 || *p > 0x7f) {
-			_audit_c2x(commname, comm, strlen(comm));
-			found = 1;
-			break;
-		}
-		p++;
-	}
-	if (found == 0)
+	len = strlen(comm);
+	if (audit_value_needs_encoding(comm, len))
+		audit_encode_value(commname, comm, len);
+	else
 		snprintf(commname, size, "\"%s\"", comm);
 
 	return commname;
@@ -360,27 +382,18 @@ int audit_log_acct_message(int audit_fd, int type, const char *pgname,
 
 	if (name) {
 		char user[MAX_USER];
-		const char *format, *p;
+		const char *format;
 		size_t len;
-		int enc = 0;
 
 		user[0] = 0;
 		strncat(user, name, MAX_USER-1);
 		len = strnlen(user, UT_NAMESIZE);
 		user[len] = 0;
-		p = user;
-		while (*p) {
-			if (*p == '"' || *p < 0x21 || (unsigned)*p > 0x7f) {
-				_audit_c2x(user, name, len);
-				enc = 1;
-				break;
-			}
-			p++;
-		}
-		if (enc)
+		if (audit_value_needs_encoding(name, len)) {
+			audit_encode_value(user, name, len);
 			format = 
 	     "op=%s acct=%s exe=%s (hostname=%s, addr=%s, terminal=%s res=%s)";
-		else
+		} else
 			format = 
 	 "op=%s acct=\"%s\" exe=%s (hostname=%s, addr=%s, terminal=%s res=%s)";
 
@@ -526,26 +539,18 @@ int audit_log_semanage_message(int audit_fd, int type, const char *pgname,
 		tty = _get_tty(ttyname, TTY_PATH);
 
 	if (name && strlen(name) > 0) {
-		int enc = 0;
 		size_t len;
-		const char *format, *p = name;
+		const char *format;
 		char user[MAX_USER];
 
 		user[0] = 0;
 		strncat(user, name, MAX_USER-1);
 		len = strnlen(user, UT_NAMESIZE);
 		user[len] = 0;
-		while (*p) {
-			if (*p == '"' || *p < 0x21 || (unsigned)*p > 0x7f) {
-				_audit_c2x(user, name, len);
-				enc = 1;
-				break;
-			}
-			p++;
-		}
-		if (enc)
+		if (audit_value_needs_encoding(name, len)) {
+			audit_encode_value(user, name, len);
 			format = "op=%s acct=%s old-seuser=%s old-role=%s old-range=%s new-seuser=%s new-role=%s new-range=%s exe=%s (hostname=%s, addr=%s, terminal=%s res=%s)";
-		else
+		} else
 			format = "op=%s acct=\"%s\" old-seuser=%s old-role=%s old-range=%s new-seuser=%s new-role=%s new-range=%s exe=%s (hostname=%s, addr=%s, terminal=%s res=%s)";
 		snprintf(buf, sizeof(buf), format, op, user, 
 			old_seuser && strlen(old_seuser) ? old_seuser : "?",
@@ -608,7 +613,7 @@ int audit_log_user_command(int audit_fd, int type, const char *command,
 	char format[64];
 	const char *success;
 	char *cmd;
-	int ret,cwdenc=0, cmdenc=0;
+	int ret, cwdenc=0, cmdenc=0;
 	unsigned int len;
 
 	if (audit_fd < 0)
@@ -633,17 +638,11 @@ int audit_log_user_command(int audit_fd, int type, const char *command,
 	// We borrow the commname buffer
 	if (getcwd(commname, PATH_MAX) == NULL)
 		strcpy(commname, "?");
-	p = commname;
 	len = strlen(commname);
-	while (*p) {
-		if (*p == '"' || *p < 0x21 || (unsigned)*p > 0x7f) {
-			_audit_c2x(cwdname, commname, len);
-			cwdenc = 1;
-			break;
-		}
-		p++;
-	}
-	if (cwdenc == 0)
+	if (audit_value_needs_encoding(commname, len)) {
+		audit_encode_value(cwdname, commname, len);
+		cwdenc = 1;
+	} else
 		strcpy(cwdname, commname);
 
 	len = strlen(cmd);
@@ -653,18 +652,13 @@ int audit_log_user_command(int audit_fd, int type, const char *command,
 		len--;
 	}
 
-	p = cmd;
 	if (len >= PATH_MAX) {
 		cmd[PATH_MAX] = 0;
 		len = PATH_MAX-1;
 	}
-	while (*p) {
-		if (*p == '"' || *p < 0x21 || (unsigned)*p > 0x7f) {
-			_audit_c2x(commname, cmd, len);
-			cmdenc = 1;
-			break;
-		}
-		p++;
+	if (audit_value_needs_encoding(cmd, len)) {
+		audit_encode_value(commname, cmd, len);
+		cmdenc = 1;
 	}
 	if (cmdenc == 0)
 		strcpy(commname, cmd);

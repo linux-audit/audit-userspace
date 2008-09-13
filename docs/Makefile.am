@@ -26,7 +26,8 @@ EXTRA_DIST = $(man_MANS)
 
 man_MANS = audit_add_rule_data.3 audit_add_watch.3 auditctl.8 auditd.8 \
 auditd.conf.5 audit_delete_rule_data.3 audit_detect_machine.3 \
-audit_getloginuid.3 audit_get_reply.3 auparse_goto_record_num.3 \
+audit_encode_nv_string.3 audit_getloginuid.3 \
+audit_get_reply.3 auparse_goto_record_num.3 \
 audit_log_acct_message.3 audit_log_user_avc_message.3 \
 audit_log_user_command.3 audit_log_user_comm_message.3 \
 audit_log_user_message.3 audit_log_user_semanage_message.3 \
