@@ -1,10 +1,10 @@
 Starting Test 1, iterate...
 auid=4294967295
 interp auid=unset
-auid=48
-interp auid=apache
-auid=48
-interp auid=apache
+auid=848
+interp auid=unknown(848)
+auid=848
+interp auid=unknown(848)
 Test 1 Done
 
 Starting Test 2, walk events, records, and fields...
@@ -16,7 +16,7 @@ event 1 has 1 records
         pid=2027 (2027)
         uid=0 (root)
         auid=4294967295 (unset)
-        auid=48 (apache)
+        auid=848 (unknown(848))
 
 event 2 has 1 records
     record 1 of type 1300(SYSCALL) has 24 fields
@@ -33,7 +33,7 @@ event 2 has 1 records
         a3=20 (20)
         items=1 (1)
         pid=2027 (2027)
-        auid=48 (apache)
+        auid=848 (unknown(848))
         uid=0 (root)
         gid=0 (root)
         euid=0 (root)
@@ -54,8 +54,8 @@ event 3 has 1 records
         type=USER_LOGIN (USER_LOGIN)
         pid=2027 (2027)
         uid=0 (root)
-        auid=48 (apache)
-        uid=48 (apache)
+        auid=848 (unknown(848))
+        uid=848 (unknown(848))
         exe="/bin/login" (/bin/login)
         hostname=? (?)
         addr=? (?)
@@ -550,7 +550,7 @@ Starting Test 6, search...
 auid = 500 not found...which is correct
 auid exists...which is correct
 Testing BUFFER_ARRAY, stop on field
-Found auid = 48
+Found auid = 848
 Testing BUFFER_ARRAY, stop on record
 Found type = SYSCALL
 Testing BUFFER_ARRAY, stop on event
@@ -577,7 +577,7 @@ event 1 has 1 records
         pid=2027 (2027)
         uid=0 (root)
         auid=4294967295 (unset)
-        auid=48 (apache)
+        auid=848 (unknown(848))
 
 event 2 has 1 records
     record 1 of type 1300(SYSCALL) has 24 fields
@@ -594,7 +594,7 @@ event 2 has 1 records
         a3=20 (20)
         items=1 (1)
         pid=2027 (2027)
-        auid=48 (apache)
+        auid=848 (unknown(848))
         uid=0 (root)
         gid=0 (root)
         euid=0 (root)
@@ -615,8 +615,8 @@ event 3 has 1 records
         type=USER_LOGIN (USER_LOGIN)
         pid=2027 (2027)
         uid=0 (root)
-        auid=48 (apache)
-        uid=48 (apache)
+        auid=848 (unknown(848))
+        uid=848 (unknown(848))
         exe="/bin/login" (/bin/login)
         hostname=? (?)
         addr=? (?)

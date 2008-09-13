@@ -3,8 +3,8 @@
 import os
 srcdir = os.getenv('srcdir')
 
-buf = ["type=LOGIN msg=audit(1143146623.787:142): login pid=2027 uid=0 old auid=4294967295 new auid=48\ntype=SYSCALL msg=audit(1143146623.875:143): arch=c000003e syscall=188 success=yes exit=0 a0=7fffffa9a9f0 a1=3958d11333 a2=5131f0 a3=20 items=1 pid=2027 auid=48 uid=0 gid=0 euid=0 suid=0 fsuid=0 egid=0 sgid=0 fsgid=0 tty=tty3 comm=\"login\" exe=\"/bin/login\" subj=system_u:system_r:local_login_t:s0-s0:c0.c255\n",
-"type=USER_LOGIN msg=audit(1143146623.879:146): user pid=2027 uid=0 auid=48 msg=\'uid=48: exe=\"/bin/login\" (hostname=?, addr=?, terminal=tty3 res=success)\'\n",
+buf = ["type=LOGIN msg=audit(1143146623.787:142): login pid=2027 uid=0 old auid=4294967295 new auid=848\ntype=SYSCALL msg=audit(1143146623.875:143): arch=c000003e syscall=188 success=yes exit=0 a0=7fffffa9a9f0 a1=3958d11333 a2=5131f0 a3=20 items=1 pid=2027 auid=848 uid=0 gid=0 euid=0 suid=0 fsuid=0 egid=0 sgid=0 fsgid=0 tty=tty3 comm=\"login\" exe=\"/bin/login\" subj=system_u:system_r:local_login_t:s0-s0:c0.c255\n",
+"type=USER_LOGIN msg=audit(1143146623.879:146): user pid=2027 uid=0 auid=848 msg=\'uid=848: exe=\"/bin/login\" (hostname=?, addr=?, terminal=tty3 res=success)\'\n",
 ]
 files = [srcdir + "/test.log", srcdir + "/test2.log"]
 
@@ -92,7 +92,7 @@ def simple_search(au, source, where):
         val = "4294967295"
     else:
         au = auparse.AuParser(auparse.AUSOURCE_BUFFER_ARRAY, buf)
-        val = "48"
+        val = "848"
 
     au.search_add_item("auid", "=", val, auparse.AUSEARCH_RULE_CLEAR)
     au.search_set_stop(where)
