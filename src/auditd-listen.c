@@ -602,7 +602,7 @@ more_messages:
 	goto read_more;
 }
 
-#ifndef HAVE_LIB_WRAP
+#ifndef HAVE_LIBWRAP
 #define auditd_tcpd_check(s) ({ 0; })
 #else
 int allow_severity = LOG_INFO, deny_severity = LOG_NOTICE;
