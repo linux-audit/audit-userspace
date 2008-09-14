@@ -437,7 +437,7 @@ static void periodic_handler( struct ev_loop *loop, struct ev_periodic *per, int
 		auditd_tcp_listen_check_idle (loop);
 }
 
-void periodic_reconfigure ()
+void periodic_reconfigure(void)
 {
 	struct ev_loop *loop = ev_default_loop (EVFLAG_AUTO);
 	if (config.tcp_client_max_idle) {

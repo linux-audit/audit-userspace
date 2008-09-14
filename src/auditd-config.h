@@ -1,5 +1,5 @@
 /* auditd-config.h -- 
- * Copyright 2004-2007 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2004-2008 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify

@@ -708,6 +708,12 @@ static void auditd_tcp_listen_handler( struct ev_loop *loop, struct ev_io *_io, 
 	send_audit_event(AUDIT_DAEMON_ACCEPT,emsg);
 }
 
+void auditd_set_ports(int minp, int maxp)
+{
+	min_port = minp;
+	max_port = maxp;
+}
+
 int auditd_tcp_listen_init ( struct ev_loop *loop, struct daemon_conf *config )
 {
 	struct sockaddr_in address;
@@ -753,6 +759,8 @@ int auditd_tcp_listen_init ( struct ev_loop *loop, struct daemon_conf *config )
 
 	min_port = config->tcp_client_min_port;
 	max_port = config->tcp_client_max_port;
+	auditd_set_ports(config->tcp_client_min_port,
+			config->tcp_client_max_port);
 
 #ifdef USE_GSSAPI
 	if (config->gss_principal) {
