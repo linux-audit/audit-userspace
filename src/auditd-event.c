@@ -36,6 +36,7 @@
 #include <limits.h>     /* POSIX_HOST_NAME_MAX */
 #include "auditd-event.h"
 #include "auditd-dispatch.h"
+#include "auditd-listen.h"
 #include "libaudit.h"
 #include "private.h"
 

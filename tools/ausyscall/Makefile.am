@@ -29,4 +29,4 @@ bin_PROGRAMS = ausyscall
 man_MANS = ausyscall.8
 
 ausyscall_SOURCES = ausyscall.c
-
+ausyscall_CFLAGS = -g -D_GNU_SOURCE

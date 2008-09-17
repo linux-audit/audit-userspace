@@ -1366,7 +1366,6 @@ static int tcp_client_max_idle_parser(struct nv_pair *nv, int line,
 static int enable_krb5_parser(struct nv_pair *nv, int line,
 	struct daemon_conf *config)
 {
-	const char *ptr = nv->value;
 	unsigned long i;
 
 	audit_msg(LOG_DEBUG, "enable_krb5_parser called with: %s",

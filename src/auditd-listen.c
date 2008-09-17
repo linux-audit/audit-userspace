@@ -567,10 +567,10 @@ more_messages:
 		if (io->bufptr < 4)
 			return;
 
-		len = ((io->buffer[0] << 24)
-		       | (io->buffer[1] << 16)
-		       | (io->buffer[2] << 8)
-		       | io->buffer[3]);
+		len = (  ((uint32_t)(io->buffer[0] & 0xFF) << 24)
+		       | ((uint32_t)(io->buffer[1] & 0xFF) << 16)
+		       | ((uint32_t)(io->buffer[2] & 0xFF) << 8)
+		       |  (uint32_t)(io->buffer[3] & 0xFF));
 		if (io->bufptr < 4 + len)
 			return;
 		i = len + 4;

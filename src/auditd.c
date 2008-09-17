@@ -452,7 +452,6 @@ void periodic_reconfigure(void)
 int main(int argc, char *argv[])
 {
 	struct sigaction sa;
-	fd_set read_mask;
 	struct rlimit limit;
 	int i;
 	int opt_foreground = 0, opt_allow_links = 0;
