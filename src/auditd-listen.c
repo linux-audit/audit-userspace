@@ -45,6 +45,7 @@
 #ifdef USE_GSSAPI
 #include <gssapi/gssapi.h>
 #include <gssapi/gssapi_generic.h>
+#include <krb5.h>
 #endif
 #include "libaudit.h"
 #include "auditd-event.h"
@@ -66,6 +67,8 @@ typedef struct ev_tcp {
 #ifdef USE_GSSAPI
 	/* This holds the negotiated security context for this client.  */
 	gss_ctx_id_t gss_context;
+	char *remote_name;
+	int remote_name_len;
 #endif
 	unsigned char buffer [MAX_AUDIT_MESSAGE_LENGTH + 17];
 } ev_tcp;
@@ -76,6 +79,7 @@ static int min_port, max_port;
 #ifdef USE_GSSAPI
 /* This is used to hold our own private key.  */
 static gss_cred_id_t server_creds;
+static char *my_service_name, *my_gss_realm;
 static int use_gss = 0;
 static char msgbuf[MAX_AUDIT_MESSAGE_LENGTH + 1];
 #endif
@@ -108,6 +112,10 @@ static void close_client (struct ev_tcp *client)
 	snprintf(emsg, sizeof(emsg), "addr=%s port=%d res=success",
 		sockaddr_to_ip (&client->addr), ntohs (client->addr.sin_port));
 	send_audit_event(AUDIT_DAEMON_CLOSE, emsg); 
+#ifdef USE_GSSAPI
+	if (client->remote_name)
+		free (client->remote_name);
+#endif
 	close (client->io.fd);
 	if (client_chain == client)
 		client_chain = client->next;
@@ -269,6 +277,10 @@ static void gss_failure (const char *msg, int major_status, int minor_status)
 		gss_failure_2 (msg, minor_status, GSS_C_MECH_CODE);
 }
 
+#define KCHECK(x,f) if (x) { \
+		audit_msg (LOG_ERR, "krb5 error: %s in %s\n", krb5_get_error_message (kcontext, x), f); \
+		return -1; }
+
 /* These are our private credentials, which come from a key file on
    our server.  They are aquired once, at program start.  */
 static int server_acquire_creds(const char *service_name, gss_cred_id_t *server_creds)
@@ -277,6 +289,10 @@ static int server_acquire_creds(const char *service_name, gss_cred_id_t *server_
 	gss_name_t server_name;
 	OM_uint32 major_status, minor_status;
 
+	krb5_context kcontext = NULL;
+	int krberr;
+
+	my_service_name = strdup (service_name);
 	name_buf.value = (char *)service_name;
 	name_buf.length = strlen(name_buf.value) + 1;
 	major_status = gss_import_name(&minor_status, &name_buf,
@@ -297,6 +313,11 @@ static int server_acquire_creds(const char *service_name, gss_cred_id_t *server_
 
 	(void) gss_release_name(&minor_status, &server_name);
 
+	krberr = krb5_init_context (&kcontext);
+	KCHECK (krberr, "krb5_init_context");
+	krberr = krb5_get_default_realm (kcontext, &my_gss_realm);
+	KCHECK (krberr, "krb5_get_default_realm");
+
 	audit_msg(LOG_DEBUG, "GSS creds for %s acquired", service_name);
 
 	return 0;
@@ -313,6 +334,7 @@ static int negotiate_credentials (ev_tcp *io)
 	OM_uint32 maj_stat, min_stat, acc_sec_min_stat;
 	gss_ctx_id_t *context;
 	OM_uint32 sess_flags;
+	char *slashptr, *atptr;
 
 	context = & io->gss_context;
 	*context = GSS_C_NO_CONTEXT;
@@ -365,13 +387,41 @@ static int negotiate_credentials (ev_tcp *io)
 	} while (maj_stat == GSS_S_CONTINUE_NEEDED);
 
 	maj_stat = gss_display_name(&min_stat, client, &recv_tok, NULL);
-	if (maj_stat != GSS_S_COMPLETE)
-		gss_failure("displaying name", maj_stat, min_stat);
-	else
-		audit_msg(LOG_INFO, "GSS-API Accepted connection from: %s",
-				(char *)recv_tok.value);
 	gss_release_name(&min_stat, &client);
+
+	if (maj_stat != GSS_S_COMPLETE) {
+		gss_failure("displaying name", maj_stat, min_stat);
+		return -1;
+	}
+
+	audit_msg(LOG_INFO, "GSS-API Accepted connection from: %s",
+		  (char *)recv_tok.value);
+	io->remote_name = strdup (recv_tok.value);
+	io->remote_name_len = strlen (recv_tok.value);
 	gss_release_buffer(&min_stat, &recv_tok);
+
+	slashptr = strchr (io->remote_name, '/');
+	atptr = strchr (io->remote_name, '@');
+
+	if (!slashptr || !atptr) {
+		audit_msg(LOG_ERR, "Invalid GSS name from remote client: %s",
+			  io->remote_name);
+		return -1;
+	}
+
+	*slashptr = 0;
+	if (strcmp (io->remote_name, my_service_name)) {
+		audit_msg(LOG_ERR, "Unauthorized GSS client name: %s (not %s)",
+			  io->remote_name, my_service_name);
+		return -1;
+	}
+	*slashptr = '/';
+
+	if (strcmp (atptr+1, my_gss_realm)) {
+		audit_msg(LOG_ERR, "Unauthorized GSS client realm: %s (not %s)",
+			  atptr+1, my_gss_realm);
+		return -1;
+	}
 
 	return 0;
 }
@@ -536,8 +586,14 @@ more_messages:
 			gss_failure("decrypting message", major_status, minor_status);
 		} else {
 			/* client_message() wants to NUL terminate it,
-			   so copy it to a bigger buffer.  */
+			   so copy it to a bigger buffer.  Plus, we
+			   want to add our own tag.  */
 			memcpy (msgbuf, utok.value, utok.length);
+			while (utok.length > 0 && msgbuf[utok.length-1] == '\n')
+				utok.length --;
+			snprintf (msgbuf + utok.length, MAX_AUDIT_MESSAGE_LENGTH - utok.length,
+				  " krb5=%s", io->remote_name);
+			utok.length += 6 + io->remote_name_len;
 			client_message (io, utok.length, msgbuf);
 			gss_release_buffer(&minor_status, &utok);
 		}
@@ -763,9 +819,36 @@ int auditd_tcp_listen_init ( struct ev_loop *loop, struct daemon_conf *config )
 			config->tcp_client_max_port);
 
 #ifdef USE_GSSAPI
-	if (config->gss_principal) {
+	if (config->enable_krb5) {
+		const char *princ = config->krb5_principal;
+		const char *key_file;
+		struct stat st;
+
+		if (!princ)
+			princ = "auditd";
 		use_gss = 1;
-		server_acquire_creds(config->gss_principal, &server_creds);
+		/* This may fail, but we don't care.  */
+		unsetenv ("KRB5_KTNAME");
+		if (config->krb5_key_file)
+			key_file = config->krb5_key_file;
+		else
+			key_file = "/etc/audit/audit.key";
+		setenv ("KRB5_KTNAME", key_file, 1);
+
+		if (stat (key_file, &st) == 0) {
+			if ((st.st_mode & 07777) != 0400) {
+				audit_msg (LOG_ERR, "%s is not mode 0400 (it's %#o) - compromised key?",
+					   key_file, st.st_mode & 07777);
+				return -1;
+			}
+			if (st.st_uid != 0) {
+				audit_msg (LOG_ERR, "%s is not owned by root (it's %d) - compromised key?",
+					   key_file, st.st_uid);
+				return -1;
+			}
+		}
+
+		server_acquire_creds(princ, &server_creds);
 	}
 #endif
 
@@ -782,8 +865,10 @@ void auditd_tcp_listen_uninit ( struct ev_loop *loop )
 	close ( listen_socket );
 
 #ifdef USE_GSSAPI
-	use_gss = 0;
-	gss_release_cred(&status, &server_creds);
+	if (use_gss) {
+		use_gss = 0;
+		gss_release_cred(&status, &server_creds);
+	}
 #endif
 
 	while (client_chain) {

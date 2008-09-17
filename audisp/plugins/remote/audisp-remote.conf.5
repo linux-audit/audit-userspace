@@ -122,25 +122,34 @@ should be set, as each try may take a long time to time out.  The
 default value is 5 seconds.  If too much time is used on a message,
 the network_failure_action action is performed.
 .TP
-.I gss_principal
-If specified, GSS (via Kerberos) will be used to encrypt the
-connection to the server.  The client and server will use the
-specified principal to negotiate the encryption.  The format for the
-.I gss_principal
-is like somename@EXAMPLE.COM, see the auditd.conf man page for
-details.  Note that encryption can only be used with managed
-connections, not plain ASCII.
+.I enable_krb5
+If set to "yes", Kerberos 5 will be used for authentication and
+encryption.  Default is "no".  Note that encryption can only be used
+with managed connections, not plain ASCII.
 .TP
-.I krb_client_name
+.I krb5_principal
+If specified, This is the expected principal for the server.  The
+client and server will use the specified principal to negotiate the
+encryption.  The format for the
+.I krb5_principal
+is like somename/hostname, see the auditd.conf man page for
+details.  If not specified, the krb5_client_name and remote_server values
+are used.
+.TP
+.I krb5_client_name
 This specifies the name portion of the client's own principal.  If
 unspecified, the default is "auditd".  The remainder of the principal
 will consist of the host's fully qualified domain name and the default
 Kerberos realm, like this:
 .I auditd/host14.example.com@EXAMPLE.COM
-(assuming you gave "auditd" as the krb_client_name).  The key for this
-principal must be stored in
+(assuming you gave "auditd" as the krb_client_name).  Note that the
+client and server must have the same principal name and realm.
+.TP
+.I krb5_key_file
+Location of the key for this client's principal.
+Note that the key file must be owned by root and mode 0400.
+The default is
 .I /etc/audisp/audisp-remote.key
-on the client machine.
 
 
 .SH "NOTES"

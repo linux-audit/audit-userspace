@@ -75,9 +75,13 @@ static int format_parser(struct nv_pair *nv, int line,
 static int heartbeat_timeout_parser(struct nv_pair *nv, int line, 
 		remote_conf_t *config);
 #ifdef USE_GSSAPI
-static int gss_principal_parser(struct nv_pair *nv, int line, 
+static int enable_krb5_parser(struct nv_pair *nv, int line, 
 		remote_conf_t *config);
-static int krb_client_name_parser(struct nv_pair *nv, int line, 
+static int krb5_principal_parser(struct nv_pair *nv, int line, 
+		remote_conf_t *config);
+static int krb5_client_name_parser(struct nv_pair *nv, int line, 
+		remote_conf_t *config);
+static int krb5_key_file_parser(struct nv_pair *nv, int line, 
 		remote_conf_t *config);
 #endif
 static int network_retry_time_parser(struct nv_pair *nv, int line, 
@@ -112,8 +116,10 @@ static const struct kw_pair keywords[] =
   {"max_time_per_record",    max_time_per_record_parser,        0 },
   {"heartbeat_timeout",      heartbeat_timeout_parser,          0 },
 #ifdef USE_GSSAPI
-  {"gss_principal",          gss_principal_parser,              0 },
-  {"krb_client_name",         krb_client_name_parser,             0 },
+  {"enable_krb5",            enable_krb5_parser,                 0 },
+  {"krb5_principal",         krb5_principal_parser,              0 },
+  {"krb5_client_name",       krb5_client_name_parser,            0 },
+  {"krb5_key_file",          krb5_key_file_parser,               0 },
 #endif
   {"network_failure_action", network_failure_action_parser,	0 },
   {"disk_low_action",        disk_low_action_parser,		0 },
@@ -157,6 +163,15 @@ static const struct nv_list format_words[] =
   { NULL,  0 }
 };
 
+#ifdef USE_GSSAPI
+static const struct nv_list enable_krb5_values[] =
+{
+  {"yes",  1 },
+  {"no", 0 },
+  { NULL,  0 }
+};
+#endif
+
 /*
  * Set everything to its default value
 */
@@ -176,8 +191,10 @@ void clear_config(remote_conf_t *config)
 
 	config->heartbeat_timeout = 0;
 #ifdef USE_GSSAPI
-	config->gss_principal = NULL;
-	config->krb_client_name = NULL;
+	config->enable_krb5 = 0;
+	config->krb5_principal = NULL;
+	config->krb5_client_name = NULL;
+	config->krb5_key_file = NULL;
 #endif
 
 #define IA(x,f) config->x##_action = f; config->x##_exe = NULL
@@ -588,31 +605,55 @@ static int heartbeat_timeout_parser(struct nv_pair *nv, int line,
 }
 
 #ifdef USE_GSSAPI
-static int gss_principal_parser(struct nv_pair *nv, int line,
+static int enable_krb5_parser(struct nv_pair *nv, int line,
+	remote_conf_t *config)
+{
+	const char *ptr = nv->value;
+	unsigned long i;
+
+	for (i=0; enable_krb5_values[i].name != NULL; i++) {
+		if (strcasecmp(nv->value, enable_krb5_values[i].name) == 0) {
+			config->enable_krb5 = enable_krb5_values[i].option;
+			return 0;
+		}
+	}
+	syslog(LOG_ERR, "Option %s not found - line %d", nv->value, line);
+	return 1;
+}
+
+static int krb5_principal_parser(struct nv_pair *nv, int line,
 	remote_conf_t *config)
 {
 	const char *ptr = nv->value;
 
-	if (config->gss_principal)
-		free ((char *)config->gss_principal);
+	if (config->krb5_principal)
+		free ((char *)config->krb5_principal);
 
-	if (strcmp (ptr, "none") == 0) {
-		config->gss_principal = NULL;
-	} else {
-		config->gss_principal = strdup(ptr);
-	}
+	config->krb5_principal = strdup(ptr);
 	return 0;
 }
 
-static int krb_client_name_parser(struct nv_pair *nv, int line,
+static int krb5_client_name_parser(struct nv_pair *nv, int line,
 	remote_conf_t *config)
 {
 	const char *ptr = nv->value;
 
-	if (config->krb_client_name)
-		free ((char *)config->krb_client_name);
+	if (config->krb5_client_name)
+		free ((char *)config->krb5_client_name);
 
-	config->krb_client_name = strdup(ptr);
+	config->krb5_client_name = strdup(ptr);
+	return 0;
+}
+
+static int krb5_key_file_parser(struct nv_pair *nv, int line,
+	remote_conf_t *config)
+{
+	const char *ptr = nv->value;
+
+	if (config->krb5_key_file)
+		free ((char *)config->krb5_key_file);
+
+	config->krb5_key_file = strdup(ptr);
 	return 0;
 }
 #endif

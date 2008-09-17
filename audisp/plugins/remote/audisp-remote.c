@@ -34,6 +34,7 @@
 #include <time.h>
 #include <sys/select.h>
 #include <sys/socket.h>
+#include <sys/stat.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 #ifdef USE_GSSAPI
@@ -80,7 +81,7 @@ static gss_cred_id_t service_creds;
 gss_ctx_id_t my_context;
 
 #define REQ_FLAGS GSS_C_MUTUAL_FLAG | GSS_C_REPLAY_FLAG | GSS_C_INTEG_FLAG | GSS_C_CONF_FLAG
-#define USE_GSS (config.gss_principal != NULL)
+#define USE_GSS (config.enable_krb5)
 #endif
 
 /*
@@ -487,8 +488,11 @@ static int negotiate_credentials ()
 	krb5_creds my_creds;
         krb5_get_init_creds_opt options;
 	krb5_keytab keytab = NULL;
-	const char *krb_client_name;
+	const char *krb5_client_name;
+	char *slashptr;
 	char host_name[255];
+	struct stat st;
+	const char *key_file;
 
 	token_ptr = GSS_C_NO_BUFFER;
 	*gss_context = GSS_C_NO_CONTEXT;
@@ -496,12 +500,32 @@ static int negotiate_credentials ()
 	krberr = krb5_init_context (&kcontext);
 	KCHECK (krberr, "krb5_init_context");
 
+	if (config.krb5_key_file)
+		key_file = config.krb5_key_file;
+	else
+		key_file = KEYTAB_NAME;
+	unsetenv ("KRB5_KTNAME");
+	setenv ("KRB5_KTNAME", key_file, 1);
+
+	if (stat (key_file, &st) == 0) {
+		if ((st.st_mode & 07777) != 0400) {
+			syslog (LOG_ERR, "%s is not mode 0400 (it's %#o) - compromised key?",
+				key_file, st.st_mode & 07777);
+			return -1;
+		}
+		if (st.st_uid != 0) {
+			syslog (LOG_ERR, "%s is not owned by root (it's %d) - compromised key?",
+				key_file, st.st_uid);
+			return -1;
+		}
+	}
+
 	/* This looks up the default real (*our* realm) from
 	   /etc/krb5.conf (or wherever)  */
 	krberr = krb5_get_default_realm (kcontext, &realm_name);
 	KCHECK (krberr, "krb5_get_default_realm");
 
-	krb_client_name = config.krb_client_name ? config.krb_client_name : "auditd";
+	krb5_client_name = config.krb5_client_name ? config.krb5_client_name : "auditd";
 	if (gethostname(host_name, sizeof(host_name)) != 0) {
 		syslog (LOG_ERR, "gethostname: host name longer than %d characters?",
 			sizeof (host_name));
@@ -509,16 +533,16 @@ static int negotiate_credentials ()
 	}
 
 	syslog (LOG_ERR, "kerberos principal: %s/%s@%s\n",
-		krb_client_name, host_name, realm_name);
+		krb5_client_name, host_name, realm_name);
 	/* Encode our own "name" as auditd/remote@EXAMPLE.COM.  */
 	krberr = krb5_build_principal (kcontext, &audit_princ,
 				       strlen(realm_name), realm_name,
-				       krb_client_name, host_name, NULL);
+				       krb5_client_name, host_name, NULL);
 	KCHECK (krberr, "krb5_build_principal");
 
 	/* Locate our machine's key table, where our private key is
 	 * held.  */
-	krberr = krb5_kt_resolve (kcontext, KEYTAB_NAME, &keytab);
+	krberr = krb5_kt_resolve (kcontext, key_file, &keytab);
 	KCHECK (krberr, "krb5_kt_resolve");
 
 	/* Identify a cache to hold the key in.  The GSS wrappers look
@@ -554,21 +578,22 @@ static int negotiate_credentials ()
 	   get its credentials and set up a security context for
 	   encryption.  */
 
-	name_buf.value = (char *)config.gss_principal;
+	if (config.krb5_principal == NULL) {
+		const char *name = config.krb5_client_name ? config.krb5_client_name : "auditd";
+		config.krb5_principal = (char *) malloc (strlen (name) + 1
+							+ strlen (config.remote_server) + 1);
+		sprintf((char *)config.krb5_principal, "%s@%s", name, config.remote_server);
+	}
+	slashptr = strchr (config.krb5_principal, '/');
+	if (slashptr)
+		*slashptr = '@';
+
+	name_buf.value = (char *)config.krb5_principal;
 	name_buf.length = strlen(name_buf.value) + 1;
 	major_status = gss_import_name(&minor_status, &name_buf,
 				       (gss_OID) gss_nt_service_name, &service_name_e);
 	if (major_status != GSS_S_COMPLETE) {
 		gss_failure("importing name", major_status, minor_status);
-		return -1;
-	}
-
-	major_status = gss_acquire_cred(&minor_status,
-					service_name_e, GSS_C_INDEFINITE,
-					GSS_C_NULL_OID_SET, GSS_C_ACCEPT,
-					&service_creds, NULL, NULL);
-	if (major_status != GSS_S_COMPLETE) {
-		gss_failure("acquiring credentials", major_status, minor_status);
 		return -1;
 	}
 
@@ -628,6 +653,23 @@ static int negotiate_credentials ()
 
 	(void) gss_release_name(&minor_status, &service_name_e);
 
+#if 0
+	major_status = gss_inquire_context (&minor_status, &my_context, NULL,
+					    &service_name_e, NULL, NULL,
+					    NULL, NULL, NULL);
+	if (major_status != GSS_S_COMPLETE) {
+		gss_failure("inquiring target name", major_status, minor_status);
+		return -1;
+	}
+	major_status = gss_display_name(&minor_status, service_name_e, &recv_tok, NULL);
+	gss_release_name(&minor_status, &service_name_e);
+	if (major_status != GSS_S_COMPLETE) {
+		gss_failure("displaying name", major_status, minor_status);
+		return -1;
+	}
+	syslog(LOG_INFO, "GSS-API Connected to: %s",
+		  (char *)recv_tok.value);
+#endif
 	return 0;
 }
 #endif

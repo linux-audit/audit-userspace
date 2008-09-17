@@ -114,7 +114,11 @@ static int tcp_client_ports_parser(struct nv_pair *nv, int line,
 static int tcp_client_max_idle_parser(struct nv_pair *nv, int line,
 		struct daemon_conf *config);
 #ifdef USE_GSSAPI
-static int gss_principal_parser(struct nv_pair *nv, int line,
+static int enable_krb5_parser(struct nv_pair *nv, int line,
+		struct daemon_conf *config);
+static int krb5_principal_parser(struct nv_pair *nv, int line,
+		struct daemon_conf *config);
+static int krb5_key_file_parser(struct nv_pair *nv, int line,
 		struct daemon_conf *config);
 #endif
 static int sanity_check(struct daemon_conf *config);
@@ -146,7 +150,9 @@ static const struct kw_pair keywords[] =
   {"tcp_client_ports",         tcp_client_ports_parser,         0 },
   {"tcp_client_max_idle",      tcp_client_max_idle_parser,      0 },
 #ifdef USE_GSSAPI
-  {"gss_principal",            gss_principal_parser,            0 },
+  {"enable_krb5",               enable_krb5_parser,               0 },
+  {"krb5_principal",            krb5_principal_parser,            0 },
+  {"krb5_key_file",             krb5_key_file_parser,             0 },
 #endif
   { NULL,                      NULL }
 };
@@ -207,6 +213,15 @@ static const struct nv_list node_name_formats[] =
   { NULL,  0 }
 };
 
+#ifdef USE_GSSAPI
+static const struct nv_list enable_krb5_values[] =
+{
+  {"yes",  1 },
+  {"no", 0 },
+  { NULL,  0 }
+};
+#endif
+
 const char *email_command = "/usr/lib/sendmail";
 static int allow_links = 0;
 
@@ -254,7 +269,9 @@ static void clear_config(struct daemon_conf *config)
 	config->tcp_client_max_port = TCP_PORT_MAX;
 	config->tcp_client_max_idle = 0;
 #ifdef USE_GSSAPI
-	config->gss_principal = NULL;
+	config->enable_krb5 = 0;
+	config->krb5_principal = NULL;
+	config->krb5_key_file = NULL;
 #endif
 }
 
@@ -1346,18 +1363,44 @@ static int tcp_client_max_idle_parser(struct nv_pair *nv, int line,
 }
 
 #ifdef USE_GSSAPI
-static int gss_principal_parser(struct nv_pair *nv, int line,
+static int enable_krb5_parser(struct nv_pair *nv, int line,
+	struct daemon_conf *config)
+{
+	const char *ptr = nv->value;
+	unsigned long i;
+
+	audit_msg(LOG_DEBUG, "enable_krb5_parser called with: %s",
+		  nv->value);
+
+	for (i=0; enable_krb5_values[i].name != NULL; i++) {
+		if (strcasecmp(nv->value, enable_krb5_values[i].name) == 0) {
+			config->enable_krb5 = enable_krb5_values[i].option;
+			return 0;
+		}
+	}
+	audit_msg(LOG_ERR, "Option %s not found - line %d", nv->value, line);
+	return 1;
+}
+
+static int krb5_principal_parser(struct nv_pair *nv, int line,
 	struct daemon_conf *config)
 {
 	const char *ptr = nv->value;
 
-	audit_msg(LOG_DEBUG, "gss_principal_parser called with: %s", nv->value);
+	audit_msg(LOG_DEBUG, "krb5_principal_parser called with: %s", nv->value);
 
-	if (strcmp (ptr, "none") == 0) {
-		config->gss_principal = NULL;
-	} else {
-		config->gss_principal = strdup(ptr);
-	}
+	config->krb5_principal = strdup(ptr);
+	return 0;
+}
+
+static int krb5_key_file_parser(struct nv_pair *nv, int line,
+	struct daemon_conf *config)
+{
+	const char *ptr = nv->value;
+
+	audit_msg(LOG_DEBUG, "krb5_key_file_parser called with: %s", nv->value);
+
+	config->krb5_key_file = strdup(ptr);
 	return 0;
 }
 #endif

@@ -1,5 +1,5 @@
 1.7.7
-- Bug fixes for gss code in audisp-remote (DJ Delorie)
+- Bug fixes for gss code in remote logging (DJ Delorie)
 - Fix ausearch -i to keep the node field in the output
 - ausyscall now does strstr match on syscall names
 - Makefile cleanup (Philipp Hahn)
