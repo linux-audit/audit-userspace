@@ -608,7 +608,6 @@ static int heartbeat_timeout_parser(struct nv_pair *nv, int line,
 static int enable_krb5_parser(struct nv_pair *nv, int line,
 	remote_conf_t *config)
 {
-	const char *ptr = nv->value;
 	unsigned long i;
 
 	for (i=0; enable_krb5_values[i].name != NULL; i++) {

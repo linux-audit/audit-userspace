@@ -77,7 +77,6 @@ static int ar_write (int, const void *, int);
 #ifdef USE_GSSAPI
 /* We only ever talk to one server, so we don't need per-connection
    credentials.  These are the ones we talk to the server with.  */
-static gss_cred_id_t service_creds;
 gss_ctx_id_t my_context;
 
 #define REQ_FLAGS GSS_C_MUTUAL_FLAG | GSS_C_REPLAY_FLAG | GSS_C_INTEG_FLAG | GSS_C_CONF_FLAG
@@ -349,7 +348,7 @@ int main(int argc, char *argv[])
 static int recv_token (int s, gss_buffer_t tok)
 {
 	int ret;
-	unsigned char lenbuf[4], char_flags;
+	unsigned char lenbuf[4];
 	unsigned int len;
 
 	ret = ar_read(s, (char *) lenbuf, 4);
@@ -363,10 +362,11 @@ static int recv_token (int s, gss_buffer_t tok)
 		return -1;
 	}
 
-	len = ((lenbuf[0] << 24)
-	       | (lenbuf[1] << 16)
-	       | (lenbuf[2] << 8)
-	       | lenbuf[3]);
+	len = (   ((uint32_t)(lenbuf[0] & 0xFF) << 24)
+		| ((uint32_t)(lenbuf[1] & 0xFF) << 16)
+		| ((uint32_t)(lenbuf[2] & 0xFF) << 8)
+		|  (uint32_t)(lenbuf[3] & 0xFF));
+
 	tok->length = len;
 
 	tok->value = (char *) malloc(tok->length ? tok->length : 1);
@@ -528,7 +528,8 @@ static int negotiate_credentials ()
 
 	krb5_client_name = config.krb5_client_name ? config.krb5_client_name : "auditd";
 	if (gethostname(host_name, sizeof(host_name)) != 0) {
-		syslog (LOG_ERR, "gethostname: host name longer than %d characters?",
+		syslog (LOG_ERR,
+			"gethostname: host name longer than %ld characters?",
 			sizeof (host_name));
 		return -1;
 	}
