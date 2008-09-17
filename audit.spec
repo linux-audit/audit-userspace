@@ -322,6 +322,15 @@ fi
 %config(noreplace) %{_sysconfdir}/security/console.apps/system-config-audit-server
 
 %changelog
+* Wed Sep 11 2008 Steve Grubb <sgrubb@redhat.com> 1.7.7-1
+- Bug fixes for gss code in remote logging (DJ Delorie)
+- Fix ausearch -i to keep the node field in the output
+- ausyscall now does strstr match on syscall names
+- Makefile cleanup (Philipp Hahn)
+- Add watched syscall support to audisp-prelude
+- Use the right define for tcp_wrappers in auditd
+- Expose encoding API for fields being logged from user space
+
 * Wed Sep 11 2008 Steve Grubb <sgrubb@redhat.com> 1.7.6-1
 - Update event record list and aureport classifications (Yu Zhiguo/Peng Haitao)
 - Add subject to audit daemon events (Chu Li)
