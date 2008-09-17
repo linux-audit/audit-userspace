@@ -45,6 +45,37 @@ mode of the
 .I mode
 option. The default depth is 20.
 .TP
+.I format
+This parameter tells the remote logging app what data format will be
+used for the messages sent over the network.  The default is
+.I managed
+which adds some overhead to ensure each message is properly handled on
+the remote end, and to receive status messages from the remote server.
+If
+.I ascii
+is given instead, each message is a simple ASCII text line with no
+overhead at all.
+.TP
+.I network_retry_time
+The time, in seconds, between retries when a network error is
+detected.  Note that this pause applies starting after the second
+attempt, so as to avoid unneeded delays if a reconnect is sufficient
+to fix the problem.  The default is 1 second.
+.TP
+.I max_tries_per_record
+The maximum number of times an attempt is made to deliver each
+message.  The minimum value is one, as even a completely successful
+delivery requires at least one try.  If too many attempts are made,
+the network_failure_action action is performed.  The default is 3.
+.TP
+.I max_time_per_record
+The maximum amount of time, in seconds, spent attempting to deliver
+each message.  Note that both this and
+.I max_tries_per_record
+should be set, as each try may take a long time to time out.  The
+default value is 5 seconds.  If too much time is used on a message,
+the network_failure_action action is performed.
+.TP
 .I network_failure_action
 This parameter tells the system what action to take whenever there is an error
 detected when sending audit events to the remote system. Valid values are
@@ -90,37 +121,6 @@ it to syslog.
 Likewise, this parameter tells the system what action to take if the
 remote end signals a warning we don't recognize.  The default is to
 log it to syslog.
-.TP
-.I format
-This parameter tells the remote logging app what data format will be
-used for the messages sent over the network.  The default is
-.I managed
-which adds some overhead to ensure each message is properly handled on
-the remote end, and to receive status messages from the remote server.
-If
-.I ascii
-is given instead, each message is a simple ASCII text line with no
-overhead at all.
-.TP
-.I network_retry_time
-The time, in seconds, between retries when a network error is
-detected.  Note that this pause applies starting after the second
-attempt, so as to avoid unneeded delays if a reconnect is sufficient
-to fix the problem.  The default is 1 second.
-.TP
-.I max_tries_per_record
-The maximum number of times an attempt is made to deliver each
-message.  The minimum value is one, as even a completely successful
-delivery requires at least one try.  If too many attempts are made,
-the network_failure_action action is performed.  The default is 3.
-.TP
-.I max_time_per_record
-The maximum amount of time, in seconds, spent attempting to deliver
-each message.  Note that both this and
-.I max_tries_per_record
-should be set, as each try may take a long time to time out.  The
-default value is 5 seconds.  If too much time is used on a message,
-the network_failure_action action is performed.
 .TP
 .I enable_krb5
 If set to "yes", Kerberos 5 will be used for authentication and

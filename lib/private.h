@@ -108,9 +108,12 @@ struct auditd_remote_message_wrapper {
 	header[i] = v & 0xff;		\
 	header[i+1] = (v>>8) & 0xff;
 #define _AUDIT_RMW_GETN32(header,i)			\
-	(header[i] | (header[i+1]<<8) | (header[i+2]<<16) | (header[i+3]<<24))
+	(((uint32_t)(header[i] & 0xFF)) |               \
+	 (((uint32_t)(header[i+1] & 0xFF))<<8) |        \
+	 (((uint32_t)(header[i+2] & 0xFF ))<<16) |      \
+	 (((uint32_t)(header[i+3] & 0xFF))<<24))
 #define _AUDIT_RMW_GETN16(header,i)			\
-	(header[i] | (header[i+1]<<8))
+	((uint32_t)(header[i] & 0xFF) | ((uint32_t)(header[i+1] & 0xFF)<<8))
 
 /* For these, HEADER must by of type "unsigned char *" or "unsigned
    char []" */

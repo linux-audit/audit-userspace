@@ -331,7 +331,8 @@ int main(int argc, char *argv[])
 			break;
 	} while (stop == 0);
 	close(sock);
-	syslog(LOG_INFO, "audisp-remote is exiting on stop request");
+	if (stop)
+		syslog(LOG_INFO, "audisp-remote is exiting on stop request");
 
 	return 0;
 }
@@ -983,6 +984,7 @@ static int recv_msg_tcp (unsigned char *header, char *msg, uint32_t *mlen)
 		sync_error_handler ("ran out of data reading reply");
 		return -1;
 	}
+	return 0;
 }
 
 static int relay_sock_managed(const char *s, size_t len)

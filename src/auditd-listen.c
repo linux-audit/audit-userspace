@@ -743,7 +743,7 @@ static void auditd_tcp_listen_handler( struct ev_loop *loop, struct ev_io *_io, 
 	memcpy (&client->addr, &aaddr, sizeof (struct sockaddr_in));
 
 #ifdef USE_GSSAPI
-	if (negotiate_credentials (client)) {
+	if (use_gss && negotiate_credentials (client)) {
 		close (afd);
 		free (client);
 		return;
