@@ -319,10 +319,13 @@ int main(int argc, char *argv[])
 		if (fgets_unlocked(tmp, MAX_AUDIT_MESSAGE_LENGTH, stdin) &&
 							hup==0 && stop==0) {
 			if (!suspend) {
-				rc = relay_event(tmp, strnlen(tmp,
-							      MAX_AUDIT_MESSAGE_LENGTH));
-				if (rc < 0) {
-					break;
+				/* Strip out EOE records */
+				if (strstr(tmp,"type=EOE msg=audit(") == NULL){
+					rc = relay_event(tmp, strnlen(tmp,
+					      MAX_AUDIT_MESSAGE_LENGTH));
+					if (rc < 0) {
+						break;
+					}
 				}
 			}
 		}
