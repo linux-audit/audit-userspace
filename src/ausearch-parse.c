@@ -850,8 +850,11 @@ static int parse_user(const lnode *n, search_items *s)
 		if (str) {
 			str += 9;
 			term = strchr(str, ' ');
-			if (term == NULL)
-				return 17;
+			if (term == NULL) {
+				term = strchr(str, ')');
+				if (term == NULL)
+					return 17;
+			}
 			*term = 0;
 			s->terminal = strdup(str);
 			*term = ' ';
