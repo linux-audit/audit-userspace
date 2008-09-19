@@ -6,7 +6,7 @@
 
 Summary: User space tools for 2.6 kernel auditing
 Name: audit
-Version: 1.7.7
+Version: 1.7.8
 Release: 1
 License: GPLv2+
 Group: System Environment/Daemons
@@ -322,6 +322,8 @@ fi
 %config(noreplace) %{_sysconfdir}/security/console.apps/system-config-audit-server
 
 %changelog
+* Wed Sep 11 2008 Steve Grubb <sgrubb@redhat.com> 1.7.8-1
+
 * Wed Sep 11 2008 Steve Grubb <sgrubb@redhat.com> 1.7.7-1
 - Bug fixes for gss code in remote logging (DJ Delorie)
 - Fix ausearch -i to keep the node field in the output

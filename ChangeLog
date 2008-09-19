@@ -1,3 +1,5 @@
+1.7.8
+
 1.7.7
 - Bug fixes for gss code in remote logging (DJ Delorie)
 - Fix ausearch -i to keep the node field in the output
