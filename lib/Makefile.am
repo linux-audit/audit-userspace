@@ -22,7 +22,7 @@
 
 SUBDIRS = test
 CLEANFILES = $(BUILT_SOURCES)
-CONFIG_CLEAN_FILES = Makefile.in *.loT *.rej *.orig
+CONFIG_CLEAN_FILES = *.loT *.rej *.orig
 EXTRA_DIST = syscall-update.txt
 AM_CFLAGS = -fPIC -DPIC -D_GNU_SOURCE
 INCLUDES = -I. -I${top_srcdir} -I${top_srcdir}/auparse

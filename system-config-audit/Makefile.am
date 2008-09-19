@@ -19,7 +19,7 @@
 ## Settings
 ACLOCAL_AMFLAGS = -I m4
 applicationsdir = $(datarootdir)/applications
-CONFIG_CLEAN_FILES = Makefile.in *.rej *.orig
+CONFIG_CLEAN_FILES = *.rej *.orig
 
 ## Targets
 SUBDIRS = po

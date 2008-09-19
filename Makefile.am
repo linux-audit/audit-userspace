@@ -28,8 +28,7 @@ EXTRA_DIST = ChangeLog AUTHORS NEWS README INSTALL audit.spec \
 	contrib/stig.rules contrib/skeleton.c contrib/avc_snap \
 	contrib/plugin/Makefile contrib/plugin/audisp-example.c \
 	contrib/plugin/audisp-example.conf
-CONFIG_CLEAN_FILES = Makefile.in aclocal.m4* config.h.* configure \
-	debug*.list config/*
+CONFIG_CLEAN_FILES = debug*.list config/*
 
 clean-generic:
 	rm -rf autom4te*.cache zos-remote-policy

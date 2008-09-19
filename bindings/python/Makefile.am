@@ -21,7 +21,7 @@
 #   Miloslav Trmac <mitr@redhat.com>
 # 
 
-CONFIG_CLEAN_FILES = Makefile.in *.loT *.rej *.orig
+CONFIG_CLEAN_FILES = *.loT *.rej *.orig
 
 pyexec_LTLIBRARIES = auparse.la
 

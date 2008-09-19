@@ -20,7 +20,7 @@
 #   Steve Grubb <sgrubb@redhat.com>
 #
 EXTRA_DIST = auditswig.i
-CONFIG_CLEAN_FILES = Makefile.in *.loT *.rej *.orig
+CONFIG_CLEAN_FILES = *.loT *.rej *.orig
 AM_CFLAGS = -fPIC -DPIC
 PYLIBVER ?= python$(PYTHON_VERSION)
 INCLUDES = -I. -I$(top_builddir) -I${top_srcdir}/lib -I/usr/include/$(PYLIBVER)

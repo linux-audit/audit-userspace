@@ -20,7 +20,7 @@
 #   Steve Grubb <sgrubb@redhat.com>
 #
 
-CONFIG_CLEAN_FILES = Makefile.in *.rej *.orig
+CONFIG_CLEAN_FILES = *.rej *.orig
 CONF_FILES = af_unix.conf syslog.conf
 EXTRA_DIST = $(CONF_FILES)
 plugin_confdir=$(sysconfdir)/audisp/plugins.d

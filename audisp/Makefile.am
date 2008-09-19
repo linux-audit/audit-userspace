@@ -21,7 +21,7 @@
 #
 
 SUBDIRS = plugins 
-CONFIG_CLEAN_FILES = Makefile.in *.rej *.orig 
+CONFIG_CLEAN_FILES = *.rej *.orig
 AUTOMAKE_OPTIONS = no-dependencies
 INCLUDES = -I${top_srcdir} -I${top_srcdir}/lib
 sbin_PROGRAMS = audispd

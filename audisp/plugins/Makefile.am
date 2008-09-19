@@ -20,7 +20,7 @@
 #   Steve Grubb <sgrubb@redhat.com>
 #
 
-CONFIG_CLEAN_FILES = Makefile.in *.loT *.rej *.orig
+CONFIG_CLEAN_FILES = *.loT *.rej *.orig
 
 SUBDIRS = builtins zos-remote remote
 #SUBDIRS = builtins zos-remote

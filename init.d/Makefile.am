@@ -20,7 +20,7 @@
 #   Steve Grubb <sgrubb@redhat.com>
 #
 
-CONFIG_CLEAN_FILES = Makefile.in *.rej *.orig
+CONFIG_CLEAN_FILES = *.rej *.orig
 EXTRA_DIST = auditd.init auditd.sysconfig auditd.conf audit.rules \
 	auditd.cron libaudit.conf audispd.conf
 libconfig = libaudit.conf

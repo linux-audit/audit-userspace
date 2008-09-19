@@ -20,7 +20,7 @@
 #   Steve Grubb <sgrubb@redhat.com>
 #
 
-CONFIG_CLEAN_FILES = Makefile.in *.rej *.orig
+CONFIG_CLEAN_FILES = *.rej *.orig
 
 EXTRA_DIST = audispd-zos-remote.fc audispd-zos-remote.if \
 	audispd-zos-remote.te build.sh install.sh

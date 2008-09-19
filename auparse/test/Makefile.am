@@ -20,7 +20,7 @@
 #   Steve Grubb <sgrubb@redhat.com>
 #
 
-CONFIG_CLEAN_FILES = Makefile.in *.loT *.rej *.orig
+CONFIG_CLEAN_FILES = *.loT *.rej *.orig
 AUTOMAKE_OPTIONS = no-dependencies
 check_PROGRAMS = auparse_test 
 dist_check_SCRIPTS = auparse_test.py

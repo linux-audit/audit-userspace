@@ -22,7 +22,7 @@
 
 SUBDIRS = test
 CLEANFILES = $(BUILT_SOURCES)
-CONFIG_CLEAN_FILES = Makefile.in *.loT *.rej *.orig
+CONFIG_CLEAN_FILES = *.loT *.rej *.orig
 AM_CFLAGS = -fPIC -DPIC -D_GNU_SOURCE -g
 INCLUDES = -I. -I${top_srcdir} -I${top_srcdir}/src -I${top_srcdir}/lib
 LIBS =
