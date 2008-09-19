@@ -79,7 +79,7 @@ typedef enum { S_UNSET=-1, S_FAILED, S_SUCCESS } success_t;
  * This function will take a pointer to a 2 byte Ascii character buffer and
  * return the actual hex value.
  */
-static unsigned char x2c(unsigned char *buf)
+static unsigned char x2c(const unsigned char *buf)
 {
         static const char AsciiArray[17] = "0123456789ABCDEF";
         char *ptr;
@@ -95,8 +95,18 @@ static unsigned char x2c(unsigned char *buf)
         return total;
 }
 
+static int is_hex_string(const char *str)
+{
+	while (*str) {
+		if (!isxdigit(*str))
+			return 0;
+		str++;
+	}
+	return 1;
+}
+
 /* returns a freshly malloc'ed and converted buffer */
-const char *au_unescape(char *buf)
+char *au_unescape(char *buf)
 {
         int len, i;
         char saved, *str, *ptr = buf;
@@ -852,6 +862,134 @@ static const char *print_list(const char *val)
 	return out;
 }
 
+struct string_buf {
+	char *buf; /* NULL if was ever out of memory */
+	size_t allocated;
+	size_t pos;
+};
+
+/* Append c to buf. */
+static void append_char(struct string_buf *buf, char c)
+{
+	if (buf->buf == NULL)
+		return;
+	if (buf->pos == buf->allocated) {
+		char *p;
+
+		buf->allocated *= 2;
+		p = realloc(buf->buf, buf->allocated);
+		if (p == NULL) {
+			free(buf->buf);
+			buf->buf = NULL;
+			return;
+		}
+		buf->buf = p;
+	}
+	buf->buf[buf->pos] = c;
+	buf->pos++;
+}
+
+/* Represent c as a character within a quoted string, and append it to buf. */
+static void tty_append_printable_char(struct string_buf *buf, unsigned char c)
+{
+	if (c < 0x20 || c > 0x7E) {
+		append_char(buf, '\\');
+		append_char(buf, '0' + ((c >> 6) & 07));
+		append_char(buf, '0' + ((c >> 3) & 07));
+		append_char(buf, '0' + (c & 07));
+	} else {
+		if (c == '\\' || c ==  '"')
+			append_char(buf, '\\');
+		append_char(buf, c);
+	}
+}
+
+/* Search for a name of a sequence of TTY bytes.
+   If found, return the name and advance *INPUT.  Return NULL otherwise. */
+static const char *tty_find_named_key(unsigned char **input, size_t input_len)
+{
+	/* NUL-terminated list of (sequence, NUL, name, NUL) entries.
+	   First match wins, even if a longer match were possible later */
+	static const unsigned char named_keys[] =
+#define E(SEQ, NAME) SEQ "\0" NAME "\0"
+#include "tty_named_keys.h"
+#undef E
+		"\0";
+
+	unsigned char *src;
+	const unsigned char *nk;
+
+	src = *input;
+	if (*src >= ' ' && *src != 0x7F)
+		return NULL; /* Fast path */
+	nk = named_keys;
+	do {
+		const unsigned char *p;
+		size_t nk_len;
+
+		p = strchr(nk, '\0');
+		nk_len = p - nk;
+		if (nk_len <= input_len && memcmp(src, nk, nk_len) == 0) {
+			*input += nk_len;
+			return p + 1;
+		}
+		nk = strchr(p + 1, '\0') + 1;
+	} while (*nk != '\0');
+	return NULL;
+}
+
+static const char *print_tty_data(const char *raw_data)
+{
+	struct string_buf buf;
+	int in_printable;
+	unsigned char *data, *data_pos, *data_end;
+
+	if (!is_hex_string(raw_data))
+		return strdup(raw_data);
+	data = au_unescape((char *)raw_data);
+	if (data == NULL)
+		return NULL;
+	data_end = data + strlen(raw_data) / 2;
+
+	buf.allocated = 10;
+	buf.buf = malloc(buf.allocated); /* NULL handled in append_char() */
+	buf.pos = 0;
+	in_printable = 0;
+	data_pos = data;
+	while (data_pos < data_end) {
+		/* FIXME: Unicode */
+		const char *desc;
+
+		desc = tty_find_named_key(&data_pos, data_end - data_pos);
+		if (desc != NULL) {
+			if (in_printable != 0) {
+				append_char(&buf, '"');
+				in_printable = 0;
+			}
+			if (buf.pos != 0)
+				append_char(&buf, ',');
+			while (*desc != '\0') {
+				append_char(&buf, *desc);
+				desc++;
+			}
+		} else {
+			if (in_printable == 0) {
+				if (buf.pos != 0)
+					append_char(&buf, ',');
+				append_char(&buf, '"');
+				in_printable = 1;
+			}
+			tty_append_printable_char(&buf, *data_pos);
+			data_pos++;
+		}
+	}
+	if (in_printable != 0)
+		append_char(&buf, '"');
+	append_char(&buf, '\0');
+	free(data);
+	return buf.buf;
+}
+
 int lookup_type(const char *name)
 {
 	int i;
@@ -859,16 +997,6 @@ int lookup_type(const char *name)
 	if (type_s2i(name, &i) != 0)
 		return i;
 	return AUPARSE_TYPE_UNCLASSIFIED;
-}
-
-static int is_hex_string(const char *str)
-{
-	while (*str) {
-		if (!isxdigit(*str))
-			return 0;
-		str++;
-	}
-	return 1;
 }
 
 const char *interpret(const rnode *r)
@@ -885,6 +1013,8 @@ const char *interpret(const rnode *r)
 		type = AUPARSE_TYPE_ESCAPED;
 	else if (r->type == AUDIT_AVC && strcmp(name, "saddr") == 0)
 		type = -1;
+	else if (r->type == AUDIT_USER_TTY && strcmp(name, "msg") == 0)
+		type = AUPARSE_TYPE_ESCAPED;
 	else if (strcmp(name, "acct") == 0) {
 		if (val[0] == '"')
 			type = AUPARSE_TYPE_ESCAPED;
@@ -949,7 +1079,10 @@ const char *interpret(const rnode *r)
 			break; 
 		case AUPARSE_TYPE_LIST:
 			out = print_list(val);
-			break; 
+			break;
+		case AUPARSE_TYPE_TTY_DATA:
+			out = print_tty_data(val);
+			break;
 		case AUPARSE_TYPE_UNCLASSIFIED:
 		default: {
 			char *out2;

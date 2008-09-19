@@ -37,7 +37,7 @@ int lookup_type(const char *name);
 const char *interpret(const rnode *r);
 void aulookup_destroy_uid_list(void);
 void aulookup_destroy_gid_list(void);
-const char *au_unescape(char *buf);
+char *au_unescape(char *buf);
 
 /* Make these hidden to prevent conflicts */
 hidden_proto(lookup_type);

@@ -32,7 +32,7 @@ libauparse_la_SOURCES = nvpair.c interpret.c nvlist.c ellist.c		\
 	auparse.c auditd-config.c message.c data_buf.c auparse-defs.h	\
 	data_buf.h nvlist.h auparse.h ellist.h				\
 	internal.h nvpair.h rnode.h interpret.h				\
-	private.h expression.c expression.h
+	private.h expression.c expression.h tty_named_keys.h
 nodist_libauparse_la_SOURCES = $(BUILT_SOURCES)
 
 libauparse_la_LIBADD = ${top_builddir}/lib/libaudit.la
