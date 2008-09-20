@@ -100,7 +100,6 @@ mkdir zos-remote-policy
 cp -p audisp/plugins/zos-remote/policy/audispd-zos-remote.* zos-remote-policy
 
 %build
-(cd system-config-audit; ./autogen.sh)
 %configure --sbindir=/sbin --libdir=/%{_lib} --with-prelude --with-libwrap --enable-gssapi-krb5
 make %{?_smp_mflags}
 cd zos-remote-policy

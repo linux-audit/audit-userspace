@@ -1,12 +1,13 @@
 Things that need to be done:
 ===========================
 1.7.8
+* Check what remote client is putting in syslog
 * Fix SIGHUP for auditd network settings
 * Fix auparse to handle out of order messages
-* Should session number go into logins and AVCs for prelude?
 * add definitions for crypto events
 * auditctl needs to be able to take file names with spaces in rule files
 * Create aulast command
+* Should session number go into logins and AVCs for prelude?
 
 2.0
 * Consider adding node/machine name to records going to rt interface in daemon    as protocol version 2.
