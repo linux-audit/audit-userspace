@@ -22,7 +22,7 @@
 # This make file builds a static multi-threaded libary for the audit
 # daemon's own use.
 
-AUTOMAKE_OPTIONS = no-dependencies
+#AUTOMAKE_OPTIONS = no-dependencies
 INCLUDES = -I${top_srcdir}/lib -I${top_builddir}/lib
 CONFIG_CLEAN_FILES = *.rej *.orig
 AM_CFLAGS = -fPIC -DPIC -D_REENTRANT -D_GNU_SOURCE

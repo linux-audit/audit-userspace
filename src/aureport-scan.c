@@ -449,6 +449,9 @@ static int per_event_detailed(llist *l)
 			if (list_find_msg(l, AUDIT_AVC)) {
 				print_per_event_item(l);
 				rc = 1;
+			} else if (list_find_msg(l, AUDIT_USER_AVC)) {
+				print_per_event_item(l);
+				rc = 1;
 			}
 			break;
 		case RPT_MAC:
