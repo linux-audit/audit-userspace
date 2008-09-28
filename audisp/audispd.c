@@ -458,7 +458,7 @@ static void signal_plugins(int sig)
 	}
 }
 
-static int write_to_plugin(event_t *e)
+static int write_to_plugin(event_t *e, lnode *conf)
 {
 	int rc;
 	struct iovec vec[2];
@@ -628,7 +628,7 @@ static int event_loop(void)
 							v, len);
 					} while (rc < 0 && errno == EINTR);
 				} else {
-					rc = write_to_plugin(e);
+					rc = write_to_plugin(e, conf);
 				}
 				if (rc < 0 && errno == EPIPE) {
 					/* Child disappeared ? */
@@ -640,7 +640,7 @@ static int event_loop(void)
 					conf->p->plug_pipe[1] = -1;
 					conf->p->active = A_NO;
 					if (start_one_plugin(conf) == 0) {
-						rc = write_to_plugin(e);
+						rc = write_to_plugin(e, conf);
 					} 
 				}
 			}
