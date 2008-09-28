@@ -5,6 +5,7 @@
 - Makefile cleanup (Philipp Hahn)
 - Add USER_AVCs to aureport's avc reporting (Peng Haitao)
 - Get auparse test suites working better
+- When apps started by audispd die, restart them if their type is always
 
 1.7.7
 - Bug fixes for gss code in remote logging (DJ Delorie)
