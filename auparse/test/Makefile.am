@@ -21,7 +21,7 @@
 #
 
 CONFIG_CLEAN_FILES = *.loT *.rej *.orig *.cur
-AUTOMAKE_OPTIONS = no-dependencies
+DISTCLEANFILES = test*.log
 check_PROGRAMS = auparse_test 
 dist_check_SCRIPTS = auparse_test.py
 EXTRA_DIST = auparse_test.ref auparse_test.ref.py test.log test2.log
@@ -36,13 +36,14 @@ auparse_test_LDADD = -L${top_builddir}/auparse/.libs \
 drop_srcdir = sed 's,$(srcdir)/test,test,'
 
 check: auparse_test
+	- cp $(top_srcdir)/auparse/test/test*.log .
 	./auparse_test > auparse_test.cur
-	diff $(srcdir)/auparse_test.ref auparse_test.cur
+	diff $(top_srcdir)/auparse/test/auparse_test.ref auparse_test.cur
 	PYTHONPATH=${top_builddir}/bindings/python/.libs/:${top_builddir}/swig:${top_builddir}/swig/.libs \
 	LD_LIBRARY_PATH=${top_builddir}/auparse/.libs \
 		srcdir=$(srcdir) $(srcdir)/auparse_test.py \
 		| $(drop_srcdir) > auparse_test.cur
-	diff -u $(srcdir)/auparse_test.ref.py auparse_test.cur
+	diff -u $(top_srcdir)/auparse/test/auparse_test.ref.py auparse_test.cur
 	echo -e "===================\nAuparse Test Passes\n==================="
 
 diffcheck: auparse_test
