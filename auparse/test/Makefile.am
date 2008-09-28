@@ -39,7 +39,7 @@ drop_srcdir = sed 's,$(srcdir)/test,test,'
 check: auparse_test
 	- cp $(top_srcdir)/auparse/test/test*.log .
 	./auparse_test > auparse_test.cur
-	diff $(top_srcdir)/auparse/test/auparse_test.ref auparse_test.cur
+	diff -u $(top_srcdir)/auparse/test/auparse_test.ref auparse_test.cur
 	PYTHONPATH=${top_builddir}/bindings/python/.libs/:${top_builddir}/swig:${top_builddir}/swig/.libs \
 	LD_LIBRARY_PATH=${top_builddir}/auparse/.libs \
 		srcdir=$(srcdir) $(srcdir)/auparse_test.py \
@@ -49,7 +49,7 @@ check: auparse_test
 
 diffcheck: auparse_test
 	./auparse_test > auparse_test.cur
-	diff $(srcdir)/auparse_test.ref auparse_test.cur
+	diff -u $(srcdir)/auparse_test.ref auparse_test.cur
 
 memcheck: auparse_test
 	valgrind --leak-check=yes --show-reachable=yes ./auparse_test 

@@ -89,7 +89,7 @@ event 1 has 4 records
         tcontext=system_u:object_r:postfix_spool_maildrop_t:s0 (system_u:object_r:postfix_spool_maildrop_t:s0)
         tclass=dir (dir)
 
-    record 2 of type 1300(SYSCALL) has 25 fields
+    record 2 of type 1300(SYSCALL) has 26 fields
     line=2 file=test.log
     event time: 1170021493.977:293, host=(null)
         type=SYSCALL (SYSCALL)
@@ -113,10 +113,11 @@ event 1 has 4 records
         egid=890 (unknown(890))
         sgid=890 (unknown(890))
         fsgid=890 (unknown(890))
-        tty= ()
+        tty=(none) ((none))
         comm="pickup" (pickup)
         exe="/usr/libexec/postfix/pickup" (/usr/libexec/postfix/pickup)
         subj=system_u:system_r:postfix_pickup_t:s0 (system_u:system_r:postfix_pickup_t:s0)
+        key=(null) ((null))
 
     record 3 of type 1307(CWD) has 2 fields
     line=3 file=test.log
@@ -247,7 +248,7 @@ event 1 has 4 records
         tcontext=system_u:object_r:postfix_spool_maildrop_t:s0 (system_u:object_r:postfix_spool_maildrop_t:s0)
         tclass=dir (dir)
 
-    record 2 of type 1300(SYSCALL) has 25 fields
+    record 2 of type 1300(SYSCALL) has 26 fields
     line=2 file=test.log
     event time: 1170021493.977:293, host=(null)
         type=SYSCALL (SYSCALL)
@@ -271,10 +272,11 @@ event 1 has 4 records
         egid=890 (unknown(890))
         sgid=890 (unknown(890))
         fsgid=890 (unknown(890))
-        tty= ()
+        tty=(none) ((none))
         comm="pickup" (pickup)
         exe="/usr/libexec/postfix/pickup" (/usr/libexec/postfix/pickup)
         subj=system_u:system_r:postfix_pickup_t:s0 (system_u:system_r:postfix_pickup_t:s0)
+        key=(null) ((null))
 
     record 3 of type 1307(CWD) has 2 fields
     line=3 file=test.log
@@ -402,7 +404,7 @@ event 8 has 4 records
         tcontext=system_u:object_r:postfix_spool_maildrop_t:s0 (system_u:object_r:postfix_spool_maildrop_t:s0)
         tclass=dir (dir)
 
-    record 2 of type 1300(SYSCALL) has 25 fields
+    record 2 of type 1300(SYSCALL) has 26 fields
     line=2 file=test2.log
     event time: 1170021493.977:293, host=(null)
         type=SYSCALL (SYSCALL)
@@ -426,10 +428,11 @@ event 8 has 4 records
         egid=890 (unknown(890))
         sgid=890 (unknown(890))
         fsgid=890 (unknown(890))
-        tty= ()
+        tty=(none) ((none))
         comm="pickup" (pickup)
         exe="/usr/libexec/postfix/pickup" (/usr/libexec/postfix/pickup)
         subj=system_u:system_r:postfix_pickup_t:s0 (system_u:system_r:postfix_pickup_t:s0)
+        key=(null) ((null))
 
     record 3 of type 1307(CWD) has 2 fields
     line=3 file=test2.log
@@ -644,7 +647,7 @@ event 1 has 4 records
         tcontext=system_u:object_r:postfix_spool_maildrop_t:s0 (system_u:object_r:postfix_spool_maildrop_t:s0)
         tclass=dir (dir)
 
-    record 2 of type 1300(SYSCALL) has 25 fields
+    record 2 of type 1300(SYSCALL) has 26 fields
     line=2 file=None
     event time: 1170021493.977:293, host=(null)
         type=SYSCALL (SYSCALL)
@@ -668,10 +671,11 @@ event 1 has 4 records
         egid=890 (unknown(890))
         sgid=890 (unknown(890))
         fsgid=890 (unknown(890))
-        tty= ()
+        tty=(none) ((none))
         comm="pickup" (pickup)
         exe="/usr/libexec/postfix/pickup" (/usr/libexec/postfix/pickup)
         subj=system_u:system_r:postfix_pickup_t:s0 (system_u:system_r:postfix_pickup_t:s0)
+        key=(null) ((null))
 
     record 3 of type 1307(CWD) has 2 fields
     line=3 file=None

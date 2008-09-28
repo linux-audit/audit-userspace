@@ -156,13 +156,10 @@ static int parse_up_record(rnode* r)
 					strcmp(n.val, "(null)")) {
 					n.val[len-1] = 0;
 					len--;
-				} else {
-					free(n.val);
-					n.val = strdup("");
 				}
 			}
 			// Make virtual keys or just store it
-			if (strcmp(n.name, "key") == 0) {
+			if (strcmp(n.name, "key") == 0 && *n.val != '(') {
 				char *key = (char *)au_unescape(n.val);
 				char *ptr = strtok_r(key, key_sep, &saved);
 				free(n.name);
