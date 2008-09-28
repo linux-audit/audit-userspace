@@ -628,7 +628,7 @@ event 3 has 1 records
         terminal=tty3 (tty3)
         res=success (success)
 
-Test 10 Done
+Test 9 Done
 
 Starting Test 10, file feed...
 event 1 has 4 records

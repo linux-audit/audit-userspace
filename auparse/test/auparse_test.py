@@ -240,7 +240,7 @@ for s in buf:
         beg += chunk_len
         au.feed(data)
 au.flush_feed()
-print "Test 10 Done\n"
+print "Test 9 Done\n"
 
 # Note: this should match Test 4 exactly
 print "Starting Test 10, file feed..."
