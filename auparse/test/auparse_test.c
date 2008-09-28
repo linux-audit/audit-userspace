@@ -396,18 +396,10 @@ int main(void)
 	printf("Test 7 Done\n\n");
 
 	printf("Starting Test 8, regex search...\n");
-	au = auparse_init(AUSOURCE_BUFFER_ARRAY, buf);
-	if (au == NULL) {
-		printf("Error - %s\n", strerror(errno));
-		return 1;
-	}
 	puts("Doing regex match...");
 	regex_search("1143146623");
-	auparse_destroy(au);
-	au = auparse_init(AUSOURCE_BUFFER_ARRAY, buf);
 	puts("Doing regex wildcard search...");
 	regex_search("11431466.*146");
-	auparse_destroy(au);
 	printf("Test 8 Done\n\n");
 
 	/* Note: this should match Test 2 exactly */

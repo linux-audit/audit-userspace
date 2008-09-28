@@ -156,6 +156,9 @@ static int parse_up_record(rnode* r)
 					strcmp(n.val, "(null)")) {
 					n.val[len-1] = 0;
 					len--;
+				} else {
+					free(n.val);
+					n.val = strdup("");
 				}
 			}
 			// Make virtual keys or just store it

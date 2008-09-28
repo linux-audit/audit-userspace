@@ -218,8 +218,15 @@ compound_search(au, auparse.AUSEARCH_RULE_AND)
 compound_search(au, auparse.AUSEARCH_RULE_OR)
 print "Test 7 Done\n"
 
+print "Starting Test 8, regex search..."
+au = auparse.AuParser(auparse.AUSOURCE_BUFFER_ARRAY, buf)
+print "Doing regex match...\n"
+au = auparse.AuParser(auparse.AUSOURCE_BUFFER_ARRAY, buf)
+print "Test 8 Done\n"
+
 # Note: this should match Test 2 exactly
-print "Starting Test 8, buffer feed..."
+# Note: this should match Test 2 exactly
+print "Starting Test 9, buffer feed..."
 au = auparse.AuParser(auparse.AUSOURCE_FEED);
 event_cnt = 1
 au.add_callback(feed_callback, [event_cnt])
@@ -233,10 +240,10 @@ for s in buf:
         beg += chunk_len
         au.feed(data)
 au.flush_feed()
-print "Test 8 Done\n"
+print "Test 10 Done\n"
 
 # Note: this should match Test 4 exactly
-print "Starting Test 9, file feed..."
+print "Starting Test 10, file feed..."
 au = auparse.AuParser(auparse.AUSOURCE_FEED);
 event_cnt = 1
 au.add_callback(feed_callback, [event_cnt])
@@ -246,7 +253,7 @@ while True:
     if not data: break
     au.feed(data)
 au.flush_feed()
-print "Test 9 Done\n"
+print "Test 10 Done\n"
 
 if (os.getuid() != 0):
     print "Finished non-admin tests\n"

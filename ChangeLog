@@ -4,6 +4,7 @@
 - Extract terminal from USER_AVC events for ausearch/report (Peng Haitao)
 - Makefile cleanup (Philipp Hahn)
 - Add USER_AVCs to aureport's avc reporting (Peng Haitao)
+- Get auparse test suites working better
 
 1.7.7
 - Bug fixes for gss code in remote logging (DJ Delorie)
