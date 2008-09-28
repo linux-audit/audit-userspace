@@ -23,83 +23,27 @@
 # daemon's own use.
 
 AUTOMAKE_OPTIONS = no-dependencies
-CONFIG_CLEAN_FILES = Makefile.in *.rej *.orig 
+INCLUDES = -I${top_srcdir}/lib -I${top_builddir}/lib
+CONFIG_CLEAN_FILES = *.rej *.orig
 AM_CFLAGS = -fPIC -DPIC -D_REENTRANT -D_GNU_SOURCE
 
 noinst_LIBRARIES = libauditmt.a
-noinst_HEADERS = libaudit.h private.h
 
-libauditmt_a_SOURCES = libaudit.c message.c netlink.c \
-lookup_table.c audit_logging.c deprecated.c
-libauditmt_a_HEADERS: ${top_builddir}/config.h libaudit.h private.h
+libauditmt_a_SOURCES = ${top_srcdir}/lib/libaudit.c \
+	${top_srcdir}/lib/message.c ${top_srcdir}/lib/netlink.c \
+	${top_srcdir}/lib/lookup_table.c ${top_srcdir}/lib/audit_logging.c \
+	${top_srcdir}/lib/deprecated.c
+libauditmt_a_HEADERS: ${top_builddir}/config.h ${top_srcdir}/lib/libaudit.h \
+	${top_srcdir}/lib/private.h
 libauditmt_a_DEPENDENCIES = $(libaudit_a_SOURCES) ${top_builddir}/config.h \
-	gen_tables.h i386_tables.h ia64_tables.h ppc_tables.h \
-	s390_tables.h s390x_tables.h x86_64_tables.h private.h \
-	actiontabs.h fieldtabs.h flagtabs.h ftypetabs.h \
-	machinetabs.h msg_typetabs.h optabs.h
+	${top_srcdir}/lib/gen_tables.h ${top_builddir}/lib/i386_tables.h \
+	${top_builddir}/lib/ia64_tables.h ${top_builddir}/lib/ppc_tables.h \
+	${top_builddir}/lib/s390_tables.h ${top_builddir}/lib/s390x_tables.h \
+	${top_builddir}/lib/x86_64_tables.h ${top_srcdir}/lib/private.h \
+	${top_builddir}/lib/actiontabs.h ${top_builddir}/lib/fieldtabs.h \
+	${top_builddir}/lib/flagtabs.h ${top_builddir}/lib/ftypetabs.h \
+	${top_builddir}/lib/machinetabs.h ${top_builddir}/lib/msg_typetabs.h \
+	${top_builddir}/lib/optabs.h
 AM_LDFLAGS = -Wl,-z,relro
 
 lib_OBJECTS = $(libauditmt_a_OBJECTS)
-
-libaudit.h:
-	cp ${top_srcdir}/lib/libaudit.h .
-libaudit.c: libaudit.h private.h errormsg.h
-	cp ${top_srcdir}/lib/libaudit.c .
-message.c: libaudit.h
-	cp ${top_srcdir}/lib/message.c .
-netlink.c: libaudit.h
-	cp ${top_srcdir}/lib/netlink.c .
-lookup_table.c: libaudit.h
-	cp ${top_srcdir}/lib/lookup_table.c .
-audit_logging.c: libaudit.h
-	cp ${top_srcdir}/lib/audit_logging.c .
-deprecated.c: libaudit.h private.h
-	cp ${top_srcdir}/lib/deprecated.c .
-gen_tables.h:
-	cp ${top_srcdir}/lib/gen_tables.h .
-i386_tables.h:
-	cp ${top_builddir}/lib/i386_tables.h .
-ia64_tables.h:
-	cp ${top_builddir}/lib/ia64_tables.h .
-ppc_tables.h:
-	cp ${top_builddir}/lib/ppc_tables.h .
-s390_tables.h:
-	cp ${top_builddir}/lib/s390_tables.h .
-s390x_tables.h:
-	cp ${top_builddir}/lib/s390x_tables.h .
-x86_64_tables.h:
-	cp ${top_builddir}/lib/x86_64_tables.h .
-private.h:
-	cp ${top_srcdir}/lib/private.h .
-alpha_tables.h:
-	cp ${top_builddir}/lib/alpha_tables.h .
-actiontabs.h:
-	cp ${top_builddir}/lib/actiontabs.h .
-fieldtabs.h:
-	cp ${top_builddir}/lib/fieldtabs.h .
-flagtabs.h:
-	cp ${top_builddir}/lib/flagtabs.h .
-ftypetabs.h:
-	cp ${top_builddir}/lib/ftypetabs.h .
-machinetabs.h:
-	cp ${top_builddir}/lib/machinetabs.h .
-msg_typetabs.h:
-	cp ${top_builddir}/lib/msg_typetabs.h .
-optabs.h:
-	cp ${top_builddir}/lib/optabs.h .
-errtabs.h:
-	cp ${top_builddir}/lib/errtabs.h .
-errormsg.h:
-	cp ${top_srcdir}/lib/errormsg.h .
-
-lookup_table.o: ${top_builddir}/config.h gen_tables.h i386_tables.h \
-	ia64_tables.h ppc_tables.h s390_tables.h s390x_tables.h \
-	x86_64_tables.h alpha_tables.h private.h actiontabs.h \
-	fieldtabs.h flagtabs.h ftypetabs.h machinetabs.h \
-	msg_typetabs.h optabs.h errtabs.h
-
-libauditmt.o: $(libauditmt_a_SOURCES)
-
-clean-generic:
-	rm -f *.h *.c
-
