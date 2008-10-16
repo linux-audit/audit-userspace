@@ -54,7 +54,8 @@ static void _resolve_addr(char buf[], const char *host)
 
 	buf[0] = '?';
 	buf[1] = 0;
-	if (host == NULL) /* Short circuit this lookup if NULL */
+	/* Short circuit this lookup if NULL, or empty */
+	if (host == NULL || *host == 0)
 		return;
 
 	memset(&hints, 0, sizeof(hints));
