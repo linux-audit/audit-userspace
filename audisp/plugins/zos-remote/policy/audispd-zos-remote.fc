@@ -1,2 +1,0 @@
-
-/sbin/audispd-zos-remote	--	gen_context(system_u:object_r:zos_remote_exec_t,s0)

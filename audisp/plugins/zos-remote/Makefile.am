@@ -22,7 +22,6 @@
 
 INCLUDES = -I${top_srcdir} -I${top_srcdir}/lib -I${top_srcdir}/auparse
 CONFIG_CLEAN_FILES = *.rej *.orig
-SUBDIRS = policy
 AUTOMAKE_OPTIONS = no-dependencies
 EXTRA_DIST = zos-remote.conf audispd-zos-remote.conf
 LIBS = -L${top_builddir}/auparse -lauparse
