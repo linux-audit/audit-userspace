@@ -1,6 +1,6 @@
 
 /* captab.h --
- * Copyright 2007 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2007,2008 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -53,4 +53,7 @@ _S(27,	"mknod"			)
 _S(28,	"lease"			)
 _S(29,	"audit_write"		)
 _S(30,	"audit_control"		)
+_S(31,	"setfcap"		)
+_S(32,	"mac_override"		)
+_S(33,	"mac_admin"		)
 

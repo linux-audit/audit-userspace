@@ -8,6 +8,7 @@
 - When apps started by audispd die, restart them if their type is always
 - Short circuit hostname resolution in libaudit if host is empty
 - Remove selinux policy for zos-remote
+- Update libauparse capabilities table
 
 1.7.7
 - Bug fixes for gss code in remote logging (DJ Delorie)
