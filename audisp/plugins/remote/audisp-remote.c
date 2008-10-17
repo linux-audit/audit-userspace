@@ -139,7 +139,7 @@ static void change_runlevel(const char *level)
 	pid = fork();
 	if (pid < 0) {
 		syslog(LOG_ALERT, 
-		       "Audit daemon failed to fork switching runlevels");
+		       "audisp-remote failed to fork switching runlevels");
 		return;
 	}
 	if (pid)	/* Parent */
@@ -149,7 +149,7 @@ static void change_runlevel(const char *level)
 	argv[1] = (char *)level;
 	argv[2] = NULL;
 	execve(init_pgm, argv, NULL);
-	syslog(LOG_ALERT, "Audit daemon failed to exec %s", init_pgm);
+	syslog(LOG_ALERT, "audisp-remote failed to exec %s", init_pgm);
 	exit(1);
 }
 
@@ -160,8 +160,8 @@ static void safe_exec(const char *exe, const char *message)
 
 	pid = fork();
 	if (pid < 0) {
-		syslog(LOG_ALERT, 
-			"Audit daemon failed to fork doing safe_exec");
+		syslog(LOG_ALERT,
+			"audisp-remote failed to fork doing safe_exec");
 		return;
 	}
 	if (pid)	/* Parent */
@@ -171,7 +171,7 @@ static void safe_exec(const char *exe, const char *message)
 	argv[1] = (char *)message;
 	argv[2] = NULL;
 	execve(exe, argv, NULL);
-	syslog(LOG_ALERT, "Audit daemon failed to exec %s", exe);
+	syslog(LOG_ALERT, "audisp-remote failed to exec %s", exe);
 	exit(1);
 }
 
@@ -211,7 +211,8 @@ static int network_failure_handler (const char *message)
 {
 	return do_action ("network failure", message,
 			  LOG_WARNING,
-			  config.network_failure_action, config.network_failure_exe);
+			  config.network_failure_action,
+			  config.network_failure_exe);
 }
 
 static int remote_disk_low_handler (const char *message)
@@ -239,7 +240,8 @@ static int remote_server_ending_handler (const char *message)
 {
 	return do_action ("remote server ending", message,
 			  LOG_INFO,
-			  config.remote_ending_action, config.remote_ending_exe);
+			  config.remote_ending_action,
+			  config.remote_ending_exe);
 }
 
 static int generic_remote_error_handler (const char *message)
@@ -252,7 +254,8 @@ static int generic_remote_warning_handler (const char *message)
 {
 	return do_action ("unrecognized remote warning", message,
 			  LOG_WARNING,
-			  config.generic_warning_action, config.generic_warning_exe);
+			  config.generic_warning_action,
+			  config.generic_warning_exe);
 }
 
 static void send_heartbeat ()
@@ -286,12 +289,10 @@ int main(int argc, char *argv[])
 	if (rc == ET_PERMANENT)
 		return 1;
 
-	syslog(LOG_INFO, "audisp-remote is ready for events");
 	do {
 		/* Load configuration */
-		if (hup) {
+		if (hup) 
 			reload_config();
-		}
 
 		if (config.heartbeat_timeout > 0) {
 			fd_set rfd;
@@ -334,7 +335,7 @@ int main(int argc, char *argv[])
 	} while (stop == 0);
 	close(sock);
 	if (stop)
-		syslog(LOG_INFO, "audisp-remote is exiting on stop request");
+		syslog(LOG_NOTICE, "audisp-remote is exiting on stop request");
 
 	return 0;
 }
@@ -374,7 +375,8 @@ static int recv_token (int s, gss_buffer_t tok)
 
 	tok->value = (char *) malloc(tok->length ? tok->length : 1);
 	if (tok->length && tok->value == NULL) {
-		syslog(LOG_ERR, "Out of memory allocating token data %d %x", tok->length, tok->length);
+		syslog(LOG_ERR, "Out of memory allocating token data %d %x",
+				tok->length, tok->length);
 		return -1;
 	}
 
@@ -470,7 +472,7 @@ static void gss_failure (const char *msg, int major_status, int minor_status)
    tickets expire, the usual close/open/retry logic has us calling
    here again, where we re-init and get new tickets.  */
 
-static int negotiate_credentials ()
+static int negotiate_credentials (void)
 {
 	gss_buffer_desc empty_token_buf = { 0, (void *) "" };
 	gss_buffer_t empty_token = &empty_token_buf;
@@ -518,7 +520,8 @@ static int negotiate_credentials ()
 			return -1;
 		}
 		if (st.st_uid != 0) {
-			syslog (LOG_ERR, "%s is not owned by root (it's %d) - compromised key?",
+			syslog (LOG_ERR,
+			"%s is not owned by root (it's %d) - compromised key?",
 				key_file, st.st_uid);
 			return -1;
 		}
@@ -529,7 +532,8 @@ static int negotiate_credentials ()
 	krberr = krb5_get_default_realm (kcontext, &realm_name);
 	KCHECK (krberr, "krb5_get_default_realm");
 
-	krb5_client_name = config.krb5_client_name ? config.krb5_client_name : "auditd";
+	krb5_client_name = config.krb5_client_name ?
+				config.krb5_client_name : "auditd";
 	if (gethostname(host_name, sizeof(host_name)) != 0) {
 		syslog (LOG_ERR,
 			"gethostname: host name longer than %ld characters?",
@@ -584,10 +588,12 @@ static int negotiate_credentials ()
 	   encryption.  */
 
 	if (config.krb5_principal == NULL) {
-		const char *name = config.krb5_client_name ? config.krb5_client_name : "auditd";
+		const char *name = config.krb5_client_name ?
+					config.krb5_client_name : "auditd";
 		config.krb5_principal = (char *) malloc (strlen (name) + 1
-							+ strlen (config.remote_server) + 1);
-		sprintf((char *)config.krb5_principal, "%s@%s", name, config.remote_server);
+					+ strlen (config.remote_server) + 1);
+		sprintf((char *)config.krb5_principal, "%s@%s",
+			name, config.remote_server);
 	}
 	slashptr = strchr (config.krb5_principal, '/');
 	if (slashptr)
@@ -596,7 +602,7 @@ static int negotiate_credentials ()
 	name_buf.value = (char *)config.krb5_principal;
 	name_buf.length = strlen(name_buf.value) + 1;
 	major_status = gss_import_name(&minor_status, &name_buf,
-				       (gss_OID) gss_nt_service_name, &service_name_e);
+			       (gss_OID) gss_nt_service_name, &service_name_e);
 	if (major_status != GSS_S_COMPLETE) {
 		gss_failure("importing name", major_status, minor_status);
 		return -1;
@@ -615,11 +621,12 @@ static int negotiate_credentials ()
 
 	do {
 		/* Give GSS a chance to digest what we have so far.  */
-		major_status = gss_init_sec_context(&init_sec_min_stat, GSS_C_NO_CREDENTIAL,
-						gss_context, service_name_e, NULL, REQ_FLAGS, 0,
-						NULL,	/* no channel bindings */
-						token_ptr, NULL,	/* ignore mech type */
-						&send_tok, &ret_flags, NULL);	/* ignore time_rec */
+		major_status = gss_init_sec_context(&init_sec_min_stat,
+			GSS_C_NO_CREDENTIAL, gss_context,
+			service_name_e, NULL, REQ_FLAGS, 0,
+			NULL,			/* no channel bindings */
+			token_ptr, NULL,	/* ignore mech type */
+			&send_tok, &ret_flags, NULL);	/* ignore time_rec */
 
 		if (token_ptr != GSS_C_NO_BUFFER)
 			free(recv_tok.value);
@@ -627,8 +634,10 @@ static int negotiate_credentials ()
 		/* Send the server any tokens requested of us.  */
 		if (send_tok.length != 0) {
 			if (send_token(sock, &send_tok) < 0) {
-				(void) gss_release_buffer(&minor_status, &send_tok);
-				(void) gss_release_name(&minor_status, &service_name_e);
+				(void) gss_release_buffer(&minor_status,
+						&send_tok);
+				(void) gss_release_name(&minor_status,
+						&service_name_e);
 				return -1;
 			}
 		}
@@ -640,8 +649,8 @@ static int negotiate_credentials ()
 				    init_sec_min_stat);
 			(void) gss_release_name(&minor_status, &service_name_e);
 			if (*gss_context != GSS_C_NO_CONTEXT)
-				gss_delete_sec_context(&minor_status, gss_context,
-						       GSS_C_NO_BUFFER);
+				gss_delete_sec_context(&minor_status,
+						gss_context, GSS_C_NO_BUFFER);
 			return -1;
 		}
 
@@ -649,7 +658,8 @@ static int negotiate_credentials ()
 		   these back at the top of the loop.  */
 		if (major_status == GSS_S_CONTINUE_NEEDED) {
 			if (recv_token(sock, &recv_tok) < 0) {
-				(void) gss_release_name(&minor_status, &service_name_e);
+				(void) gss_release_name(&minor_status,
+							&service_name_e);
 				return -1;
 			}
 			token_ptr = &recv_tok;
@@ -666,7 +676,8 @@ static int negotiate_credentials ()
 		gss_failure("inquiring target name", major_status, minor_status);
 		return -1;
 	}
-	major_status = gss_display_name(&minor_status, service_name_e, &recv_tok, NULL);
+	major_status = gss_display_name(&minor_status, service_name_e,
+					&recv_tok, NULL);
 	gss_release_name(&minor_status, &service_name_e);
 	if (major_status != GSS_S_COMPLETE) {
 		gss_failure("displaying name", major_status, minor_status);
@@ -715,8 +726,9 @@ static int init_sock(void)
 		address.sin_port = htons(config.local_port);
 		address.sin_addr.s_addr = htonl(INADDR_ANY);
 
-		if ( bind ( sock, (struct sockaddr *)&address, sizeof(address)) ) {
-			syslog(LOG_ERR, "Cannot bind local socket to port %d - exiting",
+		if (bind(sock, (struct sockaddr *)&address, sizeof(address))) {
+			syslog(LOG_ERR,
+			       "Cannot bind local socket to port %d - exiting",
 			       config.local_port);
 			close(sock);
 			return ET_TEMPORARY;
@@ -737,7 +749,8 @@ static int init_sock(void)
 	   infrequent enough that we can ignore the inefficiency of
 	   sending the header and message in separate packets.  */
 	if (config.format == F_MANAGED)
-		setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, (char *)&one, sizeof (int));
+		setsockopt(sock, IPPROTO_TCP, TCP_NODELAY,
+				(char *)&one, sizeof (int));
 
 #ifdef USE_GSSAPI
 	if (USE_GSS) {
@@ -749,6 +762,7 @@ static int init_sock(void)
 	transport_ok = 1;
 
 	freeaddrinfo(ai);
+	syslog(LOG_NOTICE, "Connected to %s", config.remote_server);
 	return ET_SUCCESS;
 }
 
@@ -841,7 +855,7 @@ static int relay_sock_ascii(const char *s, size_t len)
 	rc = ar_write(sock, s, len);
 	if (rc <= 0) {
 		stop = 1;
-		syslog(LOG_ERR, "connection to %s closed unexpectedly - exiting",
+		syslog(LOG_ERR,"Connection to %s closed unexpectedly - exiting",
 		       config.remote_server);
 		return -1;
 	}
@@ -898,7 +912,8 @@ static int recv_msg_gss (unsigned char *header, char *msg, uint32_t *mlen)
 	if (rc)
 		return -1;
 
-	major_status = gss_unwrap (&minor_status, my_context, &etok, &utok, NULL, NULL);
+	major_status = gss_unwrap (&minor_status, my_context, &etok,
+					&utok, NULL, NULL);
 	if (major_status != GSS_S_COMPLETE) {
 		gss_failure("decrypting message", major_status, minor_status);
 		free (utok.value);
@@ -948,7 +963,8 @@ static int send_msg_tcp (unsigned char *header, const char *msg, uint32_t mlen)
 		rc = ar_write(sock, msg, mlen);
 		if (rc <= 0) {
 			if (config.network_failure_action == FA_SYSLOG)
-				syslog(LOG_ERR, "connection to %s closed unexpectedly",
+				syslog(LOG_ERR,
+				       "connection to %s closed unexpectedly",
 				       config.remote_server);
 			return 1;
 		}
@@ -971,7 +987,8 @@ static int recv_msg_tcp (unsigned char *header, char *msg, uint32_t *mlen)
 
 
 	if (! AUDIT_RMW_IS_MAGIC (header, AUDIT_RMW_HEADER_SIZE)) {
-		/* FIXME: the right thing to do here is close the socket and start a new one.  */
+		/* FIXME: the right thing to do here is close the socket
+		 *  and start a new one.  */
 		sync_error_handler ("bad magic number");
 		return -1;
 	}
@@ -983,8 +1000,7 @@ static int recv_msg_tcp (unsigned char *header, char *msg, uint32_t *mlen)
 		return -1;
 	}
 
-	if (rlen > 0
-	    && ar_read (sock, msg, rlen) < rlen) {
+	if (rlen > 0 && ar_read (sock, msg, rlen) < rlen) {
 		sync_error_handler ("ran out of data reading reply");
 		return -1;
 	}
