@@ -1,17 +1,21 @@
 Things that need to be done:
 ===========================
 1.7.8
-* Check what remote client is putting in syslog
-* Fix aureport --start today apple  - should be an error
+* Fix aureport time problem reported on mail list
+* Fix ausearch time 0.0 problem reported on mail list
 * Fix auparse to handle out of order messages
-* Look at gssapi support being done via dlopen()
-* add definitions for crypto events
-* auditctl needs to be able to take file names with spaces in rule files
-* Fix SIGHUP for auditd network settings
-* Create aulast command
 * Should session number go into logins and AVCs for prelude?
 
+1.7.9
+* Look at gssapi support being done via dlopen()
+* add definitions for crypto events
+* add definitions for kernel virt events
+* Fix SIGHUP for auditd network settings
+* Create aulast command
+* auditctl needs to be able to take file names with spaces in rule files
+
 2.0
+* Look at pulling audispd into auditd
 * Consider adding node/machine name to records going to rt interface in daemon    as protocol version 2.
 * Update prelude detections to send anomaly events
 * Look at adding the direction read/write to file report (threat modelling)
