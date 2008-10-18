@@ -11,6 +11,7 @@
 - Update libauparse capabilities table
 - If log_group and user are not root, don't check dispatcher perms
 - Fix a bug when executing "ausearch -te today PM"
+- Add --exit search option to ausearch
 
 1.7.7
 - Bug fixes for gss code in remote logging (DJ Delorie)

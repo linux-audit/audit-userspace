@@ -49,6 +49,7 @@ const char *event_hostname = NULL;
 const char *event_terminal = NULL;
 const char *event_subject = NULL;
 const char *event_object = NULL;
+int event_exit = 0, event_exit_is_set = 0;
 
 /* These are used by aureport */
 const char *dummy = "dummy";

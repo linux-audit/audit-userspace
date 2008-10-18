@@ -1,5 +1,5 @@
 /* ausearch-common.h -- 
- * Copyright 2006-07 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2006-08 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -39,6 +39,7 @@ extern const char *event_terminal;
 extern int event_syscall;
 extern const char *event_exe;
 extern int event_ua, event_ga;
+extern int event_exit, event_exit_is_set;
 
 typedef enum { F_BOTH, F_FAILED, F_SUCCESS } failed_t;
 typedef enum { C_NEITHER, C_ADD, C_DEL } conf_act_t;

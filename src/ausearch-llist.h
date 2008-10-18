@@ -51,6 +51,8 @@ typedef struct
   int arch;             // arch
   int syscall;          // syscall
   int session_id;       // Login session id
+  int exit;             // Syscall exit code
+  int exit_is_set;      // Syscall exit code is valid
   char *hostname;       // remote hostname
   slist *filename;      // filename list
   char *cwd;            // current working dir

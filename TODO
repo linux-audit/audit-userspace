@@ -1,8 +1,9 @@
 Things that need to be done:
 ===========================
 1.7.8
-* Add --exit to ausearch
+* Fix ausearch to handle out of order messages
 * Fix auparse to handle out of order messages
+* Delete root user tests in auparse/test dir
 
 1.7.9
 * add definitions for crypto events

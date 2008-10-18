@@ -1,4 +1,4 @@
-.TH AUSEARCH: "8" "Nov 2006" "Red Hat" "System Administration Utilities"
+.TH AUSEARCH: "8" "Oct 2008" "Red Hat" "System Administration Utilities"
 .SH NAME
 ausearch \- a tool to query audit daemon logs
 .SH SYNOPSIS
@@ -20,6 +20,9 @@ Search for an event based on the given \fIevent ID\fP. Messages always start wit
 .TP
 .BR \-c ,\  \-\-comm \ \fIcomm-name\fP
 Search for an event based on the given \fIcomm name\fP. The comm name is the executable's name from the task structure.
+.TP
+.BR \-\-exit \ \fIexit code or errno\fP
+Search for an event based on the given syscall \fIexit code or errno\fP.
 .TP
 .BR \-f ,\  \-\-file \ \fIfile-name\fP
 Search for an event based on the given \fIfilename\fP.

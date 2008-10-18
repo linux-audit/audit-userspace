@@ -50,6 +50,7 @@ int event_syscall = -1;
 int event_ua = 0, event_ga = 0, event_se = 0;
 int just_one = 0;
 int event_session_id = -1;
+int event_exit = 0, event_exit_is_set = 0;
 const char *event_key = NULL;
 const char *event_node = NULL;
 const char *event_filename = NULL;
@@ -71,13 +72,14 @@ enum { S_EVENT, S_COMM, S_FILENAME, S_ALL_GID, S_EFF_GID, S_GID, S_HELP,
 S_HOSTNAME, S_INTERP, S_INFILE, S_MESSAGE_TYPE, S_PID, S_SYSCALL, S_OSUCCESS,
 S_TIME_END, S_TIME_START, S_TERMINAL, S_ALL_UID, S_EFF_UID, S_UID, S_LOGINID,
 S_VERSION, S_EXACT_MATCH, S_EXECUTABLE, S_CONTEXT, S_SUBJECT, S_OBJECT,
-S_PPID, S_KEY, S_RAW, S_NODE, S_IN_LOGS, S_JUST_ONE, S_SESSION };
+S_PPID, S_KEY, S_RAW, S_NODE, S_IN_LOGS, S_JUST_ONE, S_SESSION, S_EXIT };
 
 static struct nv_pair optiontab[] = {
 	{ S_EVENT, "-a" },
 	{ S_EVENT, "--event" },
 	{ S_COMM, "-c" },
 	{ S_COMM, "--comm" },
+	{ S_EXIT, "--exit" },
 	{ S_FILENAME, "-f" },
 	{ S_FILENAME, "--file" },
 	{ S_ALL_GID, "-ga" },
@@ -158,6 +160,7 @@ static void usage(void)
 	printf("usage: ausearch [options]\n"
 	"\t-a,--event <Audit event id>\tsearch based on audit event id\n"
 	"\t-c,--comm  <Comm name>\t\tsearch based on command line name\n"
+	"\t--exit  <Exit code or errno>\t\tsearch based on syscall exit code\n"
 	"\t-f,--file  <File name>\t\tsearch based on file name\n"
 	"\t-ga,--gid-all <all Group id>\tsearch based on All group ids\n"
 	"\t-ge,--gid-effective <effective Group id>  search based on Effective\n\t\t\t\t\tgroup id\n"
@@ -697,6 +700,51 @@ int check_params(int count, char *vars[])
 				"Session id must be a numeric value, was %s\n",
 					optarg);
 				retval = -1;
+			}
+			break;
+		case S_EXIT:
+			if (!optarg) {
+				if ((c+1 < count) && vars[c+1])
+					optarg = vars[c+1];
+				else {
+					fprintf(stderr,
+						"Argument is required for %s\n",
+						vars[c]);
+					retval = -1;
+					break;
+				}
+			} 
+			{
+			size_t len = strlen(optarg);
+                        if (isdigit(optarg[0])) {
+				errno = 0;
+                                event_exit = strtol(optarg, NULL, 0);
+				if (errno) {
+					retval = -1;
+					fprintf(stderr, "Error converting %s\n",
+						optarg);
+				}
+                        } else if (len >= 2 && *(optarg)=='-' &&
+                                                (isdigit(optarg[1]))) {
+				errno = 0;
+                                event_exit = strtol(optarg, NULL, 0);
+				if (errno) {
+					retval = -1;
+					fprintf(stderr, "Error converting %s\n",
+						optarg);
+				}
+                        } else {
+                                event_exit = audit_name_to_errno(optarg);
+                                if (event_exit == 0) {
+					retval = -1;
+					fprintf(stderr, 
+						"Unknown errno, was %s\n",
+						optarg);
+				}
+                        }
+			c++;
+			if (retval != -1)
+				event_exit_is_set = 1;
 			}
 			break;
 		case S_TIME_END:

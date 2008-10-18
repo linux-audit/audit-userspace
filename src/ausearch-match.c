@@ -76,6 +76,12 @@ int match(llist *l)
 				if ((event_session_id != -1) &&
 					(event_session_id != l->s.session_id))
 					return 0;
+				if (event_exit_is_set) {
+					if (l->s.exit_is_set == 0)
+						return 0;
+					if (event_exit != l->s.exit)
+						return 0;
+				}
 
 				if ((event_success != S_UNSET) &&
 						(event_success != l->s.success))
