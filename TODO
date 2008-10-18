@@ -1,15 +1,15 @@
 Things that need to be done:
 ===========================
 1.7.8
+* Delete root user tests in auparse/test dir
 * Fix ausearch to handle out of order messages
 * Fix auparse to handle out of order messages
-* Delete root user tests in auparse/test dir
 
 1.7.9
-* add definitions for crypto events
 * add definitions for kernel virt events
 * Create aulast command
 * auditctl needs to be able to take file names with spaces in rule files
+* add definitions for crypto events
 * Look at gssapi support being done via dlopen()
 * Fix SIGHUP for auditd network settings
 * Should session number go into logins and AVCs for prelude?

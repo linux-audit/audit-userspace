@@ -297,17 +297,17 @@ static int parse_syscall(lnode *n, search_items *s)
 	// get a0
 	str = strstr(term, "a0=");
 	if (str == NULL)
-		return 10;
+		return 11;
 	ptr = str + 3;
 	term = strchr(ptr, ' ');
 	if (term == NULL)
-		return 11;
+		return 12;
 	*term = 0;
 	errno = 0;
 	// 64 bit dump on 32 bit machine looks bad here - need long long
 	n->a0 = strtoull(ptr, NULL, 16); // Hex
 	if (errno)
-		return 12;
+		return 13;
 	// ppid
 	*term = ' ';
 	str = strstr(term, "ppid=");
@@ -315,101 +315,101 @@ static int parse_syscall(lnode *n, search_items *s)
 		ptr = str + 5;
 		term = strchr(ptr, ' ');
 		if (term == NULL)
-			return 13;
+			return 14;
 		*term = 0;
 		errno = 0;
 		s->ppid = strtoul(ptr, NULL, 10);
 		if (errno)
-			return 14;
+			return 15;
 		*term = ' ';
 	}
 	// pid
 	str = strstr(term, "pid=");
 	if (str == NULL)
-		return 15;
+		return 16;
 	ptr = str + 4;
 	term = strchr(ptr, ' ');
 	if (term == NULL)
-		return 16;
+		return 17;
 	*term = 0;
 	errno = 0;
 	s->pid = strtoul(ptr, NULL, 10);
 	if (errno)
-		return 17;
+		return 18;
 	// loginuid
 	*term = ' ';
 	str = strstr(term, "auid=");
 	if (str == NULL) {
 		str = strstr(term, "loginuid=");
 		if (str == NULL)
-			return 18;
+			return 19;
 		ptr = str + 9;
 	} else
 		ptr = str + 5;
 	term = strchr(ptr, ' ');
 	if (term == NULL)
-		return 19;
+		return 20;
 	*term = 0;
 	errno = 0;
 	s->loginuid = strtoul(ptr, NULL, 10);
 	if (errno)
-		return 20;
+		return 21;
 	// uid
 	*term = ' ';
 	str = strstr(term, "uid=");
 	if (str == NULL)
-		return 21;
+		return 22;
 	ptr = str + 4;
 	term = strchr(ptr, ' ');
 	if (term == NULL)
-		return 22;
+		return 23;
 	*term = 0;
 	errno = 0;
 	s->uid = strtoul(ptr, NULL, 10);
 	if (errno)
-		return 23;
+		return 24;
 	// gid
 	*term = ' ';
 	str = strstr(term, "gid=");
 	if (str == NULL)
-		return 24;
+		return 25;
 	ptr = str + 4;
 	term = strchr(ptr, ' ');
 	if (term == NULL)
-		return 25;
+		return 26;
 	*term = 0;
 	errno = 0;
 	s->gid = strtoul(ptr, NULL, 10);
 	if (errno)
-		return 26;
+		return 27;
 	// euid
 	*term = ' ';
 	str = strstr(term, "euid=");
 	if (str == NULL)
-		return 27;
+		return 28;
 	ptr = str + 5;
 	term = strchr(ptr, ' ');
 	if (term == NULL)
-		return 28;
+		return 29;
 	*term = 0;
 	errno = 0;
 	s->euid = strtoul(ptr, NULL, 10);
 	if (errno)
-		return 29;
+		return 30;
 	// egid
 	*term = ' ';
 	str = strstr(term, "egid=");
 	if (str == NULL)
-		return 30;
+		return 31;
 	ptr = str + 5;
 	term = strchr(ptr, ' ');
 	if (term == NULL)
-		return 31;
+		return 32;
 	*term = 0;
 	errno = 0;
 	s->egid = strtoul(ptr, NULL, 10);
 	if (errno)
-		return 32;
+		return 33;
 	*term = ' ';
 
 	if (event_terminal) {
@@ -419,7 +419,7 @@ static int parse_syscall(lnode *n, search_items *s)
 			str += 4;
 			term = strchr(str, ' ');
 			if (term == NULL)
-				return 33;
+				return 34;
 			*term = 0;
 			s->terminal = strdup(str);
 			*term = ' ';
@@ -431,12 +431,12 @@ static int parse_syscall(lnode *n, search_items *s)
 		ptr = str + 4;
 		term = strchr(ptr, ' ');
 		if (term == NULL)
-			return 34;
+			return 35;
 		*term = 0;
 		errno = 0;
 		s->session_id = strtoul(ptr, NULL, 10);
 		if (errno)
-			return 35;
+			return 36;
 		*term = ' ';
 	}
 	if (event_comm) {
@@ -451,14 +451,14 @@ static int parse_syscall(lnode *n, search_items *s)
 				str++;
 				term = strchr(str, '"');
 				if (term == NULL)
-					return 36;
+					return 37;
 				*term = 0;
 				s->comm = strdup(str);
 				*term = '"';
 			} else 
 				s->comm = unescape(str);
 		} else
-			return 37;
+			return 38;
 	}
 	if (event_exe) {
 		// dont do this search unless needed
@@ -469,14 +469,14 @@ static int parse_syscall(lnode *n, search_items *s)
 				str++;
 				term = strchr(str, '"');
 				if (term == NULL)
-					return 38;
+					return 39;
 				*term = 0;
 				s->exe = strdup(str);
 				*term = '"';
 			} else 
 				s->exe = unescape(str);
 		} else
-			return 39;
+			return 40;
 	}
 	if (event_subject) {
 		// scontext
@@ -485,7 +485,7 @@ static int parse_syscall(lnode *n, search_items *s)
 			str += 5;
 			term = strchr(str, ' ');
 			if (term == NULL)
-				return 40;
+				return 41;
 			*term = 0;
 			if (audit_avc_init(s) == 0) {
 				anode an;
@@ -495,7 +495,7 @@ static int parse_syscall(lnode *n, search_items *s)
 				alist_append(s->avc, &an);
 				*term = ' ';
 			} else
-				return 41;
+				return 42;
 		}
 	}
 	if (event_key) {
@@ -505,7 +505,7 @@ static int parse_syscall(lnode *n, search_items *s)
 				//create
 				s->key = malloc(sizeof(slist));
 				if (s->key == NULL)
-					return 42;
+					return 43;
 				slist_create(s->key);
 			}
 			str += 4;
@@ -513,7 +513,7 @@ static int parse_syscall(lnode *n, search_items *s)
 				str++;
 				term = strchr(str, '"');
 				if (term == NULL)
-					return 43;
+					return 44;
 				*term = 0;
 				if (s->key) {
 					// append
