@@ -262,7 +262,6 @@ int ausearch_time_start(const char *da, const char *ti)
 	int rc = 0;
 	struct tm d, t;
 	char *ret;
-	int keyword=-1;
 
 	if (da == NULL)
 		set_tm_now(&d);
@@ -281,9 +280,11 @@ int ausearch_time_start(const char *da, const char *ti)
 				return 1;
 			}
 		} else {
-			keyword=lookup_time(da);
-			if (keyword == T_RECENT || keyword == T_NOW)
-				goto set_it;
+			int keyword=lookup_time(da);
+			if (keyword == T_RECENT || keyword == T_NOW) {
+				if (ti == NULL)
+					goto set_it;
+			}
 		}
 	}
 
@@ -338,7 +339,9 @@ int ausearch_time_end(const char *da, const char *ti)
 		if (lookup_and_set_time(da, &d) < 0) {
 			ret = strptime(da, "%x", &d);
 			if (ret == NULL) {
-				fprintf(stderr, "Invalid end date (%s)\n", da);
+				fprintf(stderr,
+		 "Invalid end date (%s). Month, Day, and Year are required.\n",
+					da);
 				return 1;
 			}
 			if (*ret != 0) {
@@ -348,15 +351,19 @@ int ausearch_time_end(const char *da, const char *ti)
 			}
 		} else {
 			int keyword=lookup_time(da);
-			if (keyword == T_RECENT || keyword == T_NOW)
-				goto set_it;
+			if (keyword == T_RECENT || keyword == T_NOW) {
+				if (ti == NULL)
+					goto set_it;
+			}
 			// Special case today
 			if (keyword == T_TODAY) {
 				set_tm_now(&d);
-				goto set_it;
+				if (ti == NULL)
+					goto set_it;
 			}
 		}
 	}
+
 	if (ti != NULL) {
 		char tmp_t[9];
 
@@ -368,7 +375,9 @@ int ausearch_time_end(const char *da, const char *ti)
 		}
 		ret = strptime(tmp_t, "%X", &t);
 		if (ret == NULL) {
-			fprintf(stderr, "Invalid end time (%s)\n", ti);
+			fprintf(stderr,
+	     "Invalid end time (%s). Hour, Minute, and Second are required.\n",
+				ti);
 			return 1;
 		}
 		if (*ret != 0) {

@@ -1,7 +1,6 @@
 Things that need to be done:
 ===========================
 1.7.8
-* Fix aureport time problem reported on mail list
 * Fix ausearch time 0.0 problem reported on mail list
 * Fix auparse to handle out of order messages
 * Should session number go into logins and AVCs for prelude?
