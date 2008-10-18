@@ -1,17 +1,17 @@
 Things that need to be done:
 ===========================
 1.7.8
-* Fix ausearch time 0.0 problem reported on mail list
+* Add --exit to ausearch
 * Fix auparse to handle out of order messages
-* Should session number go into logins and AVCs for prelude?
 
 1.7.9
-* Look at gssapi support being done via dlopen()
 * add definitions for crypto events
 * add definitions for kernel virt events
-* Fix SIGHUP for auditd network settings
 * Create aulast command
 * auditctl needs to be able to take file names with spaces in rule files
+* Look at gssapi support being done via dlopen()
+* Fix SIGHUP for auditd network settings
+* Should session number go into logins and AVCs for prelude?
 
 2.0
 * Look at pulling audispd into auditd
