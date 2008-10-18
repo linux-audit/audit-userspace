@@ -9,6 +9,7 @@
 - Short circuit hostname resolution in libaudit if host is empty
 - Remove selinux policy for zos-remote
 - Update libauparse capabilities table
+- If log_group and user are not root, don't check dispatcher perms
 
 1.7.7
 - Bug fixes for gss code in remote logging (DJ Delorie)

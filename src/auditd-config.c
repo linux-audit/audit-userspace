@@ -638,6 +638,12 @@ static int dispatch_parser(struct nv_pair *nv, int line,
 	}
 
 	free((void *)tdir);
+
+	/* Bypass the perms check if group is not root since
+	 * this will fail under normal circumstances */
+	if (config->log_group != 0 && getuid() != 0)
+		goto bypass;
+
 	/* if the file exists, see that its regular, owned by root,
 	 * and not world anything */
 	fd = open(nv->value, O_RDONLY);
@@ -666,6 +672,7 @@ static int dispatch_parser(struct nv_pair *nv, int line,
 		audit_msg(LOG_ERR, "%s permissions should be 0750", nv->value);
 		return 1;
 	}
+bypass:
 	free((void *)config->dispatcher);
 	config->dispatcher = strdup(nv->value);
 	if (config->dispatcher == NULL)
