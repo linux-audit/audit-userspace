@@ -255,15 +255,8 @@ while True:
 au.flush_feed()
 print "Test 10 Done\n"
 
-if (os.getuid() != 0):
-    print "Finished non-admin tests\n"
-    au = None
-    sys.exit(0)
+print "Finished non-admin tests\n"
 
-print "Starting Test 10, walk events, records of logs..."
-au = auparse.AuParser(auparse.AUSOURCE_LOGS)
-light_test(au)
-print "Test 10 Done\n"
 au = None
 sys.exit(0)
 

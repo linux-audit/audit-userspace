@@ -462,19 +462,7 @@ int main(void)
 	}
         printf("Test 10 Done\n\n");
 
-	if (getuid() != 0) {
-		puts("Finished non-admin tests\n");
-		return 0;
-	}
-	printf("Starting Test 11, walk events, records of logs...\n");
-	au = auparse_init(AUSOURCE_LOGS, NULL);
-	if (au == NULL) {
-		printf("Error - %s\n", strerror(errno));
-		return 1;
-	}
-	light_test(au);
-	auparse_destroy(au);
-	printf("Test 11 Done\n\n");
+	puts("Finished non-admin tests\n");
 
 	return 0;
 }
