@@ -79,6 +79,7 @@ static struct nv_pair optiontab[] = {
 	{ S_EVENT, "--event" },
 	{ S_COMM, "-c" },
 	{ S_COMM, "--comm" },
+	{ S_EXIT, "-e" },
 	{ S_EXIT, "--exit" },
 	{ S_FILENAME, "-f" },
 	{ S_FILENAME, "--file" },
@@ -160,7 +161,7 @@ static void usage(void)
 	printf("usage: ausearch [options]\n"
 	"\t-a,--event <Audit event id>\tsearch based on audit event id\n"
 	"\t-c,--comm  <Comm name>\t\tsearch based on command line name\n"
-	"\t--exit  <Exit code or errno>\t\tsearch based on syscall exit code\n"
+	"\t-e,--exit  <Exit code or errno>\tsearch based on syscall exit code\n"
 	"\t-f,--file  <File name>\t\tsearch based on file name\n"
 	"\t-ga,--gid-all <all Group id>\tsearch based on All group ids\n"
 	"\t-ge,--gid-effective <effective Group id>  search based on Effective\n\t\t\t\t\tgroup id\n"
