@@ -262,20 +262,22 @@ static int parse_syscall(lnode *n, search_items *s)
 	s->syscall = (int)strtoul(ptr, NULL, 10);
 	if (errno)
 		return 6;
-	// get success
 	*term = ' ';
-	str = strstr(term, "success=");
-	if (str) { // exit_group does not set success !?!
-		ptr = str + 8;
-		term = strchr(ptr, ' ');
-		if (term == NULL)
-			return 7;
-		*term = 0;
-		if (strcmp(ptr, "yes") == 0)
-			s->success = S_SUCCESS;
-		else
-			s->success = S_FAILED;
-		*term = ' ';
+	// get success
+	if (event_success != S_UNSET) {
+		str = strstr(term, "success=");
+		if (str) { // exit_group does not set success !?!
+			ptr = str + 8;
+			term = strchr(ptr, ' ');
+			if (term == NULL)
+				return 7;
+			*term = 0;
+			if (strcmp(ptr, "yes") == 0)
+				s->success = S_SUCCESS;
+			else
+				s->success = S_FAILED;
+			*term = ' ';
+		}
 	}
 	// get exit
 	if (event_exit_is_set) {
@@ -308,36 +310,40 @@ static int parse_syscall(lnode *n, search_items *s)
 	n->a0 = strtoull(ptr, NULL, 16); // Hex
 	if (errno)
 		return 13;
-	// ppid
 	*term = ' ';
-	str = strstr(term, "ppid=");
-	if (str != NULL) { // ppid is an optional field
+	// ppid
+	if (event_ppid != -1) {
+		str = strstr(term, "ppid=");
+		if (str != NULL) { // ppid is an optional field
+			ptr = str + 5;
+			term = strchr(ptr, ' ');
+			if (term == NULL)
+				return 14;
+			*term = 0;
+			errno = 0;
+			s->ppid = strtoul(ptr, NULL, 10);
+			if (errno)
+				return 15;
+			*term = ' ';
+		}
+	}
+	// pid
+	if (event_pid != -1) {
+		str = strstr(term, " pid=");
+		if (str == NULL)
+			return 16;
 		ptr = str + 5;
 		term = strchr(ptr, ' ');
 		if (term == NULL)
-			return 14;
+			return 17;
 		*term = 0;
 		errno = 0;
-		s->ppid = strtoul(ptr, NULL, 10);
+		s->pid = strtoul(ptr, NULL, 10);
 		if (errno)
-			return 15;
+			return 18;
 		*term = ' ';
 	}
-	// pid
-	str = strstr(term, "pid=");
-	if (str == NULL)
-		return 16;
-	ptr = str + 4;
-	term = strchr(ptr, ' ');
-	if (term == NULL)
-		return 17;
-	*term = 0;
-	errno = 0;
-	s->pid = strtoul(ptr, NULL, 10);
-	if (errno)
-		return 18;
 	// loginuid
-	*term = ' ';
 	str = strstr(term, "auid=");
 	if (str == NULL) {
 		str = strstr(term, "loginuid=");
@@ -426,18 +432,20 @@ static int parse_syscall(lnode *n, search_items *s)
 		}
 	}
 	// ses
-	str = strstr(term, "ses=");
-	if (str) {
-		ptr = str + 4;
-		term = strchr(ptr, ' ');
-		if (term == NULL)
-			return 35;
-		*term = 0;
-		errno = 0;
-		s->session_id = strtoul(ptr, NULL, 10);
-		if (errno)
-			return 36;
-		*term = ' ';
+	if (event_session_id != -1 ) {
+		str = strstr(term, "ses=");
+		if (str) {
+			ptr = str + 4;
+			term = strchr(ptr, ' ');
+			if (term == NULL)
+				return 35;
+			*term = 0;
+			errno = 0;
+			s->session_id = strtoul(ptr, NULL, 10);
+			if (errno)
+				return 36;
+			*term = ' ';
+		}
 	}
 	if (event_comm) {
 		// dont do this search unless needed
@@ -708,20 +716,24 @@ static int parse_user(const lnode *n, search_items *s)
 {
 	char *ptr, *str, *term, saved, *mptr;
 
+	term = n->message;
+
 	// get pid
-	str = strstr(n->message, "pid=");
-	if (str == NULL)
-		return 1;
-	ptr = str + 4;
-	term = strchr(ptr, ' ');
-	if (term == NULL)
-		return 2;
-	*term = 0;
-	errno = 0;
-	s->pid = strtoul(ptr, NULL, 10);
-	if (errno)
-		return 3;
-	*term = ' ';
+	if (event_pid != -1) {
+		str = strstr(term, "pid=");
+		if (str == NULL)
+			return 1;
+		ptr = str + 4;
+		term = strchr(ptr, ' ');
+		if (term == NULL)
+			return 2;
+		*term = 0;
+		errno = 0;
+		s->pid = strtoul(ptr, NULL, 10);
+		if (errno)
+			return 3;
+		*term = ' ';
+	}
 	// get uid
 	str = strstr(term, "uid=");
 	if (str == NULL)
@@ -914,52 +926,56 @@ static int parse_user(const lnode *n, search_items *s)
 	}
 	
 	// get success
-	str = strstr(mptr, "res=");
-	if (str) {
-		ptr = str + 4;
-		term = strchr(ptr, '\'');
-		if (term == NULL)
-			return 19;
-		*term = 0;
-		if (strncmp(ptr, "failed", 6) == 0)
-			s->success = S_FAILED;
-		else
-			s->success = S_SUCCESS;
-		*term = '\'';
-	} else if ((str = strstr(mptr, "result="))) {
-		ptr = str + 7;
-		term = strchr(ptr, ')');
-		if (term == NULL)
-			return 20;
-		*term = 0;
-		if (strcasecmp(ptr, "success") == 0)
-			s->success = S_SUCCESS;
-		else
-			s->success = S_FAILED;
-		*term = ')';
+	if (event_success != S_UNSET) {
+		str = strstr(mptr, "res=");
+		if (str) {
+			ptr = str + 4;
+			term = strchr(ptr, '\'');
+			if (term == NULL)
+				return 19;
+			*term = 0;
+			if (strncmp(ptr, "failed", 6) == 0)
+				s->success = S_FAILED;
+			else
+				s->success = S_SUCCESS;
+			*term = '\'';
+		} else if ((str = strstr(mptr, "result="))) {
+			ptr = str + 7;
+			term = strchr(ptr, ')');
+			if (term == NULL)
+				return 20;
+			*term = 0;
+			if (strcasecmp(ptr, "success") == 0)
+				s->success = S_SUCCESS;
+			else
+				s->success = S_FAILED;
+			*term = ')';
+		}
 	}
 	return 0;
 }
 
 static int parse_login(const lnode *n, search_items *s)
 {
-	char *ptr, *str, *term;
+	char *ptr, *str, *term = n->message;
 
 	// get pid
-	str = strstr(n->message, "pid=");
-	if (str == NULL)
-		return 1;
-	ptr = str + 4;
-	term = strchr(ptr, ' ');
-	if (term == NULL)
-		return 2;
-	*term = 0;
-	errno = 0;
-	s->pid = strtoul(ptr, NULL, 10);
-	if (errno)
-		return 3;
+	if (event_pid != -1) {
+		str = strstr(term, "pid=");
+		if (str == NULL)
+			return 1;
+		ptr = str + 4;
+		term = strchr(ptr, ' ');
+		if (term == NULL)
+			return 2;
+		*term = 0;
+		errno = 0;
+		s->pid = strtoul(ptr, NULL, 10);
+		if (errno)
+			return 3;
+		*term = ' ';
+	}
 	// get uid
-	*term = ' ';
 	str = strstr(term, "uid=");
 	if (str == NULL)
 		return 4;
@@ -993,21 +1009,22 @@ static int parse_login(const lnode *n, search_items *s)
 		*term = ' ';
 
 	// success
-	str = strstr(ptr, "res=");
-	if (str != NULL) {
-		ptr = str + 4;
-		term = strchr(ptr, ' ');
-		if (term)
-			*term = 0;
-		errno = 0;
-		s->success = strtoul(ptr, NULL, 10);
-		if (errno)
-			return 9;
-		if (term)
-			*term = ' ';
-	} else	// Assume older kernel where always successful
-		s->success = S_SUCCESS; 
-
+	if (event_success != S_UNSET) {
+		str = strstr(ptr, "res=");
+		if (str != NULL) {
+			ptr = str + 4;
+			term = strchr(ptr, ' ');
+			if (term)
+				*term = 0;
+			errno = 0;
+			s->success = strtoul(ptr, NULL, 10);
+			if (errno)
+				return 9;
+			if (term)
+				*term = ' ';
+		} else	// Assume older kernel where always successful
+			s->success = S_SUCCESS; 
+	}
 	return 0;
 }
 
@@ -1037,20 +1054,22 @@ static int parse_daemon(const lnode *n, search_items *s)
 	*term = saved;
 
 	// pid
-	str = strstr(term, "pid=");
-	if (str == NULL)
-		return 5;
-	ptr = str + 4;
-	term = strchr(ptr, ' ');
-	if (term == NULL) 
-		return 6;
-	saved = *term;
-	*term = 0;
-	errno = 0;
-	s->pid = strtoul(ptr, NULL, 10);
-	if (errno)
-		return 7;
-	*term = saved;
+	if (event_pid != -1) {
+		str = strstr(term, "pid=");
+		if (str == NULL)
+			return 5;
+		ptr = str + 4;
+		term = strchr(ptr, ' ');
+		if (term == NULL) 
+			return 6;
+		saved = *term;
+		*term = 0;
+		errno = 0;
+		s->pid = strtoul(ptr, NULL, 10);
+		if (errno)
+			return 7;
+		*term = saved;
+	}
 
 	if (event_subject) {
 		// scontext
@@ -1074,20 +1093,22 @@ static int parse_daemon(const lnode *n, search_items *s)
 	}
 
 	// success
-	str = strstr(mptr, "res=");
-	if (str) {
-		ptr = term = str + 4;
-		while (isalpha(*term))
-			term++;
-		if (term == ptr)
-			return 10;
-		saved = *term;
-		*term = 0;
-		if (strncmp(ptr, "failed", 6) == 0)
-			s->success = S_FAILED;
-		else
-			s->success = S_SUCCESS;
-		*term = saved;
+	if (event_success != S_UNSET) {
+		str = strstr(mptr, "res=");
+		if (str) {
+			ptr = term = str + 4;
+			while (isalpha(*term))
+				term++;
+			if (term == ptr)
+				return 10;
+			saved = *term;
+			*term = 0;
+			if (strncmp(ptr, "failed", 6) == 0)
+				s->success = S_FAILED;
+			else
+				s->success = S_SUCCESS;
+			*term = saved;
+		}
 	}
 
 	return 0;
@@ -1203,17 +1224,19 @@ static int parse_avc(const lnode *n, search_items *s)
 		term = strchr(str, '{');
 		if (term == NULL)
 			return 1;
-		*term = 0;
-		// FIXME. Do not override syscall pass/fail if its already
-		// set. Syscall pass/fail is the authoritative value.
-		if (strstr(str, "denied")) {
-			s->success = S_FAILED; 
-			an.avc_result = AVC_DENIED;
-		} else {
-			s->success = S_SUCCESS;
-			an.avc_result = AVC_GRANTED;
+		if (event_success != S_UNSET) {
+			*term = 0;
+			// FIXME. Do not override syscall success if already
+			// set. Syscall pass/fail is the authoritative value.
+			if (strstr(str, "denied")) {
+				s->success = S_FAILED; 
+				an.avc_result = AVC_DENIED;
+			} else {
+				s->success = S_SUCCESS;
+				an.avc_result = AVC_GRANTED;
+			}
+			*term = '{';
 		}
-		*term = '{';
 
 		// Now get permission
 		str = term + 1;
@@ -1230,18 +1253,20 @@ static int parse_avc(const lnode *n, search_items *s)
 	}
 
 	// get pid
-	str = strstr(term, "pid=");
-	if (str) {
-		str = str + 4;
-		term = strchr(str, ' ');
-		if (term == NULL)
-			return 3;
-		*term = 0;
-		errno = 0;
-		s->pid = strtoul(str, NULL, 10);
-		if (errno)
-			return 4;
-		*term = ' ';
+	if (event_pid != -1) {
+		str = strstr(term, "pid=");
+		if (str) {
+			str = str + 4;
+			term = strchr(str, ' ');
+			if (term == NULL)
+				return 3;
+			*term = 0;
+			errno = 0;
+			s->pid = strtoul(str, NULL, 10);
+			if (errno)
+				return 4;
+			*term = ' ';
+		}
 	}
 
 	if (event_comm && s->comm == NULL) {
@@ -1410,18 +1435,20 @@ static int parse_kernel_anom(const lnode *n, search_items *s)
 	}
 
 	// get pid
-	str = strstr(term, "pid=");
-	if (str) {
-		ptr = str + 4;
-		term = strchr(ptr, ' ');
-		if (term == NULL)
-			return 9;
-		*term = 0;
-		errno = 0;
-		s->pid = strtoul(ptr, NULL, 10);
-		if (errno)
-			return 10;
-		*term = ' ';
+	if (event_pid != -1) {
+		str = strstr(term, "pid=");
+		if (str) {
+			ptr = str + 4;
+			term = strchr(ptr, ' ');
+			if (term == NULL)
+				return 9;
+			*term = 0;
+			errno = 0;
+			s->pid = strtoul(ptr, NULL, 10);
+			if (errno)
+				return 10;
+			*term = ' ';
+		}
 	}
 
 	if (event_comm) {
@@ -1550,18 +1577,20 @@ static int parse_simple_message(const lnode *n, search_items *s)
 		s->success = S_SUCCESS;
 
 	// and results (usually last)
-	str = strstr(term, "res=");
-	if (str != NULL) {
-		ptr = str + 4;
-		term = strchr(ptr, ' ');
-		if (term)
-			*term = 0;
-		errno = 0;
-		s->success = strtoul(ptr, NULL, 10);
-		if (errno)
-			return 6;
-		if (term)
-			*term = ' ';
+	if (event_success != S_UNSET) {
+		str = strstr(term, "res=");
+		if (str != NULL) {
+			ptr = str + 4;
+			term = strchr(ptr, ' ');
+			if (term)
+				*term = 0;
+			errno = 0;
+			s->success = strtoul(ptr, NULL, 10);
+			if (errno)
+				return 6;
+			if (term)
+				*term = ' ';
+		}
 	}
 
 	return 0;

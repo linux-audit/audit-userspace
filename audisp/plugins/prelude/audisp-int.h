@@ -31,7 +31,6 @@
  * at this time. Any data elements that are per item goes here. */
 typedef struct _int_node{
   int num;		// The number
-  unsigned int item;	// Which item of the same event
   struct _int_node* next;	// Next string node pointer
 } int_node;
 
@@ -45,15 +44,10 @@ typedef struct {
 
 void ilist_create(ilist *l);
 static inline void ilist_first(ilist *l) { l->cur = l->head; }
-void ilist_last(ilist *l);
 int_node *ilist_next(ilist *l);
-int_node *ilist_prev(ilist *l);
 static inline int_node *ilist_get_cur(ilist *l) { return l->cur; }
 void ilist_append(ilist *l, int num);
 void ilist_clear(ilist* l);
-
-/* Given a numeric index, find that record. */
-int ilist_find_item(ilist *l, unsigned int i);
 int ilist_find_num(ilist *l, unsigned int num);
 
 /* append a number if its not already on the list */

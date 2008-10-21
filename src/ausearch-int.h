@@ -1,6 +1,6 @@
 /*
 * ausearch-int.h - Header file for ausearch-int.c
-* Copyright (c) 2005 Red Hat Inc., Durham, North Carolina.
+* Copyright (c) 2005,2008 Red Hat Inc., Durham, North Carolina.
 * All Rights Reserved.
 *
 * This software may be freely redistributed and/or modified under the
@@ -34,7 +34,6 @@ typedef struct _int_node{
   int num;		// The number
   unsigned int hits;	// The number of times this was attempted to be added
   int aux1;		// Extra spot for data
-  unsigned int item;	// Which item of the same event
   struct _int_node* next;	// Next string node pointer
 } int_node;
 
@@ -48,15 +47,10 @@ typedef struct {
 
 void ilist_create(ilist *l);
 static inline void ilist_first(ilist *l) { l->cur = l->head; }
-void ilist_last(ilist *l);
 int_node *ilist_next(ilist *l);
-int_node *ilist_prev(ilist *l);
 static inline int_node *ilist_get_cur(ilist *l) { return l->cur; }
 void ilist_append(ilist *l, int num, unsigned int hits, int aux);
 void ilist_clear(ilist* l);
-
-/* Given a numeric index, find that record. */
-int ilist_find_item(ilist *l, unsigned int i);
 
 /* append a number if its not already on the list */
 int ilist_add_if_uniq(ilist *l, int num, int aux);

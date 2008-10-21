@@ -33,36 +33,11 @@ void ilist_create(ilist *l)
 	l->cnt = 0;
 }
 
-void ilist_last(ilist *l)
-{
-        register int_node* window;
-	
-	if (l->head == NULL)
-		return;
-
-        window = l->head;
-	while (window->next)
-		window = window->next;
-	l->cur = window;
-}
-
 int_node *ilist_next(ilist *l)
 {
 	if (l->cur == NULL)
 		return NULL;
 	l->cur = l->cur->next;
-	return l->cur;
-}
-
-int_node *ilist_prev(ilist *l)
-{
-	if (l->cur == NULL)
-		return NULL;
-
-	if (l->cur->item <= 0)
-		return NULL;
-
-	ilist_find_item(l, l->cur->item-1);
 	return l->cur;
 }
 
@@ -73,7 +48,6 @@ void ilist_append(ilist *l, int num)
 	newnode = malloc(sizeof(int_node));
 
 	newnode->num = num;
-	newnode->item = l->cnt; 
 	newnode->next = NULL;
 
 	// if we are at top, fix this up
@@ -85,26 +59,6 @@ void ilist_append(ilist *l, int num)
 	// make newnode current
 	l->cur = newnode;
 	l->cnt++;
-}
-
-int ilist_find_item(ilist *l, unsigned int i)
-{
-        register int_node* window;
-                                                                                
-	if (l->cur && (l->cur->item <= i))
-		window = l->cur;	/* Try to use where we are */
-	else
-        	window = l->head;	/* Can't, start over */
-
-	while (window) {
-		if (window->item == i) {
-			l->cur = window;
-			return 1;
-		}
-		else
-			window = window->next;
-	}
-	return 0;
 }
 
 int ilist_find_num(ilist *l, unsigned int num)

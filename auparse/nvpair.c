@@ -1,6 +1,6 @@
 /*
 * nvpair.c - Minimal linked list library for name-value pairs
-* Copyright (c) 2007 Red Hat Inc., Durham, North Carolina.
+* Copyright (c) 2007-08 Red Hat Inc., Durham, North Carolina.
 * All Rights Reserved. 
 *
 * This software may be freely redistributed and/or modified under the
@@ -33,39 +33,21 @@ void nvpair_create(nvpair *l)
 	l->cnt = 0;
 }
 
-static void nvpair_last(nvpair *l)
-{
-        register nvpnode* window;
-	
-	if (l->head == NULL)
-		return;
-
-        window = l->head;
-	while (window->next)
-		window = window->next;
-	l->cur = window;
-}
-
 void nvpair_append(nvpair *l, nvpnode *node)
 {
 	nvpnode* newnode = malloc(sizeof(nvpnode));
 
 	newnode->name = node->name;
 	newnode->val = node->val;
-	newnode->item = l->cnt; 
 	newnode->next = NULL;
 
 	// if we are at top, fix this up
 	if (l->head == NULL)
 		l->head = newnode;
 	else {	// Otherwise add pointer to newnode
-		if (l->cnt == (l->cur->item+1)) {
-			l->cur->next = newnode;
-		}
-		else {
-			nvpair_last(l);
-			l->cur->next = newnode;
-		}
+		while (l->cur->next)
+			l->cur = l->cur->next;
+		l->cur->next = newnode;
 	}
 
 	// make newnode current

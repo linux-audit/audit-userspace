@@ -1,6 +1,6 @@
 /*
 * ausearch-avc.h - Header file for ausearch-string.c
-* Copyright (c) 2006 Red Hat Inc., Durham, North Carolina.
+* Copyright (c) 2006,2008 Red Hat Inc., Durham, North Carolina.
 * All Rights Reserved.
 *
 * This software may be freely redistributed and/or modified under the
@@ -38,7 +38,6 @@ typedef struct _anode{
   avc_t avc_result;     // se linux avc denied/granted
   char *avc_perm;       // se linux avc permission mentioned
   char *avc_class;      // se linux class mentioned
-  unsigned int item;	// Which item of the same event
   struct _anode* next;	// Next string node pointer
 } anode;
 
@@ -52,17 +51,13 @@ typedef struct {
 
 void alist_create(alist *l);
 static inline void alist_first(alist *l) { l->cur = l->head; }
-void alist_last(alist *l);
 anode *alist_next(alist *l);
-anode *alist_prev(alist *l);
 static inline anode *alist_get_cur(alist *l) { return l->cur; }
 void alist_append(alist *l, anode *node);
 void anode_init(anode *an);
 void anode_clear(anode *an);
 void alist_clear(alist* l);
 
-/* Given a numeric index, find that record. */
-int alist_find_item(alist *l, unsigned int i);
 /* See if any subj exists in list */
 int alist_find_subj(alist *l);
 anode *alist_next_subj(alist *l);

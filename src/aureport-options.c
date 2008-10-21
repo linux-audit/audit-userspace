@@ -50,6 +50,7 @@ const char *event_terminal = NULL;
 const char *event_subject = NULL;
 const char *event_object = NULL;
 int event_exit = 0, event_exit_is_set = 0;
+int event_ppid = -1, event_session_id = -1;
 
 /* These are used by aureport */
 const char *dummy = "dummy";
@@ -58,6 +59,8 @@ report_det_t report_detail = D_UNSET;
 report_t report_format = RPT_DEFAULT;
 failed_t event_failed = F_BOTH;
 conf_act_t event_conf_act = C_NEITHER;
+success_t event_success = S_SUCCESS;
+int event_pid = 0;
 
 struct nv_pair {
     int        value;

@@ -1,6 +1,6 @@
 /*
 * ausearch-nvpair.h - Header file for ausearch-nvpair.c
-* Copyright (c) 2006-07 Red Hat Inc., Durham, North Carolina.
+* Copyright (c) 2006-08 Red Hat Inc., Durham, North Carolina.
 * All Rights Reserved.
 *
 * This software may be freely redistributed and/or modified under the
@@ -32,8 +32,6 @@
 typedef struct _nvnode{
   char *name;		// The name string
   long val;		// The value field
-  unsigned int item;	// Which item of the same event
-  unsigned int hits;	// Number of times this string was attempted to be added
   struct _nvnode* next;	// Next nvpair node pointer
 } nvnode;
 
@@ -47,21 +45,13 @@ typedef struct {
 
 void nvlist_create(nvlist *l);
 static inline void nvlist_first(nvlist *l) { l->cur = l->head; }
-void nvlist_last(nvlist *l);
 nvnode *nvlist_next(nvlist *l);
-nvnode *nvlist_prev(nvlist *l);
 static inline nvnode *nvlist_get_cur(nvlist *l) { return l->cur; }
 void nvlist_append(nvlist *l, nvnode *node);
 void nvlist_clear(nvlist* l);
 
 /* Given a numeric index, find that record. */
-int nvlist_find_item(nvlist *l, unsigned int i);
 int nvlist_find_val(nvlist *l, long val);
-
-/* append a string if its not already on the list */
-//int nvlist_add_if_name_uniq(nvlist *l, const char *name, long val);
-//int nvlist_add_if_val_uniq(nvlist *l, const char *name, long val);
-//void nvlist_sort_by_hits(nvlist *l);
 
 #endif
 

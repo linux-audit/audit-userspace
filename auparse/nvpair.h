@@ -1,6 +1,6 @@
 /*
 * nvpair.h - Header file for nvpair.c
-* Copyright (c) 2007 Red Hat Inc., Durham, North Carolina.
+* Copyright (c) 2007-08 Red Hat Inc., Durham, North Carolina.
 * All Rights Reserved.
 *
 * This software may be freely redistributed and/or modified under the
@@ -33,7 +33,6 @@
 typedef struct _nvpnode{
   char *name;			// The name string
   long val;			// The value field
-  unsigned int item;		// Which item of the same event
   struct _nvpnode* next;	// Next nvpair node pointer
 } nvpnode;
 

@@ -202,7 +202,6 @@ const char *aulookup_uid(uid_t uid, char *buf, size_t size)
 			nvnode nv;
 			nv.name = strdup(pw->pw_name);
 			nv.val = uid;
-			nv.hits = 1;
 			nvlist_append(&uid_nvl, &nv);
 			name = uid_nvl.cur->name;
 		}
@@ -256,7 +255,6 @@ const char *aulookup_gid(gid_t gid, char *buf, size_t size)
 			nvnode nv;
 			nv.name = strdup(gr->gr_name);
 			nv.val = gid;
-			nv.hits = 1;
 			nvlist_append(&gid_nvl, &nv);
 			name = gid_nvl.cur->name;
 		}

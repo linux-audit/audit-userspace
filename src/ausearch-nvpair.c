@@ -1,6 +1,6 @@
 /*
 * ausearch-nvpair.c - Minimal linked list library for name-value pairs
-* Copyright (c) 2006-07 Red Hat Inc., Durham, North Carolina.
+* Copyright (c) 2006-08 Red Hat Inc., Durham, North Carolina.
 * All Rights Reserved. 
 *
 * This software may be freely redistributed and/or modified under the
@@ -33,36 +33,11 @@ void nvlist_create(nvlist *l)
 	l->cnt = 0;
 }
 
-void nvlist_last(nvlist *l)
-{
-        register nvnode* window;
-	
-	if (l->head == NULL)
-		return;
-
-        window = l->head;
-	while (window->next)
-		window = window->next;
-	l->cur = window;
-}
-
 nvnode *nvlist_next(nvlist *l)
 {
 	if (l->cur == NULL)
 		return NULL;
 	l->cur = l->cur->next;
-	return l->cur;
-}
-
-nvnode *nvlist_prev(nvlist *l)
-{
-	if (l->cur == NULL)
-		return NULL;
-
-	if (l->cur->item <= 0)
-		return NULL;
-
-	nvlist_find_item(l, l->cur->item-1);
 	return l->cur;
 }
 
@@ -72,46 +47,20 @@ void nvlist_append(nvlist *l, nvnode *node)
 
 	newnode->name = node->name;
 	newnode->val = node->val;
-	newnode->item = l->cnt; 
-	newnode->hits = node->hits;
 	newnode->next = NULL;
 
 	// if we are at top, fix this up
 	if (l->head == NULL)
 		l->head = newnode;
-	else {	// Otherwise add pointer to newnode
-		if (l->cnt == (l->cur->item+1)) {
-			l->cur->next = newnode;
-		}
-		else {
-			nvlist_last(l);
-			l->cur->next = newnode;
-		}
+	else {	// Add pointer to newnode and make sure we are at the end
+		while (l->cur->next)
+			l->cur = l->cur->next;
+		l->cur->next = newnode;
 	}
 
 	// make newnode current
 	l->cur = newnode;
 	l->cnt++;
-}
-
-int nvlist_find_item(nvlist *l, unsigned int i)
-{
-        register nvnode* window;
-                                                                                
-	if (l->cur && (l->cur->item <= i))
-		window = l->cur;	/* Try to use where we are */
-	else
-        	window = l->head;	/* Can't, start over */
-
-	while (window) {
-		if (window->item == i) {
-			l->cur = window;
-			return 1;
-		}
-		else
-			window = window->next;
-	}
-	return 0;
 }
 
 int nvlist_find_val(nvlist *l, long val)

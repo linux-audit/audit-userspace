@@ -1,6 +1,6 @@
 /*
 * ausearch-string.h - Header file for ausearch-string.c
-* Copyright (c) 2005 Red Hat Inc., Durham, North Carolina.
+* Copyright (c) 2005,2008 Red Hat Inc., Durham, North Carolina.
 * All Rights Reserved.
 *
 * This software may be freely redistributed and/or modified under the
@@ -33,7 +33,6 @@
 typedef struct _snode{
   char *str;		// The string
   char *key;		// The key string
-  unsigned int item;	// Which item of the same event
   unsigned int hits;	// Number of times this string was attempted to be added
   struct _snode* next;	// Next string node pointer
 } snode;
@@ -50,13 +49,9 @@ void slist_create(slist *l);
 static inline void slist_first(slist *l) { l->cur = l->head; }
 void slist_last(slist *l);
 snode *slist_next(slist *l);
-snode *slist_prev(slist *l);
 static inline snode *slist_get_cur(slist *l) { return l->cur; }
 void slist_append(slist *l, snode *node);
 void slist_clear(slist* l);
-
-/* Given a numeric index, find that record. */
-int slist_find_item(slist *l, unsigned int i);
 
 /* append a string if its not already on the list */
 int slist_add_if_uniq(slist *l, const char *str);

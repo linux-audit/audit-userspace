@@ -1,6 +1,6 @@
 /*
 * ausearch-string.c - Minimal linked list library for strings
-* Copyright (c) 2005 Red Hat Inc., Durham, North Carolina.
+* Copyright (c) 2005,2008 Red Hat Inc., Durham, North Carolina.
 * All Rights Reserved. 
 *
 * This software may be freely redistributed and/or modified under the
@@ -55,18 +55,6 @@ snode *slist_next(slist *l)
 	return l->cur;
 }
 
-snode *slist_prev(slist *l)
-{
-	if (l->cur == NULL)
-		return NULL;
-
-	if (l->cur->item <= 0)
-		return NULL;
-
-	slist_find_item(l, l->cur->item-1);
-	return l->cur;
-}
-
 void slist_append(slist *l, snode *node)
 {
 	snode* newnode;
@@ -83,7 +71,6 @@ void slist_append(slist *l, snode *node)
 	else
 		newnode->key = NULL;
 
-	newnode->item = l->cnt; 
 	newnode->hits = node->hits;
 	newnode->next = NULL;
 
@@ -96,34 +83,6 @@ void slist_append(slist *l, snode *node)
 	// make newnode current
 	l->cur = newnode;
 	l->cnt++;
-}
-
-/* void slist_add_key(slist *l, const char *key)
-{
-	if (l && l->cur) {
-		free(l->cur->key);
-		l->cur->key = strdup(key);
-	}
-} */
-
-int slist_find_item(slist *l, unsigned int i)
-{
-        register snode* window;
-                                                                                
-	if (l->cur && (l->cur->item <= i))
-		window = l->cur;	/* Try to use where we are */
-	else
-        	window = l->head;	/* Can't, start over */
-
-	while (window) {
-		if (window->item == i) {
-			l->cur = window;
-			return 1;
-		}
-		else
-			window = window->next;
-	}
-	return 0;
 }
 
 void slist_clear(slist* l)
@@ -148,16 +107,15 @@ void slist_clear(slist* l)
 int slist_add_if_uniq(slist *l, const char *str)
 {
 	snode sn;
-        register snode* window;
+        register snode *cur;
 
-       	window = l->head;
-	while (window) {
-		if (strcmp(str, window->str) == 0) {
-			window->hits++;
+       	cur = l->head;
+	while (cur) {
+		if (strcmp(str, cur->str) == 0) {
+			cur->hits++;
 			return 0;
-		}
-		else
-			window = window->next;
+		} else 
+			cur = cur->next;
 	}
 
 	/* No matches, append to the end */

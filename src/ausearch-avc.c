@@ -1,6 +1,6 @@
 /*
 * ausearch-avc.c - Minimal linked list library for avcs
-* Copyright (c) 2006 Red Hat Inc., Durham, North Carolina.
+* Copyright (c) 2006,2008 Red Hat Inc., Durham, North Carolina.
 * All Rights Reserved. 
 *
 * This software may be freely redistributed and/or modified under the
@@ -34,36 +34,11 @@ void alist_create(alist *l)
 	l->cnt = 0;
 }
 
-void alist_last(alist *l)
-{
-        register anode* window;
-	
-	if (l->head == NULL)
-		return;
-
-        window = l->head;
-	while (window->next)
-		window = window->next;
-	l->cur = window;
-}
-
 anode *alist_next(alist *l)
 {
 	if (l->cur == NULL)
 		return NULL;
 	l->cur = l->cur->next;
-	return l->cur;
-}
-
-anode *alist_prev(alist *l)
-{
-	if (l->cur == NULL)
-		return NULL;
-
-	if (l->cur->item <= 0)
-		return NULL;
-
-	alist_find_item(l, l->cur->item-1);
 	return l->cur;
 }
 
@@ -95,7 +70,6 @@ void alist_append(alist *l, anode *node)
 	else
 		newnode->avc_class = NULL;
 
-	newnode->item = l->cnt; 
 	newnode->next = NULL;
 
 	// if we are at top, fix this up
@@ -107,26 +81,6 @@ void alist_append(alist *l, anode *node)
 	// make newnode current
 	l->cur = newnode;
 	l->cnt++;
-}
-
-int alist_find_item(alist *l, unsigned int i)
-{
-        register anode* window;
-                                                                                
-	if (l->cur && (l->cur->item <= i))
-		window = l->cur;	/* Try to use where we are */
-	else
-        	window = l->head;	/* Can't, start over */
-
-	while (window) {
-		if (window->item == i) {
-			l->cur = window;
-			return 1;
-		}
-		else
-			window = window->next;
-	}
-	return 0;
 }
 
 int alist_find_subj(alist *l)
