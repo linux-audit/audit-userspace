@@ -343,6 +343,7 @@ output_i2s_transtab(const char *prefix)
 	       "#define %s_NUM_ENTRIES "
 	       "(sizeof(%s_table) / sizeof(*%s_table))\n", uc_prefix, prefix,
 	       prefix);
+	free(uc_prefix);
 }
 
 int

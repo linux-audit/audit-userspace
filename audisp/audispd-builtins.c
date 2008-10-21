@@ -171,8 +171,10 @@ static void init_af_unix(const plugin_conf_t *conf)
 					closedir(d);
 					unlink(conf->args[i]);
 					if (create_af_unix_socket(
-							conf->args[i], mode)<0)
+						    conf->args[i], mode)<0) {
+						free(dir);
 						return;
+					}
 					path = strdup(conf->args[i]);
 					bad = 0;
 				} else
@@ -221,7 +223,7 @@ void send_af_unix_binary(event_t *e)
 
 		vec[0].iov_base = &e->hdr;
 		vec[0].iov_len = sizeof(struct audit_dispatcher_header);
-		vec[1].iov_base = &e->data;
+		vec[1].iov_base = e->data;
 		vec[1].iov_len = MAX_AUDIT_MESSAGE_LENGTH;
 		do {
 			rc = writev(conn, vec, 2);

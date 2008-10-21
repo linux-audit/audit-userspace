@@ -405,7 +405,7 @@ int audit_rule_fieldpair(struct audit_rule *rule, const char *pair, int flags)
 			audit_archadded = 1;
 			break;
 		case AUDIT_FILETYPE:
-			if (flags != AUDIT_FILTER_EXIT || flags != AUDIT_FILTER_ENTRY)
+			if (flags != AUDIT_FILTER_EXIT && flags != AUDIT_FILTER_ENTRY)
 				return -17;
 			rule->values[rule->field_count] =
 				audit_name_to_ftype(v);
@@ -440,7 +440,7 @@ int audit_rule_fieldpair(struct audit_rule *rule, const char *pair, int flags)
 					return -13;
 			}
 			if (field == AUDIT_PPID && (flags != AUDIT_FILTER_EXIT
-				|| flags != AUDIT_FILTER_ENTRY))
+				&& flags != AUDIT_FILTER_ENTRY))
 				return -17;
 			
 			if (flags == AUDIT_FILTER_EXCLUDE)

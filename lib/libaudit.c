@@ -665,6 +665,7 @@ int audit_make_equivalent(int fd, const char *mount_point,
 		audit_msg(audit_priority(errno),
 			"Error sending make_equivalent command (%s)",
 			strerror(-rc));
+	free(cmd);
 	return rc;
 }
 
@@ -846,7 +847,6 @@ int audit_rule_fieldpair_data(struct audit_rule_data **rulep, const char *pair,
 		case AUDIT_SUID:
 		case AUDIT_FSUID:
 		case AUDIT_LOGINUID:
-			vlen = strlen(v);
 			if (isdigit((char)*(v))) 
 				rule->values[rule->field_count] = 
 					strtol(v, NULL, 0);
@@ -919,6 +919,9 @@ int audit_rule_fieldpair_data(struct audit_rule_data **rulep, const char *pair,
 			 * but exit */
 			if (flags != AUDIT_FILTER_EXIT)
 				return -7;
+			if (field == AUDIT_WATCH || field == AUDIT_DIR)
+				audit_permadded = 1;
+
 			/* fallthrough */
 		case AUDIT_SUBJ_USER:
 		case AUDIT_SUBJ_ROLE:
@@ -946,9 +949,6 @@ int audit_rule_fieldpair_data(struct audit_rule_data **rulep, const char *pair,
 				rule = *rulep;
 			}
 			strncpy(&rule->buf[offset], v, vlen);
-
-			if(flags && (AUDIT_WATCH || AUDIT_DIR))
-				audit_permadded = 1;
 
 			break;
 		case AUDIT_ARCH:
@@ -1075,11 +1075,11 @@ int audit_rule_fieldpair_data(struct audit_rule_data **rulep, const char *pair,
 			}
 			break;
 		case AUDIT_FILETYPE:
-			if (flags != AUDIT_FILTER_EXIT || flags != AUDIT_FILTER_ENTRY)
+			if (flags != AUDIT_FILTER_EXIT && flags != AUDIT_FILTER_ENTRY)
 				return -17;
 			rule->values[rule->field_count] = 
 				audit_name_to_ftype(v);
-			if (rule->values[rule->field_count] < 0) {
+			if ((int)rule->values[rule->field_count] < 0) {
 				return -16;
 			}
 			break;
@@ -1094,8 +1094,8 @@ int audit_rule_fieldpair_data(struct audit_rule_data **rulep, const char *pair,
 					return -13;
 			}
 
-			if (field == AUDIT_PPID && (flags != AUDIT_FILTER_EXIT 
-				|| flags != AUDIT_FILTER_ENTRY))
+			if (field == AUDIT_PPID && flags != AUDIT_FILTER_EXIT 
+				&& flags != AUDIT_FILTER_ENTRY)
 				return -17;
 			
 			if (flags == AUDIT_FILTER_EXCLUDE)

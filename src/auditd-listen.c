@@ -599,7 +599,7 @@ more_messages:
 		}
 	} else
 #endif
-	if (AUDIT_RMW_IS_MAGIC (io->buffer, io->bufptr+r)) {
+	if (AUDIT_RMW_IS_MAGIC (io->buffer, (io->bufptr+r))) {
 		uint32_t type, len, seq;
 		int hver, mver;
 		unsigned char *header = (unsigned char *)io->buffer;

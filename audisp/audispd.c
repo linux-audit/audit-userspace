@@ -466,7 +466,7 @@ static int write_to_plugin(event_t *e, lnode *conf)
 	vec[0].iov_base = &e->hdr;
 	vec[0].iov_len = sizeof(struct audit_dispatcher_header);
 
-	vec[1].iov_base = &e->data;
+	vec[1].iov_base = e->data;
 	vec[1].iov_len = MAX_AUDIT_MESSAGE_LENGTH;
 	do {
 		rc = writev(conf->p->plug_pipe[1], vec, 2);

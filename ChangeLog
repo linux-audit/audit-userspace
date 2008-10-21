@@ -14,6 +14,7 @@
 - Add --exit search option to ausearch
 - Delete root user tests in auparse/test dir
 - Improve performance of ausearch/report and drop dead code
+- More code cleanups
 
 1.7.7
 - Bug fixes for gss code in remote logging (DJ Delorie)
