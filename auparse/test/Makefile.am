@@ -21,7 +21,6 @@
 #
 
 CONFIG_CLEAN_FILES = *.loT *.rej *.orig *.cur
-DISTCLEANFILES = test*.log
 AUTOMAKE_OPTIONS = no-dependencies
 check_PROGRAMS = auparse_test 
 dist_check_SCRIPTS = auparse_test.py
@@ -37,7 +36,9 @@ auparse_test_LDADD = -L${top_builddir}/auparse/.libs \
 drop_srcdir = sed 's,$(srcdir)/test,test,'
 
 check: auparse_test
-	- cp $(top_srcdir)/auparse/test/test*.log .
+	test "$(top_srcdir)" = "$(top_builddir)" || \
+			cp $(top_srcdir)/auparse/test/test*.log .
+	LC_ALL=C \
 	./auparse_test > auparse_test.cur
 	diff -u $(top_srcdir)/auparse/test/auparse_test.ref auparse_test.cur
 	PYTHONPATH=${top_builddir}/bindings/python/.libs/:${top_builddir}/swig:${top_builddir}/swig/.libs \
@@ -73,4 +74,5 @@ pymemcheck: auparse_test.py ${top_builddir}/bindings/python/build/*/auparse.so
 ${top_builddir}/bindings/python/build/*/auparse.so: ${top_srcdir}/bindings/python/auparse_python.c
 	cd ${top_builddir}/bindings/python && make
 clean-generic:
-	rm -f *.cur
+	$(RM) *.cur
+	test "$(top_srcdir)" = "$(top_builddir)" || $(RM) test*.log
