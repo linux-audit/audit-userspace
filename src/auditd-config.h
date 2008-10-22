@@ -75,11 +75,9 @@ struct daemon_conf
 	unsigned long tcp_client_min_port;
 	unsigned long tcp_client_max_port;
 	unsigned long tcp_client_max_idle;
-#ifdef USE_GSSAPI
 	int enable_krb5;
 	const char *krb5_principal;
 	const char *krb5_key_file;
-#endif
 };
 
 void set_allow_links(int allow);

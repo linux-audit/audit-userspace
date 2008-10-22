@@ -113,14 +113,12 @@ static int tcp_client_ports_parser(struct nv_pair *nv, int line,
 		struct daemon_conf *config);
 static int tcp_client_max_idle_parser(struct nv_pair *nv, int line,
 		struct daemon_conf *config);
-#ifdef USE_GSSAPI
 static int enable_krb5_parser(struct nv_pair *nv, int line,
 		struct daemon_conf *config);
 static int krb5_principal_parser(struct nv_pair *nv, int line,
 		struct daemon_conf *config);
 static int krb5_key_file_parser(struct nv_pair *nv, int line,
 		struct daemon_conf *config);
-#endif
 static int sanity_check(struct daemon_conf *config);
 
 static const struct kw_pair keywords[] = 
@@ -149,11 +147,9 @@ static const struct kw_pair keywords[] =
   {"tcp_listen_queue",         tcp_listen_queue_parser,         0 },
   {"tcp_client_ports",         tcp_client_ports_parser,         0 },
   {"tcp_client_max_idle",      tcp_client_max_idle_parser,      0 },
-#ifdef USE_GSSAPI
-  {"enable_krb5",               enable_krb5_parser,               0 },
-  {"krb5_principal",            krb5_principal_parser,            0 },
-  {"krb5_key_file",             krb5_key_file_parser,             0 },
-#endif
+  {"enable_krb5",              enable_krb5_parser,              0 },
+  {"krb5_principal",           krb5_principal_parser,           0 },
+  {"krb5_key_file",            krb5_key_file_parser,            0 },
   { NULL,                      NULL }
 };
 
@@ -268,11 +264,9 @@ static void clear_config(struct daemon_conf *config)
 	config->tcp_client_min_port = 0;
 	config->tcp_client_max_port = TCP_PORT_MAX;
 	config->tcp_client_max_idle = 0;
-#ifdef USE_GSSAPI
 	config->enable_krb5 = 0;
 	config->krb5_principal = NULL;
 	config->krb5_key_file = NULL;
-#endif
 }
 
 static log_test_t log_test = TEST_AUDITD;
@@ -1369,7 +1363,6 @@ static int tcp_client_max_idle_parser(struct nv_pair *nv, int line,
 	return 0;
 }
 
-#ifdef USE_GSSAPI
 static int enable_krb5_parser(struct nv_pair *nv, int line,
 	struct daemon_conf *config)
 {
@@ -1378,6 +1371,12 @@ static int enable_krb5_parser(struct nv_pair *nv, int line,
 	audit_msg(LOG_DEBUG, "enable_krb5_parser called with: %s",
 		  nv->value);
 
+#ifndef USE_GSSAPI
+	audit_msg(LOG_NOTICE,
+		"GSSAPI support is not enabled, ignoring value at line %d",
+		line);
+	return 0;
+#else
 	for (i=0; enable_krb5_values[i].name != NULL; i++) {
 		if (strcasecmp(nv->value, enable_krb5_values[i].name) == 0) {
 			config->enable_krb5 = enable_krb5_values[i].option;
@@ -1386,6 +1385,7 @@ static int enable_krb5_parser(struct nv_pair *nv, int line,
 	}
 	audit_msg(LOG_ERR, "Option %s not found - line %d", nv->value, line);
 	return 1;
+#endif
 }
 
 static int krb5_principal_parser(struct nv_pair *nv, int line,
@@ -1393,10 +1393,16 @@ static int krb5_principal_parser(struct nv_pair *nv, int line,
 {
 	const char *ptr = nv->value;
 
-	audit_msg(LOG_DEBUG, "krb5_principal_parser called with: %s", nv->value);
-
+	audit_msg(LOG_DEBUG,"krb5_principal_parser called with: %s",nv->value);
+#ifndef USE_GSSAPI
+	audit_msg(LOG_NOTICE,
+		"GSSAPI support is not enabled, ignoring value at line %d",
+		line);
+	return 0;
+#else
 	config->krb5_principal = strdup(ptr);
 	return 0;
+#endif
 }
 
 static int krb5_key_file_parser(struct nv_pair *nv, int line,
@@ -1405,11 +1411,16 @@ static int krb5_key_file_parser(struct nv_pair *nv, int line,
 	const char *ptr = nv->value;
 
 	audit_msg(LOG_DEBUG, "krb5_key_file_parser called with: %s", nv->value);
-
+#ifndef USE_GSSAPI
+	audit_msg(LOG_NOTICE,
+		"GSSAPI support is not enabled, ignoring value at line %d",
+		line);
+	return 0;
+#else
 	config->krb5_key_file = strdup(ptr);
 	return 0;
-}
 #endif
+}
 
 /*
  * This function is where we do the integrated check of the audit config
@@ -1472,6 +1483,8 @@ void free_config(struct daemon_conf *config)
         free((void *)config->admin_space_left_exe);
         free((void *)config->disk_full_exe);
         free((void *)config->disk_error_exe);
+        free((void *)config->krb5_principal);
+        free((void *)config->krb5_key_file);
 }
 
 int resolve_node(struct daemon_conf *config)
