@@ -16,6 +16,7 @@
 - Improve performance of ausearch/report and drop dead code
 - More code cleanups
 - Fix parsing config file when kerberos is disabled
+- Add new kernel capability event record types
 
 1.7.7
 - Bug fixes for gss code in remote logging (DJ Delorie)

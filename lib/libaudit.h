@@ -1,5 +1,5 @@
 /* libaudit.h -- 
- * Copyright 2004-2007 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2004-2008 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -116,6 +116,14 @@ extern "C" {
 #endif
 #ifndef AUDIT_EOE
 #define AUDIT_EOE		1320	/* End of event */
+#endif
+
+#ifndef AUDIT_BPRM_FCAPS
+#define AUDIT_BPRM_FCAPS	1321	/* file caps increasing perms */
+#endif
+
+#ifndef AUDIT_CAPSET
+#define AUDIT_CAPSET		1322	/* Capability syscall structures */
 #endif
 
 #define AUDIT_FIRST_SELINUX	1400
