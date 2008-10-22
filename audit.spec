@@ -4,7 +4,7 @@
 
 Summary: User space tools for 2.6 kernel auditing
 Name: audit
-Version: 1.7.8
+Version: 1.7.9
 Release: 1
 License: GPLv2+
 Group: System Environment/Daemons
@@ -88,7 +88,7 @@ A graphical utility for editing audit configuration.
 %setup -q
 
 %build
-%configure --sbindir=/sbin --libdir=/%{_lib} --with-prelude --with-libwrap --enable-gssapi-krb5
+%configure --sbindir=/sbin --libdir=/%{_lib} --with-prelude --with-libwrap --enable-gssapi-krb5=yes
 make %{?_smp_mflags}
 
 %install
@@ -271,7 +271,17 @@ fi
 %config(noreplace) %{_sysconfdir}/security/console.apps/system-config-audit-server
 
 %changelog
-* Wed Sep 11 2008 Steve Grubb <sgrubb@redhat.com> 1.7.8-1
+* Wed Oct 22 2008 Steve Grubb <sgrubb@redhat.com> 1.7.9-1
+
+* Wed Oct 22 2008 Steve Grubb <sgrubb@redhat.com> 1.7.8-1
+- Interpret TTY audit data in auparse (Miloslav Trmač)
+- Extract terminal from USER_AVC events for ausearch/report (Peng Haitao)
+- Add USER_AVCs to aureport's avc reporting (Peng Haitao)
+- Short circuit hostname resolution in libaudit if host is empty
+- If log_group and user are not root, don't check dispatcher perms
+- Fix a bug when executing "ausearch -te today PM"
+- Add --exit search option to ausearch
+- Fix parsing config file when kerberos is disabled
 
 * Wed Sep 11 2008 Steve Grubb <sgrubb@redhat.com> 1.7.7-1
 - Bug fixes for gss code in remote logging (DJ Delorie)
