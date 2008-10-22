@@ -1,12 +1,12 @@
 Things that need to be done:
 ===========================
-1.7.8
+1.7.9
 * Fix ausearch to handle out of order messages
 * Fix auparse to handle out of order messages
-
-1.7.9
 * add definitions for kernel virt events
 * Create aulast command
+
+1.8
 * auditctl needs to be able to take file names with spaces in rule files
 * add definitions for crypto events
 * Look at gssapi support being done via dlopen()
