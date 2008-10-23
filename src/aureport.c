@@ -105,6 +105,8 @@ int main(int argc, char *argv[])
 		config.admin_space_left_exe = NULL;
 		config.disk_full_exe = NULL;
 		config.disk_error_exe = NULL;
+		config.krb5_principal = NULL;
+		config.krb5_key_file = NULL;
 	}
 		
 	print_title();
