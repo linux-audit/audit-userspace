@@ -1372,7 +1372,7 @@ static int enable_krb5_parser(struct nv_pair *nv, int line,
 		  nv->value);
 
 #ifndef USE_GSSAPI
-	audit_msg(LOG_NOTICE,
+	audit_msg(LOG_DEBUG,
 		"GSSAPI support is not enabled, ignoring value at line %d",
 		line);
 	return 0;
@@ -1395,7 +1395,7 @@ static int krb5_principal_parser(struct nv_pair *nv, int line,
 
 	audit_msg(LOG_DEBUG,"krb5_principal_parser called with: %s",nv->value);
 #ifndef USE_GSSAPI
-	audit_msg(LOG_NOTICE,
+	audit_msg(LOG_DEBUG,
 		"GSSAPI support is not enabled, ignoring value at line %d",
 		line);
 	return 0;
@@ -1412,7 +1412,7 @@ static int krb5_key_file_parser(struct nv_pair *nv, int line,
 
 	audit_msg(LOG_DEBUG, "krb5_key_file_parser called with: %s", nv->value);
 #ifndef USE_GSSAPI
-	audit_msg(LOG_NOTICE,
+	audit_msg(LOG_DEBUG,
 		"GSSAPI support is not enabled, ignoring value at line %d",
 		line);
 	return 0;
