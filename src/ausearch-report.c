@@ -63,7 +63,7 @@ static void output_interpreted_node(const lnode *n);
 static void interpret(char *name, char *val, int comma, int rtype);
 
 /* The machine based on elf type */
-static int machine = 0;
+static int machine = -1;
 
 /* The first syscall argument */
 static unsigned long long a0;
@@ -424,7 +424,7 @@ static void print_syscall(const char *val)
 	const char *sys;
 	int ival;
 
-	if (machine <= 0) 
+	if (machine < 0) 
 		machine = audit_detect_machine();
 	if (machine < 0) {
 		printf("%s ", val);

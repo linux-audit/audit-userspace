@@ -1,6 +1,7 @@
 1.7.9
 - Fix uninitialized variable in aureport causing segfault
 - Quieten down the gssapi not supported messages
+- Fix bug interpretting i386 logs on x86_64 machines
 
 1.7.8
 - Fix strict aliasing compiler warnings
