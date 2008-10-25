@@ -664,7 +664,7 @@ int main(int argc, char *argv[])
 	tell_parent(SUCCESS);
 
 	/* Depending on value of opt_startup (-s) set initial audit state */
-	if (opt_startup != startup_nochange &&
+	if ((audit_is_enabled(fd) < 2) && opt_startup != startup_nochange &&
 	    audit_set_enabled(fd, (int)opt_startup) < 0) {
 		char emsg[DEFAULT_BUF_SZ];
 		if (*subj)

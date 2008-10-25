@@ -2,6 +2,7 @@
 - Fix uninitialized variable in aureport causing segfault
 - Quieten down the gssapi not supported messages
 - Fix bug interpretting i386 logs on x86_64 machines
+- If kernel is in immutable mode, auditd should not send enable command
 
 1.7.8
 - Fix strict aliasing compiler warnings
