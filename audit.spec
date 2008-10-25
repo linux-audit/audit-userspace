@@ -80,6 +80,7 @@ License: GPLv2+
 Group: Applications/System
 BuildRequires: desktop-file-utils
 Requires: pygtk2-libglade usermode usermode-gtk
+Requires: %{name}-libs = %{version}-%{release}
 
 %description -n system-config-audit
 A graphical utility for editing audit configuration.

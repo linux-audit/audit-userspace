@@ -1,6 +1,8 @@
 Things that need to be done:
 ===========================
 1.7.9
+* Add some controls for audispd child restart to prevent tight looping
+* Review audisp-prelude CFLAGS
 * Fix ausearch to handle out of order messages
 * Fix auparse to handle out of order messages
 * add definitions for kernel virt events
