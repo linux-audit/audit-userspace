@@ -3,6 +3,7 @@
 - Quieten down the gssapi not supported messages
 - Fix bug interpretting i386 logs on x86_64 machines
 - If kernel is in immutable mode, auditd should not send enable command
+- Fix ausearch/report recent and now time keyword lookups
 
 1.7.8
 - Fix strict aliasing compiler warnings

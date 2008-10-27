@@ -282,7 +282,7 @@ int ausearch_time_start(const char *da, const char *ti)
 		} else {
 			int keyword=lookup_time(da);
 			if (keyword == T_RECENT || keyword == T_NOW) {
-				if (ti == NULL)
+				if (ti == NULL || strcmp(ti, "00:00:00") == 0)
 					goto set_it;
 			}
 		}
@@ -317,6 +317,7 @@ int ausearch_time_start(const char *da, const char *ti)
 		return -1;
 	}
 set_it:
+	// printf("start is: %s\n", ctime(&start_time));
 	start_time = mktime(&d);
 	if (start_time == -1) {
 		fprintf(stderr, "Error converting start time\n");
@@ -352,13 +353,13 @@ int ausearch_time_end(const char *da, const char *ti)
 		} else {
 			int keyword=lookup_time(da);
 			if (keyword == T_RECENT || keyword == T_NOW) {
-				if (ti == NULL)
+				if (ti == NULL || strcmp(ti, "00:00:00") == 0)
 					goto set_it;
 			}
 			// Special case today
 			if (keyword == T_TODAY) {
 				set_tm_now(&d);
-				if (ti == NULL)
+				if (ti == NULL || strcmp(ti, "00:00:00") == 0)
 					goto set_it;
 			}
 		}
@@ -400,6 +401,7 @@ int ausearch_time_end(const char *da, const char *ti)
 		return -1;
 	}
 set_it:
+	// printf("end is: %s\n", ctime(&end_time));
 	end_time = mktime(&d);
 	if (end_time == -1) {
 		fprintf(stderr, "Error converting end time\n");
