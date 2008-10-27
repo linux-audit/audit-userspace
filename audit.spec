@@ -1,11 +1,13 @@
+%define audit_version 1.7.9
+%define audit_release 1
 %define sca_version 0.4.8
 %define sca_release 1
 %{!?python_sitelib: %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
 
 Summary: User space tools for 2.6 kernel auditing
 Name: audit
-Version: 1.7.9
-Release: 1
+Version: %{audit_version}
+Release: %{audit_release}
 License: GPLv2+
 Group: System Environment/Daemons
 URL: http://people.redhat.com/sgrubb/audit/
@@ -80,7 +82,7 @@ License: GPLv2+
 Group: Applications/System
 BuildRequires: desktop-file-utils
 Requires: pygtk2-libglade usermode usermode-gtk
-Requires: %{name}-libs = %{version}-%{release}
+Requires: %{name}-libs = %{audit_version}-%{audit_release}
 
 %description -n system-config-audit
 A graphical utility for editing audit configuration.
@@ -145,25 +147,6 @@ rm -rf $RPM_BUILD_ROOT
 
 %post
 /sbin/chkconfig --add auditd
-# This is to migrate users from audit-1.0.x installations
-if [ -f /etc/auditd.conf ]; then
-   mv /etc/auditd.conf /etc/audit/auditd.conf
-fi
-if [ -f /etc/audit.rules ]; then
-   mv /etc/audit.rules /etc/audit/audit.rules
-fi
-# This is to enable the dispatcher option which was commented out
-if [ -f /etc/audit/auditd.conf ]; then
-   grep '^dispatcher' /etc/audit/auditd.conf >/dev/null
-   if [ $? -eq 1 ] ; then
-      tmp=`mktemp /etc/audit/auditd-post.XXXXXX`
-      if [ -n $tmp ]; then
-         sed 's|^#dispatcher|dispatcher|g' /etc/audit/auditd.conf > $tmp && \
-         cat $tmp > /etc/audit/auditd.conf
-         rm -f $tmp
-      fi
-   fi
-fi
 
 %preun
 if [ $1 -eq 0 ]; then
