@@ -2,7 +2,6 @@ Things that need to be done:
 ===========================
 1.7.9
 * Fix aureport main page for hits vs count, --summary
-* Add src/test dir and create test for ilist sorting
 * Create aulast command
 * Review audisp-prelude CFLAGS
 * Fix ausearch to handle out of order messages

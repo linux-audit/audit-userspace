@@ -22,6 +22,7 @@
 
 CONFIG_CLEAN_FILES = *.rej *.orig
 AUTOMAKE_OPTIONS = no-dependencies
+SUBDIRS = test
 INCLUDES = -I${top_srcdir} -I${top_srcdir}/lib -I${top_srcdir}/src/libev
 sbin_PROGRAMS = auditd auditctl aureport ausearch autrace
 LIBS = -Lmt -lauditmt
