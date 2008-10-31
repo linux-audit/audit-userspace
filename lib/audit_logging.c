@@ -549,8 +549,8 @@ int audit_log_semanage_message(int audit_fd, int type, const char *pgname,
 		success = "failed";
 
 	/* If hostname is empty string, make it NULL ptr */
-	if (hostname && *hostname == 0)
-		hostname = NULL;
+	if (host && *host == 0)
+		host = NULL;
 	addrbuf[0] = 0;
 	if (addr == NULL || strlen(addr) == 0)
 		_resolve_addr(addrbuf, host);
