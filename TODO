@@ -1,12 +1,14 @@
 Things that need to be done:
 ===========================
 1.7.9
-* Add some controls for audispd child restart to prevent tight looping
+* Fix aureport main page for hits vs count, --summary
+* Add src/test dir and create test for ilist sorting
+* Create aulast command
 * Review audisp-prelude CFLAGS
 * Fix ausearch to handle out of order messages
 * Fix auparse to handle out of order messages
 * add definitions for kernel virt events
-* Create aulast command
+* Add some controls for audispd child restart to prevent tight looping
 
 1.8
 * auditctl needs to be able to take file names with spaces in rule files

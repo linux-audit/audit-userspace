@@ -240,6 +240,9 @@ int audit_log_user_message(int audit_fd, int type, const char *message,
 	else
 		success = "failed";
 
+	/* If hostname is empty string, make it NULL ptr */
+	if (hostname && *hostname == 0)
+		hostname = NULL;
 	addrbuf[0] = 0;
 	if (addr == NULL || strlen(addr) == 0)
 		_resolve_addr(addrbuf, hostname);
@@ -249,6 +252,8 @@ int audit_log_user_message(int audit_fd, int type, const char *message,
 	_get_exename(exename, sizeof(exename));
 	if (tty == NULL) 
 		tty = _get_tty(ttyname, TTY_PATH);
+	else if (*tty == 0)
+		tty = NULL;
 
 	snprintf(buf, sizeof(buf),
 		"%s: exe=%s (hostname=%s, addr=%s, terminal=%s res=%s)",
@@ -303,6 +308,9 @@ int audit_log_user_comm_message(int audit_fd, int type, const char *message,
 	else
 		success = "failed";
 
+	/* If hostname is empty string, make it NULL ptr */
+	if (hostname && *hostname == 0)
+		hostname = NULL;
 	addrbuf[0] = 0;
 	if (addr == NULL || strlen(addr) == 0)
 		_resolve_addr(addrbuf, hostname);
@@ -311,6 +319,8 @@ int audit_log_user_comm_message(int audit_fd, int type, const char *message,
 	_get_exename(exename, sizeof(exename));
 	if (tty == NULL) 
 		tty = _get_tty(ttyname, TTY_PATH);
+	else if (*tty == 0)
+		tty = NULL;
 
 	_get_commname(comm, commname, sizeof(commname));
 
@@ -370,6 +380,9 @@ int audit_log_acct_message(int audit_fd, int type, const char *pgname,
 	else
 		success = "failed";
 
+	/* If hostname is empty string, make it NULL ptr */
+	if (host && *host == 0)
+		host = NULL;
 	addrbuf[0] = 0;
 	if (addr == NULL || strlen(addr) == 0)
 		_resolve_addr(addrbuf, host);
@@ -382,6 +395,8 @@ int audit_log_acct_message(int audit_fd, int type, const char *pgname,
 	}
 	if (tty == NULL) 
 		tty = _get_tty(ttyname, TTY_PATH);
+	else if (*tty == 0)
+		tty = NULL;
 
 	if (name) {
 		char user[MAX_USER];
@@ -451,6 +466,9 @@ int audit_log_user_avc_message(int audit_fd, int type, const char *message,
 	if (audit_fd < 0)
 		return 0;
 
+	/* If hostname is empty string, make it NULL ptr */
+	if (hostname && *hostname == 0)
+		hostname = NULL;
 	addrbuf[0] = 0;
 	if (addr == NULL || strlen(addr) == 0)
 		_resolve_addr(addrbuf, hostname);
@@ -459,6 +477,8 @@ int audit_log_user_avc_message(int audit_fd, int type, const char *message,
 	_get_exename(exename, sizeof(exename));
 	if (tty == NULL) 
 		tty = _get_tty(ttyname, TTY_PATH);
+	else if (*tty == 0)
+		tty = NULL;
 
 	snprintf(buf, sizeof(buf),
 	    "%s: exe=%s (sauid=%d, hostname=%s, addr=%s, terminal=%s)",
@@ -528,6 +548,9 @@ int audit_log_semanage_message(int audit_fd, int type, const char *pgname,
 	else
 		success = "failed";
 
+	/* If hostname is empty string, make it NULL ptr */
+	if (hostname && *hostname == 0)
+		hostname = NULL;
 	addrbuf[0] = 0;
 	if (addr == NULL || strlen(addr) == 0)
 		_resolve_addr(addrbuf, host);
@@ -540,6 +563,8 @@ int audit_log_semanage_message(int audit_fd, int type, const char *pgname,
 	}
 	if (tty == NULL || strlen(tty) == 0) 
 		tty = _get_tty(ttyname, TTY_PATH);
+	else if (*tty == 0)
+		tty = NULL;
 
 	if (name && strlen(name) > 0) {
 		size_t len;
@@ -629,6 +654,8 @@ int audit_log_user_command(int audit_fd, int type, const char *command,
 
 	if (tty == NULL) 
 		tty = _get_tty(ttyname, TTY_PATH);
+	else if (*tty == 0)
+		tty = NULL;
 
 	/* Trim leading spaces */
 	while (*command == ' ')
