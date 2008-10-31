@@ -95,16 +95,25 @@ int ilist_add_if_uniq(ilist *l, int num, int aux)
 			prev = cur;
 			cur = cur->next;
 		} else {
+			int head = 0;
+
 			// Insert so list is from low to high
-			if (prev == l->head)
+			if (cur == l->head) {
 				l->head = NULL;
-			else
+				head = 1;
+			} else
 				l->cur = prev;
 			ilist_append(l, num, 1, aux);
-			l->cur->next = cur;
+			if (head)
+				l->cur->next = prev;
+			else
+				l->cur->next = cur;
 			return 1;
 		}
 	}
+
+	if (prev)
+		l->cur = prev;
 
 	/* No matches, append to the end */
 	ilist_append(l, num, 1, aux);

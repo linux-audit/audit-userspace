@@ -25,8 +25,6 @@
 #define AUINT_HEADER
 
 #include "config.h"
-#include <sys/types.h>
-#include "libaudit.h"
 
 /* This is the node of the linked list. Number & item are the only elements
  * at this time. Any data elements that are per item goes here. */
