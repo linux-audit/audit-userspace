@@ -6,6 +6,7 @@
 - Fix ausearch/report recent and now time keyword lookups
 - If hostname is empty string when logging, make it NULL
 - Starting adding unit tests to src/test
+- Created aulast program
 
 1.7.8
 - Fix strict aliasing compiler warnings

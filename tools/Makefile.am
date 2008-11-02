@@ -22,5 +22,5 @@
 
 CONFIG_CLEAN_FILES = *.loT *.rej *.orig
 
-SUBDIRS = aulastlog ausyscall
+SUBDIRS = aulast aulastlog ausyscall
 

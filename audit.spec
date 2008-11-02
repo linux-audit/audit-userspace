@@ -195,6 +195,7 @@ fi
 %attr(644,root,root) %{_mandir}/man8/aureport.8.gz
 %attr(644,root,root) %{_mandir}/man8/ausearch.8.gz
 %attr(644,root,root) %{_mandir}/man8/autrace.8.gz
+%attr(644,root,root) %{_mandir}/man8/aulast.8.gz
 %attr(644,root,root) %{_mandir}/man8/aulastlog.8.gz
 %attr(644,root,root) %{_mandir}/man8/ausyscall.8.gz
 %attr(644,root,root) %{_mandir}/man5/auditd.conf.5.gz
@@ -206,6 +207,7 @@ fi
 %attr(755,root,root) /sbin/aureport
 %attr(750,root,root) /sbin/autrace
 %attr(750,root,root) /sbin/audispd
+%attr(750,root,root) %{_bindir}/aulast
 %attr(750,root,root) %{_bindir}/aulastlog
 %attr(755,root,root) %{_bindir}/ausyscall
 %attr(755,root,root) /etc/rc.d/init.d/auditd

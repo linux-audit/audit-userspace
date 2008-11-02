@@ -1,8 +1,10 @@
 Things that need to be done:
 ===========================
 1.7.9
+* Fix user & tty support in aulast
+* add system_start, system_shutdown, system_runlevel audit events
+* prelude plugin should pull loginfo for login alert from 2nd uid field
 * Fix aureport main page for hits vs count, --summary
-* Create aulast command
 * Review audisp-prelude CFLAGS
 * Fix ausearch to handle out of order messages
 * Fix auparse to handle out of order messages
