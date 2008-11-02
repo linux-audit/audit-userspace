@@ -134,11 +134,19 @@ lnode *list_delete_cur(llist *l)
        	prev = cur = l->head;	/* start at the beginning */
 	while (cur) {
 		if (cur == l->cur) {
-			prev->next = cur->next;
-			free(cur->host);
-			free(cur->term);
-			free(cur);
-			l->cur = prev;
+			if (cur == l->head && l->head->next == NULL) {
+				l->head = NULL;
+				l->cur = NULL;
+				free(cur->host);
+				free(cur->term);
+				free(cur);
+			} else {
+				prev->next = cur->next;
+				free(cur->host);
+				free(cur->term);
+				free(cur);
+				l->cur = prev;
+			}
 			return prev;
 		} else {
 			prev = cur;

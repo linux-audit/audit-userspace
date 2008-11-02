@@ -32,7 +32,7 @@
 
 static	llist l;
 /* command line params */
-static int cuid = -1;
+static int cuid = -1, bad = 0;
 static char *cterm = NULL;
 
 void usage(void)
@@ -45,7 +45,10 @@ static void report_session(lnode* cur)
 	struct passwd *p;
 
 	// Don't list failed logins
-	if (cur == NULL || cur->result)
+	if (cur == NULL)
+		return;
+
+	if (cur->result != bad)
 		return;
 
 	p = getpwuid(cur->auid);
@@ -122,6 +125,12 @@ static void create_new_session(auparse_state_t *au)
 		report_session(cur);
 		list_delete_cur(&l);
 	}
+
+	// If this is supposed to be limited to a specific
+	// uid and we don't have that record, skip creating it
+	if (cuid != -1 && cuid != auid)
+		return;
+
 	list_create_session(&l, auid, ses);
 }
 
@@ -166,6 +175,14 @@ static void update_session_login(auparse_state_t *au)
 	// See if this session is already open
 	cur = list_find_auid(&l, uid, ses);
 	if (cur) {
+		// If we are limited to a specific terminal and
+		// we find out the session is not associated with
+		// the terminal of interest, delete the current node
+		if (cterm && strstr(term, cterm) == NULL) {
+			list_delete_cur(&l);
+			return;
+		}
+
 		// This means we have an open session close it out
 		list_update_start(&l, start, host, term, result);
 
@@ -174,8 +191,6 @@ static void update_session_login(auparse_state_t *au)
 			report_session(cur);
 			list_delete_cur(&l);
 		} 
-	} else {
-		// We got no hit? Should we make one?
 	}
 }
 
@@ -211,6 +226,7 @@ static void update_session_logout(auparse_state_t *au)
 		report_session(cur);
 		list_delete_cur(&l);
 	}
+	// Else this must a cron or su session rather than a login
 }
 
 int main(int argc, char *argv[])
@@ -242,6 +258,8 @@ int main(int argc, char *argv[])
 			if (strcmp(argv[i], "-f") == 0) {
 				i++;
 				file = argv[i];
+			} else if (strcmp(argv[i], "--bad") == 0) {
+				bad = 1;
 			} else {
 				usage();
 				return 1;
