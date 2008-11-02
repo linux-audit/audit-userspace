@@ -1,0 +1,20 @@
+.TH AULAST: "8" "Nov 2008" "Red Hat" "System Administration Utilities"
+.SH NAME
+aulast \- a program similar to last
+.SH SYNOPSIS
+.B aulast [ -f file ] [ user ] [ tty ]
+.SH DESCRIPTION
+\fBaulast\fP is a program that prints out a listing of the last logged in users similarly to the program \fBlast\fP. Aulast searches back through the audit logs or the given audit log file and displays a list of all users logged in (and out) based on the range of time in the audit logs. Names of users and tty’s can be given, in which case aulast will show only those entries matching the arguments. Names of ttys can be abbreviated, thus aulast 0 is the same as last tty0.
+
+.SH OPTIONS
+.TP
+.B \-f file
+Use the file instead of the audit logs for input.
+
+.SH "SEE ALSO"
+.BR last (1),
+.BR ausearch (8),
+.BR aureport (8).
+
+.SH AUTHOR
+Steve Grubb
