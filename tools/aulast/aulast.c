@@ -78,13 +78,13 @@ static void report_session(lnode* cur)
 				printf("  still logged in\n");
 				break;
 			case DOWN:
-				printf(" - down ");
+				printf("- down\n");
 				break;
 			case CRASH:
-				printf(" - crash");
+				printf("- crash\n");
 				break;
 			case GONE:
-				printf("  gone - no logout");
+				printf("  gone - no logout\n");
 				break;
 			default:
 				break;
@@ -239,6 +239,34 @@ static void update_session_logout(auparse_state_t *au)
 	// Else this must a cron or su session rather than a login
 }
 
+static void process_bootup(auparse_state_t *au)
+{
+	lnode *cur;
+
+	//FIXME: 1) record start up time
+	// 2) check to see if we've got an unclosed bootup
+	// 	if so, emit a crash record
+	// 3) if we are booting up...logout the leftovers
+	list_first(&l);
+	cur = list_get_cur(&l);
+	while(cur) {
+		cur->status = DOWN;
+		report_session(cur);
+		cur = list_next(&l);
+	}
+	list_clear(&l);
+	list_create(&l);
+}
+
+static void process_shutdown(auparse_state_t *au)
+{
+	lnode *cur;
+
+	// FIXME: when boot events are final, 1) do uptime accounting
+	// 2) close out boot time
+
+}
+
 int main(int argc, char *argv[])
 {
 	int i, use_stdin = 0;
@@ -329,6 +357,12 @@ int main(int argc, char *argv[])
 				break;
 			case AUDIT_USER_END:
 				update_session_logout(au);
+				break;
+			case AUDIT_SYSTEM_BOOT:
+				process_bootup(au);
+				break;
+			case AUDIT_SYSTEM_SHUTDOWN:
+				process_shutdown(au);
 				break;
 		}
 	}

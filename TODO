@@ -19,16 +19,16 @@ Things that need to be done:
 * Should session number go into logins and AVCs for prelude?
 
 2.0
+* Get rid of () from user space audit events
+* Switch auditctl over to use only new rule structs
+* Remove all old rule structs
+* Bump soname number ???
 * Look at pulling audispd into auditd
 * Consider adding node/machine name to records going to rt interface in daemon    as protocol version 2.
 * Update prelude detections to send anomaly events
 * Look at adding the direction read/write to file report (threat modelling)
-* Submit patch for runlevel change
 * Add basic responses to prelude plugin
 * Changes in uid/gid, failed changes in credentials in aureport
-* Switch auditctl over to use only new rule structs
-* Remove all old rule structs
-* Bump soname number ???
 * aureport get specific reports working
 * Add keywords for time: last-boot, last-load, last-relabel.
 * auditctl session id, pgid
