@@ -391,7 +391,14 @@ static int get_loginuid_info(auparse_state_t *au, idmef_user_id_t *user_id)
 		auid = auparse_find_field(au, "sauid");
 		if (auid == NULL) {
 			goto_record_type(au, type);
-			auid = auparse_find_field(au, "auid");
+			if (type == AUDIT_USER_LOGIN) {
+				// login programs write auid at second uid
+				auparse_find_field(au, "uid");
+				auparse_next_field(au);
+				auid = auparse_find_field(au, "uid");
+			} else {
+				auid = auparse_find_field(au, "auid");
+			}
 		}
 	}
 	if (auid) {

@@ -7,6 +7,7 @@
 - If hostname is empty string when logging, make it NULL
 - Starting adding unit tests to src/test
 - Created aulast program
+- prelude plugin should pull auid for login alert from 2nd uid field
 
 1.7.8
 - Fix strict aliasing compiler warnings
