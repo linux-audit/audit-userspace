@@ -8,6 +8,7 @@
 - Starting adding unit tests to src/test
 - Created aulast program
 - prelude plugin should pull auid for login alert from 2nd uid field
+- Add system boot, shutdown, and run level change events
 
 1.7.8
 - Fix strict aliasing compiler warnings

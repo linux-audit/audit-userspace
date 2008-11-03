@@ -84,6 +84,9 @@ extern "C" {
 #define AUDIT_USER_TTY		1124	/* Non-ICANON TTY input meaning */
 #define AUDIT_CHUSER_ID		1125	/* Changed user ID supplemental data */
 #define AUDIT_GRP_AUTH		1126	/* Authentication for group password */
+#define AUDIT_SYSTEM_BOOT	1127	/* System boot */
+#define AUDIT_SYSTEM_SHUTDOWN	1128	/* System shutdown */
+#define AUDIT_SYSTEM_RUNLEVEL	1129	/* System runlevel change */
 
 #define AUDIT_FIRST_DAEMON	1200
 #define AUDIT_LAST_DAEMON	1299
