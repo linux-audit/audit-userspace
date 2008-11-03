@@ -35,8 +35,9 @@ noinst_HEADERS = prelude-config.h audisp-int.h
 dist_man_MANS = audisp-prelude.8 audisp-prelude.conf.5
 
 audisp_prelude_SOURCES = audisp-prelude.c prelude-config.c audisp-int.c
-audisp_prelude_CFLAGS = -fPIE -DPIE -g -D_REENTRANT -D_GNU_SOURCE -Wundef
-audisp_prelude_LDFLAGS = -pie -Wl,-z,relro
+audisp_prelude_CFLAGS = -fPIE -DPIE -g -D_REENTRANT -D_GNU_SOURCE -Wundef \
+	@LIBPRELUDE_CFLAGS@
+audisp_prelude_LDFLAGS = -pie -Wl,-z,relro @LIBPRELUDE_LDFLAGS@
 
 install-data-hook:
 	mkdir -p -m 0750 ${DESTDIR}${plugin_confdir}

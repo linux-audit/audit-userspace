@@ -147,7 +147,11 @@ else
       AC_CHECK_LIB(prelude, prelude_init,
                  have_prelude=yes, have_prelude=no)
       if test x$have_prelude = xno ; then
-            AC_MSG_ERROR([Prelude explicitly required and prelude library not found])
+        AC_MSG_ERROR([Prelude explicitly required and prelude library not found])
+      else
+	LIBPRELUDE_CFLAGS=`libprelude-config --pthread-cflags 2>/dev/null`
+	LIBPRELUDE_LDFLAGS=`libprelude-config --ldflags 2>/dev/null`
+
       fi
 fi
 AM_CONDITIONAL(HAVE_PRELUDE, test x$have_prelude = xyes)
@@ -194,6 +198,8 @@ if test x"$LIBWRAP_LIBS" != "x"; then
 fi
 AC_SUBST(LIBWRAP_LIBS)
 AC_SUBST(libev_LIBS)
+AC_SUBST(LIBPRELUDE_CFLAGS)
+AC_SUBST(LIBPRELUDE_LDFLAGS)
 
 AC_CONFIG_SUBDIRS([system-config-audit])
 AC_OUTPUT(Makefile lib/Makefile lib/test/Makefile auparse/Makefile auparse/test/Makefile src/Makefile src/mt/Makefile src/libev/Makefile src/test/Makefile swig/Makefile docs/Makefile init.d/Makefile audisp/Makefile audisp/plugins/Makefile audisp/plugins/builtins/Makefile audisp/plugins/prelude/Makefile audisp/plugins/remote/Makefile audisp/plugins/zos-remote/Makefile bindings/Makefile bindings/python/Makefile tools/Makefile tools/aulast/Makefile tools/aulastlog/Makefile tools/ausyscall/Makefile)

@@ -1,7 +1,6 @@
 Things that need to be done:
 ===========================
 1.7.9
-* Review audisp-prelude CFLAGS
 * Add some controls for audispd child restart to prevent tight looping
 * Add libaudit.m4 to make audit easier to include
 
