@@ -191,6 +191,16 @@ static void update_session_login(auparse_state_t *au)
 			report_session(cur);
 			list_delete_cur(&l);
 		} 
+	} else if (bad == 1 && result == 1) {
+		lnode n;
+		n.auid = uid;
+		n.start = start;
+		n.end = start;
+		n.host = host;
+		n.term = term;
+		n.result = result;
+		n.status = SESSION_START;
+		report_session(&n); 
 	}
 }
 
@@ -231,7 +241,7 @@ static void update_session_logout(auparse_state_t *au)
 
 int main(int argc, char *argv[])
 {
-	int i;
+	int i, use_stdin = 0;
 	char *user = NULL, *file = NULL;
 	struct passwd *p;
         auparse_state_t *au;
@@ -256,10 +266,22 @@ int main(int argc, char *argv[])
 			}
 		} else {
 			if (strcmp(argv[i], "-f") == 0) {
-				i++;
-				file = argv[i];
+				if (use_stdin == 0) {
+					i++;
+					file = argv[i];
+				} else {
+					fprintf(stderr,"stdin already given\n");
+					return 1;
+				}
 			} else if (strcmp(argv[i], "--bad") == 0) {
 				bad = 1;
+			} else if (strcmp(argv[i], "--stdin") == 0) {
+				if (file == NULL)
+					use_stdin = 1;
+				else {
+					fprintf(stderr, "file already given\n");
+					return 1;
+				}
 			} else {
 				usage();
 				return 1;
@@ -273,6 +295,8 @@ int main(int argc, char *argv[])
 	// Search for successful user logins
 	if (file)
 		au = auparse_init(AUSOURCE_FILE, file);
+	else if (use_stdin)
+		au = auparse_init(AUSOURCE_FILE_POINTER, stdin);
 	else
 		au = auparse_init(AUSOURCE_LOGS, NULL);
 	if (au == NULL) {

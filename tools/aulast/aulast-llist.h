@@ -36,8 +36,8 @@ typedef struct _lnode{
   time_t start;		// first time uid logged in
   time_t end;		// last time uid logged in
   uid_t auid;           // user ID
-  char *term;		// terminal name
-  char *host;		// host where logging in from
+  const char *term;	// terminal name
+  const char *host;	// host where logging in from
   int result;		// login results
   status_t status;	// Current status of this session
   unsigned int item;	// Which item of the same event

@@ -69,8 +69,8 @@ void list_clear(llist* l)
 	current = l->head;
 	while (current) {
 		nextnode=current->next;
-		free(current->host);
-		free(current->term);
+		free((void *)current->host);
+		free((void *)current->term);
 		free(current);
 		current=nextnode;
 	}
@@ -84,7 +84,6 @@ int list_create_session(llist *l, uid_t auid, int session)
 	lnode *n = malloc(sizeof(lnode));
 	if (n == NULL)
 		return 0;
-
 	n->session = session;
 	n->start = 0;
 	n->end = 0;
@@ -134,16 +133,16 @@ lnode *list_delete_cur(llist *l)
        	prev = cur = l->head;	/* start at the beginning */
 	while (cur) {
 		if (cur == l->cur) {
-			if (cur == l->head && l->head->next == NULL) {
-				l->head = NULL;
-				l->cur = NULL;
-				free(cur->host);
-				free(cur->term);
+			if (cur == prev && cur == l->head) {
+				l->head = cur->next;
+				l->cur = cur->next;
+				free((void *)cur->host);
+				free((void *)cur->term);
 				free(cur);
 			} else {
 				prev->next = cur->next;
-				free(cur->host);
-				free(cur->term);
+				free((void *)cur->host);
+				free((void *)cur->term);
 				free(cur);
 				l->cur = prev;
 			}
