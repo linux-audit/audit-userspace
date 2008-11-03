@@ -2,14 +2,17 @@ Things that need to be done:
 ===========================
 1.7.9
 * add system_start, system_shutdown, system_runlevel audit events
-* Fix aureport main page for hits vs count, --summary
 * Review audisp-prelude CFLAGS
+* Add some controls for audispd child restart to prevent tight looping
+* Add libaudit.m4 to make audit easier to include
+
+1.7.10
 * Fix ausearch to handle out of order messages
 * Fix auparse to handle out of order messages
 * add definitions for kernel virt events
-* Add some controls for audispd child restart to prevent tight looping
 
 1.8
+* Fix aureport main page for hits vs count, --summary
 * auditctl needs to be able to take file names with spaces in rule files
 * add definitions for crypto events
 * Look at gssapi support being done via dlopen()

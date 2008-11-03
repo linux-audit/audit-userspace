@@ -142,7 +142,12 @@ static char *_get_exename(char *exename, int size)
 		strcpy(exename, "\"?\"");
 		audit_msg(LOG_ERR, "get_exename: cannot determine executable");
 	} else {
+		int len;
+
 		tmp[res] = '\0';
+		len = strlen(tmp);
+		if (len < res)
+			res = len;
 		if (audit_value_needs_encoding(tmp, res))
 			return audit_encode_value(exename, tmp, res);
 		snprintf(exename, size, "\"%s\"", tmp);
