@@ -36,11 +36,11 @@ typedef struct _lnode{
   time_t start;		// first time uid logged in
   time_t end;		// last time uid logged in
   uid_t auid;           // user ID
+  const char *name;	// user name
   const char *term;	// terminal name
   const char *host;	// host where logging in from
   int result;		// login results
   status_t status;	// Current status of this session
-  unsigned int item;	// Which item of the same event
   struct _lnode* next;	// Next node pointer
 } lnode;
 
@@ -49,14 +49,12 @@ typedef struct _lnode{
 typedef struct {
   lnode *head;		// List head
   lnode *cur;		// Pointer to current node
-  unsigned int cnt;	// How many items in this list
 } llist;
 
 void list_create(llist *l);
 static inline void list_first(llist *l) { l->cur = l->head; }
 lnode *list_next(llist *l);
 static inline lnode *list_get_cur(llist *l) { return l->cur; }
-static inline unsigned int list_get_cnt(llist *l) { return l->cnt; }
 void list_clear(llist* l);
 int list_create_session(llist* l, uid_t auid, int session);
 int list_update_start(llist* l, time_t start, const char *host,

@@ -2,9 +2,13 @@
 .SH NAME
 aulast \- a program similar to last
 .SH SYNOPSIS
-.B aulast [ -f file ] [ --bad ] [ user ] [ tty ]
+.B aulast [ -f file ] [ --bad ] [ --stdin ] [ user ] [ tty ]
 .SH DESCRIPTION
 \fBaulast\fP is a program that prints out a listing of the last logged in users similarly to the program \fBlast\fP and \fBlastb\fP. Aulast searches back through the audit logs or the given audit log file and displays a list of all users logged in (and out) based on the range of time in the audit logs. Names of users and tty’s can be given, in which case aulast will show only those entries matching the arguments. Names of ttys can be abbreviated, thus aulast 0 is the same as last tty0.
+
+The pseudo user reboot logs in each time the system is rebooted. Thus last reboot will show a log of all reboots since the log file was created.
+
+The main difference that a user will notice is that \fBaulast\fP print events from oldest to newest, while \fBlast\fP prints records from newest to oldest. Also, the audit system is not notified each time a tty or pty is allocated, so you may not see quite as many records indicating users and their tty's.
 
 .SH OPTIONS
 .TP
@@ -14,6 +18,15 @@ Use the file instead of the audit logs for input.
 .TP
 .B \-\-bad
 Report on the bad logins.
+
+.TP
+.B \-\-stdin
+Take audit records from stdin.
+
+.SH "EXAMPLES"
+.nf
+To see this month's logins
+.B ausearch --start this-month --raw | aulast --stdin
 
 .SH "SEE ALSO"
 .BR last (1),

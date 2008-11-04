@@ -26,11 +26,14 @@
 #include <string.h>
 #include <errno.h>
 #include <pwd.h>
+#include <sys/utsname.h>
 #include "libaudit.h"
 #include "auparse.h"
 #include "aulast-llist.h"
 
+
 static	llist l;
+
 /* command line params */
 static int cuid = -1, bad = 0;
 static char *cterm = NULL;
@@ -40,9 +43,10 @@ void usage(void)
 	fprintf(stderr, "usage: aulast [-f file] [user name] [tty]\n");
 }
 
+/* This outputs a line of text reporting the login/out times */
 static void report_session(lnode* cur)
 {
-	struct passwd *p;
+	int notime = 0;
 
 	// Don't list failed logins
 	if (cur == NULL)
@@ -51,8 +55,17 @@ static void report_session(lnode* cur)
 	if (cur->result != bad)
 		return;
 
-	p = getpwuid(cur->auid);
-	printf("%-8.8s ", p->pw_name);
+	if (cur->name) {
+		// This is a reboot record
+		printf("%-8.8s ", cur->name);
+		if (cur->end == 0) {
+			cur->end = time(NULL);
+			notime = 1;
+		}
+	} else {
+		struct passwd *p = getpwuid(cur->auid);
+		printf("%-8.8s ", p->pw_name);
+	}
 	if (strncmp("/dev/", cur->term, 5) == 0)
 		printf("%-12.12s ", cur->term+5);
 	else
@@ -62,7 +75,10 @@ static void report_session(lnode* cur)
 	if (cur->end > 0) {
 		time_t secs;
 		int mins, hours, days;
-		printf("- %-7.5s", ctime(&cur->end) + 11);
+		if (notime)
+			printf("- %-7.5s", " ");
+		else
+			printf("- %-7.5s", ctime(&cur->end) + 11);
 		secs = cur->end - cur->start;
 		mins  = (secs / 60) % 60;
 		hours = (secs / 3600) % 24;
@@ -87,6 +103,7 @@ static void report_session(lnode* cur)
 				printf("  gone - no logout\n");
 				break;
 			default:
+				printf("\n");
 				break;
 		}
 	}
@@ -115,7 +132,6 @@ static void create_new_session(auparse_state_t *au)
 	// Check that they are valid
 	if (auid ==-1 || ses == -1)
 		return;
-	// printf("create: auid:%d, ses:%d\n", auid, ses);
 
 	// See if this session is already open
 	cur = list_find_auid(&l, auid, ses);
@@ -136,7 +152,7 @@ static void create_new_session(auparse_state_t *au)
 
 static void update_session_login(auparse_state_t *au)
 {
-	const char *tses, *tuid, *host, *term, *tres;
+	const char *tses, *tuid, *tacct, *host, *term, *tres;
 	int uid = -1, ses = -1, result = -1;
 	time_t start;
 	lnode *cur;
@@ -146,16 +162,23 @@ static void update_session_login(auparse_state_t *au)
 	if (tses)
 		ses = auparse_get_field_int(au);
 
-	// Get uid field
+	// Get second uid field - we should be positioned past the first one
 	tuid = auparse_find_field(au, "uid");
 	if (tuid)
 		uid = auparse_get_field_int(au);
+	else
+		auparse_first_record(au);
 
-	// Check that they are valid
-	if (uid ==-1 || ses == -1)
-		return;
-	// printf("login: auid:%d, ses:%d\n", uid, ses);
+	// We only get tacct when its a bad login
+	tacct = auparse_find_field(au, "acct");
+	if (tacct == NULL) {
+		// Check that they are valid
+		if (uid ==-1 || ses == -1) 
+			return;
+	} else
+		tacct = auparse_interpret_field(au);
 
+	auparse_first_record(au);
 	start = auparse_get_time(au);
 	host = auparse_find_field(au, "hostname");
 	if (host && strcmp(host, "?") == 0)
@@ -173,7 +196,10 @@ static void update_session_login(auparse_state_t *au)
 	}
 
 	// See if this session is already open
-	cur = list_find_auid(&l, uid, ses);
+	if (tacct == NULL)
+		cur = list_find_auid(&l, uid, ses);
+	else
+		cur = NULL;
 	if (cur) {
 		// If we are limited to a specific terminal and
 		// we find out the session is not associated with
@@ -183,19 +209,23 @@ static void update_session_login(auparse_state_t *au)
 			return;
 		}
 
-		// This means we have an open session close it out
+		// This means we have an open session - update it
 		list_update_start(&l, start, host, term, result);
 
-		// If the results were failed, I guess we can close it out
+		// If the results were failed, we can close it out
 		if (result) {
 			report_session(cur);
 			list_delete_cur(&l);
 		} 
 	} else if (bad == 1 && result == 1) {
+		// If it were a bad login and we are wanting bad logins
+		// create the record and report it.
 		lnode n;
+
 		n.auid = uid;
 		n.start = start;
 		n.end = start;
+		n.name = tacct;
 		n.host = host;
 		n.term = term;
 		n.result = result;
@@ -208,7 +238,6 @@ static void update_session_logout(auparse_state_t *au)
 {
 	const char *tses, *tauid;
 	int auid = -1, ses = -1;
-	time_t end;
 	lnode *cur;
 
 	// Get auid field
@@ -224,47 +253,81 @@ static void update_session_logout(auparse_state_t *au)
 	// Check that they are valid
 	if (auid ==-1 || ses == -1)
 		return;
-	// printf("end: auid:%d, ses:%d\n", auid, ses);
 
-	end = auparse_get_time(au);
 
 	// See if this session is already open
 	cur = list_find_auid(&l, auid, ses);
 	if (cur) {
 		// This means we have an open session close it out
+		time_t end = auparse_get_time(au);
 		list_update_logout(&l, end);
 		report_session(cur);
 		list_delete_cur(&l);
 	}
 	// Else this must a cron or su session rather than a login
+	// so we just ignore it.
 }
 
 static void process_bootup(auparse_state_t *au)
 {
 	lnode *cur;
+	int start;
+	struct utsname ubuf;
 
-	//FIXME: 1) record start up time
-	// 2) check to see if we've got an unclosed bootup
-	// 	if so, emit a crash record
-	// 3) if we are booting up...logout the leftovers
+	// See if we have unclosed boot up and make into CRASH record
 	list_first(&l);
 	cur = list_get_cur(&l);
 	while(cur) {
-		cur->status = DOWN;
-		report_session(cur);
+		if (cur->name) {
+			cur->status = CRASH;
+			report_session(cur);
+		}
+		cur = list_next(&l);
+	}
+
+	// Logout and process anyone still left in the machine
+	list_first(&l);
+	cur = list_get_cur(&l);
+	while(cur) {
+		if (cur->status != CRASH) {
+			cur->status = DOWN;
+			report_session(cur);
+		}
 		cur = list_next(&l);
 	}
 	list_clear(&l);
 	list_create(&l);
+
+	// make reboot record - user:reboot, tty:system boot, host: uname -r 
+	uname(&ubuf);
+	start = auparse_get_time(au);
+	list_create_session(&l, 0, 0);
+	cur = list_get_cur(&l);
+	cur->start = start;
+	cur->name = strdup("reboot");
+	cur->term = strdup("system boot");
+	cur->host = strdup(ubuf.release);
+	cur->result = 0;
 }
 
 static void process_shutdown(auparse_state_t *au)
 {
 	lnode *cur;
 
-	// FIXME: when boot events are final, 1) do uptime accounting
-	// 2) close out boot time
-
+	// Find reboot record
+	list_first(&l);
+	cur = list_get_cur(&l);
+	while(cur) {
+		if (cur->name) {
+			// Found it - close it out and display it
+			time_t end = auparse_get_time(au);
+			list_update_logout(&l, end);
+			report_session(cur);
+			list_delete_cur(&l);
+			return;
+		}
+		cur = list_next(&l);
+	}
 }
 
 int main(int argc, char *argv[])
@@ -337,9 +400,9 @@ int main(int argc, char *argv[])
 	// 2) if that session number exists, close out the old one
 	// 3) when USER_LOGIN is found, update session node
 	// 4) When USER_END is found update session node and close it out
-	//
-	// This kind of implies that we need RUN_LEVEL events to mark
-	// startup and shutdown
+	// 5) When BOOT record found make new record and check for previous
+	// 6) If previous boot found, set status to crash and logout everyone
+	// 7) When SHUTDOWN found, close out reboot record
 
 	while (auparse_next_event(au) > 0) {
 		// We will take advantage of the fact that all events

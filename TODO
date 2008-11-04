@@ -2,9 +2,9 @@ Things that need to be done:
 ===========================
 1.7.9
 * Add some controls for audispd child restart to prevent tight looping
-* Add libaudit.m4 to make audit easier to include
 
 1.7.10
+* Add libaudit.m4 to make audit easier to include
 * Fix ausearch to handle out of order messages
 * Fix auparse to handle out of order messages
 * add definitions for kernel virt events

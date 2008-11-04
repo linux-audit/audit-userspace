@@ -29,7 +29,6 @@ void list_create(llist *l)
 {
 	l->head = NULL;
 	l->cur = NULL;
-	l->cnt = 0;
 }
 
 lnode *list_next(llist *l)
@@ -42,7 +41,6 @@ lnode *list_next(llist *l)
 
 static void list_append(llist *l, lnode *node)
 {
-	node->item = l->cnt; 
 	node->next = NULL;
 
 	// if we are at top, fix this up
@@ -58,7 +56,6 @@ static void list_append(llist *l, lnode *node)
 
 	// make newnode current
 	l->cur = node;
-	l->cnt++;
 }
 
 void list_clear(llist* l)
@@ -69,14 +66,14 @@ void list_clear(llist* l)
 	current = l->head;
 	while (current) {
 		nextnode=current->next;
-		free((void *)current->host);
+		free((void *)current->name);
 		free((void *)current->term);
+		free((void *)current->host);
 		free(current);
 		current=nextnode;
 	}
 	l->head = NULL;
 	l->cur = NULL;
-	l->cnt = 0;
 }
 
 int list_create_session(llist *l, uid_t auid, int session)
@@ -89,8 +86,9 @@ int list_create_session(llist *l, uid_t auid, int session)
 	n->end = 0;
 	n->auid = auid;
 	n->result = -1;
-	n->host = NULL;
+	n->name = NULL;
 	n->term = NULL;
+	n->host = NULL;
 	n->status = LOG_IN;
 	list_append(l, n);
 	return 1;
@@ -136,13 +134,15 @@ lnode *list_delete_cur(llist *l)
 			if (cur == prev && cur == l->head) {
 				l->head = cur->next;
 				l->cur = cur->next;
-				free((void *)cur->host);
+				free((void *)cur->name);
 				free((void *)cur->term);
+				free((void *)cur->host);
 				free(cur);
 			} else {
 				prev->next = cur->next;
-				free((void *)cur->host);
+				free((void *)cur->name);
 				free((void *)cur->term);
+				free((void *)cur->host);
 				free(cur);
 				l->cur = prev;
 			}
