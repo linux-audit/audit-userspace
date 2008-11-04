@@ -129,6 +129,7 @@ void clear_pconfig(plugin_conf_t *config)
 	config->pid = 0;
 	config->checked = 0;
 	config->name = NULL;
+	config->restart_cnt = 0;
 }
 
 int load_pconfig(plugin_conf_t *config, char *file)

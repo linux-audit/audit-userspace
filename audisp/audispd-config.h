@@ -35,6 +35,7 @@ typedef struct daemon_conf
 	unsigned int q_depth;
 	overflow_action_t overflow_action;
 	unsigned int priority_boost;
+	unsigned int max_restarts;
 	node_t node_name_format;
 	const char *name;
 } daemon_conf_t;

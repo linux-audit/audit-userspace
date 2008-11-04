@@ -1,8 +1,5 @@
 Things that need to be done:
 ===========================
-1.7.9
-* Add some controls for audispd child restart to prevent tight looping
-
 1.7.10
 * Add libaudit.m4 to make audit easier to include
 * Fix ausearch to handle out of order messages

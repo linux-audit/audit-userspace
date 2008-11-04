@@ -140,6 +140,9 @@ static void load_plugin_conf(conf_llist *plugin)
 
 static int start_one_plugin(lnode *conf)
 {
+	if (conf->p->restart_cnt > daemon_config.max_restarts)
+		return 1;
+
 	if (conf->p->type == S_BUILTIN)
 		start_builtin(conf->p);
 	else if (conf->p->type == S_ALWAYS) {
@@ -636,6 +639,13 @@ static int event_loop(void)
 					"plugin %s terminated unexpectedly", 
 								conf->p->path);
 					conf->p->pid = 0;
+					conf->p->restart_cnt++;
+					if (conf->p->restart_cnt >
+						daemon_config.max_restarts) {
+						syslog(LOG_ERR,
+					"plugin %s has exceeded max_restarts",
+								conf->p->path);
+					}
 					close(conf->p->plug_pipe[1]);
 					conf->p->plug_pipe[1] = -1;
 					conf->p->active = A_NO;

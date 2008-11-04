@@ -26,6 +26,9 @@ option will cause the audisp daemon to shutdown the computer system.
 .I priority_boost
 This is a non-negative number that tells the audit event dispatcher how much of a priority boost it should take. This boost is in addition to the boost provided from the audit daemon. The default is 4. No change is 0.
 .TP
+.I max_restarts
+This is a non-negative number that tells the audit event dispatcher how many times it can try to restart a crashed plugin. The default is 10.
+.TP
 .I name_format
 This option controls how computer node names are inserted into the audit event stream. It has the following choices:
 .IR none ", " hostname ", " fqd ", " numeric ", and " user ".

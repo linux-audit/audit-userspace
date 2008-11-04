@@ -69,6 +69,8 @@ static int overflow_action_parser(struct nv_pair *nv, int line,
 		daemon_conf_t *config);
 static int priority_boost_parser(struct nv_pair *nv, int line,
 		daemon_conf_t *config);
+static int max_restarts_parser(struct nv_pair *nv, int line,
+		daemon_conf_t *config);
 static int sanity_check(daemon_conf_t *config, const char *file);
 
 static const struct kw_pair keywords[] = 
@@ -78,6 +80,7 @@ static const struct kw_pair keywords[] =
   {"name",                     name_parser,			0 },
   {"overflow_action",          overflow_action_parser,		0 },
   {"priority_boost",           priority_boost_parser,           0 },
+  {"max_restarts",             max_restarts_parser,             0 },
   { NULL,                      NULL }
 };
 
@@ -109,6 +112,7 @@ void clear_config(daemon_conf_t *config)
 	config->q_depth = 80;
 	config->overflow_action = O_SYSLOG;
 	config->priority_boost = 4;
+	config->max_restarts = 10;
 	config->node_name_format = N_NONE;
 	config->name = NULL;
 }
@@ -418,6 +422,44 @@ static int priority_boost_parser(struct nv_pair *nv, int line,
 		return 1;
 	}
 	config->priority_boost = (unsigned int)i;
+	return 0;
+}
+
+static int max_restarts_parser(struct nv_pair *nv, int line,
+	struct daemon_conf *config)
+{
+	const char *ptr = nv->value;
+	unsigned long i;
+
+	audit_msg(LOG_DEBUG, "max_restarts_parser called with: %s",
+       				nv->value);
+
+	/* check that all chars are numbers */
+	for (i=0; ptr[i]; i++) {
+		if (!isdigit(ptr[i])) {
+			audit_msg(LOG_ERR,
+				"Value %s should only be numbers - line %d",
+				nv->value, line);
+			return 1;
+		}
+	}
+	/* convert to unsigned int */
+	errno = 0;
+	i = strtoul(nv->value, NULL, 10);
+	if (errno) {
+		audit_msg(LOG_ERR,
+			"Error converting string to a number (%s) - line %d",
+			strerror(errno), line);
+		return 1;
+	}
+	/* Check its range */
+	if (i > INT_MAX) {
+		audit_msg(LOG_ERR,
+			"Error - converted number (%s) is too large - line %d",
+			nv->value, line);
+		return 1;
+	}
+	config->max_restarts = (unsigned int)i;
 	return 0;
 }
 

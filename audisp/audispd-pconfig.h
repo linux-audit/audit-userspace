@@ -44,6 +44,7 @@ typedef struct plugin_conf
 	pid_t pid;		/* Used to signal children */
 	int checked;		/* Used for internal housekeeping on HUP */
 	char *name;		/* Used to distinguish plugins for HUP */
+	unsigned restart_cnt;	/* Number of times its crashed */
 } plugin_conf_t;
 
 void clear_pconfig(plugin_conf_t *config);
