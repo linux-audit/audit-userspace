@@ -111,9 +111,14 @@ static void report_session(lnode* cur)
 
 static void create_new_session(auparse_state_t *au)
 {
-	const char *tses, *tauid;
-	int auid = -1, ses = -1;
+	const char *tpid, *tses, *tauid;
+	int pid = -1, auid = -1, ses = -1;
 	lnode *cur;
+
+	// Get pid
+	tpid = auparse_find_field(au, "pid");
+	if (tpid)
+		pid = auparse_get_field_int(au);
 
 	// Get second auid field
 	auparse_find_field(au, "auid");
@@ -130,11 +135,11 @@ static void create_new_session(auparse_state_t *au)
 		ses = auparse_get_field_int(au);
 
 	// Check that they are valid
-	if (auid ==-1 || ses == -1)
+	if (pid == -1 || auid ==-1 || ses == -1)
 		return;
 
 	// See if this session is already open
-	cur = list_find_auid(&l, auid, ses);
+	cur = list_find_auid(&l, auid, pid, ses);
 	if (cur) {
 		// This means we have an open session close it out
 		cur->status = GONE;
@@ -147,15 +152,20 @@ static void create_new_session(auparse_state_t *au)
 	if (cuid != -1 && cuid != auid)
 		return;
 
-	list_create_session(&l, auid, ses);
+	list_create_session(&l, auid, pid, ses);
 }
 
 static void update_session_login(auparse_state_t *au)
 {
-	const char *tses, *tuid, *tacct, *host, *term, *tres;
-	int uid = -1, ses = -1, result = -1;
+	const char *tpid, *tses, *tuid, *tacct, *host, *term, *tres;
+	int pid = -1, uid = -1, ses = -1, result = -1;
 	time_t start;
 	lnode *cur;
+
+	// Get pid
+	tpid = auparse_find_field(au, "pid");
+	if (tpid)
+		pid = auparse_get_field_int(au);
 
 	// Get ses field
 	tses = auparse_find_field(au, "ses");
@@ -169,17 +179,8 @@ static void update_session_login(auparse_state_t *au)
 	else
 		auparse_first_record(au);
 
-	// We only get tacct when its a bad login
-	tacct = auparse_find_field(au, "acct");
-	if (tacct == NULL) {
-		// Check that they are valid
-		if (uid ==-1 || ses == -1) 
-			return;
-	} else
-		tacct = auparse_interpret_field(au);
-
-	auparse_first_record(au);
 	start = auparse_get_time(au);
+
 	host = auparse_find_field(au, "hostname");
 	if (host && strcmp(host, "?") == 0)
 		host = auparse_find_field(au, "addr");
@@ -194,10 +195,21 @@ static void update_session_login(auparse_state_t *au)
 		else
 			result = 1;
 	}
+	// We only get tacct when its a bad login
+	if (result == 1) {
+		auparse_first_record(au);
+		tacct = auparse_find_field(au, "acct");
+		if (tacct)
+			tacct = auparse_interpret_field(au);
+	} else {
+		// Check that they are valid
+		if (pid == -1 || uid ==-1 || ses == -1) 
+			return;
+	}
 
 	// See if this session is already open
-	if (tacct == NULL)
-		cur = list_find_auid(&l, uid, ses);
+	if (result == 0)
+		cur = list_find_auid(&l, uid, pid, ses);
 	else
 		cur = NULL;
 	if (cur) {
@@ -236,9 +248,14 @@ static void update_session_login(auparse_state_t *au)
 
 static void update_session_logout(auparse_state_t *au)
 {
-	const char *tses, *tauid;
-	int auid = -1, ses = -1;
+	const char *tses, *tauid, *tpid;
+	int pid = -1, auid = -1, ses = -1;
 	lnode *cur;
+
+	// Get pid field
+	tpid = auparse_find_field(au, "pid");
+	if (tpid)
+		pid = auparse_get_field_int(au);
 
 	// Get auid field
 	tauid = auparse_find_field(au, "auid");
@@ -251,21 +268,22 @@ static void update_session_logout(auparse_state_t *au)
 		ses = auparse_get_field_int(au);
 
 	// Check that they are valid
-	if (auid ==-1 || ses == -1)
+	if (pid == -1 || auid ==-1 || ses == -1)
 		return;
 
-
 	// See if this session is already open
-	cur = list_find_auid(&l, auid, ses);
+	cur = list_find_auid(&l, auid, pid, ses);
 	if (cur) {
-		// This means we have an open session close it out
-		time_t end = auparse_get_time(au);
-		list_update_logout(&l, end);
-		report_session(cur);
+		// if time never got updated, this must be a cron or su 
+		// session...so we will just delete it.
+		if (cur->start) {
+			// This means we have an open session close it out
+			time_t end = auparse_get_time(au);
+			list_update_logout(&l, end);
+			report_session(cur);
+		}
 		list_delete_cur(&l);
 	}
-	// Else this must a cron or su session rather than a login
-	// so we just ignore it.
 }
 
 static void process_bootup(auparse_state_t *au)
@@ -301,7 +319,7 @@ static void process_bootup(auparse_state_t *au)
 	// make reboot record - user:reboot, tty:system boot, host: uname -r 
 	uname(&ubuf);
 	start = auparse_get_time(au);
-	list_create_session(&l, 0, 0);
+	list_create_session(&l, 0, 0, 0);
 	cur = list_get_cur(&l);
 	cur->start = start;
 	cur->name = strdup("reboot");

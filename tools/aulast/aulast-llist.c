@@ -46,7 +46,7 @@ static void list_append(llist *l, lnode *node)
 	// if we are at top, fix this up
 	if (l->head == NULL)
 		l->head = node;
-	else {
+	else if (l->cur) {
 		// Make sure we are at the end
 		while (l->cur->next)
 			l->cur = l->cur->next;
@@ -76,7 +76,7 @@ void list_clear(llist* l)
 	l->cur = NULL;
 }
 
-int list_create_session(llist *l, uid_t auid, int session)
+int list_create_session(llist *l, uid_t auid, int pid, int session)
 {
 	lnode *n = malloc(sizeof(lnode));
 	if (n == NULL)
@@ -85,6 +85,7 @@ int list_create_session(llist *l, uid_t auid, int session)
 	n->start = 0;
 	n->end = 0;
 	n->auid = auid;
+	n->pid = pid;
 	n->result = -1;
 	n->name = NULL;
 	n->term = NULL;
@@ -104,10 +105,10 @@ int list_update_start(llist* l, time_t start, const char *host,
 	cur=list_get_cur(l);
 	cur->start = start;
 	cur->status = SESSION_START;
-	if (host)
-		cur->host = strdup(host);
 	if (term)
 		cur->term = strdup(term);
+	if (host)
+		cur->host = strdup(host);
 	cur->result = res;
 	return 1;
 }
@@ -155,13 +156,14 @@ lnode *list_delete_cur(llist *l)
 	return NULL;
 }
 
-lnode *list_find_auid(llist *l, uid_t auid, unsigned int session)
+lnode *list_find_auid(llist *l, uid_t auid, int pid, unsigned int session)
 {
         register lnode* cur;
                                                                                 
        	cur = l->head;	/* start at the beginning */
 	while (cur) {
-		if (cur->auid == auid && cur->session == session) {
+		if (cur->pid == pid && cur->auid == auid &&
+					cur->session == session) {
 			l->cur = cur;
 			return cur;
 		} else
