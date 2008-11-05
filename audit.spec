@@ -1,4 +1,4 @@
-%define audit_version 1.7.9
+%define audit_version 1.7.10
 %define audit_release 1
 %define sca_version 0.4.8
 %define sca_release 1
@@ -257,6 +257,8 @@ fi
 %config(noreplace) %{_sysconfdir}/security/console.apps/system-config-audit-server
 
 %changelog
+* Wed Nov 05 2008 Steve Grubb <sgrubb@redhat.com> 1.7.10-1
+
 * Wed Nov 05 2008 Steve Grubb <sgrubb@redhat.com> 1.7.9-1
 - Fix uninitialized variable in aureport causing segfault
 - Quieten down the gssapi not supported messages
