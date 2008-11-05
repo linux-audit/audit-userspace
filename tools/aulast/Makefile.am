@@ -23,7 +23,7 @@
 CONFIG_CLEAN_FILES = *.loT *.rej *.orig
 AUTOMAKE_OPTIONS = no-dependencies
 EXTRA_DIST = $(man_MANS)
-INCLUDES = -I${top_srcdir} -I${top_srcdir}/auparse
+INCLUDES = -I${top_srcdir} -I${top_srcdir}/lib -I${top_srcdir}/auparse
 LIBS = -L${top_builddir}/auparse -lauparse
 bin_PROGRAMS = aulast
 noinst_HEADERS = aulast-llist.h
