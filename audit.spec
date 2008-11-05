@@ -257,7 +257,17 @@ fi
 %config(noreplace) %{_sysconfdir}/security/console.apps/system-config-audit-server
 
 %changelog
-* Wed Oct 22 2008 Steve Grubb <sgrubb@redhat.com> 1.7.9-1
+* Wed Nov 05 2008 Steve Grubb <sgrubb@redhat.com> 1.7.9-1
+- Fix uninitialized variable in aureport causing segfault
+- Quieten down the gssapi not supported messages
+- Fix bug interpretting i386 logs on x86_64 machines
+- If kernel is in immutable mode, auditd should not send enable command
+- Fix ausearch/report recent and now time keyword lookups
+- Created aulast program
+- prelude plugin should pull auid for login alert from 2nd uid field
+- Add system boot, shutdown, and run level change events
+- Add max_restarts to audispd.conf to limit times a plugin is restarted
+- Expand session detection in ausearch
 
 * Wed Oct 22 2008 Steve Grubb <sgrubb@redhat.com> 1.7.8-1
 - Interpret TTY audit data in auparse (Miloslav Trmač)
