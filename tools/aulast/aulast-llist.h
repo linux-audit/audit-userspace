@@ -69,6 +69,7 @@ lnode *list_delete_cur(llist *l);
 
 /* Given a uid, find that record. */
 lnode *list_find_auid(llist *l, uid_t auid, int pid, unsigned int session);
+lnode *list_find_session(llist *l, unsigned int session);
 
 #endif
 

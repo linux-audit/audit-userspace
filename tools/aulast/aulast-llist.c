@@ -178,3 +178,18 @@ lnode *list_find_auid(llist *l, uid_t auid, int pid, unsigned int session)
 	return NULL;
 }
 
+lnode *list_find_session(llist *l, unsigned int session)
+{
+        register lnode* cur;
+                                                                                
+       	cur = l->head;	/* start at the beginning */
+	while (cur) {
+		if (cur->session == session) {
+			l->cur = cur;
+			return cur;
+		} else
+			cur = cur->next;
+	}
+	return NULL;
+}
+

@@ -152,7 +152,8 @@ static void create_new_session(auparse_state_t *au)
 		return;
 
 	// See if this session is already open
-	cur = list_find_auid(&l, auid, pid, ses);
+	//cur = list_find_auid(&l, auid, pid, ses);
+	cur = list_find_session(&l, ses);
 	if (cur) {
 		// This means we have an open session close it out
 		cur->status = GONE;
