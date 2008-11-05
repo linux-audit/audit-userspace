@@ -11,6 +11,7 @@
 - Add system boot, shutdown, and run level change events
 - Update audisp-prelude LDFLAGS
 - Add max_restarts to audispd.conf to limit times a plugin is restarted
+- Expand session detection in ausearch
 
 1.7.8
 - Fix strict aliasing compiler warnings
