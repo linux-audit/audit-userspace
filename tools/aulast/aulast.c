@@ -33,9 +33,10 @@
 
 
 static	llist l;
+static FILE *f = NULL;
 
 /* command line params */
-static int cuid = -1, bad = 0;
+static int cuid = -1, bad = 0, proof = 0;
 static char *cterm = NULL;
 
 void usage(void)
@@ -107,6 +108,18 @@ static void report_session(lnode* cur)
 				break;
 		}
 	}
+	if (proof)
+		printf("    audit event proof: %lu, %lu, %lu\n",
+			cur->loginuid_proof, cur->user_login_proof,
+			cur->user_end_proof);
+}
+
+static void extract_record(auparse_state_t *au)
+{
+	if (f == NULL)
+		return;
+
+	fprintf(f, "%s\n", auparse_get_record_text(au));
 }
 
 static void create_new_session(auparse_state_t *au)
@@ -152,7 +165,7 @@ static void create_new_session(auparse_state_t *au)
 	if (cuid != -1 && cuid != auid)
 		return;
 
-	list_create_session(&l, auid, pid, ses);
+	list_create_session(&l, auid, pid, ses, auparse_get_serial(au));
 }
 
 static void update_session_login(auparse_state_t *au)
@@ -222,7 +235,8 @@ static void update_session_login(auparse_state_t *au)
 		}
 
 		// This means we have an open session - update it
-		list_update_start(&l, start, host, term, result);
+		list_update_start(&l, start, host, term, result,
+				auparse_get_serial(au));
 
 		// If the results were failed, we can close it out
 		if (result) {
@@ -242,6 +256,7 @@ static void update_session_login(auparse_state_t *au)
 		n.term = term;
 		n.result = result;
 		n.status = SESSION_START;
+		n.loginuid_proof = auparse_get_serial(au);
 		report_session(&n); 
 	}
 }
@@ -279,7 +294,7 @@ static void update_session_logout(auparse_state_t *au)
 		if (cur->start) {
 			// This means we have an open session close it out
 			time_t end = auparse_get_time(au);
-			list_update_logout(&l, end);
+			list_update_logout(&l, end, auparse_get_serial(au));
 			report_session(cur);
 		}
 		list_delete_cur(&l);
@@ -297,6 +312,7 @@ static void process_bootup(auparse_state_t *au)
 	cur = list_get_cur(&l);
 	while(cur) {
 		if (cur->name) {
+			cur->user_end_proof = auparse_get_serial(au);
 			cur->status = CRASH;
 			report_session(cur);
 		}
@@ -308,6 +324,7 @@ static void process_bootup(auparse_state_t *au)
 	cur = list_get_cur(&l);
 	while(cur) {
 		if (cur->status != CRASH) {
+			cur->user_end_proof = auparse_get_serial(au);
 			cur->status = DOWN;
 			report_session(cur);
 		}
@@ -319,7 +336,7 @@ static void process_bootup(auparse_state_t *au)
 	// make reboot record - user:reboot, tty:system boot, host: uname -r 
 	uname(&ubuf);
 	start = auparse_get_time(au);
-	list_create_session(&l, 0, 0, 0);
+	list_create_session(&l, 0, 0, 0, auparse_get_serial(au));
 	cur = list_get_cur(&l);
 	cur->start = start;
 	cur->name = strdup("reboot");
@@ -339,7 +356,7 @@ static void process_shutdown(auparse_state_t *au)
 		if (cur->name) {
 			// Found it - close it out and display it
 			time_t end = auparse_get_time(au);
-			list_update_logout(&l, end);
+			list_update_logout(&l, end, auparse_get_serial(au));
 			report_session(cur);
 			list_delete_cur(&l);
 			return;
@@ -384,6 +401,10 @@ int main(int argc, char *argv[])
 				}
 			} else if (strcmp(argv[i], "--bad") == 0) {
 				bad = 1;
+			} else if (strcmp(argv[i], "--proof") == 0) {
+				proof = 1;
+			} else if (strcmp(argv[i], "--extract") == 0) {
+				f = fopen("aulast.log", "wt");
 			} else if (strcmp(argv[i], "--stdin") == 0) {
 				if (file == NULL)
 					use_stdin = 1;
@@ -432,18 +453,23 @@ int main(int argc, char *argv[])
 		{
 			case AUDIT_LOGIN:
 				create_new_session(au);
+				extract_record(au);
 				break;
 			case AUDIT_USER_LOGIN:
 				update_session_login(au);
+				extract_record(au);
 				break;
 			case AUDIT_USER_END:
 				update_session_logout(au);
+				extract_record(au);
 				break;
 			case AUDIT_SYSTEM_BOOT:
 				process_bootup(au);
+				extract_record(au);
 				break;
 			case AUDIT_SYSTEM_SHUTDOWN:
 				process_shutdown(au);
+				extract_record(au);
 				break;
 		}
 	}
@@ -457,10 +483,14 @@ int main(int argc, char *argv[])
 	} while (list_next(&l));
 
 	list_clear(&l);
+	if (f)
+		fclose(f);
 	return 0;
 
 error_exit_1:
 	list_clear(&l);
+	if (f)
+		fclose(f);
 	return 1;
 }
 

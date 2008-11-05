@@ -76,7 +76,8 @@ void list_clear(llist* l)
 	l->cur = NULL;
 }
 
-int list_create_session(llist *l, uid_t auid, int pid, int session)
+int list_create_session(llist *l, uid_t auid, int pid, int session,
+	unsigned long serial)
 {
 	lnode *n = malloc(sizeof(lnode));
 	if (n == NULL)
@@ -91,12 +92,15 @@ int list_create_session(llist *l, uid_t auid, int pid, int session)
 	n->term = NULL;
 	n->host = NULL;
 	n->status = LOG_IN;
+	n->loginuid_proof = serial;
+	n->user_login_proof = 0;
+	n->user_end_proof = 0;
 	list_append(l, n);
 	return 1;
 }
 
 int list_update_start(llist* l, time_t start, const char *host,
-	const char *term, int res)
+	const char *term, int res, unsigned long serial)
 {
         register lnode* cur;
 	if (l == NULL)
@@ -110,10 +114,11 @@ int list_update_start(llist* l, time_t start, const char *host,
 	if (host)
 		cur->host = strdup(host);
 	cur->result = res;
+	cur->user_login_proof = serial;
 	return 1;
 }
 
-int list_update_logout(llist* l, time_t t)
+int list_update_logout(llist* l, time_t t, unsigned long serial)
 {
         register lnode* cur;
 	if (l == NULL)
@@ -122,6 +127,7 @@ int list_update_logout(llist* l, time_t t)
 	cur=list_get_cur(l);
 	cur->end = t;
 	cur->status = LOG_OUT;
+	cur->user_end_proof = serial;
 	return 1;
 }
 

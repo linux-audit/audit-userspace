@@ -2,7 +2,8 @@
 .SH NAME
 aulast \- a program similar to last
 .SH SYNOPSIS
-.B aulast [ -f file ] [ --bad ] [ --stdin ] [ user ] [ tty ]
+.B aulast [ options ] [ user ] [ tty ]
+
 .SH DESCRIPTION
 \fBaulast\fP is a program that prints out a listing of the last logged in users similarly to the program \fBlast\fP and \fBlastb\fP. Aulast searches back through the audit logs or the given audit log file and displays a list of all users logged in (and out) based on the range of time in the audit logs. Names of users and tty’s can be given, in which case aulast will show only those entries matching the arguments. Names of ttys can be abbreviated, thus aulast 0 is the same as last tty0.
 
@@ -12,12 +13,20 @@ The main difference that a user will notice is that \fBaulast\fP print events fr
 
 .SH OPTIONS
 .TP
+.B \-\-bad
+Report on the bad logins.
+
+.TP
+.B \-\-extract
+Write raw audit records used to create the displayed report into a file aulast.log in the current working directory.
+
+.TP
 .B \-f file
 Use the file instead of the audit logs for input.
 
 .TP
-.B \-\-bad
-Report on the bad logins.
+.B \-\-proof
+Print out the audit event serial numbers used to determine the preceeding line of the report. A Serial number of 0 is a place holder and not an actual event serial number. The serial numbers can be used to examine the actual audit records in more detail.
 
 .TP
 .B \-\-stdin
