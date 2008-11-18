@@ -21,10 +21,9 @@
 *   Steve Grubb <sgrubb@redhat.com>
 */
 
-#include "config.h"
+#include "ausearch-string.h"
 #include <stdlib.h>
 #include <string.h>
-#include "ausearch-string.h"
 
 
 void slist_create(slist *l)

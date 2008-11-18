@@ -138,38 +138,6 @@ int extract_search_items(llist *l)
 	n = list_get_cur(l);
 	if (n) {
 		do {
-			char *ptr, *str, *term;
-			// get node if its there
-			if ((strncmp(n->message, "node=", 5) == 0) &&
-							s->node == NULL) {
-				str = n->message;
-				ptr = str+5;
-				term = strchr(ptr, ' ');
-				if (term == NULL)
-					return -1;
-				*term = 0;
-				s->node = strdup(ptr);
-				*term = ' ';
-			}
-			// get type
-			str = strstr(n->message, "type=");
-			if (str == NULL)
-				return -2;
-			ptr = str+5;
-			term = strchr(ptr, ' ');
-			if (term == NULL)
-				return -3;
-			*term = 0;
-			n->type = audit_name_to_msg_type(ptr);
-			*term = ' ';
-			if (n->type < 0) {
-/*				fprintf(stderr, "Error converting type:%s\n", 
-					ptr);
-				return 3; */
-
-				// If we don't know, don't extract.
-				return 0;
-			}
 			switch (n->type) {
 			case AUDIT_SYSCALL:
 				ret = parse_syscall(n, s);

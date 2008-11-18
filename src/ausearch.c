@@ -37,21 +37,19 @@
 #include "libaudit.h"
 #include "auditd-config.h"
 #include "ausearch-options.h"
-#include "ausearch-llist.h"
+#include "ausearch-lol.h"
 #include "ausearch-lookup.h"
 
 
 static FILE *log_fd = NULL;
+static lol lo;
 static int found = 0;
 static int pipe_mode = 0;
 static int process_logs(void);
 static int process_log_fd(void);
 static int process_stdin(void);
 static int process_file(char *filename);
-static int get_record(llist *);
-static void extract_timestamp(const char *b, event *e);
-static int str2event(char *s, event *e);
-static int events_are_equal(event *e1, event *e2);
+static int get_record(llist **);
 
 extern char *user_file;
 extern int force_logs;
@@ -88,6 +86,7 @@ int main(int argc, char *argv[])
 	set_aumessage_mode(MSG_STDERR, DBG_NO);
 	(void) umask( umask( 077 ) | 027 );
 
+	lol_create(&lo);
 	if (user_file)
 		rc = process_file(user_file);
 	else if (force_logs)
@@ -96,9 +95,11 @@ int main(int argc, char *argv[])
 		rc = process_stdin();
 	else
 		rc = process_logs();
+	lol_clear(&lo);
 	ilist_clear(event_type);
 	free(event_type);
 	free(user_file);
+	free((char *)event_key);
 	aulookup_destroy_uid_list();
 	aulookup_destroy_gid_list();
 	if (rc)
@@ -173,25 +174,27 @@ static int process_logs(void)
 
 static int process_log_fd(void)
 {
-	llist entries; // entries in a record
+	llist *entries; // entries in a record
 	int ret;
 
 	/* For each record in file */
-	list_create(&entries);
 	do {
 		ret = get_record(&entries);
-		if ((ret < 0)||(entries.cnt == 0)) {
+		if ((ret != 0)||(entries->cnt == 0)) {
 			break;
 		}
-		if (match(&entries)) {
-			output_record(&entries);
+		// FIXME - what about events that straddle files?
+		if (match(entries)) {
+			output_record(entries);
 			found = 1;
 			if (just_one) {
-				list_clear(&entries);
+				list_clear(entries);
+				free(entries);
 				break;
 			}
 		}
-		list_clear(&entries);
+		list_clear(entries);
+		free(entries);
 	} while (ret == 0);
 	fclose(log_fd);
 
@@ -222,148 +225,46 @@ static int process_file(char *filename)
  * This function returns a malloc'd buffer of the next record in the audit
  * logs. It returns 0 on success, 1 on eof, -1 on error. 
  */
-static char *saved_buff = NULL;
-static int get_record(llist *l)
+static int get_record(llist **l)
 {
-// FIXME: this code needs to be re-organized to keep a linked list of record
-// lists. Each time a new record is read, it should be checked to see if it 
-// belongs to a list of records that is waiting for its terminal record. If
-// so append to list. If the new record is a terminal type, return the list.
-// If it does not belong to a list and it is not a terminal record, append the
-// record to a new list of records. 
 	char *rc;
 	char *buff = NULL;
-	int first_time = 1;
+
+	*l = get_ready_event(&lo);
+	if (*l)
+		return 0;
 
 	while (1) {
-		if (saved_buff) {
-			buff = saved_buff;
-			rc = buff;
-			saved_buff = NULL;
-		} else {
-			if (!buff) {
-				buff = malloc(MAX_AUDIT_MESSAGE_LENGTH);
-				if (!buff)
-					return -1;
-			}
-			// FIXME: In pipe mode, if there is a waiting buffer
-			// and 5 seconds has elapsed, go ahead and process
-			// the buffer - nothings coming that's related.
-			rc = fgets_unlocked(buff, MAX_AUDIT_MESSAGE_LENGTH,
-					log_fd);
+		if (!buff) {
+			buff = malloc(MAX_AUDIT_MESSAGE_LENGTH);
+			if (!buff)
+				return -1;
 		}
+		// FIXME: In pipe mode, if there is a waiting buffer
+		// and 5 seconds has elapsed, go ahead and process
+		// the buffer - nothings coming that's related.
+		rc = fgets_unlocked(buff, MAX_AUDIT_MESSAGE_LENGTH,
+					log_fd);
 		if (rc) {
-			lnode n;
-			event e;
-			char *ptr;
-
-			ptr = strrchr(buff, 0x0a);
-			if (ptr)
-				*ptr = 0;
-			n.message=strdup(buff);
-			// FIXME: need to extract the node here
-			// and put things on a list of lists
-			extract_timestamp(buff, &e);
-			if (first_time) {
-				l->e.milli = e.milli;
-				l->e.sec = e.sec;
-				l->e.serial = e.serial;
-				first_time = 0;
-			}
-			if (events_are_equal(&l->e, &e)) { 
-				list_append(l, &n);
-			} else {
-				saved_buff = buff;
-				free(n.message);
-				buff = NULL;
-				break;
+			if (lol_add_record(&lo, buff)) {
+				*l = get_ready_event(&lo);
+				if (*l)
+					break;
 			}
 		} else {
 			free(buff);
-			if (feof(log_fd))
-				return 1;
-			else 
+			if (feof(log_fd)) {
+				terminate_all_events(&lo);
+				*l = get_ready_event(&lo);
+				if (*l)
+					return 0;
+				else
+					return 1;
+			} else 
 				return -1;
 		}
 	}
-	if (!saved_buff)
-		free(buff);
+	free(buff);
 	return 0;
-}
-
-/*
- * This function will look at the line and pick out pieces of it.
- */
-static void extract_timestamp(const char *b, event *e)
-{
-	char *ptr, *tmp;
-
-	tmp = strndupa(b, 120);
-	ptr = strtok(tmp, " ");
-	if (ptr) {
-		while (ptr && strncmp(ptr, "type=", 5))
-			ptr = strtok(NULL, " ");
-
-		// at this point we have type=
-		ptr = strtok(NULL, " ");
-		if (ptr) {
-			if (*(ptr+9) == '(')
-				ptr+=9;
-			else
-				ptr = strchr(ptr, '(');
-			if (ptr) {
-			// now we should be pointed at the timestamp
-				char *eptr;
-				ptr++;
-				eptr = strchr(ptr, ')');
-				if (eptr)
-					*eptr = 0;
-				if (str2event(ptr, e)) {
-					fprintf(stderr,
-					  "Error extracting time stamp (%s)\n",
-						ptr);
-				}
-			}
-			// else we have a bad line
-		}
-		// else we have a bad line
-	}
-	// else we have a bad line
-}
-
-static int str2event(char *s, event *e)
-{
-	char *ptr;
-
-	errno = 0;
-	ptr = strchr(s+10, ':');
-	if (ptr) {
-		e->serial = strtoul(ptr+1, NULL, 10);
-		*ptr = 0;
-		if (errno)
-			return -1;
-	} else
-		e->serial = 0;
-	ptr = strchr(s, '.');
-	if (ptr) {
-		e->milli = strtoul(ptr+1, NULL, 10);
-		*ptr = 0;
-		if (errno)
-			return -1;
-	} else
-		e->milli = 0;
-	e->sec = strtoul(s, NULL, 10);
-	if (errno)
-		return -1;
-	return 0;
-}
-
-static int events_are_equal(event *e1, event *e2)
-{
-	if (e1->serial == e2->serial && e1->milli == e2->milli &&
-			e1->sec == e2->sec)
-		return 1;
-	else
-		return 0;
 }
 

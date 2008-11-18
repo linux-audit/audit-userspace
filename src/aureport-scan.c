@@ -200,9 +200,9 @@ int scan(llist *l)
 			int rc = extract_search_items(l);
 			if (rc == 0) {
                                 if (event_node) {
-                                        if (l->s.node == NULL)
+                                        if (l->e.node == NULL)
                                                 return 0;
-                                        if (strcasecmp(event_node, l->s.node))
+                                        if (strcasecmp(event_node, l->e.node))
                                                 return 0;
                                 }
 				if (classify_success(l) && classify_conf(l))

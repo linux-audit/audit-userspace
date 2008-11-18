@@ -1,10 +1,12 @@
 Things that need to be done:
 ===========================
 1.7.10
-* Add libaudit.m4 to make audit easier to include
-* Fix ausearch to handle out of order messages
+* Fix aureport to handle out of order messages
+* Fix ausearch to handle node interlaced messages
 * Fix auparse to handle out of order messages
-* add definitions for kernel virt events
+* Add session exploring capabilities to aulast
+* Add definitions for kernel virt events
+* Add libaudit.m4 to make audit easier to include
 
 1.8
 * Fix aureport main page for hits vs count, --summary

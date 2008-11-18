@@ -1,0 +1,276 @@
+/*
+* ausearch-lol.c - linked list of linked lists library
+* Copyright (c) 2008 Red Hat Inc., Durham, North Carolina.
+* All Rights Reserved. 
+*
+* This software may be freely redistributed and/or modified under the
+* terms of the GNU General Public License as published by the Free
+* Software Foundation; either version 2, or (at your option) any
+* later version.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program; see the file COPYING. If not, write to the
+* Free Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+*
+* Authors:
+*   Steve Grubb <sgrubb@redhat.com>
+*/
+
+#include "ausearch-lol.h"
+#include <stdlib.h>
+#include <errno.h>
+#include <string.h>
+#include <stdio.h>	//FIXME remove when error reporting is decided
+#include "ausearch-common.h"
+
+#define ARRAY_LIMIT 80
+static int ready = 0;
+
+void lol_create(lol *lo)
+{
+	int size = ARRAY_LIMIT * sizeof(lolnode);
+
+	lo->maxi = -1;
+	lo->limit = ARRAY_LIMIT;
+	lo->array = (lolnode *)malloc(size);
+	memset(lo->array, 0, size);
+}
+
+void lol_clear(lol *lo)
+{
+	int i;
+
+	for (i=0; i<=lo->maxi; i++) {
+		if (lo->array[i].status) {
+			list_clear(lo->array[i].l);
+			free(lo->array[i].l);
+		}
+	}
+	free(lo->array);
+	lo->array = NULL;
+	lo->maxi = -1;
+}
+
+static void lol_append(lol *lo, llist *l)
+{
+	int i, new_size;
+	lolnode *ptr;
+
+	for(i=0; i<lo->limit; i++) {
+		lolnode *cur = &lo->array[i];
+		if (cur->status == 0) {
+			cur->l = l;
+			cur->status = 1;
+			if (i > lo->maxi)
+				lo->maxi = i;
+			return;
+		}
+	}
+	// Overran the array...lets make it bigger
+	new_size = sizeof(lolnode) * (lo->limit + ARRAY_LIMIT);
+	ptr = realloc(lo->array, new_size);
+	if (ptr) {
+		lo->array = ptr;
+		memset(&lo->array[lo->limit], 0, sizeof(lolnode) * ARRAY_LIMIT);
+		lo->array[i].l = l;
+		lo->array[i].status = 1;
+		lo->maxi = i;
+		lo->limit += ARRAY_LIMIT;
+	}
+}
+
+static int str2event(char *s, event *e)
+{
+	char *ptr;
+
+	errno = 0;
+	ptr = strchr(s+10, ':');
+	if (ptr) {
+		e->serial = strtoul(ptr+1, NULL, 10);
+		*ptr = 0;
+		if (errno)
+			return -1;
+	} else
+		e->serial = 0;
+	ptr = strchr(s, '.');
+	if (ptr) {
+		e->milli = strtoul(ptr+1, NULL, 10);
+		*ptr = 0;
+		if (errno)
+			return -1;
+	} else
+		e->milli = 0;
+	e->sec = strtoul(s, NULL, 10);
+	if (errno)
+		return -1;
+	return 0;
+}
+
+static int inline events_are_equal(event *e1, event *e2)
+{
+	if (e1->serial == e2->serial && e1->milli == e2->milli &&
+			e1->sec == e2->sec)
+		return 1;
+	else
+		return 0;
+}
+
+/*
+ * This function will look at the line and pick out pieces of it.
+ */
+static void extract_timestamp(const char *b, event *e)
+{
+	char *ptr, *tmp;
+
+	e->node = NULL;
+	tmp = strndupa(b, 120);
+	ptr = strtok(tmp, " ");
+	if (ptr) {
+		if (strncmp(ptr, "node=", 5) == 0) {
+			e->node = strdup(ptr+5);
+			ptr = strtok(NULL, " ");
+		}
+
+		// at this point we have type=
+		e->type = audit_name_to_msg_type(ptr+5);
+
+		// Now should be pointing to msg=
+		ptr = strtok(NULL, " ");
+		if (ptr) {
+			if (*(ptr+9) == '(')
+				ptr+=9;
+			else
+				ptr = strchr(ptr, '(');
+			if (ptr) {
+			// now we should be pointed at the timestamp
+				char *eptr;
+				ptr++;
+				eptr = strchr(ptr, ')');
+				if (eptr)
+					*eptr = 0;
+				if (str2event(ptr, e)) {
+					fprintf(stderr,
+					  "Error extracting time stamp (%s)\n",
+						ptr);
+				}
+			}
+			// else we have a bad line
+		}
+		// else we have a bad line
+	}
+	// else we have a bad line
+}
+
+// This function will check events to see if they are complete 
+static void check_events(lol *lo, time_t sec)
+{
+	int i;
+
+	for(i=0;i<=lo->maxi; i++) {
+		lolnode *cur = &lo->array[i];
+		if (cur->status == 1) {
+			// If 2 seconds have elapsed, we are done
+			if (cur->l->e.sec + 2 < sec) { 
+				cur->status = 2;
+				ready++;
+			} else if (cur->l->e.type < AUDIT_FIRST_EVENT ||
+				    cur->l->e.type >= AUDIT_FIRST_ANOM_MSG) {
+				// If known to be 1 record event, we are done
+				cur->status = 2;
+				ready++;
+			} 
+		}
+	}
+}
+
+// This function adds a new record to an existing linked list
+// or creates a new one if its a new event
+int lol_add_record(lol *lo, char *buff)
+{
+	int i;
+	lnode n;
+	event e;
+	char *ptr;
+	llist *l;
+
+	ptr = strrchr(buff, 0x0a);
+	if (ptr)
+		*ptr = 0;
+	extract_timestamp(buff, &e);
+
+	// Short circuit if event is not of interest
+        if ((start_time && e.sec < start_time) ||
+			(end_time && e.sec > end_time)) {
+		free((char *)e.node);
+		return 0;
+	}
+	else {
+		n.message=strdup(buff);
+		n.type = e.type;
+	}
+
+	// Now see where this belongs
+	for (i=0; i<=lo->maxi; i++) {
+		if (lo->array[i].status == 1) {
+			l = lo->array[i].l;
+			if (events_are_equal(&l->e, &e)) {
+				free((char *)e.node);
+				list_append(l, &n);
+				return 1;
+			}
+		}
+	}
+	// Create new event and fill it in
+	l = malloc(sizeof(llist));
+	list_create(l);
+	l->e.milli = e.milli;
+	l->e.sec = e.sec;
+	l->e.serial = e.serial;
+	l->e.node = e.node;
+	l->e.type = e.type;
+	list_append(l, &n);
+	lol_append(lo, l);
+	check_events(lo,  e.sec);
+	return 1;
+}
+
+// This function will mark all events as "done"
+void terminate_all_events(lol *lo)
+{
+	int i;
+
+	for (i=0; i<=lo->maxi; i++) {
+		lolnode *cur = &lo->array[i];
+		if (cur->status == 1) {
+			cur->status = 2;
+			ready++;
+		}
+	}
+}
+
+/* Search the list for any event that is ready to go. The caller
+ * takes custody of the memory */
+llist* get_ready_event(lol *lo)
+{
+	int i;
+
+	if (ready == 0)
+		return NULL;
+
+	for (i=0; i<=lo->maxi; i++) {
+		lolnode *cur = &lo->array[i];
+		if (cur->status == 2) {
+			cur->status = 0;
+			ready--;
+			return cur->l;
+		}
+	}
+
+	return NULL;
+}
+

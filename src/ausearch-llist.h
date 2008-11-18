@@ -36,6 +36,8 @@ typedef struct
         time_t sec;		// Event seconds
         unsigned int milli;	// millisecond of the timestamp
         unsigned long serial;	// Serial number of the event
+	const char *node;	// Machine's node name
+	int type;		// type of first event
 } event;
 
 typedef struct
@@ -62,17 +64,16 @@ typedef struct
   char *comm;           // comm name
   alist *avc;		// avcs for the event
   char *acct;		// account used when uid is invalid
-  char *node;		// machine's name (hostname,fqdn,ip)
 } search_items;
 
-/* This is the node of the linked list. message & item are the only elements
- * at this time. Any data elements that are per item goes here. */
+/* This is the node of the linked list. Any data elements that are per
+ *  record goes here. */
 typedef struct _lnode{
-  char *message;	// The whole unparsed message
-  int type;             // message type (KERNEL, USER, LOGIN, etc)
+  char *message;		// The whole unparsed message
+  int type;             	// message type (KERNEL, USER, LOGIN, etc)
   unsigned long long a0;	// argv 0
-  unsigned int item;	// Which item of the same event
-  struct _lnode* next;	// Next node pointer
+  unsigned int item;		// Which item of the same event
+  struct _lnode* next;		// Next node pointer
 } lnode;
 
 /* This is the linked list head. Only data elements that are 1 per

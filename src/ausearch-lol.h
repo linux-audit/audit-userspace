@@ -1,6 +1,6 @@
 /*
-* ausearch-string.h - Header file for ausearch-string.c
-* Copyright (c) 2005,2008 Red Hat Inc., Durham, North Carolina.
+* ausearch-lol.h - linked list of linked lists library header
+* Copyright (c) 2008 Red Hat Inc., Durham, North Carolina.
 * All Rights Reserved.
 *
 * This software may be freely redistributed and/or modified under the
@@ -21,39 +21,33 @@
 *   Steve Grubb <sgrubb@redhat.com>
 */
 
-#ifndef AUSTRING_HEADER
-#define AUSTRING_HEADER
+#ifndef AUSEARCH_LOL_HEADER
+#define AUSEARCH_LOL_HEADER
 
 #include "config.h"
+#include "ausearch-llist.h"
+
 
 /* This is the node of the linked list. message & item are the only elements
  * at this time. Any data elements that are per item goes here. */
-typedef struct _snode{
-  char *str;		// The string
-  char *key;		// The key string
-  unsigned int hits;	// Number of times this string was attempted to be added
-  struct _snode* next;	// Next string node pointer
-} snode;
+typedef struct _lolnode{
+  llist *l;			// The linked list
+  int status;			// 0 = empty, 1 in use, 2 complete
+} lolnode;
 
 /* This is the linked list head. Only data elements that are 1 per
  * event goes here. */
 typedef struct {
-  snode *head;		// List head
-  snode *cur;		// Pointer to current node
-  unsigned int cnt;	// How many items in this list
-} slist;
+  lolnode *array;
+  int maxi;		// Largest index used
+  int limit;		// Number of nodes in the array
+} lol;
 
-void slist_create(slist *l);
-static inline void slist_first(slist *l) { l->cur = l->head; }
-void slist_last(slist *l);
-snode *slist_next(slist *l);
-static inline snode *slist_get_cur(slist *l) { return l->cur; }
-void slist_append(slist *l, snode *node);
-void slist_clear(slist* l);
-
-/* append a string if its not already on the list */
-int slist_add_if_uniq(slist *l, const char *str);
-void slist_sort_by_hits(slist *l);
+void lol_create(lol *lo);
+void lol_clear(lol *lo);
+int lol_add_record(lol *lo, char *buff);
+void terminate_all_events(lol *lo);
+llist* get_ready_event(lol *lo);
 
 #endif
 

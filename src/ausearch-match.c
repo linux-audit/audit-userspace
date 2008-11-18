@@ -54,10 +54,10 @@ int match(llist *l)
 
 				// perform additional tests for the field
 				if (event_node) {
-					if (l->s.node == NULL)
+					if (l->e.node == NULL)
 						return 0;
 					if (strmatch(event_node, 
-						l->s.node) == 0)
+						l->e.node) == 0)
 						return 0; 
 				}
 				if (user_match(l) == 0)

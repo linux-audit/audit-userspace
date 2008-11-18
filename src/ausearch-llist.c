@@ -33,6 +33,8 @@ void list_create(llist *l)
 	l->e.milli = 0L;       
 	l->e.sec = 0L;         
 	l->e.serial = 0L;      
+	l->e.node = NULL;      
+	l->e.type = 0;      
 	l->s.gid = -1;          
 	l->s.egid = -1;         
 	l->s.ppid = -1;            
@@ -50,7 +52,6 @@ void list_create(llist *l)
 	l->s.comm = NULL;
 	l->s.avc = NULL;
 	l->s.acct = NULL;
-	l->s.node = NULL;
 	l->s.arch = 0;
 	l->s.syscall = 0;
 	l->s.session_id = -1;
@@ -155,6 +156,9 @@ void list_clear(llist* l)
 	l->e.milli = 0L;       
 	l->e.sec = 0L;         
 	l->e.serial = 0L;      
+	free((char *)l->e.node);
+	l->e.node = NULL;
+	l->e.type = 0;         
 	l->s.gid = -1;
 	l->s.egid = -1;
 	l->s.ppid = -1;
@@ -190,8 +194,6 @@ void list_clear(llist* l)
 	}
 	free(l->s.acct);
 	l->s.acct = NULL;
-	free(l->s.node);
-	l->s.node = NULL;
 	l->s.arch = 0;
 	l->s.syscall = 0;
 	l->s.session_id = -1;
