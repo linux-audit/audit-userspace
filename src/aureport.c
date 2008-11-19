@@ -200,10 +200,9 @@ static int process_log_fd(const char *filename)
 	last_event.milli = 0;
 
 	/* For each record in file */
-	list_create(entries);
 	do {
 		ret = get_record(&entries);
-		if ((ret < 0)||(entries->cnt == 0))
+		if ((ret != 0)||(entries->cnt == 0))
 			break;
 		// If report is RPT_TIME or RPT_SUMMARY, get 
 		if (report_type <= RPT_SUMMARY) {
