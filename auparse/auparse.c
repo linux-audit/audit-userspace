@@ -734,23 +734,23 @@ static int extract_timestamp(const char *b, au_event_t *e)
 	return rc;
 }
 
-static int events_are_equal(au_event_t *e1, au_event_t *e2)
+static int inline events_are_equal(au_event_t *e1, au_event_t *e2)
 {
-	// If both have a host, only a string compare can tell if they
-	// are the same. Otherwise, if only one of them have a host, they
-	// are definitely not the same. Its a boundary on daemon config.
+	// Check time & serial first since its most likely way
+	// to spot 2 different events
+	if (!(e1->serial == e2->serial && e1->milli == e2->milli &&
+					e1->sec == e2->sec))
+		return 0;
+	// Hmm...same so far, check if both have a host, only a string
+	// compare can tell if they are the same. Otherwise, if only one
+	// of them have a host, they are definitely not the same. Its
+	// a boundary on daemon config.
 	if (e1->host && e2->host) {
 		if (strcmp(e1->host, e2->host))
 			return 0;
 	} else if (e1->host || e2->host)
 		return 0;
-
-	// Hosts are same at this point, check time & serial
-	if (e1->serial == e2->serial && e1->milli == e2->milli &&
-			e1->sec == e2->sec)
-		return 1;
-	else
-		return 0;
+	return 1;
 }
 
 /* This function will figure out how to get the next line of input.

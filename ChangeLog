@@ -1,4 +1,5 @@
 1.7.10
+- Fix ausearch and aureport to handle out of order events
 
 1.7.9
 - Fix uninitialized variable in aureport causing segfault

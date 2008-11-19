@@ -113,11 +113,15 @@ static int str2event(char *s, event *e)
 
 static int inline events_are_equal(event *e1, event *e2)
 {
-	if (e1->serial == e2->serial && e1->milli == e2->milli &&
-			e1->sec == e2->sec)
-		return 1;
-	else
+	if (!(e1->serial == e2->serial && e1->milli == e2->milli &&
+					e1->sec == e2->sec))
 		return 0;
+	if (e1->node && e2->node) {
+		if (strcmp(e1->node, e2->node))
+			return 0;
+	} else if (e1->node || e2->node)
+		return 0;
+	return 1;
 }
 
 /*
