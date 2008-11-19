@@ -2,12 +2,10 @@ Things that need to be done:
 ===========================
 1.7.10
 * Fix auparse to handle out of order messages
-* If output is a pipe flush each write
-* If input is a pipe timeout events by wall clock
-* Add session exploring ability to aulast
 * Add definitions for kernel virt events
+* Add session exploring ability to aulast
+* If input is a pipe timeout events by wall clock
 * Add libaudit.m4 to make audit easier to include
-* Add new capabaility event type
 
 1.8
 * Fix aureport main page for hits vs count, --summary

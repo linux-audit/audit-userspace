@@ -55,11 +55,11 @@ static int get_record(llist **);
 extern char *user_file;
 extern int force_logs;
 
-static int input_is_pipe(void)
+static int is_pipe(int fd)
 {
 	struct stat st;
 
-	if (fstat(0, &st) == 0) {
+	if (fstat(fd, &st) == 0) {
 		if (S_ISFIFO(st.st_mode))
 			return 1;
 	}
@@ -114,7 +114,7 @@ int main(int argc, char *argv[])
 		rc = process_file(user_file);
 	else if (force_logs)
 		rc = process_logs(&config);
-	else if (input_is_pipe())
+	else if (is_pipe(0))
 		rc = process_stdin();
 	else
 		rc = process_logs(&config);

@@ -56,11 +56,11 @@ extern int force_logs;
 extern int match(llist *l);
 extern void output_record(llist *l);
 
-static int input_is_pipe(void)
+static int is_pipe(int fd)
 {
 	struct stat st;
 
-	if (fstat(0, &st) == 0) {
+	if (fstat(fd, &st) == 0) {
 		if (S_ISFIFO(st.st_mode)) 
 			pipe_mode = 1;
 	}
@@ -91,7 +91,7 @@ int main(int argc, char *argv[])
 		rc = process_file(user_file);
 	else if (force_logs)
 		rc = process_logs();
-	else if (input_is_pipe())
+	else if (is_pipe(0))
 		rc = process_stdin();
 	else
 		rc = process_logs();
@@ -176,6 +176,7 @@ static int process_log_fd(void)
 {
 	llist *entries; // entries in a record
 	int ret;
+	int flush = is_pipe(1);
 
 	/* For each record in file */
 	do {
@@ -192,6 +193,8 @@ static int process_log_fd(void)
 				free(entries);
 				break;
 			}
+			if (flush)
+				fflush(stdout);
 		}
 		list_clear(entries);
 		free(entries);
