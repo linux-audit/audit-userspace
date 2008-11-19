@@ -39,7 +39,7 @@ auditd_LDADD = @LIBWRAP_LIBS@ @libev_LIBS@ -Llibev -lev -lrt -lm $(gss_libs)
 auditctl_SOURCES = auditctl.c auditctl-llist.c delete_all.c
 auditctl_DEPENDENCIES = mt/libauditmt.a 
 
-aureport_SOURCES = aureport.c auditd-config.c ausearch-llist.c aureport-options.c ausearch-string.c ausearch-parse.c aureport-scan.c aureport-output.c ausearch-lookup.c ausearch-int.c ausearch-time.c ausearch-nvpair.c ausearch-avc.c
+aureport_SOURCES = aureport.c auditd-config.c ausearch-llist.c aureport-options.c ausearch-string.c ausearch-parse.c aureport-scan.c aureport-output.c ausearch-lookup.c ausearch-int.c ausearch-time.c ausearch-nvpair.c ausearch-avc.c ausearch-lol.c
 aureport_DEPENDENCIES = mt/libauditmt.a
 
 ausearch_SOURCES = ausearch.c auditd-config.c ausearch-llist.c ausearch-options.c ausearch-report.c ausearch-match.c ausearch-string.c ausearch-parse.c ausearch-int.c ausearch-time.c ausearch-nvpair.c ausearch-lookup.c ausearch-avc.c ausearch-lol.c
