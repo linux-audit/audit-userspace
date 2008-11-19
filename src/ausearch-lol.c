@@ -135,7 +135,8 @@ static void extract_timestamp(const char *b, event *e)
 	tmp = strndupa(b, 120);
 	ptr = strtok(tmp, " ");
 	if (ptr) {
-		if (strncmp(ptr, "node=", 5) == 0) {
+		// Check to see if this is the node info
+		if (*ptr == 'n') {
 			e->node = strdup(ptr+5);
 			ptr = strtok(NULL, " ");
 		}
@@ -212,8 +213,7 @@ int lol_add_record(lol *lo, char *buff)
 			(end_time && e.sec > end_time)) {
 		free((char *)e.node);
 		return 0;
-	}
-	else {
+	} else {
 		n.message=strdup(buff);
 		n.type = e.type;
 	}
