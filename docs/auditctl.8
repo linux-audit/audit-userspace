@@ -1,4 +1,4 @@
-.TH AUDITCTL: "8" "Jan 2008" "Red Hat" "System Administration Utilities"
+.TH AUDITCTL: "8" "Nov 2008" "Red Hat" "System Administration Utilities"
 .SH NAME
 auditctl \- a utility to assist controlling the kernel's audit system
 .SH SYNOPSIS
@@ -116,7 +116,7 @@ Device Major Number
 Device Minor Number
 .TP
 .B dir
-Full Path of Directory to watch. See "\fB\-w\fP". Should only be used on exit list.
+Full Path of Directory to watch. This will place a recursive watch on the directory and its whole subtree. Should only be used on exit list. See "\fB\-w\fP".
 .TP
 .B egid
 Effective Group ID
@@ -164,10 +164,10 @@ Resource's SE Linux Low Level
 Resource's SE Linux High Level
 .TP
 .B path
-Full Path of File to watch. See "\fB\-w\fP". Should only be used on exit list.
+Full Path of File to watch. Should only be used on exit list.
 .TP
 .B perm
-Permission filter for file operations. See "\fB\-p\fP". Should only be used on exit list.
+Permission filter for file operations. See "\fB\-p\fP". Should only be used on exit list. You can use this without specifying a syscall and the kernel will select the syscalls that satisfy the permissions being requested.
 .TP
 .B pers
 OS Personality Number
@@ -207,7 +207,7 @@ User ID
 .RE
 .TP
 .BI \-w\  path
-Insert a watch for the file system object at \fIpath\fP. You cannot insert a watch to the top level directory. This is prohibited by the kernel. Wildcards are not supported either and will generate a warning. The way that watches work is by tracking the inode internally. This means that if you put a watch on a directory, you will see what appears to be file events, but it is really just the updating of meta data. You might miss a few events by doing this. If you need to watch all files in a directory, its recommended to place an individual watch on each file. Unlike syscall auditing rules, watches do not impact performance based on the number of rules sent to the kernel.
+Insert a watch for the file system object at \fIpath\fP. You cannot insert a watch to the top level directory. This is prohibited by the kernel. Wildcards are not supported either and will generate a warning. The way that watches work is by tracking the inode internally. If you place a watch on a file, its the same as using the \-F path option on a syscall rule. If you place a watch on a directory, its the same as using the \-F dir option on a syscall rule. The \-w form of writing watches is for backwards compatibility and the syscall based form is more expressive. Unlike most syscall auditing rules, watches do not impact performance based on the number of rules sent to the kernel. The only valid options when using a watch are the \-p and \-k. If you need to anything fancy like audit a specific user accessing a file, then use the syscall auditing form with the path or dir fields. See the EXAMPLES section for an example of converting one form to another.
 .TP
 .BI \-W\  path
 Remove a watch for the file system object at \fIpath\fP.
