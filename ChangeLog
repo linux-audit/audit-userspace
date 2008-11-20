@@ -1,6 +1,7 @@
 1.7.10
 - Fix ausearch and aureport to handle out of order events
 - If output is a pipe flush each write (Tony Jones)
+- Add support in ausearch/report for tty data
 
 1.7.9
 - Fix uninitialized variable in aureport causing segfault

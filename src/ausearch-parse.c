@@ -50,6 +50,7 @@ static int parse_sockaddr(const lnode *n, search_items *s);
 static int parse_avc(const lnode *n, search_items *s);
 static int parse_kernel_anom(const lnode *n, search_items *s);
 static int parse_simple_message(const lnode *n, search_items *s);
+static int parse_tty(const lnode *n, search_items *s);
 
 /*
  * This function will take a pointer to a 2 byte Ascii character buffer and 
@@ -186,6 +187,9 @@ int extract_search_items(llist *l)
 			case AUDIT_IPC:
 			case AUDIT_SELINUX_ERR:
 				// Nothing to parse
+				break;
+			case AUDIT_TTY:
+				ret = parse_tty(n, s);
 				break;
 			default:
 				break;
@@ -1608,6 +1612,116 @@ static int parse_simple_message(const lnode *n, search_items *s)
 			if (term)
 				*term = ' ';
 		}
+	}
+
+	return 0;
+}
+
+static int parse_tty(const lnode *n, search_items *s)
+{
+	char *str, *ptr, *term=n->message;
+
+	// get pid
+	if (event_pid != -1) {
+		str = strstr(n->message, "pid=");
+		if (str) {
+			ptr = str + 4;
+			term = strchr(ptr, ' ');
+			if (term == NULL)
+				return 1;
+			*term = 0;
+			errno = 0;
+			s->pid = strtoul(ptr, NULL, 10);
+			if (errno)
+				return 2;
+			*term = ' ';
+		}
+	}
+
+	// get uid
+	str = strstr(term, " uid="); // if promiscuous, we start over
+	if (str) {
+		ptr = str + 4;
+		term = strchr(ptr, ' ');
+		if (term == NULL)
+			return 3;
+		*term = 0;
+		errno = 0;
+		s->uid = strtoul(ptr, NULL, 10);
+		if (errno)
+			return 4;
+		*term = ' ';
+	}
+
+	// get loginuid
+	str = strstr(term, "auid=");
+	if (str == NULL)
+		return 5;
+	ptr = str + 5;
+	term = strchr(ptr, ' ');
+	if (term)
+		*term = 0;
+	errno = 0;
+	s->loginuid = strtoul(ptr, NULL, 10);
+	if (errno)
+		return 6;
+	if (term)
+		*term = ' ';
+
+	// ses
+	if (event_session_id != -1 ) {
+		str = strstr(term, "ses=");
+		if (str) {
+			ptr = str + 4;
+			term = strchr(ptr, ' ');
+			if (term == NULL)
+				return 7;
+			*term = 0;
+			errno = 0;
+			s->session_id = strtoul(ptr, NULL, 10);
+			if (errno)
+				return 8;
+			*term = ' ';
+		}
+	}
+
+/*	if (event_subject) {
+		// scontext
+		str = strstr(term, "subj=");
+		if (str) {
+			str += 5;
+			term = strchr(str, ' ');
+			if (term == NULL)
+				return 9;
+			*term = 0;
+			if (audit_avc_init(s) == 0) {
+				anode an;
+
+				anode_init(&an);
+				an.scontext = strdup(str);
+				alist_append(s->avc, &an);
+				*term = ' ';
+			} else
+				return 10;
+		}
+	} */
+
+	if (event_comm) {
+		// dont do this search unless needed
+		str = strstr(term, "comm=");
+		if (str) {
+			str += 5;
+			if (*str == '"') {
+				str++;
+				term = strchr(str, '"');
+				if (term == NULL)
+					return 11;
+				*term = 0;
+				s->comm = strdup(str);
+				*term = '"';
+			} else 
+				s->comm = unescape(str);
+		} 
 	}
 
 	return 0;
