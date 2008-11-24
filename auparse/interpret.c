@@ -64,16 +64,21 @@
 
 #include "captabs.h"
 #include "clone-flagtabs.h"
+#include "epoll_ctls.h"
 #include "famtabs.h"
 #include "fcntl-cmdtabs.h"
 #include "flagtabs.h"
 #include "ipctabs.h"
 #include "open-flagtabs.h"
 #include "socktabs.h"
+#include "seeks.h"
 #include "typetabs.h"
 
 typedef enum { AVC_UNSET, AVC_DENIED, AVC_GRANTED } avc_t;
 typedef enum { S_UNSET=-1, S_FAILED, S_SUCCESS } success_t;
+
+static const char *print_signals(const char *val);
+
 
 /*
  * This function will take a pointer to a 2 byte Ascii character buffer and
@@ -748,6 +753,30 @@ static const char *print_fcntl_cmd(int cmd)
 	return out;
 }
 
+static const char *print_epoll_ctl(int cmd)
+{
+	char *out;
+	const char *s;
+
+	s = epoll_ctl_i2s(cmd);
+	if (s != NULL)
+		return strdup(s);
+	asprintf(&out, "unknown epoll_ctl operation (%d)", cmd);
+	return out;
+}
+
+static const char *print_seek(int cmd)
+{
+	char *out;
+	const char *s;
+
+	s = seek_i2s(cmd);
+	if (s != NULL)
+		return strdup(s);
+	asprintf(&out, "unknown seek whence (%d)", cmd);
+	return out;
+}
+
 static const char *print_a0(const char *val, const rnode *r)
 {
 	int machine = r->machine, syscall = r->syscall;
@@ -764,7 +793,10 @@ static const char *print_a0(const char *val, const rnode *r)
 	                	return out;
 	        	}
 			return print_clone_flags(ival);
-		}
+		}  else if (strcmp(sys, "rt_sigaction") == 0) {
+                        return print_signals(val);
+                }
+
 	}
 	return strdup(val);
 }
@@ -795,6 +827,16 @@ static const char *print_a1(const char *val, const rnode *r)
 	                	return out;
 	        	}
 			return print_fcntl_cmd(ival);
+		} else if (strcmp(sys, "epoll_ctl") == 0) {
+			int ival;
+
+			errno = 0;
+			ival = strtoul(val, NULL, 16);
+			if (errno) {
+				asprintf(&out, "conversion error(%s)", val);
+				return out;
+			}
+			return print_epoll_ctl(ival);
 		}
 	}
 	return strdup(val);
@@ -829,6 +871,16 @@ static const char *print_a2(const char *val, const rnode *r)
 				case F_NOTIFY:
 					break;
 			}
+		} else if (strcmp(sys, "lseek") == 0) {
+			int ival;
+
+			errno = 0;
+			ival = strtoul(val, NULL, 16);
+			if (errno) {
+				asprintf(&out, "conversion error(%s)", val);
+				return out;
+			}
+			return print_seek(ival);
 		}
 	}
 	return strdup(val);

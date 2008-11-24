@@ -42,10 +42,12 @@ libauparse_la_LDFLAGS = -Wl,-z,relro
 message.c:
 	cp ${top_srcdir}/lib/message.c .
 
-BUILT_SOURCES = captabs.h clone-flagtabs.h famtabs.h fcntl-cmdtabs.h \
-	flagtabs.h ipctabs.h open-flagtabs.h socktabs.h typetabs.h
-noinst_PROGRAMS = gen_captabs_h gen_clone-flagtabs_h gen_famtabs_h	     \
-	gen_fcntl-cmdtabs_h gen_flagtabs_h gen_ipctabs_h gen_open-flagtabs_h \
+BUILT_SOURCES = captabs.h clone-flagtabs.h epoll_ctls.h famtabs.h \
+	fcntl-cmdtabs.h flagtabs.h ipctabs.h open-flagtabs.h \
+	seeks.h socktabs.h typetabs.h
+noinst_PROGRAMS = gen_captabs_h gen_clone-flagtabs_h gen_epoll_ctls_h \
+	gen_famtabs_h gen_fcntl-cmdtabs_h gen_flagtabs_h \
+	gen_ipctabs_h gen_open-flagtabs_h gen_seeks_h \
 	gen_socktabs_h gen_typetabs_h
 
 gen_captabs_h_SOURCES = ../lib/gen_tables.c ../lib/gen_tables.h captab.h
@@ -58,6 +60,11 @@ gen_clone_flagtabs_h_SOURCES = ../lib/gen_tables.c ../lib/gen_tables.h \
 gen_clone_flagtabs_h_CFLAGS = $(AM_CFLAGS) '-DTABLE_H="clone-flagtab.h"'
 clone-flagtabs.h: gen_clone-flagtabs_h Makefile
 	./gen_clone-flagtabs_h --i2s-transtab clone_flag > $@
+
+gen_epoll_ctls_h_SOURCES = ../lib/gen_tables.c ../lib/gen_tables.h epoll_ctl.h
+gen_epoll_ctls_h_CFLAGS = $(AM_CFLAGS) '-DTABLE_H="epoll_ctl.h"'
+epoll_ctls.h: gen_epoll_ctls_h Makefile
+	./gen_epoll_ctls_h --i2s epoll_ctl > $@
 
 gen_famtabs_h_SOURCES = ../lib/gen_tables.c ../lib/gen_tables.h famtab.h
 gen_famtabs_h_CFLAGS = $(AM_CFLAGS) '-DTABLE_H="famtab.h"'
@@ -86,6 +93,11 @@ gen_open_flagtabs_h_SOURCES = ../lib/gen_tables.c ../lib/gen_tables.h \
 gen_open_flagtabs_h_CFLAGS = $(AM_CFLAGS) '-DTABLE_H="open-flagtab.h"'
 open-flagtabs.h: gen_open-flagtabs_h Makefile
 	./gen_open-flagtabs_h --i2s-transtab open_flag > $@
+
+gen_seeks_h_SOURCES = ../lib/gen_tables.c ../lib/gen_tables.h seek.h
+gen_seeks_h_CFLAGS = $(AM_CFLAGS) '-DTABLE_H="seek.h"'
+seeks.h: gen_seeks_h Makefile
+	./gen_seeks_h --i2s seek > $@
 
 gen_socktabs_h_SOURCES = ../lib/gen_tables.c ../lib/gen_tables.h socktab.h
 gen_socktabs_h_CFLAGS = $(AM_CFLAGS) '-DTABLE_H="socktab.h"'
