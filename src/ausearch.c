@@ -34,6 +34,7 @@
 #include <sys/resource.h>
 #include <sys/stat.h>
 #include <locale.h>
+#include <signal.h>
 #include "libaudit.h"
 #include "auditd-config.h"
 #include "ausearch-options.h"
@@ -44,7 +45,8 @@
 static FILE *log_fd = NULL;
 static lol lo;
 static int found = 0;
-static int pipe_mode = 0;
+static int input_is_pipe = 0;
+static int timeout_interval = 5;	/* timeout in seconds */
 static int process_logs(void);
 static int process_log_fd(void);
 static int process_stdin(void);
@@ -59,6 +61,7 @@ extern void output_record(llist *l);
 static int is_pipe(int fd)
 {
 	struct stat st;
+	int pipe_mode=0;
 
 	if (fstat(fd, &st) == 0) {
 		if (S_ISFIFO(st.st_mode)) 
@@ -176,7 +179,6 @@ static int process_log_fd(void)
 {
 	llist *entries; // entries in a record
 	int ret;
-	int flush = is_pipe(1);
 
 	/* For each record in file */
 	do {
@@ -193,7 +195,7 @@ static int process_log_fd(void)
 				free(entries);
 				break;
 			}
-			if (flush)
+			if (line_buffered)
 				fflush(stdout);
 		}
 		list_clear(entries);
@@ -204,9 +206,19 @@ static int process_log_fd(void)
 	return 0;
 }
 
+static void alarm_handler(int signal)
+{
+	/* will interrupt current syscall */
+}
+
 static int process_stdin(void)
 {
 	log_fd = stdin;
+	input_is_pipe=1;
+
+	if (signal(SIGALRM, alarm_handler) == SIG_ERR ||
+	    siginterrupt(SIGALRM, 1) == -1)
+		return -1;
 
 	return process_log_fd();
 }
@@ -232,22 +244,35 @@ static int get_record(llist **l)
 {
 	char *rc;
 	char *buff = NULL;
+	int rcount = 0, timer_running = 0;
 
 	*l = get_ready_event(&lo);
 	if (*l)
 		return 0;
 
 	while (1) {
+		rcount++;
+
 		if (!buff) {
 			buff = malloc(MAX_AUDIT_MESSAGE_LENGTH);
 			if (!buff)
 				return -1;
 		}
-		// FIXME: In pipe mode, if there is a waiting buffer
-		// and 5 seconds has elapsed, go ahead and process
-		// the buffer - nothings coming that's related.
+
+		if (input_is_pipe && rcount > 1) {
+			timer_running = 1;
+			alarm(timeout_interval);
+		}
+
 		rc = fgets_unlocked(buff, MAX_AUDIT_MESSAGE_LENGTH,
 					log_fd);
+
+		if (timer_running) {
+			/* timer may have fired but thats ok */
+			timer_running = 0;
+			alarm(0);
+		}
+
 		if (rc) {
 			if (lol_add_record(&lo, buff)) {
 				*l = get_ready_event(&lo);
@@ -256,7 +281,7 @@ static int get_record(llist **l)
 			}
 		} else {
 			free(buff);
-			if (feof(log_fd)) {
+			if (ferror(log_fd) && errno == EINTR) || feof(log_fd)) {
 				terminate_all_events(&lo);
 				*l = get_ready_event(&lo);
 				if (*l)

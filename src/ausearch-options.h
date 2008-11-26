@@ -36,6 +36,7 @@ extern const char *event_subject;
 extern const char *event_object;
 extern int event_se;
 extern int just_one;
+extern int line_buffered;
 extern pid_t event_ppid;
 extern int event_session_id;
 

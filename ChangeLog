@@ -1,6 +1,6 @@
 1.7.10
 - Fix ausearch and aureport to handle out of order events
-- If output is a pipe flush each write (Tony Jones)
+- Add line-buffer option to ausearch & timeout pipe input (Tony Jones)
 - Add support in ausearch/report for tty data
 - Add interpretations for epoll_ctl, lseek, and sigaction to libauparse
 

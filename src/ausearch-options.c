@@ -51,6 +51,7 @@ int event_ua = 0, event_ga = 0, event_se = 0;
 int just_one = 0;
 int event_session_id = -1;
 int event_exit = 0, event_exit_is_set = 0;
+int line_buffered = 0;
 const char *event_key = NULL;
 const char *event_node = NULL;
 const char *event_filename = NULL;
@@ -72,7 +73,8 @@ enum { S_EVENT, S_COMM, S_FILENAME, S_ALL_GID, S_EFF_GID, S_GID, S_HELP,
 S_HOSTNAME, S_INTERP, S_INFILE, S_MESSAGE_TYPE, S_PID, S_SYSCALL, S_OSUCCESS,
 S_TIME_END, S_TIME_START, S_TERMINAL, S_ALL_UID, S_EFF_UID, S_UID, S_LOGINID,
 S_VERSION, S_EXACT_MATCH, S_EXECUTABLE, S_CONTEXT, S_SUBJECT, S_OBJECT,
-S_PPID, S_KEY, S_RAW, S_NODE, S_IN_LOGS, S_JUST_ONE, S_SESSION, S_EXIT };
+S_PPID, S_KEY, S_RAW, S_NODE, S_IN_LOGS, S_JUST_ONE, S_SESSION, S_EXIT,
+S_LINEBUFFERED };
 
 static struct nv_pair optiontab[] = {
 	{ S_EVENT, "-a" },
@@ -101,6 +103,8 @@ static struct nv_pair optiontab[] = {
 	{ S_JUST_ONE, "--just-one" },
 	{ S_KEY, "-k" },
 	{ S_KEY, "--key" },
+	{ S_LINEBUFFERED, "-l" },
+	{ S_LINEBUFFERED, "--line-buffered" },
 	{ S_MESSAGE_TYPE, "-m" },
 	{ S_MESSAGE_TYPE, "--message" },
 	{ S_NODE, "-n" },
@@ -173,6 +177,7 @@ static void usage(void)
 	"\t--input-logs\t\t\tUse the logs even if stdin is a pipe\n"
 	"\t--just-one\t\t\tEmit just one event\n"
 	"\t-k,--key  <key string>\t\tsearch based on key field\n"
+	"\t-l, --line-buffered\t\tFlush output on every line\n"
 	"\t-m,--message  <Message type>\tsearch based on message type\n"
 	"\t-n,--node  <Node name>\t\tsearch based on machine's name\n"
 	"\t-o,--object  <SE Linux Object context> search based on context of object\n"
@@ -1002,6 +1007,9 @@ int check_params(int count, char *vars[])
        	                	        retval = -1;
 				c++;
 			}
+			break;
+		case S_LINEBUFFERED:
+			line_buffered = 1;
 			break;
 		default:
 			fprintf(stderr, "%s is an unsupported option\n", 
