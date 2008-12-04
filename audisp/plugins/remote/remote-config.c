@@ -444,7 +444,8 @@ static int server_parser(struct nv_pair *nv, int line,
 	return 0;
 }
 
-static int parse_uint (struct nv_pair *nv, int line, unsigned int *valp, unsigned int min, unsigned int max)
+static int parse_uint (struct nv_pair *nv, int line, unsigned int *valp,
+		unsigned int min, unsigned int max)
 {
 	const char *ptr = nv->value;
 	unsigned int i;
@@ -490,8 +491,11 @@ static int port_parser(struct nv_pair *nv, int line, remote_conf_t *config)
 	return parse_uint (nv, line, &(config->port), 0, INT_MAX);
 }
 
-static int local_port_parser(struct nv_pair *nv, int line, remote_conf_t *config)
+static int local_port_parser(struct nv_pair *nv, int line,
+		remote_conf_t *config)
 {
+	if ((strcasecmp(nv->value, "any") == 0))
+		return 0;	// The default is 0, which means any port
 	return parse_uint (nv, line, &(config->local_port), 0, INT_MAX);
 }
 
@@ -522,7 +526,7 @@ static int mode_parser(struct nv_pair *nv, int line, remote_conf_t *config)
 }
 
 static int depth_parser(struct nv_pair *nv, int line,
-	remote_conf_t *config)
+		remote_conf_t *config)
 {
 	return parse_uint (nv, line, &(config->queue_depth), 1, INT_MAX);
 }
@@ -567,7 +571,7 @@ AP(generic_warning)
 #undef AP
 
 static int format_parser(struct nv_pair *nv, int line,
-	remote_conf_t *config)
+		remote_conf_t *config)
 {
 	int i;
 	for (i=0; format_words[i].name != NULL; i++) {
@@ -581,32 +585,32 @@ static int format_parser(struct nv_pair *nv, int line,
 }
 
 static int network_retry_time_parser(struct nv_pair *nv, int line,
-	remote_conf_t *config)
+		remote_conf_t *config)
 {
 	return parse_uint (nv, line, &(config->network_retry_time), 1, INT_MAX);
 }
 
 static int max_tries_per_record_parser(struct nv_pair *nv, int line,
-	remote_conf_t *config)
+		remote_conf_t *config)
 {
 	return parse_uint (nv, line, &(config->max_tries_per_record), 1, INT_MAX);
 }
 
 static int max_time_per_record_parser(struct nv_pair *nv, int line,
-	remote_conf_t *config)
+		remote_conf_t *config)
 {
 	return parse_uint (nv, line, &(config->max_time_per_record), 1, INT_MAX);
 }
 
 static int heartbeat_timeout_parser(struct nv_pair *nv, int line,
-	remote_conf_t *config)
+		remote_conf_t *config)
 {
 	return parse_uint (nv, line, &(config->heartbeat_timeout), 0, INT_MAX);
 }
 
 #ifdef USE_GSSAPI
 static int enable_krb5_parser(struct nv_pair *nv, int line,
-	remote_conf_t *config)
+		remote_conf_t *config)
 {
 	unsigned long i;
 
@@ -621,7 +625,7 @@ static int enable_krb5_parser(struct nv_pair *nv, int line,
 }
 
 static int krb5_principal_parser(struct nv_pair *nv, int line,
-	remote_conf_t *config)
+		remote_conf_t *config)
 {
 	const char *ptr = nv->value;
 
@@ -633,7 +637,7 @@ static int krb5_principal_parser(struct nv_pair *nv, int line,
 }
 
 static int krb5_client_name_parser(struct nv_pair *nv, int line,
-	remote_conf_t *config)
+		remote_conf_t *config)
 {
 	const char *ptr = nv->value;
 
@@ -645,7 +649,7 @@ static int krb5_client_name_parser(struct nv_pair *nv, int line,
 }
 
 static int krb5_key_file_parser(struct nv_pair *nv, int line,
-	remote_conf_t *config)
+		remote_conf_t *config)
 {
 	const char *ptr = nv->value;
 

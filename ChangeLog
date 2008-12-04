@@ -3,6 +3,7 @@
 - Add line-buffer option to ausearch & timeout pipe input (Tony Jones)
 - Add support in ausearch/report for tty data
 - Add interpretations for epoll_ctl, lseek, and sigaction to libauparse
+- In audisp-remote, allow the keyword "any" for local_port
 
 1.7.9
 - Fix uninitialized variable in aureport causing segfault
