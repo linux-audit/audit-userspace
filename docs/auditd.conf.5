@@ -1,4 +1,4 @@
-.TH AUDITD.CONF: "5" "Sept 2007" "Red Hat" "System Administration Utilities"
+.TH AUDITD.CONF: "5" "Dec 2008" "Red Hat" "System Administration Utilities"
 .SH NAME
 auditd.conf \- audit daemon configuration file
 .SH DESCRIPTION
@@ -234,7 +234,7 @@ allowed for incoming connections.  If not specified, any port is
 allowed.  Allowed values are 1..65535.  For example, to require the
 client use a priviledged port, specify
 .I 1-1023
-for this parameter.
+for this parameter. You will also need to set the local_port option in the audisp-remote.conf file. Making sure that clients send from a privileged port is a security feature to prevent log injection attacks by untrusted users.
 .TP
 .I tcp_client_max_idle
 This parameter indicates the number of seconds that a client may be

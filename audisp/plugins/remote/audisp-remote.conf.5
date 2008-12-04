@@ -1,4 +1,4 @@
-.TH AUDISP-REMOTE.CONF: "5" "Mar 2008" "Red Hat" "System Administration Utilities"
+.TH AUDISP-REMOTE.CONF: "5" "Dec 2008" "Red Hat" "System Administration Utilities"
 .SH NAME
 audisp-remote.conf \- the audisp-remote configuration file
 .SH DESCRIPTION
@@ -16,16 +16,14 @@ This option is an unsigned integer that indicates what local port to
 connect from on the local machine.  If unspecified (the default) or
 set to the word
 .I any
-then any available unpriviledged port is used.
+then any available unpriviledged port is used. This is a security mechanism to prevent untrusted user space apps from injecting events into the audit daemon. You should set it to an unused port < 1024 to ensure that only privileged users can bind to that port. Then also set the tcp_client_ports in the aggregating auditd.conf file to match the ports that clients are sending from.
 .TP
 .I transport
-This parameter tells the remote logging app how to send events to the remote system. Valid values are
-.IR tcp ", and " ssl ".
+This parameter tells the remote logging app how to send events to the remote system. The only valid value right now is
+.IR tcp ".
 If set to
 .IR tcp ,
-the remote logging app will just make a normal clear text connection to the remote system.
-.I ssl
-means that it will open an encrypted connection to the remote system.
+the remote logging app will just make a normal clear text connection to the remote system. This is not used if kerberos is enabled.
 .TP
 .I mode
 This parameter tells the remote logging app what strategy to use getting records to the remote system. Valid values are

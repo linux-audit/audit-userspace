@@ -1,4 +1,4 @@
-.TH AUDISP-PRELUDE: "8" "Mar 2008" "Red Hat" "System Administration Utilities"
+.TH AUDISP-PRELUDE: "8" "Dec 2008" "Red Hat" "System Administration Utilities"
 .SH NAME
 audisp-prelude \- plugin for IDMEF alerts 
 .SH SYNOPSIS
@@ -38,6 +38,20 @@ If you are wanting to get alerts on watched syscalls, watched files, watched exe
 -w /etc/shadow -p wa
 
 and you want idmef alerts on this, you need to add -k ids-file-med  or something appropriate to signal to the plugin that this message is for it. The format of the key has a fixed format of keywords separated by a dash. It follows the form of ids-type-severity. The type can be either sys, file, exec, or mkexe depending on whether you want the event to be considered a watched_syscall, watched_file, watched_exec, or watched_mk_exe respectively. The severity can be either info, low, med, or hi depending on how urgent you would like it to be.
+
+.SH EXAMPLE RULES
+To alert on any use of the personality syscall:
+-a exit,always -S personality -k ids-sys-med
+
+To alert on a user failing to access the shadow file:
+-a always,exit -F path=/etc/shadow -F perms=wa -F success=0 -k ids-file-med
+
+To alert on the execution of a program:
+-w /bin/ping -p x -k ids-exe-info
+
+To alert on users making exe's in their home dir (takes 2 rules):
+-a exit,always -S fchmodat -F dir=/home -F a2&0111 -F filetype=file -k ids-mkexe-hi
+-a exit,always -S fchmod,chmod -F dir=/home -F a1&0111 -F filetype=file -k ids-mkexe-hi
 
 .SH FILES
 /etc/audisp/plugins.d/au-prelude.conf, /etc/audit/auditd.conf, /etc/audisp/audispd.conf, /etc/audisp/audisp-prelude.conf
