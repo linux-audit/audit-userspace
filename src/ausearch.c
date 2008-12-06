@@ -46,7 +46,7 @@ static FILE *log_fd = NULL;
 static lol lo;
 static int found = 0;
 static int input_is_pipe = 0;
-static int timeout_interval = 5;	/* timeout in seconds */
+static int timeout_interval = 3;	/* timeout in seconds */
 static int process_logs(void);
 static int process_log_fd(void);
 static int process_stdin(void);
