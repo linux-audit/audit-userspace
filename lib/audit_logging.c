@@ -86,9 +86,8 @@ int audit_value_needs_encoding(const char *str, unsigned int size)
 	int i;
 
 	for (i=0; i<size; i++) {
-		// we don't test for > 0x7f because str[] is signed
-		// and str[i] < 0x21 covers it.
-		if (str[i] == '"' || str[i] < 0x21)
+		// we don't test for > 0x7f because str[] is signed.
+		if (str[i] == '"' || str[i] < 0x21 || str[i] == 0x7F)
 			return 1;
 	}
 	return 0;

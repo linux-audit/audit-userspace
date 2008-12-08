@@ -84,7 +84,7 @@ static char *escape(const char *tmp)
 	char *name;
 	const unsigned char *p = (unsigned char *)tmp;
 	while (*p) {
-		if (*p == '"' || *p < 0x21 || *p > 0x7f) {
+		if (*p == '"' || *p < 0x21 || *p > 0x7e) {
 			int len = strlen(tmp);
 			name = malloc((2*len)+1);
 			return _audit_c2x(name, tmp, len);
