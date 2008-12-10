@@ -1,10 +1,15 @@
 Things that need to be done:
 ===========================
 1.7.10
-* Fix auparse to handle out of order messages
-* Add definitions for kernel virt events
 * Add session query hint for aulast proof
 * Add aureport timeout patch
+* Fix EAGAIN sending pam events
+* In aureport, fix mods report to show acct acted upon
+* Create new report for tty output
+
+1.7.11
+* Fix auparse to handle out of order messages
+* Add definitions for kernel virt events
 * If auparse input is a pipe timeout events by wall clock
 * Add libaudit.m4 to make audit easier to include
 

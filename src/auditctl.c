@@ -748,7 +748,11 @@ static int setopt(int count, char *vars[])
 
 		break;
         case 'm':
-		if (audit_log_user_message( fd, AUDIT_USER, optarg, NULL, 
+		if (count > 3) {
+			fprintf(stderr,
+	"The -m option must be only the only option and takes 1 parameter\n");
+			retval = -1;
+		} else if (audit_log_user_message( fd, AUDIT_USER, optarg, NULL, 
 				NULL, NULL, 1) <=0)
 			retval = -1;
 		else
@@ -784,7 +788,12 @@ static int setopt(int count, char *vars[])
 		}
 		break;
 	case 'w':
-		if (optarg) { 
+		if (add != AUDIT_FILTER_UNSET ||
+			del != AUDIT_FILTER_UNSET) {
+			fprintf(stderr,
+				"watch option can't be given with a syscall\n");
+			retval = -1;
+		} else if (optarg) { 
 			add = AUDIT_FILTER_EXIT;
 			action = AUDIT_ALWAYS;
 			which = NEW;
