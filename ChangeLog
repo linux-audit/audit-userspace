@@ -7,6 +7,7 @@
 - Man page updates
 - Don't consider 0x7F to be a printable character
 - Tighten parsing for -m and -w options in auditctl
+- Add session query hint for aulast proof
 
 1.7.9
 - Fix uninitialized variable in aureport causing segfault

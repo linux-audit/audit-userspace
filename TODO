@@ -1,7 +1,6 @@
 Things that need to be done:
 ===========================
 1.7.10
-* Add session query hint for aulast proof
 * Add aureport timeout patch
 * Fix EAGAIN sending pam events
 * In aureport, fix mods report to show acct acted upon

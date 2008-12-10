@@ -73,45 +73,64 @@ static void report_session(lnode* cur)
 		printf("%-12.12s ", cur->term);
 	printf("%-16.16s ", cur->host ? cur->host : "?");
 	printf("%-16.16s ", ctime(&cur->start));
-	if (cur->end > 0) {
-		time_t secs;
-		int mins, hours, days;
-		if (notime)
-			printf("- %-7.5s", " ");
-		else
-			printf("- %-7.5s", ctime(&cur->end) + 11);
-		secs = cur->end - cur->start;
-		mins  = (secs / 60) % 60;
-		hours = (secs / 3600) % 24;
-		days  = secs / 86400;
-		if (days)
-			printf("(%d+%02d:%02d)\n", days, hours, mins);
-		else
-			printf("(%02d:%02d)\n", hours, mins);
-	} else {
-		switch(cur->status)
-		{
-			case SESSION_START:
-				printf("  still logged in\n");
-				break;
-			case DOWN:
-				printf("- down\n");
-				break;
-			case CRASH:
-				printf("- crash\n");
-				break;
-			case GONE:
-				printf("  gone - no logout\n");
-				break;
-			default:
-				printf("\n");
-				break;
-		}
+	switch(cur->status)
+	{
+		case SESSION_START:
+			printf("  still logged in\n");
+			break;
+		case DOWN:
+			printf("- down\n");
+			break;
+		case CRASH:
+			printf("- crash\n");
+			break;
+		case GONE:
+			printf("  gone - no logout\n");
+			break;
+		case LOG_OUT: {
+			time_t secs;
+			int mins, hours, days;
+			if (notime)
+				printf("- %-7.5s", " ");
+			else
+				printf("- %-7.5s", ctime(&cur->end) + 11);
+			secs = cur->end - cur->start;
+			mins  = (secs / 60) % 60;
+			hours = (secs / 3600) % 24;
+			days  = secs / 86400;
+			if (days)
+				printf("(%d+%02d:%02d)\n", days, hours, mins);
+			else
+				printf("(%02d:%02d)\n", hours, mins);
+			}
+			break;
+		default:
+			printf("\n");
+			break;
 	}
-	if (proof)
-		printf("    audit event proof: %lu, %lu, %lu\n",
+	if (proof) {
+		char start[32], end[32];
+		struct tm *btm;
+
+		printf("    audit event proof serial numbers: %lu, %lu, %lu\n",
 			cur->loginuid_proof, cur->user_login_proof,
 			cur->user_end_proof);
+		printf("    Session data can be found with this search:\n");
+		btm = localtime(&cur->start);
+		strftime(start, sizeof(start), "%x %T", btm);
+		if (cur->end != 0) {
+			btm = localtime(&cur->end);
+			strftime(end, sizeof(end), "%x %T", btm);
+		      printf("    ausearch --start %s --end %s",
+				start, end);
+		} else {
+		    printf("    ausearch --start %s", start);
+		}
+		if (cur->name == NULL)
+			printf(" --session %d\n\n", cur->session);
+		else
+			printf("\n\n");
+	}
 }
 
 static void extract_record(auparse_state_t *au)
@@ -157,6 +176,7 @@ static void create_new_session(auparse_state_t *au)
 	if (cur) {
 		// This means we have an open session close it out
 		cur->status = GONE;
+		cur->end = auparse_get_time(au);
 		report_session(cur);
 		list_delete_cur(&l);
 	}
@@ -315,6 +335,7 @@ static void process_bootup(auparse_state_t *au)
 		if (cur->name) {
 			cur->user_end_proof = auparse_get_serial(au);
 			cur->status = CRASH;
+			cur->end = auparse_get_time(au);
 			report_session(cur);
 		}
 		cur = list_next(&l);
@@ -327,6 +348,7 @@ static void process_bootup(auparse_state_t *au)
 		if (cur->status != CRASH) {
 			cur->user_end_proof = auparse_get_serial(au);
 			cur->status = DOWN;
+			cur->end = auparse_get_time(au);
 			report_session(cur);
 		}
 		cur = list_next(&l);
