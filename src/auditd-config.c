@@ -1366,8 +1366,6 @@ static int tcp_client_max_idle_parser(struct nv_pair *nv, int line,
 static int enable_krb5_parser(struct nv_pair *nv, int line,
 	struct daemon_conf *config)
 {
-	unsigned long i;
-
 	audit_msg(LOG_DEBUG, "enable_krb5_parser called with: %s",
 		  nv->value);
 
@@ -1377,6 +1375,8 @@ static int enable_krb5_parser(struct nv_pair *nv, int line,
 		line);
 	return 0;
 #else
+	unsigned long i;
+
 	for (i=0; enable_krb5_values[i].name != NULL; i++) {
 		if (strcasecmp(nv->value, enable_krb5_values[i].name) == 0) {
 			config->enable_krb5 = enable_krb5_values[i].option;
@@ -1391,35 +1391,29 @@ static int enable_krb5_parser(struct nv_pair *nv, int line,
 static int krb5_principal_parser(struct nv_pair *nv, int line,
 	struct daemon_conf *config)
 {
-	const char *ptr = nv->value;
-
 	audit_msg(LOG_DEBUG,"krb5_principal_parser called with: %s",nv->value);
 #ifndef USE_GSSAPI
 	audit_msg(LOG_DEBUG,
 		"GSSAPI support is not enabled, ignoring value at line %d",
 		line);
-	return 0;
 #else
-	config->krb5_principal = strdup(ptr);
-	return 0;
+	config->krb5_principal = strdup(nv->value);
 #endif
+	return 0;
 }
 
 static int krb5_key_file_parser(struct nv_pair *nv, int line,
 	struct daemon_conf *config)
 {
-	const char *ptr = nv->value;
-
 	audit_msg(LOG_DEBUG, "krb5_key_file_parser called with: %s", nv->value);
 #ifndef USE_GSSAPI
 	audit_msg(LOG_DEBUG,
 		"GSSAPI support is not enabled, ignoring value at line %d",
 		line);
-	return 0;
 #else
-	config->krb5_key_file = strdup(ptr);
-	return 0;
+	config->krb5_key_file = strdup(nv->value);
 #endif
+	return 0;
 }
 
 /*

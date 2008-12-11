@@ -43,12 +43,10 @@ typedef struct remote_conf
 	unsigned int max_tries_per_record;
 	unsigned int max_time_per_record;
 	unsigned int heartbeat_timeout;
-#ifdef USE_GSSAPI
 	int enable_krb5;
 	const char *krb5_principal;
 	const char *krb5_client_name;
 	const char *krb5_key_file;
-#endif
 
 	failure_action_t network_failure_action;
 	const char *network_failure_exe;

@@ -1,10 +1,9 @@
 Things that need to be done:
 ===========================
 1.7.10
-* Add aureport timeout patch
-* Fix EAGAIN sending pam events
 * In aureport, fix mods report to show acct acted upon
 * Create new report for tty output
+* Fix EAGAIN sending pam events
 
 1.7.11
 * Fix auparse to handle out of order messages

@@ -74,7 +74,6 @@ static int format_parser(struct nv_pair *nv, int line,
 		remote_conf_t *config);
 static int heartbeat_timeout_parser(struct nv_pair *nv, int line, 
 		remote_conf_t *config);
-#ifdef USE_GSSAPI
 static int enable_krb5_parser(struct nv_pair *nv, int line, 
 		remote_conf_t *config);
 static int krb5_principal_parser(struct nv_pair *nv, int line, 
@@ -83,7 +82,6 @@ static int krb5_client_name_parser(struct nv_pair *nv, int line,
 		remote_conf_t *config);
 static int krb5_key_file_parser(struct nv_pair *nv, int line, 
 		remote_conf_t *config);
-#endif
 static int network_retry_time_parser(struct nv_pair *nv, int line, 
 		remote_conf_t *config);
 static int max_tries_per_record_parser(struct nv_pair *nv, int line, 
@@ -115,12 +113,10 @@ static const struct kw_pair keywords[] =
   {"max_tries_per_record",   max_tries_per_record_parser,       0 },
   {"max_time_per_record",    max_time_per_record_parser,        0 },
   {"heartbeat_timeout",      heartbeat_timeout_parser,          0 },
-#ifdef USE_GSSAPI
   {"enable_krb5",            enable_krb5_parser,                 0 },
   {"krb5_principal",         krb5_principal_parser,              0 },
   {"krb5_client_name",       krb5_client_name_parser,            0 },
   {"krb5_key_file",          krb5_key_file_parser,               0 },
-#endif
   {"network_failure_action", network_failure_action_parser,	0 },
   {"disk_low_action",        disk_low_action_parser,		0 },
   {"disk_full_action",       disk_full_action_parser,		0 },
@@ -163,14 +159,12 @@ static const struct nv_list format_words[] =
   { NULL,  0 }
 };
 
-#ifdef USE_GSSAPI
 static const struct nv_list enable_krb5_values[] =
 {
   {"yes",  1 },
   {"no", 0 },
   { NULL,  0 }
 };
-#endif
 
 /*
  * Set everything to its default value
@@ -190,12 +184,10 @@ void clear_config(remote_conf_t *config)
 	config->max_time_per_record = 5;
 
 	config->heartbeat_timeout = 0;
-#ifdef USE_GSSAPI
 	config->enable_krb5 = 0;
 	config->krb5_principal = NULL;
 	config->krb5_client_name = NULL;
 	config->krb5_key_file = NULL;
-#endif
 
 #define IA(x,f) config->x##_action = f; config->x##_exe = NULL
 	IA(network_failure, FA_STOP);
@@ -608,10 +600,15 @@ static int heartbeat_timeout_parser(struct nv_pair *nv, int line,
 	return parse_uint (nv, line, &(config->heartbeat_timeout), 0, INT_MAX);
 }
 
-#ifdef USE_GSSAPI
 static int enable_krb5_parser(struct nv_pair *nv, int line,
 		remote_conf_t *config)
 {
+#ifndef USE_GSSAPI
+	syslog(LOG_INFO,
+		"GSSAPI support is not enabled, ignoring value at line %d",
+		line);
+	return 0;
+#else
 	unsigned long i;
 
 	for (i=0; enable_krb5_values[i].name != NULL; i++) {
@@ -622,44 +619,56 @@ static int enable_krb5_parser(struct nv_pair *nv, int line,
 	}
 	syslog(LOG_ERR, "Option %s not found - line %d", nv->value, line);
 	return 1;
+#endif
 }
 
 static int krb5_principal_parser(struct nv_pair *nv, int line,
 		remote_conf_t *config)
 {
-	const char *ptr = nv->value;
-
+#ifndef USE_GSSAPI
+	syslog(LOG_INFO,
+		"GSSAPI support is not enabled, ignoring value at line %d",
+		line);
+#else
 	if (config->krb5_principal)
 		free ((char *)config->krb5_principal);
 
-	config->krb5_principal = strdup(ptr);
+	config->krb5_principal = strdup(nv->value);
+#endif
 	return 0;
 }
 
 static int krb5_client_name_parser(struct nv_pair *nv, int line,
 		remote_conf_t *config)
 {
-	const char *ptr = nv->value;
-
+#ifndef USE_GSSAPI
+	syslog(LOG_INFO,
+		"GSSAPI support is not enabled, ignoring value at line %d",
+		line);
+#else
 	if (config->krb5_client_name)
 		free ((char *)config->krb5_client_name);
 
-	config->krb5_client_name = strdup(ptr);
+	config->krb5_client_name = strdup(nv->value);
+#endif
 	return 0;
 }
 
 static int krb5_key_file_parser(struct nv_pair *nv, int line,
 		remote_conf_t *config)
 {
-	const char *ptr = nv->value;
-
+#ifndef USE_GSSAPI
+        syslog(LOG_INFO,
+                "GSSAPI support is not enabled, ignoring value at line %d",
+                line);
+#else
 	if (config->krb5_key_file)
 		free ((char *)config->krb5_key_file);
 
-	config->krb5_key_file = strdup(ptr);
+	config->krb5_key_file = strdup(nv->value);
+#endif
 	return 0;
 }
-#endif
 
 /*
  * This function is where we do the integrated check of the audispd config
