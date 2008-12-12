@@ -254,10 +254,11 @@ int audit_send(int fd, int type, const void *data, unsigned int size)
  */
 static int check_ack(int fd, int seq)
 {
-	int rc;
+	int rc, retries = 100;
 	struct audit_reply rep;
 	struct pollfd pfd[1];
 
+retry:
 	pfd[0].fd = fd;
 	pfd[0].events = POLLIN;
 	do {
@@ -269,7 +270,10 @@ static int check_ack(int fd, int seq)
 	
 	/* NOTE: whatever is returned is treated as the errno */
 	rc = audit_get_reply(fd, &rep, GET_REPLY_NONBLOCKING, MSG_PEEK);
-	if (rc < 0)
+	if (rc == -EAGAIN && retries) {
+		retries--;
+		goto retry;
+	} else if (rc < 0)
 		return rc;
 	else if (rc == 0)
 		return -EINVAL; /* This can't happen anymore */
