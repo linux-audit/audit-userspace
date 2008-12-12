@@ -26,13 +26,13 @@
 #include <string.h>
 #include <errno.h>
 #include <stdlib.h>
-#include <ctype.h>
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <netdb.h>
 #include <limits.h>	/* PATH_MAX */
 #include "libaudit.h"
 #include "ausearch-options.h"
+#include "ausearch-lookup.h"
 #include "ausearch-parse.h"
 
 #define NAME_OFFSET 36
@@ -52,67 +52,6 @@ static int parse_kernel_anom(const lnode *n, search_items *s);
 static int parse_simple_message(const lnode *n, search_items *s);
 static int parse_tty(const lnode *n, search_items *s);
 
-/*
- * This function will take a pointer to a 2 byte Ascii character buffer and 
- * return the actual hex value.
- */
-static unsigned char x2c(unsigned char *buf)
-{
-	static const char AsciiArray[17] = "0123456789ABCDEF";
-        char *ptr;
-        unsigned char total=0;
-
-        ptr = strchr(AsciiArray, (char)toupper(buf[0]));
-        if (ptr)
-                total = (unsigned char)(((ptr-AsciiArray) & 0x0F)<<4);
-        ptr = strchr(AsciiArray, (char)toupper(buf[1]));
-        if (ptr)
-                total += (unsigned char)((ptr-AsciiArray) & 0x0F);
-
-        return total;
-}
-
-/* returns a freshly malloc'ed and converted buffer */
-char *unescape(char *buf)
-{
-	int len, i;
-	char saved, *ptr = buf, *str;
-
-	/* Find the end of the name */
-	if (*ptr == '(') {
-		ptr = strchr(ptr, ')');
-		if (ptr == NULL)
-			return NULL;
-		else
-			ptr++;
-	} else {
-		while (isxdigit(*ptr))
-			ptr++;
-	}
-	saved = *ptr;
-	*ptr = 0;
-	str = strdup(buf);
-	*ptr = saved;
-
-	if (*buf == '(')
-		return str;
-
-	/* We can get away with this since the buffer is 2 times
-	 * bigger than what we are putting there.
-	 */
-	len = strlen(str);
-	if (len < 2) {
-		free(str);
-		return NULL;
-	}
-	ptr = str;
-	for (i=0; i<len; i+=2) {
-		*ptr = x2c((unsigned char *)&str[i]);
-		ptr++;
-	}
-	*ptr = 0;
-	return str;
-}
 
 static int audit_avc_init(search_items *s)
 {

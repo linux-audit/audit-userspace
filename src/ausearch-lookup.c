@@ -24,6 +24,8 @@
 #include "config.h"
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
+#include <stdlib.h>
 #include <linux/net.h>
 #include "ausearch-lookup.h"
 #include "ausearch-options.h"
@@ -273,5 +275,174 @@ void aulookup_destroy_gid_list(void)
 
 	nvlist_clear(&gid_nvl); 
 	gid_list_created = 0;
+}
+
+int is_hex_string(const char *str)
+{
+	int c=0;
+	while (*str) {
+		if (!isxdigit(*str))
+			return 0;
+		str++;
+		c++;
+	}
+	return 1;
+}
+/*
+ * This function will take a pointer to a 2 byte Ascii character buffer and 
+ * return the actual hex value.
+ */
+static unsigned char x2c(unsigned char *buf)
+{
+	static const char AsciiArray[17] = "0123456789ABCDEF";
+	char *ptr;
+	unsigned char total=0;
+
+	ptr = strchr(AsciiArray, (char)toupper(buf[0]));
+	if (ptr)
+		total = (unsigned char)(((ptr-AsciiArray) & 0x0F)<<4);
+	ptr = strchr(AsciiArray, (char)toupper(buf[1]));
+	if (ptr)
+		total += (unsigned char)((ptr-AsciiArray) & 0x0F);
+
+	return total;
+}
+
+/* returns a freshly malloc'ed and converted buffer */
+char *unescape(char *buf)
+{
+	int len, i;
+	char saved, *ptr = buf, *str;
+
+	/* Find the end of the name */
+	if (*ptr == '(') {
+		ptr = strchr(ptr, ')');
+		if (ptr == NULL)
+			return NULL;
+		else
+			ptr++;
+	} else {
+		while (isxdigit(*ptr))
+			ptr++;
+	}
+	saved = *ptr;
+	*ptr = 0;
+	str = strdup(buf);
+	*ptr = saved;
+
+	if (*buf == '(')
+		return str;
+
+	/* We can get away with this since the buffer is 2 times
+	 * bigger than what we are putting there.
+	 */
+	len = strlen(str);
+	if (len < 2) {
+		free(str);
+		return NULL;
+	}
+	ptr = str;
+	for (i=0; i<len; i+=2) {
+		*ptr = x2c((unsigned char *)&str[i]);
+		ptr++;
+	}
+	*ptr = 0;
+	return str;
+}
+
+/* Represent c as a character within a quoted string, and append it to buf. */
+static void tty_printable_char(unsigned char c)
+{
+	if (c < 0x20 || c > 0x7E) {
+		putchar('\\');
+		putchar('0' + ((c >> 6) & 07));
+		putchar('0' + ((c >> 3) & 07));
+		putchar('0' + (c & 07));
+	} else {
+		if (c == '\\' || c ==  '"')
+			putchar('\\');
+		putchar(c);
+	}
+}
+
+/* Search for a name of a sequence of TTY bytes.
+ *  If found, return the name and advance *INPUT.
+ *  Return NULL otherwise. 
+ */
+static const char *tty_find_named_key(unsigned char **input, size_t input_len)
+{
+	/* NUL-terminated list of (sequence, NUL, name, NUL) entries.
+	   First match wins, even if a longer match were possible later */
+	static const unsigned char named_keys[] =
+#define E(SEQ, NAME) SEQ "\0" NAME "\0"
+#include "auparse/tty_named_keys.h"
+#undef E
+	"\0";
+
+	unsigned char *src;
+	const unsigned char *nk;
+
+	src = *input;
+	if (*src >= ' ' && *src != 0x7F)
+		return NULL; /* Fast path */
+	nk = named_keys;
+	do {
+		const unsigned char *p;
+		size_t nk_len;
+
+		p = strchr((const char *)nk, '\0');
+		nk_len = p - nk;
+		if (nk_len <= input_len && memcmp(src, nk, nk_len) == 0) {
+			*input += nk_len;
+			return (const char *)(p + 1);
+		}
+		nk = strchr((const char *)p + 1, '\0') + 1;
+	} while (*nk != '\0');
+	return NULL;
+}
+
+void print_tty_data(const char *val)
+{
+	int in_printable = 0;
+	unsigned char *data, *data_pos, *data_end;
+
+	if (!is_hex_string(val)) {
+		printf("%s", val);
+		return;
+	}
+
+	if ((data = unescape((char *)val)) == NULL) {
+		printf("conversion error(%s)", val);
+		return;
+	}
+
+	data_end = data + strlen(val) / 2;
+	data_pos = data;
+	while (data_pos < data_end) {
+		/* FIXME: Unicode */
+		const char *desc;
+
+		desc = tty_find_named_key(&data_pos, data_end - data_pos);
+		if (desc != NULL) {
+			if (in_printable != 0) {
+				putchar('"');
+				in_printable = 0;
+			}
+			if (data_pos != data)
+				printf(",<%s>", desc);
+		} else {
+			if (in_printable == 0) {
+				if (data_pos != data)
+					putchar(',');
+				putchar('"');
+				in_printable = 1;
+			}
+			tty_printable_char(*data_pos);
+			data_pos++;
+		}
+	}
+	if (in_printable != 0)
+		putchar('"');
+	free(data);
 }
 

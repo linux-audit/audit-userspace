@@ -72,7 +72,7 @@ enum {  R_INFILE, R_TIME_END, R_TIME_START, R_VERSION, R_SUMMARY, R_LOG_TIMES,
 	R_AVCS, R_SYSCALLS, R_PIDS, R_EVENTS, R_ACCT_MODS,  
 	R_INTERPRET, R_HELP, R_ANOMALY, R_RESPONSE, R_SUMMARY_DET, R_CRYPTO,
 	R_MAC, R_FAILED, R_SUCCESS, R_ADD, R_DEL, R_AUTH, R_NODE, R_IN_LOGS,
-	R_KEYS };
+	R_KEYS, R_TTY };
 
 static struct nv_pair optiontab[] = {
 	{ R_AUTH, "-au" },
@@ -124,6 +124,7 @@ static struct nv_pair optiontab[] = {
 	{ R_TERMINALS, "-tm"}, // don't like this
 	{ R_TERMINALS, "--terminal"}, // don't like this
 	{ R_TIME_START, "-ts" },
+	{ R_TTY, "--tty" },
 	{ R_TIME_START, "--start" },
 	{ R_USERS, "-u" },
 	{ R_USERS, "--user" },
@@ -469,6 +470,16 @@ int check_params(int count, char *vars[])
 				} else {
 					UNIMPLEMENTED;
 				}
+			}
+			break;
+		case R_TTY:
+			if (set_report(RPT_TTY))
+				retval = -1;
+			else {
+				event_session_id = 1;
+				event_terminal = dummy;
+				event_comm = dummy;
+				set_detail(D_DETAILED);
 			}
 			break;
 		case R_TIME_END:

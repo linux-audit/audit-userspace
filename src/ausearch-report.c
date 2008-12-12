@@ -62,7 +62,6 @@ static void output_default(llist *l);
 static void output_interpreted(llist *l);
 static void output_interpreted_node(const lnode *n);
 static void interpret(char *name, char *val, int comma, int rtype);
-static int is_hex_string(const char *str);
 
 /* The machine based on elf type */
 static int machine = -1;
@@ -895,113 +894,6 @@ static void print_list(char *val)
 		return;
 	}
 	printf("%s ", audit_flag_to_name(i));
-}
-
-/* Represent c as a character within a quoted string, and append it to buf. */
-static void tty_printable_char(unsigned char c)
-{
-	if (c < 0x20 || c > 0x7E) {
-		putchar('\\');
-                putchar('0' + ((c >> 6) & 07));
-                putchar('0' + ((c >> 3) & 07));
-                putchar('0' + (c & 07));
-        } else {
-                if (c == '\\' || c ==  '"')
-                        putchar('\\');
-                putchar(c);
-        }
-}
-
-
-/* Search for a name of a sequence of TTY bytes.
- *  If found, return the name and advance *INPUT.
- *  Return NULL otherwise. 
- */
-static const char *tty_find_named_key(unsigned char **input, size_t input_len)
-{
-        /* NUL-terminated list of (sequence, NUL, name, NUL) entries.
-           First match wins, even if a longer match were possible later */
-        static const unsigned char named_keys[] =
-#define E(SEQ, NAME) SEQ "\0" NAME "\0"
-#include "auparse/tty_named_keys.h"
-#undef E
-                "\0";
-
-        unsigned char *src;
-        const unsigned char *nk;
-
-        src = *input;
-        if (*src >= ' ' && *src != 0x7F)
-                return NULL; /* Fast path */
-        nk = named_keys;
-        do {
-                const unsigned char *p;
-                size_t nk_len;
-
-                p = strchr((const char *)nk, '\0');
-                nk_len = p - nk;
-                if (nk_len <= input_len && memcmp(src, nk, nk_len) == 0) {
-                        *input += nk_len;
-                        return (const char *)(p + 1);
-                }
-                nk = strchr((const char *)p + 1, '\0') + 1;
-        } while (*nk != '\0');
-        return NULL;
-}
-
-static void print_tty_data(const char *val)
-{
-	int in_printable = 0;
-	unsigned char *data, *data_pos, *data_end;
-
-	if (!is_hex_string(val)) {
-		printf("%s", val);
-		return;
-	}
-
-	if ((data = unescape((char *)val)) == NULL) {
-		printf("conversion error(%s)", val);
-		return;
-	}
-
-	data_end = data + strlen(val) / 2;
-	data_pos = data;
-	while (data_pos < data_end) {
-		/* FIXME: Unicode */
-		const char *desc;
-
-		desc = tty_find_named_key(&data_pos, data_end - data_pos);
-		if (desc != NULL) {
-			if (in_printable != 0) {
-				putchar('"');
-                                in_printable = 0;
-                        }
-			if (data_pos != data)
-				printf(",<%s>", desc);
-		} else {
-			if (in_printable == 0) {
-				if (data_pos != data)
-					putchar(',');
-				putchar('"');
-				in_printable = 1;
-			}
-			tty_printable_char(*data_pos);
-			data_pos++;
-		}
-	}
-	if (in_printable != 0)
-		putchar('"');
-        free(data);
-}
-
-static int is_hex_string(const char *str)
-{
-	while (*str) {
-		if (!isxdigit(*str))
-			return 0;
-		str++;
-	}
-	return 1;
 }
 
 static void interpret(char *name, char *val, int comma, int rtype)

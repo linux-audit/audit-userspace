@@ -28,7 +28,6 @@
 #include "ausearch-llist.h"
 
 int extract_search_items(llist *l);
-char *unescape(char *buf);
 
 #endif
 

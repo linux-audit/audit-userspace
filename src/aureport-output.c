@@ -177,6 +177,9 @@ static void print_title_summary(void)
 			printf("total  file\n");
 			printf("===========================\n");
 			break;
+		case RPT_TTY:
+			UNIMPLEMENTED;
+			break;
 		default:
 			break;
 	}
@@ -399,6 +402,20 @@ static void print_title_detailed(void)
 				printf("====================\n");
 			}
 			break;
+		case RPT_TTY:
+			if (report_detail == D_DETAILED) {
+			    printf("TTY Report\n");
+			    printf(
+			"===============================================\n");
+			    printf(
+			"# date time event auid term sess comm data\n");
+			    printf(
+			"===============================================\n");
+			} else {
+				printf("Specific TTY Report\n");
+				printf("====================\n");
+			}
+			break;
 		default:
 			break;
 	}
@@ -595,6 +612,26 @@ void print_per_event_item(llist *l)
 				l->s.exe ? l->s.exe : "?",
 				aulookup_uid(l->s.loginuid, name, sizeof(name)),
 				l->e.serial);
+			break;
+		case RPT_TTY: {
+			char *ch, *ptr = strstr(l->head->message, "data=");
+			if (!ptr)
+				break;
+			ptr += 5;
+			ch = strrchr(ptr, ' ');
+			if (ch)
+				*ch = 0;
+			// event who term sess data
+			printf("%lu %s %s %u %s ",
+				l->e.serial,
+				aulookup_uid(l->s.loginuid, name, sizeof(name)),
+				l->s.terminal ? l->s.terminal : "?",
+				l->s.session_id,
+				l->s.comm ? l->s.comm: "?");
+			print_tty_data(ptr);
+//			printf("%s", ptr);
+			printf("\n");
+			}
 			break;
 		default:
 			break;

@@ -433,6 +433,9 @@ static int per_event_summary(llist *l)
 				} 
 			}
 			break;
+		case RPT_TTY:
+			UNIMPLEMENTED;
+			break;
 		default:
 			break;
 	}
@@ -673,6 +676,12 @@ static int per_event_detailed(llist *l)
 				}
 			} else { //  specific key report
 				UNIMPLEMENTED;
+			}
+			break;
+		case RPT_TTY:
+			if (l->head->type == AUDIT_TTY) {
+				print_per_event_item(l);
+				rc = 1;
 			}
 			break;
 		default:

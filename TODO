@@ -2,7 +2,6 @@ Things that need to be done:
 ===========================
 1.7.10
 * In aureport, fix mods report to show acct acted upon
-* Create new report for tty output
 * Fix EAGAIN sending pam events
 
 1.7.11
