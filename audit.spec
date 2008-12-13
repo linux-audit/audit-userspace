@@ -258,6 +258,17 @@ fi
 
 %changelog
 * Sat Dec 13 2008 Steve Grubb <sgrubb@redhat.com> 1.7.10-1
+- Fix ausearch and aureport to handle out of order events
+- Add line-buffer option to ausearch & timeout pipe input (Tony Jones)
+- Add support in ausearch/report for tty data
+- In audisp-remote, allow the keyword "any" for local_port
+- Tighten parsing for -m and -w options in auditctl
+- Add session query hint for aulast proof
+- Fix audisp-remote to tolerate krb5 config options when not supported
+- Created new aureport option for tty keystroke report
+- audispd should detect backup config files and not use them
+- When checking for ack in netlink interface, retry on EAGAIN a few times
+- In aureport, fix mods report to show acct acted upon
 
 * Wed Nov 05 2008 Steve Grubb <sgrubb@redhat.com> 1.7.9-1
 - Fix uninitialized variable in aureport causing segfault

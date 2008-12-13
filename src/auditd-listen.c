@@ -144,6 +144,7 @@ static int ar_write (int sock, const void *buf, int len)
 	return rc;
 }
 
+#ifdef USE_GSSAPI
 static int ar_read (int sock, void *buf, int len)
 {
 	int rc = 0, r;
@@ -162,7 +163,6 @@ static int ar_read (int sock, void *buf, int len)
 	return rc;
 }
 
-#ifdef USE_GSSAPI
 
 /* Communications under GSS is done by token exchanges.  Each "token"
    may contain a message, perhaps signed, perhaps encrypted.  The

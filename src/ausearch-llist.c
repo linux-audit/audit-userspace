@@ -85,7 +85,7 @@ lnode *list_prev(llist *l)
 	if (l->cur == NULL)
 		return NULL;
 
-	if (l->cur->item <= 0)
+	if (l->cur->item == 0)
 		return NULL;
 
 	list_find_item(l, l->cur->item-1);

@@ -605,7 +605,7 @@ int check_params(int count, char *vars[])
 				retval = -1;
 				break;
 			}
-			if (optarg && isdigit(optarg[0])) {
+			if (isdigit(optarg[0])) {
 				errno = 0;
 				event_syscall = (int)strtoul(optarg, NULL, 10);
 				if (errno) {
