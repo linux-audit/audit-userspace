@@ -1,8 +1,5 @@
 Things that need to be done:
 ===========================
-1.7.10
-* In aureport, fix mods report to show acct acted upon
-
 1.7.11
 * Fix auparse to handle out of order messages
 * Add definitions for kernel virt events

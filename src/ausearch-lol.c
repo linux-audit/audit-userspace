@@ -25,7 +25,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
-#include <stdio.h>	//FIXME remove when error reporting is decided
+#include <stdio.h>
 #include "ausearch-common.h"
 
 #define ARRAY_LIMIT 80

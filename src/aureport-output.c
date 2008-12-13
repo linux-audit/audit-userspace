@@ -225,11 +225,11 @@ static void print_title_detailed(void)
 		case RPT_ACCT_MOD:
 			printf("Account Modifications Report\n");
 			printf(
-			  "============================================\n");
+			 "=================================================\n");
 			printf(
-			  "# date time auid addr term exe success event\n");
+			 "# date time auid addr term exe acct success event\n");
 			printf(
-			  "============================================\n");
+			 "=================================================\n");
 			break;
 		case RPT_TIME:
 			printf("Log Time Range Report\n");
@@ -490,11 +490,12 @@ void print_per_event_item(llist *l)
 			break;
 		case RPT_ACCT_MOD:
 			// who, addr, terminal, exe, success, event
-			printf("%s %s %s %s %s %lu\n",
+			printf("%s %s %s %s %s %s %lu\n",
 				aulookup_uid(l->s.loginuid, name, sizeof(name)),
 				l->s.hostname ? l->s.hostname : "?",
 				l->s.terminal ? l->s.terminal : "?",
 				l->s.exe ? l->s.exe : "?",
+				l->s.acct ? l->s.acct : "?",
 				aulookup_success(l->s.success),
 				l->e.serial);
 			break;
@@ -629,7 +630,6 @@ void print_per_event_item(llist *l)
 				l->s.session_id,
 				l->s.comm ? l->s.comm: "?");
 			print_tty_data(ptr);
-//			printf("%s", ptr);
 			printf("\n");
 			}
 			break;

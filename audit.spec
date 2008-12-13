@@ -257,7 +257,7 @@ fi
 %config(noreplace) %{_sysconfdir}/security/console.apps/system-config-audit-server
 
 %changelog
-* Wed Nov 05 2008 Steve Grubb <sgrubb@redhat.com> 1.7.10-1
+* Sat Dec 13 2008 Steve Grubb <sgrubb@redhat.com> 1.7.10-1
 
 * Wed Nov 05 2008 Steve Grubb <sgrubb@redhat.com> 1.7.9-1
 - Fix uninitialized variable in aureport causing segfault

@@ -953,6 +953,8 @@ static char *format_raw(const struct audit_reply *rep,
         	ptr = format_buf;
 	        while ((ptr = strchr(ptr, 0x0A)) != NULL)
         	        *ptr = ' ';
+
+		/* Trim trailing space off since it wastes space */
 		if (format_buf[nlen-1] == ' ')
 			format_buf[nlen-1] = 0;
 	}

@@ -13,6 +13,7 @@
 - audispd should detect backup config files and not use them
 - When checking for ack in netlink interface, retry on EAGAIN a few times
 - Trim a trailing whitespace from audit event written to disk
+- In aureport, fix mods report to show acct acted upon
 
 1.7.9
 - Fix uninitialized variable in aureport causing segfault

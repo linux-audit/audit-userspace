@@ -30,6 +30,7 @@
 #include <sys/un.h>
 #include <netdb.h>
 #include <limits.h>	/* PATH_MAX */
+#include <ctype.h>
 #include "libaudit.h"
 #include "ausearch-options.h"
 #include "ausearch-lookup.h"
@@ -731,39 +732,40 @@ static int parse_user(const lnode *n, search_items *s)
 		if (errno)
 			return 13;
 		*term = saved;
-	} else {
-		str = strstr(term, "acct=");
-		if (str != NULL) {
-			ptr = str + 5;
+	}
+	mptr = term + 1;
 
-			term = ptr + 1;
-			if (*ptr == '"') {
-				while (*term != '"')
-					term++;
+	// Get acct for user/group add/del
+	str = strstr(mptr, "acct=");
+	if (str != NULL) {
+		ptr = str + 5;
+		term = ptr + 1;
+		if (*ptr == '"') {
+			while (*term != '"')
+				term++;
+			saved = *term;
+			*term = 0;
+			ptr++;
+			s->acct = strdup(ptr);
+			*term = saved;
+		} else { 
+			/* Handle legacy accts */
+			char *end = ptr;
+			int legacy = 0;
+
+			while (*end != ' ') {
+				if (!isxdigit(*end))
+					legacy = 1;
+				end++;
+			}
+			term = end;
+			if (!legacy)
+				s->acct = unescape(ptr);
+			else {
 				saved = *term;
 				*term = 0;
-				ptr++;
 				s->acct = strdup(ptr);
 				*term = saved;
-			} else { 
-				/* Handle legacy accts */
-				char *end = ptr;
-				int legacy = 0;
-
-				while (*end != ' ') {
-					if (!isxdigit(*end))
-						legacy = 1;
-					end++;
-				}
-				term = end;
-				if (!legacy)
-					s->acct = unescape(ptr);
-				else {
-					saved = *term;
-					*term = 0;
-					s->acct = strdup(ptr);
-					*term = saved;
-				}
 			}
 		}
 	}
