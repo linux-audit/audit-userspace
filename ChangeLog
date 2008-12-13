@@ -1,3 +1,5 @@
+1.7.11
+
 1.7.10
 - Fix ausearch and aureport to handle out of order events
 - Add line-buffer option to ausearch & timeout pipe input (Tony Jones)

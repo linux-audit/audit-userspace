@@ -1,4 +1,4 @@
-%define audit_version 1.7.10
+%define audit_version 1.7.11
 %define audit_release 1
 %define sca_version 0.4.8
 %define sca_release 1
@@ -257,6 +257,8 @@ fi
 %config(noreplace) %{_sysconfdir}/security/console.apps/system-config-audit-server
 
 %changelog
+* Sat Dec 13 2008 Steve Grubb <sgrubb@redhat.com> 1.7.11-1
+
 * Sat Dec 13 2008 Steve Grubb <sgrubb@redhat.com> 1.7.10-1
 - Fix ausearch and aureport to handle out of order events
 - Add line-buffer option to ausearch & timeout pipe input (Tony Jones)
