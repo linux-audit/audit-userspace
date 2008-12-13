@@ -920,7 +920,7 @@ static char *format_raw(const struct audit_reply *rep,
 	        	snprintf(format_buf, MAX_AUDIT_MESSAGE_LENGTH,
 				"type=DAEMON msg=NULL reply");
 	} else {
-		int len;
+		int len, nlen;
 		const char *type, *message;
 		char unknown[32];
 		type = audit_msg_type_to_name(rep->type);
@@ -940,18 +940,21 @@ static char *format_raw(const struct audit_reply *rep,
 		// Note: This can truncate messages if 
 		// MAX_AUDIT_MESSAGE_LENGTH is too small
 		if (config->node_name_format != N_NONE)
-			snprintf(format_buf, MAX_AUDIT_MESSAGE_LENGTH +
+			nlen = snprintf(format_buf, MAX_AUDIT_MESSAGE_LENGTH +
 				_POSIX_HOST_NAME_MAX - 32,
 				"node=%s type=%s msg=%.*s\n",
                                 config->node_name, type, len, message);
 		else
-		        snprintf(format_buf, MAX_AUDIT_MESSAGE_LENGTH - 32,
+		        nlen = snprintf(format_buf,
+				MAX_AUDIT_MESSAGE_LENGTH - 32,
 				"type=%s msg=%.*s", type, len, message);
 
 	        /* Replace \n with space so it looks nicer. */
         	ptr = format_buf;
 	        while ((ptr = strchr(ptr, 0x0A)) != NULL)
         	        *ptr = ' ';
+		if (format_buf[nlen-1] == ' ')
+			format_buf[nlen-1] = 0;
 	}
         return format_buf;
 }
