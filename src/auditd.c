@@ -304,22 +304,23 @@ static int become_daemon(void)
 
 			/* Open stdin,out,err to /dev/null */
 			fd = open("/dev/null", O_RDWR);
-			if (fd < 0)
+			if (fd < 0) {
+				audit_msg(LOG_ERR, "Cannot open /dev/null");
 				return -1;
-			if (dup2(fd, 0) < 0)
+			}
+			if ((dup2(fd, 0) < 0) || (dup2(fd, 1) < 0) ||
+							(dup2(fd, 2) < 0)) {
+				audit_msg(LOG_ERR,
+				    "Cannot reassign descriptors to /dev/null");
 				return -1;
-			if (dup2(fd, 1) < 0)
-				return -1;
-			if (dup2(fd, 2) < 0)
-				return -1;
+			}
 			close(fd);
 
 			/* Change to '/' */
 			chdir("/");
 
-			/* Change session */
-			if (setsid() < 0)
-				return -1;
+			/* Become session/process group leader */
+			setsid();
 			break;
 		case -1:
 			return -1;

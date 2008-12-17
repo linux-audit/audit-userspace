@@ -1,7 +1,7 @@
 The place where syscall information is gathered is:
 
-include/asm-x86/unistd_32.h
-include/asm-x86/unistd_64.h
+arch/x86/include/asm/unistd_32.h
+arch/x86/include/asm/unistd_64.h
 arch/s390/include/asm/unistd.h
 arch/powerpc/include/asm/unistd.h
 arch/ia64/include/asm/unistd.h
