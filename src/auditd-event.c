@@ -594,7 +594,7 @@ static void do_disk_error_action(const char * func, struct daemon_conf *config)
 	snprintf(text, sizeof(text), 
 	    "%s: Audit daemon detected an error writing an event to disk (%s)",
 		func, strerror(errno));
-	audit_msg(LOG_ALERT, text);
+	audit_msg(LOG_ALERT, "%s", text);
 
 	switch (config->disk_error_action)
 	{
@@ -977,7 +977,7 @@ static void reconfigure(struct auditd_consumer_data *data)
 	snprintf(txt, sizeof(txt),
 		"config change requested by pid=%d auid=%u subj=%s",
 		pid, uid, ctx);
-	audit_msg(LOG_NOTICE, txt);
+	audit_msg(LOG_NOTICE, "%s", txt);
 
 	/* Do the reconfiguring. These are done in a specific
 	 * order from least invasive to most invasive. We will
@@ -1243,7 +1243,7 @@ static void reconfigure(struct auditd_consumer_data *data)
 	data->head->reply.len = snprintf(txt, sizeof(txt), 
 		"%s config changed, auid=%u pid=%d subj=%s res=success", date, 
 		uid, pid, ctx );
-	audit_msg(LOG_NOTICE, txt);
+	audit_msg(LOG_NOTICE, "%s", txt);
 	data->head->reply.type = AUDIT_DAEMON_CONFIG;
 	data->head->reply.message = strdup(txt);
 	if (!data->head->reply.message) {
