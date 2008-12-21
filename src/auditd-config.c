@@ -880,31 +880,40 @@ static int space_left_parser(struct nv_pair *nv, int line,
 	return 0;
 }
 
-static int check_exe_name(const char *val)
+static int check_exe_name(const char *val, int line)
 {
 	struct stat buf;
 
+	if (val == NULL) {
+		audit_msg(LOG_ERR, "Executable path needed for line %d", line);
+		return -1;
+	}
+
 	if (*val != '/') {
-		audit_msg(LOG_ERR, "Absolute path needed for %s", val);
+		audit_msg(LOG_ERR, "Absolute path needed for %s - line %d",
+			val, line);
 		return -1;
 	}
 
 	if (stat(val, &buf) < 0) {
-		audit_msg(LOG_ERR, "Unable to stat %s (%s)", val,
-			strerror(errno));
+		audit_msg(LOG_ERR, "Unable to stat %s (%s) - line %d", val,
+			strerror(errno), line);
 		return -1;
 	}
 	if (!S_ISREG(buf.st_mode)) {
-		audit_msg(LOG_ERR, "%s is not a regular file", val);
+		audit_msg(LOG_ERR, "%s is not a regular file - line %d", val,
+			line);
 		return -1;
 	}
 	if (buf.st_uid != 0) {
-		audit_msg(LOG_ERR, "%s is not owned by root", val);
+		audit_msg(LOG_ERR, "%s is not owned by root - line %d", val,
+			line);
 		return -1;
 	}
 	if ((buf.st_mode & (S_IRWXU|S_IRWXG|S_IRWXO)) !=
 			   (S_IRWXU|S_IRGRP|S_IXGRP)) {
-		audit_msg(LOG_ERR, "%s permissions should be 0750", val);
+		audit_msg(LOG_ERR, "%s permissions should be 0750 - line %d",
+			val, line);
 		return -1;
 	}
 	return 0;
@@ -925,7 +934,7 @@ static int space_action_parser(struct nv_pair *nv, int line,
 						 email_command);
 				}
 			} else if (failure_actions[i].option == FA_EXEC) {
-				if (check_exe_name(nv->option))
+				if (check_exe_name(nv->option, line))
 					return 1;
 				config->space_left_exe = strdup(nv->option);
 			}
@@ -1049,7 +1058,7 @@ static int admin_space_left_action_parser(struct nv_pair *nv, int line,
 						 email_command);
 				}
 			} else if (i == FA_EXEC) {
-				if (check_exe_name(nv->option))
+				if (check_exe_name(nv->option, line))
 					return 1;
 				config->admin_space_left_exe = 
 							strdup(nv->option);
@@ -1078,7 +1087,7 @@ static int disk_full_action_parser(struct nv_pair *nv, int line,
 					nv->value, line);
 				return 1;
 			} else if (failure_actions[i].option == FA_EXEC) {
-				if (check_exe_name(nv->option))
+				if (check_exe_name(nv->option, line))
 					return 1;
 				config->disk_full_exe = strdup(nv->option);
 			}
@@ -1105,7 +1114,7 @@ static int disk_error_action_parser(struct nv_pair *nv, int line,
 					nv->value, line);
 				return 1;
 			} else if (i == FA_EXEC) {
-				if (check_exe_name(nv->option))
+				if (check_exe_name(nv->option, line))
 					return 1;
 				config->disk_error_exe = strdup(nv->option);
 			}

@@ -1,6 +1,7 @@
 1.7.11
 - Don't error out in auditd when calling setsid
 - Reformat a couple auditd error messages (Oden Eriksson)
+- If log rotate fails, leave the old log writable
 
 1.7.10
 - Fix ausearch and aureport to handle out of order events

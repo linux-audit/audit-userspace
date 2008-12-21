@@ -707,6 +707,13 @@ static void rotate_logs(struct auditd_consumer_data *data,
 			do_disk_full_action(data->config);
 		} else
 			do_disk_error_action("rotate2", data->config);
+
+		/* At this point, we've failed to rotate the original log.
+		 * So, let's make the old log writable and try again next
+		 * time */
+		chmod(data->config->log_file, 
+			data->config->log_group ? S_IWUSR|S_IRUSR|S_IRGRP :
+			S_IWUSR|S_IRUSR);
 	}
 	free(newname);
 
