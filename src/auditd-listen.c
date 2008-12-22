@@ -92,7 +92,8 @@ static char *sockaddr_to_ip (struct sockaddr_in *addr)
 	static char buf[40];
 
 	snprintf (buf, sizeof(buf), "%d.%d.%d.%d:%d",
-		 uaddr[0], uaddr[1], uaddr[2], uaddr[3], ntohs (addr->sin_port));
+		uaddr[0], uaddr[1], uaddr[2], uaddr[3],
+		ntohs (addr->sin_port));
 	return buf;
 }
 
@@ -270,6 +271,7 @@ static void gss_failure_2 (const char *msg, int status, int type)
 		gss_release_buffer(&min_status, &status_string);
 	} while (message_context != 0);
 }
+
 static void gss_failure (const char *msg, int major_status, int minor_status)
 {
 	gss_failure_2 (msg, major_status, GSS_C_GSS_CODE);
@@ -283,7 +285,8 @@ static void gss_failure (const char *msg, int major_status, int minor_status)
 
 /* These are our private credentials, which come from a key file on
    our server.  They are aquired once, at program start.  */
-static int server_acquire_creds(const char *service_name, gss_cred_id_t *server_creds)
+static int server_acquire_creds(const char *service_name,
+		gss_cred_id_t *server_creds)
 {
 	gss_buffer_desc name_buf;
 	gss_name_t server_name;
@@ -296,7 +299,8 @@ static int server_acquire_creds(const char *service_name, gss_cred_id_t *server_
 	name_buf.value = (char *)service_name;
 	name_buf.length = strlen(name_buf.value) + 1;
 	major_status = gss_import_name(&minor_status, &name_buf,
-				       (gss_OID) gss_nt_service_name, &server_name);
+				       (gss_OID) gss_nt_service_name,
+					&server_name);
 	if (major_status != GSS_S_COMPLETE) {
 		gss_failure("importing name", major_status, minor_status);
 		return -1;
@@ -307,7 +311,8 @@ static int server_acquire_creds(const char *service_name, gss_cred_id_t *server_
 					GSS_C_NULL_OID_SET, GSS_C_ACCEPT,
 					server_creds, NULL, NULL);
 	if (major_status != GSS_S_COMPLETE) {
-		gss_failure("acquiring credentials", major_status, minor_status);
+		gss_failure("acquiring credentials",
+				major_status, minor_status);
 		return -1;
 	}
 
@@ -344,7 +349,8 @@ static int negotiate_credentials (ev_tcp *io)
 		/* STEP 1 - get a token from the client.  */
 
 		if (recv_token(io->io.fd, &recv_tok) <= 0) {
-			audit_msg(LOG_ERR, "TCP session from %s will be closed, error ignored",
+			audit_msg(LOG_ERR,
+			"TCP session from %s will be closed, error ignored",
 				  sockaddr_to_ip (&io->addr));
 			return -1;
 		}
@@ -353,9 +359,12 @@ static int negotiate_credentials (ev_tcp *io)
 
 		/* STEP 2 - let GSS process that token.  */
 
-		maj_stat = gss_accept_sec_context(&acc_sec_min_stat, context, server_creds,
-						  &recv_tok, GSS_C_NO_CHANNEL_BINDINGS, &client,
-						  NULL, &send_tok, &sess_flags, NULL, NULL);
+		maj_stat = gss_accept_sec_context(&acc_sec_min_stat,
+					context, server_creds,
+					&recv_tok,
+					GSS_C_NO_CHANNEL_BINDINGS, &client,
+					NULL, &send_tok, &sess_flags,
+					NULL, NULL);
 		if (recv_tok.value) {
 			free(recv_tok.value);
 			recv_tok.value = NULL;
@@ -364,7 +373,8 @@ static int negotiate_credentials (ev_tcp *io)
 		    && maj_stat != GSS_S_CONTINUE_NEEDED) {
 			gss_release_buffer(&min_stat, &send_tok);
 			if (*context != GSS_C_NO_CONTEXT)
-				gss_delete_sec_context(&min_stat, context, GSS_C_NO_BUFFER);
+				gss_delete_sec_context(&min_stat, context,
+					GSS_C_NO_BUFFER);
 			gss_failure("accepting context", maj_stat,
 				    acc_sec_min_stat);
 			return -1;
@@ -376,10 +386,12 @@ static int negotiate_credentials (ev_tcp *io)
 		if (send_tok.length != 0) {
 			if (send_token(io->io.fd, &send_tok) < 0) {
 				gss_release_buffer(&min_stat, &send_tok);
-				audit_msg(LOG_ERR, "TCP session from %s will be closed, error ignored",
+				audit_msg(LOG_ERR,
+			"TCP session from %s will be closed, error ignored",
 					  sockaddr_to_ip (&io->addr));
 				if (*context != GSS_C_NO_CONTEXT)
-					gss_delete_sec_context(&min_stat, context, GSS_C_NO_BUFFER);
+					gss_delete_sec_context(&min_stat,
+						context, GSS_C_NO_BUFFER);
 				return -1;
 			}
 			gss_release_buffer(&min_stat, &send_tok);
@@ -429,7 +441,8 @@ static int negotiate_credentials (ev_tcp *io)
 
 /* This is called from auditd-event after the message has been logged.
    The header is already filled in.  */
-static void client_ack (void *ack_data, const unsigned char *header, const char *msg)
+static void client_ack (void *ack_data, const unsigned char *header,
+	const char *msg)
 {
 	ev_tcp *io = (ev_tcp *)ack_data;
 #ifdef USE_GSSAPI
@@ -457,7 +470,8 @@ static void client_ack (void *ack_data, const unsigned char *header, const char 
 					 NULL,
 					 &etok);
 		if (major_status != GSS_S_COMPLETE) {
-			gss_failure("encrypting message", major_status, minor_status);
+			gss_failure("encrypting message", major_status,
+					minor_status);
 			free (utok.value);
 			return;
 		}
@@ -473,7 +487,8 @@ static void client_ack (void *ack_data, const unsigned char *header, const char 
 		ar_write (io->io.fd, msg, strlen(msg));
 }
 
-static void client_message (struct ev_tcp *io, unsigned int length, unsigned char *header)
+static void client_message (struct ev_tcp *io, unsigned int length,
+	unsigned char *header)
 {
 	unsigned char ch;
 	uint32_t type, mlen, seq;
@@ -488,10 +503,12 @@ static void client_message (struct ev_tcp *io, unsigned int length, unsigned cha
 			header[length-1] = 0;
 		if (type == AUDIT_RMW_TYPE_HEARTBEAT) {
 			unsigned char ack[AUDIT_RMW_HEADER_SIZE];
-			AUDIT_RMW_PACK_HEADER (ack, 0, AUDIT_RMW_TYPE_ACK, 0, seq);
+			AUDIT_RMW_PACK_HEADER (ack, 0, AUDIT_RMW_TYPE_ACK,
+				0, seq);
 			client_ack (io, ack, "");
 		} else 
-			enqueue_formatted_event (header+AUDIT_RMW_HEADER_SIZE, client_ack, io, seq);
+			enqueue_formatted_event (header+AUDIT_RMW_HEADER_SIZE,
+				client_ack, io, seq);
 		header[length] = ch;
 	} else {
 		header[length] = 0;
@@ -501,7 +518,8 @@ static void client_message (struct ev_tcp *io, unsigned int length, unsigned cha
 	}
 }
 
-static void auditd_tcp_client_handler( struct ev_loop *loop, struct ev_io *_io, int revents )
+static void auditd_tcp_client_handler( struct ev_loop *loop,
+			struct ev_io *_io, int revents )
 {
 	struct ev_tcp *io = (struct ev_tcp *) _io;
 	int i, r;
@@ -534,8 +552,9 @@ read_more:
 	   otherwise fails, the read will return -1.  */
 	if (r <= 0) {
 		if (r < 0)
-			audit_msg (LOG_WARNING, "client %s socket closed unexpectedly",
-				   sockaddr_to_ip (&io->addr));
+			audit_msg (LOG_WARNING,
+				"client %s socket closed unexpectedly",
+				sockaddr_to_ip (&io->addr));
 
 		/* There may have been a final message without a LF.  */
 		if (io->bufptr) {
@@ -580,10 +599,12 @@ more_messages:
 
 		/* Unwrapping the token gives us the original message,
 		   which we know is already a single record.  */
-		major_status = gss_unwrap (&minor_status, io->gss_context, &etok, &utok, NULL, NULL);
+		major_status = gss_unwrap (&minor_status, io->gss_context,
+				&etok, &utok, NULL, NULL);
 
 		if (major_status != GSS_S_COMPLETE) {
-			gss_failure("decrypting message", major_status, minor_status);
+			gss_failure("decrypting message", major_status,
+				minor_status);
 		} else {
 			/* client_message() wants to NUL terminate it,
 			   so copy it to a bigger buffer.  Plus, we
@@ -591,8 +612,9 @@ more_messages:
 			memcpy (msgbuf, utok.value, utok.length);
 			while (utok.length > 0 && msgbuf[utok.length-1] == '\n')
 				utok.length --;
-			snprintf (msgbuf + utok.length, MAX_AUDIT_MESSAGE_LENGTH - utok.length,
-				  " krb5=%s", io->remote_name);
+			snprintf (msgbuf + utok.length,
+				MAX_AUDIT_MESSAGE_LENGTH - utok.length,
+				" krb5=%s", io->remote_name);
 			utok.length += 6 + io->remote_name_len;
 			client_message (io, utok.length, msgbuf);
 			gss_release_buffer(&minor_status, &utok);
@@ -674,7 +696,8 @@ static int auditd_tcpd_check(int sock)
 }
 #endif
 
-static void auditd_tcp_listen_handler( struct ev_loop *loop, struct ev_io *_io, int revents )
+static void auditd_tcp_listen_handler( struct ev_loop *loop,
+	struct ev_io *_io, int revents )
 {
 	int one=1;
 	int afd;
@@ -705,9 +728,10 @@ static void auditd_tcp_listen_handler( struct ev_loop *loop, struct ev_io *_io, 
 
 	uaddr = (unsigned char *)&aaddr.sin_addr;
 
-	/* Verify it's coming from an authorized port.  We assume the firewall will
-	   block attempts from unauthorized machines.  */
-	if (min_port > ntohs (aaddr.sin_port) || ntohs (aaddr.sin_port) > max_port) {
+	/* Verify it's coming from an authorized port.  We assume the firewall
+	 *  will block attempts from unauthorized machines.  */
+	if (min_port > ntohs (aaddr.sin_port) ||
+					ntohs (aaddr.sin_port) > max_port) {
         	audit_msg(LOG_ERR, "TCP connection from %s rejected",
 				sockaddr_to_ip (&aaddr));
 		snprintf(emsg, sizeof(emsg),
@@ -738,7 +762,8 @@ static void auditd_tcp_listen_handler( struct ev_loop *loop, struct ev_io *_io, 
 
 	client->client_active = 1;
 
-	ev_io_init (&(client->io), auditd_tcp_client_handler, afd, EV_READ | EV_ERROR);
+	// Was watching for EV_ERROR, but libev 3.48 took it away
+	ev_io_init (&(client->io), auditd_tcp_client_handler, afd, EV_READ);
 
 	memcpy (&client->addr, &aaddr, sizeof (struct sockaddr_in));
 
@@ -787,7 +812,8 @@ int auditd_tcp_listen_init ( struct ev_loop *loop, struct daemon_conf *config )
 	}
 
 	set_close_on_exec (listen_socket);
-	setsockopt(listen_socket, SOL_SOCKET, SO_REUSEADDR, (char *)&one, sizeof (int));
+	setsockopt(listen_socket, SOL_SOCKET, SO_REUSEADDR,
+			(char *)&one, sizeof (int));
 
 	memset (&address, 0, sizeof(address));
 	address.sin_family = htons(AF_INET);
@@ -795,7 +821,8 @@ int auditd_tcp_listen_init ( struct ev_loop *loop, struct daemon_conf *config )
 	address.sin_addr.s_addr = htonl(INADDR_ANY);
 
 	/* This avoids problems if auditd needs to be restarted.  */
-	setsockopt(listen_socket, SOL_SOCKET, SO_REUSEADDR, (char *)&one, sizeof (int));
+	setsockopt(listen_socket, SOL_SOCKET, SO_REUSEADDR,
+			(char *)&one, sizeof (int));
 
 	if ( bind ( listen_socket, (struct sockaddr *)&address, sizeof(address)) ) {
         	audit_msg(LOG_ERR,
@@ -810,7 +837,8 @@ int auditd_tcp_listen_init ( struct ev_loop *loop, struct daemon_conf *config )
 	audit_msg(LOG_DEBUG, "Listening on TCP port %ld",
 		config->tcp_listen_port);
 
-	ev_io_init (&tcp_listen_watcher, auditd_tcp_listen_handler, listen_socket, EV_READ);
+	ev_io_init (&tcp_listen_watcher, auditd_tcp_listen_handler,
+			listen_socket, EV_READ);
 	ev_io_start (loop, &tcp_listen_watcher);
 
 	min_port = config->tcp_client_min_port;
@@ -837,12 +865,14 @@ int auditd_tcp_listen_init ( struct ev_loop *loop, struct daemon_conf *config )
 
 		if (stat (key_file, &st) == 0) {
 			if ((st.st_mode & 07777) != 0400) {
-				audit_msg (LOG_ERR, "%s is not mode 0400 (it's %#o) - compromised key?",
+				audit_msg (LOG_ERR,
+			 "%s is not mode 0400 (it's %#o) - compromised key?",
 					   key_file, st.st_mode & 07777);
 				return -1;
 			}
 			if (st.st_uid != 0) {
-				audit_msg (LOG_ERR, "%s is not owned by root (it's %d) - compromised key?",
+				audit_msg (LOG_ERR,
+			 "%s is not owned by root (it's %d) - compromised key?",
 					   key_file, st.st_uid);
 				return -1;
 			}
