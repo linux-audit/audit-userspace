@@ -174,7 +174,7 @@ void clear_config(remote_conf_t *config)
 	config->remote_server = NULL;
 	config->port = 60;
 	config->local_port = 0;
-	config->port = T_TCP;
+	config->transport = T_TCP;
 	config->mode = M_IMMEDIATE;
 	config->queue_depth = 20;
 	config->format = F_MANAGED;
@@ -182,12 +182,7 @@ void clear_config(remote_conf_t *config)
 	config->network_retry_time = 1;
 	config->max_tries_per_record = 3;
 	config->max_time_per_record = 5;
-
 	config->heartbeat_timeout = 0;
-	config->enable_krb5 = 0;
-	config->krb5_principal = NULL;
-	config->krb5_client_name = NULL;
-	config->krb5_key_file = NULL;
 
 #define IA(x,f) config->x##_action = f; config->x##_exe = NULL
 	IA(network_failure, FA_STOP);
@@ -198,6 +193,11 @@ void clear_config(remote_conf_t *config)
 	IA(generic_error, FA_SYSLOG);
 	IA(generic_warning, FA_SYSLOG);
 #undef IA
+
+	config->enable_krb5 = 0;
+	config->krb5_principal = NULL;
+	config->krb5_client_name = NULL;
+	config->krb5_key_file = NULL;
 }
 
 int load_config(remote_conf_t *config, const char *file)
@@ -489,7 +489,7 @@ static int parse_uint (struct nv_pair *nv, int line, unsigned int *valp,
 
 static int port_parser(struct nv_pair *nv, int line, remote_conf_t *config)
 {
-	return parse_uint (nv, line, &(config->port), 0, INT_MAX);
+	return parse_uint (nv, line, &(config->port), 0, 65535);
 }
 
 static int local_port_parser(struct nv_pair *nv, int line,
@@ -497,7 +497,7 @@ static int local_port_parser(struct nv_pair *nv, int line,
 {
 	if ((strcasecmp(nv->value, "any") == 0))
 		return 0;	// The default is 0, which means any port
-	return parse_uint (nv, line, &(config->local_port), 0, INT_MAX);
+	return parse_uint (nv, line, &(config->local_port), 0, 65535);
 }
 
 static int transport_parser(struct nv_pair *nv, int line, remote_conf_t *config)
@@ -505,7 +505,7 @@ static int transport_parser(struct nv_pair *nv, int line, remote_conf_t *config)
 	int i;
 	for (i=0; transport_words[i].name != NULL; i++) {
 		if (strcasecmp(nv->value, transport_words[i].name) == 0) {
-			config->mode = transport_words[i].option;
+			config->transport = transport_words[i].option;
 			return 0;
 		}
 	}
@@ -697,5 +697,8 @@ static int sanity_check(remote_conf_t *config, const char *file)
 void free_config(remote_conf_t *config)
 {
 	free((void *)config->remote_server);
+	free((void *)config->krb5_principal);
+	free((void *)config->krb5_client_name);
+	free((void *)config->krb5_key_file);
 }
 
