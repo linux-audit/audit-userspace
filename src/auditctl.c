@@ -455,12 +455,49 @@ void audit_request_rule_list(int fd)
 		}
 	}
 }
+
+void check_rule_mismatch(int lineno, const char *option)
+{
+	struct audit_rule tmprule;
+	unsigned int old_audit_elf = audit_elf;
+	int rc = 0;
+
+	switch (audit_elf)
+	{
+		case AUDIT_ARCH_X86_64:
+			audit_elf = AUDIT_ARCH_I386;
+			break;
+		case AUDIT_ARCH_PPC64:
+			audit_elf = AUDIT_ARCH_PPC;
+			break;
+		case AUDIT_ARCH_S390X:
+			audit_elf = AUDIT_ARCH_S390;
+			break;
+	}
+	memset(&tmprule, 0, sizeof(struct audit_rule));
+	audit_rule_syscallbyname(&tmprule, option);
+	if (which == OLD) {
+		if (memcmp(tmprule.mask, rule.mask, AUDIT_BITMASK_SIZE))
+			rc = 1;
+	} else {
+		if (memcmp(tmprule.mask, rule_new->mask, AUDIT_BITMASK_SIZE))
+			rc = 1;
+	}
+	audit_elf = old_audit_elf;
+	if (rc) { 
+		fprintf(stderr, "WARNING - 32/64 bit syscall mismatch");
+		if (lineno)
+			fprintf(stderr, " in line %d", lineno);
+		fprintf(stderr, ", you should specify an arch\n");
+	}
+}
+
 // FIXME: Change these to enums
 /*
  * returns: -3 deprecated, -2 success - no reply, -1 error - noreply,
  * 0 success - reply, > 0 success - rule
  */
-static int setopt(int count, char *vars[])
+static int setopt(int count, int lineno, char *vars[])
 {
     int c;
     int retval = 0, rc;
@@ -643,7 +680,8 @@ static int setopt(int count, char *vars[])
 		} else
 			retval = 1; /* success - please send */
 		break;
-        case 'S':
+        case 'S': {
+		int unknown_arch = !audit_elf;
 		/* Do some checking to make sure that we are not adding a
 		 * syscall rule to a list that does not make sense. */
 		if (((add & (AUDIT_FILTER_MASK|AUDIT_FILTER_UNSET)) ==
@@ -665,7 +703,7 @@ static int setopt(int count, char *vars[])
 		    "Error: syscall auditing cannot be put on exclude list\n");
 			return -1;
 		} else {
-			if (!audit_elf) {
+			if (unknown_arch) {
 				int machine;
 				unsigned int elf;
 				machine = audit_detect_machine();
@@ -692,6 +730,8 @@ static int setopt(int count, char *vars[])
 		{
 			case 0:
 				audit_syscalladded = 1;
+				if (unknown_arch && add != AUDIT_FILTER_UNSET)
+					check_rule_mismatch(lineno, optarg);
 				break;
 			case -1:
 				fprintf(stderr, "Syscall name unknown: %s\n", 
@@ -703,7 +743,7 @@ static int setopt(int count, char *vars[])
 							audit_elf);
 				retval = -1;
 				break;
-		}
+		}}
 		break;
         case 'F':
 		if (add != AUDIT_FILTER_UNSET)
@@ -1044,7 +1084,7 @@ static int fileopt(const char *file)
 			fclose(f);
 			return -1;
 		}
-		rc = setopt(i, options);
+		rc = setopt(i, lineno, options);
 
 		/* handle reply or send rule */
 		if (rc != -3) {
@@ -1091,7 +1131,7 @@ int main(int argc, char *argv[])
 	} else {
 		if (reset_vars())
 			return 1;
-		retval = setopt(argc, argv);
+		retval = setopt(argc, 0, argv);
 		if (retval == -3)
 			return 0;
 	}
