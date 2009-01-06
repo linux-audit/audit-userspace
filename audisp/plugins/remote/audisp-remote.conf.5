@@ -74,6 +74,11 @@ should be set, as each try may take a long time to time out.  The
 default value is 5 seconds.  If too much time is used on a message,
 the network_failure_action action is performed.
 .TP
+.I heartbeat_timeout
+This parameter determines how often in seconds the client should send a heartbeat event to the remote server. This is used to let both the client and server know that each end is alive and has not terminated in a way that it did not shutdown the connection uncleanly. This value must be coordinated with the server's
+.I tcp_client_max_idle
+setting. The default value is 0 which disables sending a heartbeat.
+.TP
 .I network_failure_action
 This parameter tells the system what action to take whenever there is an error
 detected when sending audit events to the remote system. Valid values are
@@ -168,7 +173,8 @@ maintain logging across a reboot.
 
 .SH "SEE ALSO"
 .BR audispd (8),
-.BR audisp-remote(8).
+.BR audisp-remote(8),
+.BR auditd.conf(5).
 .SH AUTHOR
 Steve Grubb
 

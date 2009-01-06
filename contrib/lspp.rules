@@ -91,7 +91,7 @@
 
 ## Other file system operations
 ## Enable if i386
--a entry,always -S mount -S umount -S umount2
+-a entry,always -F arch=b32 -S mount -S umount -S umount2
 ## Enable if ppc, s390, or s390x
 #-a entry,always -F arch=b32 -S mount -S umount -S umount2
 #-a entry,always -F arch=b64 -S mount -S umount -S umount2

@@ -237,11 +237,7 @@ client use a priviledged port, specify
 for this parameter. You will also need to set the local_port option in the audisp-remote.conf file. Making sure that clients send from a privileged port is a security feature to prevent log injection attacks by untrusted users.
 .TP
 .I tcp_client_max_idle
-This parameter indicates the number of seconds that a client may be
-idle (i.e. no data from them at all) before auditd complains.  Note
-that this is a global setting, and must be higher than any individual
-client heartbeat setting, preferably by a factor of two.  The default
-is zero, which disables this check.
+This parameter indicates the number of seconds that a client may be idle (i.e. no data from them at all) before auditd complains. This is used to close inactive connections if the client machine has a problem where it cannot shutdown the connection cleanly. Note that this is a global setting, and must be higher than any individual client heartbeat_timeout setting, preferably by a factor of two.  The default is zero, which disables this check.
 .TP
 .I enable_krb5
 If set to "yes", Kerberos 5 will be used for authentication and
@@ -288,7 +284,8 @@ connection closure TIME_WAIT state times out.
 Audit daemon configuration file
 
 .SH "SEE ALSO"
-.BR auditd (8).
+.BR auditd (8),
+.BR audisp-remote.conf (5).
 
 .SH AUTHOR
 Steve Grubb
