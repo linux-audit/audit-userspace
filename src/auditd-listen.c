@@ -84,7 +84,7 @@ static int use_gss = 0;
 static char msgbuf[MAX_AUDIT_MESSAGE_LENGTH + 1];
 #endif
 
-static struct ev_tcp *client_chain = 0;
+static struct ev_tcp *client_chain = NULL;
 
 static char *sockaddr_to_ip (struct sockaddr_in *addr)
 {
@@ -902,6 +902,10 @@ void auditd_tcp_listen_uninit ( struct ev_loop *loop )
 #endif
 
 	while (client_chain) {
+		unsigned char ack[AUDIT_RMW_HEADER_SIZE];
+
+		AUDIT_RMW_PACK_HEADER (ack, 0, AUDIT_RMW_TYPE_ENDING, 0, 0);
+		client_ack (client_chain, ack, "");
 		close_client (client_chain);
 	}
 }

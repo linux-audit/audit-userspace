@@ -58,15 +58,15 @@
 static volatile int stop = 0;
 static volatile int hup = 0;
 static volatile int suspend = 0;
-static remote_conf_t config;
-static int sock=-1;
+static volatile int transport_ok = 0;
+static volatile int sock=-1;
 
 static const char *SINGLE = "1";
 static const char *HALT = "0";
-
-static int transport_ok = 0;
+static remote_conf_t config;
 
 /* Local function declarations */
+static int check_message(void);
 static int relay_event(const char *s, size_t len);
 static int init_transport(void);
 static int stop_transport(void);
@@ -190,20 +190,28 @@ static int do_action (const char *desc, const char *message,
 		safe_exec (exe, message);
 		return 0;
 	case FA_SUSPEND:
+		syslog (log_level,
+			"suspending remote logging due to %s", desc);
 		suspend = 1;
 		return 0;
 	case FA_SINGLE:
+		syslog (log_level,
+	"remote logging is switching system to single user mode due to %s",
+			desc);
 		change_runlevel(SINGLE);
 		return -1;
 	case FA_HALT:
+		syslog (log_level,
+			"remote logging halting system due to %s", desc);
 		change_runlevel(HALT);
 		return -1;
 	case FA_STOP:
-		syslog (log_level, "stopping due to %s, %s", desc, message);
+		syslog (log_level, "remote logging stopping due to %s, %s",
+			desc, message);
 		stop = 1;
 		return -1;
 	}
-	syslog (log_level, "unhandled action %d", action);
+	syslog (log_level, "unhandled action %d for %s", action, desc);
 	return -1;
 }
 
@@ -239,7 +247,7 @@ static int remote_disk_error_handler (const char *message)
 static int remote_server_ending_handler (const char *message)
 {
 	return do_action ("remote server ending", message,
-			  LOG_INFO,
+			  LOG_NOTICE,
 			  config.remote_ending_action,
 			  config.remote_ending_exe);
 }
@@ -258,7 +266,7 @@ static int generic_remote_warning_handler (const char *message)
 			  config.generic_warning_exe);
 }
 
-static void send_heartbeat ()
+static void send_heartbeat (void)
 {
 	relay_event (0, 0);
 }
@@ -290,33 +298,46 @@ int main(int argc, char *argv[])
 		return 1;
 
 	do {
+		fd_set rfd;
+		struct timeval tv;
+		int n, fds = 1;
+
 		/* Load configuration */
 		if (hup) 
 			reload_config();
 
+		FD_ZERO(&rfd);
+		FD_SET(0, &rfd);	//stdin
+		if (sock > 0) {		// remote socket
+			FD_SET(sock, &rfd);
+			fds = sock + 1;
+		}
 		if (config.heartbeat_timeout > 0) {
-			fd_set rfd;
-			struct timeval tv;
-			int n;
-
-			FD_ZERO (&rfd);
-			FD_SET (fileno (stdin), &rfd);
 			tv.tv_sec = config.heartbeat_timeout;
 			tv.tv_usec = 0;
-
-			n = select (fileno (stdin) + 1, &rfd, NULL, &rfd, &tv);
-
-			if (n <= 0) {
-				/* We attempt a hearbeat if select
-				   fails, which may give us more
-				   heartbeats than we need.  This is
-				   safer than too few heartbeats.  */
-				send_heartbeat ();
-				continue;
-			}
+			n = select(fds, &rfd, NULL, &rfd, &tv);
+		} else
+			n = select(fds, &rfd, NULL, &rfd, NULL);
+		if (n < 0) {
+			// If we are here, we had some kind of problem
+			continue;
+		}
+		if ((config.heartbeat_timeout > 0) && n == 0 && transport_ok) {
+			/* We attempt a hearbeat if select
+			   fails, which may give us more
+			   heartbeats than we need.  This is
+			   safer than too few heartbeats.  */
+			send_heartbeat();
+			continue;
 		}
 
-		/* Now read the [next] message.  */
+		// See if we got a shutdown message from the server
+		if (FD_ISSET(sock, &rfd)) {
+			check_message();
+			continue;
+		}
+
+		/* Otherwise assume stdin - read the [next] message.  */
 		if (fgets_unlocked(tmp, MAX_AUDIT_MESSAGE_LENGTH, stdin) &&
 							hup==0 && stop==0) {
 			if (!suspend) {
@@ -324,9 +345,8 @@ int main(int argc, char *argv[])
 				if (strstr(tmp,"type=EOE msg=audit(") == NULL){
 					rc = relay_event(tmp, strnlen(tmp,
 					      MAX_AUDIT_MESSAGE_LENGTH));
-					if (rc < 0) {
+					if (rc < 0)
 						break;
-					}
 				}
 			}
 		}
@@ -397,12 +417,13 @@ static int recv_token (int s, gss_buffer_t tok)
 /* Same here.  */
 int send_token(int s, gss_buffer_t tok)
 {
-	int     ret;
+	int ret;
 	unsigned char lenbuf[4];
 	unsigned int len;
 
 	if (tok->length > 0xffffffffUL)
 		return -1;
+
 	len = tok->length;
 	lenbuf[0] = (len >> 24) & 0xff;
 	lenbuf[1] = (len >> 16) & 0xff;
@@ -450,6 +471,7 @@ static void gss_failure_2 (const char *msg, int status, int type)
 		gss_release_buffer(&min_status, &status_string);
 	} while (message_context != 0);
 }
+
 static void gss_failure (const char *msg, int major_status, int minor_status)
 {
 	gss_failure_2 (msg, major_status, GSS_C_GSS_CODE);
@@ -515,7 +537,8 @@ static int negotiate_credentials (void)
 
 	if (stat (key_file, &st) == 0) {
 		if ((st.st_mode & 07777) != 0400) {
-			syslog (LOG_ERR, "%s is not mode 0400 (it's %#o) - compromised key?",
+			syslog (LOG_ERR,
+			"%s is not mode 0400 (it's %#o) - compromised key?",
 				key_file, st.st_mode & 07777);
 			return -1;
 		}
@@ -848,9 +871,10 @@ static int relay_sock_ascii(const char *s, size_t len)
 	if (len == 0)
 		return 0;
 
-	if (!transport_ok)
+	if (!transport_ok) {
 		if (init_transport ())
 			return -1;
+	}
 
 	rc = ar_write(sock, s, len);
 	if (rc <= 0) {
@@ -868,7 +892,6 @@ static int relay_sock_ascii(const char *s, size_t len)
 /* Sending an encrypted message is pretty simple - wrap the message in
    a token, and send the token.  The server unwraps it to get the
    original message.  */
-
 static int send_msg_gss (unsigned char *header, const char *msg, uint32_t mlen)
 {
 	OM_uint32 major_status, minor_status;
@@ -958,8 +981,7 @@ static int send_msg_tcp (unsigned char *header, const char *msg, uint32_t mlen)
 		return 1;
 	}
 
-	if (msg != NULL && mlen > 0)
-	{
+	if (msg != NULL && mlen > 0) {
 		rc = ar_write(sock, msg, mlen);
 		if (rc <= 0) {
 			if (config.network_failure_action == FA_SYSLOG)
@@ -985,7 +1007,6 @@ static int recv_msg_tcp (unsigned char *header, char *msg, uint32_t *mlen)
 		return -1;
 	}
 
-
 	if (! AUDIT_RMW_IS_MAGIC (header, AUDIT_RMW_HEADER_SIZE)) {
 		/* FIXME: the right thing to do here is close the socket
 		 *  and start a new one.  */
@@ -1005,6 +1026,61 @@ static int recv_msg_tcp (unsigned char *header, char *msg, uint32_t *mlen)
 		return -1;
 	}
 	return 0;
+}
+
+static int check_message_managed(void)
+{
+	unsigned char header[AUDIT_RMW_HEADER_SIZE];
+	int hver, mver;
+	uint32_t type, rlen, seq;
+	char msg[MAX_AUDIT_MESSAGE_LENGTH+1];
+
+#ifdef USE_GSSAPI
+	if (USE_GSS) {
+		if (recv_msg_gss (header, msg, &rlen)) {
+			stop_transport();
+			return -1;
+		}
+	} else
+#endif
+	if (recv_msg_tcp(header, msg, &rlen)) {
+		stop_transport();
+		return -1;
+	}
+
+	AUDIT_RMW_UNPACK_HEADER(header, hver, mver, type, rlen, seq);
+	msg[rlen] = 0;
+
+	if (type == AUDIT_RMW_TYPE_ENDING)
+		return remote_server_ending_handler(msg);
+	if (type == AUDIT_RMW_TYPE_DISKLOW)
+		return remote_disk_low_handler(msg);
+	if (type == AUDIT_RMW_TYPE_DISKFULL)
+		return remote_disk_full_handler(msg);
+	if (type == AUDIT_RMW_TYPE_DISKERROR)
+		return remote_disk_error_handler(msg);
+	return -1;
+}
+
+/* This is to check for async notification like server is shutting down */
+static int check_message(void)
+{
+	int rc;
+
+	switch (config.format)
+	{
+		case F_MANAGED:
+			rc = check_message_managed();
+			break;
+/*		case F_ASCII:
+			rc = check_message_ascii();
+			break; */
+		default:
+			rc = -1;
+			break;
+	}
+
+	return rc;
 }
 
 static int relay_sock_managed(const char *s, size_t len)
@@ -1078,8 +1154,12 @@ try_again:
 	}
 
 	AUDIT_RMW_UNPACK_HEADER (header, hver, mver, type, rlen, seq);
-
 	msg[rlen] = 0;
+
+	/* Handle this first. It doesn't matter if seq compares or not
+	 * since the other end is going down...deal with it. */
+	if (type == AUDIT_RMW_TYPE_ENDING)
+		return remote_server_ending_handler (msg);
 
 	if (seq != sequence_id) {
 		/* FIXME: should we read another header and
@@ -1092,9 +1172,6 @@ try_again:
 	}
 
 	/* Specific errors we know how to deal with.  */
-
-	if (type == AUDIT_RMW_TYPE_ENDING)
-		return remote_server_ending_handler (msg);
 	if (type == AUDIT_RMW_TYPE_DISKLOW)
 		return remote_disk_low_handler (msg);
 	if (type == AUDIT_RMW_TYPE_DISKFULL)
@@ -1131,6 +1208,7 @@ static int relay_sock(const char *s, size_t len)
 	return rc;
 }
 
+/* Send audit event to remote system */
 static int relay_event(const char *s, size_t len)
 {
 	int rc;

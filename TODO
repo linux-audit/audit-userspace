@@ -1,7 +1,6 @@
 Things that need to be done:
 ===========================
 1.7.11
-* When server shuts down, its not sending AUDIT_RMW_TYPE_ENDING
 * Fix auparse to handle out of order messages
 * Add definitions for kernel virt events
 
