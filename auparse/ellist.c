@@ -160,6 +160,9 @@ static int parse_up_record(rnode* r)
 			}
 			// Make virtual keys or just store it
 			if (strcmp(n.name, "key") == 0 && *n.val != '(') {
+				if (*n.val == '"')
+					nvlist_append(&r->nv, &n);
+				else {
 				char *key = (char *)au_unescape(n.val);
 				char *ptr = strtok_r(key, key_sep, &saved);
 				free(n.name);
@@ -171,6 +174,7 @@ static int parse_up_record(rnode* r)
 					ptr = strtok_r(NULL, key_sep, &saved);
 				}
 				free(key);
+				}
 				continue;
 			} else
 				nvlist_append(&r->nv, &n);

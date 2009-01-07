@@ -5,6 +5,7 @@
 - Fixed bug in setting up auditd event loop when listening
 - Warn if on biarch machine and auditctl rules show a syscall mismatch
 - Audisp-remote was not parsing some config options correctly
+- In auparse, check for single key in addition to virtual keys
 
 1.7.10
 - Fix ausearch and aureport to handle out of order events
