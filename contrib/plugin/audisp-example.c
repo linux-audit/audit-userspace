@@ -30,6 +30,10 @@
  * It will print things to stdout. In a real program, you wouldn't
  * do anything with stdout since that is likely to be pointing to /dev/null.
  *
+ * Excluding some init/destroy items you might need to add to main, the 
+ * event_handler function is the main place that you would modify to do
+ * things specific to your plugin. 
+ *
  */
 
 #define _GNU_SOURCE
@@ -156,6 +160,8 @@ static void dump_fields_of_record(auparse_state_t *au)
 	printf("\n");
 }
 
+/* This function receives a single complete event at a time from the auparse
+ * library. This is where the main analysis code would be added. */
 static void handle_event(auparse_state_t *au,
 		auparse_cb_event_t cb_event_type, void *user_data)
 {
