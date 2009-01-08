@@ -7,6 +7,7 @@
 - Audisp-remote was not parsing some config options correctly
 - In auparse, check for single key in addition to virtual keys
 - When auditd shuts down, send AUDIT_RMW_TYPE_ENDING messages to clients
+- Updated sample plugin code to use auparse
 
 1.7.10
 - Fix ausearch and aureport to handle out of order events

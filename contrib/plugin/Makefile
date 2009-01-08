@@ -1,5 +1,5 @@
 CFLAGS=-g -W -Wall -Wundef
-LIBS=
+LIBS= -lauparse
 all:
 	gcc $(CFLAGS) audisp-example.c -o audisp-example $(LIBS)
 
