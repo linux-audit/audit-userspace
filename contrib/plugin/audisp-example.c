@@ -25,7 +25,7 @@
  *
  * ausearch --start today --raw > test.log.
  *
- * Then you can test this app by: cat test.log | audisp-example
+ * Then you can test this app by: cat test.log | ./audisp-example
  *
  * It will print things to stdout. In a real program, you wouldn't
  * do anything with stdout since that is likely to be pointing to /dev/null.
@@ -121,6 +121,16 @@ int main(int argc, char *argv[])
 	return 0;
 }
 
+/* This function shows how to dump a whole event by iterating over records */
+static void dump_whole_event(auparse_state_t *au)
+{
+	auparse_first_record(au);
+	do {
+		printf("%s\n", auparse_get_record_text(au));
+	} while(auparse_next_record(au) > 0);
+	printf("\n");
+}
+
 /* This function shows how to dump a whole record's text */
 static void dump_whole_record(auparse_state_t *au)
 {
@@ -179,16 +189,17 @@ static void handle_event(auparse_state_t *au,
 		   This is just a few suggestions, but it could be anything. */
 		switch (type) {
 			case AUDIT_AVC:
-				dump_whole_record(au); 
+				dump_fields_of_record(au);
 				break;
 			case AUDIT_SYSCALL:
-				dump_fields_of_record(au);
+				dump_whole_record(au); 
 				break;
 			case AUDIT_USER_LOGIN:
 				break;
 			case AUDIT_ANOM_ABEND:
 				break;
 			case AUDIT_MAC_STATUS:
+				dump_whole_event(au); 
 				break;
 			default:
 				break;
