@@ -137,7 +137,7 @@ static const struct nv_list transport_words[] =
 static const struct nv_list mode_words[] =
 {
   {"immediate",  M_IMMEDIATE },
-  {"forward",    M_STORE_AND_FORWARD },
+//  {"forward",    M_STORE_AND_FORWARD },
   { NULL,  0 }
 };
 

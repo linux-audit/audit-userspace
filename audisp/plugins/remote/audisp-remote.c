@@ -339,7 +339,7 @@ int main(int argc, char *argv[])
 			// If we are here, we had some kind of problem
 			continue;
 
-		if ((config.heartbeat_timeout > 0) && n == 0 && transport_ok) {
+		if ((config.heartbeat_timeout > 0) && n == 0 && !remote_ended) {
 			/* We attempt a hearbeat if select fails, which
 			 * may give us more heartbeats than we need. This
 			 * is safer than too few heartbeats.  */

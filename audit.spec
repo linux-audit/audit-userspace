@@ -257,7 +257,7 @@ fi
 %config(noreplace) %{_sysconfdir}/security/console.apps/system-config-audit-server
 
 %changelog
-* Thu Jan 08 2009 Steve Grubb <sgrubb@redhat.com> 1.7.11-1
+* Sat Jan 10 2009 Steve Grubb <sgrubb@redhat.com> 1.7.11-1
 - Don't error out in auditd when calling setsid
 - Reformat a couple auditd error messages (Oden Eriksson)
 - If log rotate fails, leave the old log writable
@@ -266,6 +266,7 @@ fi
 - Audisp-remote was not parsing some config options correctly
 - In auparse, check for single key in addition to virtual keys
 - When auditd shuts down, send AUDIT_RMW_TYPE_ENDING messages to clients
+- Created reconnect option to remote ending setting of audisp-remote
 
 * Sat Dec 13 2008 Steve Grubb <sgrubb@redhat.com> 1.7.10-1
 - Fix ausearch and aureport to handle out of order events
