@@ -1,3 +1,5 @@
+1.8
+
 1.7.11
 - Don't error out in auditd when calling setsid
 - Reformat a couple auditd error messages (Oden Eriksson)
