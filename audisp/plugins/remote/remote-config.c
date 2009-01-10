@@ -1,5 +1,5 @@
 /* remote-config.c -- 
- * Copyright 2008 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2008, 2009 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -94,10 +94,11 @@ AP(network_failure)
 AP(disk_low)
 AP(disk_full)
 AP(disk_error)
-AP(remote_ending)
 AP(generic_error)
 AP(generic_warning)
 #undef AP
+static int remote_ending_action_parser(struct nv_pair *nv, int line,
+                remote_conf_t *config);
 static int sanity_check(remote_conf_t *config, const char *file);
 
 static const struct kw_pair keywords[] = 
@@ -113,10 +114,10 @@ static const struct kw_pair keywords[] =
   {"max_tries_per_record",   max_tries_per_record_parser,       0 },
   {"max_time_per_record",    max_time_per_record_parser,        0 },
   {"heartbeat_timeout",      heartbeat_timeout_parser,          0 },
-  {"enable_krb5",            enable_krb5_parser,                 0 },
-  {"krb5_principal",         krb5_principal_parser,              0 },
-  {"krb5_client_name",       krb5_client_name_parser,            0 },
-  {"krb5_key_file",          krb5_key_file_parser,               0 },
+  {"enable_krb5",            enable_krb5_parser,                0 },
+  {"krb5_principal",         krb5_principal_parser,             0 },
+  {"krb5_client_name",       krb5_client_name_parser,           0 },
+  {"krb5_key_file",          krb5_key_file_parser,              0 },
   {"network_failure_action", network_failure_action_parser,	0 },
   {"disk_low_action",        disk_low_action_parser,		0 },
   {"disk_full_action",       disk_full_action_parser,		0 },
@@ -124,7 +125,7 @@ static const struct kw_pair keywords[] =
   {"remote_ending_action",   remote_ending_action_parser,	0 },
   {"generic_error_action",   generic_error_action_parser,	0 },
   {"generic_warning_action", generic_warning_action_parser,	0 },
-  { NULL,             NULL }
+  { NULL,                    NULL,                              0 }
 };
 
 static const struct nv_list transport_words[] =
@@ -159,12 +160,14 @@ static const struct nv_list format_words[] =
   { NULL,  0 }
 };
 
+#ifdef USE_GSSAPI
 static const struct nv_list enable_krb5_values[] =
 {
   {"yes",  1 },
   {"no", 0 },
   { NULL,  0 }
 };
+#endif
 
 /*
  * Set everything to its default value
@@ -445,7 +448,7 @@ static int server_parser(struct nv_pair *nv, int line,
 	return 0;
 }
 
-static int parse_uint (struct nv_pair *nv, int line, unsigned int *valp,
+static int parse_uint (const struct nv_pair *nv, int line, unsigned int *valp,
 		unsigned int min, unsigned int max)
 {
 	const char *ptr = nv->value;
@@ -542,7 +545,7 @@ static int action_parser(struct nv_pair *nv, int line,
 			return 0;
 		} else if (i == FA_EXEC) {
 			if (strncasecmp(fail_action_words[i].name,
-							nv->value, 4) == 0){
+							nv->value, 4) == 0) {
 				if (check_exe_name(nv->option, line))
 					return 1;
 				*exep = strdup(nv->option);
@@ -559,17 +562,27 @@ static int action_parser(struct nv_pair *nv, int line,
 static int x##_action_parser(struct nv_pair *nv, int line, \
 	remote_conf_t *config) \
 { \
-	return action_parser (nv, line, &(config->x##_action), &(config->x##_exe)); \
+	return action_parser(nv,line,&(config->x##_action),&(config->x##_exe));\
 } \
 
 AP(network_failure)
 AP(disk_low)
 AP(disk_full)
 AP(disk_error)
-AP(remote_ending)
 AP(generic_error)
 AP(generic_warning)
 #undef AP
+
+static int remote_ending_action_parser(struct nv_pair *nv, int line,
+                remote_conf_t *config)
+{
+	if (strcasecmp(nv->value, "reconnect") == 0) {
+		config->remote_ending_action = FA_RECONNECT;
+		return 0;
+	}
+	return action_parser(nv, line, &config->remote_ending_action,
+			&config->remote_ending_exe);
+}
 
 static int format_parser(struct nv_pair *nv, int line,
 		remote_conf_t *config)
@@ -588,19 +601,19 @@ static int format_parser(struct nv_pair *nv, int line,
 static int network_retry_time_parser(struct nv_pair *nv, int line,
 		remote_conf_t *config)
 {
-	return parse_uint (nv, line, &(config->network_retry_time), 1, INT_MAX);
+	return parse_uint(nv, line, &config->network_retry_time, 1, INT_MAX);
 }
 
 static int max_tries_per_record_parser(struct nv_pair *nv, int line,
 		remote_conf_t *config)
 {
-	return parse_uint (nv, line, &(config->max_tries_per_record), 1, INT_MAX);
+	return parse_uint(nv, line, &config->max_tries_per_record, 1, INT_MAX);
 }
 
 static int max_time_per_record_parser(struct nv_pair *nv, int line,
 		remote_conf_t *config)
 {
-	return parse_uint (nv, line, &(config->max_time_per_record), 1, INT_MAX);
+	return parse_uint(nv, line, &(config->max_time_per_record), 1, INT_MAX);
 }
 
 static int heartbeat_timeout_parser(struct nv_pair *nv, int line,
@@ -697,6 +710,13 @@ static int sanity_check(remote_conf_t *config, const char *file)
 void free_config(remote_conf_t *config)
 {
 	free((void *)config->remote_server);
+	free((void *)config->network_failure_exe);
+	free((void *)config->disk_low_exe);
+	free((void *)config->disk_full_exe);
+	free((void *)config->disk_error_exe);
+	free((void *)config->remote_ending_exe);
+	free((void *)config->generic_error_exe);
+	free((void *)config->generic_warning_exe);
 	free((void *)config->krb5_principal);
 	free((void *)config->krb5_client_name);
 	free((void *)config->krb5_key_file);

@@ -664,6 +664,9 @@ static int event_loop(void)
 					conf->p->active = A_NO;
 					if (start_one_plugin(conf) == 0) {
 						rc = write_to_plugin(e, conf);
+						syslog(LOG_NOTICE,
+						"plugin %s was restarted",
+							conf->p->path);
 					} 
 				}
 			}

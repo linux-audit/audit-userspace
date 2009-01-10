@@ -8,6 +8,7 @@
 - In auparse, check for single key in addition to virtual keys
 - When auditd shuts down, send AUDIT_RMW_TYPE_ENDING messages to clients
 - Updated sample plugin code to use auparse
+- Created reconnect option to remote ending setting of audisp-remote
 
 1.7.10
 - Fix ausearch and aureport to handle out of order events

@@ -1,5 +1,5 @@
 /* remote-config.h -- 
- * Copyright 2008 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2008, 2009 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -24,10 +24,10 @@
 #ifndef REMOTE_CONFIG_H
 #define REMOTE_CONFIG_H
 
-typedef enum { M_IMMEDIATE, M_STORE_AND_FORWARD  } mode_t;
+typedef enum { M_IMMEDIATE, M_STORE_AND_FORWARD  } rmode_t;
 typedef enum { T_TCP, T_SSL, T_GSSAPI, T_LABELED } transport_t;
 typedef enum { F_ASCII, F_MANAGED } format_t;
-typedef enum { FA_IGNORE, FA_SYSLOG, FA_EXEC, FA_SUSPEND,
+typedef enum { FA_IGNORE, FA_SYSLOG, FA_EXEC, FA_RECONNECT, FA_SUSPEND,
 	       FA_SINGLE, FA_HALT, FA_STOP } failure_action_t;
 
 typedef struct remote_conf

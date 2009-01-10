@@ -32,6 +32,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <time.h>
+#include <fcntl.h>
 #include <sys/select.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
@@ -60,6 +61,8 @@ static volatile int hup = 0;
 static volatile int suspend = 0;
 static volatile int transport_ok = 0;
 static volatile int sock=-1;
+static int remote_ended = 0, quiet = 0, ifd;
+static FILE *in;
 
 static const char *SINGLE = "1";
 static const char *HALT = "0";
@@ -101,7 +104,7 @@ static void hup_handler( int sig )
 
 static void reload_config(void)
 {
-	stop_transport ();
+	stop_transport(); // FIXME: We should only stop transport if necessary
 	hup = 0;
 }
 
@@ -144,6 +147,7 @@ static void change_runlevel(const char *level)
 	}
 	if (pid)	/* Parent */
 		return;
+
 	/* Child */
 	argv[0] = (char *)init_pgm;
 	argv[1] = (char *)level;
@@ -166,6 +170,7 @@ static void safe_exec(const char *exe, const char *message)
 	}
 	if (pid)	/* Parent */
 		return;
+
 	/* Child */
 	argv[0] = (char *)exe;
 	argv[1] = (char *)message;
@@ -193,6 +198,11 @@ static int do_action (const char *desc, const char *message,
 		syslog (log_level,
 			"suspending remote logging due to %s", desc);
 		suspend = 1;
+		return 0;
+	case FA_RECONNECT:
+		syslog (log_level,
+	"remote logging disconnected due to %s, will attempt reconnection",
+			desc);
 		return 0;
 	case FA_SINGLE:
 		syslog (log_level,
@@ -246,6 +256,8 @@ static int remote_disk_error_handler (const char *message)
 
 static int remote_server_ending_handler (const char *message)
 {
+	stop_transport();
+	remote_ended = 1;
 	return do_action ("remote server ending", message,
 			  LOG_NOTICE,
 			  config.remote_ending_action,
@@ -255,9 +267,10 @@ static int remote_server_ending_handler (const char *message)
 static int generic_remote_error_handler (const char *message)
 {
 	return do_action ("unrecognized remote error", message,
-			  LOG_ERR,
-			  config.generic_error_action, config.generic_error_exe);
+			  LOG_ERR, config.generic_error_action,
+			  config.generic_error_exe);
 }
+
 static int generic_remote_warning_handler (const char *message)
 {
 	return do_action ("unrecognized remote warning", message,
@@ -268,7 +281,7 @@ static int generic_remote_warning_handler (const char *message)
 
 static void send_heartbeat (void)
 {
-	relay_event (0, 0);
+	relay_event (NULL, 0);
 }
 
 int main(int argc, char *argv[])
@@ -290,9 +303,13 @@ int main(int argc, char *argv[])
 	if (load_config(&config, CONFIG_FILE))
 		return 6;
 
-	/* We fail here if the transport can't be initialized because
-	 * of some permenent (i.e. operator) problem, such as
-	 * misspelled host name. */
+	// ifd = open("test.log", O_RDONLY);
+	// in = fdopen(ifd, "r");
+	ifd = 0;
+	in = stdin;
+
+	/* We fail here if the transport can't be initialized because of some
+	 * permenent (i.e. operator) problem, such as misspelled host name. */
 	rc = init_transport();
 	if (rc == ET_PERMANENT)
 		return 1;
@@ -307,53 +324,62 @@ int main(int argc, char *argv[])
 			reload_config();
 
 		FD_ZERO(&rfd);
-		FD_SET(0, &rfd);	//stdin
-		if (sock > 0) {		// remote socket
-			FD_SET(sock, &rfd);
+		FD_SET(ifd, &rfd);	// input fd
+		if (sock > 0) {
+			FD_SET(sock, &rfd); // remote socket
 			fds = sock + 1;
 		}
 		if (config.heartbeat_timeout > 0) {
 			tv.tv_sec = config.heartbeat_timeout;
 			tv.tv_usec = 0;
-			n = select(fds, &rfd, NULL, &rfd, &tv);
+			n = select(fds, &rfd, NULL, NULL, &tv);
 		} else
-			n = select(fds, &rfd, NULL, &rfd, NULL);
-		if (n < 0) {
+			n = select(fds, &rfd, NULL, NULL, NULL);
+		if (n < 0)
 			// If we are here, we had some kind of problem
 			continue;
-		}
+
 		if ((config.heartbeat_timeout > 0) && n == 0 && transport_ok) {
-			/* We attempt a hearbeat if select
-			   fails, which may give us more
-			   heartbeats than we need.  This is
-			   safer than too few heartbeats.  */
+			/* We attempt a hearbeat if select fails, which
+			 * may give us more heartbeats than we need. This
+			 * is safer than too few heartbeats.  */
 			send_heartbeat();
 			continue;
 		}
 
 		// See if we got a shutdown message from the server
-		if (FD_ISSET(sock, &rfd)) {
+		if (sock > 0 && FD_ISSET(sock, &rfd)) {
 			check_message();
-			continue;
 		}
 
-		/* Otherwise assume stdin - read the [next] message.  */
-		if (fgets_unlocked(tmp, MAX_AUDIT_MESSAGE_LENGTH, stdin) &&
+		// See if input fd is also set, otherwise we are done
+		if (!FD_ISSET(ifd, &rfd))
+			continue;
+
+		if (fgets_unlocked(tmp, MAX_AUDIT_MESSAGE_LENGTH, in) &&
 							hup==0 && stop==0) {
+			if (!transport_ok && remote_ended && 
+				config.remote_ending_action == FA_RECONNECT) {
+				quiet = 1;
+				if (init_transport() == ET_SUCCESS)
+					remote_ended = 0;
+				quiet = 0;
+			}
 			if (!suspend) {
 				/* Strip out EOE records */
 				if (strstr(tmp,"type=EOE msg=audit(") == NULL){
 					rc = relay_event(tmp, strnlen(tmp,
-					      MAX_AUDIT_MESSAGE_LENGTH));
+						MAX_AUDIT_MESSAGE_LENGTH));
 					if (rc < 0)
 						break;
 				}
 			}
 		}
-		if (feof(stdin))
+		if (feof(in))
 			break;
 	} while (stop == 0);
 	close(sock);
+	free_config(&config);
 	if (stop)
 		syslog(LOG_NOTICE, "audisp-remote is exiting on stop request");
 
@@ -362,13 +388,11 @@ int main(int argc, char *argv[])
 
 #ifdef USE_GSSAPI
 
-/* Communications under GSS is done by token exchanges.  Each "token"
-   may contain a message, perhaps signed, perhaps encrypted.  The
-   messages within are what we're interested in, but the network sees
-   the tokens.  The protocol we use for transferring tokens is to send
-   the length first, four bytes MSB first, then the token data.  We
-   return nonzero on error.  */
-
+/* Communications under GSS is done by token exchanges. Each "token" may
+   contain a message, perhaps signed, perhaps encrypted. The messages within
+   are what we're interested in, but the network sees the tokens. The
+   protocol we use for transferring tokens is to send the length first,
+   four bytes MSB first, then the token data. We return nonzero on error. */
 static int recv_token (int s, gss_buffer_t tok)
 {
 	int ret;
@@ -392,7 +416,6 @@ static int recv_token (int s, gss_buffer_t tok)
 		|  (uint32_t)(lenbuf[3] & 0xFF));
 
 	tok->length = len;
-
 	tok->value = (char *) malloc(tok->length ? tok->length : 1);
 	if (tok->length && tok->value == NULL) {
 		syslog(LOG_ERR, "Out of memory allocating token data %d %x",
@@ -486,14 +509,12 @@ static void gss_failure (const char *msg, int major_status, int minor_status)
 #define KEYTAB_NAME "/etc/audisp/audisp-remote.key"
 #define CCACHE_NAME "MEMORY:audisp-remote"
 
-/* Each time we connect to the server, we negotiate a set of
-   credentials and a security context.  To do this, we need our own
-   credentials first.  For other Kerbers applications, the user will
-   have called kinit (or otherwise authenticated) first, but we don't
-   have that luxury.  So, we implement part of kinit here.  When our
-   tickets expire, the usual close/open/retry logic has us calling
-   here again, where we re-init and get new tickets.  */
-
+/* Each time we connect to the server, we negotiate a set of credentials and
+   a security context. To do this, we need our own credentials first. For
+   other Kerberos applications, the user will have called kinit (or otherwise
+   authenticated) first, but we don't have that luxury. So, we implement part
+   of kinit here. When our tickets expire, the usual close/open/retry logic
+   has us calling here again, where we re-init and get new tickets. */
 static int negotiate_credentials (void)
 {
 	gss_buffer_desc empty_token_buf = { 0, (void *) "" };
@@ -537,15 +558,17 @@ static int negotiate_credentials (void)
 
 	if (stat (key_file, &st) == 0) {
 		if ((st.st_mode & 07777) != 0400) {
-			syslog (LOG_ERR,
+			if (!quiet)
+				syslog (LOG_ERR,
 			"%s is not mode 0400 (it's %#o) - compromised key?",
-				key_file, st.st_mode & 07777);
+					key_file, st.st_mode & 07777);
 			return -1;
 		}
 		if (st.st_uid != 0) {
-			syslog (LOG_ERR,
+			if (!quiet)
+				syslog (LOG_ERR,
 			"%s is not owned by root (it's %d) - compromised key?",
-				key_file, st.st_uid);
+					key_file, st.st_uid);
 			return -1;
 		}
 	}
@@ -558,9 +581,10 @@ static int negotiate_credentials (void)
 	krb5_client_name = config.krb5_client_name ?
 				config.krb5_client_name : "auditd";
 	if (gethostname(host_name, sizeof(host_name)) != 0) {
-		syslog (LOG_ERR,
+		if (!quiet)
+			syslog (LOG_ERR,
 			"gethostname: host name longer than %ld characters?",
-			sizeof (host_name));
+				sizeof (host_name));
 		return -1;
 	}
 
@@ -607,9 +631,7 @@ static int negotiate_credentials (void)
 
 	/* The GSS code now has a set of credentials for this program.
 	   I.e.  we know who "we" are.  Now we talk to the server to
-	   get its credentials and set up a security context for
-	   encryption.  */
-
+	   get its credentials and set up a security context for encryption. */
 	if (config.krb5_principal == NULL) {
 		const char *name = config.krb5_client_name ?
 					config.krb5_client_name : "auditd";
@@ -713,6 +735,31 @@ static int negotiate_credentials (void)
 }
 #endif
 
+static int stop_sock(void)
+{
+	close(sock);
+	transport_ok = 0;
+	sock = -1;
+
+	return 0;
+}
+
+static int stop_transport(void)
+{
+	int rc;
+
+	switch (config.transport)
+	{
+		case T_TCP:
+			rc = stop_sock();
+			break;
+		default:
+			rc = -1;
+			break;
+	}
+	return rc;
+}
+
 static int init_sock(void)
 {
 	int rc;
@@ -721,19 +768,27 @@ static int init_sock(void)
 	char remote[BUF_SIZE];
 	int one=1;
 
+	if (sock >= 0) {
+		syslog(LOG_NOTICE, "socket already setup");
+		transport_ok = 1;
+		return ET_SUCCESS;
+	}
 	memset(&hints, '\0', sizeof(hints));
 	hints.ai_flags = AI_ADDRCONFIG|AI_NUMERICSERV;
 	hints.ai_socktype = SOCK_STREAM;
 	snprintf(remote, BUF_SIZE, "%u", config.port);
 	rc=getaddrinfo(config.remote_server, remote, &hints, &ai);
 	if (rc) {
-		syslog(LOG_ERR, "Error looking up remote host: %s - exiting",
-			gai_strerror(rc));
+		if (!quiet)
+			syslog(LOG_ERR,
+				"Error looking up remote host: %s - exiting",
+				gai_strerror(rc));
 		return ET_PERMANENT;
 	}
 	sock = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol);
 	if (sock < 0) {
-		syslog(LOG_ERR, "Error creating socket: %s - exiting",
+		if (!quiet)
+			syslog(LOG_ERR, "Error creating socket: %s",
 			strerror(errno));
 		freeaddrinfo(ai);
 		return ET_TEMPORARY;
@@ -750,21 +805,25 @@ static int init_sock(void)
 		address.sin_addr.s_addr = htonl(INADDR_ANY);
 
 		if (bind(sock, (struct sockaddr *)&address, sizeof(address))) {
-			syslog(LOG_ERR,
-			       "Cannot bind local socket to port %d - exiting",
-			       config.local_port);
-			close(sock);
+			if (!quiet)
+				syslog(LOG_ERR,
+			       "Cannot bind local socket to port %d",
+					config.local_port);
+			stop_sock();
 			return ET_TEMPORARY;
 		}
 
 	}
 	if (connect(sock, ai->ai_addr, ai->ai_addrlen)) {
-		syslog(LOG_ERR, "Error connecting to %s: %s - exiting",
-			config.remote_server, strerror(errno));
+		if (!quiet)
+			syslog(LOG_ERR, "Error connecting to %s: %s",
+				config.remote_server, strerror(errno));
 		freeaddrinfo(ai);
+		stop_sock();
 		return ET_TEMPORARY;
 	}
 
+	freeaddrinfo(ai);
 	setsockopt(sock, SOL_SOCKET, SO_KEEPALIVE, (char *)&one, sizeof (int));
 
 	/* The idea here is to minimize the time between the message
@@ -783,8 +842,6 @@ static int init_sock(void)
 #endif
 
 	transport_ok = 1;
-
-	freeaddrinfo(ai);
 	syslog(LOG_NOTICE, "Connected to %s", config.remote_server);
 	return ET_SUCCESS;
 }
@@ -805,38 +862,18 @@ static int init_transport(void)
 	return rc;
 }
 
-static int stop_sock(void)
-{
-	close (sock);
-	transport_ok = 0;
-	return 0;
-}
-
-static int stop_transport(void)
-{
-	int rc;
-
-	switch (config.transport)
-	{
-		case T_TCP:
-			rc = stop_sock();
-			break;
-		default:
-			rc = -1;
-			break;
-	}
-	return rc;
-}
-
-static int ar_write (int sock, const void *buf, int len)
+static int ar_write (int sk, const void *buf, int len)
 {
 	int rc = 0, r;
 	while (len > 0) {
 		do {
-			r = write(sock, buf, len);
+			r = write(sk, buf, len);
 		} while (r < 0 && errno == EINTR);
-		if (r < 0)
+		if (r < 0) {
+			if (errno == EPIPE)
+				stop_sock();
 			return r;
+		}
 		if (r == 0)
 			break;
 		rc += r;
@@ -846,15 +883,18 @@ static int ar_write (int sock, const void *buf, int len)
 	return rc;
 }
 
-static int ar_read (int sock, void *buf, int len)
+static int ar_read (int sk, void *buf, int len)
 {
 	int rc = 0, r;
 	while (len > 0) {
 		do {
-			r = read(sock, buf, len);
+			r = read(sk, buf, len);
 		} while (r < 0 && errno == EINTR);
-		if (r < 0)
+		if (r < 0) {
+			if (errno == EPIPE)
+				stop_sock();
 			return r;
+		}
 		if (r == 0)
 			break;
 		rc += r;
@@ -1124,7 +1164,6 @@ try_again:
 	}
 
 	type = (s != NULL) ? AUDIT_RMW_TYPE_MESSAGE : AUDIT_RMW_TYPE_HEARTBEAT;
-
 	AUDIT_RMW_PACK_HEADER (header, 0, type, len, sequence_id);
 
 #ifdef USE_GSSAPI
@@ -1222,6 +1261,7 @@ static int relay_event(const char *s, size_t len)
 			rc = -1;
 			break;
 	}
+
 	return rc;
 }
 
