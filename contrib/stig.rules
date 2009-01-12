@@ -34,7 +34,7 @@
 ##  systems, the object’s security level.
 ##
 ## Things that could affect time
--a always,exit -F arch=b32 -S adjtimex -S settimeofday -k time-change
+-a always,exit -F arch=b32 -S adjtimex -S settimeofday -S stime -k time-change
 -a always,exit -F arch=b64 -S adjtimex -S settimeofday -k time-change
 #-a always,exit -F arch=b32 -S clock_settime -k time-change
 #-a always,exit -F arch=b64 -S clock_settime -k time-change
@@ -48,8 +48,8 @@
 -w /etc/security/opasswd -p wa -k identity
 
 ## Things that could affect system locale
--a exit,always -F arch=b32 -S sethostname -k system-locale
--a exit,always -F arch=b64 -S sethostname -k system-locale
+-a exit,always -F arch=b32 -S sethostname -S setdommainname -k system-locale
+-a exit,always -F arch=b64 -S sethostname -S setdommainname -k system-locale
 -w /etc/issue -p wa -k system-locale
 -w /etc/issue.net -p wa -k system-locale
 -w /etc/hosts -p wa -k system-locale
@@ -118,7 +118,8 @@
 
 ##- Export to media (successful)
 ## You have to mount media before using it. You must disable all automounting
-## so that its done manually in order to get the correct user requesting the export
+## so that its done manually in order to get the correct user requesting the
+## export
 -a always,exit -F arch=b32 -S mount -F auid>=500 -F auid!=4294967295 -k export
 -a always,exit -F arch=b64 -S mount -F auid>=500 -F auid!=4294967295 -k export
 
@@ -131,7 +132,10 @@
 ##- All system administration actions 
 ##- All security personnel actions
 ## 
-## This should be recorded by sudo. Do not allow unrestricted root shells
+## Look for pam_tty_audit and add it to your login entry point's pam configs.
+## If that is not found, use sudo which should be patched to record its
+## commands to the audit system. Do not allow unrestricted root shells or
+## sudo cannot record the action.
 -w /etc/sudoers -p wa -k actions
 
 ## (GEN002860: CAT II) (Previously – G674) The SA and/or IAO will
