@@ -71,6 +71,7 @@
 #define asynccnt ((loop)->asynccnt)
 #define fs_fd ((loop)->fs_fd)
 #define fs_w ((loop)->fs_w)
+#define fs_2625 ((loop)->fs_2625)
 #define fs_hash ((loop)->fs_hash)
 #else
 #undef EV_WRAP_H
@@ -144,5 +145,6 @@
 #undef asynccnt
 #undef fs_fd
 #undef fs_w
+#undef fs_2625
 #undef fs_hash
 #endif

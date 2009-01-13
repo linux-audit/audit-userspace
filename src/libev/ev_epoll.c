@@ -70,7 +70,7 @@ epoll_modify (EV_P_ int fd, int oev, int nev)
    * on the assumption that the fd is gone anyways
    * if that is wrong, we have to handle the spurious
    * event in epoll_poll.
-   * the fd is later added, we try to ADD it, and, if that
+   * if the fd is added again, we try to ADD it, and, if that
    * fails, we assume it still has the same eventmask.
    */
   if (!nev)

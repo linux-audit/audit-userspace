@@ -50,6 +50,12 @@
 extern "C" {
 #endif
 
+/* we need sys/time.h for struct timeval only */
+#if !defined (WIN32) || defined (__MINGW32__)
+# include <time.h> /* mingw seems to need this, for whatever reason */
+# include <sys/time.h>
+#endif
+
 struct event_base;
 
 #define EVLIST_TIMEOUT  0x01

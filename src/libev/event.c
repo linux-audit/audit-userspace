@@ -1,7 +1,7 @@
 /*
  * libevent compatibility layer
  *
- * Copyright (c) 2007,2008 Marc Alexander Lehmann <libev@schmorp.de>
+ * Copyright (c) 2007,2008,2009 Marc Alexander Lehmann <libev@schmorp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modifica-
@@ -41,10 +41,6 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#ifndef WIN32
-# include <sys/time.h>
-#endif
-
 #ifdef EV_EVENT_H
 # include EV_EVENT_H
 #else
@@ -83,10 +79,12 @@ ev_tv_get (struct timeval *tv)
     return -1.;
 }
 
-#define EVENT_VERSION(a,b) # a "." # b
+#define EVENT_STRINGIFY(s) # s
+#define EVENT_VERSION(a,b) EVENT_STRINGIFY (a) "." EVENT_STRINGIFY (b)
 
 const char *event_get_version (void)
 {
+  /* returns ABI, not API or library, version */
   return EVENT_VERSION (EV_VERSION_MAJOR, EV_VERSION_MINOR);
 }
 
@@ -103,7 +101,7 @@ void *event_init (void)
   else
     ev_x_cur = (struct event_base *)ev_default_loop (EVFLAG_AUTO);
 #else
-  assert (("multiple event bases not supported when not compiled with EV_MULTIPLICITY", !ev_x_cur));
+  assert (("libev: multiple event bases not supported when not compiled with EV_MULTIPLICITY", !ev_x_cur));
 
   ev_x_cur = (struct event_base *)(long)ev_default_loop (EVFLAG_AUTO);
 #endif

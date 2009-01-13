@@ -1,7 +1,7 @@
 /*
  * libev event processing core, watcher management
  *
- * Copyright (c) 2007,2008 Marc Alexander Lehmann <libev@schmorp.de>
+ * Copyright (c) 2007,2008,2009 Marc Alexander Lehmann <libev@schmorp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modifica-
@@ -47,6 +47,18 @@ extern "C" {
 #  include EV_CONFIG_H
 # else
 #  include "config.h"
+# endif
+
+# if HAVE_CLOCK_SYSCALL
+#  ifndef EV_USE_CLOCK_SYSCALL
+#   define EV_USE_CLOCK_SYSCALL 1
+#   ifndef EV_USE_REALTIME
+#    define EV_USE_REALTIME  0
+#   endif
+#   ifndef EV_USE_MONOTONIC
+#    define EV_USE_MONOTONIC 1
+#   endif
+#  endif
 # endif
 
 # if HAVE_CLOCK_GETTIME
@@ -165,6 +177,14 @@ extern "C" {
 #endif
 
 /* this block tries to deduce configuration from header-defined symbols and defaults */
+
+#ifndef EV_USE_CLOCK_SYSCALL
+# if __linux && __GLIBC__ >= 2
+#  define EV_USE_CLOCK_SYSCALL 1
+# else
+#  define EV_USE_CLOCK_SYSCALL 0
+# endif
+#endif
 
 #ifndef EV_USE_MONOTONIC
 # if defined (_POSIX_MONOTONIC_CLOCK) && _POSIX_MONOTONIC_CLOCK >= 0
@@ -289,6 +309,7 @@ extern "C" {
 
 #if EV_USE_INOTIFY
 # include <sys/utsname.h>
+# include <sys/statfs.h>
 # include <sys/inotify.h>
 /* some very old inotify.h headers don't have IN_DONT_FOLLOW */
 # ifndef IN_DONT_FOLLOW
@@ -299,6 +320,15 @@ extern "C" {
 
 #if EV_SELECT_IS_WINSOCKET
 # include <winsock.h>
+#endif
+
+/* on linux, we can use a (slow) syscall to avoid a dependency on pthread, */
+/* which makes programs even slower. might work on other unices, too. */
+#if EV_USE_CLOCK_SYSCALL
+# include <syscall.h>
+# define clock_gettime(id, ts) syscall (SYS_clock_gettime, (id), (ts))
+# undef EV_USE_MONOTONIC
+# define EV_USE_MONOTONIC 1
 #endif
 
 #if EV_USE_EVENTFD
@@ -720,7 +750,7 @@ fd_reify (EV_P)
           #else
             anfd->handle = _get_osfhandle (fd);
           #endif
-          assert (("libev only supports socket fds in this configuration", ioctlsocket (anfd->handle, FIONREAD, &arg) == 0));
+          assert (("libev: only socket fds supported in this configuration", ioctlsocket (anfd->handle, FIONREAD, &arg) == 0));
         }
 #endif
 
@@ -1103,7 +1133,7 @@ ev_feed_signal_event (EV_P_ int signum)
   WL w;
 
 #if EV_MULTIPLICITY
-  assert (("feeding signal events is only supported in the default loop", loop == ev_default_loop_ptr));
+  assert (("libev: feeding signal events is only supported in the default loop", loop == ev_default_loop_ptr));
 #endif
 
   --signum;
@@ -1242,8 +1272,9 @@ ev_recommended_backends (void)
   flags &= ~EVBACKEND_KQUEUE;
 #endif
 #ifdef __APPLE__
-  // flags &= ~EVBACKEND_KQUEUE; for documentation
-  flags &= ~EVBACKEND_POLL;
+  /* only select works correctly on that "unix-certified" platform */
+  flags &= ~EVBACKEND_KQUEUE; /* horribly broken, even for sockets */
+  flags &= ~EVBACKEND_POLL;   /* poll is based on kqueue from 10.5 onwards */
 #endif
 
   return flags;
@@ -1506,10 +1537,10 @@ ev_loop_fork (EV_P)
 static void noinline
 verify_watcher (EV_P_ W w)
 {
-  assert (("watcher has invalid priority", ABSPRI (w) >= 0 && ABSPRI (w) < NUMPRI));
+  assert (("libev: watcher has invalid priority", ABSPRI (w) >= 0 && ABSPRI (w) < NUMPRI));
 
   if (w->pending)
-    assert (("pending watcher not on pending queue", pendings [ABSPRI (w)][w->pending - 1].w == w));
+    assert (("libev: pending watcher not on pending queue", pendings [ABSPRI (w)][w->pending - 1].w == w));
 }
 
 static void noinline
@@ -1519,9 +1550,9 @@ verify_heap (EV_P_ ANHE *heap, int N)
 
   for (i = HEAP0; i < N + HEAP0; ++i)
     {
-      assert (("active index mismatch in heap", ev_active (ANHE_w (heap [i])) == i));
-      assert (("heap condition violated", i == HEAP0 || ANHE_at (heap [HPARENT (i)]) <= ANHE_at (heap [i])));
-      assert (("heap at cache mismatch", ANHE_at (heap [i]) == ev_at (ANHE_w (heap [i]))));
+      assert (("libev: active index mismatch in heap", ev_active (ANHE_w (heap [i])) == i));
+      assert (("libev: heap condition violated", i == HEAP0 || ANHE_at (heap [HPARENT (i)]) <= ANHE_at (heap [i])));
+      assert (("libev: heap at cache mismatch", ANHE_at (heap [i]) == ev_at (ANHE_w (heap [i]))));
 
       verify_watcher (EV_A_ (W)ANHE_w (heap [i]));
     }
@@ -1532,7 +1563,7 @@ array_verify (EV_P_ W *ws, int cnt)
 {
   while (cnt--)
     {
-      assert (("active index mismatch", ev_active (ws [cnt]) == cnt + 1));
+      assert (("libev: active index mismatch", ev_active (ws [cnt]) == cnt + 1));
       verify_watcher (EV_A_ ws [cnt]);
     }
 }
@@ -1549,15 +1580,15 @@ ev_loop_verify (EV_P)
 
   assert (fdchangemax >= fdchangecnt);
   for (i = 0; i < fdchangecnt; ++i)
-    assert (("negative fd in fdchanges", fdchanges [i] >= 0));
+    assert (("libev: negative fd in fdchanges", fdchanges [i] >= 0));
 
   assert (anfdmax >= 0);
   for (i = 0; i < anfdmax; ++i)
     for (w = anfds [i].head; w; w = w->next)
       {
         verify_watcher (EV_A_ (W)w);
-        assert (("inactive fd watcher on anfd list", ev_active (w) == 1));
-        assert (("fd mismatch between watcher and anfd", ((ev_io *)w)->fd == i));
+        assert (("libev: inactive fd watcher on anfd list", ev_active (w) == 1));
+        assert (("libev: fd mismatch between watcher and anfd", ((ev_io *)w)->fd == i));
       }
 
   assert (timermax >= timercnt);
@@ -1684,7 +1715,7 @@ call_pending (EV_P)
 
         if (expect_true (p->w))
           {
-            /*assert (("non-pending watcher on pending list", p->w->pending));*/
+            /*assert (("libev: non-pending watcher on pending list", p->w->pending));*/
 
             p->w->pending = 0;
             EV_CB_INVOKE (p->w, p->events);
@@ -1725,7 +1756,7 @@ timers_reify (EV_P)
     {
       ev_timer *w = (ev_timer *)ANHE_w (timers [HEAP0]);
 
-      /*assert (("inactive timer on timer heap detected", ev_is_active (w)));*/
+      /*assert (("libev: inactive timer on timer heap detected", ev_is_active (w)));*/
 
       /* first reschedule or stop timer */
       if (w->repeat)
@@ -1734,7 +1765,7 @@ timers_reify (EV_P)
           if (ev_at (w) < mn_now)
             ev_at (w) = mn_now;
 
-          assert (("negative ev_timer repeat value found while processing timers", w->repeat > 0.));
+          assert (("libev: negative ev_timer repeat value found while processing timers", w->repeat > 0.));
 
           ANHE_at_cache (timers [HEAP0]);
           downheap (timers, timercnt, HEAP0);
@@ -1757,14 +1788,14 @@ periodics_reify (EV_P)
     {
       ev_periodic *w = (ev_periodic *)ANHE_w (periodics [HEAP0]);
 
-      /*assert (("inactive timer on periodic heap detected", ev_is_active (w)));*/
+      /*assert (("libev: inactive timer on periodic heap detected", ev_is_active (w)));*/
 
       /* first reschedule or stop timer */
       if (w->reschedule_cb)
         {
           ev_at (w) = w->reschedule_cb (w, ev_rt_now);
 
-          assert (("ev_periodic reschedule callback returned time in the past", ev_at (w) >= ev_rt_now));
+          assert (("libev: ev_periodic reschedule callback returned time in the past", ev_at (w) >= ev_rt_now));
 
           ANHE_at_cache (periodics [HEAP0]);
           downheap (periodics, periodiccnt, HEAP0);
@@ -2125,8 +2156,8 @@ ev_io_start (EV_P_ ev_io *w)
   if (expect_false (ev_is_active (w)))
     return;
 
-  assert (("ev_io_start called with negative fd", fd >= 0));
-  assert (("ev_io start called with illegal event mask", !(w->events & ~(EV_IOFDSET | EV_READ | EV_WRITE))));
+  assert (("libev: ev_io_start called with negative fd", fd >= 0));
+  assert (("libev: ev_io start called with illegal event mask", !(w->events & ~(EV_IOFDSET | EV_READ | EV_WRITE))));
 
   EV_FREQUENT_CHECK;
 
@@ -2147,7 +2178,7 @@ ev_io_stop (EV_P_ ev_io *w)
   if (expect_false (!ev_is_active (w)))
     return;
 
-  assert (("ev_io_stop called with illegal fd (must stay constant after start!)", w->fd >= 0 && w->fd < anfdmax));
+  assert (("libev: ev_io_stop called with illegal fd (must stay constant after start!)", w->fd >= 0 && w->fd < anfdmax));
 
   EV_FREQUENT_CHECK;
 
@@ -2167,7 +2198,7 @@ ev_timer_start (EV_P_ ev_timer *w)
 
   ev_at (w) += mn_now;
 
-  assert (("ev_timer_start called with negative timer repeat value", w->repeat >= 0.));
+  assert (("libev: ev_timer_start called with negative timer repeat value", w->repeat >= 0.));
 
   EV_FREQUENT_CHECK;
 
@@ -2180,7 +2211,7 @@ ev_timer_start (EV_P_ ev_timer *w)
 
   EV_FREQUENT_CHECK;
 
-  /*assert (("internal timer heap corruption", timers [ev_active (w)] == (WT)w));*/
+  /*assert (("libev: internal timer heap corruption", timers [ev_active (w)] == (WT)w));*/
 }
 
 void noinline
@@ -2195,7 +2226,7 @@ ev_timer_stop (EV_P_ ev_timer *w)
   {
     int active = ev_active (w);
 
-    assert (("internal timer heap corruption", ANHE_w (timers [active]) == (WT)w));
+    assert (("libev: internal timer heap corruption", ANHE_w (timers [active]) == (WT)w));
 
     --timercnt;
 
@@ -2249,7 +2280,7 @@ ev_periodic_start (EV_P_ ev_periodic *w)
     ev_at (w) = w->reschedule_cb (w, ev_rt_now);
   else if (w->interval)
     {
-      assert (("ev_periodic_start called with negative interval value", w->interval >= 0.));
+      assert (("libev: ev_periodic_start called with negative interval value", w->interval >= 0.));
       /* this formula differs from the one in periodic_reify because we do not always round up */
       ev_at (w) = w->offset + ceil ((ev_rt_now - w->offset) / w->interval) * w->interval;
     }
@@ -2267,7 +2298,7 @@ ev_periodic_start (EV_P_ ev_periodic *w)
 
   EV_FREQUENT_CHECK;
 
-  /*assert (("internal periodic heap corruption", ANHE_w (periodics [ev_active (w)]) == (WT)w));*/
+  /*assert (("libev: internal periodic heap corruption", ANHE_w (periodics [ev_active (w)]) == (WT)w));*/
 }
 
 void noinline
@@ -2282,7 +2313,7 @@ ev_periodic_stop (EV_P_ ev_periodic *w)
   {
     int active = ev_active (w);
 
-    assert (("internal periodic heap corruption", ANHE_w (periodics [active]) == (WT)w));
+    assert (("libev: internal periodic heap corruption", ANHE_w (periodics [active]) == (WT)w));
 
     --periodiccnt;
 
@@ -2315,12 +2346,12 @@ void noinline
 ev_signal_start (EV_P_ ev_signal *w)
 {
 #if EV_MULTIPLICITY
-  assert (("signal watchers are only supported in the default loop", loop == ev_default_loop_ptr));
+  assert (("libev: signal watchers are only supported in the default loop", loop == ev_default_loop_ptr));
 #endif
   if (expect_false (ev_is_active (w)))
     return;
 
-  assert (("ev_signal_start called with illegal signal number", w->signum > 0));
+  assert (("libev: ev_signal_start called with illegal signal number", w->signum > 0));
 
   evpipe_init (EV_A);
 
@@ -2381,7 +2412,7 @@ void
 ev_child_start (EV_P_ ev_child *w)
 {
 #if EV_MULTIPLICITY
-  assert (("child watchers are only supported in the default loop", loop == ev_default_loop_ptr));
+  assert (("libev: child watchers are only supported in the default loop", loop == ev_default_loop_ptr));
 #endif
   if (expect_false (ev_is_active (w)))
     return;
@@ -2416,8 +2447,9 @@ ev_child_stop (EV_P_ ev_child *w)
 #  define lstat(a,b) _stati64 (a,b)
 # endif
 
-#define DEF_STAT_INTERVAL 5.0074891
-#define MIN_STAT_INTERVAL 0.1074891
+#define DEF_STAT_INTERVAL  5.0074891
+#define NFS_STAT_INTERVAL 30.1074891 /* for filesystems potentially failing inotify */
+#define MIN_STAT_INTERVAL  0.1074891
 
 static void noinline stat_timer_cb (EV_P_ ev_timer *w_, int revents);
 
@@ -2431,10 +2463,11 @@ infy_add (EV_P_ ev_stat *w)
 
   if (w->wd < 0)
     {
-      ev_timer_start (EV_A_ &w->timer); /* this is not race-free, so we still need to recheck periodically */
+      w->timer.repeat = w->interval ? w->interval : DEF_STAT_INTERVAL;
+      ev_timer_again (EV_A_ &w->timer); /* this is not race-free, so we still need to recheck periodically */
 
       /* monitor some parent directory for speedup hints */
-      /* note that exceeding the hardcoded limit is not a correctness issue, */
+      /* note that exceeding the hardcoded path limit is not a correctness issue, */
       /* but an efficiency issue only */
       if ((errno == ENOENT || errno == EACCES) && strlen (w->path) < 4096)
         {
@@ -2448,8 +2481,8 @@ infy_add (EV_P_ ev_stat *w)
 
               char *pend = strrchr (path, '/');
 
-              if (!pend)
-                break; /* whoops, no '/', complain to your admin */
+              if (!pend || pend == path)
+                break;
 
               *pend = 0;
               w->wd = inotify_add_watch (fs_fd, path, mask);
@@ -2457,11 +2490,28 @@ infy_add (EV_P_ ev_stat *w)
           while (w->wd < 0 && (errno == ENOENT || errno == EACCES));
         }
     }
-  else
-    ev_timer_stop (EV_A_ &w->timer); /* we can watch this in a race-free way */
 
   if (w->wd >= 0)
-    wlist_add (&fs_hash [w->wd & (EV_INOTIFY_HASHSIZE - 1)].head, (WL)w);
+    {
+      wlist_add (&fs_hash [w->wd & (EV_INOTIFY_HASHSIZE - 1)].head, (WL)w);
+
+      /* now local changes will be tracked by inotify, but remote changes won't */
+      /* unless the filesystem it known to be local, we therefore still poll */
+      /* also do poll on <2.6.25, but with normal frequency */
+      struct statfs sfs;
+
+      if (fs_2625 && !statfs (w->path, &sfs))
+        if (sfs.f_type == 0x1373 /* devfs */
+            || sfs.f_type == 0xEF53 /* ext2/3 */
+            || sfs.f_type == 0x3153464a /* jfs */
+            || sfs.f_type == 0x52654973 /* reiser3 */
+            || sfs.f_type == 0x01021994 /* tempfs */
+            || sfs.f_type == 0x58465342 /* xfs */)
+          return;
+
+      w->timer.repeat = w->interval ? w->interval : fs_2625 ? NFS_STAT_INTERVAL : DEF_STAT_INTERVAL;
+      ev_timer_again (EV_A_ &w->timer);
+    }
 }
 
 static void noinline
@@ -2501,6 +2551,7 @@ infy_wd (EV_P_ int slot, int wd, struct inotify_event *ev)
             {
               if (ev->mask & (IN_IGNORED | IN_UNMOUNT | IN_DELETE_SELF))
                 {
+                  wlist_del (&fs_hash [slot & (EV_INOTIFY_HASHSIZE - 1)].head, (WL)w);
                   w->wd = -1;
                   infy_add (EV_A_ w); /* re-add, no matter what */
                 }
@@ -2524,31 +2575,37 @@ infy_cb (EV_P_ ev_io *w, int revents)
 }
 
 void inline_size
+check_2625 (EV_P)
+{
+  /* kernels < 2.6.25 are borked
+   * http://www.ussg.indiana.edu/hypermail/linux/kernel/0711.3/1208.html
+   */
+  struct utsname buf;
+  int major, minor, micro;
+
+  if (uname (&buf))
+    return;
+
+  if (sscanf (buf.release, "%d.%d.%d", &major, &minor, &micro) != 3)
+    return;
+
+  if (major < 2
+      || (major == 2 && minor < 6)
+      || (major == 2 && minor == 6 && micro < 25))
+    return;
+
+  fs_2625 = 1;
+}
+
+void inline_size
 infy_init (EV_P)
 {
   if (fs_fd != -2)
     return;
 
-  /* kernels < 2.6.25 are borked
-   * http://www.ussg.indiana.edu/hypermail/linux/kernel/0711.3/1208.html
-   */
-  {
-    struct utsname buf;
-    int major, minor, micro;
+  fs_fd = -1;
 
-    fs_fd = -1;
-
-    if (uname (&buf))
-      return;
-
-    if (sscanf (buf.release, "%d.%d.%d", &major, &minor, &micro) != 3)
-      return;
-
-    if (major < 2
-        || (major == 2 && minor < 6)
-        || (major == 2 && minor == 6 && micro < 25))
-      return;
-  }
+  check_2625 (EV_A);
 
   fs_fd = inotify_init ();
 
@@ -2586,7 +2643,7 @@ infy_fork (EV_P)
           if (fs_fd >= 0)
             infy_add (EV_A_ w); /* re-add, no matter what */
           else
-            ev_timer_start (EV_A_ &w->timer);
+            ev_timer_again (EV_A_ &w->timer);
         }
     }
 }
@@ -2651,16 +2708,12 @@ ev_stat_start (EV_P_ ev_stat *w)
   if (expect_false (ev_is_active (w)))
     return;
 
-  /* since we use memcmp, we need to clear any padding data etc. */
-  memset (&w->prev, 0, sizeof (ev_statdata));
-  memset (&w->attr, 0, sizeof (ev_statdata));
-
   ev_stat_stat (EV_A_ w);
 
-  if (w->interval < MIN_STAT_INTERVAL)
-    w->interval = w->interval ? MIN_STAT_INTERVAL : DEF_STAT_INTERVAL;
+  if (w->interval < MIN_STAT_INTERVAL && w->interval)
+    w->interval = MIN_STAT_INTERVAL;
 
-  ev_timer_init (&w->timer, stat_timer_cb, w->interval, w->interval);
+  ev_timer_init (&w->timer, stat_timer_cb, 0., w->interval ? w->interval : DEF_STAT_INTERVAL);
   ev_set_priority (&w->timer, ev_priority (w));
 
 #if EV_USE_INOTIFY
@@ -2670,7 +2723,7 @@ ev_stat_start (EV_P_ ev_stat *w)
     infy_add (EV_A_ w);
   else
 #endif
-    ev_timer_start (EV_A_ &w->timer);
+    ev_timer_again (EV_A_ &w->timer);
 
   ev_start (EV_A_ (W)w, 1);
 
@@ -2855,11 +2908,16 @@ embed_fork_cb (EV_P_ ev_fork *fork_w, int revents)
 {
   ev_embed *w = (ev_embed *)(((char *)fork_w) - offsetof (ev_embed, fork));
 
+  ev_embed_stop (EV_A_ w);
+
   {
     struct ev_loop *loop = w->other;
 
     ev_loop_fork (EV_A);
+    ev_loop (EV_A_ EVLOOP_NONBLOCK);
   }
+
+  ev_embed_start (EV_A_ w);
 }
 
 #if 0
@@ -2878,7 +2936,7 @@ ev_embed_start (EV_P_ ev_embed *w)
 
   {
     struct ev_loop *loop = w->other;
-    assert (("loop to be embedded is not embeddable", backend & ev_embeddable_backends ()));
+    assert (("libev: loop to be embedded is not embeddable", backend & ev_embeddable_backends ()));
     ev_io_init (&w->io, embed_io_cb, backend_fd, EV_READ);
   }
 
