@@ -3,7 +3,6 @@ Things that need to be done:
 1.8
 * Fix auparse to handle out of order messages
 * Add definitions for kernel virt events
-* add definitions for crypto events
 * Get store and forward working for remote logging app
 * Look at gssapi support being done via dlopen()
 * Fix SIGHUP for auditd network settings

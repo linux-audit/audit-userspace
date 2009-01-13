@@ -226,6 +226,14 @@ extern "C" {
 #define AUDIT_USER_MAC_POLICY_LOAD	2310 /* Userspc daemon loaded policy */
 
 #define AUDIT_FIRST_CRYPTO_MSG		2400
+#define AUDIT_CRYPTO_TEST_USER		2400 /* Crypto test results */
+#define AUDIT_CRYPTO_PARAM_CHANGE_USER	2401 /* Crypto attribute change */
+#define AUDIT_CRYPTO_LOGIN		2402 /* Logged in as crypto officer */
+#define AUDIT_CRYPTO_LOGOUT		2403 /* Logged out from crypto */
+#define AUDIT_CRYPTO_KEY_USER		2404 /* Create,delete,negotiate */
+#define AUDIT_CRYPTO_FAILURE_USER	2405 /* Fail decrypt,encrypt,randomiz */
+#define AUDIT_CRYPTO_REPLAY_USER	2406 /* Crypto replay detected */
+
 #define AUDIT_LAST_CRYPTO_MSG		2499
 
 #ifndef AUDIT_FIRST_USER_MSG2

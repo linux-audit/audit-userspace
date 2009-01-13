@@ -1,4 +1,5 @@
 1.8
+- Add definitions for crypto events
 
 1.7.11
 - Don't error out in auditd when calling setsid
