@@ -33,7 +33,7 @@ struct msg_tab {
 };
 
 static const struct msg_tab err_msgtab[] = {
-    { -1,    2,    "-F missing opration for" },
+    { -1,    2,    "-F missing operation for" },
     { -2,    2,    "-F unknown field:" },
     { -3,    1,    "must be before -S" },
     { -4,    1,    "machine type not found" },
@@ -52,7 +52,7 @@ static const struct msg_tab err_msgtab[] = {
     { -17,    1,    "can only be used with exit and entry filter list" },
     { -18,    1,    "can not be used with exclude filter list" },
     { -19,    0,    "Key field needs a watch or syscall given prior to it" },
-    { -20,    2,    "-F missing value after opration for" },
+    { -20,    2,    "-F missing value after operation for" },
     { -21,    2,    "-F value should be number for" },
     { -22,    2,    "-F missing field name before operator for" }
 };
