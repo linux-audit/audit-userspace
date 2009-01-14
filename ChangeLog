@@ -1,5 +1,6 @@
 1.8
 - Add definitions for crypto events
+- Fix regression where msgtype couldn't be used as a range
 
 1.7.11
 - Don't error out in auditd when calling setsid

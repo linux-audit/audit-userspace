@@ -62,7 +62,7 @@ static int fd = -1;
 static int list_requested = 0;
 static int add = AUDIT_FILTER_UNSET, del = AUDIT_FILTER_UNSET, action = -1;
 static int ignore = 0;
-static int exclude = 0, msgtype_cnt = 0;
+static int exclude = 0;
 static int multiple = 0;
 enum { OLD, NEW };
 int which;
@@ -94,7 +94,6 @@ static int reset_vars(void)
 	del = AUDIT_FILTER_UNSET;
 	action = -1;
 	exclude = 0;
-	msgtype_cnt = 0;
 	which = OLD;
 	multiple = 0;
 
@@ -757,15 +756,6 @@ static int setopt(int count, int lineno, char *vars[])
 			fprintf(stderr, "List must be given before field\n");
 			retval = -1;
 			break;
-		}
-		if (strncmp(optarg, "msgtype=", 7) == 0) {
-			if (msgtype_cnt) {
-				fprintf(stderr, 
-				    "Only one msgtype may be given per rule\n");
-				retval = -1;
-				break;
-			} else
-				msgtype_cnt++;
 		}
 		if (which == OLD) {
 			char *ptr = strdup(optarg);
