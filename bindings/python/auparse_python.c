@@ -1413,55 +1413,6 @@ AuParser_interpret_field(AuParser *self)
     return Py_BuildValue("s", value);
 }
 
-#if 0
-/********************************
- * 
- ********************************/
-PyDoc_STRVAR(_doc,
-"
-\n\
-No Return value, raises exception (EnvironmentError) on error.\n\
-");
-static PyObject *
-AuParser_(AuParser *self, PyObject *args)
-{
-    int result;
-
-    if (!PyArg_ParseTuple(args, "", &)) return NULL;
-    PARSER_CHECK;
-
-    if (result == 0) Py_RETURN_NONE;
-    PyErr_SetFromErrno(PyExc_EnvironmentError);
-    return NULL;
-}
-    {"",        (PyCFunction)AuParser_,        METH_VARARGS, _doc},
-
-
-/********************************
- * 
- ********************************/
-PyDoc_STRVAR(_doc,
-"
-\n\
-Returns True on success, False if \n\
-Raises exception (EnvironmentError) on error.\n\
-");
-static PyObject *
-AuParser_(AuParser *self)
-{
-    int result;
-
-    PARSER_CHECK;
-    result = self->au);
-
-    if (result >  0) Py_RETURN_TRUE;
-    if (result == 0) Py_RETURN_FALSE;
-    PyErr_SetFromErrno(PyExc_EnvironmentError);
-    return NULL;
-}
-    {"",        (PyCFunction)AuParser_,        METH_NOARGS, _doc},
-#endif
-
 static
 PyGetSetDef AuParser_getseters[] = {
     {NULL}  /* Sentinel */
@@ -1502,6 +1453,7 @@ static PyMethodDef AuParser_methods[] = {
     {"find_field",        (PyCFunction)AuParser_find_field,        METH_VARARGS, find_field_doc},
     {"get_field_name",    (PyCFunction)AuParser_get_field_name,    METH_NOARGS,  get_field_name_doc},
     {"get_field_str",     (PyCFunction)AuParser_get_field_str,     METH_NOARGS,  get_field_str_doc},
+    {"get_field_type",    (PyCFunction)AuParser_get_field_type,    METH_NOARGS,  get_field_type_doc},
     {"get_field_int",     (PyCFunction)AuParser_get_field_int,     METH_NOARGS,  get_field_int_doc},
     {"interpret_field",   (PyCFunction)AuParser_interpret_field,   METH_NOARGS,  interpret_field_doc},
     {NULL, NULL}  /* Sentinel */
