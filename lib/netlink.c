@@ -1,5 +1,5 @@
 /* netlink.c --
- * Copyright 2004, 2005 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2004, 2005, 2009 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -254,7 +254,7 @@ int audit_send(int fd, int type, const void *data, unsigned int size)
  */
 static int check_ack(int fd, int seq)
 {
-	int rc, retries = 100;
+	int rc, retries = 40;
 	struct audit_reply rep;
 	struct pollfd pfd[1];
 
@@ -262,7 +262,7 @@ retry:
 	pfd[0].fd = fd;
 	pfd[0].events = POLLIN;
 	do {
-		rc = poll(pfd, 1, 100); /* .1 second */
+		rc = poll(pfd, 1, 500); /* .5 second */
 	} while (rc < 0 && errno == EINTR);
 
 	/* We don't look at rc from above as it doesn't matter. We are 
