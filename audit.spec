@@ -221,10 +221,10 @@ fi
 %config(noreplace) %attr(640,root,root) /etc/sysconfig/auditd
 %config(noreplace) %attr(640,root,root) /etc/audisp/audispd.conf
 %config(noreplace) %attr(640,root,root) /etc/audisp/plugins.d/af_unix.conf
+%config(noreplace) %attr(640,root,root) /etc/audisp/plugins.d/syslog.conf
 
 %files -n audispd-plugins
 %defattr(-,root,root,-)
-%attr(640,root,root) /etc/audisp/plugins.d/syslog.conf
 %attr(644,root,root) %{_mandir}/man8/audispd-zos-remote.8.gz
 %attr(644,root,root) %{_mandir}/man5/zos-remote.conf.5.gz
 %config(noreplace) %attr(640,root,root) /etc/audisp/plugins.d/audispd-zos-remote.conf

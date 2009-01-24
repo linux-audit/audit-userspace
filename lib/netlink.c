@@ -254,7 +254,7 @@ int audit_send(int fd, int type, const void *data, unsigned int size)
  */
 static int check_ack(int fd, int seq)
 {
-	int rc, retries = 40;
+	int rc, retries = 80;
 	struct audit_reply rep;
 	struct pollfd pfd[1];
 
