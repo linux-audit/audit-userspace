@@ -207,8 +207,8 @@ fi
 %attr(755,root,root) /sbin/aureport
 %attr(750,root,root) /sbin/autrace
 %attr(750,root,root) /sbin/audispd
-%attr(750,root,root) %{_bindir}/aulast
-%attr(750,root,root) %{_bindir}/aulastlog
+%attr(755,root,root) %{_bindir}/aulast
+%attr(755,root,root) %{_bindir}/aulastlog
 %attr(755,root,root) %{_bindir}/ausyscall
 %attr(755,root,root) /etc/rc.d/init.d/auditd
 %attr(750,root,root) %{_var}/log/audit

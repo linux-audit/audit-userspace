@@ -42,6 +42,7 @@ int main(int argc, char *argv[])
         auparse_state_t *au;
 	llist l;
 
+        setlocale (LC_ALL, "");
 	for (i=1; i<argc; i++) {
 		if ((strcmp(argv[i], "--user") == 0) || 
 				(strcmp(argv[i], "-u") == 0)) {
@@ -58,7 +59,6 @@ int main(int argc, char *argv[])
 		}
 	}
 
-        setlocale (LC_ALL, "");
 	list_create(&l);
 
 	// Stuff linked lists with all users 

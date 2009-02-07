@@ -402,7 +402,7 @@ int audit_log_acct_message(int audit_fd, int type, const char *pgname,
 	else if (*tty == 0)
 		tty = NULL;
 
-	if (name) {
+	if (name && id == -1) {
 		char user[MAX_USER];
 		const char *format;
 		size_t len;

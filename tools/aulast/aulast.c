@@ -1,6 +1,6 @@
 /*
  * aulast.c - A last program based on audit logs 
- * Copyright (c) 2008 Red Hat Inc., Durham, North Carolina.
+ * Copyright (c) 2008-2009 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This software may be freely redistributed and/or modified under the
@@ -36,7 +36,7 @@ static	llist l;
 static FILE *f = NULL;
 
 /* command line params */
-static int cuid = -1, bad = 0, proof = 0;
+static int cuid = -1, bad = 0, proof = 0, debug = 0;
 static char *cterm = NULL;
 
 void usage(void)
@@ -167,8 +167,12 @@ static void create_new_session(auparse_state_t *au)
 		ses = auparse_get_field_int(au);
 
 	// Check that they are valid
-	if (pid == -1 || auid ==-1 || ses == -1)
+	if (pid == -1 || auid ==-1 || ses == -1) {
+		if (debug)
+			fprintf(stderr, "Bad login for event: %lu\n",
+					auparse_get_serial(au));
 		return;
+	}
 
 	// See if this session is already open
 	//cur = list_find_auid(&l, auid, pid, ses);
@@ -183,8 +187,13 @@ static void create_new_session(auparse_state_t *au)
 
 	// If this is supposed to be limited to a specific
 	// uid and we don't have that record, skip creating it
-	if (cuid != -1 && cuid != auid)
+	if (cuid != -1 && cuid != auid) {
+		if (debug)
+			fprintf(stderr,
+			    "login reporting limited to %d for event: %lu\n",
+				cuid, auparse_get_serial(au));
 		return;
+	}
 
 	list_create_session(&l, auid, pid, ses, auparse_get_serial(au));
 }
@@ -207,11 +216,27 @@ static void update_session_login(auparse_state_t *au)
 		ses = auparse_get_field_int(au);
 
 	// Get second uid field - we should be positioned past the first one
+	// gdm sends uid, everything else sends id, we try acct as last resort
 	tuid = auparse_find_field(au, "uid");
 	if (tuid)
 		uid = auparse_get_field_int(au);
-	else
+	else {
 		auparse_first_record(au);
+		tuid = auparse_find_field(au, "id");
+		if (tuid)
+			uid = auparse_get_field_int(au);
+		else {
+			auparse_first_record(au);
+			tuid = auparse_find_field(au, "acct");
+			if (tuid) {
+				const char *tacct = auparse_interpret_field(au);
+				struct passwd *pw = getpwnam (tacct);
+				if (pw != NULL)
+					uid = pw->pw_uid;
+			} else
+				auparse_first_record(au);
+		}
+	}
 
 	start = auparse_get_time(au);
 
@@ -237,8 +262,13 @@ static void update_session_login(auparse_state_t *au)
 			tacct = auparse_interpret_field(au);
 	} else {
 		// Check that they are valid
-		if (pid == -1 || uid ==-1 || ses == -1) 
+		if (pid == -1 || uid ==-1 || ses == -1) { 
+			if (debug)
+				fprintf(stderr,
+					"Bad user login for event: %lu\n",
+					auparse_get_serial(au));
 			return;
+		}
 	}
 
 	// See if this session is already open
@@ -252,6 +282,10 @@ static void update_session_login(auparse_state_t *au)
 		// the terminal of interest, delete the current node
 		if (cterm && strstr(term, cterm) == NULL) {
 			list_delete_cur(&l);
+			if (debug)
+				fprintf(stderr,
+				"User login limited to %s for event: %lu\n",
+					cterm, auparse_get_serial(au));
 			return;
 		}
 
@@ -304,8 +338,12 @@ static void update_session_logout(auparse_state_t *au)
 		ses = auparse_get_field_int(au);
 
 	// Check that they are valid
-	if (pid == -1 || auid ==-1 || ses == -1)
+	if (pid == -1 || auid ==-1 || ses == -1) {
+		if (debug)
+			fprintf(stderr, "Bad user logout for event: %lu\n",
+					auparse_get_serial(au));
 		return;
+	}
 
 	// See if this session is already open
 	cur = list_find_auid(&l, auid, pid, ses);
@@ -317,7 +355,9 @@ static void update_session_logout(auparse_state_t *au)
 			time_t end = auparse_get_time(au);
 			list_update_logout(&l, end, auparse_get_serial(au));
 			report_session(cur);
-		}
+		} else if (debug)
+			fprintf(stderr, "start time error for event: %lu\n",
+					auparse_get_serial(au));
 		list_delete_cur(&l);
 	}
 }
@@ -395,6 +435,7 @@ int main(int argc, char *argv[])
 	struct passwd *p;
         auparse_state_t *au;
 
+	setlocale (LC_ALL, "");
 	for (i=1; i<argc; i++) {
 		if (argv[i][0] != '-') {
 			//take input and lookup as if it were a user name
@@ -435,14 +476,14 @@ int main(int argc, char *argv[])
 					fprintf(stderr, "file already given\n");
 					return 1;
 				}
+			} else if (strcmp(argv[i], "--debug") == 0) {
+				debug = 1;
 			} else {
 				usage();
 				return 1;
 			}
 		}
 	}
-
-        setlocale (LC_ALL, "");
 	list_create(&l);
 
 	// Search for successful user logins
