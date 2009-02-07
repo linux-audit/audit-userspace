@@ -87,6 +87,9 @@ stop(){
 	if test "`echo $AUDITD_CLEAN_STOP | tr 'NO' 'no'`" != "no" ; then
 		/sbin/auditctl -D >/dev/null
 	fi
+	if test "`echo $AUDITD_STOP_DISABLE | tr 'NO' 'no'`" != "no" ; then
+		/sbin/auditctl -e 0 >/dev/null
+	fi
 	return $RETVAL
 }
 

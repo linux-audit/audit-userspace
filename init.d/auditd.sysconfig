@@ -10,3 +10,7 @@ AUDITD_LANG="en_US"
 # shutdown. This is beneficial in most cases so that a watch doesn't linger
 # on a drive that is being unmounted. If set to no, it will NOT be cleaned up.
 AUDITD_CLEAN_STOP="yes"
+#
+# This option determines whether the audit system should be disabled when
+# the audit daemon is shutdown
+AUDITD_STOP_DISABLE="no"
