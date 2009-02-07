@@ -1,5 +1,5 @@
 /* auditctl.c -- 
- * Copyright 2004-2008 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2004-2009 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -100,9 +100,11 @@ static int reset_vars(void)
 	memset(&rule, 0, sizeof(rule));
 	free(rule_new);
 	rule_new = NULL;
-	if ((fd = audit_open()) < 0) {
-		fprintf(stderr, "Cannot open netlink audit socket\n");
-		return 1;
+	if (fd < 0) {
+		if ((fd = audit_open()) < 0) {
+			fprintf(stderr, "Cannot open netlink audit socket\n");
+			return 1;
+		}
 	}
 	return 0;
 }
@@ -1114,7 +1116,13 @@ int main(int argc, char *argv[])
 #endif
 	/* Check where the rules are coming from: commandline or file */
 	if ((argc == 3) && (strcmp(argv[1], "-R") == 0)) {
-		if (fileopt(argv[2]))
+		fd = audit_open();
+		if (audit_is_enabled(fd) == 2) {
+			fprintf(stderr,
+				"The audit system is in immutable "
+				"mode, no rules loaded\n");
+			return 0;
+		} else if (fileopt(argv[2]))
 			return 1;
 		else
 			return 0;
@@ -1126,6 +1134,15 @@ int main(int argc, char *argv[])
 			return 0;
 	}
 
+	if (add != AUDIT_FILTER_UNSET || del != AUDIT_FILTER_UNSET) {
+		fd = audit_open();
+		if (audit_is_enabled(fd) == 2) {
+			fprintf(stderr,
+				"The audit system is in immutable "
+				"mode, no rules loaded\n");
+			return 0;
+		}
+	}
 	return handle_request(retval);
 }
 

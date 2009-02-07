@@ -4,6 +4,7 @@
 - In libaudit, extend time spent checking reply
 - In acct events, prefer id over acct if given
 - In aulast, try id and acct in USER_LOGIN events
+- When in immutable mode, have auditctl tell user instead of sending rules
 
 1.7.11
 - Don't error out in auditd when calling setsid

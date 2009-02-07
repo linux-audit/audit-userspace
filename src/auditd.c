@@ -77,7 +77,8 @@ static void clean_exit(void);
 static int get_reply(int fd, struct audit_reply *rep, int seq);
 static char *getsubj(char *subj);
 
-enum startup_state {startup_disable=0, startup_enable, startup_nochange, startup_INVALID};
+enum startup_state {startup_disable=0, startup_enable, startup_nochange,
+	startup_INVALID};
 static const char *startup_states[] = {"disable", "enable", "nochange"};
 
 /*
@@ -97,7 +98,8 @@ static void usage(void)
 /*
  * SIGTERM handler
  */ 
-static void term_handler( struct ev_loop *loop, struct ev_signal *sig, int revents )
+static void term_handler(struct ev_loop *loop, struct ev_signal *sig,
+			int revents)
 {
 	EV_STOP ();
 }
@@ -128,7 +130,8 @@ static void hup_handler( struct ev_loop *loop, struct ev_signal *sig, int revent
 /*
  * Used to force log rotation
  */
-static void user1_handler( struct ev_loop *loop, struct ev_signal *sig, int revents )
+static void user1_handler(struct ev_loop *loop, struct ev_signal *sig,
+			int revents)
 {
 	int rc;
 
@@ -153,7 +156,8 @@ static void user2_handler( struct ev_loop *loop, struct ev_signal *sig, int reve
 /*
  * Used with email alerts to cleanup
  */
-static void child_handler( struct ev_loop *loop, struct ev_signal *sig, int revents )
+static void child_handler(struct ev_loop *loop, struct ev_signal *sig,
+			int revents)
 {
 	while (waitpid(-1, NULL, WNOHANG) > 0)
 		; /* empty */
@@ -177,7 +181,7 @@ static void distribute_event(struct auditd_reply_list *rep)
 			struct timespec ts;
 			ts.tv_sec = 0;
 			ts.tv_nsec = 2 * 1000 * 1000; // 2 milliseconds
-			nanosleep(&ts, NULL); /* Let other thread try to log it. */
+			nanosleep(&ts, NULL); // Let other thread try to log it
 		}
 	} else
 		free(rep);	// This function takes custody of the memory
@@ -353,18 +357,19 @@ static void tell_parent(int status)
 	} while (rc < 0 && errno == EINTR);
 }
 
-static void netlink_handler( struct ev_loop *loop, struct ev_io *io, int revents )
+static void netlink_handler(struct ev_loop *loop, struct ev_io *io,
+			int revents)
 {
 	if (rep == NULL) { 
 		if ((rep = malloc(sizeof(*rep))) == NULL) {
 			char emsg[DEFAULT_BUF_SZ];
 			if (*subj)
 				snprintf(emsg, sizeof(emsg),
-					"auditd error halt, auid=%u pid=%d subj=%s res=failed",
+			"auditd error halt, auid=%u pid=%d subj=%s res=failed",
 					audit_getloginuid(), getpid(), subj);
 			else
 				snprintf(emsg, sizeof(emsg),
-					 "auditd error halt, auid=%u pid=%d res=failed",
+				 "auditd error halt, auid=%u pid=%d res=failed",
 					 audit_getloginuid(), getpid());
 			EV_STOP ();
 			send_audit_event(AUDIT_DAEMON_ABORT, emsg);
@@ -392,12 +397,12 @@ static void netlink_handler( struct ev_loop *loop, struct ev_io *io, int revents
 		case AUDIT_SIGNAL_INFO:
 			if (hup_info_requested) {
 				audit_msg(LOG_DEBUG,
-					  "HUP detected, starting config manager");
+				    "HUP detected, starting config manager");
 				if (start_config_manager(rep)) {
 					send_audit_event(
 						AUDIT_DAEMON_CONFIG, 
-						"auditd error getting hup info - no change,"
-						" sending auid=? pid=? subj=? res=failed");
+				  "auditd error getting hup info - no change,"
+				  " sending auid=? pid=? subj=? res=failed");
 				}
 				rep = NULL;
 				hup_info_requested = 0;
@@ -406,18 +411,16 @@ static void netlink_handler( struct ev_loop *loop, struct ev_io *io, int revents
 				if (rep->reply.len == 24) {
 					snprintf(usr1, 
 						 sizeof(usr1),
-						 "auditd sending auid=? pid=? subj=?");
+					 "auditd sending auid=? pid=? subj=?");
 				} else {
 					snprintf(usr1, 
 						 sizeof(usr1),
-						 "auditd sending auid=%u pid=%d subj=%s",
+				 "auditd sending auid=%u pid=%d subj=%s",
 						 rep->reply.signal_info->uid, 
 						 rep->reply.signal_info->pid,
 						 rep->reply.signal_info->ctx);
 				}
-				send_audit_event(
-					AUDIT_DAEMON_ROTATE, 
-					usr1);
+				send_audit_event(AUDIT_DAEMON_ROTATE, usr1);
 			}
 			break;
 		default:
@@ -432,7 +435,8 @@ static void netlink_handler( struct ev_loop *loop, struct ev_io *io, int revents
 	}
 }
 
-static void periodic_handler( struct ev_loop *loop, struct ev_periodic *per, int revents )
+static void periodic_handler(struct ev_loop *loop, struct ev_periodic *per,
+			int revents )
 {
 	if (config.tcp_client_max_idle)
 		auditd_tcp_listen_check_idle (loop);
@@ -614,7 +618,7 @@ int main(int argc, char *argv[])
 		if(getsubj(subj))
 			snprintf(start, sizeof(start),
 				"auditd start, ver=%s format=%s "
-				"kernel=%.56s auid=%u pid=%d subj=%s res=success",
+			    "kernel=%.56s auid=%u pid=%d subj=%s res=success",
 				VERSION, fmt, ubuf.release,
 				audit_getloginuid(), getpid(), subj);
 		else
@@ -644,7 +648,7 @@ int main(int argc, char *argv[])
 		char emsg[DEFAULT_BUF_SZ];
 		if (*subj)
 			snprintf(emsg, sizeof(emsg),
-				"auditd error halt, auid=%u pid=%d subj=%s res=failed",
+			"auditd error halt, auid=%u pid=%d subj=%s res=failed",
 				audit_getloginuid(), getpid(), subj);
 		else
 			snprintf(emsg, sizeof(emsg),
@@ -670,7 +674,7 @@ int main(int argc, char *argv[])
 		char emsg[DEFAULT_BUF_SZ];
 		if (*subj)
 			snprintf(emsg, sizeof(emsg),
-				"auditd error halt, auid=%u pid=%d subj=%s res=failed",
+			"auditd error halt, auid=%u pid=%d subj=%s res=failed",
 				audit_getloginuid(), getpid(), subj);
 		else
 			snprintf(emsg, sizeof(emsg),
@@ -679,7 +683,7 @@ int main(int argc, char *argv[])
 		stop = 1;
 		send_audit_event(AUDIT_DAEMON_ABORT, emsg);
 		audit_msg(LOG_ERR,
-			"Unable to set intitial audit startup state to '%s', exiting",
+		"Unable to set intitial audit startup state to '%s', exiting",
 			startup_states[opt_startup]);
 		close_down();
 		if (pidfile)
@@ -688,7 +692,7 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 	audit_msg(LOG_NOTICE,
-		 "Init complete, auditd %s listening for events (startup state %s)",
+	    "Init complete, auditd %s listening for events (startup state %s)",
 		VERSION,
 		startup_states[opt_startup]);
 
@@ -741,7 +745,8 @@ int main(int argc, char *argv[])
 		if (rc > 0) {
 			char txt[MAX_AUDIT_MESSAGE_LENGTH];
 			snprintf(txt, sizeof(txt),
-				 "auditd normal halt, sending auid=%u pid=%d subj=%s res=success",
+				"auditd normal halt, sending auid=%u "
+				"pid=%d subj=%s res=success",
 				 trep.signal_info->uid,
 				 trep.signal_info->pid, 
 				 trep.signal_info->ctx); 
@@ -750,7 +755,8 @@ int main(int argc, char *argv[])
 	} 
 	if (rc <= 0)
 		send_audit_event(AUDIT_DAEMON_END, 
-				 "auditd normal halt, sending auid=? pid=? subj=? res=success");
+				"auditd normal halt, sending auid=? "
+				"pid=? subj=? res=success");
 	free(rep);
 	shutdown_dispatcher();
 
