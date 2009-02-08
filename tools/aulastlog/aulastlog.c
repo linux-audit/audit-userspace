@@ -1,6 +1,6 @@
 /*
  * aulastlog.c - A lastlog program based on audit logs 
- * Copyright (c) 2008 Red Hat Inc., Durham, North Carolina.
+ * Copyright (c) 2008-2009 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This software may be freely redistributed and/or modified under the
@@ -31,12 +31,12 @@
 
 void usage(void)
 {
-	fprintf(stderr, "usage: aulastlog [--user name]\n");
+	fprintf(stderr, "usage: aulastlog [--stdin] [--user name]\n");
 }
 
 int main(int argc, char *argv[])
 {
-	int i;
+	int i, use_stdin = 0;
 	char *user = NULL;
 	struct passwd *p;
         auparse_state_t *au;
@@ -53,6 +53,8 @@ int main(int argc, char *argv[])
 				usage();
 				return 1;
 			}
+		} else if (strcmp(argv[i], "--stdin") == 0) {
+			use_stdin = 1;
 		} else {
 			usage();
 			return 1;
@@ -83,7 +85,10 @@ int main(int argc, char *argv[])
 	}
 
 	// Search for successful user logins
-	au = auparse_init(AUSOURCE_LOGS, NULL);
+	if (use_stdin)
+		au = auparse_init(AUSOURCE_FILE_POINTER, stdin);
+	else
+		au = auparse_init(AUSOURCE_LOGS, NULL);
 	if (au == NULL) {
 		printf("Error - %s\n", strerror(errno));
 		goto error_exit_1;

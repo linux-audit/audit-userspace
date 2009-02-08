@@ -7,6 +7,7 @@
 - When in immutable mode, have auditctl tell user instead of sending rules
 - Add option to sysconfig to disable audit system on auditd stop
 - Add tcp_wrappers config option to auditd
+- Aulastlog can now take input from stdin
 
 1.7.11
 - Don't error out in auditd when calling setsid

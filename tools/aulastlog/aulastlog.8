@@ -1,4 +1,4 @@
-.TH AULASTLOG: "8" "Jan 2008" "Red Hat" "System Administration Utilities"
+.TH AULASTLOG: "8" "Feb 2009" "Red Hat" "System Administration Utilities"
 .SH NAME
 aulastlog \- a program similar to lastlog
 .SH SYNOPSIS
@@ -12,7 +12,9 @@ If the user has never logged in, the message \fB** Never logged in**\fP will be 
 .TP
 .B \-u, \-\-user
 Print the lastlog record for user with specified LOGIN only.
-
+.TP
+.B \-\-stdin
+Use stdin as the source of audit records.
 .SH "SEE ALSO"
 .BR lastlog (8),
 .BR ausearch (8),
