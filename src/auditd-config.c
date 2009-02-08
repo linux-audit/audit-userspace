@@ -1,5 +1,5 @@
 /* auditd-config.c -- 
- * Copyright 2004-2008 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2004-2009 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -109,6 +109,8 @@ static int tcp_listen_port_parser(struct nv_pair *nv, int line,
 		struct daemon_conf *config);
 static int tcp_listen_queue_parser(struct nv_pair *nv, int line,
 		struct daemon_conf *config);
+static int use_libwrap_parser(struct nv_pair *nv, int line,
+		struct daemon_conf *config);
 static int tcp_client_ports_parser(struct nv_pair *nv, int line,
 		struct daemon_conf *config);
 static int tcp_client_max_idle_parser(struct nv_pair *nv, int line,
@@ -145,6 +147,7 @@ static const struct kw_pair keywords[] =
   {"priority_boost",           priority_boost_parser,		0 },
   {"tcp_listen_port",          tcp_listen_port_parser,          0 },
   {"tcp_listen_queue",         tcp_listen_queue_parser,         0 },
+  {"use_libwrap",              use_libwrap_parser,              0 },
   {"tcp_client_ports",         tcp_client_ports_parser,         0 },
   {"tcp_client_max_idle",      tcp_client_max_idle_parser,      0 },
   {"enable_krb5",              enable_krb5_parser,              0 },
@@ -209,14 +212,12 @@ static const struct nv_list node_name_formats[] =
   { NULL,  0 }
 };
 
-#ifdef USE_GSSAPI
-static const struct nv_list enable_krb5_values[] =
+static const struct nv_list yes_no_values[] =
 {
   {"yes",  1 },
   {"no", 0 },
   { NULL,  0 }
 };
-#endif
 
 const char *email_command = "/usr/lib/sendmail";
 static int allow_links = 0;
@@ -261,6 +262,7 @@ static void clear_config(struct daemon_conf *config)
 	config->disk_error_exe = NULL;
 	config->tcp_listen_port = 0;
 	config->tcp_listen_queue = 5;
+	config->use_libwrap = 1;
 	config->tcp_client_min_port = 0;
 	config->tcp_client_max_port = TCP_PORT_MAX;
 	config->tcp_client_max_idle = 0;
@@ -1257,6 +1259,24 @@ static int tcp_listen_queue_parser(struct nv_pair *nv, int line,
 	return 0;
 }
 
+static int use_libwrap_parser(struct nv_pair *nv, int line,
+	struct daemon_conf *config)
+{
+	unsigned long i;
+
+	audit_msg(LOG_DEBUG, "use_libwrap_parser called with: %s",
+		  nv->value);
+
+	for (i=0; yes_no_values[i].name != NULL; i++) {
+		if (strcasecmp(nv->value, yes_no_values[i].name) == 0) {
+			config->use_libwrap = yes_no_values[i].option;
+			return 0;
+		}
+	}
+	audit_msg(LOG_ERR, "Option %s not found - line %d", nv->value, line);
+	return 1;
+}
+
 static int tcp_client_ports_parser(struct nv_pair *nv, int line,
 	struct daemon_conf *config)
 {
@@ -1275,7 +1295,8 @@ static int tcp_client_ports_parser(struct nv_pair *nv, int line,
 		}
 		if (!isdigit(ptr[i])) {
 			audit_msg(LOG_ERR, 
-				"Value %s should only be numbers, or two numbers separated by a dash - line %d",
+				"Value %s should only be numbers, or "
+				"two numbers separated by a dash - line %d",
 				nv->value, line);
 			return 1;
 		}
@@ -1283,7 +1304,8 @@ static int tcp_client_ports_parser(struct nv_pair *nv, int line,
 	for (; ptr[i]; i++) {
 		if (!isdigit(ptr[i])) {
 			audit_msg(LOG_ERR, 
-				"Value %s should only be numbers, or two numbers separated by a dash - line %d",
+				"Value %s should only be numbers, or "
+				"two numbers separated by a dash - line %d",
 				nv->value, line);
 			return 1;
 		}
@@ -1302,7 +1324,7 @@ static int tcp_client_ports_parser(struct nv_pair *nv, int line,
 		maxv = strtoul(saw_dash + 1, NULL, 10);
 		if (errno) {
 			audit_msg(LOG_ERR, 
-				  "Error converting string to a number (%s) - line %d",
+			  "Error converting string to a number (%s) - line %d",
 				  strerror(errno), line);
 			return 1;
 		}
@@ -1386,9 +1408,9 @@ static int enable_krb5_parser(struct nv_pair *nv, int line,
 #else
 	unsigned long i;
 
-	for (i=0; enable_krb5_values[i].name != NULL; i++) {
-		if (strcasecmp(nv->value, enable_krb5_values[i].name) == 0) {
-			config->enable_krb5 = enable_krb5_values[i].option;
+	for (i=0; yes_no_values[i].name != NULL; i++) {
+		if (strcasecmp(nv->value, yes_no_values[i].name) == 0) {
+			config->enable_krb5 = yes_no_values[i].option;
 			return 0;
 		}
 	}

@@ -76,6 +76,7 @@ typedef struct ev_tcp {
 static int listen_socket;
 static struct ev_io tcp_listen_watcher;
 static int min_port, max_port;
+static int use_libwrap = 1;
 #ifdef USE_GSSAPI
 /* This is used to hold our own private key.  */
 static gss_cred_id_t server_creds;
@@ -715,17 +716,19 @@ static void auditd_tcp_listen_handler( struct ev_loop *loop,
 		return;
 	}
 
-	if (auditd_tcpd_check(afd)) {
-		close (afd);
-        	audit_msg(LOG_ERR, "TCP connection from %s rejected",
-				sockaddr_to_ip (&aaddr));
-		snprintf(emsg, sizeof(emsg),
-			"addr=%s port=%d res=no", sockaddr_to_ip (&aaddr),
-			ntohs (aaddr.sin_port));
-		send_audit_event(AUDIT_DAEMON_ACCEPT, emsg);
-		return;
+	if (use_libwrap) {
+		if (auditd_tcpd_check(afd)) {
+			close (afd);
+	        	audit_msg(LOG_ERR, "TCP connection from %s rejected",
+					sockaddr_to_ip (&aaddr));
+			snprintf(emsg, sizeof(emsg),
+				"addr=%s port=%d res=no",
+				sockaddr_to_ip (&aaddr),
+				ntohs (aaddr.sin_port));
+			send_audit_event(AUDIT_DAEMON_ACCEPT, emsg);
+			return;
+		}
 	}
-
 	uaddr = (unsigned char *)&aaddr.sin_addr;
 
 	/* Verify it's coming from an authorized port.  We assume the firewall
@@ -824,7 +827,7 @@ int auditd_tcp_listen_init ( struct ev_loop *loop, struct daemon_conf *config )
 	setsockopt(listen_socket, SOL_SOCKET, SO_REUSEADDR,
 			(char *)&one, sizeof (int));
 
-	if ( bind ( listen_socket, (struct sockaddr *)&address, sizeof(address)) ) {
+	if (bind(listen_socket, (struct sockaddr *)&address, sizeof(address))){
         	audit_msg(LOG_ERR,
 			"Cannot bind tcp listener socket to port %ld",
 			config->tcp_listen_port);
@@ -841,6 +844,7 @@ int auditd_tcp_listen_init ( struct ev_loop *loop, struct daemon_conf *config )
 			listen_socket, EV_READ);
 	ev_io_start (loop, &tcp_listen_watcher);
 
+	use_libwrap = config->use_libwrap;
 	min_port = config->tcp_client_min_port;
 	max_port = config->tcp_client_max_port;
 	auditd_set_ports(config->tcp_client_min_port,

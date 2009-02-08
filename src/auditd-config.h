@@ -1,5 +1,5 @@
 /* auditd-config.h -- 
- * Copyright 2004-2008 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2004-2009 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -72,6 +72,7 @@ struct daemon_conf
 	const char *disk_error_exe;
 	unsigned long tcp_listen_port;
 	unsigned long tcp_listen_queue;
+	int use_libwrap;
 	unsigned long tcp_client_min_port;
 	unsigned long tcp_client_max_port;
 	unsigned long tcp_client_max_idle;
