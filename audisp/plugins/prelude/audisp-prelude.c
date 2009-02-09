@@ -254,10 +254,19 @@ int main(int argc, char *argv[])
 	/* Flush any accumulated events from queue */
 	auparse_flush_feed(au);
 
-	if (mode == M_TEST)
-		puts("audisp-prelude is exiting on stop request");
-	else
-		syslog(LOG_INFO, "audisp-prelude is exiting on stop request");
+	if (stop) {
+		if (mode == M_TEST)
+			puts("audisp-prelude is exiting on stop request");
+		else
+			syslog(LOG_INFO,
+				"audisp-prelude is exiting on stop request");
+	} else {
+		if (mode == M_TEST)
+			puts("audisp-prelude is exiting due to end of file");
+		else
+			syslog(LOG_INFO,
+			"audisp-prelude is exiting due to losing input source");
+	}
 
 	/* Cleanup subsystems */
 	if (client) 
