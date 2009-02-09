@@ -8,6 +8,7 @@
 - Add option to sysconfig to disable audit system on auditd stop
 - Add tcp_wrappers config option to auditd
 - Aulastlog can now take input from stdin
+- Update libaudit python bindings to throw exceptions on error
 
 1.7.11
 - Don't error out in auditd when calling setsid

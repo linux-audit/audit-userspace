@@ -1,6 +1,6 @@
 /* Author: Dan Walsh
  *
- * Copyright (C) 2005,6 Red Hat
+ * Copyright (C) 2005,2006,2009 Red Hat
  * 
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public
@@ -22,6 +22,14 @@
 %{
         #include "../lib/libaudit.h"
 %}
+
+%typemap(python,except) int {
+  $action
+  if (result < 0) {
+    PyErr_SetFromErrno(PyExc_OSError);
+    return NULL;
+  }
+}
 
 %define __signed__
 signed
