@@ -10,6 +10,7 @@
 - Aulastlog can now take input from stdin
 - Update libaudit python bindings to throw exceptions on error
 - Adjust formatting of TTY data in libauparse to be like ausearch/report
+- Add more key mappings to TTY interpretations
 
 1.7.11
 - Don't error out in auditd when calling setsid
