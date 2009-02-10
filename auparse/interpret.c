@@ -1020,10 +1020,12 @@ static const char *print_tty_data(const char *raw_data)
 			}
 			if (buf.pos != 0)
 				append_char(&buf, ',');
+			append_char(&buf, '<');
 			while (*desc != '\0') {
 				append_char(&buf, *desc);
 				desc++;
 			}
+			append_char(&buf, '>');
 		} else {
 			if (in_printable == 0) {
 				if (buf.pos != 0)
