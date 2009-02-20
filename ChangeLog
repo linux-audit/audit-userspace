@@ -13,6 +13,7 @@
 - Add more key mappings to TTY interpretations
 - Add internal queue to audisp-remote
 - Fix failure action code to allow executables in audisp-remote (Chu Li)
+- Fix memory leak when NOLOG log_format option given to auditd
 
 1.7.11
 - Don't error out in auditd when calling setsid

@@ -163,11 +163,13 @@ void enqueue_event(struct auditd_reply_list *rep)
 			buf = format_raw(&rep->reply, consumer_data.config);
 			break;
 		case LF_NOLOG:
+			free(rep);
 			return;
 		default:
 			audit_msg(LOG_ERR, 
 				  "Illegal log format detected %d", 
 				  consumer_data.config->log_format);
+			free(rep);
 			return;
 		}
 
