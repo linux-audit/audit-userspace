@@ -37,11 +37,11 @@ the remote logging app will attempt to send events immediately after getting the
 option.
 .TP
 .I queue_depth
-This option is an unsigned integer that determines how many records can be buffered to disk before considering it to be a failure sending. This parameter only affects the
+This option is an unsigned integer that determines how many records can be buffered to disk or in memory before considering it to be a failure sending. This parameter affects the
 .I forward
 mode of the
 .I mode
-option. The default depth is 20.
+option and internal queueing for temporary network outtages. The default depth is 200.
 .TP
 .I format
 This parameter tells the remote logging app what data format will be

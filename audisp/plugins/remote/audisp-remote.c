@@ -46,6 +46,7 @@
 #include "libaudit.h"
 #include "private.h"
 #include "remote-config.h"
+#include "queue.h"
 
 #define CONFIG_FILE "/etc/audisp/audisp-remote.conf"
 #define BUF_SIZE 32
@@ -61,7 +62,8 @@ static volatile int hup = 0;
 static volatile int suspend = 0;
 static volatile int transport_ok = 0;
 static volatile int sock=-1;
-static int remote_ended = 0, quiet = 0, ifd;
+static volatile int remote_ended = 0, quiet = 0;
+static int ifd;
 static FILE *in;
 
 static const char *SINGLE = "1";
@@ -286,7 +288,7 @@ static void send_heartbeat (void)
 
 int main(int argc, char *argv[])
 {
-	char tmp[MAX_AUDIT_MESSAGE_LENGTH+1];
+	event_t *e;
 	struct sigaction sa;
 	int rc;
 
@@ -313,11 +315,12 @@ int main(int argc, char *argv[])
 	rc = init_transport();
 	if (rc == ET_PERMANENT)
 		return 1;
+	init_queue(config.queue_depth);
 
 	do {
 		fd_set rfd;
 		struct timeval tv;
-		int n, fds = 1;
+		int n, fds = ifd + 1;
 
 		/* Load configuration */
 		if (hup) 
@@ -327,7 +330,8 @@ int main(int argc, char *argv[])
 		FD_SET(ifd, &rfd);	// input fd
 		if (sock > 0) {
 			FD_SET(sock, &rfd); // remote socket
-			fds = sock + 1;
+			if (sock > ifd)
+				fds = sock + 1;
 		}
 		if (config.heartbeat_timeout > 0) {
 			tv.tv_sec = config.heartbeat_timeout;
@@ -356,7 +360,8 @@ int main(int argc, char *argv[])
 		if (!FD_ISSET(ifd, &rfd))
 			continue;
 
-		if (fgets_unlocked(tmp, MAX_AUDIT_MESSAGE_LENGTH, in) &&
+		e = (event_t *)malloc(sizeof(event_t));
+		if (fgets_unlocked(e->data, MAX_AUDIT_MESSAGE_LENGTH, in) &&
 							hup==0 && stop==0) {
 			if (!transport_ok && remote_ended && 
 				config.remote_ending_action == FA_RECONNECT) {
@@ -365,13 +370,20 @@ int main(int argc, char *argv[])
 					remote_ended = 0;
 				quiet = 0;
 			}
-			if (!suspend) {
-				/* Strip out EOE records */
-				if (strstr(tmp,"type=EOE msg=audit(") == NULL){
-					rc = relay_event(tmp, strnlen(tmp,
-						MAX_AUDIT_MESSAGE_LENGTH));
-					if (rc < 0)
-						break;
+			/* Strip out EOE records */
+			if (strstr(e->data,"type=EOE msg=audit(")) {
+				free(e);
+				continue;
+			}
+			enqueue(e);
+			rc = 0;
+			while (!suspend && rc >= 0 && (e = dequeue(1))) {
+				rc = relay_event(e->data, 
+					strnlen(e->data,
+					MAX_AUDIT_MESSAGE_LENGTH));
+				if (rc >= 0) {
+					dequeue(0); // delete it
+					free(e);
 				}
 			}
 		}
@@ -380,6 +392,7 @@ int main(int argc, char *argv[])
 	} while (stop == 0);
 	close(sock);
 	free_config(&config);
+	destroy_queue();
 	if (stop)
 		syslog(LOG_NOTICE, "audisp-remote is exiting on stop request");
 
@@ -738,8 +751,8 @@ static int negotiate_credentials (void)
 static int stop_sock(void)
 {
 	close(sock);
-	transport_ok = 0;
 	sock = -1;
+	transport_ok = 0;
 
 	return 0;
 }
@@ -1131,13 +1144,14 @@ static int relay_sock_managed(const char *s, size_t len)
 	uint32_t type, rlen, seq;
 	char msg[MAX_AUDIT_MESSAGE_LENGTH+1];
 	int n_tries_this_message = 0;
-	time_t now, then;
+	time_t now, then = 0;
 
 	sequence_id ++;
 
-	time (&then);
 try_again:
 	time (&now);
+	if (then == 0)
+		then = now;
 
 	/* We want the first retry to be quick, in case the network
 	   failed for some fail-once reason.  In this case, it goes

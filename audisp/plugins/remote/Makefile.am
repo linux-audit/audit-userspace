@@ -1,5 +1,5 @@
 # Makefile.am --
-# Copyright 2008 Red Hat Inc., Durham, North Carolina.
+# Copyright 2008-2009 Red Hat Inc., Durham, North Carolina.
 # All Rights Reserved.
 #
 # This library is free software; you can redistribute it and/or
@@ -29,10 +29,10 @@ prog_conf = audisp-remote.conf
 plugin_confdir=$(prog_confdir)/plugins.d
 plugin_conf = au-remote.conf
 sbin_PROGRAMS = audisp-remote
-noinst_HEADERS = remote-config.h
+noinst_HEADERS = remote-config.h queue.h
 man_MANS = audisp-remote.8 audisp-remote.conf.5
 
-audisp_remote_SOURCES = audisp-remote.c remote-config.c
+audisp_remote_SOURCES = audisp-remote.c remote-config.c queue.c
 audisp_remote_CFLAGS = -fPIE -DPIE -g -D_REENTRANT -D_GNU_SOURCE -Wundef
 audisp_remote_LDFLAGS = -pie -Wl,-z,relro $(gss_libs)
 
