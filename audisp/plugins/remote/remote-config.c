@@ -118,13 +118,13 @@ static const struct kw_pair keywords[] =
   {"krb5_principal",         krb5_principal_parser,             0 },
   {"krb5_client_name",       krb5_client_name_parser,           0 },
   {"krb5_key_file",          krb5_key_file_parser,              0 },
-  {"network_failure_action", network_failure_action_parser,	0 },
-  {"disk_low_action",        disk_low_action_parser,		0 },
-  {"disk_full_action",       disk_full_action_parser,		0 },
-  {"disk_error_action",      disk_error_action_parser,		0 },
-  {"remote_ending_action",   remote_ending_action_parser,	0 },
-  {"generic_error_action",   generic_error_action_parser,	0 },
-  {"generic_warning_action", generic_warning_action_parser,	0 },
+  {"network_failure_action", network_failure_action_parser,	1 },
+  {"disk_low_action",        disk_low_action_parser,		1 },
+  {"disk_full_action",       disk_full_action_parser,		1 },
+  {"disk_error_action",      disk_error_action_parser,		1 },
+  {"remote_ending_action",   remote_ending_action_parser,	1 },
+  {"generic_error_action",   generic_error_action_parser,	1 },
+  {"generic_warning_action", generic_warning_action_parser,	1 },
   { NULL,                    NULL,                              0 }
 };
 
@@ -541,17 +541,13 @@ static int action_parser(struct nv_pair *nv, int line,
 	int i;
 	for (i=0; fail_action_words[i].name != NULL; i++) {
 		if (strcasecmp(nv->value, fail_action_words[i].name) == 0) {
-			*actp = fail_action_words[i].option;
-			return 0;
-		} else if (i == FA_EXEC) {
-			if (strncasecmp(fail_action_words[i].name,
-							nv->value, 4) == 0) {
+			if (i == FA_EXEC) {
 				if (check_exe_name(nv->option, line))
 					return 1;
 				*exep = strdup(nv->option);
-				*actp = FA_EXEC;
-				return 0;
 			}
+			*actp = fail_action_words[i].option;
+			return 0;
 		}
 	}
 	syslog(LOG_ERR, "Option %s not found - line %d", nv->value, line);
