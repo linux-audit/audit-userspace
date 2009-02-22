@@ -120,7 +120,7 @@ struct ev_loop;
 # undef EV_EMBED_ENABLE
 #endif
 
-#if __STDC_VERSION__ >= 199901L || __GNUC__ >= 3
+#if defined(__STDC_VERSION__) &&  __STDC_VERSION__ >= 199901L || __GNUC__ >= 3
 # define EV_INLINE static inline
 #else
 # define EV_INLINE static

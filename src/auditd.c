@@ -762,6 +762,7 @@ int main(int argc, char *argv[])
 
 	close_down();
 	free_config(&config);
+	ev_default_destroy();
 
 	return 0;
 }
