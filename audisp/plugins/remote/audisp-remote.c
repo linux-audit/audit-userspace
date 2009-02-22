@@ -347,7 +347,9 @@ int main(int argc, char *argv[])
 			/* We attempt a hearbeat if select fails, which
 			 * may give us more heartbeats than we need. This
 			 * is safer than too few heartbeats.  */
+			quiet = 1;
 			send_heartbeat();
+			quiet = 0;
 			continue;
 		}
 
@@ -377,7 +379,8 @@ int main(int argc, char *argv[])
 			}
 			enqueue(e);
 			rc = 0;
-			while (!suspend && rc >= 0 && (e = dequeue(1))) {
+			while (!suspend && rc >= 0 && transport_ok &&
+							(e = dequeue(1))) {
 				rc = relay_event(e->data, 
 					strnlen(e->data,
 					MAX_AUDIT_MESSAGE_LENGTH));

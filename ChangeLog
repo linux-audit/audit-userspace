@@ -14,6 +14,7 @@
 - Add internal queue to audisp-remote
 - Fix failure action code to allow executables in audisp-remote (Chu Li)
 - Fix memory leak when NOLOG log_format option given to auditd
+- Quieten some of the reconnect text being sent to syslog in audisp-remote
 
 1.7.11
 - Don't error out in auditd when calling setsid
