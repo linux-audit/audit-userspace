@@ -66,7 +66,7 @@ extern "C" {
 #   define EV_USE_MONOTONIC 1
 #  endif
 #  ifndef EV_USE_REALTIME
-#   define EV_USE_REALTIME  1
+#   define EV_USE_REALTIME  0
 #  endif
 # else
 #  ifndef EV_USE_MONOTONIC
@@ -195,7 +195,7 @@ extern "C" {
 #endif
 
 #ifndef EV_USE_REALTIME
-# define EV_USE_REALTIME 0
+# define EV_USE_REALTIME !EV_USE_CLOCK_SYSCALL
 #endif
 
 #ifndef EV_USE_NANOSLEEP
@@ -399,9 +399,13 @@ typedef ev_watcher_time *WT;
 #define ev_active(w) ((W)(w))->active
 #define ev_at(w) ((WT)(w))->at
 
-#if EV_USE_MONOTONIC
+#if EV_USE_REALTIME
 /* sig_atomic_t is used to avoid per-thread variables or locking but still */
 /* giving it a reasonably high chance of working on typical architetcures */
+static EV_ATOMIC_T have_realtime; /* did clock_gettime (CLOCK_REALTIME) work? */
+#endif
+
+#if EV_USE_MONOTONIC
 static EV_ATOMIC_T have_monotonic; /* did clock_gettime (CLOCK_MONOTONIC) work? */
 #endif
 
@@ -555,14 +559,17 @@ ev_tstamp
 ev_time (void)
 {
 #if EV_USE_REALTIME
-  struct timespec ts;
-  clock_gettime (CLOCK_REALTIME, &ts);
-  return ts.tv_sec + ts.tv_nsec * 1e-9;
-#else
+  if (expect_true (have_realtime))
+    {
+      struct timespec ts;
+      clock_gettime (CLOCK_REALTIME, &ts);
+      return ts.tv_sec + ts.tv_nsec * 1e-9;
+    }
+#endif
+
   struct timeval tv;
   gettimeofday (&tv, 0);
   return tv.tv_sec + tv.tv_usec * 1e-6;
-#endif
 }
 
 ev_tstamp inline_size
@@ -1321,12 +1328,24 @@ loop_init (EV_P_ unsigned int flags)
 {
   if (!backend)
     {
+#if EV_USE_REALTIME
+      if (!have_realtime)
+        {
+          struct timespec ts;
+
+          if (!clock_gettime (CLOCK_REALTIME, &ts))
+            have_realtime = 1;
+        }
+#endif
+
 #if EV_USE_MONOTONIC
-      {
-        struct timespec ts;
-        if (!clock_gettime (CLOCK_MONOTONIC, &ts))
-          have_monotonic = 1;
-      }
+      if (!have_monotonic)
+        {
+          struct timespec ts;
+
+          if (!clock_gettime (CLOCK_MONOTONIC, &ts))
+            have_monotonic = 1;
+        }
 #endif
 
       ev_rt_now         = ev_time ();
