@@ -735,8 +735,15 @@ int main(int argc, char *argv[])
 
 	auditd_tcp_listen_uninit (loop);
 
-	/* Write message to log that we are going down */
+	// Tear down IO watchers Part 1
+	ev_signal_stop (loop, &sighup_watcher);
+	ev_signal_stop (loop, &sigusr1_watcher);
+	ev_signal_stop (loop, &sigusr2_watcher);
+	ev_signal_stop (loop, &sigterm_watcher);
+	if (config.tcp_client_max_idle)
+		ev_periodic_stop (loop, &periodic_watcher);
 
+	/* Write message to log that we are going down */
 	rc = audit_request_signal_info(fd);
 	if (rc > 0) {
 		struct audit_reply trep;
@@ -759,6 +766,10 @@ int main(int argc, char *argv[])
 				"pid=? subj=? res=success");
 	free(rep);
 	shutdown_dispatcher();
+
+	// Tear down IO watchers Part 2
+	ev_io_stop (loop, &netlink_watcher);
+	ev_signal_stop (loop, &sigchld_watcher);
 
 	close_down();
 	free_config(&config);

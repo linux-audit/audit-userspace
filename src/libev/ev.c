@@ -1397,6 +1397,13 @@ loop_init (EV_P_ unsigned int flags)
     }
 }
 
+#if defined(__GNUC__) && __GNUC__ >= 3
+static __attribute__ ((destructor)) void fini_lib(void)
+{
+	free(signals);
+}
+#endif
+
 static void noinline
 loop_destroy (EV_P)
 {
