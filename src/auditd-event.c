@@ -91,6 +91,8 @@ void shutdown_events(void)
 	/* Give it 5 seconds to clear the queue */
 	alarm(5);
 	pthread_join(event_thread, NULL);	
+	free((void *)format_buf);
+	fclose(consumer_data.log_file);
 }
 
 int init_event(struct daemon_conf *config)
@@ -280,7 +282,8 @@ static void *event_thread_main(void *arg)
 		if (data->tail == data->head)
 			data->tail = NULL;
 		data->head = data->head->next;
-		if (data->head == NULL && stop)
+		if (data->head == NULL && stop &&
+					cur->reply.type == AUDIT_DAEMON_END)
 			stop_req = 1;
 		pthread_mutex_unlock(&data->queue_lock);
 
@@ -290,11 +293,8 @@ static void *event_thread_main(void *arg)
 			free((void *)cur->reply.message);
 		} 
 		free(cur);
-		if (stop_req) {
-			free((void *)format_buf);
-			fclose(data->log_file);
+		if (stop_req)
 			break;
-		}
 	}
 	return NULL;
 }
