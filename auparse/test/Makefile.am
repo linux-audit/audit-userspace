@@ -38,6 +38,7 @@ drop_srcdir = sed 's,$(srcdir)/test,test,'
 check: auparse_test
 	test "$(top_srcdir)" = "$(top_builddir)" || \
 			cp $(top_srcdir)/auparse/test/test*.log .
+		cp ${top_builddir}/swig/.libs/_audit.so ${top_builddir}/swig
 	LC_ALL=C \
 	./auparse_test > auparse_test.cur
 	diff -u $(top_srcdir)/auparse/test/auparse_test.ref auparse_test.cur
