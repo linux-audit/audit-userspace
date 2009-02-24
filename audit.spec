@@ -1,4 +1,4 @@
-%define audit_version 1.8
+%define audit_version 1.7.12
 %define audit_release 1
 %define sca_version 0.4.8
 %define sca_release 1
@@ -257,7 +257,26 @@ fi
 %config(noreplace) %{_sysconfdir}/security/console.apps/system-config-audit-server
 
 %changelog
-* Sat Jan 10 2009 Steve Grubb <sgrubb@redhat.com> 1.8-1
+* Tue Feb 24 2009 Steve Grubb <sgrubb@redhat.com> 1.7.12-1
+- Add definitions for crypto events
+- Fix regression where msgtype couldn't be used as a range in audit rules
+- In libaudit, extend time spent checking reply
+- In acct events, prefer id over acct if given
+- In aulast, try id and acct in USER_LOGIN events
+- When in immutable mode, have auditctl tell user instead of sending rules
+- Add option to sysconfig to disable audit system on auditd stop
+- Add tcp_wrappers config option to auditd
+- Aulastlog can now take input from stdin
+- Update libaudit python bindings to throw exceptions on error
+- Adjust formatting of TTY data in libauparse to be like ausearch/report
+- Add more key mappings to TTY interpretations
+- Add internal queue to audisp-remote
+- Fix failure action code to allow executables in audisp-remote (Chu Li)
+- Fix memory leak when NOLOG log_format option given to auditd
+- Quieten some of the reconnect text being sent to syslog in audisp-remote
+- Apply some libev fixups to auditd
+- Cleanup shutdown sequence of auditd
+- Allow auditd log rotation via SIGUSR1 when NOLOG log format option given
 
 * Sat Jan 10 2009 Steve Grubb <sgrubb@redhat.com> 1.7.11-1
 - Don't error out in auditd when calling setsid
