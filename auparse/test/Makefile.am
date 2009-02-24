@@ -76,4 +76,5 @@ ${top_builddir}/bindings/python/build/*/auparse.so: ${top_srcdir}/bindings/pytho
 	cd ${top_builddir}/bindings/python && make
 clean-generic:
 	$(RM) *.cur
+	$(RM) ${top_builddir}/swig/_audit.so
 	test "$(top_srcdir)" = "$(top_builddir)" || $(RM) test*.log
