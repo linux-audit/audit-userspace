@@ -17,6 +17,7 @@
 - Quieten some of the reconnect text being sent to syslog in audisp-remote
 - Apply some libev fixups to auditd
 - Cleanup shutdown sequence of auditd
+- Allow auditd log rotation via SIGUSR1 when NOLOG log format option given
 
 1.7.11
 - Don't error out in auditd when calling setsid

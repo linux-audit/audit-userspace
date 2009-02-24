@@ -165,8 +165,12 @@ void enqueue_event(struct auditd_reply_list *rep)
 			buf = format_raw(&rep->reply, consumer_data.config);
 			break;
 		case LF_NOLOG:
-			free(rep);
-			return;
+			// We need the rotate event to get enqueued
+			if (rep->reply.type != AUDIT_DAEMON_ROTATE ) {
+				free(rep);
+				return;
+			}
+			break;
 		default:
 			audit_msg(LOG_ERR, 
 				  "Illegal log format detected %d", 
@@ -323,6 +327,8 @@ static void handle_event(struct auditd_consumer_data *data)
 		}
 	} else if (data->head->reply.type == AUDIT_DAEMON_ROTATE) {
 		rotate_logs_now(data);
+		if (consumer_data.config->log_format == LF_NOLOG)
+			return;
 	}
 	if (!logging_suspended) {
 
