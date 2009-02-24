@@ -1,4 +1,4 @@
-%define audit_version 1.7.12
+%define audit_version 1.8
 %define audit_release 1
 %define sca_version 0.4.8
 %define sca_release 1
@@ -257,6 +257,8 @@ fi
 %config(noreplace) %{_sysconfdir}/security/console.apps/system-config-audit-server
 
 %changelog
+* Tue Feb 24 2009 Steve Grubb <sgrubb@redhat.com> 1.8-1
+
 * Tue Feb 24 2009 Steve Grubb <sgrubb@redhat.com> 1.7.12-1
 - Add definitions for crypto events
 - Fix regression where msgtype couldn't be used as a range in audit rules
