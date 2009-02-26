@@ -1,4 +1,5 @@
 1.8
+- Disable asserts unless --with-debug passed to configure
 
 1.7.12
 - Add definitions for crypto events

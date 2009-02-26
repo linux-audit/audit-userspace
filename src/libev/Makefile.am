@@ -21,7 +21,7 @@
 #
 VERSION_INFO = 3:0
 EXTRA_DIST = README ev_epoll.c ev_poll.c ev_select.c libev.m4
-AM_CFLAGS = -fPIC -DPIC -fno-strict-aliasing
+AM_CFLAGS = -fPIC -DPIC -fno-strict-aliasing ${DEBUG}
 
 noinst_HEADERS = ev.h ev_vars.h ev_wrap.h event.h
 noinst_LIBRARIES = libev.a

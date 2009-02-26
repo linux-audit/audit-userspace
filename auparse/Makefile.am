@@ -23,7 +23,7 @@
 SUBDIRS = test
 CLEANFILES = $(BUILT_SOURCES)
 CONFIG_CLEAN_FILES = *.loT *.rej *.orig
-AM_CFLAGS = -fPIC -DPIC -D_GNU_SOURCE -g
+AM_CFLAGS = -fPIC -DPIC -D_GNU_SOURCE -g ${DEBUG}
 INCLUDES = -I. -I${top_srcdir} -I${top_srcdir}/src -I${top_srcdir}/lib
 LIBS =
 lib_LTLIBRARIES = libauparse.la

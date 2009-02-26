@@ -109,11 +109,11 @@ if test "x${withval}" = xyes; then
         OPT="-O"
         AM_CONDITIONAL(DEBUG, true)
 else
-        DEBUG=""
+        DEBUG="-DNDEBUG"
         AM_CONDITIONAL(DEBUG, false)
 fi
 ],
-[ DEBUG=""; AM_CONDITIONAL(DEBUG, false) ])
+[ DEBUG="-DNDEBUG"; AM_CONDITIONAL(DEBUG, false) ])
 
 AC_ARG_WITH(warn,
 [  --with-warn             turn on warnings [[default=yes]]],
@@ -196,6 +196,7 @@ AC_ARG_WITH(libwrap,
 if test x"$LIBWRAP_LIBS" != "x"; then
 	AC_DEFINE_UNQUOTED(HAVE_LIBWRAP, [], Define if tcp_wrappers support is enabled )
 fi
+AC_SUBST(DEBUG)
 AC_SUBST(LIBWRAP_LIBS)
 AC_SUBST(libev_LIBS)
 AC_SUBST(LIBPRELUDE_CFLAGS)
