@@ -615,7 +615,7 @@ int main(int argc, char *argv[])
 			tell_parent(FAILURE);
 			return 1;
 		}
-		if(getsubj(subj))
+		if (getsubj(subj))
 			snprintf(start, sizeof(start),
 				"auditd start, ver=%s format=%s "
 			    "kernel=%.56s auid=%u pid=%d subj=%s res=success",
@@ -683,7 +683,7 @@ int main(int argc, char *argv[])
 		stop = 1;
 		send_audit_event(AUDIT_DAEMON_ABORT, emsg);
 		audit_msg(LOG_ERR,
-		"Unable to set intitial audit startup state to '%s', exiting",
+		"Unable to set initial audit startup state to '%s', exiting",
 			startup_states[opt_startup]);
 		close_down();
 		if (pidfile)

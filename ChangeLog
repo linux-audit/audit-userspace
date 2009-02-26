@@ -1,5 +1,6 @@
 1.8
 - Disable asserts unless --with-debug passed to configure
+- Handle kernel 2.6.29's audit = 0 boot parameter better
 
 1.7.12
 - Add definitions for crypto events

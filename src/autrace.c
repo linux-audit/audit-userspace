@@ -155,7 +155,12 @@ int main(int argc, char *argv[])
 	switch (count_rules())
 	{
 		case -1:
-			fprintf(stderr, "Error - can't get rule count.\n");
+			if (errno == ECONNREFUSED)
+		                fprintf(stderr,
+					"The audit system is disabled\n");
+			else
+				fprintf(stderr,
+					"Error - can't get rule count.\n");
 			return 1;
 		case 0:
 			break;

@@ -286,8 +286,9 @@ static void *event_thread_main(void *arg)
 		if (data->tail == data->head)
 			data->tail = NULL;
 		data->head = data->head->next;
-		if (data->head == NULL && stop &&
-					cur->reply.type == AUDIT_DAEMON_END)
+		if (data->head == NULL && stop && 
+				( cur->reply.type == AUDIT_DAEMON_END ||
+				cur->reply.type == AUDIT_DAEMON_ABORT) )
 			stop_req = 1;
 		pthread_mutex_unlock(&data->queue_lock);
 

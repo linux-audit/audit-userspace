@@ -71,9 +71,9 @@ start(){
 	echo
 	if test $RETVAL = 0 ; then
 		touch /var/lock/subsys/auditd
+		# Load the default rules
+		test -f /etc/audit/audit.rules && /sbin/auditctl -R /etc/audit/audit.rules >/dev/null
 	fi
-	# Load the default rules
-	test -f /etc/audit/audit.rules && /sbin/auditctl -R /etc/audit/audit.rules >/dev/null
 	return $RETVAL
 }
 
@@ -84,11 +84,17 @@ stop(){
 	echo
 	rm -f /var/lock/subsys/auditd
 	# Remove watches so shutdown works cleanly
-	if test "`echo $AUDITD_CLEAN_STOP | tr 'NO' 'no'`" != "no" ; then
-		/sbin/auditctl -D >/dev/null
+	if test x"$AUDITD_CLEAN_STOP" != "x" ; then
+		if test "`echo $AUDITD_CLEAN_STOP | tr 'NO' 'no'`" != "no"
+		then
+			/sbin/auditctl -D >/dev/null
+		fi
 	fi
-	if test "`echo $AUDITD_STOP_DISABLE | tr 'NO' 'no'`" != "no" ; then
-		/sbin/auditctl -e 0 >/dev/null
+	if test x"$AUDITD_STOP_DISABLE" != "x" ; then
+		if test "`echo $AUDITD_STOP_DISABLE | tr 'NO' 'no'`" != "no"
+		then
+			/sbin/auditctl -e 0 >/dev/null
+		fi
 	fi
 	return $RETVAL
 }

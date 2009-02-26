@@ -970,6 +970,8 @@ static int setopt(int count, int lineno, char *vars[])
 		retval = -1;
 	}
     }
+    if (retval == -1 && errno == ECONNREFUSED)
+		fprintf(stderr,	"The audit system is disabled\n");
     return retval;
 }
 
@@ -1085,6 +1087,12 @@ static int fileopt(const char *file)
 					fprintf(stderr,
 					"There was an error in line %d of %s\n",
 					lineno, file);
+				else {
+					fprintf(stderr,
+					"The audit system is disabled\n");
+					fclose(f);
+					return 0;
+				}
 				if (!ignore) {
 					fclose(f);
 					return -1;
@@ -1122,6 +1130,9 @@ int main(int argc, char *argv[])
 				"The audit system is in immutable "
 				"mode, no rules loaded\n");
 			return 0;
+		} else if (errno == ECONNREFUSED) {
+			fprintf(stderr, "The audit system is disabled\n");
+			return 0;
 		} else if (fileopt(argv[2]))
 			return 1;
 		else
@@ -1140,6 +1151,9 @@ int main(int argc, char *argv[])
 			fprintf(stderr,
 				"The audit system is in immutable "
 				"mode, no rules loaded\n");
+			return 0;
+		} else if (errno == ECONNREFUSED) {
+			fprintf(stderr, "The audit system is disabled\n");
 			return 0;
 		}
 	}
