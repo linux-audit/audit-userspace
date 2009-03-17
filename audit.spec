@@ -2,7 +2,7 @@
 %define audit_release 1
 %define sca_version 0.4.8
 %define sca_release 1
-%{!?python_sitelib: %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
+%{!?python_sitelib: %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib(1)")}
 
 Summary: User space tools for 2.6 kernel auditing
 Name: audit
@@ -181,9 +181,8 @@ fi
 
 %files libs-python
 %defattr(-,root,root)
-%attr(755,root,root) %{_libdir}/python?.?/site-packages/_audit.so
-%attr(755,root,root) %{_libdir}/python?.?/site-packages/auparse.so
-#%{_libdir}/python?.?/site-packages/auparse-*.egg-info
+%attr(755,root,root) %{python_sitelib}/_audit.so
+%attr(755,root,root) %{python_sitelib}/auparse.so
 %{python_sitelib}/audit.py*
 
 %files
