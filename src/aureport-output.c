@@ -174,7 +174,7 @@ static void print_title_summary(void)
 		case RPT_KEY:
 			printf("Key Summary Report\n");
 			printf("===========================\n");
-			printf("total  file\n");
+			printf("total  key\n");
 			printf("===========================\n");
 			break;
 		case RPT_TTY:
