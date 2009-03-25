@@ -253,9 +253,14 @@ int audit_rule_fieldpair(struct audit_rule *rule, const char *pair, int flags)
 		case AUDIT_SUID:
 		case AUDIT_FSUID:
 		case AUDIT_LOGINUID:
+			// Do positive & negative separate for 32 bit systems
 			vlen = strlen(v);
 			if (isdigit((char)*(v))) 
 				rule->values[rule->field_count] = 
+					strtoul(v, NULL, 0);
+			else if (vlen >= 2 && *(v)=='-' &&
+						(isdigit((char)*(v+1))))
+				rule->values[rule->field_count] =
 					strtol(v, NULL, 0);
 			else {
 				if (name_to_uid(v, 
