@@ -979,7 +979,7 @@ static const char *tty_find_named_key(unsigned char **input, size_t input_len)
 	const unsigned char *nk;
 
 	src = *input;
-	if (*src >= ' ' && *src != 0x7F)
+	if (*src >= ' ' && (*src < 0x7F || *src >= 0xA0))
 		return NULL; /* Fast path */
 	nk = named_keys;
 	do {

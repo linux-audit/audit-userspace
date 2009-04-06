@@ -4,6 +4,7 @@
 - Install audit.py file in arch specific python directory (Dan Walsh)
 - Fix 32 system problem with negative uids in audit rules
 - When file type is unknown, output octal for mode field (Miloslav Trmač)
+- Update tty keystroke interpretations (Miloslav Trmač)
 
 1.7.12
 - Add definitions for crypto events

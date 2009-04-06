@@ -383,7 +383,7 @@ static const char *tty_find_named_key(unsigned char **input, size_t input_len)
 	const unsigned char *nk;
 
 	src = *input;
-	if (*src >= ' ' && *src != 0x7F)
+	if (*src >= ' ' && (*src < 0x7F || *src >= 0xA0))
 		return NULL; /* Fast path */
 	nk = named_keys;
 	do {
@@ -403,7 +403,7 @@ static const char *tty_find_named_key(unsigned char **input, size_t input_len)
 
 void print_tty_data(const char *val)
 {
-	int in_printable = 0;
+	int need_comma, in_printable = 0;
 	unsigned char *data, *data_pos, *data_end;
 
 	if (!is_hex_string(val)) {
@@ -418,6 +418,7 @@ void print_tty_data(const char *val)
 
 	data_end = data + strlen(val) / 2;
 	data_pos = data;
+	need_comma = 0;
 	while (data_pos < data_end) {
 		/* FIXME: Unicode */
 		const char *desc;
@@ -428,11 +429,12 @@ void print_tty_data(const char *val)
 				putchar('"');
 				in_printable = 0;
 			}
-			if (data_pos != data)
-				printf(",<%s>", desc);
+			if (need_comma != 0)
+				putchar(',');
+			printf("<%s>", desc);
 		} else {
 			if (in_printable == 0) {
-				if (data_pos != data)
+				if (need_comma != 0)
 					putchar(',');
 				putchar('"');
 				in_printable = 1;
@@ -440,6 +442,7 @@ void print_tty_data(const char *val)
 			tty_printable_char(*data_pos);
 			data_pos++;
 		}
+		need_comma = 1;
 	}
 	if (in_printable != 0)
 		putchar('"');
