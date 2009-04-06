@@ -453,6 +453,7 @@ static const char *print_mode(const char *val)
 {
         unsigned int ival;
 	char *out, buf[48];
+	const char *name;
 
         errno = 0;
         ival = strtoul(val, NULL, 8);
@@ -461,22 +462,28 @@ static const char *print_mode(const char *val)
                 return out;
         }
 
-	buf[0] = 0;
+        // detect the file type
+	name = audit_ftype_to_name(ival & S_IFMT);
+	if (name != NULL)
+		strcpy(buf, name);
+	else {
+		unsigned first_ifmt_bit;
 
-        // detect tthe file type
-        strcat(buf, audit_ftype_to_name(ival & S_IFMT));
-	strcat(buf, ",");
+		// The lowest-valued "1" bit in S_IFMT
+		first_ifmt_bit = S_IFMT & ~(S_IFMT - 1);
+		sprintf(buf, "%03o", (ival & S_IFMT) / first_ifmt_bit);
+	}
 
         // check on special bits
         if (S_ISUID & ival)
-                strcat(buf, "suid,");
+                strcat(buf, ",suid");
         if (S_ISGID & ival)
-                strcat(buf, "sgid,");
+                strcat(buf, ",sgid");
         if (S_ISVTX & ival)
-                strcat(buf, "sticky,");
+                strcat(buf, ",sticky");
 
 	// and the read, write, execute flags in octal
-        asprintf(&out, "%s %03o",  buf, (S_IRWXU|S_IRWXG|S_IRWXO) & ival);
+        asprintf(&out, "%s,%03o",  buf, (S_IRWXU|S_IRWXG|S_IRWXO) & ival);
 	return out;
 }
 

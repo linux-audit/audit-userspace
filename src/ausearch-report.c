@@ -548,6 +548,7 @@ static void print_perm(const char *val)
 
 static void print_mode(const char *val)
 {
+	const char *name;
 	unsigned int ival;
 
 	errno = 0;
@@ -558,7 +559,16 @@ static void print_mode(const char *val)
 	}
 
 	// print the file type
-	printf("%s,", audit_ftype_to_name(ival & S_IFMT));
+	name = audit_ftype_to_name(ival & S_IFMT);
+	if (name != NULL)
+		printf("%s,", name);
+	else {
+		unsigned first_ifmt_bit;
+
+		// The lowest-valued "1" bit in S_IFMT
+		first_ifmt_bit = S_IFMT & ~(S_IFMT - 1);
+		printf("%03o,", (ival & S_IFMT) / first_ifmt_bit);
+	}
 
 	// check on special bits
 	if (S_ISUID & ival)
