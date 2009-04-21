@@ -1,3 +1,5 @@
+1.8
+
 1.7.13
 - Disable libev asserts unless --with-debug passed to configure
 - Handle kernel 2.6.29's audit = 0 boot parameter better

@@ -1,4 +1,4 @@
-%define audit_version 1.7.13
+%define audit_version 1.8
 %define audit_release 1
 %define sca_version 0.4.8
 %define sca_release 1
@@ -256,6 +256,8 @@ fi
 %config(noreplace) %{_sysconfdir}/security/console.apps/system-config-audit-server
 
 %changelog
+* Tue Apr 21 2009 Steve Grubb <sgrubb@redhat.com> 1.8-1
+
 * Tue Apr 21 2009 Steve Grubb <sgrubb@redhat.com> 1.7.13-1
 - Disable libev asserts unless --with-debug passed to configure
 - Handle kernel 2.6.29's audit = 0 boot parameter better
