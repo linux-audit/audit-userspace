@@ -1,8 +1,8 @@
-%define audit_version 1.8
+%define audit_version 1.7.13
 %define audit_release 1
 %define sca_version 0.4.8
 %define sca_release 1
-%{!?python_sitelib: %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib(1)")}
+%{!?python_sitearch: %define python_sitearch %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib(1)")}
 
 Summary: User space tools for 2.6 kernel auditing
 Name: audit
@@ -181,9 +181,9 @@ fi
 
 %files libs-python
 %defattr(-,root,root)
-%attr(755,root,root) %{python_sitelib}/_audit.so
-%attr(755,root,root) %{python_sitelib}/auparse.so
-%{python_sitelib}/audit.py*
+%attr(755,root,root) %{python_sitearch}/_audit.so
+%attr(755,root,root) %{python_sitearch}/auparse.so
+%{python_sitearch}/audit.py*
 
 %files
 %defattr(-,root,root,-)
@@ -256,7 +256,13 @@ fi
 %config(noreplace) %{_sysconfdir}/security/console.apps/system-config-audit-server
 
 %changelog
-* Tue Feb 24 2009 Steve Grubb <sgrubb@redhat.com> 1.8-1
+* Tue Apr 21 2009 Steve Grubb <sgrubb@redhat.com> 1.7.13-1
+- Disable libev asserts unless --with-debug passed to configure
+- Handle kernel 2.6.29's audit = 0 boot parameter better
+- Install audit.py file in arch specific python directory (Dan Walsh)
+- Fix problem with negative uids in audit rules on 32 bit systems
+- When file type is unknown, output octal for mode field (Miloslav Trmač)
+- Update tty keystroke interpretations (Miloslav Trmač)
 
 * Tue Feb 24 2009 Steve Grubb <sgrubb@redhat.com> 1.7.12-1
 - Add definitions for crypto events
