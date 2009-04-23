@@ -1,4 +1,5 @@
 1.8
+- In auditctl rules allow a0-a3 to be negative numbers
 
 1.7.13
 - Disable libev asserts unless --with-debug passed to configure

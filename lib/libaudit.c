@@ -1089,6 +1089,18 @@ int audit_rule_fieldpair_data(struct audit_rule_data **rulep, const char *pair,
 				return -16;
 			}
 			break;
+		case AUDIT_ARG0...AUDIT_ARG3:
+			vlen = strlen(v);
+			if (isdigit((char)*(v))) 
+				rule->values[rule->field_count] = 
+					strtoul(v, NULL, 0);
+			else if (vlen >= 2 && *(v)=='-' &&
+						(isdigit((char)*(v+1))))
+				rule->values[rule->field_count] =
+					strtol(v, NULL, 0);
+			else 
+				return -21;
+			break;
 		case AUDIT_DEVMAJOR...AUDIT_INODE:
 		case AUDIT_SUCCESS:
 			if (flags != AUDIT_FILTER_EXIT)
