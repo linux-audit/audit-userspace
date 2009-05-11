@@ -122,6 +122,13 @@ _S(AUDIT_MAC_UNLBL_STCADD,           "MAC_UNLBL_STCADD"              )
 _S(AUDIT_MAC_UNLBL_STCDEL,           "MAC_UNLBL_STCDEL"              )
 _S(AUDIT_ANOM_PROMISCUOUS,           "ANOM_PROMISCUOUS"              )
 _S(AUDIT_ANOM_ABEND,                 "ANOM_ABEND"                    )
+_S(AUDIT_INTEGRITY_DATA,             "INTEGRITY_DATA"                )
+_S(AUDIT_INTEGRITY_METADATA,         "INTEGRITY_METADATA"            )
+_S(AUDIT_INTEGRITY_STATUS,           "INTEGRITY_STATUS"              )
+_S(AUDIT_INTEGRITY_HASH,             "INTEGRITY_HASH"                )
+_S(AUDIT_INTEGRITY_PCR,              "INTEGRITY_PCR"                 )
+_S(AUDIT_INTEGRITY_RULE,             "INTEGRITY_RULE"                )
+
 #ifdef WITH_APPARMOR
 _S(AUDIT_AA,                         "APPARMOR"                      )
 _S(AUDIT_APPARMOR_AUDIT,             "APPARMOR_AUDIT"                )

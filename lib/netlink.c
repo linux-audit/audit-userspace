@@ -181,8 +181,8 @@ static int adjust_reply(struct audit_reply *rep, int len)
 		case AUDIT_KERNEL:
 		case AUDIT_FIRST_USER_MSG...AUDIT_LAST_USER_MSG:
 		case AUDIT_FIRST_USER_MSG2...AUDIT_LAST_USER_MSG2:
-		case AUDIT_FIRST_EVENT...AUDIT_LAST_KERN_ANOM_MSG:
-			rep->message = NLMSG_DATA(rep->nlh); 
+		case AUDIT_FIRST_EVENT...AUDIT_INTEGRITY_LAST_MSG:
+			rep->message = NLMSG_DATA(rep->nlh);
 			break;
 		case AUDIT_SIGNAL_INFO:
 			rep->signal_info = NLMSG_DATA(rep->nlh);

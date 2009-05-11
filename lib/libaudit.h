@@ -174,6 +174,16 @@ extern "C" {
 #ifndef AUDIT_ANOM_ABEND
 #define AUDIT_ANOM_ABEND		1701 /* Process ended abnormally */
 #endif
+#define AUDIT_INTEGRITY_FIRST_MSG	1800
+#define AUDIT_INTEGRITY_LAST_MSG	1899
+#ifndef AUDIT_INTEGRITY_DATA
+#define AUDIT_INTEGRITY_DATA		1800 /* Data integrity verification */
+#define AUDIT_INTEGRITY_METADATA 	1801 // Metadata integrity verification
+#define AUDIT_INTEGRITY_STATUS		1802 /* Integrity enable status */
+#define AUDIT_INTEGRITY_HASH		1803 /* Integrity HASH type */
+#define AUDIT_INTEGRITY_PCR		1804 /* PCR invalidation msgs */
+#define AUDIT_INTEGRITY_RULE		1805 /* Policy rule */
+#endif
 #define AUDIT_FIRST_ANOM_MSG		2100
 #define AUDIT_LAST_ANOM_MSG		2199
 #define AUDIT_ANOM_LOGIN_FAILURES	2100 // Failed login limit reached
