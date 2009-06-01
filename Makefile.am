@@ -31,5 +31,5 @@ EXTRA_DIST = ChangeLog AUTHORS NEWS README INSTALL audit.spec \
 CONFIG_CLEAN_FILES = debug*.list config/*
 
 clean-generic:
-	rm -rf autom4te*.cache zos-remote-policy
+	rm -rf autom4te*.cache 
 	rm -f *.rej *.orig *.lang
