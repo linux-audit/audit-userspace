@@ -1,3 +1,246 @@
+2009-06-01  Miloslav Trmač  <mitr@redhat.com>
+
+	* configure.ac: Release 0.4.10.
+	* NEWS: Update.
+	* po/LINGUAS: Update.
+
+	* src/audit_rules.py (Field.parse_triple)
+	* src/rule_dialog.py (RuleDialog.__rule_field_var_changed)
+	* src/util.py (parse_elf, parse_filetype, parse_msgtype)
+	(parse_syscall): Update for changes in audit Python bindings done in
+	audit-1.7.12.
+
+2009-06-01  liequan che  <liequanche@gmail.com>
+
+	* src/auditd_config.py (AuditdConfig.__option_values): Save
+	space_left_action.
+
+	Submitting Japanese via old channel
+	Transmitted-via: Transifex (translate.fedoraproject.org)
+
+	Japanese updated
+	Transmitted-via: Transifex (translate.fedoraproject.org)
+
+	Added catalan locale
+	Transmitted-via: Transifex (translate.fedoraproject.org)
+
+	Added catalan po
+	Transmitted-via: Transifex (translate.fedoraproject.org)
+
+	Updated Portuguese translation
+	Transmitted-via: Transifex (translate.fedoraproject.org)
+
+	Updated Brazilian Portuguese translation
+	Transmitted-via: Transifex (translate.fedoraproject.org)
+
+	Updated Serbian Latin translation
+	Transmitted-via: Transifex (translate.fedoraproject.org)
+
+	Updated Serbian translation
+	Transmitted-via: Transifex (translate.fedoraproject.org)
+
+	adding for Maithili, translated by sangeeta
+	Transmitted-via: Transifex (translate.fedoraproject.org)
+
+	updated Spanish translation
+	Transmitted-via: Transifex (translate.fedoraproject.org)
+
+	Updated Polish translation
+	Transmitted-via: Transifex (translate.fedoraproject.org)
+
+2009-02-13  Miloslav Trmač  <mitr@redhat.com>
+	* src/system-config-audit.glade: Fix a typo.
+
+2008-12-03  Miloslav Trmač  <mitr@redhat.com>
+
+	* autogen.sh: Work around another intltool bug.
+
+	* Makefile.am (dist_applications_DATA): Rename from applications_DATA to
+	make the build independent of potential intltool incompatibilities on
+	the build machine.
+
+	starting Portuguese translation
+	Transmitted-via: Transifex (translate.fedoraproject.org)
+
+2008-10-28  Miloslav Trmač  <mitr@redhat.com>
+
+	* configure.ac: Release 0.4.9.
+	* NEWS: Update.
+	* po/LINGUAS: Update.
+
+	Updated Malayalam Translations
+	Transmitted-via: Transifex (translate.fedoraproject.org)
+
+	Updated sr@latin
+	Transmitted-via: Transifex (translate.fedoraproject.org)
+
+	Updated Bengali India Translations
+	Transmitted-via: Transifex (translate.fedoraproject.org)
+
+2008-10-21  Miloslav Trmač  <mitr@redhat.com>
+
+	* src/global_dialog.py (GlobalDialog.__init__): Add a translator
+	comment.
+
+	Updated Serbian translation
+	Transmitted-via: Transifex (translate.fedoraproject.org)
+
+	Added and updated Malayalam Translation
+	Transmitted-via: Transifex (translate.fedoraproject.org)
+
+	Initial Hungarian Translation.
+	Transmitted-via: Transifex (translate.fedoraproject.org)
+
+	Updated Swedish translation
+	Transmitted-via: Transifex (translate.fedoraproject.org)
+
+	Updated the Swedish translation
+	Transmitted-via: Transifex (translate.fedoraproject.org)
+
+	Updated LINGUAS
+	Transmitted-via: Transifex (translate.fedoraproject.org)
+
+	Added new sv.po file
+	Transmitted-via: Transifex (translate.fedoraproject.org)
+
+	Updated LINGUAS
+	Transmitted-via: Transifex (translate.fedoraproject.org)
+
+	Initial Serbian Latin translation
+	Transmitted-via: Transifex (translate.fedoraproject.org)
+
+	Initial Serbian translation
+	Transmitted-via: Transifex (translate.fedoraproject.org)
+
+	Updated LINGUAS
+	Transmitted-via: Transifex (translate.fedoraproject.org)
+
+	Updated Bengali India Translation
+	Transmitted-via: Transifex (translate.fedoraproject.org)
+
+	Tamil translation added
+	Transmitted-via: Transifex (translate.fedoraproject.org)
+
+	Greek Translation added
+	Transmitted-via: Transifex (translate.fedoraproject.org)
+
+	completed for Hindi
+	Transmitted-via: Transifex (translate.fedoraproject.org)
+
+	Updated Assamese Translations.
+	Transmitted-via: Transifex (translate.fedoraproject.org)
+
+	Completed and added Kannada translations
+	Transmitted-via: Transifex (translate.fedoraproject.org)
+
+	Updated Assamese Translations.
+	Transmitted-via: Transifex (translate.fedoraproject.org)
+
+	Add sk to LINGUAS
+	Transmitted-via: Transifex (translate.fedoraproject.org)
+
+	Slovak translation.
+	Transmitted-via: Transifex (translate.fedoraproject.org)
+
+	Newly added Telugu Translation.
+	Transmitted-via: Transifex (translate.fedoraproject.org)
+
+	adding hindi file
+	Transmitted-via: Transifex (translate.fedoraproject.org)
+
+	100% localized and proofread! Done
+	Transmitted-via: Transifex (translate.fedoraproject.org)
+
+	Completed Japanese translation for tip
+	Transmitted-via: Transifex (translate.fedoraproject.org)
+
+	File revised and updated
+	Transmitted-via: Transifex (translate.fedoraproject.org)
+
+	Ready for proofreading
+	Transmitted-via: Transifex (translate.fedoraproject.org)
+
+	Transmitted-via: Transifex (translate.fedoraproject.org)
+
+	reverting POTFILES.in
+	Transmitted-via: Transifex (translate.fedoraproject.org)
+
+	Updated Marathi Translations.
+	Transmitted-via: Transifex (translate.fedoraproject.org)
+
+	150 left still working on  Japanese
+	Transmitted-via: Transifex (translate.fedoraproject.org)
+
+	Localization and proofreading done.  100%
+	Transmitted-via: Transifex (translate.fedoraproject.org)
+
+	partially updated Bengali India Translations
+	Transmitted-via: Transifex (translate.fedoraproject.org)
+
+	Russian translation completed.
+	Transmitted-via: Transifex (translate.fedoraproject.org)
+
+	Update LINGUAS file
+	Transmitted-via: Transifex (translate.fedoraproject.org)
+
+	Initial Polish translation
+	Transmitted-via: Transifex (translate.fedoraproject.org)
+
+	czech translation completed
+	Transmitted-via: Transifex (translate.fedoraproject.org)
+
+	Added Bengali India Translation
+	Transmitted-via: Transifex (translate.fedoraproject.org)
+
+	Updated Oriya Translation.
+	Transmitted-via: Transifex (translate.fedoraproject.org)
+
+	Updates to Russian translation.
+	Transmitted-via: Transifex (translate.fedoraproject.org)
+
+	Updated Gujarati Translation.
+	Transmitted-via: Transifex (translate.fedoraproject.org)
+
+	French translation updated
+	Transmitted-via: Transifex (translate.fedoraproject.org)
+
+	Initial commit
+	Transmitted-via: Transifex (translate.fedoraproject.org)
+
+	Updates to Russian translation.
+	Transmitted-via: Transifex (translate.fedoraproject.org)
+
+	Updated Gujarati Translation.
+	Transmitted-via: Transifex (translate.fedoraproject.org)
+
+	Updated German translation.
+	Transmitted-via: Transifex (translate.fedoraproject.org)
+
+	Updated Gujarati Translation.
+	Transmitted-via: Transifex (translate.fedoraproject.org)
+
+	Translation updated.
+	Transmitted-via: Transifex (translate.fedoraproject.org)
+
+	Updated German translation.
+	Transmitted-via: Transifex (translate.fedoraproject.org)
+
+	Transmitted-via: Transifex (translate.fedoraproject.org)
+
+	Translation updated.
+	Transmitted-via: Transifex (translate.fedoraproject.org)
+
+	zh-CN translation completed.
+	Transmitted-via: Transifex (translate.fedoraproject.org)
+
+2008-09-18  Miloslav Trmač  <mitr@redhat.com>
+
+	* po/Makevars (MSGID_BUGS_ADDRESS): Update (which also works around
+	a RHEL5 intltool bug, hopefully fixing transifex statistics).
+
+	* po/de.po: Initial German translation.
+	Transmitted-via: Transifex (translate.fedoraproject.org)
+
 2008-05-21  Miloslav Trmač  <mitr@redhat.com>
 
 	* configure.ac: Release 0.4.8.

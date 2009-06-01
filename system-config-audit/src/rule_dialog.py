@@ -1,6 +1,6 @@
 # Rule dialog.
 #
-# Copyright (C) 2007, 2008 Red Hat, Inc.  All rights reserved.
+# Copyright (C) 2007, 2008, 2009 Red Hat, Inc.  All rights reserved.
 # This copyrighted material is made available to anyone wishing to use, modify,
 # copy, or redistribute it subject to the terms and conditions of the GNU
 # General Public License v.2.  This program is distributed in the hope that it
@@ -450,7 +450,10 @@ class RuleDialog(DialogBase):
             self.rule_field_var_info.set_text('')
             return
         name = self.field_var_store.get_value(it, 0)
-        var = audit.audit_name_to_field(name)
+        try:
+            var = audit.audit_name_to_field(name)
+        except OSError:
+            var = None
 
         it = self.rule_field_op.get_active_iter()
         if it:
@@ -459,7 +462,7 @@ class RuleDialog(DialogBase):
             old_op = None
         self.field_op_store.clear()
         self.field_value_store.clear()
-        if var != -1:
+        if var is not None:
             field_type = Field.get_field_type(var)
             ops = field_type.usual_operators(var)
             for op in ops:

@@ -120,6 +120,9 @@ class GlobalDialog(DialogBase):
         util.connect_and_run(self.name_format_not_none, 'toggled',
                              self.__name_format_not_none_toggled)
         hostname = socket.gethostname()
+        # TRANSLATORS: This is one of the options on the "Log File" tab of the
+        # "Settings" dialog.  It directs auditd to store the system host name
+        # (the parameter replaced by %s) without any modification.
         self.name_format_hostname.set_label(_('Host name as-_is (%s)')
                                             % hostname)
         try:

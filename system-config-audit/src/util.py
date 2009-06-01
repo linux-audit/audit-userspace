@@ -1,6 +1,6 @@
 # Common utilities.
 #
-# Copyright (C) 2007, 2008 Red Hat, Inc.  All rights reserved.
+# Copyright (C) 2007, 2008, 2009 Red Hat, Inc.  All rights reserved.
 # This copyrighted material is made available to anyone wishing to use, modify,
 # copy, or redistribute it subject to the terms and conditions of the GNU
 # General Public License v.2.  This program is distributed in the hope that it
@@ -145,8 +145,9 @@ def parse_elf(string):
     '''
     try:
         arch = int(string)
-        m = audit.audit_elf_to_machine(arch)
-        if m < 0:
+        try:
+            m = audit.audit_elf_to_machine(arch)
+        except OSError:
             raise ParsingError(_('Unknown architecture %d') % arch)
     except ValueError:
         if string.lower() == 'b64':
@@ -161,8 +162,9 @@ def parse_elf(string):
             if _machine_bits[m] != 32:
                 raise ParsingError(_('32-bit architecture not supported'))
         else:
-            m = audit.audit_name_to_machine(string)
-            if m == -1:
+            try:
+                m = audit.audit_name_to_machine(string)
+            except OSError:
                 raise ParsingError(_('Unknown architecture "%s"') % string)
     return m
 
@@ -172,10 +174,10 @@ def parse_filetype(string):
     Return file type ID.  Raise ParsingError on error.
 
     '''
-    v = audit.audit_name_to_ftype(string)
-    if v == -1:
+    try:
+        return audit.audit_name_to_ftype(string)
+    except OSError:
         raise ParsingError(_('Unknown file type "%s"') % string)
-    return v
 
 def is_ids_key(s):
     '''Return True if s is in the namespace reserved for IDS keys.'''
@@ -206,12 +208,13 @@ def parse_msgtype(string):
 
     '''
     try:
-        return int(string)
+        v = int(string)
     except ValueError:
-        v = audit.audit_name_to_msg_type(string)
-        if v == -1:
+        try:
+            v = audit.audit_name_to_msg_type(string)
+        except OSError:
             raise ParsingError(_('Unknown message type "%s"') % string)
-        return v
+    return v
 
 def parse_syscall(string, machine_id):
     '''Parse a syscall name for the specified machine.
@@ -219,8 +222,9 @@ def parse_syscall(string, machine_id):
     Return a syscall number.  Raise ParsingError on error.
 
     '''
-    sc = audit.audit_name_to_syscall(string, machine_id)
-    if sc == -1:
+    try:
+        sc = audit.audit_name_to_syscall(string, machine_id)
+    except OSError:
         try:
             sc = int(string, 10)
         except ValueError:

@@ -290,7 +290,8 @@ class AuditdConfig(object):
             'name_format': self.name_format,
             'num_logs': str(self.num_logs),
             'priority_boost': str(self.priority_boost),
-            'space_left': str(self.space_left)
+            'space_left': str(self.space_left),
+            'space_left_action': self.space_left_action
             }
         if self.dispatcher is not None:
             vals['dispatcher'] = self.dispatcher

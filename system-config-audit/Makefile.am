@@ -24,7 +24,7 @@ CONFIG_CLEAN_FILES = *.rej *.orig
 ## Targets
 SUBDIRS = po
 
-applications_DATA = system-config-audit.desktop
+dist_applications_DATA = system-config-audit.desktop
 bin_SCRIPTS = src/system-config-audit
 libexec_PROGRAMS = src/system-config-audit-server
 dist_pkgdata_DATA = src/system-config-audit.glade

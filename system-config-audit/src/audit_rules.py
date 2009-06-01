@@ -1,6 +1,6 @@
 # audit.rules parsing and creation.
 #
-# Copyright (C) 2007, 2008 Red Hat, Inc.  All rights reserved.
+# Copyright (C) 2007, 2008, 2009 Red Hat, Inc.  All rights reserved.
 # This copyrighted material is made available to anyone wishing to use, modify,
 # copy, or redistribute it subject to the terms and conditions of the GNU
 # General Public License v.2.  This program is distributed in the hope that it
@@ -330,8 +330,9 @@ class Field(object):
         audit.AUDIT_ARCH.
 
         '''
-        self.var = audit.audit_name_to_field(var_name)
-        if self.var == -1:
+        try:
+            self.var = audit.audit_name_to_field(var_name)
+        except OSError:
             raise ParsingError(_('Unknown field "%s"') % var_name)
         try:
             self.op = self.__op_name_map[op_name]

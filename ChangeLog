@@ -1,6 +1,13 @@
 1.8
 - In auditctl rules allow a0-a3 to be negative numbers
 - Add partial support for IMA integrity auditing
+- In s-c-audit, fix error handling with audit-1.7.12 and later
+- In s-c-audit, fix saving space_left_action
+- In s-c-audit, include many new translations
+
+Changes in release 0.4.9:
+* Many new translations.
+
 
 1.7.13
 - Disable libev asserts unless --with-debug passed to configure

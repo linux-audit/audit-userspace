@@ -1,3 +1,11 @@
+Changes in release 0.4.10:
+* Fix error handling with audit-1.7.12 and later.
+* Fix saving space_left_action.
+* Several new translations.
+
+Changes in release 0.4.9:
+* Many new translations.
+
 Changes in release 0.4.8:
 * Add support for -F dir and -F filetype.
 * Don't use -w for complex watch rules.
