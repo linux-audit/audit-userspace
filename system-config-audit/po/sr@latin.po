@@ -1,0 +1,1246 @@
+# Serbian(Latin) translations for system-config-audit
+# Copyright (C) 2008 Red hat, Inc.
+# This file is distributed under the same license as the system-config-audit package.
+# Miloš Komarčević <kmilos@gmail.com>, 2009.
+# Igor Miletic <grejigl-gnomeprevod@yahoo.ca>, 2008.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: system-config-audit\n"
+"Report-Msgid-Bugs-To: https://fedorahosted.org/system-config-audit/\n"
+"POT-Creation-Date: 2009-02-28 11:46+0000\n"
+"PO-Revision-Date: 2009-02-28 13:38+0100\n"
+"Last-Translator: Miloš Komarčević <kmilos@gmail.com>\n"
+"Language-Team: Serbian (sr) <fedora-trans-sr@redhat.com>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%"
+"10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+
+#: ../src/audit_rules.py:78
+#, python-format
+msgid "Unknown user \"%s\""
+msgstr "Nepoznati korisnik „%s“"
+
+#: ../src/audit_rules.py:106
+#, python-format
+msgid "Unknown group \"%s\""
+msgstr "Nepoznata grupa „%s“"
+
+#: ../src/audit_rules.py:168
+#, python-format
+msgid "Key value \"%s\" too long"
+msgstr "Vrednost ključa „%s“ je predugačka"
+
+#: ../src/audit_rules.py:170
+#, python-format
+msgid "Invalid IDS key \"%s\""
+msgstr "Neispravan IDS ključ „%s“"
+
+#: ../src/audit_rules.py:177
+msgid "Architecture can not be changed after system calls are selected"
+msgstr ""
+"Arhitektura se ne može promeniti nakon što su izabrani sistemski pozivi"
+
+#: ../src/audit_rules.py:180 ../src/audit_rules.py:262
+#, python-format
+msgid "The only valid operators for \"%s\" are \"=\" and \"!=\""
+msgstr "Jedini ispravni operatori za „%s“ su „=“ i „!=“"
+
+#: ../src/audit_rules.py:202
+#, python-format
+msgid "The only valid operator for \"%s\" is \"=\""
+msgstr "Jedini ispravan operator za „%s“ je „=“"
+
+#: ../src/audit_rules.py:215
+#, python-format
+msgid "Unknown permission \"%(char)c\" in \"%(perms)s\""
+msgstr "Nepoznata ovlašćenja „%(char)c“ u „%(perms)s“"
+
+#: ../src/audit_rules.py:243
+#, python-format
+msgid "Invalid integer value \"%s\""
+msgstr "Neispravna celobrojna vrednost „%s“"
+
+#: ../src/audit_rules.py:335
+#, python-format
+msgid "Unknown field \"%s\""
+msgstr "Nepoznato polje „%s“"
+
+#: ../src/audit_rules.py:339
+#, python-format
+msgid "Unknown operator \"%s\""
+msgstr "Nepoznati operator „%s“"
+
+#: ../src/audit_rules.py:358
+#, python-format
+msgid "Operator missing in \"%s\""
+msgstr "Operator nedostaje u „%s“"
+
+#: ../src/client.py:124
+msgid "Not enough data available"
+msgstr "Nedovoljno dostupnih podataka"
+
+#: ../src/event_type_dialog.py:110
+msgid "No operator was selected"
+msgstr "Operator nije izabran"
+
+#: ../src/field_help.py:28
+msgid ""
+"The CPU architecture of the syscall.  The arch can be found using `uname -m'."
+msgstr ""
+"Arhitektura procesora syscall funkcije. Arhitektura se može pronaći sa "
+"„uname -m“."
+
+#: ../src/field_help.py:30
+msgid ""
+"The first argument to a syscall.  Note that string arguments are not "
+"supported.  This is most likely to be used on platforms that multiplex "
+"socket or IPC operations."
+msgstr ""
+"Prvi argument za syscall.  Primetite da niske argumenata nisu podržane.   To "
+"je najverovatnije zbog toga što se koriste na platformama koje "
+"multipleksiraju priključke ili IPC operacije."
+
+#: ../src/field_help.py:34
+msgid ""
+"The second argument to a syscall.  Note that string arguments are not "
+"supported.  This is most likely to be used on platforms that multiplex "
+"socket or IPC operations."
+msgstr ""
+"Drugi argumenta za syscall.  Primetite da niske argumenata nisu podržane.  "
+"To je najverovatnije zbog toga što se koriste na platformama koje "
+"multipleksiraju priključke ili IPC operacije."
+
+#: ../src/field_help.py:38
+msgid ""
+"The third argument to a syscall.  Note that string arguments are not "
+"supported.  This is most likely to be used on platforms that multiplex "
+"socket or IPC operations."
+msgstr ""
+"Treći argument za syscall.  Primetite da niske argumenata nisu podržane.   "
+"To je najverovatnije zbog toga što se koriste na platformama koje "
+"multipleksiraju priključke ili IPC operacije."
+
+#: ../src/field_help.py:42
+msgid ""
+"The fourth argument to a syscall.  Note that string arguments are not "
+"supported.  This is most likely to be used on platforms that multiplex "
+"socket or IPC operations."
+msgstr ""
+"Četvrti argument za syscall.  Primetite da niske argumenata nisu podržane.  "
+"To je najverovatnije zbog toga što se koriste na platformama koje "
+"multipleksiraju priključke ili IPC operacije."
+
+#: ../src/field_help.py:46
+msgid "Device major number"
+msgstr "Glavni broj uređaja"
+
+#: ../src/field_help.py:47
+msgid "Device minor number"
+msgstr "Podređeni broj uređaja"
+
+#. audit.AUDIT_DIR is handled specially in the GUI
+#: ../src/field_help.py:49
+msgid "Effective group ID"
+msgstr "Stvarni IB grupe"
+
+#: ../src/field_help.py:50
+msgid "Effective user ID"
+msgstr "Stvarni IB korisnika"
+
+#: ../src/field_help.py:51
+msgid "Exit value from a syscall"
+msgstr "Izlazna vrednost syscall funkcije"
+
+#: ../src/field_help.py:52
+msgid ""
+"The target file's type.  Can be either file, dir, socket, symlink, char, "
+"block, or fifo."
+msgstr ""
+"Odredišna vrsta datoteke.  Može biti datoteka, direktorijum, priključak, "
+"simbolička veza, znak, blok ili fifo."
+
+#. audit.AUDIT_FILTERKEY is handled specially in the GUI
+#: ../src/field_help.py:55
+msgid "File system group ID"
+msgstr "IB grupe sistema datoteka"
+
+#: ../src/field_help.py:56
+msgid "File system user ID"
+msgstr "IB korisnika sistema datoteka"
+
+#: ../src/field_help.py:57
+msgid "Group ID"
+msgstr "IB grupe"
+
+#: ../src/field_help.py:58
+msgid "Inode number"
+msgstr "Inode broj"
+
+#: ../src/field_help.py:59
+msgid "ID of the user in whose login session the process is running"
+msgstr "IB korisnika iz čije je sesije proces pokrenut"
+
+#. audit.AUDIT_MSGTYPE has a special version of the dialog
+#: ../src/field_help.py:62
+msgid "Resource's SELinux high level"
+msgstr "SELinux visokog nivoa za resurs"
+
+#: ../src/field_help.py:63
+msgid "Resource's SELinux low level"
+msgstr "SELinux niskog nivoa za resurs"
+
+#: ../src/field_help.py:64
+msgid "Resource's SELinux role"
+msgstr "SELinux uloga za resurs"
+
+#: ../src/field_help.py:65
+msgid "Resource's SELinux type"
+msgstr "Vrsta SELinuxa za resurs"
+
+#: ../src/field_help.py:66
+msgid "Resource's SELinux user"
+msgstr "SELinux korisnik za resurs"
+
+#: ../src/field_help.py:67
+msgid ""
+"Permission filter for file operations.  r=read, w=write, x=execute, "
+"a=attribute change.  These permissions are not the standard file "
+"permissions, they specify a kind of syscall. The read and write syscalls are "
+"omitted because they would overwhelm the logs. Instead, the open flags are "
+"looked at to see what permission was requested."
+msgstr ""
+"Filter dozvola za operacije nad datotekama.  r=čitanje, w=pisanje, x=izvrši, "
+"a=promena atributa. Ove dozvole nisu obične dozvole za datoteku, one "
+"određuju neki vid syscall poziva. syscall pozivi za čitanje i pisanje su "
+"izostavljeni jer bi preplavili dnevnike. Umesto toga gledaju se otvorene "
+"zastavice u cilju da se otkrije koje dozvole su zatražene."
+
+#: ../src/field_help.py:74
+msgid "OS personality number"
+msgstr "Broj OS ličnosti"
+
+#: ../src/field_help.py:75
+msgid "Process ID"
+msgstr "IB procesa"
+
+#: ../src/field_help.py:76
+msgid "Parent's process ID"
+msgstr "IB roditelja procesa"
+
+#: ../src/field_help.py:77
+msgid "Set group ID"
+msgstr "Postavi IB grupe"
+
+#: ../src/field_help.py:78
+msgid "Program's SELinux clearance"
+msgstr "SELinux dozvola za program"
+
+#: ../src/field_help.py:79
+msgid "Program's SELinux role"
+msgstr "SELinux uloga za program"
+
+#: ../src/field_help.py:80
+msgid "Program's SELinux sensitivity"
+msgstr "SELinux osetljivost za program"
+
+#: ../src/field_help.py:81
+msgid "Program's SELinux type"
+msgstr "SELinux vrsta za program"
+
+#: ../src/field_help.py:82
+msgid "Program's SELinux user"
+msgstr "SELinux korisnik za program"
+
+#: ../src/field_help.py:83
+msgid "If the exit value is >= 0, this is 1, otherwise it is 0."
+msgstr "Ukoliko je izlazna vrednost >= 0, ovo je 1, inače je 0."
+
+#: ../src/field_help.py:85
+msgid "Set user ID"
+msgstr "Postavi IB korisnika"
+
+#: ../src/field_help.py:86
+msgid "User ID"
+msgstr "IB korisnika"
+
+#: ../src/field_help.py:91
+msgid "No help available"
+msgstr "Pomoć nije dostupna"
+
+#: ../src/global_dialog.py:105 ../src/global_dialog.py:150
+#: ../src/global_dialog.py:155 ../src/global_dialog.py:161
+#: ../src/global_dialog.py:165
+msgid "Program"
+msgstr "Program"
+
+#: ../src/global_dialog.py:112 ../src/system-config-audit.glade.h:56
+msgid "Log File"
+msgstr "Datoteka dnevnika"
+
+#. TRANSLATORS: This is one of the options on the "Log File" tab of the
+#. "Settings" dialog.  It directs auditd to store the system host name
+#. (the parameter replaced by %s) without any modification.
+#: ../src/global_dialog.py:126
+#, python-format
+msgid "Host name as-_is (%s)"
+msgstr "Ime domaćina kako _jeste (%s)"
+
+#: ../src/global_dialog.py:137
+#, python-format
+msgid "_Fully-qualified host name (%s)"
+msgstr "_Potpuno kvalifikovano ime domaćina (%s)"
+
+#: ../src/global_dialog.py:138
+#, python-format
+msgid "I_P address (%s)"
+msgstr "I_P adresa (%s)"
+
+#: ../src/global_dialog.py:140
+msgid "_Fully-qualified host name"
+msgstr "_Potpuno kvalifikovano ime domaćina"
+
+#: ../src/global_dialog.py:141
+msgid "I_P address"
+msgstr "I_P adresa"
+
+#: ../src/global_dialog.py:391
+msgid "First threshold must be larger than second threshold"
+msgstr "Prvi prag mora biti veći od drugog"
+
+#: ../src/global_dialog.py:403
+#, python-format
+msgid "\"%s\" is too short"
+msgstr "„%s“ je prekratak"
+
+#: ../src/global_dialog.py:407
+#, python-format
+msgid "\"%(email)s\" contains an invalid character \"%(char)c\""
+msgstr "„%(email)s“ sadrži neispravan znak „%(char)c“"
+
+#: ../src/global_dialog.py:411
+#, python-format
+msgid "The domain in \"%s\" is not fully qualified"
+msgstr "Domen u „%s“ nije potpuno kvalifikovan"
+
+#: ../src/global_dialog.py:425 ../src/global_dialog.py:485
+#, python-format
+msgid "Error getting attributes of \"%(path)s\": %(msg)s"
+msgstr "Greška pri dobavljanju atributa „%(path)s“: %(msg)s"
+
+#: ../src/global_dialog.py:428 ../src/global_dialog.py:454
+#: ../src/global_dialog.py:488
+#, python-format
+msgid "\"%s\" is not a regular file"
+msgstr "„%s“ nije obična datoteka"
+
+#: ../src/global_dialog.py:430 ../src/global_dialog.py:456
+#: ../src/global_dialog.py:490
+#, python-format
+msgid "\"%s\" is not owned by root"
+msgstr "„%s“ nije u vlasništvu root korisnika"
+
+#: ../src/global_dialog.py:433 ../src/global_dialog.py:493
+#, python-format
+msgid "Permissions of \"%s\" should be 075x"
+msgstr "Dozvole nad „%s“ bi trebalo da budu 075x"
+
+#: ../src/global_dialog.py:435 ../src/global_dialog.py:495
+#, python-format
+msgid "\"%s\" should not be writable by other users"
+msgstr "„%s“ ne bi trebalo da bude upisiva od strane drugih korisnika"
+
+#: ../src/global_dialog.py:447
+#, python-format
+msgid "\"%s\" is not an existing directory"
+msgstr "„%s“ nije postojeći direktorijum"
+
+#: ../src/global_dialog.py:459
+#, python-format
+msgid "Permissions of \"%s\" should be 0600 or 0640"
+msgstr "Dozvole nad „%s“ bi trebalo da budu 0600 ili 0640"
+
+#: ../src/global_dialog.py:470
+msgid "The host name may not be empty"
+msgstr "Ime domaćina ne može ostati prazno"
+
+#: ../src/global_dialog.py:481
+#, python-format
+msgid "\"%s\" is not an absolute path"
+msgstr "„%s“ nije apsolutna putanja"
+
+#: ../src/global_dialog.py:506
+#, python-format
+msgid "Email requested but %s is not executable"
+msgstr "Zatražena elektronska pošta ali %s nije izvršna datoteka"
+
+#: ../src/global_dialog.py:555
+#, python-format
+msgid ""
+"The low disk space thresholds apply to the partition which contains the log "
+"file (%s)."
+msgstr ""
+"Pragovi za premalo slobodnog prostora na disku se primenjuju na particiju "
+"koja sadrži datoteku dnevnika (%s)."
+
+#: ../src/global_dialog.py:560
+msgid ""
+"The low disk space thresholds apply to the partition which contains the log "
+"file."
+msgstr ""
+"Pragovi za premalo slobodnog prostora na disku se primenjuju na particiju "
+"koja sadrži datoteku dnevnika."
+
+#: ../src/key_dialog.py:106
+msgid "Invalid IDS key value"
+msgstr "Neispravna vrednost IDS ključa"
+
+#: ../src/key_list_dialog.py:42 ../src/rule_list_dialog.py:32
+#: ../src/rule_list_dialog.py:50 ../src/rule_list_dialog.py:70
+#: ../src/watch_list_dialog.py:34
+msgid "Key"
+msgstr "Ključ"
+
+#: ../src/key_list_dialog.py:85
+msgid "Total key length is too long"
+msgstr "Ukupna dužina ključa je predugačka"
+
+#. From code in src/auditctl.c
+#: ../src/lists.py:166
+msgid "Information only"
+msgstr "Samo informacija"
+
+#: ../src/lists.py:167
+msgid "Low"
+msgstr "Nisko"
+
+#: ../src/lists.py:168
+msgid "Medium"
+msgstr "Srednje"
+
+#: ../src/lists.py:169
+msgid "High"
+msgstr "Visoko"
+
+#. From code in src/auditctl.c
+#: ../src/lists.py:171
+msgid "File watch"
+msgstr "Nadgledanje datoteke"
+
+#: ../src/lists.py:172
+msgid "Execution watch"
+msgstr "Nadgledanje izvršavanja"
+
+#: ../src/lists.py:173
+msgid "Executable created"
+msgstr "Napravljena izvršna datoteka"
+
+#: ../src/main.py:44
+#, python-format
+msgid "Error running system-config-audit-server: %s"
+msgstr "Greška pri pokretanju system-config-audit-server: %s"
+
+#: ../src/main_window.py:96
+msgid "Auditing disabled."
+msgstr "Provera isključena."
+
+#: ../src/main_window.py:97
+msgid "_Enable"
+msgstr "_Uključi"
+
+#: ../src/main_window.py:100
+msgid "Auditing enabled."
+msgstr "Provera uključena."
+
+#: ../src/main_window.py:101 ../src/main_window.py:105
+msgid "_Disable"
+msgstr "_Isključi"
+
+#: ../src/main_window.py:104
+msgid "Auditing enabled and locked."
+msgstr "Provera uključena i zaključana."
+
+#: ../src/main_window.py:108
+#, python-format
+msgid "Unknown auditing status %s."
+msgstr "Nepoznato stanje provere %s."
+
+#: ../src/main_window.py:110 ../src/main_window.py:118
+msgid "???"
+msgstr "???"
+
+#: ../src/main_window.py:117
+msgid "Error determining auditing status"
+msgstr "Greška pri utvrđivanju stanja nadgledanja"
+
+#: ../src/main_window.py:131
+#, python-format
+msgid "Error reading audit configuration: %s"
+msgstr "Greška pri čitanju podešavanja provere: %s"
+
+#: ../src/main_window.py:155
+#, python-format
+msgid "Error writing audit configuration: %s"
+msgstr "Greška pri zapisivanju podešavanja provere: %s"
+
+#. e.strerror is usually useless here
+#: ../src/main_window.py:167
+msgid "Error applying audit configuration"
+msgstr "Greška pri primeni promene u podešavanjima"
+
+#. See Config.__ne__
+#: ../src/main_window.py:183
+msgid "Configuration modified."
+msgstr "Podešavanja izmenjena"
+
+#: ../src/main_window.py:187
+msgid "Configuration saved."
+msgstr "Podešavanja sačuvana."
+
+#: ../src/main_window.py:189
+msgid "Configuration unchanged."
+msgstr "Podešavanja nepromenjena."
+
+#: ../src/main_window.py:196
+msgid "Save changes to the audit configuration before closing?"
+msgstr "Sačuvati izmene u podešavanjima provere pre zatvaranja?"
+
+#: ../src/main_window.py:200
+msgid "Close without Saving"
+msgstr "Zatvori bez čuvanja"
+
+#. FIXME: time information
+#: ../src/main_window.py:204
+msgid "If you don't save, your changes will be discarded."
+msgstr "Ukoliko ih ne sačuvate, promene će biti odbačene."
+
+#: ../src/main_window.py:218 ../system-config-audit.desktop.in.h:1
+msgid "Audit Configuration"
+msgstr "Podešavanja provere"
+
+#: ../src/main_window.py:235
+msgid "translator-credits"
+msgstr "Igor Miletic <grejigl-gnomeprevod@yahoo.ca>, 2008."
+
+#: ../src/main_window.py:248
+#, python-format
+msgid "Error changing auditing status: %s"
+msgstr "Greška pri izmeni stanja provere: %s"
+
+#: ../src/rule_dialog.py:97
+msgid "System Call"
+msgstr "Sistemski poziv"
+
+#: ../src/rule_dialog.py:118 ../src/rule_list_dialog.py:32
+#: ../src/rule_list_dialog.py:50 ../src/rule_list_dialog.py:70
+#: ../src/type_list_dialog.py:36 ../src/type_list_dialog.py:53
+msgid "Condition"
+msgstr "Uslov"
+
+#: ../src/rule_dialog.py:281
+msgid "The system call list must not be empty"
+msgstr "Sistemski poziv ne sme biti prazan"
+
+#: ../src/rule_dialog.py:290 ../src/watch_dialog.py:142
+msgid "No key"
+msgstr "Nema ključa"
+
+#: ../src/rule_list_dialog.py:32 ../src/rule_list_dialog.py:50
+#: ../src/system-config-audit.glade.h:83
+msgid "System Calls"
+msgstr "Sistemski pozivi"
+
+#: ../src/rule_list_dialog.py:33 ../src/rule_list_dialog.py:51
+#: ../src/rule_list_dialog.py:70 ../src/type_list_dialog.py:36
+msgid "Action"
+msgstr "Radnja"
+
+#: ../src/rule_list_dialog.py:69
+msgid "Allow auditing"
+msgstr "Dozvoli proveru"
+
+#: ../src/rule_list_dialog.py:69 ../src/rule_table.py:37
+msgid "Do not audit"
+msgstr "Ne proveravaj"
+
+#: ../src/rule_table.py:37
+msgid "Audit"
+msgstr "Provera"
+
+#: ../src/rule_table.py:129
+msgid "Any"
+msgstr "Bolo koji"
+
+#. TRANSLATORS: This string is used to connect audit rule conditions.
+#: ../src/rule_table.py:140
+msgid " and "
+msgstr " i "
+
+#: ../src/server.c:127
+msgid ""
+"This program is only for use by system-config-audit and it should not be "
+"run\n"
+"manually."
+msgstr ""
+"Ovaj program je namenjen korišćenju samo od strane system-config-audit "
+"programa i ne bi trebalo da bude pokretan ručno."
+
+#: ../src/server.c:141
+#, c-format
+msgid ""
+"\n"
+"Report bugs to %s.\n"
+msgstr ""
+"\n"
+"Greške prijaviti %s.\n"
+
+#: ../src/server.c:148
+msgid ""
+"Copyright (C) 2007 Red Hat, Inc.  All rights reserved.\n"
+"This software is distributed under the GPL v.2.\n"
+"\n"
+"This program is provided with NO WARRANTY, to the extent permitted by law."
+msgstr ""
+"Autorska prava (C) 2007 Red Hat, Inc. Sva prava zadržana.\n"
+"Ovaj softver je distribuiran pod GPL v.2.\n"
+"\n"
+"Ovaj program je BEZ GARANCIJE, u meri u kojoj je to dozvoljeno zakonom."
+
+#: ../src/server.c:472
+msgid "The control file is not a socket"
+msgstr "Kontrolna datoteka nije priključak"
+
+#: ../src/server.c:498
+#, c-format
+msgid "Unknown server request %<PRIu32>"
+msgstr "Nepoznat zahtev servera %<PRIu32>"
+
+#: ../src/system-config-audit.glade.h:1
+msgid "<b>Key Type</b>"
+msgstr "<b>Tip ključa</b>"
+
+#: ../src/system-config-audit.glade.h:2
+msgid "<span weight=\"bold\">Architecture</span>"
+msgstr "<span weight=\"bold\">Arhitektura</span>"
+
+#: ../src/system-config-audit.glade.h:3
+msgid "<span weight=\"bold\">Configuration Lock</span>"
+msgstr "<span weight=\"bold\">Zaključavanje podešavanja</span>"
+
+#: ../src/system-config-audit.glade.h:4
+msgid "<span weight=\"bold\">Current Configuration</span>"
+msgstr "<span weight=\"bold\">Tekuća podešavanja</span>"
+
+#: ../src/system-config-audit.glade.h:5
+msgid "<span weight=\"bold\">Disk Full</span>"
+msgstr "<span weight=\"bold\">Disk pun</span>"
+
+#: ../src/system-config-audit.glade.h:6
+msgid "<span weight=\"bold\">Email</span>"
+msgstr "<span weight=\"bold\">Elektronska pošta</span>"
+
+#: ../src/system-config-audit.glade.h:7
+msgid "<span weight=\"bold\">Event Type</span>"
+msgstr "<span weight=\"bold\">Vrsta događaja</span>"
+
+#: ../src/system-config-audit.glade.h:8
+msgid "<span weight=\"bold\">Failure Handling</span>"
+msgstr "<span weight=\"bold\">Rukovanje neuspehom</span>"
+
+#: ../src/system-config-audit.glade.h:9
+msgid "<span weight=\"bold\">I/O error</span>"
+msgstr "<span weight=\"bold\">Greška ulaza i izlaza</span>"
+
+#: ../src/system-config-audit.glade.h:10
+msgid "<span weight=\"bold\">Limit to the following system calls:</span>"
+msgstr "<span weight=\"bold\">Ograničeno na sledeće sistemske pozive:</span>"
+
+#: ../src/system-config-audit.glade.h:11
+msgid "<span weight=\"bold\">Limits</span>"
+msgstr "<span weight=\"bold\">Ograničenja</span>"
+
+#: ../src/system-config-audit.glade.h:12
+msgid "<span weight=\"bold\">Pass _audit events to a program</span>"
+msgstr "<span weight=\"bold\">Prosledi _provere događaje programu</span>"
+
+#: ../src/system-config-audit.glade.h:13
+msgid "<span weight=\"bold\">Priority</span>"
+msgstr "<span weight=\"bold\">Prvenstvo</span>"
+
+#: ../src/system-config-audit.glade.h:14
+msgid "<span weight=\"bold\">Second _threshold:</span>"
+msgstr "<span weight=\"bold\">Drugi _prag:</span>"
+
+#: ../src/system-config-audit.glade.h:15
+msgid "<span weight=\"bold\">Statistics</span>"
+msgstr "<span weight=\"bold\">Statistike</span>"
+
+#: ../src/system-config-audit.glade.h:16
+msgid "<span weight=\"bold\">Status</span>"
+msgstr "<span weight=\"bold\">Stanje</span>"
+
+#: ../src/system-config-audit.glade.h:17
+msgid "<span weight=\"bold\">Store _audit events to a file</span>"
+msgstr "<span weight=\"bold\">Smesti _provere događaja u datoteku</span>"
+
+#: ../src/system-config-audit.glade.h:18
+msgid "<span weight=\"bold\">Watched File</span>"
+msgstr "<span weight=\"bold\">Nadgledana datoteka</span>"
+
+#: ../src/system-config-audit.glade.h:19
+msgid "<span weight=\"bold\">Watched operations</span>"
+msgstr "<span weight=\"bold\">Nadgledane operacije</span>"
+
+#: ../src/system-config-audit.glade.h:20
+msgid "<span weight=\"bold\">When Rule Matches</span>"
+msgstr "<span weight=\"bold\">Kada se pravila slažu</span>"
+
+#: ../src/system-config-audit.glade.h:21
+msgid "<span weight=\"bold\">_First threshold:</span>"
+msgstr "<span weight=\"bold\">_Prvi prag:</span>"
+
+#: ../src/system-config-audit.glade.h:22
+msgid "Audit Daemon"
+msgstr "Demon provere"
+
+#: ../src/system-config-audit.glade.h:23
+msgid "Audit Rule"
+msgstr "Pravilo provere"
+
+#: ../src/system-config-audit.glade.h:24
+msgid "Audit configuration"
+msgstr "Podešavanja provere"
+
+#: ../src/system-config-audit.glade.h:25
+msgid "Audit daemon PID:"
+msgstr "PID demona provere:"
+
+#: ../src/system-config-audit.glade.h:26
+msgid "Audit daemon priority _boost:"
+msgstr "Prvenstvo _pojačanja demona provere:"
+
+#: ../src/system-config-audit.glade.h:27
+msgid "Audited Tasks"
+msgstr "Proveravani zadaci:"
+
+#: ../src/system-config-audit.glade.h:28
+msgid "B_rowse"
+msgstr "P_retraži"
+
+#: ../src/system-config-audit.glade.h:29
+msgid "Backlog:"
+msgstr "Povratni dnevnik:"
+
+#: ../src/system-config-audit.glade.h:30
+msgid "Brows_e"
+msgstr "Pretraž_i"
+
+#: ../src/system-config-audit.glade.h:31
+msgid "Browse"
+msgstr "Pretraži"
+
+#: ../src/system-config-audit.glade.h:32
+msgid "C_hange..."
+msgstr "P_romeni..."
+
+#: ../src/system-config-audit.glade.h:33
+msgid "Conditions"
+msgstr "Uslovi"
+
+#: ../src/system-config-audit.glade.h:34
+msgid "Configuration"
+msgstr "Podešavanja"
+
+#: ../src/system-config-audit.glade.h:35
+msgid "Current Status"
+msgstr "Tekući status"
+
+#: ../src/system-config-audit.glade.h:36
+msgid "D_o nothing"
+msgstr "_Ne radi ništa"
+
+#: ../src/system-config-audit.glade.h:37
+msgid "Default behavior: Allow auditing the task."
+msgstr "Podrazumevano ponašanje: Dozvoli proveravanje zadatka."
+
+#: ../src/system-config-audit.glade.h:38
+msgid "Default behavior: Audit the event."
+msgstr "Podrazumevano ponašanje: Proveri događaj."
+
+#: ../src/system-config-audit.glade.h:39
+msgid "Default behavior: Do not audit the system call"
+msgstr "Podrazumevano ponašanje: Ne proveravaj sistemski poziv."
+
+#: ../src/system-config-audit.glade.h:40
+msgid ""
+"Default behavior: Do not audit the system call, but allow auditing it by a "
+"\"System Call Exit\" rule or a kernel decision."
+msgstr ""
+"Podrazumevano ponašanje: Ne proveravaj sistemski poziv, ali dozvoli "
+"proveravanje putem pravila „Izlaz sistemskog poziva“ ili na osnovu odluke "
+"jezgra."
+
+#: ../src/system-config-audit.glade.h:41
+msgid "Default behavior: Preserve events."
+msgstr "Podrazumevano ponašanje: Sačuvaj događaje."
+
+#: ../src/system-config-audit.glade.h:42
+msgid "Do _nothing"
+msgstr "Ne radi ni_šta."
+
+#: ../src/system-config-audit.glade.h:43
+msgid "Event Key"
+msgstr "Ključ događaja"
+
+#: ../src/system-config-audit.glade.h:44
+msgid "Event Keys"
+msgstr "Ključevi događaja"
+
+#: ../src/system-config-audit.glade.h:45
+msgid "Event Type"
+msgstr "Vrsta događaja"
+
+#: ../src/system-config-audit.glade.h:46
+msgid "Event Type Rules"
+msgstr "Pravila vrsta događaja"
+
+#: ../src/system-config-audit.glade.h:47
+msgid "Event type rules:"
+msgstr "Pravila vrsta događaja:"
+
+#: ../src/system-config-audit.glade.h:48
+msgid ""
+"Events won't be written to the log file until the program resumes event "
+"processing."
+msgstr ""
+"Događaji se neće upisati u datoteku dnevnika sve dok program ne nastavi sa "
+"obradom događaja."
+
+#: ../src/system-config-audit.glade.h:49
+msgid "Fail _if more than"
+msgstr "Neuspelo _if more than"
+
+#: ../src/system-config-audit.glade.h:50
+msgid "File Watches"
+msgstr "Nadgledanje datoteke"
+
+#: ../src/system-config-audit.glade.h:51
+msgid "File watches:"
+msgstr "Nadgledanje datoteke:"
+
+#: ../src/system-config-audit.glade.h:52
+msgid "General"
+msgstr "Osnovno"
+
+#: ../src/system-config-audit.glade.h:53
+msgid "Global configuration"
+msgstr "Globalna podešavanja"
+
+#: ../src/system-config-audit.glade.h:54
+msgid "If the program stops processing events:"
+msgstr "Ukoliko program zaustavi obradu događaja:"
+
+#: ../src/system-config-audit.glade.h:55
+msgid "Kernel"
+msgstr "Jezgro"
+
+#: ../src/system-config-audit.glade.h:57
+msgid "Log File Errors"
+msgstr "Greške datoteke dnevnika"
+
+#: ../src/system-config-audit.glade.h:58
+msgid "Lost events:"
+msgstr "Izgubljeni događaji:"
+
+#: ../src/system-config-audit.glade.h:59
+msgid "Low Disk Space"
+msgstr "Malo slobodnog prostora na disku"
+
+#: ../src/system-config-audit.glade.h:60
+msgid "MB"
+msgstr "MB"
+
+#: ../src/system-config-audit.glade.h:61
+msgid "M_B:"
+msgstr "M_B:"
+
+#: ../src/system-config-audit.glade.h:62
+msgid "Making sure audit events are written to disk"
+msgstr "Postarati se da se događaji provere upišu na disk"
+
+#: ../src/system-config-audit.glade.h:63
+msgid "Other Audit Rules"
+msgstr "Druga pravila provere"
+
+#: ../src/system-config-audit.glade.h:64
+msgid "Other audit rules:"
+msgstr "Druga pravila provere:"
+
+#: ../src/system-config-audit.glade.h:65
+msgid "Run a _program:"
+msgstr "pokreni _program_"
+
+#: ../src/system-config-audit.glade.h:66
+msgid "S_hut down the computer"
+msgstr "_Isključi računar"
+
+#: ../src/system-config-audit.glade.h:67
+msgid "Save Configuration"
+msgstr "Snimi podešavanja"
+
+#: ../src/system-config-audit.glade.h:68
+msgid "Send _emails to:"
+msgstr "Pošalji _elektronsku poštu:"
+
+#: ../src/system-config-audit.glade.h:69
+msgid "Send a _message to syslog"
+msgstr "Pošalji _poruku u syslog"
+
+#: ../src/system-config-audit.glade.h:70
+msgid "Send a _message to system log"
+msgstr "Pošalji _poruku u sistemski dnevnik"
+
+#: ../src/system-config-audit.glade.h:71
+msgid "Send an _email"
+msgstr "Pošalji _elektronsku poštu"
+
+#: ../src/system-config-audit.glade.h:72
+msgid "Send an emai_l"
+msgstr "Pošalji elektronsku _poštu"
+
+#: ../src/system-config-audit.glade.h:73
+msgid "Settings"
+msgstr "Postavke"
+
+#: ../src/system-config-audit.glade.h:74
+msgid "Shut _down the computer"
+msgstr "_Isključi računar"
+
+#: ../src/system-config-audit.glade.h:75
+msgid "Stop _writing audit events to the log file"
+msgstr "Zaustavi _pisanje događaja provere u datoteku dnevnika"
+
+#: ../src/system-config-audit.glade.h:76
+msgid "Stop _writing events to the file"
+msgstr "Zaustavi _pisanje događaja u datoteku"
+
+#: ../src/system-config-audit.glade.h:77
+msgid "Stop writing _audit events to the log file"
+msgstr "Zaustavi pisanje događaja _nadgledanja u datoteku dnevnika"
+
+#: ../src/system-config-audit.glade.h:78
+msgid "Suppressed Events"
+msgstr "Suzbijeni događaji"
+
+#: ../src/system-config-audit.glade.h:79
+msgid "Switch to s_ingle-user mode"
+msgstr "Prebaci se u režim za _jednog korisnika"
+
+#: ../src/system-config-audit.glade.h:80
+msgid "Switch to single-_user mode"
+msgstr "Prebaci se u režim za jednog _korisnika"
+
+#: ../src/system-config-audit.glade.h:81
+msgid "System Call Entry"
+msgstr "Stavka sistemskog poziva"
+
+#: ../src/system-config-audit.glade.h:82
+msgid "System Call Exit"
+msgstr "Izlaz sistemskog poziva"
+
+#: ../src/system-config-audit.glade.h:84
+msgid ""
+"This rule set can be used to completely disable auditing for some tasks."
+msgstr ""
+"Ovaj skup pravila se može koristiti za potpuno isključenje proveravanja za "
+"pojedine zadatke."
+
+#: ../src/system-config-audit.glade.h:85
+msgid "This rule set can be used to discard all events of a specific type."
+msgstr ""
+"Ovaj skup pravila se može iskoristiti za odbacivanje svih događaja određene "
+"vrste."
+
+#: ../src/system-config-audit.glade.h:86
+msgid ""
+"This rule set can be used to filter audit events sent from applications."
+msgstr ""
+"Ovaj skup pravila se može iskoristiti za filtriranje događaja provere "
+"poslatih od strane programa."
+
+#: ../src/system-config-audit.glade.h:87
+msgid ""
+"This rule set can be used to mark a system call for auditing, or to prevent "
+"auditing of the system call.  To be audited by these rules, a system call "
+"must be performed in an audited task."
+msgstr ""
+"Ovaj skup pravila se može iskoristiti za označavanje sistemskog poziva za "
+"proveru, ili za sprečavanje provere sistemskog poziva.  Da bi se proveravalo "
+"ovim pravilima, sistemski poziv se mora izvršiti u proveravanom zadatku."
+
+#: ../src/system-config-audit.glade.h:88
+msgid ""
+"This rule set can be used to mark system calls for auditing.  To be audited "
+"by these rules, a system call must be performed in an audited task and it "
+"must pass the \"System Call Entry\" rules."
+msgstr ""
+"Ovaj skup pravila se može iskoristiti za označavanje sistemskih poziva za "
+"proveru.  Da bi se proveravalo ovim pravilima, sistemski poziv se mora "
+"izvršiti u proveravanom zadatku i mora proći pravila „Stavka sistemskog "
+"poziva“."
+
+#: ../src/system-config-audit.glade.h:89
+msgid "Trusted Application Events"
+msgstr "Događaji programa od poverenja"
+
+#: ../src/system-config-audit.glade.h:90 ../src/watch_dialog.py:48
+msgid "Watched File"
+msgstr "Nadgledana datoteka"
+
+#: ../src/system-config-audit.glade.h:91
+msgid "When the current log file _grows to"
+msgstr "Kada tekuća datoteka dnevnika _naraste do"
+
+#: ../src/system-config-audit.glade.h:92
+msgid "_Add a host name field to audit events:"
+msgstr "_Dodaj polje za ime domaćina događajima za proveru:"
+
+#: ../src/system-config-audit.glade.h:93
+msgid "_Any"
+msgstr "_Bilo koji"
+
+#: ../src/system-config-audit.glade.h:94
+msgid "_Apply the configuration changes after saving them"
+msgstr "_Primeni izmene u podešavanjima nakon što ih sačuvaš"
+
+#: ../src/system-config-audit.glade.h:95
+msgid "_Arbitrary text:"
+msgstr "_Proizvoljan tekst"
+
+#: ../src/system-config-audit.glade.h:96
+msgid "_Attribute change"
+msgstr "Promena _atributa"
+
+#: ../src/system-config-audit.glade.h:97
+msgid "_Browse"
+msgstr "_Pretraži"
+
+#: ../src/system-config-audit.glade.h:98
+msgid "_Browse..."
+msgstr "_Pretraži..."
+
+#: ../src/system-config-audit.glade.h:99
+msgid "_Custom:"
+msgstr "_Prilagođeno:"
+
+#: ../src/system-config-audit.glade.h:100
+msgid "_Data only"
+msgstr "Samo _podaci"
+
+#: ../src/system-config-audit.glade.h:101
+msgid "_Discard them"
+msgstr "_Odbaci ih"
+
+#: ../src/system-config-audit.glade.h:102
+msgid "_Execute"
+msgstr "_Izvrši"
+
+#: ../src/system-config-audit.glade.h:103
+msgid "_Fail if more than"
+msgstr "_Neuspelo ako je više od"
+
+#: ../src/system-config-audit.glade.h:104
+msgid "_File"
+msgstr "_Datoteka"
+
+#: ../src/system-config-audit.glade.h:105
+msgid "_File:"
+msgstr "_Datoteka:"
+
+#: ../src/system-config-audit.glade.h:106
+msgid "_Force writeout every"
+msgstr "_Primoraj na ispisivanje svakih:"
+
+#: ../src/system-config-audit.glade.h:107
+msgid "_Halt the system (without shutting down cleanly)"
+msgstr "_Zaustavi sistem (bez čistog isključivanja)"
+
+#: ../src/system-config-audit.glade.h:108
+msgid "_Help"
+msgstr "_Pomoć"
+
+#: ../src/system-config-audit.glade.h:109
+msgid "_Intrusion detection tag:"
+msgstr "Oznaka za otkrivanje _upada:"
+
+#: ../src/system-config-audit.glade.h:110
+msgid "_Keep only the newest"
+msgstr "_Sačuvaj samo najnovije"
+
+#: ../src/system-config-audit.glade.h:111
+msgid "_Limit to tasks using architecture:"
+msgstr "_Ograniči na zadatke koristeći arhitekturu:"
+
+#: ../src/system-config-audit.glade.h:112
+msgid "_Mark matching events with keys:"
+msgstr "_Označi poklapajuće događaje sa ključem:"
+
+#: ../src/system-config-audit.glade.h:113
+msgid "_Path:"
+msgstr "_Putanja:"
+
+#: ../src/system-config-audit.glade.h:114
+msgid "_Program:"
+msgstr "_Program:"
+
+#: ../src/system-config-audit.glade.h:115
+msgid "_Prohibit configuration changes until reboot"
+msgstr "_Zabrani izmene podešavanja pre ponovnog pokretanja sistema"
+
+#: ../src/system-config-audit.glade.h:116
+msgid "_Read"
+msgstr "_Čitaj"
+
+#: ../src/system-config-audit.glade.h:117
+msgid "_Rotate log files"
+msgstr "_Rotiraj datoteke dnevnika"
+
+#: ../src/system-config-audit.glade.h:118
+msgid "_Run a program:"
+msgstr "_Pokreni program:"
+
+#: ../src/system-config-audit.glade.h:119
+msgid "_Satisfying: type"
+msgstr "_Zadovoljava: vrsta"
+
+#: ../src/system-config-audit.glade.h:120
+msgid "_Send a message to syslog"
+msgstr "_Pošalji poruku u sistemski dnevnik"
+
+#: ../src/system-config-audit.glade.h:121
+msgid "_Send a message to system log"
+msgstr "_Pošalji poruku u sistemski dnevnik"
+
+#: ../src/system-config-audit.glade.h:122
+msgid "_Severity:"
+msgstr "_Ozbiljnost"
+
+#: ../src/system-config-audit.glade.h:123
+msgid "_Type:"
+msgstr "_Vrsta:"
+
+#: ../src/system-config-audit.glade.h:124
+msgid "_Use normal file system buffering"
+msgstr "_Koristi normalno baferovanje sistema datoteka"
+
+#: ../src/system-config-audit.glade.h:125
+msgid "_Wait until event processing is resumed"
+msgstr "_Sačekaj dok se obrada događaja ne nastavi"
+
+#: ../src/system-config-audit.glade.h:126
+msgid "_Write"
+msgstr "_Piši"
+
+#: ../src/system-config-audit.glade.h:127
+msgid "_events are generated per second"
+msgstr "_događaji se prave svake sekunde"
+
+#: ../src/system-config-audit.glade.h:128
+msgid "_records"
+msgstr "_zapisi"
+
+#: ../src/system-config-audit.glade.h:129
+msgid "events are left unprocessed"
+msgstr "događaji su ostavljeni neobrađeni"
+
+#: ../src/system-config-audit.glade.h:130
+msgid "f_iles"
+msgstr "d_atoteke"
+
+#: ../src/system-config-audit.glade.h:131
+msgid "gtk-edit"
+msgstr "gtk-edit"
+
+#: ../src/system-config-audit.glade.h:132
+msgid "gtk-go-down"
+msgstr "gtk-go-down"
+
+#: ../src/system-config-audit.glade.h:133
+msgid "gtk-go-up"
+msgstr "gtk-go-up"
+
+#: ../src/type_list_dialog.py:75
+msgid "Any type"
+msgstr "Bilo koja vrsta"
+
+#: ../src/type_list_dialog.py:79
+msgid "Type"
+msgstr "Vrsta"
+
+#: ../src/util.py:150
+#, python-format
+msgid "Unknown architecture %d"
+msgstr "Nepoznata arhitektura %d"
+
+#: ../src/util.py:158
+msgid "64-bit architecture not supported"
+msgstr "64-bitna arhitektura nije podržana"
+
+#: ../src/util.py:162
+msgid "32-bit architecture not supported"
+msgstr "32-bitna arhitektura nije podržana"
+
+#: ../src/util.py:166
+#, python-format
+msgid "Unknown architecture \"%s\""
+msgstr "Nepoznata arhitektura „%s“"
+
+#: ../src/util.py:177
+#, python-format
+msgid "Unknown file type \"%s\""
+msgstr "Nepoznat vrsta datoteke „%s“"
+
+#: ../src/util.py:213
+#, python-format
+msgid "Unknown message type \"%s\""
+msgstr "Nepoznat vrsta poruke „%s“"
+
+#: ../src/util.py:227
+#, python-format
+msgid "Unknown system call \"%s\""
+msgstr "Nepoznat sistemski poziv „%s“"
+
+#: ../src/util.py:229
+msgid "System call number must be non-negative"
+msgstr "Broj sistemskog poziva ne sme biti negativna"
+
+#: ../src/util.py:241
+#, python-format
+msgid "Invalid number \"%s\""
+msgstr "Neispravan broj „%s“"
+
+#: ../src/util.py:243
+msgid "Value must be non-negative"
+msgstr "Vrednost ne sme biti negativna"
+
+#: ../src/util.py:248
+msgid ", "
+msgstr ", "
+
+#: ../src/watch_dialog.py:133
+msgid "The watched file path must not be empty"
+msgstr "Putanja nadgledane datoteke ne sme biti prazna"
+
+#: ../src/watch_list_dialog.py:34
+msgid "Path"
+msgstr "Putanja"
+
+#: ../src/watch_list_dialog.py:34
+msgid "Operations"
+msgstr "Operacije"
+
+#: ../system-config-audit.desktop.in.h:2
+msgid "Modify audit configuration"
+msgstr "Izmeni konfiguraciju provere"

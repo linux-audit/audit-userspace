@@ -1,0 +1,1226 @@
+# translation of system-config-audit.tip.po to Assamese
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+#
+# Amitakhya Phukan <aphukan@fedoraproject.org>, 2008, 2009.
+msgid ""
+msgstr ""
+"Project-Id-Version: system-config-audit.tip\n"
+"Report-Msgid-Bugs-To: https://fedorahosted.org/system-config-audit/\n"
+"POT-Creation-Date: 2009-04-01 08:30+0000\n"
+"PO-Revision-Date: 2009-04-01 15:32+0530\n"
+"Last-Translator: Amitakhya Phukan <aphukan@fedoraproject.org>\n"
+"Language-Team: Assamese <fedora-trans-as@redhat.com>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Lokalize 0.3\n"
+"Plural-Forms: nplurals=2; plural=(n!=1)\n"
+
+#: ../src/audit_rules.py:78
+#, python-format
+msgid "Unknown user \"%s\""
+msgstr "অজ্ঞাত ব্যৱহাৰকৰোঁতা \"%s\""
+
+#: ../src/audit_rules.py:106
+#, python-format
+msgid "Unknown group \"%s\""
+msgstr "অজ্ঞাত দল \"%s\""
+
+#: ../src/audit_rules.py:168
+#, python-format
+msgid "Key value \"%s\" too long"
+msgstr "\"%s\" চাবিৰ মান বৰ দীঘল"
+
+#: ../src/audit_rules.py:170
+#, python-format
+msgid "Invalid IDS key \"%s\""
+msgstr "IDS চাবি \"%s\" বৈধ নহয়"
+
+#: ../src/audit_rules.py:177
+msgid "Architecture can not be changed after system calls are selected"
+msgstr "system call নিৰ্ব্বাচনৰ পিছত স্থাপত্য পৰিবৰ্তন কৰা সম্ভৱ নহয়"
+
+#: ../src/audit_rules.py:180 ../src/audit_rules.py:262
+#, python-format
+msgid "The only valid operators for \"%s\" are \"=\" and \"!=\""
+msgstr "\"%s\" ৰ ক্ষেত্ৰত প্ৰযোজ্য অপাৰেটৰসমূহ হ'ল \"=\" আৰু \"!=\""
+
+#: ../src/audit_rules.py:202
+#, python-format
+msgid "The only valid operator for \"%s\" is \"=\""
+msgstr "\"%s\" ৰ বাবে প্ৰযোজ্য অপাৰেটৰসমূহ হ'ল \"=\""
+
+#: ../src/audit_rules.py:215
+#, python-format
+msgid "Unknown permission \"%(char)c\" in \"%(perms)s\""
+msgstr "\"%(perms)s\" ত অজ্ঞাত অনুমতি \"%(char)c\""
+
+#: ../src/audit_rules.py:243
+#, python-format
+msgid "Invalid integer value \"%s\""
+msgstr "পূৰ্ণসংখ্যা মান \"%s\" বৈধ নহয়"
+
+#: ../src/audit_rules.py:335
+#, python-format
+msgid "Unknown field \"%s\""
+msgstr "অজ্ঞাত ক্ষেত্ৰ \"%s\""
+
+#: ../src/audit_rules.py:339
+#, python-format
+msgid "Unknown operator \"%s\""
+msgstr "অজ্ঞাত অপাৰেটৰ \"%s\""
+
+#: ../src/audit_rules.py:358
+#, python-format
+msgid "Operator missing in \"%s\""
+msgstr "\"%s\" ত অপাৰেটৰ অনুপস্থিত"
+
+#: ../src/client.py:124
+msgid "Not enough data available"
+msgstr "পৰ্যাপ্ত তথ্য নাই"
+
+#: ../src/event_type_dialog.py:110
+msgid "No operator was selected"
+msgstr "কোনো অপাৰেটৰ নিৰ্ব্বাচন কৰা হোৱা নাই"
+
+#: ../src/field_help.py:28
+msgid "The CPU architecture of the syscall.  The arch can be found using `uname -m'."
+msgstr "syscall ৰ CPU স্থাপত্য  `uname  m' আদেশৰ সহায়ত স্থাপত্য চিনাক্ত কৰা সম্ভৱ হ'ব ।"
+
+#: ../src/field_help.py:30
+msgid ""
+"The first argument to a syscall.  Note that string arguments are not "
+"supported.  This is most likely to be used on platforms that multiplex "
+"socket or IPC operations."
+msgstr ""
+"syscall ৰ বাবে প্ৰথম তৰ্ক ।  মন কৰিব স্ট্ৰিং তৰ্ক সমৰ্থিত নহয় ।  ছকেট বা IPC কাৰ্য্য "
+"যি স্থাপত্যত মাল্টিপ্লেক্স কৰা হয় তাত এইটো সাধাৰণত ব্যৱহৃত হ'ব ।"
+
+#: ../src/field_help.py:34
+msgid ""
+"The second argument to a syscall.  Note that string arguments are not "
+"supported.  This is most likely to be used on platforms that multiplex "
+"socket or IPC operations."
+msgstr ""
+"syscall ৰ বাবে দ্বিতীয় তৰ্ক ।  মন কৰিব স্ট্ৰিং তৰ্ক সমৰ্থিত নহয় ।  ছকেট বা IPC "
+"কাৰ্য্য যি স্থাপত্যত মাল্টিপ্লেক্স কৰা হয় তাত এইটো সাধাৰণত ব্যৱহৃত হ'ব ।"
+
+#: ../src/field_help.py:38
+msgid ""
+"The third argument to a syscall.  Note that string arguments are not "
+"supported.  This is most likely to be used on platforms that multiplex "
+"socket or IPC operations."
+msgstr ""
+"syscall ৰ বাবে তৃতীয় তৰ্ক ।  মন কৰিব স্ট্ৰিং তৰ্ক সমৰ্থিত নহয় ।  ছকেট বা IPC কাৰ্য্য "
+"যি স্থাপত্যত মাল্টিপ্লেক্স কৰা হয় তাত এইটো সাধাৰণত ব্যৱহৃত হ'ব ।"
+
+#: ../src/field_help.py:42
+msgid ""
+"The fourth argument to a syscall.  Note that string arguments are not "
+"supported.  This is most likely to be used on platforms that multiplex "
+"socket or IPC operations."
+msgstr ""
+"syscall ৰ বাবে চতুৰ্থ তৰ্ক ।  মন কৰিব স্ট্ৰিং তৰ্ক সমৰ্থিত নহয় ।  ছকেট বা IPC কাৰ্য্য "
+"যি স্থাপত্যত মাল্টিপ্লেক্স কৰা হয় তাত এইটো সাধাৰণত ব্যৱহৃত হ'ব ।"
+
+#: ../src/field_help.py:46
+msgid "Device major number"
+msgstr "যন্ত্ৰৰ মেজৰ সংখ্যা"
+
+#: ../src/field_help.py:47
+msgid "Device minor number"
+msgstr "যন্ত্ৰৰ মাইনৰ সংখ্যা"
+
+#. audit.AUDIT_DIR is handled specially in the GUI
+#: ../src/field_help.py:49
+msgid "Effective group ID"
+msgstr "প্ৰযোজ্য দলৰ ID"
+
+#: ../src/field_help.py:50
+msgid "Effective user ID"
+msgstr "প্ৰযোজ্য ব্যৱহাৰকৰোঁতাৰ ID"
+
+#: ../src/field_help.py:51
+msgid "Exit value from a syscall"
+msgstr "syscall ৰ পৰা প্ৰস্থানত উৎপন্ন মান"
+
+#: ../src/field_help.py:52
+msgid ""
+"The target file's type.  Can be either file, dir, socket, symlink, char, "
+"block, or fifo."
+msgstr ""
+"লক্ষ্য নথিপত্ৰৰ ধৰণ । file, dir, socket, symlink, char, block, বা fifo হ'ব পাৰে "
+"।"
+
+#. audit.AUDIT_FILTERKEY is handled specially in the GUI
+#: ../src/field_help.py:55
+msgid "File system group ID"
+msgstr "নথিপত্ৰপ্ৰণালী দলৰ ID"
+
+#: ../src/field_help.py:56
+msgid "File system user ID"
+msgstr "নথিপত্ৰপ্ৰণালী ব্যৱহাৰকৰোঁতাৰ ID"
+
+#: ../src/field_help.py:57
+msgid "Group ID"
+msgstr "সমষ্টিৰ ID"
+
+#: ../src/field_help.py:58
+msgid "Inode number"
+msgstr "Inode সংখ্যা"
+
+#: ../src/field_help.py:59
+msgid "ID of the user in whose login session the process is running"
+msgstr "যি ব্যৱহাৰকৰোঁতাৰ প্ৰৱেশ কৰা অধিবেশনত প্ৰছেছ চলিছে সেইজনৰ ID"
+
+#. audit.AUDIT_MSGTYPE has a special version of the dialog
+#: ../src/field_help.py:62
+msgid "Resource's SELinux high level"
+msgstr "সম্পদৰ SELinux উচ্চ মাত্ৰা"
+
+#: ../src/field_help.py:63
+msgid "Resource's SELinux low level"
+msgstr "সম্পদৰ SELinux নিম্ন মাত্ৰা"
+
+#: ../src/field_help.py:64
+msgid "Resource's SELinux role"
+msgstr "সম্পদৰ SELinux ৰোল"
+
+#: ../src/field_help.py:65
+msgid "Resource's SELinux type"
+msgstr "সম্পদৰ SELinux ধৰণ"
+
+#: ../src/field_help.py:66
+msgid "Resource's SELinux user"
+msgstr "সম্পদৰ SELinux ব্যৱহাৰকৰোঁতা"
+
+#: ../src/field_help.py:67
+msgid ""
+"Permission filter for file operations.  r=read, w=write, x=execute, "
+"a=attribute change.  These permissions are not the standard file "
+"permissions, they specify a kind of syscall. The read and write syscalls are "
+"omitted because they would overwhelm the logs. Instead, the open flags are "
+"looked at to see what permission was requested."
+msgstr ""
+"নথিপত্ৰৰ কাৰ্য্যৰ বাবে অনুমতিৰ ফিল্টাৰ । r=read, w=write, x=execute, a=attribute "
+"change.  এই অনুমতিসমূহ মানপ্ৰাপ্ত নথিপত্ৰৰ অনুমতি নহয়, সিহঁতে syscall ৰ এটা ধৰণ "
+"নিৰ্ধাৰণ কৰে । read আৰু write syscall সমূহ এৰি যোৱা হৈছে কিয়নো ইয়াৰ কাৰণে লগসমূহ "
+"সীঘ্ৰে পূৰ্ণ হ'ব । ইয়াৰ সলনি, অনুমতিৰ অনুৰোধসমূহ পঢ়িবলৈ open flag সমূহক পঢ়া হয় ।"
+
+#: ../src/field_help.py:74
+msgid "OS personality number"
+msgstr "OS personality সংখ্যা"
+
+#: ../src/field_help.py:75
+msgid "Process ID"
+msgstr "প্ৰছেছ ID"
+
+#: ../src/field_help.py:76
+msgid "Parent's process ID"
+msgstr "পেৰেন্টৰ প্ৰছেছৰ ID"
+
+#: ../src/field_help.py:77
+msgid "Set group ID"
+msgstr "দলৰ ID নিৰ্ধাৰণ কৰক"
+
+#: ../src/field_help.py:78
+msgid "Program's SELinux clearance"
+msgstr "অনুপ্ৰয়োগৰ SELinux clearance"
+
+#: ../src/field_help.py:79
+msgid "Program's SELinux role"
+msgstr "অনুপ্ৰয়োগৰ SELinux ৰোল"
+
+#: ../src/field_help.py:80
+msgid "Program's SELinux sensitivity"
+msgstr "অনুপ্ৰয়োগৰ SELinux sensitivity"
+
+#: ../src/field_help.py:81
+msgid "Program's SELinux type"
+msgstr "অনুপ্ৰয়োগৰ SELinux ধৰণ"
+
+#: ../src/field_help.py:82
+msgid "Program's SELinux user"
+msgstr "অনুপ্ৰয়োগৰ SELinux ব্যৱহাৰকৰোঁতা"
+
+#: ../src/field_help.py:83
+msgid "If the exit value is >= 0, this is 1, otherwise it is 0."
+msgstr "প্ৰস্থানকালত উৎপন্ন মান >= ০ হ'লে, ইয়াৰ মান ১ হ'ব ন'হ'লে ০ হ'ব"
+
+#: ../src/field_help.py:85
+msgid "Set user ID"
+msgstr "ব্যৱহাৰকৰোঁতাৰ ID নিৰ্ধাৰণ কৰক"
+
+#: ../src/field_help.py:86
+msgid "User ID"
+msgstr "ব্যৱহাৰকৰোঁতাৰ ID"
+
+#: ../src/field_help.py:91
+msgid "No help available"
+msgstr "কোনো সহায় নাই"
+
+#: ../src/global_dialog.py:105 ../src/global_dialog.py:150
+#: ../src/global_dialog.py:155 ../src/global_dialog.py:161
+#: ../src/global_dialog.py:165
+msgid "Program"
+msgstr "অনুপ্ৰয়োগ"
+
+#: ../src/global_dialog.py:112 ../src/system-config-audit.glade.h:56
+msgid "Log File"
+msgstr "লগ নথিপত্ৰ"
+
+#. TRANSLATORS: This is one of the options on the "Log File" tab of the
+#. "Settings" dialog.  It directs auditd to store the system host name
+#. (the parameter replaced by %s) without any modification.
+#: ../src/global_dialog.py:126
+#, python-format
+msgid "Host name as-_is (%s)"
+msgstr "Host name as _is (%s)"
+
+#: ../src/global_dialog.py:137
+#, python-format
+msgid "_Fully-qualified host name (%s)"
+msgstr "সম্পূৰ্ণ গৃহস্থৰ নাম (%s) (_F)"
+
+#: ../src/global_dialog.py:138
+#, python-format
+msgid "I_P address (%s)"
+msgstr "IP ঠিকনা (%s) (_P)"
+
+#: ../src/global_dialog.py:140
+msgid "_Fully-qualified host name"
+msgstr "সুনিৰ্দিষ্ট গৃহস্থৰ নাম (_F)"
+
+#: ../src/global_dialog.py:141
+msgid "I_P address"
+msgstr "IP ঠিকনা  (_P)"
+
+#: ../src/global_dialog.py:391
+msgid "First threshold must be larger than second threshold"
+msgstr "প্ৰথম প্ৰান্তিক মাপ দ্বিতীয় প্ৰান্তিক মাপতকৈ অধিক হ'ব লাগে"
+
+#: ../src/global_dialog.py:403
+#, python-format
+msgid "\"%s\" is too short"
+msgstr "\"%s\" বৰ সৰু"
+
+#: ../src/global_dialog.py:407
+#, python-format
+msgid "\"%(email)s\" contains an invalid character \"%(char)c\""
+msgstr "\"%(email)s\" ত অৱৈধ অক্ষৰ \"%(char)c\" আছে"
+
+#: ../src/global_dialog.py:411
+#, python-format
+msgid "The domain in \"%s\" is not fully qualified"
+msgstr "\"%s\" ত ডোমেইন সম্পূৰ্ণৰূপে qualified নহয়"
+
+#: ../src/global_dialog.py:425 ../src/global_dialog.py:485
+#, python-format
+msgid "Error getting attributes of \"%(path)s\": %(msg)s"
+msgstr "\"%(path)s\" ৰ বৈশিষ্ট্য প্ৰাপ্ত কৰোঁতে ব্যৰ্থ: %(msg)s"
+
+#: ../src/global_dialog.py:428 ../src/global_dialog.py:454
+#: ../src/global_dialog.py:488
+#, python-format
+msgid "\"%s\" is not a regular file"
+msgstr "\"%s\" সাধাৰণ নথিপত্ৰ নহয়"
+
+#: ../src/global_dialog.py:430 ../src/global_dialog.py:456
+#: ../src/global_dialog.py:490
+#, python-format
+msgid "\"%s\" is not owned by root"
+msgstr "\"%s\" ৰ গৰাকী root নহয়"
+
+#: ../src/global_dialog.py:433 ../src/global_dialog.py:493
+#, python-format
+msgid "Permissions of \"%s\" should be 075x"
+msgstr "\"%s\" ৰ অনুমতি 075x হোৱা আৱশ্যক"
+
+#: ../src/global_dialog.py:435 ../src/global_dialog.py:495
+#, python-format
+msgid "\"%s\" should not be writable by other users"
+msgstr "\"%s\" অন্য ব্যৱহাৰকৰোঁতাৰ দ্বাৰা লিখিব পৰা নহয়লাগে"
+
+#: ../src/global_dialog.py:447
+#, python-format
+msgid "\"%s\" is not an existing directory"
+msgstr "\"%s\" পঞ্জিকা নাই"
+
+#: ../src/global_dialog.py:459
+#, python-format
+msgid "Permissions of \"%s\" should be 0600 or 0640"
+msgstr "\"%s\" ৰ অনুমতি 0600 বা 0640 হোৱা আৱশ্যক"
+
+#: ../src/global_dialog.py:470
+msgid "The host name may not be empty"
+msgstr "গৃহস্থৰ নাম ৰিক্ত নহয়লাগে"
+
+#: ../src/global_dialog.py:481
+#, python-format
+msgid "\"%s\" is not an absolute path"
+msgstr "\"%s\" সুনিৰ্দিষ্ট পথ নহয়"
+
+#: ../src/global_dialog.py:506
+#, python-format
+msgid "Email requested but %s is not executable"
+msgstr "ঈ-মেইলৰ অনুৰোধ কৰা হৈছে যদিও %s সঞ্চালনযোগ্য নহয়"
+
+#: ../src/global_dialog.py:555
+#, python-format
+msgid ""
+"The low disk space thresholds apply to the partition which contains the log "
+"file (%s)."
+msgstr ""
+"লগ নথিপত্ৰ থকা বিভাজনেৰ ক্ষেত্ৰত ডিস্কেৰ স্থানেৰ স্বল্পতা বিষয়ক প্ৰান্তিক মাপসমূহ "
+"প্ৰযোজ্য (%s) ।"
+
+#: ../src/global_dialog.py:560
+msgid ""
+"The low disk space thresholds apply to the partition which contains the log "
+"file."
+msgstr ""
+"লগ নথিপত্ৰ থকা বিভাজনেৰ ক্ষেত্ৰত ডিস্ৰ স্থােৰ স্বল্পতা বিষয়ক প্ৰান্তিক মাপসমূহ প্ৰযোজ্য ।"
+
+#: ../src/key_dialog.py:106
+msgid "Invalid IDS key value"
+msgstr "IDS চাবিৰ মান বৈধ নহয়"
+
+#: ../src/key_list_dialog.py:42 ../src/rule_list_dialog.py:32
+#: ../src/rule_list_dialog.py:50 ../src/rule_list_dialog.py:70
+#: ../src/watch_list_dialog.py:34
+msgid "Key"
+msgstr "চাবি"
+
+#: ../src/key_list_dialog.py:85
+msgid "Total key length is too long"
+msgstr "চাবিৰ সম্পূৰ্ণ মাপ বৰ দীঘল"
+
+#. From code in src/auditctl.c
+#: ../src/lists.py:166
+msgid "Information only"
+msgstr "অকল তথ্য"
+
+#: ../src/lists.py:167
+msgid "Low"
+msgstr "কম"
+
+#: ../src/lists.py:168
+msgid "Medium"
+msgstr "মধ্যম"
+
+#: ../src/lists.py:169
+msgid "High"
+msgstr "উচ্চ"
+
+#. From code in src/auditctl.c
+#: ../src/lists.py:171
+msgid "File watch"
+msgstr "নথিপত্ৰ নিৰীক্ষণ"
+
+#: ../src/lists.py:172
+msgid "Execution watch"
+msgstr "Execution watch"
+
+#: ../src/lists.py:173
+msgid "Executable created"
+msgstr "Executable নিৰ্মাণ কৰা হৈছে"
+
+#: ../src/main.py:44
+#, python-format
+msgid "Error running system-config-audit-server: %s"
+msgstr "system config audit server চলাওঁতে সমস্যা: %s"
+
+#: ../src/main_window.py:96
+msgid "Auditing disabled."
+msgstr "অডিট ব্যৱস্থা নিষ্ক্ৰিয় ।"
+
+#: ../src/main_window.py:97
+msgid "_Enable"
+msgstr "সক্ৰিয় (_E)"
+
+#: ../src/main_window.py:100
+msgid "Auditing enabled."
+msgstr "অডিট ব্যৱস্থা সক্ৰিয় ।"
+
+#: ../src/main_window.py:101 ../src/main_window.py:105
+msgid "_Disable"
+msgstr "নিষ্ক্ৰীয় কৰক (_D)"
+
+#: ../src/main_window.py:104
+msgid "Auditing enabled and locked."
+msgstr "অডিট ব্যৱস্থা সক্ৰিয় আৰু লক কৰা আছে ।"
+
+#: ../src/main_window.py:108
+#, python-format
+msgid "Unknown auditing status %s."
+msgstr "অডিটৰ অৱস্থা %s অজ্ঞাত ।"
+
+#: ../src/main_window.py:110 ../src/main_window.py:118
+msgid "???"
+msgstr "???"
+
+#: ../src/main_window.py:117
+msgid "Error determining auditing status"
+msgstr "অডিট অৱস্থা নিৰ্ধাৰণ কৰোঁতে সমস্যা"
+
+#: ../src/main_window.py:131
+#, python-format
+msgid "Error reading audit configuration: %s"
+msgstr "অডিট বিন্যাস পঢ়োঁতে সমস্যা: %s"
+
+#: ../src/main_window.py:155
+#, python-format
+msgid "Error writing audit configuration: %s"
+msgstr "অডিটৰ বিন্যাস লিখোঁতে সমস্যা: %s"
+
+#. e.strerror is usually useless here
+#: ../src/main_window.py:167
+msgid "Error applying audit configuration"
+msgstr "অডিট বিন্যাস প্ৰয়োগ কৰোঁতে সমস্যা"
+
+#. See Config.__ne__
+#: ../src/main_window.py:183
+msgid "Configuration modified."
+msgstr "বিন্যাস পৰিবৰ্তিত হৈছে ।"
+
+#: ../src/main_window.py:187
+msgid "Configuration saved."
+msgstr "বিন্যাস সংৰক্ষিত হৈছে ।"
+
+#: ../src/main_window.py:189
+msgid "Configuration unchanged."
+msgstr "বিন্যাস পৰিবৰ্তিত নহয় ।"
+
+#: ../src/main_window.py:196
+msgid "Save changes to the audit configuration before closing?"
+msgstr "বন্ধ কৰাৰ পূৰ্বে অডিটৰ সাল সলনি বিন্যাসত সংৰক্ষণ কৰা হ'ব নেকি ?"
+
+#: ../src/main_window.py:200
+msgid "Close without Saving"
+msgstr "সংৰক্ষণ নকৰিয়ে বন্ধ কৰক"
+
+#. FIXME: time information
+#: ../src/main_window.py:204
+msgid "If you don't save, your changes will be discarded."
+msgstr "সংৰক্ষণ নকৰিলে, আপোনাৰ পৰিবৰ্তনসমূহ পৰিত্যাগ কৰা হ'ব ।"
+
+#: ../src/main_window.py:218 ../system-config-audit.desktop.in.h:1
+msgid "Audit Configuration"
+msgstr "অডিটৰ বিন্যাস"
+
+#: ../src/main_window.py:235
+msgid "translator-credits"
+msgstr "অমিতাক্ষ ফুকন (aphukan@fedoraproject.org)"
+
+#: ../src/main_window.py:248
+#, python-format
+msgid "Error changing auditing status: %s"
+msgstr "অডিটৰ অৱস্থা পৰিবৰ্তন কৰোঁতে ব্যৰ্থ: %s"
+
+#: ../src/rule_dialog.py:97
+msgid "System Call"
+msgstr "System Call"
+
+#: ../src/rule_dialog.py:118 ../src/rule_list_dialog.py:32
+#: ../src/rule_list_dialog.py:50 ../src/rule_list_dialog.py:70
+#: ../src/type_list_dialog.py:36 ../src/type_list_dialog.py:53
+msgid "Condition"
+msgstr "পৰিস্থিতি"
+
+#: ../src/rule_dialog.py:281
+msgid "The system call list must not be empty"
+msgstr "system call ৰ তালিকা ৰিক্ত নহয়লাগে"
+
+#: ../src/rule_dialog.py:290 ../src/watch_dialog.py:142
+msgid "No key"
+msgstr "চাবি নাই"
+
+#: ../src/rule_list_dialog.py:32 ../src/rule_list_dialog.py:50
+#: ../src/system-config-audit.glade.h:83
+msgid "System Calls"
+msgstr "System Calls"
+
+#: ../src/rule_list_dialog.py:33 ../src/rule_list_dialog.py:51
+#: ../src/rule_list_dialog.py:70 ../src/type_list_dialog.py:36
+msgid "Action"
+msgstr "কৰ্ম"
+
+#: ../src/rule_list_dialog.py:69
+msgid "Allow auditing"
+msgstr "অডিট কৰাৰ অনুমতি দিয়ক"
+
+#: ../src/rule_list_dialog.py:69 ../src/rule_table.py:37
+msgid "Do not audit"
+msgstr "অডিট কৰা নহয়"
+
+#: ../src/rule_table.py:37
+msgid "Audit"
+msgstr "অডিট কৰা হ'ব"
+
+#: ../src/rule_table.py:129
+msgid "Any"
+msgstr "যি কোনো"
+
+#. TRANSLATORS: This string is used to connect audit rule conditions.
+#: ../src/rule_table.py:140
+msgid " and "
+msgstr " আৰু "
+
+#: ../src/server.c:127
+msgid ""
+"This program is only for use by system-config-audit and it should not be "
+"run\n"
+"manually."
+msgstr ""
+"এই অনুপ্ৰয়োগটো অকল system config audit দ্বাৰা ব্যৱহাৰযোগ্য আৰু এইটো ব্যৱহাৰকৰোঁতা "
+"দ্বাৰা\n"
+"সঞ্চালন কৰা উচিত নহয় ।"
+
+#: ../src/server.c:141
+#, c-format
+msgid ""
+"\n"
+"Report bugs to %s.\n"
+msgstr ""
+"\n"
+"বাগসমূহক %s ত জনাওক ।\n"
+
+#: ../src/server.c:148
+msgid ""
+"Copyright (C) 2007 Red Hat, Inc.  All rights reserved.\n"
+"This software is distributed under the GPL v.2.\n"
+"\n"
+"This program is provided with NO WARRANTY, to the extent permitted by law."
+msgstr ""
+"Copyright (C) 2007 Red Hat, Inc.  All rights reserved.\n"
+"This software is distributed under the GPL v.2.\n"
+"\n"
+"This program is provided with NO WARRANTY, to the extent permitted by law."
+
+#: ../src/server.c:472
+msgid "The control file is not a socket"
+msgstr "control নথিপত্ৰ socket নহয়"
+
+#: ../src/server.c:498
+#, c-format
+msgid "Unknown server request %<PRIu32>"
+msgstr "অজ্ঞাত সেৱকৰ অনুৰোধ %<PRIu32>"
+
+#: ../src/system-config-audit.glade.h:1
+msgid "<b>Key Type</b>"
+msgstr "<b>চাবিৰ ধৰণ</b>"
+
+#: ../src/system-config-audit.glade.h:2
+msgid "<span weight=\"bold\">Architecture</span>"
+msgstr "<span weight=\"bold\">স্থাপত্য</span>"
+
+#: ../src/system-config-audit.glade.h:3
+msgid "<span weight=\"bold\">Configuration Lock</span>"
+msgstr "<span weight=\"bold\">বিন্যাস লক</span>"
+
+#: ../src/system-config-audit.glade.h:4
+msgid "<span weight=\"bold\">Current Configuration</span>"
+msgstr "<span weight=\"bold\">বৰ্তমান বিন্যাস</span>"
+
+#: ../src/system-config-audit.glade.h:5
+msgid "<span weight=\"bold\">Disk Full</span>"
+msgstr "<span weight=\"bold\">ডিস্ক পূৰ্ণ হ'ল</span>"
+
+#: ../src/system-config-audit.glade.h:6
+msgid "<span weight=\"bold\">Email</span>"
+msgstr "<span weight=\"bold\">ঈ-মেইল</span>"
+
+#: ../src/system-config-audit.glade.h:7
+msgid "<span weight=\"bold\">Event Type</span>"
+msgstr "<span weight=\"bold\">ঘটনাৰ ধৰণ</span>"
+
+#: ../src/system-config-audit.glade.h:8
+msgid "<span weight=\"bold\">Failure Handling</span>"
+msgstr "<span weight=\"bold\">বিফলতাৰ ব্যৱস্থাপনা</span>"
+
+#: ../src/system-config-audit.glade.h:9
+msgid "<span weight=\"bold\">I/O error</span>"
+msgstr "<span weight=\"bold\">I/O ভুল</span>"
+
+#: ../src/system-config-audit.glade.h:10
+msgid "<span weight=\"bold\">Limit to the following system calls:</span>"
+msgstr "<span weight=\"bold\">নিম্নলিখিত system call লৈ সীমিত ৰাখক:</span>"
+
+#: ../src/system-config-audit.glade.h:11
+msgid "<span weight=\"bold\">Limits</span>"
+msgstr "<span weight=\"bold\">সীমা</span>"
+
+#: ../src/system-config-audit.glade.h:12
+msgid "<span weight=\"bold\">Pass _audit events to a program</span>"
+msgstr "<span weight=\"bold\">অডিটৰ ঘটনা এটা অনুপ্ৰয়োগলৈ প্ৰেৰণ কৰক (_a)</span>"
+
+#: ../src/system-config-audit.glade.h:13
+msgid "<span weight=\"bold\">Priority</span>"
+msgstr "<span weight=\"bold\">গুৰুত্ব</span>"
+
+#: ../src/system-config-audit.glade.h:14
+msgid "<span weight=\"bold\">Second _threshold:</span>"
+msgstr "<span weight=\"bold\">দ্বিতীয় প্ৰান্তিক মাপ: (_t)</span>"
+
+#: ../src/system-config-audit.glade.h:15
+msgid "<span weight=\"bold\">Statistics</span>"
+msgstr "<span weight=\"bold\">পৰিসংখ্যা</span>"
+
+#: ../src/system-config-audit.glade.h:16
+msgid "<span weight=\"bold\">Status</span>"
+msgstr "<span weight=\"bold\">অৱস্থা</span>"
+
+#: ../src/system-config-audit.glade.h:17
+msgid "<span weight=\"bold\">Store _audit events to a file</span>"
+msgstr "<span weight=\"bold\">অডিটৰ ঘটনা এখন নথিপত্ৰত সংৰক্ষণ কৰক (_a)</span>"
+
+#: ../src/system-config-audit.glade.h:18
+msgid "<span weight=\"bold\">Watched File</span>"
+msgstr "<span weight=\"bold\">নিৰীক্ষণ কৰা নথিপত্ৰ</span>"
+
+#: ../src/system-config-audit.glade.h:19
+msgid "<span weight=\"bold\">Watched operations</span>"
+msgstr "<span weight=\"bold\">নিৰীক্ষণ কৰা কৰ্ম</span>"
+
+#: ../src/system-config-audit.glade.h:20
+msgid "<span weight=\"bold\">When Rule Matches</span>"
+msgstr "<span weight=\"bold\">যেতিয়া Rule একে ধৰণৰ হয়</span>"
+
+#: ../src/system-config-audit.glade.h:21
+msgid "<span weight=\"bold\">_First threshold:</span>"
+msgstr "<span weight=\"bold\">প্ৰথম প্ৰান্তিক মাপ: (_F)</span>"
+
+#: ../src/system-config-audit.glade.h:22
+msgid "Audit Daemon"
+msgstr "Audit ডেমন"
+
+#: ../src/system-config-audit.glade.h:23
+msgid "Audit Rule"
+msgstr "Audit Rule"
+
+#: ../src/system-config-audit.glade.h:24
+msgid "Audit configuration"
+msgstr "অডিট বিন্যাস"
+
+#: ../src/system-config-audit.glade.h:25
+msgid "Audit daemon PID:"
+msgstr "Audit ডেমনৰ PID:"
+
+#: ../src/system-config-audit.glade.h:26
+msgid "Audit daemon priority _boost:"
+msgstr "Audit daemon priority _boost:"
+
+#: ../src/system-config-audit.glade.h:27
+msgid "Audited Tasks"
+msgstr "অডিট কৰা কৰ্ম"
+
+#: ../src/system-config-audit.glade.h:28
+msgid "B_rowse"
+msgstr "চৰণ কৰক (_r)"
+
+#: ../src/system-config-audit.glade.h:29
+msgid "Backlog:"
+msgstr "বেকলগ:"
+
+#: ../src/system-config-audit.glade.h:30
+msgid "Brows_e"
+msgstr "চৰণ কৰক (_e)"
+
+#: ../src/system-config-audit.glade.h:31
+msgid "Browse"
+msgstr "চৰণ কৰক"
+
+#: ../src/system-config-audit.glade.h:32
+msgid "C_hange..."
+msgstr "পৰিবৰ্তন কৰক...(_h)"
+
+#: ../src/system-config-audit.glade.h:33
+msgid "Conditions"
+msgstr "পৰিস্থিতি"
+
+#: ../src/system-config-audit.glade.h:34
+msgid "Configuration"
+msgstr "বিন্যাস"
+
+#: ../src/system-config-audit.glade.h:35
+msgid "Current Status"
+msgstr "বৰ্তমান অৱস্থা"
+
+#: ../src/system-config-audit.glade.h:36
+msgid "D_o nothing"
+msgstr "একো কৰা নহয় (_o)"
+
+#: ../src/system-config-audit.glade.h:37
+msgid "Default behavior: Allow auditing the task."
+msgstr "অবিকল্পিত আচৰণ: কাৰ্য্যক অডিট কৰাৰ অনুমতি প্ৰদান কৰক ।"
+
+#: ../src/system-config-audit.glade.h:38
+msgid "Default behavior: Audit the event."
+msgstr "অবিকল্পিত আচৰণ: অডিট কৰা হ'ব ।"
+
+#: ../src/system-config-audit.glade.h:39
+msgid "Default behavior: Do not audit the system call"
+msgstr "অবিকল্পিত আচৰণ: system call অডিট কৰা নহয়"
+
+#: ../src/system-config-audit.glade.h:40
+msgid ""
+"Default behavior: Do not audit the system call, but allow auditing it by a "
+"\"System Call Exit\" rule or a kernel decision."
+msgstr ""
+"অবিকল্পিত আচৰণ: system call অডিট নকৰিব, কিন্তু এটা \"System Call Exit\" নিয়ম বা "
+"এটা কাৰ্ণেলৰ সিদ্ধান্তৰ দ্বাৰা অডিট কৰাৰ অনুমতি দিয়ক ।"
+
+#: ../src/system-config-audit.glade.h:41
+msgid "Default behavior: Preserve events."
+msgstr "অৱিকল্পিত আচৰণ: ঘটনা সংৰক্ষণ কৰক ।"
+
+#: ../src/system-config-audit.glade.h:42
+msgid "Do _nothing"
+msgstr "একো কৰা নহয় (_n)"
+
+#: ../src/system-config-audit.glade.h:43
+msgid "Event Key"
+msgstr "ঘটনাৰ চাবি"
+
+#: ../src/system-config-audit.glade.h:44
+msgid "Event Keys"
+msgstr "ঘটনাৰ চাবিসমূহ"
+
+#: ../src/system-config-audit.glade.h:45
+msgid "Event Type"
+msgstr "ঘটনাৰ ধৰণ"
+
+#: ../src/system-config-audit.glade.h:46
+msgid "Event Type Rules"
+msgstr "ঘটনাৰ ধৰণৰ নিয়ম"
+
+#: ../src/system-config-audit.glade.h:47
+msgid "Event type rules:"
+msgstr "ঘটনাৰ ধৰণৰ নিয়ম:"
+
+#: ../src/system-config-audit.glade.h:48
+msgid ""
+"Events won't be written to the log file until the program resumes event "
+"processing."
+msgstr "অনুপ্ৰয়োগে ঘটনাৰ সংসাধনত আগবাঢ়ি নোযোৱা লৈকে ঘটনা সমূহ লগ নথিপত্ৰত লিখা ন'হ'ব ।"
+
+#: ../src/system-config-audit.glade.h:49
+msgid "Fail _if more than"
+msgstr "ইয়াতকৈ অধিক হ'লে বিফল হ'ব ( _i)"
+
+#: ../src/system-config-audit.glade.h:50
+msgid "File Watches"
+msgstr "নথিপত্ৰ নিৰীক্ষণ"
+
+#: ../src/system-config-audit.glade.h:51
+msgid "File watches:"
+msgstr "নথিপত্ৰ নিৰীক্ষণ:"
+
+#: ../src/system-config-audit.glade.h:52
+msgid "General"
+msgstr "সাধাৰণ"
+
+#: ../src/system-config-audit.glade.h:53
+msgid "Global configuration"
+msgstr "সৰ্বব্যাপি বিন্যাস"
+
+#: ../src/system-config-audit.glade.h:54
+msgid "If the program stops processing events:"
+msgstr "যদি অনুপ্ৰয়োগে ঘটনাৰ সংসাধন কৰা বন্ধ কৰে:"
+
+#: ../src/system-config-audit.glade.h:55
+msgid "Kernel"
+msgstr "কাৰ্ণেল"
+
+#: ../src/system-config-audit.glade.h:57
+msgid "Log File Errors"
+msgstr "লগ নথিপত্ৰৰ ত্ৰুটি"
+
+#: ../src/system-config-audit.glade.h:58
+msgid "Lost events:"
+msgstr "হেৰুৱা ঘটনা:"
+
+#: ../src/system-config-audit.glade.h:59
+msgid "Low Disk Space"
+msgstr "কম ডিস্কৰ স্থান"
+
+#: ../src/system-config-audit.glade.h:60
+msgid "MB"
+msgstr "MB"
+
+#: ../src/system-config-audit.glade.h:61
+msgid "M_B:"
+msgstr "M_B:"
+
+#: ../src/system-config-audit.glade.h:62
+msgid "Making sure audit events are written to disk"
+msgstr "ডিষ্কত অডিট ঘটনাসমূহ লিখাটো সুনিশ্চিত কৰক"
+
+#: ../src/system-config-audit.glade.h:63
+msgid "Other Audit Rules"
+msgstr "অডিটৰ অন্যান্য নিয়ম"
+
+#: ../src/system-config-audit.glade.h:64
+msgid "Other audit rules:"
+msgstr "অডিটৰ অন্যান্য নিয়ম:"
+
+#: ../src/system-config-audit.glade.h:65
+msgid "Run a _program:"
+msgstr "এটা অনুপ্ৰয়োগ চলাওক (_p):"
+
+#: ../src/system-config-audit.glade.h:66
+msgid "S_hut down the computer"
+msgstr "কম্পিউটাৰ বন্ধ কৰক (_h)"
+
+#: ../src/system-config-audit.glade.h:67
+msgid "Save Configuration"
+msgstr "বিন্যাস সংৰক্ষণ কৰক"
+
+#: ../src/system-config-audit.glade.h:68
+msgid "Send _emails to:"
+msgstr "ঈ-মেইল প্ৰেৰণ কৰাৰ ঠিকনা (_e):"
+
+#: ../src/system-config-audit.glade.h:69
+msgid "Send a _message to syslog"
+msgstr "syslog লৈ এটা সম্বাদ পঠিওৱা হ'ব (_m)"
+
+#: ../src/system-config-audit.glade.h:70
+msgid "Send a _message to system log"
+msgstr "ব্যৱস্থাপ্ৰণালী লগলৈ এটা সম্বাদ পঠিওৱা হ'ব (_m)"
+
+#: ../src/system-config-audit.glade.h:71
+msgid "Send an _email"
+msgstr "এটা ঈ-মেইল পঠিওৱা হ'ব (_e)"
+
+#: ../src/system-config-audit.glade.h:72
+msgid "Send an emai_l"
+msgstr "এটা ঈ-মেইল পঠিওৱা হ'ব (_l)"
+
+#: ../src/system-config-audit.glade.h:73
+msgid "Settings"
+msgstr "পটভুমি"
+
+#: ../src/system-config-audit.glade.h:74
+msgid "Shut _down the computer"
+msgstr "কম্পিউটাৰ বন্ধ কৰা হ'ব (_d)"
+
+#: ../src/system-config-audit.glade.h:75
+msgid "Stop _writing audit events to the log file"
+msgstr "অডিটৰ ঘটনা লগ নথিপত্ৰলৈ লিখা বন্ধ কৰা হ'ব (_w)"
+
+#: ../src/system-config-audit.glade.h:76
+msgid "Stop _writing events to the file"
+msgstr "অডিটৰ ঘটনা নথিপত্ৰলৈ লিখা বন্ধ কৰা হ'ব (_w)"
+
+#: ../src/system-config-audit.glade.h:77
+msgid "Stop writing _audit events to the log file"
+msgstr "অডিটৰ ঘটনা লগ নথিপত্ৰলৈ লিখা বন্ধ কৰা হ'ব (_a)"
+
+#: ../src/system-config-audit.glade.h:78
+msgid "Suppressed Events"
+msgstr "দবাই ৰখা ঘটনা"
+
+#: ../src/system-config-audit.glade.h:79
+msgid "Switch to s_ingle-user mode"
+msgstr "single user ধৰণত পৰিবৰ্তন কৰা হ'ব (_i)"
+
+#: ../src/system-config-audit.glade.h:80
+msgid "Switch to single-_user mode"
+msgstr "single user ধৰণত পৰিবৰ্তন কৰা হ'ব (_u)"
+
+#: ../src/system-config-audit.glade.h:81
+msgid "System Call Entry"
+msgstr "system call ৰ নিবেশ"
+
+#: ../src/system-config-audit.glade.h:82
+msgid "System Call Exit"
+msgstr "system call ৰ পৰা প্ৰস্থান"
+
+#: ../src/system-config-audit.glade.h:84
+msgid "This rule set can be used to completely disable auditing for some tasks."
+msgstr ""
+"কিছুমান কাৰ্য্যৰ বাবে অডিট প্ৰক্ৰিয়া সম্পূৰ্ণভাবে নিষ্ক্ৰীয় কৰিবলৈ এই নিয়ম ব্যৱহাৰ কৰিব "
+"পাৰি ।"
+
+#: ../src/system-config-audit.glade.h:85
+msgid "This rule set can be used to discard all events of a specific type."
+msgstr "এটা নিৰ্দ্দিষ্ট ধৰণৰ ঘটনাক আওকাণ কৰিবলৈ এই নিয়ম ব্যৱহাৰ কৰিব পাৰি ।"
+
+#: ../src/system-config-audit.glade.h:86
+msgid "This rule set can be used to filter audit events sent from applications."
+msgstr "অনুপ্ৰয়োগৰ পৰা পঠিওৱা অডিট ঘটনা সমূহক ফিল্টাৰ কৰিবলৈ এই নিয়ম ব্যৱহাৰ কৰিব পাৰি ।"
+
+#: ../src/system-config-audit.glade.h:87
+msgid ""
+"This rule set can be used to mark a system call for auditing, or to prevent "
+"auditing of the system call.  To be audited by these rules, a system call "
+"must be performed in an audited task."
+msgstr ""
+"এই নিয়মেৰে এটা system call ক অডিট কৰিবলৈ, বা তাৰ অডিট বন্ধ কৰিবলৈ ব্যৱহাৰ কৰিব পাৰি । এই "
+"নিয়মেৰে অডিট কৰিবলৈ, এটা অডিট কৰা কাৰ্য্যত এটা system call কাৰ্য্য কৰিব লাগিব ।"
+
+#: ../src/system-config-audit.glade.h:88
+msgid ""
+"This rule set can be used to mark system calls for auditing.  To be audited "
+"by these rules, a system call must be performed in an audited task and it "
+"must pass the \"System Call Entry\" rules."
+msgstr ""
+"system call ক অডিট কৰিবলৈ চিহ্নিত কৰিবলৈ এই নিয়ম ব্যৱহাৰ কৰিব পাৰি । এই নিয়মেৰে অডিট "
+"কৰিবলৈ, এটা অডিট কৰা কাৰ্য্যত এটা system call কাৰ্য্য কৰিব লাগিব আৰু সি \"System Call "
+"Entry\" নিয়মত উত্তীৰ্ণ হ'ব লাগিব ।"
+
+#: ../src/system-config-audit.glade.h:89
+msgid "Trusted Application Events"
+msgstr "বিশ্বাস কৰা অনুপ্ৰয়োগৰ ঘটনা"
+
+#: ../src/system-config-audit.glade.h:90 ../src/watch_dialog.py:48
+msgid "Watched File"
+msgstr "নিৰীক্ষিত নথিপত্ৰ"
+
+#: ../src/system-config-audit.glade.h:91
+msgid "When the current log file _grows to"
+msgstr "যেতিয়া বৰ্ত্তমানৰ লগ নথিপত্ৰ ডাঙৰ হ'ব (_g)"
+
+#: ../src/system-config-audit.glade.h:92
+msgid "_Add a host name field to audit events:"
+msgstr "অডিটৰ ঘটনাৰ সৈতে এটা গৃহস্থৰ নাম যোগ কৰা হ'ব (_A)"
+
+#: ../src/system-config-audit.glade.h:93
+msgid "_Any"
+msgstr "যি কোনো (_A)"
+
+#: ../src/system-config-audit.glade.h:94
+msgid "_Apply the configuration changes after saving them"
+msgstr "সংৰক্ষণৰ পিছত বিন্যাসৰ পৰিবৰ্তন প্ৰয়োগ কৰিব (_A)"
+
+#: ../src/system-config-audit.glade.h:95
+msgid "_Arbitrary text:"
+msgstr "স্বেচ্ছাচাৰী লিপি (_A):"
+
+#: ../src/system-config-audit.glade.h:96
+msgid "_Attribute change"
+msgstr "বৈশিষ্ট্য পৰিবৰ্তন (_A)"
+
+#: ../src/system-config-audit.glade.h:97
+msgid "_Browse"
+msgstr "চৰণ কৰক (_B)"
+
+#: ../src/system-config-audit.glade.h:98
+msgid "_Browse..."
+msgstr "চৰণ কৰক...(_B)"
+
+#: ../src/system-config-audit.glade.h:99
+msgid "_Custom:"
+msgstr "স্বনিৰ্ধাৰিত: (_C)"
+
+#: ../src/system-config-audit.glade.h:100
+msgid "_Data only"
+msgstr "অকল তথ্য (_D)"
+
+#: ../src/system-config-audit.glade.h:101
+msgid "_Discard them"
+msgstr "পৰিত্যাগ কৰা হ'ব (_D)"
+
+#: ../src/system-config-audit.glade.h:102
+msgid "_Execute"
+msgstr "সঞ্চালন কৰা হ'ব (_E)"
+
+#: ../src/system-config-audit.glade.h:103
+msgid "_Fail if more than"
+msgstr "ইয়াতকৈ অধিক হ'লে বিফল হ'ব (_F)"
+
+#: ../src/system-config-audit.glade.h:104
+msgid "_File"
+msgstr "নথিপত্ৰ (_F)"
+
+#: ../src/system-config-audit.glade.h:105
+msgid "_File:"
+msgstr "নথিপত্ৰ (_F):"
+
+#: ../src/system-config-audit.glade.h:106
+msgid "_Force writeout every"
+msgstr "_Force writeout every"
+
+#: ../src/system-config-audit.glade.h:107
+msgid "_Halt the system (without shutting down cleanly)"
+msgstr "ব্যৱস্থাপ্ৰনালী ৰখাই দিব (পৰিষ্কাৰ ভাবে বন্ধ নকৰাকে) (_H)"
+
+#: ../src/system-config-audit.glade.h:108
+msgid "_Help"
+msgstr "সহায় (_H)"
+
+#: ../src/system-config-audit.glade.h:109
+msgid "_Intrusion detection tag:"
+msgstr "_Intrusion detection tag:"
+
+#: ../src/system-config-audit.glade.h:110
+msgid "_Keep only the newest"
+msgstr "অকল অত্যাধুনিকহে ৰাখিব (_K)"
+
+#: ../src/system-config-audit.glade.h:111
+msgid "_Limit to tasks using architecture:"
+msgstr "এই স্থাপত্য ব্যৱহাৰ কৰা কাৰ্য্যলৈ সীমিত ৰাখক (_L):"
+
+#: ../src/system-config-audit.glade.h:112
+msgid "_Mark matching events with keys:"
+msgstr "মিল থকা ঘটনাক চানিৰে চিহ্নিত কৰিব (_M):"
+
+#: ../src/system-config-audit.glade.h:113
+msgid "_Path:"
+msgstr "পথ (_P):"
+
+#: ../src/system-config-audit.glade.h:114
+msgid "_Program:"
+msgstr "অনুপ্ৰয়োগ (_P):"
+
+#: ../src/system-config-audit.glade.h:115
+msgid "_Prohibit configuration changes until reboot"
+msgstr "পুনৰাৰম্ভ নকৰালৈকে বিন্যাসে পৰিবৰ্তন প্ৰতিৰোধ কৰা হ'ব (_P)"
+
+#: ../src/system-config-audit.glade.h:116
+msgid "_Read"
+msgstr "পঢ়ক (_R)"
+
+#: ../src/system-config-audit.glade.h:117
+msgid "_Rotate log files"
+msgstr "লগ নথিপত্ৰ ঘুৰাওক (_R)"
+
+#: ../src/system-config-audit.glade.h:118
+msgid "_Run a program:"
+msgstr "অনুপ্ৰয়োগ চলাওক (_R):"
+
+#: ../src/system-config-audit.glade.h:119
+msgid "_Satisfying: type"
+msgstr "সন্তোষজনক (_S): ধৰণ"
+
+#: ../src/system-config-audit.glade.h:120
+msgid "_Send a message to syslog"
+msgstr "syslog লৈ সম্বাদ পঠিয়াওক (_S)"
+
+#: ../src/system-config-audit.glade.h:121
+msgid "_Send a message to system log"
+msgstr "system log লৈ সম্বাদ পঠিয়াওক (_S)"
+
+#: ../src/system-config-audit.glade.h:122
+msgid "_Severity:"
+msgstr "গুৰুত্ব: (_S)"
+
+#: ../src/system-config-audit.glade.h:123
+msgid "_Type:"
+msgstr "ধৰণ: (_T)"
+
+#: ../src/system-config-audit.glade.h:124
+msgid "_Use normal file system buffering"
+msgstr "সাধাৰণ নথিপত্ৰপ্ৰণালীৰ উপশমকৰ পদ্ধতি প্ৰয়োগ কৰক (_U)"
+
+#: ../src/system-config-audit.glade.h:125
+msgid "_Wait until event processing is resumed"
+msgstr "ঘটনাৰ সংসাধন কৰা আৰম্ভ কৰা লৈকে প্ৰতীক্ষা কৰক (_W)"
+
+#: ../src/system-config-audit.glade.h:126
+msgid "_Write"
+msgstr "লিখক (_W)"
+
+#: ../src/system-config-audit.glade.h:127
+msgid "_events are generated per second"
+msgstr "ঘটনাসমূহ প্ৰতি ছেকেণ্ডে সৃষ্টি হয় (_e)"
+
+#: ../src/system-config-audit.glade.h:128
+msgid "_records"
+msgstr "ৰেকৰ্ড (_r)"
+
+#: ../src/system-config-audit.glade.h:129
+msgid "events are left unprocessed"
+msgstr "ঘটনা সমূহৰ সংসাধন কৰা হোৱা নাই"
+
+#: ../src/system-config-audit.glade.h:130
+msgid "f_iles"
+msgstr "নথিপত্ৰ (_i)"
+
+#: ../src/system-config-audit.glade.h:131
+msgid "gtk-edit"
+msgstr "gtk edit"
+
+#: ../src/system-config-audit.glade.h:132
+msgid "gtk-go-down"
+msgstr "gtk-go-down"
+
+#: ../src/system-config-audit.glade.h:133
+msgid "gtk-go-up"
+msgstr "gtk-go-up"
+
+#: ../src/type_list_dialog.py:75
+msgid "Any type"
+msgstr "যি কোনো ধৰণ"
+
+#: ../src/type_list_dialog.py:79
+msgid "Type"
+msgstr "ধৰণ"
+
+#: ../src/util.py:150
+#, python-format
+msgid "Unknown architecture %d"
+msgstr "অজ্ঞাত স্থাপত্য %d"
+
+#: ../src/util.py:158
+msgid "64-bit architecture not supported"
+msgstr "64-bit স্থাপত্য সমৰ্থিত নহয়"
+
+#: ../src/util.py:162
+msgid "32-bit architecture not supported"
+msgstr "32-bit স্থাপত্য সমৰ্থিত নহয়"
+
+#: ../src/util.py:166
+#, python-format
+msgid "Unknown architecture \"%s\""
+msgstr "অজ্ঞাত স্থাপত্য \"%s\""
+
+#: ../src/util.py:177
+#, python-format
+msgid "Unknown file type \"%s\""
+msgstr "অজ্ঞাত নথিপত্ৰৰ প্ৰকৃতি \"%s\""
+
+#: ../src/util.py:213
+#, python-format
+msgid "Unknown message type \"%s\""
+msgstr "অজ্ঞাত সম্বাদৰ ধৰণ \"%s\""
+
+#: ../src/util.py:227
+#, python-format
+msgid "Unknown system call \"%s\""
+msgstr "অজ্ঞাত system call \"%s\""
+
+#: ../src/util.py:229
+msgid "System call number must be non-negative"
+msgstr "system call ৰ সংখ্যা শূণ্যতকৈ অধিক হোৱা আৱশ্যক"
+
+#: ../src/util.py:241
+#, python-format
+msgid "Invalid number \"%s\""
+msgstr "অৱৈধ সংখ্যা \"%s\""
+
+#: ../src/util.py:243
+msgid "Value must be non-negative"
+msgstr "সংখ্যা শূণ্যতকৈ অধিক হোৱা আৱশ্যক"
+
+#: ../src/util.py:248
+msgid ", "
+msgstr ", "
+
+#: ../src/watch_dialog.py:133
+msgid "The watched file path must not be empty"
+msgstr "নিৰীক্ষণ কৰা নথিপত্ৰ ৰিক্ত হ'ব নালাগে"
+
+#: ../src/watch_list_dialog.py:34
+msgid "Path"
+msgstr "পাথ"
+
+#: ../src/watch_list_dialog.py:34
+msgid "Operations"
+msgstr "কৰ্ম"
+
+#: ../system-config-audit.desktop.in.h:2
+msgid "Modify audit configuration"
+msgstr "অডিট বিন্যাস পৰিবৰ্তন কৰক"
+

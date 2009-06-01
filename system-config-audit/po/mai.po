@@ -1,0 +1,1219 @@
+# translation of system-config-audit.tip.po to Maithili
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+#
+# Sangeeta Kumari <sangeeta09@gmail.com>, 2009.
+msgid ""
+msgstr ""
+"Project-Id-Version: system-config-audit.tip\n"
+"Report-Msgid-Bugs-To: https://fedorahosted.org/system-config-audit/\n"
+"POT-Creation-Date: 2009-02-23 01:53+0000\n"
+"PO-Revision-Date: 2009-02-25 01:09+0530\n"
+"Last-Translator: Sangeeta Kumari <sangeeta09@gmail.com>\n"
+"Language-Team: Maithili <maithili.sf.net>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: KBabel 1.11.4\n"
+"Plural-Forms: nplurals=2; plural=(n!=1);\n\n"
+
+#: ../src/audit_rules.py:78
+#, python-format
+msgid "Unknown user \"%s\""
+msgstr "अज्ञात प्रयोक्ता \"%s\""
+
+#: ../src/audit_rules.py:106
+#, python-format
+msgid "Unknown group \"%s\""
+msgstr "अज्ञात समूह \"%s\""
+
+#: ../src/audit_rules.py:168
+#, python-format
+msgid "Key value \"%s\" too long"
+msgstr "कुंजी मान \"%s\"  बेसी  नमहर"
+
+#: ../src/audit_rules.py:170
+#, python-format
+msgid "Invalid IDS key \"%s\""
+msgstr "अवैध IDS कुँजी \"%s\""
+
+#: ../src/audit_rules.py:177
+msgid "Architecture can not be changed after system calls are selected"
+msgstr "आर्किटेक्चर केँ सिस्टम काल क' चुनल जाए क' बाद बदलल नहि जाए सकैत अछि"
+
+#: ../src/audit_rules.py:180 ../src/audit_rules.py:262
+#, python-format
+msgid "The only valid operators for \"%s\" are \"=\" and \"!=\""
+msgstr "\"%s\" are \"=\" and \"!=\" क' लेल सिर्फ वैध"
+
+#: ../src/audit_rules.py:202
+#, python-format
+msgid "The only valid operator for \"%s\" is \"=\""
+msgstr "\"%s\" क' लेल एकमात्र वैध आपरेटर अछि \"=\""
+
+#: ../src/audit_rules.py:215
+#, python-format
+msgid "Unknown permission \"%(char)c\" in \"%(perms)s\""
+msgstr "अज्ञात अनुमति \"%(char)c\" \"%(perms)s\" मे"
+
+#: ../src/audit_rules.py:243
+#, python-format
+msgid "Invalid integer value \"%s\""
+msgstr "अवैध पूर्णांक मान \"%s\""
+
+#: ../src/audit_rules.py:335
+#, python-format
+msgid "Unknown field \"%s\""
+msgstr "अज्ञात क्षेत्र \"%s\""
+
+#: ../src/audit_rules.py:339
+#, python-format
+msgid "Unknown operator \"%s\""
+msgstr "अज्ञात आपरेटर \"%s\""
+
+#: ../src/audit_rules.py:358
+#, python-format
+msgid "Operator missing in \"%s\""
+msgstr "\"%s\" मे आपरेटर गुम"
+
+#: ../src/client.py:124
+msgid "Not enough data available"
+msgstr "कोनो पर्याप्त आंकड़ा उपलब्ध नहि"
+
+#: ../src/event_type_dialog.py:110
+msgid "No operator was selected"
+msgstr "कोनो आपरेटर चुनल गेल नहि छल"
+
+#: ../src/field_help.py:28
+msgid "The CPU architecture of the syscall.  The arch can be found using `uname -m'."
+msgstr "syscall क' CPU आर्किटेक्चर.  `uname -m' क' प्रयोग सँ आर्क पाएल जाए सकैत अछि."
+
+#: ../src/field_help.py:30
+msgid ""
+"The first argument to a syscall.  Note that string arguments are not "
+"supported.  This is most likely to be used on platforms that multiplex "
+"socket or IPC operations."
+msgstr ""
+"सिसकाल क' पहिल तर्क.  नोट करू जे स्ट्रिंग तर्क समर्थित नहि अछि.  ई ओ प्लैटफार्म पर "
+"प्रयुक्त हए लायक अछि जे मल्टीप्लेक्स साकेट अथवा IPC आपरेशन पर प्रयुक्त  हाएत अछि."
+
+#: ../src/field_help.py:34
+msgid ""
+"The second argument to a syscall.  Note that string arguments are not "
+"supported.  This is most likely to be used on platforms that multiplex "
+"socket or IPC operations."
+msgstr ""
+"सिसकाल क' दोसर तर्क.  नोट करू जे स्ट्रिंग तर्क समर्थित नहि अछि.  ई ओ प्लैटफार्म पर "
+"प्रयुक्त हए लायक अछि जे मल्टीप्लेक्स साकेट अथवा IPC आपरेशन पर प्रयुक्त हाएत अछि."
+
+#: ../src/field_help.py:38
+msgid ""
+"The third argument to a syscall.  Note that string arguments are not "
+"supported.  This is most likely to be used on platforms that multiplex "
+"socket or IPC operations."
+msgstr ""
+"सिसकाल क' तेसर तर्क.  नोट करू जे स्ट्रिंग तर्क समर्थित नहि अछि.  ई ओ प्लैटफार्म पर "
+"प्रयुक्त हए लायक अछि जे मल्टीप्लेक्स साकेट अथवा IPC आपरेशन पर प्रयुक्त  हाएत अछि."
+
+#: ../src/field_help.py:42
+msgid ""
+"The fourth argument to a syscall.  Note that string arguments are not "
+"supported.  This is most likely to be used on platforms that multiplex "
+"socket or IPC operations."
+msgstr ""
+"सिसकाल क' चौथा तर्क.  नोट करू जे स्ट्रिंग तर्क समर्थित नहि अछि.  ई ओ प्लैटफार्म पर "
+"प्रयुक्त हए लायक अछि जे मल्टीप्लेक्स साकेट अथवा IPC आपरेशन पर प्रयुक्त  हाएत अछि."
+
+#: ../src/field_help.py:46
+msgid "Device major number"
+msgstr "युक्ति मुख्य संख्या"
+
+#: ../src/field_help.py:47
+msgid "Device minor number"
+msgstr "युक्ति गौण संख्या"
+
+#. audit.AUDIT_DIR is handled specially in the GUI
+#: ../src/field_help.py:49
+msgid "Effective group ID"
+msgstr "प्रभावी समूह ID"
+
+#: ../src/field_help.py:50
+msgid "Effective user ID"
+msgstr "प्रभावी प्रयोक्ता ID"
+
+#: ../src/field_help.py:51
+msgid "Exit value from a syscall"
+msgstr "सिसकाल सँ निकास मान"
+
+#: ../src/field_help.py:52
+msgid ""
+"The target file's type.  Can be either file, dir, socket, symlink, char, "
+"block, or fifo."
+msgstr ""
+"लक्ष्य फाइल प्रकार. फाइल, निर्देशिका, साकेट, सिमलिंक, चार, ब्लाक, अथवा फिफो किछु भए "
+"सकैत अछि."
+
+#. audit.AUDIT_FILTERKEY is handled specially in the GUI
+#: ../src/field_help.py:55
+msgid "File system group ID"
+msgstr "फाइल सिस्टम समूह ID"
+
+#: ../src/field_help.py:56
+msgid "File system user ID"
+msgstr "फाइल सिस्टम प्रयोक्ता ID"
+
+#: ../src/field_help.py:57
+msgid "Group ID"
+msgstr "समूह ID"
+
+#: ../src/field_help.py:58
+msgid "Inode number"
+msgstr "आइनोड संख्या"
+
+#: ../src/field_help.py:59
+msgid "ID of the user in whose login session the process is running"
+msgstr "प्रयोक्ता क' ID जकरामे लागिन सत्र प्रक्रिया चलि रही अछि"
+
+#. audit.AUDIT_MSGTYPE has a special version of the dialog
+#: ../src/field_help.py:62
+msgid "Resource's SELinux high level"
+msgstr "संसाधन क' SELinux उच्च स्तर"
+
+#: ../src/field_help.py:63
+msgid "Resource's SELinux low level"
+msgstr "संसाधन क' SELinux निम्न स्तर"
+
+#: ../src/field_help.py:64
+msgid "Resource's SELinux role"
+msgstr "संसाधन क' SELinux भूमिका"
+
+#: ../src/field_help.py:65
+msgid "Resource's SELinux type"
+msgstr "संसाधन क' SELinux प्रकार"
+
+#: ../src/field_help.py:66
+msgid "Resource's SELinux user"
+msgstr "संसाधन क' SELinux प्रयोक्ता"
+
+#: ../src/field_help.py:67
+msgid ""
+"Permission filter for file operations.  r=read, w=write, x=execute, "
+"a=attribute change.  These permissions are not the standard file "
+"permissions, they specify a kind of syscall. The read and write syscalls are "
+"omitted because they would overwhelm the logs. Instead, the open flags are "
+"looked at to see what permission was requested."
+msgstr ""
+"फाइल आपरेशन क' लेल अनुमति फिल्टर.  r=read, w=write, x=execute, a=attribute "
+"change.  ये अनुमति मानक फाइल अनुमति नहि अछि, ओ सिसकाल क' प्रकार केँ निर्दिष्ट करैत अछि. "
+"पठन आ लेखन सिस्काल मेटायल जाइत अछि किएक हुनका लाग केँ पार कएल जएताह. बदलामे, खुलल "
+"फाइल देखल जाइत अछि ई देखब क' लेल क' अनुमति आग्रहित कएल गेल अछि."
+
+#: ../src/field_help.py:74
+msgid "OS personality number"
+msgstr "OS व्यक्तित्व संख्या"
+
+#: ../src/field_help.py:75
+msgid "Process ID"
+msgstr "प्रक्रिया ID"
+
+#: ../src/field_help.py:76
+msgid "Parent's process ID"
+msgstr "जनक प्रक्रिया ID"
+
+#: ../src/field_help.py:77
+msgid "Set group ID"
+msgstr "समूह ID सेट  करू "
+
+#: ../src/field_help.py:78
+msgid "Program's SELinux clearance"
+msgstr "प्रोग्राम क' SELinux निकासी"
+
+#: ../src/field_help.py:79
+msgid "Program's SELinux role"
+msgstr "प्रोग्राम क' SELinux भूमिका"
+
+#: ../src/field_help.py:80
+msgid "Program's SELinux sensitivity"
+msgstr "प्रोग्राम क' SELinux संवेद्यता"
+
+#: ../src/field_help.py:81
+msgid "Program's SELinux type"
+msgstr "प्रोग्राम क' SELinux प्रकार"
+
+#: ../src/field_help.py:82
+msgid "Program's SELinux user"
+msgstr "प्रोग्राम क' SELinux प्रयोक्ता"
+
+#: ../src/field_help.py:83
+msgid "If the exit value is >= 0, this is 1, otherwise it is 0."
+msgstr " जँ  निकास मान अछि >= 0, ई 1 अछि.  आन छल ई अछि 0."
+
+#: ../src/field_help.py:85
+msgid "Set user ID"
+msgstr "प्रयोक्ता ID सेट  करू "
+
+#: ../src/field_help.py:86
+msgid "User ID"
+msgstr "प्रयोक्ता ID"
+
+#: ../src/field_help.py:91
+msgid "No help available"
+msgstr "कोनो  मदति मोजुद  नहि"
+
+#: ../src/global_dialog.py:105 ../src/global_dialog.py:150
+#: ../src/global_dialog.py:155 ../src/global_dialog.py:161
+#: ../src/global_dialog.py:165
+msgid "Program"
+msgstr "प्रोग्राम"
+
+#: ../src/global_dialog.py:112 ../src/system-config-audit.glade.h:56
+msgid "Log File"
+msgstr "लाग फाइल"
+
+#. TRANSLATORS: This is one of the options on the "Log File" tab of the
+#. "Settings" dialog.  It directs auditd to store the system host name
+#. (the parameter replaced by %s) without any modification.
+#: ../src/global_dialog.py:126
+#, python-format
+msgid "Host name as-_is (%s)"
+msgstr "होस्ट नेम as-_is (%s)"
+
+#: ../src/global_dialog.py:137
+#, python-format
+msgid "_Fully-qualified host name (%s)"
+msgstr "_Fully-qualified host name (%s)"
+
+#: ../src/global_dialog.py:138
+#, python-format
+msgid "I_P address (%s)"
+msgstr "I_P पता (%s)"
+
+#: ../src/global_dialog.py:140
+msgid "_Fully-qualified host name"
+msgstr "_Fully-qualified host name"
+
+#: ../src/global_dialog.py:141
+msgid "I_P address"
+msgstr "I_P पता"
+
+#: ../src/global_dialog.py:391
+msgid "First threshold must be larger than second threshold"
+msgstr "पहिने थ्रेसहोल्ड केँ जरूर दोसर थ्रेसहोल्ड सँ पैघ होनाइ चाही"
+
+#: ../src/global_dialog.py:403
+#, python-format
+msgid "\"%s\" is too short"
+msgstr "\"%s\" बहुत छोट अछि"
+
+#: ../src/global_dialog.py:407
+#, python-format
+msgid "\"%(email)s\" contains an invalid character \"%(char)c\""
+msgstr "\"%(email)s\" एकटा अवैध वर्ण \"%(char)c\" समाहित करैत अछि"
+
+#: ../src/global_dialog.py:411
+#, python-format
+msgid "The domain in \"%s\" is not fully qualified"
+msgstr "\"%s\" मे डोमेन फूली क्वालिफाइड नहि अछि"
+
+#: ../src/global_dialog.py:425 ../src/global_dialog.py:485
+#, python-format
+msgid "Error getting attributes of \"%(path)s\": %(msg)s"
+msgstr "\"%(path)s\" क' विशेषता पाबै मे त्रुटि: %(msg)s"
+
+#: ../src/global_dialog.py:428 ../src/global_dialog.py:454
+#: ../src/global_dialog.py:488
+#, python-format
+msgid "\"%s\" is not a regular file"
+msgstr "\"%s\" एकटा नियमित फाइल नहि अछि"
+
+#: ../src/global_dialog.py:430 ../src/global_dialog.py:456
+#: ../src/global_dialog.py:490
+#, python-format
+msgid "\"%s\" is not owned by root"
+msgstr "\"%s\" रूट क' द्वारा स्वामित्व मे नहि अछि"
+
+#: ../src/global_dialog.py:433 ../src/global_dialog.py:493
+#, python-format
+msgid "Permissions of \"%s\" should be 075x"
+msgstr "\"%s\" क' अनुमति 075x  होनाइ चाही"
+
+#: ../src/global_dialog.py:435 ../src/global_dialog.py:495
+#, python-format
+msgid "\"%s\" should not be writable by other users"
+msgstr "\"%s\" केँ दोसर प्रयोक्ता क' द्वारा लिखबा योग्य होनाइ  चाही"
+
+#: ../src/global_dialog.py:447
+#, python-format
+msgid "\"%s\" is not an existing directory"
+msgstr "\"%s\" एकटा मोजुदा निर्देशिका नहि अछि"
+
+#: ../src/global_dialog.py:459
+#, python-format
+msgid "Permissions of \"%s\" should be 0600 or 0640"
+msgstr "\"%s\" क' अनुमति 0600 अथवा 0640 होनी चाही"
+
+#: ../src/global_dialog.py:470
+msgid "The host name may not be empty"
+msgstr "होस्ट नेम केँ खाली नहि होनाइ चाही"
+
+#: ../src/global_dialog.py:481
+#, python-format
+msgid "\"%s\" is not an absolute path"
+msgstr "\"%s\" एकटा निरपेक्ष पथ नहि अछि"
+
+#: ../src/global_dialog.py:506
+#, python-format
+msgid "Email requested but %s is not executable"
+msgstr "आग्रहित इमेल %s निष्पादनीय नहि अछि"
+
+#: ../src/global_dialog.py:555
+#, python-format
+msgid ""
+"The low disk space thresholds apply to the partition which contains the log "
+"file (%s)."
+msgstr "न्यून डिस्क स्थान थ्रेसहोल्ड विभाजन मे लागू  हाएत  अछि जे जे लाग फाइल समाहित करैत अछि (%s)."
+
+#: ../src/global_dialog.py:560
+msgid ""
+"The low disk space thresholds apply to the partition which contains the log "
+"file."
+msgstr "न्यून डिस्क स्थान थ्रेसहोल्ड विभाजन मे लागू  हाएत  अछि जे जे लाग फाइल समाहित करैत अछि."
+
+#: ../src/key_dialog.py:106
+msgid "Invalid IDS key value"
+msgstr "अवैध IDS कुँजी मान"
+
+#: ../src/key_list_dialog.py:42 ../src/rule_list_dialog.py:32
+#: ../src/rule_list_dialog.py:50 ../src/rule_list_dialog.py:70
+#: ../src/watch_list_dialog.py:34
+msgid "Key"
+msgstr "कुंजी"
+
+#: ../src/key_list_dialog.py:85
+msgid "Total key length is too long"
+msgstr "कुल कुँजी नमाइ बहुत पैघ अछि"
+
+#. From code in src/auditctl.c
+#: ../src/lists.py:166
+msgid "Information only"
+msgstr "सिर्फ सूचना"
+
+#: ../src/lists.py:167
+msgid "Low"
+msgstr "निम्न"
+
+#: ../src/lists.py:168
+msgid "Medium"
+msgstr "मध्यम"
+
+#: ../src/lists.py:169
+msgid "High"
+msgstr "उच्च"
+
+#. From code in src/auditctl.c
+#: ../src/lists.py:171
+msgid "File watch"
+msgstr "फाइल दृश्य"
+
+#: ../src/lists.py:172
+msgid "Execution watch"
+msgstr "निष्पादनीय दृश्य"
+
+#: ../src/lists.py:173
+msgid "Executable created"
+msgstr "निष्पादनीय निर्मित"
+
+#: ../src/main.py:44
+#, python-format
+msgid "Error running system-config-audit-server: %s"
+msgstr "system-config-audit-server चलाबै मे त्रुटि: %s"
+
+#: ../src/main_window.py:96
+msgid "Auditing disabled."
+msgstr "आडिटिंग निष्क्रिय."
+
+#: ../src/main_window.py:97
+msgid "_Enable"
+msgstr "समर्थ करू (_E)"
+
+#: ../src/main_window.py:100
+msgid "Auditing enabled."
+msgstr "आडिटिंग सक्रिय."
+
+#: ../src/main_window.py:101 ../src/main_window.py:105
+msgid "_Disable"
+msgstr "निष्क्रिय करू (_D)"
+
+#: ../src/main_window.py:104
+msgid "Auditing enabled and locked."
+msgstr "आडिटिंग सक्रिय आ लाक्ड अछि."
+
+#: ../src/main_window.py:108
+#, python-format
+msgid "Unknown auditing status %s."
+msgstr "अज्ञात आडिटिंग स्थिति %s."
+
+#: ../src/main_window.py:110 ../src/main_window.py:118
+msgid "???"
+msgstr "???"
+
+#: ../src/main_window.py:117
+msgid "Error determining auditing status"
+msgstr "आडिटिंग स्थिति क' निर्धारण मे त्रुटि"
+
+#: ../src/main_window.py:131
+#, python-format
+msgid "Error reading audit configuration: %s"
+msgstr "आडिट विन्यास पठन मे त्रुटि: %s"
+
+#: ../src/main_window.py:155
+#, python-format
+msgid "Error writing audit configuration: %s"
+msgstr "आडिट विन्यास लेखन मे त्रुटि: %s"
+
+#. e.strerror is usually useless here
+#: ../src/main_window.py:167
+msgid "Error applying audit configuration"
+msgstr "आडिट विन्यास लागू करब मे त्रुटि"
+
+#. See Config.__ne__
+#: ../src/main_window.py:183
+msgid "Configuration modified."
+msgstr "विन्यास रूपांतरित."
+
+#: ../src/main_window.py:187
+msgid "Configuration saved."
+msgstr "विन्यास सहेजल गेल."
+
+#: ../src/main_window.py:189
+msgid "Configuration unchanged."
+msgstr "विन्यास नहि बदलल गेल."
+
+#: ../src/main_window.py:196
+msgid "Save changes to the audit configuration before closing?"
+msgstr "बन्न करब क' पहिने आडिट विन्यास मे परिवर्तन सहेजू?"
+
+#: ../src/main_window.py:200
+msgid "Close without Saving"
+msgstr "सहेजल बिनु बन्द करू "
+
+#. FIXME: time information
+#: ../src/main_window.py:204
+msgid "If you don't save, your changes will be discarded."
+msgstr " जँ अहाँ सहेजे नहि अछि. अहाँक बदलाव त्यागल जएताह."
+
+#: ../src/main_window.py:218 ../system-config-audit.desktop.in.h:1
+msgid "Audit Configuration"
+msgstr "आडिट विन्यास"
+
+#: ../src/main_window.py:235
+msgid "translator-credits"
+msgstr "संगीता कुमारी (sangeeta09@gmail.com)"
+
+#: ../src/main_window.py:248
+#, python-format
+msgid "Error changing auditing status: %s"
+msgstr "आडिटिंग स्थिति  बदलब  मे त्रुटि: %s"
+
+#: ../src/rule_dialog.py:97
+msgid "System Call"
+msgstr "सिस्टम काल"
+
+#: ../src/rule_dialog.py:118 ../src/rule_list_dialog.py:32
+#: ../src/rule_list_dialog.py:50 ../src/rule_list_dialog.py:70
+#: ../src/type_list_dialog.py:36 ../src/type_list_dialog.py:53
+msgid "Condition"
+msgstr "स्थिति"
+
+#: ../src/rule_dialog.py:281
+msgid "The system call list must not be empty"
+msgstr "सिस्टम काल सूची खाली नहि होनाइ चाही"
+
+#: ../src/rule_dialog.py:290 ../src/watch_dialog.py:142
+msgid "No key"
+msgstr "कोनो कुँजी नहि"
+
+#: ../src/rule_list_dialog.py:32 ../src/rule_list_dialog.py:50
+#: ../src/system-config-audit.glade.h:83
+msgid "System Calls"
+msgstr "सिस्टम काल्स"
+
+#: ../src/rule_list_dialog.py:33 ../src/rule_list_dialog.py:51
+#: ../src/rule_list_dialog.py:70 ../src/type_list_dialog.py:36
+msgid "Action"
+msgstr "क्रिया"
+
+#: ../src/rule_list_dialog.py:69
+msgid "Allow auditing"
+msgstr "आडिटिंग स्वीकारू"
+
+#: ../src/rule_list_dialog.py:69 ../src/rule_table.py:37
+msgid "Do not audit"
+msgstr "आडिट नहि करू "
+
+#: ../src/rule_table.py:37
+msgid "Audit"
+msgstr "आडिट करू "
+
+#: ../src/rule_table.py:129
+msgid "Any"
+msgstr "कोनो"
+
+#. TRANSLATORS: This string is used to connect audit rule conditions.
+#: ../src/rule_table.py:140
+msgid " and "
+msgstr " आओर "
+
+#: ../src/server.c:127
+msgid ""
+"This program is only for use by system-config-audit and it should not be "
+"run\n"
+"manually."
+msgstr ""
+"ई प्रोग्राम सिर्फ system-config-audit क' लेल प्रयोग क' लेल अछि आओर  एकरा  दस्ती रूप सँ \n"
+"नहि चलैनाइ चाही."
+
+#: ../src/server.c:141
+#, c-format
+msgid ""
+"\n"
+"Report bugs to %s.\n"
+msgstr ""
+"\n"
+"%s मे बग रिपोर्ट  करू .\n"
+
+#: ../src/server.c:148
+msgid ""
+"Copyright (C) 2007 Red Hat, Inc.  All rights reserved.\n"
+"This software is distributed under the GPL v.2.\n"
+"\n"
+"This program is provided with NO WARRANTY, to the extent permitted by law."
+msgstr ""
+"Copyright (C) 2007 Red Hat, Inc.  All rights reserved.\n"
+"This software is distributed under the GPL v.2.\n"
+"\n"
+"This program is provided with NO WARRANTY, to the extent permitted by law."
+
+#: ../src/server.c:472
+msgid "The control file is not a socket"
+msgstr "नियंत्रण फाइल साकेट नहि अछि"
+
+#: ../src/server.c:498
+#, c-format
+msgid "Unknown server request %<PRIu32>"
+msgstr "अज्ञात सर्वर आग्रह %<PRIu32>"
+
+#: ../src/system-config-audit.glade.h:1
+msgid "<b>Key Type</b>"
+msgstr "<b>कुंजी प्रकार</b>"
+
+#: ../src/system-config-audit.glade.h:2
+msgid "<span weight=\"bold\">Architecture</span>"
+msgstr "<span weight=\"bold\">आर्किटेक्चर</span>"
+
+#: ../src/system-config-audit.glade.h:3
+msgid "<span weight=\"bold\">Configuration Lock</span>"
+msgstr "<span weight=\"bold\">विन्यास लाक</span>"
+
+#: ../src/system-config-audit.glade.h:4
+msgid "<span weight=\"bold\">Current Configuration</span>"
+msgstr "<span weight=\"bold\"> मोजुदा  विन्यास</span>"
+
+#: ../src/system-config-audit.glade.h:5
+msgid "<span weight=\"bold\">Disk Full</span>"
+msgstr "<span weight=\"bold\">डिस्क भरल</span>"
+
+#: ../src/system-config-audit.glade.h:6
+msgid "<span weight=\"bold\">Email</span>"
+msgstr "<span weight=\"bold\">ई-मेल</span>"
+
+#: ../src/system-config-audit.glade.h:7
+msgid "<span weight=\"bold\">Event Type</span>"
+msgstr "<span weight=\"bold\">घटना प्रकार</span>"
+
+#: ../src/system-config-audit.glade.h:8
+msgid "<span weight=\"bold\">Failure Handling</span>"
+msgstr "<span weight=\"bold\">विफलता नियंत्रण</span>"
+
+#: ../src/system-config-audit.glade.h:9
+msgid "<span weight=\"bold\">I/O error</span>"
+msgstr "<span weight=\"bold\">I/O त्रुटि</span>"
+
+#: ../src/system-config-audit.glade.h:10
+msgid "<span weight=\"bold\">Limit to the following system calls:</span>"
+msgstr "<span weight=\"bold\">निम्नलिखित सिस्टम काल क' लेल सीमा:</span>"
+
+#: ../src/system-config-audit.glade.h:11
+msgid "<span weight=\"bold\">Limits</span>"
+msgstr "<span weight=\"bold\">सीमा</span>"
+
+#: ../src/system-config-audit.glade.h:12
+msgid "<span weight=\"bold\">Pass _audit events to a program</span>"
+msgstr "<span weight=\"bold\">कोनो प्रोग्राम मे आडिट घटना भेजू (_a)</span>"
+
+#: ../src/system-config-audit.glade.h:13
+msgid "<span weight=\"bold\">Priority</span>"
+msgstr "<span weight=\"bold\">प्राथमिकता</span>"
+
+#: ../src/system-config-audit.glade.h:14
+msgid "<span weight=\"bold\">Second _threshold:</span>"
+msgstr "<span weight=\"bold\">दोसर थ्रेसहोल्ड (_t):</span>"
+
+#: ../src/system-config-audit.glade.h:15
+msgid "<span weight=\"bold\">Statistics</span>"
+msgstr "<span weight=\"bold\">आंकड़ा</span>"
+
+#: ../src/system-config-audit.glade.h:16
+msgid "<span weight=\"bold\">Status</span>"
+msgstr "<span weight=\"bold\">स्थिति</span>"
+
+#: ../src/system-config-audit.glade.h:17
+msgid "<span weight=\"bold\">Store _audit events to a file</span>"
+msgstr "<span weight=\"bold\">फाइल मे आडिट घटना जमा करू (_a)</span>"
+
+#: ../src/system-config-audit.glade.h:18
+msgid "<span weight=\"bold\">Watched File</span>"
+msgstr "<span weight=\"bold\">देखी गई फाइल</span>"
+
+#: ../src/system-config-audit.glade.h:19
+msgid "<span weight=\"bold\">Watched operations</span>"
+msgstr "<span weight=\"bold\">देखी आपरेशन</span>"
+
+#: ../src/system-config-audit.glade.h:20
+msgid "<span weight=\"bold\">When Rule Matches</span>"
+msgstr "<span weight=\"bold\">जखन नियम मेल खाता अछि</span>"
+
+#: ../src/system-config-audit.glade.h:21
+msgid "<span weight=\"bold\">_First threshold:</span>"
+msgstr "<span weight=\"bold\">पहला थ्रेसहोल्ड (_F):</span>"
+
+#: ../src/system-config-audit.glade.h:22
+msgid "Audit Daemon"
+msgstr "आडिट डेमान"
+
+#: ../src/system-config-audit.glade.h:23
+msgid "Audit Rule"
+msgstr "आडिट नियम"
+
+#: ../src/system-config-audit.glade.h:24
+msgid "Audit configuration"
+msgstr "आडिट विन्यास"
+
+#: ../src/system-config-audit.glade.h:25
+msgid "Audit daemon PID:"
+msgstr "आडिट डेमान PID:"
+
+#: ../src/system-config-audit.glade.h:26
+msgid "Audit daemon priority _boost:"
+msgstr "आडिट डेमान प्राथमिकता बूस्ट (_b):"
+
+#: ../src/system-config-audit.glade.h:27
+msgid "Audited Tasks"
+msgstr "आडिट कएल कार्य"
+
+#: ../src/system-config-audit.glade.h:28
+msgid "B_rowse"
+msgstr "ब्राउज करू (_r)"
+
+#: ../src/system-config-audit.glade.h:29
+msgid "Backlog:"
+msgstr "बैकलाग:"
+
+#: ../src/system-config-audit.glade.h:30
+msgid "Brows_e"
+msgstr "ब्राउज करू (_e)"
+
+#: ../src/system-config-audit.glade.h:31
+msgid "Browse"
+msgstr "ब्राउज  करू "
+
+#: ../src/system-config-audit.glade.h:32
+msgid "C_hange..."
+msgstr "बदले (_h)..."
+
+#: ../src/system-config-audit.glade.h:33
+msgid "Conditions"
+msgstr "परिस्थिति"
+
+#: ../src/system-config-audit.glade.h:34
+msgid "Configuration"
+msgstr "कान्फ़िगरेशन"
+
+#: ../src/system-config-audit.glade.h:35
+msgid "Current Status"
+msgstr " मोजुदा स्थिति"
+
+#: ../src/system-config-audit.glade.h:36
+msgid "D_o nothing"
+msgstr "किछु नहि (_o)"
+
+#: ../src/system-config-audit.glade.h:37
+msgid "Default behavior: Allow auditing the task."
+msgstr "पूर्वनिर्धारित आचरण: कार्य क' लेखा स्वीकारू."
+
+#: ../src/system-config-audit.glade.h:38
+msgid "Default behavior: Audit the event."
+msgstr "पूर्वनिर्धारित आचरण: घटना क' लेखा लिअ'."
+
+#: ../src/system-config-audit.glade.h:39
+msgid "Default behavior: Do not audit the system call"
+msgstr "पूर्वनिर्धारित आचरण: सिस्टम काल आडिट नहि करू"
+
+#: ../src/system-config-audit.glade.h:40
+msgid ""
+"Default behavior: Do not audit the system call, but allow auditing it by a "
+"\"System Call Exit\" rule or a kernel decision."
+msgstr ""
+"पूर्वनिर्धारित आचरण: सिस्टम काल क' आडिट नहि  करू ,  मुदा  एकर आडिटिंग केँ \"System Call Exit"
+"\" नियम क' द्वारा स्वीकारू अथवा कर्नेल निर्णय क' द्वारा."
+
+#: ../src/system-config-audit.glade.h:41
+msgid "Default behavior: Preserve events."
+msgstr "पूर्वनिर्धारित आचरण: घटना संरक्षित  करू ."
+
+#: ../src/system-config-audit.glade.h:42
+msgid "Do _nothing"
+msgstr "किछु नहि करू (_n)"
+
+#: ../src/system-config-audit.glade.h:43
+msgid "Event Key"
+msgstr "घटना कुंजी"
+
+#: ../src/system-config-audit.glade.h:44
+msgid "Event Keys"
+msgstr "घटना कुंजियाँ"
+
+#: ../src/system-config-audit.glade.h:45
+msgid "Event Type"
+msgstr "घटना प्रकार"
+
+#: ../src/system-config-audit.glade.h:46
+msgid "Event Type Rules"
+msgstr "घटना प्रकार नियम"
+
+#: ../src/system-config-audit.glade.h:47
+msgid "Event type rules:"
+msgstr "घटना प्रकार नियम:"
+
+#: ../src/system-config-audit.glade.h:48
+msgid ""
+"Events won't be written to the log file until the program resumes event "
+"processing."
+msgstr ""
+"घटना केँ लाग फाइल मे नहि लिखल जएताह जखन तक प्रोग्राम घटना प्रक्रिया केँ वापस बहाल "
+"नहि करैत अछि."
+
+#: ../src/system-config-audit.glade.h:49
+msgid "Fail _if more than"
+msgstr "विफल जँ एकरासँ बेसी  अछि (_i)"
+
+#: ../src/system-config-audit.glade.h:50
+msgid "File Watches"
+msgstr "फाइल देखैत अछि"
+
+#: ../src/system-config-audit.glade.h:51
+msgid "File watches:"
+msgstr "फाइल देखैत अछि:"
+
+#: ../src/system-config-audit.glade.h:52
+msgid "General"
+msgstr "सामान्य"
+
+#: ../src/system-config-audit.glade.h:53
+msgid "Global configuration"
+msgstr "वैश्विक विन्यास"
+
+#: ../src/system-config-audit.glade.h:54
+msgid "If the program stops processing events:"
+msgstr " जँ प्रोग्राम प्रक्रिया करब वाली घटना केँ रोकैत अछि:"
+
+#: ../src/system-config-audit.glade.h:55
+msgid "Kernel"
+msgstr "कर्नेल"
+
+#: ../src/system-config-audit.glade.h:57
+msgid "Log File Errors"
+msgstr "लाग फाइल त्रुटि"
+
+#: ../src/system-config-audit.glade.h:58
+msgid "Lost events:"
+msgstr "खोई घटना:"
+
+#: ../src/system-config-audit.glade.h:59
+msgid "Low Disk Space"
+msgstr "कम डिस्क स्थान"
+
+#: ../src/system-config-audit.glade.h:60
+msgid "MB"
+msgstr "मे.बा."
+
+#: ../src/system-config-audit.glade.h:61
+msgid "M_B:"
+msgstr "M_B:"
+
+#: ../src/system-config-audit.glade.h:62
+msgid "Making sure audit events are written to disk"
+msgstr "सुनिश्चित कए रहल अछि जे आडिट घटना डिस्क मे लिखल जाए रहल अछि"
+
+#: ../src/system-config-audit.glade.h:63
+msgid "Other Audit Rules"
+msgstr "दोसर आडिट नियम:"
+
+#: ../src/system-config-audit.glade.h:64
+msgid "Other audit rules:"
+msgstr "दोसर आडिट नियम:"
+
+#: ../src/system-config-audit.glade.h:65
+msgid "Run a _program:"
+msgstr "कोनो प्रोग्राम चलाउ (_p):"
+
+#: ../src/system-config-audit.glade.h:66
+msgid "S_hut down the computer"
+msgstr "कंप्यूटर बन्न करू (_h)"
+
+#: ../src/system-config-audit.glade.h:67
+msgid "Save Configuration"
+msgstr "कान्फ़िगरेशन सहेजू"
+
+#: ../src/system-config-audit.glade.h:68
+msgid "Send _emails to:"
+msgstr "एतए इमेल भेजू (_e):"
+
+#: ../src/system-config-audit.glade.h:69
+msgid "Send a _message to syslog"
+msgstr "सिसलाग मे एकटा संदेश भेजू (_m)"
+
+#: ../src/system-config-audit.glade.h:70
+msgid "Send a _message to system log"
+msgstr "सिस्टम लाग मे एकटा संदेश भेजू (_m)"
+
+#: ../src/system-config-audit.glade.h:71
+msgid "Send an _email"
+msgstr "एक इमेल भेजू (_e)"
+
+#: ../src/system-config-audit.glade.h:72
+msgid "Send an emai_l"
+msgstr "एक इमेल भेजू (_l)"
+
+#: ../src/system-config-audit.glade.h:73
+msgid "Settings"
+msgstr "विन्यास"
+
+#: ../src/system-config-audit.glade.h:74
+msgid "Shut _down the computer"
+msgstr "कम्प्यूटर बन्द करू (_d)"
+
+#: ../src/system-config-audit.glade.h:75
+msgid "Stop _writing audit events to the log file"
+msgstr "लाग फाइल मे आडिट घटना लिखनाइ रोकू (_w)"
+
+#: ../src/system-config-audit.glade.h:76
+msgid "Stop _writing events to the file"
+msgstr "फाइल मे घटना लिखना रोकू (_w)"
+
+#: ../src/system-config-audit.glade.h:77
+msgid "Stop writing _audit events to the log file"
+msgstr "लाग फाइल मे आडिट घटना लेखन रोकू (_a)"
+
+#: ../src/system-config-audit.glade.h:78
+msgid "Suppressed Events"
+msgstr "दबाएल गेल घटना"
+
+#: ../src/system-config-audit.glade.h:79
+msgid "Switch to s_ingle-user mode"
+msgstr "सिस्टम काल निकास (_i)"
+
+#: ../src/system-config-audit.glade.h:80
+msgid "Switch to single-_user mode"
+msgstr "एकल प्रयोक्ता मोड मे जाउ (_u)"
+
+#: ../src/system-config-audit.glade.h:81
+msgid "System Call Entry"
+msgstr "सिस्टम काल प्रविष्टि"
+
+#: ../src/system-config-audit.glade.h:82
+msgid "System Call Exit"
+msgstr "सिस्टम काल निकास"
+
+#: ../src/system-config-audit.glade.h:84
+msgid "This rule set can be used to completely disable auditing for some tasks."
+msgstr ""
+"ई नियम सेट केँ पूरी तरह सँ प्रयोग कएल जाए सकैत अछि किछु कार्य क' लेल आडिटिंग प्रयोग कएल "
+"जाए सकैत अछि."
+
+#: ../src/system-config-audit.glade.h:85
+msgid "This rule set can be used to discard all events of a specific type."
+msgstr "ई नियम विशेष प्रकार क' सबहि घटनाओं केँ त्यागने क' लेल सेट कएल जाए सकैत अछि."
+
+#: ../src/system-config-audit.glade.h:86
+msgid "This rule set can be used to filter audit events sent from applications."
+msgstr "ई नियम आडिट घटनाओं केँ फिल्टर करब क' लेल प्रयुक्त कएल जाए सकैत अछि."
+
+#: ../src/system-config-audit.glade.h:87
+msgid ""
+"This rule set can be used to mark a system call for auditing, or to prevent "
+"auditing of the system call.  To be audited by these rules, a system call "
+"must be performed in an audited task."
+msgstr ""
+
+#: ../src/system-config-audit.glade.h:88
+msgid ""
+"This rule set can be used to mark system calls for auditing.  To be audited "
+"by these rules, a system call must be performed in an audited task and it "
+"must pass the \"System Call Entry\" rules."
+msgstr ""
+
+#: ../src/system-config-audit.glade.h:89
+msgid "Trusted Application Events"
+msgstr "भरोसेमंद अनुप्रयोग घटना"
+
+#: ../src/system-config-audit.glade.h:90 ../src/watch_dialog.py:48
+msgid "Watched File"
+msgstr "देखल गेल फाइल"
+
+#: ../src/system-config-audit.glade.h:91
+msgid "When the current log file _grows to"
+msgstr "जखन कोनो  मोजुदा  लाग फाइल बढ़ैत अछि (_g)"
+
+#: ../src/system-config-audit.glade.h:92
+msgid "_Add a host name field to audit events:"
+msgstr "घटना आडिट करब क' लेल होस्ट नेम क्षेत्र जोड़ू (_A)"
+
+#: ../src/system-config-audit.glade.h:93
+msgid "_Any"
+msgstr "कोनो (_A)"
+
+#: ../src/system-config-audit.glade.h:94
+msgid "_Apply the configuration changes after saving them"
+msgstr "ओकरा सहेजबाक बाद विन्यास बदलाव लागू करू (_A)"
+
+#: ../src/system-config-audit.glade.h:95
+msgid "_Arbitrary text:"
+msgstr "विशेषता पाठ (_A):"
+
+#: ../src/system-config-audit.glade.h:96
+msgid "_Attribute change"
+msgstr "विशेषता परिवर्तन (_A)"
+
+#: ../src/system-config-audit.glade.h:97
+msgid "_Browse"
+msgstr "ब्राउज़ (_B)"
+
+#: ../src/system-config-audit.glade.h:98
+msgid "_Browse..."
+msgstr "ब्राउज...(_B)"
+
+#: ../src/system-config-audit.glade.h:99
+msgid "_Custom:"
+msgstr "पसंदीदा (_C):"
+
+#: ../src/system-config-audit.glade.h:100
+msgid "_Data only"
+msgstr "सिर्फ डेटा (_D)"
+
+#: ../src/system-config-audit.glade.h:101
+msgid "_Discard them"
+msgstr "उन्हें छोड़ें (_D)"
+
+#: ../src/system-config-audit.glade.h:102
+msgid "_Execute"
+msgstr "चलाएं (_E)"
+
+#: ../src/system-config-audit.glade.h:103
+msgid "_Fail if more than"
+msgstr "इससे  बेसी  हए पर बिफल (_F)"
+
+#: ../src/system-config-audit.glade.h:104
+msgid "_File"
+msgstr "फाइल (_F)"
+
+#: ../src/system-config-audit.glade.h:105
+msgid "_File:"
+msgstr "फ़ाइल (_F):"
+
+#: ../src/system-config-audit.glade.h:106
+msgid "_Force writeout every"
+msgstr "राइट आउट बाध्य करू हर (_F)"
+
+#: ../src/system-config-audit.glade.h:107
+msgid "_Halt the system (without shutting down cleanly)"
+msgstr "सिस्टम हाल्ट करू (साफ रूप सँ बन्न किए बिनु) (_H)"
+
+#: ../src/system-config-audit.glade.h:108
+msgid "_Help"
+msgstr " मदति  (_H)"
+
+#: ../src/system-config-audit.glade.h:109
+msgid "_Intrusion detection tag:"
+msgstr "घुसपैठ जाँच टैग (_I):"
+
+#: ../src/system-config-audit.glade.h:110
+msgid "_Keep only the newest"
+msgstr "सबसे नवीन केँ बनाए राखू (_K)"
+
+#: ../src/system-config-audit.glade.h:111
+msgid "_Limit to tasks using architecture:"
+msgstr "आर्किटेक्चर क' प्रयोग सँ कार्य क' सीमा (_L):"
+
+#: ../src/system-config-audit.glade.h:112
+msgid "_Mark matching events with keys:"
+msgstr "कुंजी क' सँग मिलान घटना चिह्नित करू (_M):"
+
+#: ../src/system-config-audit.glade.h:113
+msgid "_Path:"
+msgstr "पथ (_P):"
+
+#: ../src/system-config-audit.glade.h:114
+msgid "_Program:"
+msgstr "प्रोग्राम (_P):"
+
+#: ../src/system-config-audit.glade.h:115
+msgid "_Prohibit configuration changes until reboot"
+msgstr "रिबूट तक विन्यास परिवर्तन रोकें (_P)"
+
+#: ../src/system-config-audit.glade.h:116
+msgid "_Read"
+msgstr "पढ़ें (_R)"
+
+#: ../src/system-config-audit.glade.h:117
+msgid "_Rotate log files"
+msgstr "लाग फाइल घुमाएं (_R)"
+
+#: ../src/system-config-audit.glade.h:118
+msgid "_Run a program:"
+msgstr "कोनो प्रोग्राम चलाएं (_R):"
+
+#: ../src/system-config-audit.glade.h:119
+msgid "_Satisfying: type"
+msgstr "संतोषजनक (_S): प्रकार"
+
+#: ../src/system-config-audit.glade.h:120
+msgid "_Send a message to syslog"
+msgstr "सिसलाग मे एकटा संदेश भेजू (_S)"
+
+#: ../src/system-config-audit.glade.h:121
+msgid "_Send a message to system log"
+msgstr "सिस्टम लाग मे एकटा संदेश भेजू (_S)"
+
+#: ../src/system-config-audit.glade.h:122
+msgid "_Severity:"
+msgstr "गंभीरता (_S):"
+
+#: ../src/system-config-audit.glade.h:123
+msgid "_Type:"
+msgstr "प्रकार (_T):"
+
+#: ../src/system-config-audit.glade.h:124
+msgid "_Use normal file system buffering"
+msgstr "सामान्य फाइल सिस्टम बफरिंग क' प्रयोग करू (_U)"
+
+#: ../src/system-config-audit.glade.h:125
+msgid "_Wait until event processing is resumed"
+msgstr "प्रतीक्षा करू जखनतक जे घटना प्रक्रिया वापस बहाल होती अछि (_W)"
+
+#: ../src/system-config-audit.glade.h:126
+msgid "_Write"
+msgstr "लिखें (_W)"
+
+#: ../src/system-config-audit.glade.h:127
+msgid "_events are generated per second"
+msgstr "प्रति सेकेंड घटना उत्पन्न क' जाएत अछि (_e)"
+
+#: ../src/system-config-audit.glade.h:128
+msgid "_records"
+msgstr "रिकार्ड (_r)"
+
+#: ../src/system-config-audit.glade.h:129
+msgid "events are left unprocessed"
+msgstr "घटना गैर प्रक्रमित छोड़ल गेल अछि"
+
+#: ../src/system-config-audit.glade.h:130
+msgid "f_iles"
+msgstr "f_iles"
+
+#: ../src/system-config-audit.glade.h:131
+msgid "gtk-edit"
+msgstr "gtk-edit"
+
+#: ../src/system-config-audit.glade.h:132
+msgid "gtk-go-down"
+msgstr "gtk-go-down"
+
+#: ../src/system-config-audit.glade.h:133
+msgid "gtk-go-up"
+msgstr "gtk-go-up"
+
+#: ../src/type_list_dialog.py:75
+msgid "Any type"
+msgstr "कोनो प्रकार"
+
+#: ../src/type_list_dialog.py:79
+msgid "Type"
+msgstr "प्रकार"
+
+#: ../src/util.py:150
+#, python-format
+msgid "Unknown architecture %d"
+msgstr "अज्ञात आर्किटेक्चर %d"
+
+#: ../src/util.py:158
+msgid "64-bit architecture not supported"
+msgstr "64-बिट आर्किटेक्चर समर्थित नहि"
+
+#: ../src/util.py:162
+msgid "32-bit architecture not supported"
+msgstr "32-बिट आर्किटेक्चर समर्थित नहि"
+
+#: ../src/util.py:166
+#, python-format
+msgid "Unknown architecture \"%s\""
+msgstr "अज्ञात आर्किटेक्चर \"%s\""
+
+#: ../src/util.py:177
+#, python-format
+msgid "Unknown file type \"%s\""
+msgstr "अज्ञात फाइल प्रकार \"%s\""
+
+#: ../src/util.py:213
+#, python-format
+msgid "Unknown message type \"%s\""
+msgstr "अज्ञात संदेश प्रकार \"%s\""
+
+#: ../src/util.py:227
+#, python-format
+msgid "Unknown system call \"%s\""
+msgstr "अज्ञात सिस्टम काल \"%s\""
+
+#: ../src/util.py:229
+msgid "System call number must be non-negative"
+msgstr "सिस्टम काल केँ जरूर गैर नकारात्मक होनाइ चाही"
+
+#: ../src/util.py:241
+#, python-format
+msgid "Invalid number \"%s\""
+msgstr "अवैध सँख्या \"%s\""
+
+#: ../src/util.py:243
+msgid "Value must be non-negative"
+msgstr "मान केँ जरूर गैर नकारात्मक होनाइ चाही"
+
+#: ../src/util.py:248
+msgid ", "
+msgstr ","
+
+#: ../src/watch_dialog.py:133
+msgid "The watched file path must not be empty"
+msgstr "देखल गेल फाइल पथ केँ खाली नहि होनाइ चाही"
+
+#: ../src/watch_list_dialog.py:34
+msgid "Path"
+msgstr "पथ"
+
+#: ../src/watch_list_dialog.py:34
+msgid "Operations"
+msgstr "कार्य"
+
+#: ../system-config-audit.desktop.in.h:2
+msgid "Modify audit configuration"
+msgstr "आडिट विन्यास बदलू"
+
