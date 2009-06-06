@@ -4,10 +4,7 @@
 - In s-c-audit, fix error handling with audit-1.7.12 and later
 - In s-c-audit, fix saving space_left_action
 - In s-c-audit, include many new translations
-
-Changes in release 0.4.9:
-* Many new translations.
-
+- Correct ending keywords meanings for ausearch & aureport
 
 1.7.13
 - Disable libev asserts unless --with-debug passed to configure
