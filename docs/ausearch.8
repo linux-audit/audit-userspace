@@ -103,7 +103,7 @@ is assumed. If the time is omitted,
 .B now
 is assumed. Use 24 hour clock time rather than AM or PM to specify time. An example date is 10/24/2005. An example of time is 18:00:00.
 
-You may also use the word: \fBnow\fP, \fBrecent\fP, \fBtoday\fP, \fByesterday\fP, \fBthis\-week\fP, \fBweek\-ago\fP, \fBthis\-month\fP, \fBthis\-year\fP. \fBToday\fP and \fBRecent\fP means starting now. \fBYesterday\fP is one second before midnight the previous day. \fBThis\-week\fP, \fBthis\-month\fP, and \fBthis\-year\fP means now. \fBWeek\-ago\fP means the start of this week.
+You may also use the word: \fBnow\fP, \fBrecent\fP, \fBtoday\fP, \fByesterday\fP, \fBthis\-week\fP, \fBweek\-ago\fP, \fBthis\-month\fP, \fBthis\-year\fP. \fBToday\fP means starting now. \fBRecent\fP is 10 minutes ago. \fBYesterday\fP is 1 second after midnight the previous day. \fBThis\-week\fP means starting 1 second after midnight on day 0 of the week determined by your locale (see \fBlocaltime\fP). \fBThis\-month\fP means 1 second after midnight on day 1 of the month. \fBThis\-year\fP means the 1 second after midnight on the first day of the first month.
 .TP
 .BR \-ts ,\  \-\-start \ [\fIstart-date\fP]\ [\fIstart-time\fP]
 Search for events with time stamps equal to or after the given end time. The format of end time depends on your locale. If the date is omitted, 

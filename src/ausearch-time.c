@@ -83,13 +83,6 @@ static void set_tm_now(struct tm *d)
 	replace_date(d, tv);
 }
 
-static void set_tm_midnight(struct tm *d)
-{
-        d->tm_sec = 59;          /* seconds */
-        d->tm_min = 59;          /* minutes */
-        d->tm_hour = 23;         /* hours */
-}
-
 static void set_tm_today(struct tm *d)
 {
         time_t t = time(NULL);
@@ -163,7 +156,6 @@ static void set_tm_this_year(struct tm *d)
 	replace_date(d, tv);
         d->tm_mday = 1;         /* override day of month */
         d->tm_mon = 0;          /* override month */
-        d->tm_isdst = 0;	/* Don't let DST mess up calculation */
 }
 
 /* Combine date & time into 1 struct. Results in date. */
@@ -274,9 +266,7 @@ int ausearch_time_start(const char *da, const char *ti)
 	if (da == NULL)
 		set_tm_now(&d);
 	else {
-		// See if date is a keyword
 		if (lookup_and_set_time(da, &d) < 0) {
-			// Must be a date
 			ret = strptime(da, "%x", &d);
 			if (ret == NULL) {
 				fprintf(stderr,
@@ -290,15 +280,11 @@ int ausearch_time_start(const char *da, const char *ti)
 				return 1;
 			}
 		} else {
-			// Do some fix ups
 			int keyword=lookup_time(da);
 			if (keyword == T_RECENT || keyword == T_NOW) {
 				if (ti == NULL || strcmp(ti, "00:00:00") == 0)
 					goto set_it;
 			}
-			if (keyword == T_THIS_YEAR && 
-				(ti == NULL || strcmp(ti, "00:00:00") == 0))
-				goto set_it;
 		}
 	}
 
@@ -331,12 +317,12 @@ int ausearch_time_start(const char *da, const char *ti)
 		return -1;
 	}
 set_it:
+	// printf("start is: %s\n", ctime(&start_time));
 	start_time = mktime(&d);
 	if (start_time == -1) {
 		fprintf(stderr, "Error converting start time\n");
 		rc = -1;
 	}
-	// printf("start is: %s\n", ctime(&start_time)); exit(0);
 	return rc;
 }
 
@@ -351,9 +337,7 @@ int ausearch_time_end(const char *da, const char *ti)
 	if (da == NULL)
 		set_tm_now(&d);
 	else {
-		// See if date is a keyword
 		if (lookup_and_set_time(da, &d) < 0) {
-			// Must be a date
 			ret = strptime(da, "%x", &d);
 			if (ret == NULL) {
 				fprintf(stderr,
@@ -367,27 +351,16 @@ int ausearch_time_end(const char *da, const char *ti)
 				return 1;
 			}
 		} else {
-			// Now do some correcting
 			int keyword=lookup_time(da);
-			if (keyword == T_NOW) {
+			if (keyword == T_RECENT || keyword == T_NOW) {
 				if (ti == NULL || strcmp(ti, "00:00:00") == 0)
 					goto set_it;
 			}
-			// Fix up ending times
-			if (keyword == T_TODAY || keyword == T_RECENT) {
+			// Special case today
+			if (keyword == T_TODAY) {
 				set_tm_now(&d);
 				if (ti == NULL || strcmp(ti, "00:00:00") == 0)
 					goto set_it;
-			} else if (keyword > T_TODAY && 
-				(ti == NULL || strcmp(ti, "00:00:00") == 0)) {
-				set_tm_midnight(&d);
-				if (	keyword == T_THIS_WEEK ||
-					keyword == T_THIS_MONTH ||
-					keyword == T_THIS_YEAR)
-						set_tm_now(&d);
-				else if (keyword == T_WEEK_AGO)
-					set_tm_this_week(&d);
-				goto set_it;
 			}
 		}
 	}
