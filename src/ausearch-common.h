@@ -24,6 +24,8 @@
 #ifndef AUREPORT_COMMON_H
 #define AUREPORT_COMMON_H
 
+#include "ausearch-string.h"
+
 /* Global variables that describe what search is to be performed */
 extern time_t start_time, end_time;
 extern unsigned int event_id;
@@ -31,7 +33,7 @@ extern gid_t event_gid, event_egid;
 extern pid_t event_pid;
 extern int event_exact_match;
 extern uid_t event_uid, event_euid, event_loginuid;
-extern const char *event_node;
+const slist *event_node_list;
 extern const char *event_comm;
 extern const char *event_filename;
 extern const char *event_hostname;

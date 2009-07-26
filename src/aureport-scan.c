@@ -199,12 +199,26 @@ int scan(llist *l)
 			// OK - do the heavier checking
 			int rc = extract_search_items(l);
 			if (rc == 0) {
-                                if (event_node) {
-                                        if (l->e.node == NULL)
-                                                return 0;
-                                        if (strcasecmp(event_node, l->e.node))
-                                                return 0;
-                                }
+				if (event_node_list) {
+					const snode *sn;
+					int found=0;
+					slist *sptr = event_node_list;
+
+					if (l->e.node == NULL)
+						return 0;
+
+					slist_first(sptr);
+					sn=slist_get_cur(sptr);
+					while (sn && !found) {
+						if (sn->str && (!strcmp(sn->str, l->e.node)))
+							found++;
+						else
+							sn=slist_next(sptr);
+					}
+					
+				  	if (!found)
+				  		return 0;
+				}
 				if (classify_success(l) && classify_conf(l))
 					return 1;
 				return 0;

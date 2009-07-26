@@ -5,7 +5,8 @@
 - In s-c-audit, fix saving space_left_action
 - In s-c-audit, include many new translations
 - Aureport and ausearch do not need to stat the dispatcher
-- Make auparse handle empty AUSOURCE_FILE_ARRAY correctly
+- Make auparse handle empty AUSOURCE_FILE_ARRAY correctly (Miloslav Trmač)
+- Allow ausearch/report to specify multiple node names (Lenny Bruzenak)
 
 1.7.13
 - Disable libev asserts unless --with-debug passed to configure

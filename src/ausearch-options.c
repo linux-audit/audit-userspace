@@ -53,7 +53,6 @@ int event_session_id = -1;
 int event_exit = 0, event_exit_is_set = 0;
 int line_buffered = 0;
 const char *event_key = NULL;
-const char *event_node = NULL;
 const char *event_filename = NULL;
 const char *event_exe = NULL;
 const char *event_comm = NULL;
@@ -62,6 +61,8 @@ const char *event_terminal = NULL;
 const char *event_subject = NULL;
 const char *event_object = NULL;
 report_t report_format = RPT_DEFAULT;
+
+const slist *event_node_list = NULL;
 
 struct nv_pair {
     int        value;
@@ -591,10 +592,22 @@ int check_params(int count, char *vars[])
 					vars[c]);
 				retval = -1;
 			} else {
-				event_node = strdup(optarg);
-				if (event_node == NULL)
-					retval = -1;
+				snode sn;
 				c++;
+
+				if (!event_node_list) {
+					event_node_list = malloc(sizeof (slist));
+					if (!event_node_list) {
+						retval = -1;
+						break;
+					}
+					slist_create(event_node_list);
+				}
+				
+				sn.str = strdup(optarg);
+				sn.key = NULL;
+				sn.hits=0;
+				slist_append(event_node_list, &sn);
 			}
 			break;
 		case S_SYSCALL:

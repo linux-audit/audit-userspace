@@ -53,12 +53,24 @@ int match(llist *l)
 				}
 
 				// perform additional tests for the field
-				if (event_node) {
+				if (event_node_list) {
+					const snode *sn;
+					int found=0;
+					slist *sptr = event_node_list;
+
 					if (l->e.node == NULL)
+				  		return 0;
+
+					slist_first(sptr);
+					sn=slist_get_cur(sptr);
+					while (sn && !found) {
+						if (sn->str &&  (!strcmp(sn->str, l->e.node)))
+							found++;
+						else
+							sn=slist_next(sptr);
+					}
+					if (!found)
 						return 0;
-					if (strmatch(event_node, 
-						l->e.node) == 0)
-						return 0; 
 				}
 				if (user_match(l) == 0)
 					return 0;
