@@ -1,3 +1,0 @@
-USER=root
-PROGRAM=/usr/libexec/system-config-audit-server-real
-SESSION=true

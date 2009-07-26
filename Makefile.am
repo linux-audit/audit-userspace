@@ -22,7 +22,7 @@
 #
 
 SUBDIRS = lib auparse src/mt src/libev src audisp tools swig bindings init.d \
-	docs system-config-audit
+	docs
 EXTRA_DIST = ChangeLog AUTHORS NEWS README INSTALL audit.spec \
 	contrib/capp.rules contrib/nispom.rules contrib/lspp.rules \
 	contrib/stig.rules contrib/skeleton.c contrib/avc_snap \

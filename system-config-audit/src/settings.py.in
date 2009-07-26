@@ -1,5 +1,0 @@
-gettext_domain = '@PACKAGE@'
-glade_file_path = '@pkgdatadir@/system-config-audit.glade'
-localedir = '@localedir@'
-server_path = '@libexecdir@/system-config-audit-server'
-version = '@PACKAGE_VERSION@'

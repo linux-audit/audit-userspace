@@ -1,19 +1,15 @@
-%define audit_version 1.8
-%define audit_release 1
-%define sca_version 0.4.10
-%define sca_release 1
 %{!?python_sitearch: %define python_sitearch %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib(1)")}
 
 Summary: User space tools for 2.6 kernel auditing
 Name: audit
-Version: %{audit_version}
-Release: %{audit_release}
+Version: 2.0
+Release: 1
 License: GPLv2+
 Group: System Environment/Daemons
 URL: http://people.redhat.com/sgrubb/audit/
 Source0: http://people.redhat.com/sgrubb/audit/%{name}-%{version}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
-BuildRequires: gettext-devel intltool libtool swig python-devel
+BuildRequires: libtool swig python-devel
 BuildRequires: tcp_wrappers-devel krb5-devel
 BuildRequires: kernel-headers >= 2.6.18
 BuildRequires: automake >= 1.9
@@ -74,19 +70,6 @@ interface to the audit system, audispd. These plugins can do things
 like relay events to remote machines or analyze events for suspicious
 behavior.
 
-%package -n system-config-audit
-Summary: Utility for editing audit configuration
-Version: %{sca_version}
-Release: %{sca_release}
-License: GPLv2+
-Group: Applications/System
-BuildRequires: desktop-file-utils
-Requires: pygtk2-libglade usermode usermode-gtk
-Requires: %{name}-libs = %{audit_version}-%{audit_release}
-
-%description -n system-config-audit
-A graphical utility for editing audit configuration.
-
 %prep
 %setup -q
 
@@ -102,7 +85,6 @@ mkdir -p $RPM_BUILD_ROOT/%{_lib}
 mkdir -p $RPM_BUILD_ROOT/%{_libdir}/audit
 mkdir -p $RPM_BUILD_ROOT/%{_var}/log/audit
 make DESTDIR=$RPM_BUILD_ROOT %{?_smp_mflags} install
-make -C system-config-audit DESTDIR=$RPM_BUILD_ROOT install-fedora
 
 mkdir -p $RPM_BUILD_ROOT/%{_libdir}
 # This winds up in the wrong place when libtool is involved
@@ -129,13 +111,6 @@ rm -f $RPM_BUILD_ROOT/%{_libdir}/python?.?/site-packages/auparse.la
 
 # On platforms with 32 & 64 bit libs, we need to coordinate the timestamp
 touch -r ./audit.spec $RPM_BUILD_ROOT/etc/libaudit.conf
-
-%find_lang system-config-audit
-
-desktop-file-install					\
-	--dir $RPM_BUILD_ROOT/%{_datadir}/applications	\
-	--delete-original				\
-	system-config-audit/system-config-audit.desktop
 
 %check
 make check
@@ -240,23 +215,9 @@ fi
 %attr(644,root,root) %{_mandir}/man5/audisp-remote.conf.5.gz
 %attr(644,root,root) %{_mandir}/man8/audisp-remote.8.gz
 
-%files -n system-config-audit -f system-config-audit.lang
-%defattr(-,root,root,-)
-%doc system-config-audit/AUTHORS
-%doc system-config-audit/COPYING
-%doc system-config-audit/ChangeLog
-%doc system-config-audit/NEWS
-%doc system-config-audit/README
-%{_bindir}/system-config-audit
-%{_datadir}/applications/system-config-audit.desktop
-%{_datadir}/system-config-audit
-%{_libexecdir}/system-config-audit-server-real
-%{_libexecdir}/system-config-audit-server
-%config(noreplace) %{_sysconfdir}/pam.d/system-config-audit-server
-%config(noreplace) %{_sysconfdir}/security/console.apps/system-config-audit-server
 
 %changelog
-* Tue Apr 21 2009 Steve Grubb <sgrubb@redhat.com> 1.8-1
+* Sun Jul 26 2009 Steve Grubb <sgrubb@redhat.com> 2.0-1
 
 * Tue Apr 21 2009 Steve Grubb <sgrubb@redhat.com> 1.7.13-1
 - Disable libev asserts unless --with-debug passed to configure
