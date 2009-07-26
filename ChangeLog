@@ -4,6 +4,7 @@
 - In s-c-audit, fix error handling with audit-1.7.12 and later
 - In s-c-audit, fix saving space_left_action
 - In s-c-audit, include many new translations
+- Aureport and ausearch do not need to stat the dispatcher
 
 Changes in release 0.4.9:
 * Many new translations.

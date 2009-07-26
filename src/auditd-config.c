@@ -637,7 +637,8 @@ static int dispatch_parser(struct nv_pair *nv, int line,
 
 	/* Bypass the perms check if group is not root since
 	 * this will fail under normal circumstances */
-	if (config->log_group != 0 && getuid() != 0)
+	if ((config->log_group != 0 && getuid() != 0) ||
+				(log_test == TEST_SEARCH)) 
 		goto bypass;
 
 	/* if the file exists, see that its regular, owned by root,
