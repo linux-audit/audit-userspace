@@ -260,7 +260,7 @@ int audit_log_user_message(int audit_fd, int type, const char *message,
 		tty = NULL;
 
 	snprintf(buf, sizeof(buf),
-		"%s: exe=%s (hostname=%s, addr=%s, terminal=%s res=%s)",
+		"%s: exe=%s hostname=%s addr=%s terminal=%s res=%s",
 		message, exename,
 		hostname ? hostname : "?",
 		addrbuf,
@@ -329,7 +329,7 @@ int audit_log_user_comm_message(int audit_fd, int type, const char *message,
 	_get_commname(comm, commname, sizeof(commname));
 
 	snprintf(buf, sizeof(buf),
-		"%s: comm=%s exe=%s (hostname=%s, addr=%s, terminal=%s res=%s)",
+		"%s: comm=%s exe=%s hostname=%s addr=%s terminal=%s res=%s",
 		message, commname, exename,
 		hostname ? hostname : "?",
 		addrbuf,
@@ -414,10 +414,10 @@ int audit_log_acct_message(int audit_fd, int type, const char *pgname,
 		if (audit_value_needs_encoding(name, len)) {
 			audit_encode_value(user, name, len);
 			format = 
-	     "op=%s acct=%s exe=%s (hostname=%s, addr=%s, terminal=%s res=%s)";
+	     "op=%s acct=%s exe=%s hostname=%s addr=%s terminal=%s res=%s";
 		} else
 			format = 
-	 "op=%s acct=\"%s\" exe=%s (hostname=%s, addr=%s, terminal=%s res=%s)";
+	 "op=%s acct=\"%s\" exe=%s hostname=%s addr=%s terminal=%s res=%s";
 
 		snprintf(buf, sizeof(buf), format,
 			op, user, pgname,
@@ -428,7 +428,7 @@ int audit_log_acct_message(int audit_fd, int type, const char *pgname,
 			);
 	} else
 		snprintf(buf, sizeof(buf),
-		"op=%s id=%u exe=%s (hostname=%s, addr=%s, terminal=%s res=%s)",
+		"op=%s id=%u exe=%s hostname=%s addr=%s terminal=%s res=%s",
 			op, id, pgname,
 			host ? host : "?",
 			addrbuf,
@@ -485,7 +485,7 @@ int audit_log_user_avc_message(int audit_fd, int type, const char *message,
 		tty = NULL;
 
 	snprintf(buf, sizeof(buf),
-	    "%s: exe=%s (sauid=%d, hostname=%s, addr=%s, terminal=%s)",
+	    "%s: exe=%s sauid=%d hostname=%s addr=%s terminal=%s",
 		message, exename, uid,
 		hostname ? hostname : "?",
 		addrbuf,
@@ -581,9 +581,9 @@ int audit_log_semanage_message(int audit_fd, int type, const char *pgname,
 		user[len] = 0;
 		if (audit_value_needs_encoding(name, len)) {
 			audit_encode_value(user, name, len);
-			format = "op=%s acct=%s old-seuser=%s old-role=%s old-range=%s new-seuser=%s new-role=%s new-range=%s exe=%s (hostname=%s, addr=%s, terminal=%s res=%s)";
+			format = "op=%s acct=%s old-seuser=%s old-role=%s old-range=%s new-seuser=%s new-role=%s new-range=%s exe=%s hostname=%s addr=%s terminal=%s res=%s";
 		} else
-			format = "op=%s acct=\"%s\" old-seuser=%s old-role=%s old-range=%s new-seuser=%s new-role=%s new-range=%s exe=%s (hostname=%s, addr=%s, terminal=%s res=%s)";
+			format = "op=%s acct=\"%s\" old-seuser=%s old-role=%s old-range=%s new-seuser=%s new-role=%s new-range=%s exe=%s hostname=%s addr=%s terminal=%s res=%s";
 		snprintf(buf, sizeof(buf), format, op, user, 
 			old_seuser && strlen(old_seuser) ? old_seuser : "?",
 			old_role && strlen(old_role) ? old_role : "?",
@@ -599,7 +599,7 @@ int audit_log_semanage_message(int audit_fd, int type, const char *pgname,
 			);
 	} else
 		snprintf(buf, sizeof(buf),
-		"op=%s id=%u old-seuser=%s old-role=%s old-range=%s new-seuser=%s new-role=%s new-range=%s exe=%s (hostname=%s, addr=%s, terminal=%s res=%s)",
+		"op=%s id=%u old-seuser=%s old-role=%s old-range=%s new-seuser=%s new-role=%s new-range=%s exe=%s hostname=%s addr=%s terminal=%s res=%s",
 			op, id,
 			old_seuser && strlen(old_seuser) ? old_seuser : "?",
 			old_role && strlen(old_role) ? old_role : "?",
@@ -709,7 +709,7 @@ int audit_log_user_command(int audit_fd, int type, const char *command,
 	else
 		p = stpcpy(p, "cmd=\"%s\" ");
 
-	strcpy(p, "(terminal=%s res=%s)");
+	strcpy(p, "terminal=%s res=%s");
 
 	// now use the format string to make the event
 	snprintf(buf, sizeof(buf), format,

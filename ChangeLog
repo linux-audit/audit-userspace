@@ -1,5 +1,6 @@
 2.0
 - Remove system-config-audit
+- Get rid of () from userspace originating events
 
 1.8
 - In auditctl rules allow a0-a3 to be negative numbers
