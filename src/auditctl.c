@@ -1233,12 +1233,8 @@ int key_match(struct audit_reply *rep)
 		return 1;
 
 	// At this point, we have a key
-	// Old records don't have keys
-	if (rep->type == AUDIT_LIST)
-		return 0;
-
-	for (i = 0; i < rep->rule->field_count; i++) {
-		int field = rep->rule->fields[i] &
+	for (i = 0; i < rep->ruledata->field_count; i++) {
+		int field = rep->ruledata->fields[i] &
 					~AUDIT_OPERATORS & ~AUDIT_NEGATE;
 		if (field == AUDIT_FILTERKEY) {
 			char *keyptr;
@@ -1296,7 +1292,6 @@ static int audit_print_reply(struct audit_reply *rep)
 			rep->status->backlog);
 			printed = 1;
 			return 0;
-		case AUDIT_LIST:
 		case AUDIT_LIST_RULES:
 			list_requested = 0;
 			boffset = 0;
@@ -1305,39 +1300,41 @@ static int audit_print_reply(struct audit_reply *rep)
 				return 1;
 			printed = 1;
 			printf("%s: %s,%s", audit_msg_type_to_name(rep->type),
-				audit_flag_to_name((int)rep->rule->flags),
-				audit_action_to_name(rep->rule->action));
+				audit_flag_to_name((int)rep->ruledata->flags),
+				audit_action_to_name(rep->ruledata->action));
 
-			for (i = 0; i < rep->rule->field_count; i++) {
+			for (i = 0; i < rep->ruledata->field_count; i++) {
 				const char *name;
 				int op;
-				int field = rep->rule->fields[i] &
+				int field = rep->ruledata->fields[i] &
 					~AUDIT_OPERATORS & ~AUDIT_NEGATE;
 				if (rep->type == AUDIT_LIST_RULES) {
 					op = rep->ruledata->fieldflags[i] &
 					(AUDIT_OPERATORS | AUDIT_NEGATE);
 				} else {
-					op = rep->rule->fields[i] &
+					op = rep->ruledata->fields[i] &
 					    (AUDIT_OPERATORS | AUDIT_NEGATE);
 				}
                 
 				name = audit_field_to_name(field);
 				if (name) {
 					if (strcmp(name, "arch") == 0) { 
-						audit_elf =rep->rule->values[i];
+						audit_elf =
+						    rep->ruledata->values[i];
 						printf(" %s%s%u", name, 
-							audit_operator_to_symbol(op),
-							(unsigned)rep->rule->values[i]);
+						  audit_operator_to_symbol(op),
+					    (unsigned)rep->ruledata->values[i]);
 					}
 					else if (strcmp(name, "msgtype") == 0) {
-						if (!audit_msg_type_to_name(rep->rule->values[i]))
+						if (!audit_msg_type_to_name(
+						      rep->ruledata->values[i]))
 							printf(" %s%s%d", name,
 								audit_operator_to_symbol(op),
-								rep->rule->values[i]);
+								rep->ruledata->values[i]);
 						else {
 							printf(" %s%s%s", name,
 								audit_operator_to_symbol(op),
-								audit_msg_type_to_name(rep->rule->values[i]));
+								audit_msg_type_to_name(rep->ruledata->values[i]));
 						}
 					} else if ((field >= AUDIT_SUBJ_USER &&
 						  field <= AUDIT_OBJ_LEV_HIGH)
@@ -1377,7 +1374,7 @@ static int audit_print_reply(struct audit_reply *rep)
 						free(rkey);
 					} else if (field == AUDIT_PERM) {
 						char perms[5];
-						int val=rep->rule->values[i];
+						int val=rep->ruledata->values[i];
 						perms[0] = 0;
 						if (val & AUDIT_PERM_READ)
 							strcat(perms, "r");
@@ -1392,34 +1389,34 @@ static int audit_print_reply(struct audit_reply *rep)
 					} else {
 						printf(" %s%s%d", name, 
 							audit_operator_to_symbol(op),
-							rep->rule->values[i]);
+							rep->ruledata->values[i]);
 					}
 				} else { 
-					printf(" f%d%s%d", rep->rule->fields[i],
+					printf(" f%d%s%d", rep->ruledata->fields[i],
 						audit_operator_to_symbol(op),
-						rep->rule->values[i]);
+						rep->ruledata->values[i]);
 				}
 				/* Avoid printing value if the field type is 
 				 * known to return a string. */
-				if (rep->rule->values[i] && 
+				if (rep->ruledata->values[i] && 
 						(field < AUDIT_SUBJ_USER ||
 						 field > AUDIT_SUBJ_CLR) &&
 						field != AUDIT_WATCH &&
 						field != AUDIT_FILTERKEY &&
 						field != AUDIT_PERM)
-					printf(" (0x%x)", rep->rule->values[i]);
+					printf(" (0x%x)", rep->ruledata->values[i]);
 			}
 			if (show_syscall &&
-				((rep->rule->flags & AUDIT_FILTER_MASK) != 
+				((rep->ruledata->flags & AUDIT_FILTER_MASK) != 
 						AUDIT_FILTER_USER) &&
-				((rep->rule->flags & AUDIT_FILTER_MASK) !=
+				((rep->ruledata->flags & AUDIT_FILTER_MASK) !=
 						AUDIT_FILTER_TASK) &&
-				((rep->rule->flags & AUDIT_FILTER_MASK) !=
+				((rep->ruledata->flags & AUDIT_FILTER_MASK) !=
 						AUDIT_FILTER_EXCLUDE)) {
 				printf(" syscall=");
 				for (sparse = 0, i = 0; 
 					i < (AUDIT_BITMASK_SIZE-1); i++) {
-					if (rep->rule->mask[i] != (uint32_t)~0)
+					if (rep->ruledata->mask[i] != (uint32_t)~0)
 						sparse = 1;
 				}
 				if (!sparse) {
@@ -1428,7 +1425,7 @@ static int audit_print_reply(struct audit_reply *rep)
 					i < AUDIT_BITMASK_SIZE * 32; i++) {
 					int word = AUDIT_WORD(i);
 					int bit  = AUDIT_BIT(i);
-					if (rep->rule->mask[word] & bit) {
+					if (rep->ruledata->mask[word] & bit) {
 						const char *ptr;
 						if (audit_elf)
 							machine = 

@@ -1,5 +1,5 @@
 /* autrace.c -- 
- * Copyright 2005-08 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2005-09 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -274,7 +274,7 @@ static int count_em(int fd)
 			{
 				case NLMSG_DONE:
 					return count;
-				case AUDIT_LIST:
+				case AUDIT_LIST_RULES:
 					i = 0;
 					count++;
 					break;

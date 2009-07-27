@@ -1,5 +1,5 @@
 /* libaudit.h -- 
- * Copyright 2004-2008 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2004-2009 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -442,7 +442,6 @@ struct audit_reply {
 	 * the following should be valid for any packet. */
 	union {
 	struct audit_status     *status;
-	struct audit_rule       *rule;
 	struct audit_rule_data  *ruledata;
 	struct audit_login      *login;
 	const char              *message;
@@ -526,7 +525,7 @@ extern int  audit_set_failure(int fd, uint32_t failure);
 extern int  audit_set_rate_limit(int fd, uint32_t limit);
 extern int  audit_set_backlog_limit(int fd, uint32_t limit);
 
-/* AUDIT_LIST */
+/* AUDIT_LIST_RULES */
 extern int  audit_request_rules_list_data(int fd);
 
 /* SIGNAL_INFO */
@@ -542,11 +541,11 @@ extern int audit_trim_subtrees(int fd);
 extern int audit_make_equivalent(int fd, const char *mount_point,
 				const char *subtree);
 
-/* AUDIT_ADD */
+/* AUDIT_ADD_RULE */
 extern int  audit_add_rule_data(int fd, struct audit_rule_data *rule,
                                 int flags, int action);
 
-/* AUDIT_DEL */
+/* AUDIT_DEL_RULE */
 extern int  audit_delete_rule_data(int fd, struct audit_rule_data *rule,
                                    int flags, int action);
 

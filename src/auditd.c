@@ -1,5 +1,5 @@
 /* auditd.c -- 
- * Copyright 2004-08 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2004-09 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -390,7 +390,6 @@ static void netlink_handler(struct ev_loop *loop, struct ev_io *io,
 		case NLMSG_DONE:
 		case NLMSG_ERROR:
 		case AUDIT_GET: /* Or these */
-		case AUDIT_LIST:
 		case AUDIT_LIST_RULES:
 		case AUDIT_FIRST_DAEMON...AUDIT_LAST_DAEMON:
 			break;

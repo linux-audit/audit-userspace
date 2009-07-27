@@ -1,7 +1,6 @@
 Things that need to be done:
 ===========================
 2.0
-* Remove all old rule structs
 * Add libcap-ng support to plugins
 * Bump soname number ???
 

@@ -1,5 +1,5 @@
 /* msg_typetab.h --
- * Copyright 2005-07 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2005-07,2009 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -28,7 +28,7 @@
  */
 //_S(AUDIT_GET,                      "GET"                           )
 //_S(AUDIT_SET,                      "SET"                           )
-_S(AUDIT_LIST,                       "LIST"                          )
+//_S(AUDIT_LIST,                     "LIST"                          )
 //_S(AUDIT_ADD,                      "ADD"                           )
 //_S(AUDIT_DEL,                      "DEL"                           )
 _S(AUDIT_USER,                       "USER"                          )
