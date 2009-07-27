@@ -100,9 +100,11 @@ static int insert_rule(int audit_fd, const char *field)
 	rc = audit_add_rule_data(audit_fd, rule, flags, action);
 	if (rc < 0)
 		goto err;
+	free(rule);
 	return 0;
 err:
 	fprintf(stderr, "Error inserting audit rule for %s\n", field);
+	free(rule);
 	return 1;
 }
 

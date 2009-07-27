@@ -94,7 +94,8 @@ static int reset_vars(void)
 	multiple = 0;
 
 	free(rule_new);
-	rule_new = NULL;
+	rule_new = malloc(sizeof(struct audit_rule_data));
+	memset(rule_new, 0, sizeof(struct audit_rule_data));
 	if (fd < 0) {
 		if ((fd = audit_open()) < 0) {
 			fprintf(stderr, "Cannot open netlink audit socket\n");
@@ -1074,11 +1075,15 @@ int main(int argc, char *argv[])
 		else
 			return 0;
 	} else {
-		if (reset_vars())
+		if (reset_vars()) {
+			free(rule_new);
 			return 1;
+		}
 		retval = setopt(argc, 0, argv);
-		if (retval == -3)
+		if (retval == -3) {
+			free(rule_new);
 			return 0;
+		}
 	}
 
 	if (add != AUDIT_FILTER_UNSET || del != AUDIT_FILTER_UNSET) {
@@ -1087,9 +1092,11 @@ int main(int argc, char *argv[])
 			fprintf(stderr,
 				"The audit system is in immutable "
 				"mode, no rules loaded\n");
+			free(rule_new);
 			return 0;
 		} else if (errno == ECONNREFUSED) {
 			fprintf(stderr, "The audit system is disabled\n");
+			free(rule_new);
 			return 0;
 		}
 	}
