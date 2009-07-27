@@ -38,6 +38,9 @@
 #include <pthread.h>
 #include <lber.h>
 #include <netinet/in.h>
+#ifdef HAVE_LIBCAP_NG
+#include <cap-ng.h>
+#endif
 #include "auparse.h"
 #include "zos-remote-log.h"
 #include "zos-remote-ldap.h"
@@ -452,6 +455,13 @@ int main(int argc, char *argv[])
                 log_err("Error - Can't initialize event queue. Aborting");
                 return -1;
         }
+
+#ifdef HAVE_LIBCAP_NG
+	// Drop all capabilities
+        capng_clear(CAPNG_SELECT_BOTH);
+        capng_apply(CAPNG_SELECT_BOTH);
+#endif
+
         /* set stdin to O_NONBLOCK */
         if (fcntl(0, F_SETFL, O_NONBLOCK) == -1) {
                 log_err("Error - Can't set input to Non-blocking mode: %s. Aborting",

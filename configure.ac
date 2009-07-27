@@ -35,6 +35,7 @@ AM_CONFIG_HEADER(config.h)
 
 echo Configuring auditd $VERSION
 
+AC_CONFIG_MACRO_DIR([m4])
 AC_CANONICAL_TARGET
 AM_INIT_AUTOMAKE
 AM_PROG_LIBTOOL
@@ -196,6 +197,10 @@ AC_ARG_WITH(libwrap,
 if test x"$LIBWRAP_LIBS" != "x"; then
 	AC_DEFINE_UNQUOTED(HAVE_LIBWRAP, [], Define if tcp_wrappers support is enabled )
 fi
+
+# See if we want to support lower capabilities for plugins
+LIBCAP_NG_PATH
+
 AC_SUBST(DEBUG)
 AC_SUBST(LIBWRAP_LIBS)
 AC_SUBST(libev_LIBS)

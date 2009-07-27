@@ -1,5 +1,5 @@
 /* audisp-prelude.c --
- * Copyright 2008 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2008-09 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -30,6 +30,9 @@
 #include <pwd.h>
 #include <libprelude/prelude.h>
 #include <libprelude/idmef-message-print.h>
+#ifdef HAVE_LIBCAP_NG
+#include <cap-ng.h>
+#endif
 #include "libaudit.h"
 #include "auparse.h"
 #include "prelude-config.h"
@@ -232,7 +235,11 @@ int main(int argc, char *argv[])
 		    "audisp-prelude is exiting due to init_prelude failure");
 		return -1;
 	}
-
+#ifdef HAVE_LIBCAP_NG
+	// Drop all capabilities
+	capng_clear(CAPNG_SELECT_BOTH);
+	capng_apply(CAPNG_SELECT_BOTH);
+#endif
 	if (mode != M_TEST)
 		syslog(LOG_INFO, "audisp-prelude is ready for events");
 	do {

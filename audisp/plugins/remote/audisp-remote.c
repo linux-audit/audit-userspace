@@ -43,6 +43,9 @@
 #include <gssapi/gssapi_generic.h>
 #include <krb5.h>
 #endif
+#ifdef HAVE_LIBCAP_NG
+#include <cap-ng.h>
+#endif
 #include "libaudit.h"
 #include "private.h"
 #include "remote-config.h"
@@ -316,6 +319,12 @@ int main(int argc, char *argv[])
 	if (rc == ET_PERMANENT)
 		return 1;
 	init_queue(config.queue_depth);
+
+#ifdef HAVE_LIBCAP_NG
+	// Drop all capabilities
+	capng_clear(CAPNG_SELECT_BOTH);
+	capng_apply(CAPNG_SELECT_BOTH);
+#endif
 
 	do {
 		fd_set rfd;

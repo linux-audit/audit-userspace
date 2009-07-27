@@ -1,5 +1,5 @@
 # Makefile.am --
-# Copyright 2008 Red Hat Inc., Durham, North Carolina.
+# Copyright 2008-09 Red Hat Inc., Durham, North Carolina.
 # All Rights Reserved.
 #
 # This library is free software; you can redistribute it and/or
@@ -25,7 +25,7 @@ EXTRA_DIST = au-prelude.conf audisp-prelude.conf
 AUTOMAKE_OPTIONS = no-dependencies
 INCLUDES = -I${top_srcdir} -I${top_srcdir}/lib -I${top_srcdir}/auparse
 LIBS = -L${top_srcdir}/auparse/.libs -lauparse -lprelude 
-LDADD = -lpthread 
+LDADD = -lpthread $(CAPNG_LDADD) 
 prog_confdir = $(sysconfdir)/audisp
 prog_conf = audisp-prelude.conf
 plugin_confdir=$(prog_confdir)/plugins.d
