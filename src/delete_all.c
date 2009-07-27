@@ -43,8 +43,6 @@ int delete_all_rules(int fd)
 
 	/* list the rules */
 	seq = audit_request_rules_list_data(fd);
-	if (seq == -EINVAL) 
-		seq = audit_request_rules_list(fd);
 	if (seq <= 0) 
 		return -1;
 

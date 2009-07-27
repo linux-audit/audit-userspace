@@ -237,7 +237,7 @@ static int count_rules(void)
 	if (fd < 0) 
 		return -1;
 
-	rc = audit_request_rules_list(fd);
+	rc = audit_request_rules_list_data(fd);
 	if (rc > 0) 
 		total = count_em(fd);
 	else 

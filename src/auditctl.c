@@ -64,9 +64,6 @@ static int add = AUDIT_FILTER_UNSET, del = AUDIT_FILTER_UNSET, action = -1;
 static int ignore = 0;
 static int exclude = 0;
 static int multiple = 0;
-enum { OLD, NEW };
-int which;
-static struct audit_rule  rule;
 static struct audit_rule_data *rule_new = NULL;
 static char key[AUDIT_MAX_KEY_LEN+1];
 static int keylen;
@@ -94,10 +91,8 @@ static int reset_vars(void)
 	del = AUDIT_FILTER_UNSET;
 	action = -1;
 	exclude = 0;
-	which = OLD;
 	multiple = 0;
 
-	memset(&rule, 0, sizeof(rule));
 	free(rule_new);
 	rule_new = NULL;
 	if (fd < 0) {
@@ -107,29 +102,6 @@ static int reset_vars(void)
 		}
 	}
 	return 0;
-}
-
-static void upgrade_rule(void)
-{
-	int i;
-
-	rule_new=malloc(sizeof(struct audit_rule_data));
-	memset(rule_new, 0, sizeof(struct audit_rule_data));
-	memcpy(rule_new, &rule, sizeof(rule));
-	which = NEW;
-	if (rule_new->field_count == 0)
-		return;
-
-	// now go through fields and move legacy ops to fieldflags
-	for (i=0; i<rule_new->field_count; i++) {
-		uint32_t ops = rule_new->fields[i] & 
-				(AUDIT_NEGATE|AUDIT_OPERATORS);
-		rule_new->fields[i] &= ~(AUDIT_NEGATE|AUDIT_OPERATORS);
-		if (ops & AUDIT_NEGATE)
-			rule_new->fieldflags[i] = AUDIT_NOT_EQUAL;
-		else
-			rule_new->fieldflags[i] = AUDIT_EQUAL; 
-	}
 }
 
 static void usage(void)
@@ -350,7 +322,7 @@ static int audit_setup_perms(struct audit_rule_data *rule, const char *opt)
 		}
 	}
 
-	if (audit_update_watch_perms(rule, val) == 0) {
+	if (audit_update_watch_perms(rule_new, val) == 0) {
 		audit_permadded = 1;
 		return 1;
 	}
@@ -443,23 +415,15 @@ static int equiv_parse(char *optarg, char **mp, char **sub)
 
 void audit_request_rule_list(int fd)
 {
-	int rc;
-
-	/* Try out the new message type */
-	if ((rc = audit_request_rules_list_data(fd)) > 0) {
+	if (audit_request_rules_list_data(fd) > 0) {
 		list_requested = 1;
 		get_reply();
-	} else if (rc == -EINVAL) { /* Not supported...drop back to old one */
-		if (audit_request_rules_list(fd) > 0) {
-			list_requested = 1;
-			get_reply();
-		}
 	}
 }
 
 void check_rule_mismatch(int lineno, const char *option)
 {
-	struct audit_rule tmprule;
+	struct audit_rule_data tmprule;
 	unsigned int old_audit_elf = audit_elf;
 	int rc = 0;
 
@@ -475,15 +439,10 @@ void check_rule_mismatch(int lineno, const char *option)
 			audit_elf = AUDIT_ARCH_S390;
 			break;
 	}
-	memset(&tmprule, 0, sizeof(struct audit_rule));
-	audit_rule_syscallbyname(&tmprule, option);
-	if (which == OLD) {
-		if (memcmp(tmprule.mask, rule.mask, AUDIT_BITMASK_SIZE))
-			rc = 1;
-	} else {
-		if (memcmp(tmprule.mask, rule_new->mask, AUDIT_BITMASK_SIZE))
-			rc = 1;
-	}
+	memset(&tmprule, 0, sizeof(struct audit_rule_data));
+	audit_rule_syscallbyname_data(&tmprule, option);
+	if (memcmp(tmprule.mask, rule_new->mask, AUDIT_BITMASK_SIZE))
+		rc = 1;
 	audit_elf = old_audit_elf;
 	if (rc) { 
 		fprintf(stderr, "WARNING - 32/64 bit syscall mismatch");
@@ -722,11 +681,7 @@ static int setopt(int count, int lineno, char *vars[])
 				audit_elf = elf;
 			}
 		}
-		if (which == OLD) 
-			rc = audit_rule_syscallbyname(&rule, optarg);
-		else
-			rc = audit_rule_syscallbyname(
-				(struct audit_rule *)rule_new, optarg);
+		rc = audit_rule_syscallbyname_data(rule_new, optarg);
 		switch (rc)
 		{
 			case 0:
@@ -759,21 +714,13 @@ static int setopt(int count, int lineno, char *vars[])
 			retval = -1;
 			break;
 		}
-		if (which == OLD) {
-			char *ptr = strdup(optarg);
-			rc = audit_rule_fieldpair(&rule, ptr, flags);
-			if (rc == -10)
-				upgrade_rule(); /* need to upgrade... */
-			free(ptr);
-		}
-		if (which == NEW) 
-			rc = audit_rule_fieldpair_data(&rule_new,optarg,flags);
 
+		rc = audit_rule_fieldpair_data(&rule_new,optarg,flags);
 		if (rc != 0) {
 			audit_number_to_errmsg(rc, optarg);
 			retval = -1;
 		} else {
-			if (which == NEW && rule_new->fields[rule_new->field_count-1] ==
+			if (rule_new->fields[rule_new->field_count-1] ==
 						AUDIT_PERM)
 				audit_permadded = 1;
 		}
@@ -828,7 +775,6 @@ static int setopt(int count, int lineno, char *vars[])
 		} else if (optarg) { 
 			add = AUDIT_FILTER_EXIT;
 			action = AUDIT_ALWAYS;
-			which = NEW;
 			audit_syscalladded = 1;
 			retval = audit_setup_watch_name(&rule_new, optarg);
 		} else {
@@ -840,7 +786,6 @@ static int setopt(int count, int lineno, char *vars[])
 		if (optarg) { 
 			del = AUDIT_FILTER_EXIT;
 			action = AUDIT_ALWAYS;
-			which = NEW;
 			audit_syscalladded = 1;
 			retval = audit_setup_watch_name(&rule_new, optarg);
 		} else {
@@ -888,14 +833,8 @@ static int setopt(int count, int lineno, char *vars[])
 		} else if (!optarg) {
 			fprintf(stderr, "permission option needs a filter\n");
 			retval = -1;
-		} else {
-			if (which == OLD) {
-				fprintf(stderr,
-				"You must give a watch prior to perms\n");
-				retval = -1;
-			} else 
-				retval = audit_setup_perms(rule_new, optarg);
-		}
+		} else 
+			retval = audit_setup_perms(rule_new, optarg);
 		break;
         case 'q':
 		if (audit_syscalladded) {
@@ -958,10 +897,7 @@ static int setopt(int count, int lineno, char *vars[])
 	asprintf(&cmd, "key=%s", key);
 	if (cmd) {
 		/* Add this to the rule */
-		int ret;
-		if (which == OLD)
-			upgrade_rule();
-		ret = audit_rule_fieldpair_data(&rule_new, cmd, flags);
+		int ret = audit_rule_fieldpair_data(&rule_new, cmd, flags);
 		if (ret < 0)
 			retval = -1;
 		free(cmd);
@@ -1184,68 +1120,49 @@ static int handle_request(int status)
 			// if !task add syscall any if not specified
 			if ((add & AUDIT_FILTER_MASK) != AUDIT_FILTER_TASK && 
 					audit_syscalladded != 1) {
-				if (which == OLD)
-					audit_rule_syscallbyname(&rule, "all");
-				else
 					audit_rule_syscallbyname_data(
 							rule_new, "all");
 			}
-			if (which == OLD) {
-				rc = audit_add_rule(fd, &rule, add, action);
-			} else {
-				set_aumessage_mode(MSG_QUIET, DBG_NO);
-				rc = audit_add_rule_data(fd, rule_new,
-								 add, action);
-				set_aumessage_mode(MSG_STDERR, DBG_NO);
-				/* Retry for legacy kernels */
-				if (rc < 0) {
-					if (errno == EINVAL &&
-					rule_new->fields[0] == AUDIT_DIR) {
-						rule_new->fields[0] =
-								AUDIT_WATCH;
-						rc = audit_add_rule_data(fd,
-								rule_new,
-								add, action);
-					} else {
-						fprintf(stderr,
+			set_aumessage_mode(MSG_QUIET, DBG_NO);
+			rc = audit_add_rule_data(fd, rule_new, add, action);
+			set_aumessage_mode(MSG_STDERR, DBG_NO);
+			/* Retry for legacy kernels */
+			if (rc < 0) {
+				if (errno == EINVAL &&
+				rule_new->fields[0] == AUDIT_DIR) {
+					rule_new->fields[0] = AUDIT_WATCH;
+					rc = audit_add_rule_data(fd, rule_new,
+							add, action);
+				} else {
+					fprintf(stderr,
 				"Error sending add rule data request (%s)\n",
-						errno == EEXIST ?
-						"Rule exists" : strerror(-rc));
-					}
+					errno == EEXIST ?
+					"Rule exists" : strerror(-rc));
 				}
 			}
 		}
 		else if (del != AUDIT_FILTER_UNSET) {
 			if ((del & AUDIT_FILTER_MASK) != AUDIT_FILTER_TASK && 
 					audit_syscalladded != 1) {
-				if (which == OLD)
-					audit_rule_syscallbyname(&rule, "all");
-				else
 					audit_rule_syscallbyname_data(
 							rule_new, "all");
 			}
-			if (which == OLD)
-				rc = audit_delete_rule(fd, &rule, del, action);
-			else {
-				set_aumessage_mode(MSG_QUIET, DBG_NO);
-				rc = audit_delete_rule_data(fd, rule_new,
+			set_aumessage_mode(MSG_QUIET, DBG_NO);
+			rc = audit_delete_rule_data(fd, rule_new,
 								 del, action);
-				set_aumessage_mode(MSG_STDERR, DBG_NO);
-				/* Retry for legacy kernels */
-				if (rc < 0) {
-					if (errno == EINVAL &&
+			set_aumessage_mode(MSG_STDERR, DBG_NO);
+			/* Retry for legacy kernels */
+			if (rc < 0) {
+				if (errno == EINVAL &&
 					rule_new->fields[0] == AUDIT_DIR) {
-						rule_new->fields[0] =
-								AUDIT_WATCH;
-						rc = audit_delete_rule_data(fd,
-								rule_new,
+					rule_new->fields[0] = AUDIT_WATCH;
+					rc = audit_delete_rule_data(fd,rule_new,
 								del, action);
-					} else {
-						fprintf(stderr,
+				} else {
+					fprintf(stderr,
 			       "Error sending delete rule data request (%s)\n",
-						errno == EEXIST ?
-						"Rule exists" : strerror(-rc));
-					}
+					errno == EEXIST ?
+					"Rule exists" : strerror(-rc));
 				}
 			}
 		} else {

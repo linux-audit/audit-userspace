@@ -1,5 +1,5 @@
 /* private.h -- 
- * Copyright 2005,2006 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2005,2006,2009 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -145,29 +145,8 @@ extern int audit_send(int fd, int type, const void *data, unsigned int size)
 extern int audit_send_user_message(int fd, int type, hide_t hide_err, 
 	const char *message);
 
-// Newly deprecated
-// Don't hide them, they used to be a part of the public API!
-extern int  audit_request_rules_list(int fd);
-extern int  audit_add_rule(int fd, struct audit_rule *rule,
-				int flags, int action);
-extern int  audit_delete_rule(int fd, struct audit_rule *rule,
-				int flags, int action);
-extern int  audit_rule_syscall(struct audit_rule *rule, int scall);
-extern int  audit_rule_syscallbyname(struct audit_rule *rule,
-				const char *scall);
-extern int  audit_rule_fieldpair(struct audit_rule *rule, const char *pair,
-				int flags);
-extern void audit_rule_free(struct audit_rule *rule);
-
 // libaudit.c
 hidden_proto(audit_send_user_message);
-hidden_proto(audit_request_rules_list);
-hidden_proto(audit_add_rule);
-hidden_proto(audit_delete_rule);
-hidden_proto(audit_rule_syscall);
-hidden_proto(audit_rule_syscallbyname);
-hidden_proto(audit_rule_fieldpair);
-hidden_proto(audit_rule_free);
 hidden_proto(audit_add_watch_dir);
 hidden_proto(audit_detect_machine);
 hidden_proto(audit_request_status);
@@ -188,10 +167,6 @@ hidden_proto(audit_name_to_ftype);
 
 // netlink.c
 hidden_proto(audit_get_reply);
-
-// FIXME delete after bumping soname number
-extern int audit_log_avc(int fd, int type, const char *fmt, va_list ap); //dbus,nscd
-hidden_proto(audit_log_avc)
 
 
 #ifdef __cplusplus
