@@ -151,7 +151,7 @@ int init_event(struct daemon_conf *config)
    dequeue'r is responsible for freeing the memory. */
 void enqueue_event(struct auditd_reply_list *rep)
 {
-	char *buf;
+	char *buf = NULL;
 	int len;
 
 	rep->ack_func = 0;
@@ -179,15 +179,16 @@ void enqueue_event(struct auditd_reply_list *rep)
 			return;
 		}
 
-		len = strlen (buf);
-		if (len < MAX_AUDIT_MESSAGE_LENGTH - 1) {
-			memcpy (rep->reply.msg.data, buf, len+1);
-		}
-		else
-		{
-			/* FIXME: is truncation the right thing to do?  */
-			memcpy (rep->reply.msg.data, buf, MAX_AUDIT_MESSAGE_LENGTH-1);
-			rep->reply.msg.data[MAX_AUDIT_MESSAGE_LENGTH-1] = 0;
+		if (buf) {
+			len = strlen(buf);
+			if (len < MAX_AUDIT_MESSAGE_LENGTH - 1)
+				memcpy(rep->reply.msg.data, buf, len+1);
+			else {
+				// FIXME: is truncation the right thing to do?
+				memcpy(rep->reply.msg.data, buf,
+						MAX_AUDIT_MESSAGE_LENGTH-1);
+				rep->reply.msg.data[MAX_AUDIT_MESSAGE_LENGTH-1] = 0;
+			}
 		}
 	}
 

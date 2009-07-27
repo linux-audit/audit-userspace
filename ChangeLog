@@ -3,6 +3,7 @@
 - Get rid of () from userspace originating events
 - Removed old syscall rules API - not needed since 2.6.16
 - Remove all use of the old rule structs from API
+- Fix uninitialized variable in auditd log rotation
 
 1.8
 - In auditctl rules allow a0-a3 to be negative numbers
