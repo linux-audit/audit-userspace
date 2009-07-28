@@ -1,35 +1,31 @@
 Things that need to be done:
 ===========================
-2.0
-* Bump soname number ???
-
 2.0.1
+* Add definitions for kernel virt events
 * Get store and forward working for remote logging app
 * Look at gssapi support being done via dlopen()
 * Fix auparse to handle out of order messages
-* Add definitions for kernel virt events
 * Fix SIGHUP for auditd network settings
 * If auparse input is a pipe timeout events by wall clock
 * Add libaudit.m4 to make audit easier to include
+
+2.1
 * Look at pulling audispd into auditd
-* Fix aureport main page for hits vs count, --summary
 * auditctl needs to be able to take file names with spaces in rule files
 * Consider adding node/machine name to records going to rt interface in daemon    as protocol version 2.
-* Add rule verify to detect mismatch between in-kernel and on-disk rules
-* Should session number go into logins and AVCs for prelude?
-
-2.0.2
 * Update prelude detections to send anomaly events
 * Look at adding the direction read/write to file report (threat modelling)
 * Add basic responses to prelude plugin
+* Add rule verify to detect mismatch between in-kernel and on-disk rules
+* Should session number go into logins and AVCs for prelude?
 * Changes in uid/gid, failed changes in credentials in aureport
 * aureport get specific reports working
-* Add keywords for time: last-boot, last-load, last-relabel.
-* auditctl session id, pgid
 * auditctl should ignore invalid arches for rules
 * Remove evil getopt cruft in auditctl
+* Add gzip format for logs
+* Group message types in ausearch help.
 
-2.0.3
+2.2
 * Fix retry logic in distribute event, buffer is freed by the logger thread
 * Interpret more syscall args: ioctl,[sg]etsockopt,ptrace,fcntl,chmod 
 * interpret contexts
@@ -37,32 +33,25 @@ Things that need to be done:
 * Allow -F path!=/var/my/app
 * Add ignore action for rules
 * Look at openat and why passed dir is not given
-* look at emitting event in pipe mode when 5 clock seconds have passed and         nothing new has been read
 * Add SYSLOG data source for auparse. This allows leading text before audit       messages, missing type, any line with no = gets thrown away. iow, must have     time and 1 field to be valid.
 * Update auditctl so that if syscall is not found, it checks for socket call      and suggests using it instead. Same for IPCcall.
 * Fix aureport accounting for avc in permissive mode
 * rework ausearch to use auparse
 * rework aureport to use auparse
-* Add gzip format for logs
 
-2.0.4
+2.3
 * Consolidate parsing code between libaudit and auditd-conf.c
-* Group message types in ausearch help.
 * Add mode where it ignores syscalls it can't resolve for arch
 * Look at variadic avc logging patch 
 * If relative file in cwd, need to build also (realpath). watch out for (null) and socket
 * Change ausearch to output name="" unless its a real null. (mount) ausearch-report.c, 523. FIXME
-* Add aureport report giving login time ranges for a user
 * add more libaudit man pages
 * ausearch --op search
 * Fix aureport-scan to properly decide if CONFIG_CHANGE is add or del, need to optionally look for op and use remove/add to decide
 
-2.1
+2.4
 Add scheduling options: strict, relaxed, loose (determines user space queueing)
 Allow users to specify message types to be kept for logging
 Allow users to specify fields to be kept for logging
-
-2.2
-Pretty Print ausearch messages
-audit explorer gui
+Pretty Print ausearch messages (strace style?)
 Look at modifying kernel rule matcher to do: first match & match all 

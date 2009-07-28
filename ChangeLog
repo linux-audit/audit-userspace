@@ -6,6 +6,7 @@
 - Fix uninitialized variable in auditd log rotation
 - Add libcap-ng support for audispd plugins
 - Removed ancient defines that are part of kernel 2.6.29 headers
+- Bump soname number for libaudit
 
 1.8
 - In auditctl rules allow a0-a3 to be negative numbers

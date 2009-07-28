@@ -1,5 +1,5 @@
 # Makefile.am -- 
-# Copyright 2004-2008 Red Hat Inc., Durham, North Carolina.
+# Copyright 2004-2009 Red Hat Inc., Durham, North Carolina.
 # All Rights Reserved.
 #
 # This library is free software; you can redistribute it and/or
@@ -24,6 +24,7 @@ SUBDIRS = test
 CLEANFILES = $(BUILT_SOURCES)
 CONFIG_CLEAN_FILES = *.loT *.rej *.orig
 EXTRA_DIST = syscall-update.txt
+VERSION_INFO = 1:0
 AM_CFLAGS = -fPIC -DPIC -D_GNU_SOURCE
 INCLUDES = -I. -I${top_srcdir} -I${top_srcdir}/auparse
 lib_LTLIBRARIES = libaudit.la
@@ -33,7 +34,7 @@ libaudit_la_SOURCES = libaudit.c message.c netlink.c \
 	private.h errormsg.h
 libaudit_la_LIBADD =
 libaudit_la_DEPENDENCIES = $(libaudit_la_SOURCES) ../config.h
-libaudit_la_LDFLAGS = -Wl,-z,relro
+libaudit_la_LDFLAGS = -Wl,-z,relro -version-info $(VERSION_INFO)
 nodist_libaudit_la_SOURCES = $(BUILT_SOURCES)
 
 BUILT_SOURCES = actiontabs.h alpha_tables.h errtabs.h fieldtabs.h \
