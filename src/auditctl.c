@@ -176,7 +176,7 @@ static int lookup_action(const char *str, int *act)
  * Returns 0 ok, 1 deprecated action, 2 rule error,
  * 3 multiple rule insert/delete
  */
-static int audit_rule_setup(char *opt, int *filter, int *act)
+static int audit_rule_setup(char *opt, int *filter, int *act, int lineno)
 {
 	int rc;
 	char *p;
@@ -214,6 +214,16 @@ static int audit_rule_setup(char *opt, int *filter, int *act)
 	/* Make sure we set both */
 	if (*filter == AUDIT_FILTER_UNSET || *act == -1)
 		return 2;
+
+	/* Consolidate rules on exit filter */
+	if (*filter == AUDIT_FILTER_ENTRY) {
+		*filter = AUDIT_FILTER_EXIT;
+		fprintf(stderr,
+		    "Warning - entry rules deprecated, changing to exit rule");
+		if (lineno)
+			fprintf(stderr, " in line %d", lineno);
+		fprintf(stderr, "\n");
+	}
 
 	return 0;
 }
@@ -581,7 +591,7 @@ static int setopt(int count, int lineno, char *vars[])
 				"Syscall auditing requested for task list\n");
 			retval = -1;
 		} else {
-			rc = audit_rule_setup(optarg, &add, &action);
+			rc = audit_rule_setup(optarg, &add, &action, lineno);
 			if (rc == 3) {
 				fprintf(stderr,
 		"Multiple rule insert/delete operations are not allowed\n");
@@ -605,7 +615,7 @@ static int setopt(int count, int lineno, char *vars[])
 			   "Error: syscall auditing requested for task list\n");
 			retval = -1;
 		} else {
-			rc = audit_rule_setup(optarg, &add, &action);
+			rc = audit_rule_setup(optarg, &add, &action, lineno);
 			if (rc == 3) {
 				fprintf(stderr,
 		"Multiple rule insert/delete operations are not allowed\n");
@@ -625,7 +635,7 @@ static int setopt(int count, int lineno, char *vars[])
 		}
 		break;
         case 'd': 
-		rc = audit_rule_setup(optarg, &del, &action);
+		rc = audit_rule_setup(optarg, &del, &action, lineno);
 		if (rc == 3) {
 			fprintf(stderr,
 		"Multiple rule insert/delete operations are not allowed\n");
