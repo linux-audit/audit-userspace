@@ -11,7 +11,7 @@ Source0: http://people.redhat.com/sgrubb/audit/%{name}-%{version}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildRequires: libtool swig python-devel
 BuildRequires: tcp_wrappers-devel krb5-devel libcap-ng-devel
-BuildRequires: kernel-headers >= 2.6.18
+BuildRequires: kernel-headers >= 2.6.29
 BuildRequires: automake >= 1.9
 BuildRequires: autoconf >= 2.59
 Requires: %{name}-libs = %{version}-%{release}

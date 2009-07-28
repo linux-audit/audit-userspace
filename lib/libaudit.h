@@ -37,7 +37,7 @@ extern "C" {
 #include <syslog.h>
 
 
-/* Audit message types as of 2.6.27 kernel:
+/* Audit message types as of 2.6.29 kernel:
  * 1000 - 1099 are for commanding the audit system
  * 1100 - 1199 user space trusted application messages
  * 1200 - 1299 messages internal to the audit daemon
@@ -46,7 +46,8 @@ extern "C" {
  * 1500 - 1599 AppArmor events
  * 1600 - 1699 kernel crypto events
  * 1700 - 1799 kernel anomaly records
- * 1800 - 1999 future kernel use (maybe integrity labels and related events)
+ * 1800 - 1899 kernel integrity labels and related events
+ * 1800 - 1999 future kernel use
  * 2001 - 2099 unused (kernel)
  * 2100 - 2199 user space anomaly records
  * 2200 - 2299 user space actions taken in response to anomalies
@@ -98,12 +99,6 @@ extern "C" {
 
 #define AUDIT_FIRST_EVENT	1300
 #define AUDIT_LAST_EVENT	1399
-#ifndef AUDIT_BPRM_FCAPS
-#define AUDIT_BPRM_FCAPS	1321	/* file caps increasing perms */
-#endif
-#ifndef AUDIT_CAPSET
-#define AUDIT_CAPSET		1322	/* Capability syscall structures */
-#endif
 
 #define AUDIT_FIRST_SELINUX	1400
 #define AUDIT_LAST_SELINUX	1499
