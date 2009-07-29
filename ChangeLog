@@ -8,6 +8,7 @@
 - Removed ancient defines that are part of kernel 2.6.29 headers
 - Bump soname number for libaudit
 - In auditctl, deprecate the entry filter and move rules to exit filter
+- Parse integrity audit records in ausearch/report (Mimi Zohar)
 
 1.8
 - In auditctl rules allow a0-a3 to be negative numbers
