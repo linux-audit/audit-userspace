@@ -23,8 +23,8 @@
 ## involved, and the action involved.
 
 ## Things that could affect time
--a entry,always -F arch=b32 -S adjtimex -S clock_settime -S settimeofday -k time-change
--a entry,always -F arch=b64 -S adjtimex -S clock_settime -S settimeofday -k time-change
+-a exit,always -F arch=b32 -S adjtimex -S clock_settime -S settimeofday -k time-change
+-a exit,always -F arch=b64 -S adjtimex -S clock_settime -S settimeofday -k time-change
 -w /etc/localtime -p wa -k time-change
 
 ## Things that could affect system locale
@@ -108,8 +108,8 @@
 ## Not specifically required by NISPOM; but common sense items
 ## Optional - could indicate someone trying to do something bad or
 ## just debugging
-#-a entry,always -F arch=b32 -S ptrace -k paranoid
-#-a entry,always -F arch=b64 -S ptrace -k paranoid
+#-a exit,always -F arch=b32 -S ptrace -k paranoid
+#-a exit,always -F arch=b64 -S ptrace -k paranoid
 
 ## Optional - could be an attempt to bypass audit or simply legacy program
 #-a exit,always -F arch=b32 -S personality -k paranoid

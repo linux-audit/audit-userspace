@@ -146,8 +146,8 @@
 ## Not specifically required by the STIG; but common sense items
 ## Optional - could indicate someone trying to do something bad or
 ## just debugging
-#-a entry,always -F arch=b32 -S ptrace -k tracing
-#-a entry,always -F arch=b64 -S ptrace -k tracing
+#-a exit,always -F arch=b32 -S ptrace -k tracing
+#-a exit,always -F arch=b64 -S ptrace -k tracing
 
 ## Optional - could be an attempt to bypass audit or simply legacy program
 #-a always,exit -F arch=b32 -S personality -k bypass

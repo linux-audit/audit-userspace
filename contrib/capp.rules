@@ -53,88 +53,88 @@
 ## files and directories covered by filesystem watches.
 
 ## Changes in ownership and permissions
-#-a entry,always -F arch=b32 -S chmod -S fchmod -S fchmodat 
-#-a entry,always -F arch=b64 -S chmod -S fchmod -S fchmodat 
-#-a entry,always -F arch=b32 -S chown -S fchown -S fchownat -S lchown
-#-a entry,always -F arch=b64 -S chown -S fchown -S fchownat -S lchown
+#-a exit,always -F arch=b32 -S chmod -S fchmod -S fchmodat 
+#-a exit,always -F arch=b64 -S chmod -S fchmod -S fchmodat 
+#-a exit,always -F arch=b32 -S chown -S fchown -S fchownat -S lchown
+#-a exit,always -F arch=b64 -S chown -S fchown -S fchownat -S lchown
 ## Enable *32 rules if you are running on i386 or s390
 ## Do not use for x86_64, ia64, ppc, ppc64, or s390x
-#-a entry,always -F arch=b32 -S fchown32 -S chown32 -S lchown32
+#-a exit,always -F arch=b32 -S fchown32 -S chown32 -S lchown32
 
 ## File content modification. Permissions are checked at open time,
 ## monitoring individual read/write calls is not useful.
-#-a entry,always -F arch=b32 -S creat -S open -S openat -S truncate -S ftruncate
-#-a entry,always -F arch=b64 -S creat -S open -S openat -S truncate -S ftruncate
+#-a exit,always -F arch=b32 -S creat -S open -S openat -S truncate -S ftruncate
+#-a exit,always -F arch=b64 -S creat -S open -S openat -S truncate -S ftruncate
 ## Enable *64 rules if you are running on i386, ppc, ppc64, s390
 ## Do not use for x86_64, ia64, or s390x
-#-a entry,always -F arch=b32 -S truncate64 -S ftruncate64
+#-a exit,always -F arch=b32 -S truncate64 -S ftruncate64
 
 ## directory operations
-#-a entry,always -F arch=b32 -S mkdir -S mkdirat -S rmdir
-#-a entry,always -F arch=b64 -S mkdir -S mkdirat -S rmdir
+#-a exit,always -F arch=b32 -S mkdir -S mkdirat -S rmdir
+#-a exit,always -F arch=b64 -S mkdir -S mkdirat -S rmdir
 
 ## moving, removing, and linking
-#-a entry,always -F arch=b32 -S unlink -S unlinkat -S rename -S renameat
-#-a entry,always -F arch=b64 -S unlink -S unlinkat -S rename -S renameat
-#-a entry,always -F arch=b32 -S link -S linkat -S symlink -S symlinkat
-#-a entry,always -F arch=b64 -S link -S linkat -S symlink -S symlinkat
+#-a exit,always -F arch=b32 -S unlink -S unlinkat -S rename -S renameat
+#-a exit,always -F arch=b64 -S unlink -S unlinkat -S rename -S renameat
+#-a exit,always -F arch=b32 -S link -S linkat -S symlink -S symlinkat
+#-a exit,always -F arch=b64 -S link -S linkat -S symlink -S symlinkat
 
 ## Extended attribute operations
 ## Enable if you are interested in these events
-#-a entry,always -F arch=b32 -S setxattr -S lsetxattr -S fsetxattr -S removexattr -S lremovexattr -S fremovexattr
-#-a entry,always -F arch=b64 -S setxattr -S lsetxattr -S fsetxattr -S removexattr -S lremovexattr -S fremovexattr
+#-a exit,always -F arch=b32 -S setxattr -S lsetxattr -S fsetxattr -S removexattr -S lremovexattr -S fremovexattr
+#-a exit,always -F arch=b64 -S setxattr -S lsetxattr -S fsetxattr -S removexattr -S lremovexattr -S fremovexattr
 
 ## special files
--a entry,always -F arch=b32 -S mknod -S mknodat
--a entry,always -F arch=b64 -S mknod -S mknodat
+-a exit,always -F arch=b32 -S mknod -S mknodat
+-a exit,always -F arch=b64 -S mknod -S mknodat
 
 ## Other file system operations
 ## Enable if i386
--a entry,always -F arch=b32 -S mount -S umount -S umount2
+-a exit,always -F arch=b32 -S mount -S umount -S umount2
 ## Enable if ppc, s390, or s390x
-#-a entry,always -F arch=b32 -S mount -S umount -S umount2
-#-a entry,always -F arch=b64 -S mount -S umount -S umount2
+#-a exit,always -F arch=b32 -S mount -S umount -S umount2
+#-a exit,always -F arch=b64 -S mount -S umount -S umount2
 ## Enable if ia64
-#-a entry,always -F arch=b64 -S mount -S umount
+#-a exit,always -F arch=b64 -S mount -S umount
 ## Enable if x86_64
-#-a entry,always -F arch=b64 -S mount -S umount2
-#-a entry,always -F arch=b32 -S mount -S umount -S umount2
+#-a exit,always -F arch=b64 -S mount -S umount2
+#-a exit,always -F arch=b32 -S mount -S umount -S umount2
 
 ## IPC SYSV message queues
 ## Enable if you are interested in these events (x86,ppc,ppc64,s390,s390x)
 ## msgctl
-#-a entry,always -S ipc -F a0=14
+#-a exit,always -S ipc -F a0=14
 ## msgget
-#-a entry,always -S ipc -F a0=13
+#-a exit,always -S ipc -F a0=13
 ## Enable if you are interested in these events (x86_64,ia64)
-#-a entry,always -S msgctl
-#-a entry,always -S msgget
+#-a exit,always -S msgctl
+#-a exit,always -S msgget
 
 ## IPC SYSV semaphores
 ## Enable if you are interested in these events (x86,ppc,ppc64,s390,s390x)
 ## semctl
-#-a entry,always -S ipc -F a0=3
+#-a exit,always -S ipc -F a0=3
 ## semget
-#-a entry,always -S ipc -F a0=2
+#-a exit,always -S ipc -F a0=2
 ## semop
-#-a entry,always -S ipc -F a0=1
+#-a exit,always -S ipc -F a0=1
 ## semtimedop
-#-a entry,always -S ipc -F a0=4
+#-a exit,always -S ipc -F a0=4
 ## Enable if you are interested in these events (x86_64, ia64)
-#-a entry,always -S semctl
-#-a entry,always -S semget
-#-a entry,always -S semop
-#-a entry,always -S semtimedop
+#-a exit,always -S semctl
+#-a exit,always -S semget
+#-a exit,always -S semop
+#-a exit,always -S semtimedop
 
 ## IPC SYSV shared memory
 ## Enable if you are interested in these events (x86,ppc,ppc64,s390,s390x)
 ## shmctl
-#-a entry,always -S ipc -F a0=24
+#-a exit,always -S ipc -F a0=24
 ## shmget
-#-a entry,always -S ipc -F a0=23
+#-a exit,always -S ipc -F a0=23
 ## Enable if you are interested in these events (x86_64, ia64)
-#-a entry,always -S shmctl
-#-a entry,always -S shmget
+#-a exit,always -S shmctl
+#-a exit,always -S shmget
 
 ##
 ## FIA_USB.1
@@ -142,13 +142,13 @@
 ##
 ## Enable if you are interested in these events
 ##
-#-a entry,always -F arch=b32 -S clone
-#-a entry,always -F arch=b64 -S clone
-#-a entry,always -F arch=b32 -S fork -S vfork
-#-a entry,always -F arch=b64 -S fork -S vfork
+#-a exit,always -F arch=b32 -S clone
+#-a exit,always -F arch=b64 -S clone
+#-a exit,always -F arch=b32 -S fork -S vfork
+#-a exit,always -F arch=b64 -S fork -S vfork
 ## For ia64 architecture, disable fork and vfork rules above, and
 ## enable the following:
-#-a entry,always -S clone2
+#-a exit,always -S clone2
 
 ##
 ## FMT_MSA.3
@@ -157,15 +157,15 @@
 ##
 ## Enable if you are interested in these events
 ##
-#-a entry,always -F arch=b32 -S umask
-#-a entry,always -F arch=b64 -S umask
+#-a exit,always -F arch=b32 -S umask
+#-a exit,always -F arch=b64 -S umask
 
 ##
 ## FPT_STM.1
 ## changes to the time
 ##
--a entry,always -F arch=b32 -S adjtimex -S settimeofday -S clock_settime
--a entry,always -F arch=b64 -S adjtimex -S settimeofday -S clock_settime
+-a exit,always -F arch=b32 -S adjtimex -S settimeofday -S clock_settime
+-a exit,always -F arch=b64 -S adjtimex -S settimeofday -S clock_settime
 
 ##
 ## FTP_ITC.1
@@ -252,8 +252,8 @@
 
 ## Optional - could indicate someone trying to do something bad or
 ## just debugging
-#-a entry,always -F arch=b32 -S ptrace -k paranoid
-#-a entry,always -F arch=b64 -S ptrace -k paranoid
+#-a exit,always -F arch=b32 -S ptrace -k paranoid
+#-a exit,always -F arch=b64 -S ptrace -k paranoid
 
 ## Optional - could be an attempt to bypass audit or simply legacy program
 #-a exit,always -F arch=b32 -S personality -k paranoid
