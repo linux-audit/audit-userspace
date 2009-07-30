@@ -1,5 +1,5 @@
 /* s390x_table.h --
- * Copyright 2005,2006,2008 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2005,2006,2008-09 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -289,4 +289,8 @@ _S(324, "inotify_init1")
 _S(325, "pipe2")
 _S(326, "dup3")
 _S(327, "epoll_create1")
+_S(328, "preadv")
+_S(329, "pwritev")
+_S(330, "rt_tgsigqueueinfo")
+_S(331, "perf_counter_open")
 

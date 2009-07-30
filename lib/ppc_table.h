@@ -1,5 +1,5 @@
 /* ppc_table.h --
- * Copyright 2005-08 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2005-09 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -332,4 +332,8 @@ _S(315, "epoll_create1")
 _S(316, "dup3")
 _S(317, "pipe2")
 _S(318, "inotify_init1")
+_S(319, "perf_counter_open")
+_S(320, "preadv")
+_S(321, "pwritev")
+_S(322, "rt_tgsigqueueinfo")
 
