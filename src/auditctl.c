@@ -1251,8 +1251,7 @@ int key_match(struct audit_reply *rep)
 
 	// At this point, we have a key
 	for (i = 0; i < rep->ruledata->field_count; i++) {
-		int field = rep->ruledata->fields[i] &
-					~AUDIT_OPERATORS & ~AUDIT_NEGATE;
+		int field = rep->ruledata->fields[i] & ~AUDIT_OPERATORS;
 		if (field == AUDIT_FILTERKEY) {
 			char *keyptr;
 			asprintf(&keyptr, "%.*s", rep->ruledata->values[i],
@@ -1322,16 +1321,10 @@ static int audit_print_reply(struct audit_reply *rep)
 
 			for (i = 0; i < rep->ruledata->field_count; i++) {
 				const char *name;
-				int op;
+				int op = rep->ruledata->fieldflags[i] &
+						AUDIT_OPERATORS;
 				int field = rep->ruledata->fields[i] &
-					~AUDIT_OPERATORS & ~AUDIT_NEGATE;
-				if (rep->type == AUDIT_LIST_RULES) {
-					op = rep->ruledata->fieldflags[i] &
-					(AUDIT_OPERATORS | AUDIT_NEGATE);
-				} else {
-					op = rep->ruledata->fields[i] &
-					    (AUDIT_OPERATORS | AUDIT_NEGATE);
-				}
+						~AUDIT_OPERATORS;
                 
 				name = audit_field_to_name(field);
 				if (name) {
@@ -1449,7 +1442,7 @@ static int audit_print_reply(struct audit_reply *rep)
 							audit_elf_to_machine(
 								audit_elf);
 						if (machine < 0)
-							ptr = 0;
+							ptr = NULL;
 						else
 							ptr = 
 							audit_syscall_to_name(i, 

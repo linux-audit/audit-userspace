@@ -245,11 +245,6 @@ hidden_def(audit_elf_to_machine)
 
 const char *audit_operator_to_symbol(int op)
 {
-	/* Convert legacy ops */
-	if (op == 0)
-		op = AUDIT_EQUAL;
-	else if (op & AUDIT_NEGATE)
-		op = AUDIT_NOT_EQUAL;
 	return op_i2s(op);
 }
 hidden_def(audit_operator_to_symbol)

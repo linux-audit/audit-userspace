@@ -960,7 +960,7 @@ int audit_rule_fieldpair_data(struct audit_rule_data **rulep, const char *pair,
 		case AUDIT_ARCH:
 			if (audit_syscalladded) 
 				return -3;
-			if (!(op == AUDIT_NEGATE || op == AUDIT_EQUAL))
+			if (!(op == AUDIT_NOT_EQUAL || op == AUDIT_EQUAL))
 				return -13;
 			if (isdigit((char)*(v))) {
 				int machine;
@@ -1108,7 +1108,8 @@ int audit_rule_fieldpair_data(struct audit_rule_data **rulep, const char *pair,
 			/* fallthrough */
 		default:
 			if (field == AUDIT_INODE) {
-				if (!(op == AUDIT_NEGATE || op == AUDIT_EQUAL))
+				if (!(op == AUDIT_NOT_EQUAL ||
+							op == AUDIT_EQUAL))
 					return -13;
 			}
 
