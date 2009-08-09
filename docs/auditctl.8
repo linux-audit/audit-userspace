@@ -1,4 +1,4 @@
-.TH AUDITCTL: "8" "Nov 2008" "Red Hat" "System Administration Utilities"
+.TH AUDITCTL: "8" "Aug 2009" "Red Hat" "System Administration Utilities"
 .SH NAME
 auditctl \- a utility to assist controlling the kernel's audit system
 .SH SYNOPSIS
@@ -56,9 +56,6 @@ Append rule to the end of \fIlist\fP with \fIaction\fP. Please note the comma se
 .TP 12
 .B task
 Add a rule to the per task list. This rule list is used only at the time a task is created -- when fork() or clone() are called by the parent task. When using this list, you should only use fields that are known at task creation time, such as the uid, gid, etc.
-.TP
-.B entry
-Add a rule to the syscall entry list. This list is used upon entry to a system call to determine if an audit event should be created.
 .TP
 .B exit
 Add a rule to the syscall exit list. This list is used upon exit from a system call to determine if an audit event should be created.
@@ -238,7 +235,7 @@ This will be higher performance since the kernel will not evaluate it each and e
 To see all syscalls made by a specific program:
 
 .nf
-.B auditctl \-a entry,always \-S all \-F pid=1005
+.B auditctl \-a exit,always \-S all \-F pid=1005
 .fi
 
 To see files opened by a specific user:
