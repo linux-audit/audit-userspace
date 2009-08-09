@@ -11,6 +11,7 @@
 - Parse integrity audit records in ausearch/report (Mimi Zohar)
 - Updated syscall table for 2.6.31 kernel
 - Remove support for the legacy negate syscall rule operator
+- In auditd reset syslog warnings if disk space becomes available
 
 1.8
 - In auditctl rules allow a0-a3 to be negative numbers

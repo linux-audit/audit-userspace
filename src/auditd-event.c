@@ -484,20 +484,27 @@ static void check_space_left(int lfd, struct daemon_conf *config)
 			unsigned long blocks;
 			unsigned long block_size = buf.f_bsize;
 		        blocks = config->space_left * (MEGABYTE/block_size);
-        		if (blocks > buf.f_bavail) {
+        		if (buf.f_bavail < blocks) {
 				if (fs_space_warning == 0) {
 					do_space_left_action(config, 0);
 					fs_space_warning = 1;
 				}
+			} else if (fs_space_warning &&
+					config->space_left_action == FA_SYSLOG){
+				// Auto reset only if failure action is syslog
+				fs_space_warning = 0;
 			}
 		        blocks=config->admin_space_left * (MEGABYTE/block_size);
-        		if (blocks > buf.f_bavail) {
+        		if (buf.f_bavail < blocks) {
 				if (fs_admin_space_warning == 0) {
 					do_space_left_action(config, 1);
 					fs_admin_space_warning = 1;
 				}
+			} else if (fs_admin_space_warning &&
+				config->admin_space_left_action == FA_SYSLOG) {
+				// Auto reset only if failure action is syslog
+				fs_admin_space_warning = 0;
 			}
-	
 		}
 	}
 	else audit_msg(LOG_DEBUG, "fstatfs returned:%d, %s", rc, 
