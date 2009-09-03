@@ -21,12 +21,13 @@
  *   Steve Grubb <sgrubb@redhat.com>
  */
 
+#include "config.h"
 #include <stdio.h>
 #include <locale.h>
 #include <string.h>
 #include <errno.h>
 #include <pwd.h>
-#include <sys/utsname.h>
+#include <stdlib.h>
 #include "libaudit.h"
 #include "auparse.h"
 #include "aulast-llist.h"
@@ -34,6 +35,7 @@
 
 static	llist l;
 static FILE *f = NULL;
+static char *kernel = NULL;
 
 /* command line params */
 static int cuid = -1, bad = 0, proof = 0, debug = 0;
@@ -367,12 +369,11 @@ static void process_bootup(auparse_state_t *au)
 {
 	lnode *cur;
 	int start;
-	struct utsname ubuf;
 
 	// See if we have unclosed boot up and make into CRASH record
 	list_first(&l);
 	cur = list_get_cur(&l);
-	while(cur) {
+	while (cur) {
 		if (cur->name) {
 			cur->user_end_proof = auparse_get_serial(au);
 			cur->status = CRASH;
@@ -385,7 +386,7 @@ static void process_bootup(auparse_state_t *au)
 	// Logout and process anyone still left in the machine
 	list_first(&l);
 	cur = list_get_cur(&l);
-	while(cur) {
+	while (cur) {
 		if (cur->status != CRASH) {
 			cur->user_end_proof = auparse_get_serial(au);
 			cur->status = DOWN;
@@ -394,19 +395,31 @@ static void process_bootup(auparse_state_t *au)
 		}
 		cur = list_next(&l);
 	}
+
+	// Since this is a boot message, all old entries should be gone
 	list_clear(&l);
 	list_create(&l);
 
-	// make reboot record - user:reboot, tty:system boot, host: uname -r 
-	uname(&ubuf);
+	// make reboot record - user:reboot, tty:system boot, host: kernel 
 	start = auparse_get_time(au);
 	list_create_session(&l, 0, 0, 0, auparse_get_serial(au));
 	cur = list_get_cur(&l);
 	cur->start = start;
 	cur->name = strdup("reboot");
 	cur->term = strdup("system boot");
-	cur->host = strdup(ubuf.release);
+	if (kernel)
+		cur->host = strdup(kernel);
 	cur->result = 0;
+}
+
+static void process_kernel(auparse_state_t *au)
+{
+	const char *kernel_str = auparse_find_field(au, "kernel");
+	if (kernel_str == NULL)
+		return;
+
+	free(kernel);
+	kernel = strdup(kernel_str);
 }
 
 static void process_shutdown(auparse_state_t *au)
@@ -416,7 +429,7 @@ static void process_shutdown(auparse_state_t *au)
 	// Find reboot record
 	list_first(&l);
 	cur = list_get_cur(&l);
-	while(cur) {
+	while (cur) {
 		if (cur->name) {
 			// Found it - close it out and display it
 			time_t end = auparse_get_time(au);
@@ -536,6 +549,10 @@ int main(int argc, char *argv[])
 				process_shutdown(au);
 				extract_record(au);
 				break;
+			case AUDIT_DAEMON_START:
+				process_kernel(au);
+				extract_record(au);
+				break;
 		}
 	}
 	auparse_destroy(au);
@@ -547,6 +564,7 @@ int main(int argc, char *argv[])
 		report_session(cur);
 	} while (list_next(&l));
 
+	free(kernel);
 	list_clear(&l);
 	if (f)
 		fclose(f);

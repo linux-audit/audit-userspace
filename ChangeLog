@@ -1,4 +1,5 @@
 2.0.1
+- Aulast now reads daemon_start events for the kernel version of reboot
 
 2.0
 - Remove system-config-audit
