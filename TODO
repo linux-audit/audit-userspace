@@ -1,7 +1,6 @@
 Things that need to be done:
 ===========================
 2.0.1
-* Check the libaudit python bindings - getloginuid
 * audisp-prelude is preferring directories over files in the target sb both
 * if ses==4294967295 & mode is -i, call it unset like auid is
 * Get store and forward working for remote logging app

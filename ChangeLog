@@ -2,6 +2,7 @@
 - Aulast now reads daemon_start events for the kernel version of reboot
 - Clarify the man pages for ausearch/report regarding locale and date formats
 - Fix getloginuid for python bindings
+- Disable the audispd af_unix plugin by default
 
 2.0
 - Remove system-config-audit
