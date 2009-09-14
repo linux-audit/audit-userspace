@@ -147,7 +147,7 @@ case "$1" in
     restart)
 	restart
 	;;
-    reload)
+    reload|force-reload)
 	reload
 	;;
     rotate)
@@ -156,11 +156,11 @@ case "$1" in
     resume)
 	resume
 	;;
-    condrestart)
+    condrestart|try-restart)
 	condrestart
 	;;
     *)
-	echo $"Usage: $0 {start|stop|status|restart|condrestart|reload|rotate|resume}"
+	echo $"Usage: $0 {start|stop|status|restart|condrestart|try-restart|reload|force-reload|rotate|resume}"
 	RETVAL=3
 esac
 

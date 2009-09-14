@@ -3,6 +3,7 @@
 - Clarify the man pages for ausearch/report regarding locale and date formats
 - Fix getloginuid for python bindings
 - Disable the audispd af_unix plugin by default
+- Add a couple new init script actions for LSB 3.2
 
 2.0
 - Remove system-config-audit
