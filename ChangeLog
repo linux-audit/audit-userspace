@@ -4,6 +4,7 @@
 - Fix getloginuid for python bindings
 - Disable the audispd af_unix plugin by default
 - Add a couple new init script actions for LSB 3.2
+- In auditsp-remote plugin, timeout network reads (#514090)
 
 2.0
 - Remove system-config-audit

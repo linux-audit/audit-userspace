@@ -34,6 +34,7 @@
 #include <time.h>
 #include <fcntl.h>
 #include <sys/select.h>
+#include <poll.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <netinet/in.h>
@@ -443,7 +444,7 @@ static int recv_token (int s, gss_buffer_t tok)
 	tok->length = len;
 	tok->value = (char *) malloc(tok->length ? tok->length : 1);
 	if (tok->length && tok->value == NULL) {
-		syslog(LOG_ERR, "Out of memory allocating token data %d %x",
+		syslog(LOG_ERR, "Out of memory allocating token data %zd %zx",
 				tok->length, tok->length);
 		return -1;
 	}
@@ -910,9 +911,17 @@ static int ar_write (int sk, const void *buf, int len)
 
 static int ar_read (int sk, void *buf, int len)
 {
-	int rc = 0, r;
+	int rc = 0, r, timeout = config.max_time_per_record * 1000;
+	struct pollfd pfd;
+
+	pfd.fd=sk;
+	pfd.events=POLLIN | POLLPRI | POLLHUP | POLLERR | POLLNVAL;
 	while (len > 0) {
 		do {
+			// reads can hang if cable is disconnected
+			int prc = poll(&pfd, (nfds_t) 1, timeout);
+			if (prc <= 0)
+				return -1;
 			r = read(sk, buf, len);
 		} while (r < 0 && errno == EINTR);
 		if (r < 0) {
