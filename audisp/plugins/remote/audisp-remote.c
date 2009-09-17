@@ -134,8 +134,7 @@ static int sync_error_handler (const char *why)
 	   be losing) sync.  Sync errors are transient - if a retry
 	   doesn't fix it, we eventually call network_failure_handler
 	   which has all the user-tweakable actions.  */
-	if (config.network_failure_action == FA_SYSLOG)
-		syslog (LOG_ERR, "lost/losing sync, %s", why);
+	syslog (LOG_ERR, "lost/losing sync, %s", why);
 	return 0;
 }
 
@@ -1049,19 +1048,15 @@ static int send_msg_tcp (unsigned char *header, const char *msg, uint32_t mlen)
 
 	rc = ar_write(sock, header, AUDIT_RMW_HEADER_SIZE);
 	if (rc <= 0) {
-		if (config.network_failure_action == FA_SYSLOG)
-			syslog(LOG_ERR, "connection to %s closed unexpectedly",
-			       config.remote_server);
+		syslog(LOG_ERR, "send to %s failed", config.remote_server);
 		return 1;
 	}
 
 	if (msg != NULL && mlen > 0) {
 		rc = ar_write(sock, msg, mlen);
 		if (rc <= 0) {
-			if (config.network_failure_action == FA_SYSLOG)
-				syslog(LOG_ERR,
-				       "connection to %s closed unexpectedly",
-				       config.remote_server);
+			syslog(LOG_ERR, "send to %s failed",
+				config.remote_server);
 			return 1;
 		}
 	}
@@ -1075,9 +1070,7 @@ static int recv_msg_tcp (unsigned char *header, char *msg, uint32_t *mlen)
 
 	rc = ar_read (sock, header, AUDIT_RMW_HEADER_SIZE);
 	if (rc < 16) {
-		if (config.network_failure_action == FA_SYSLOG)
-			syslog(LOG_ERR, "connection to %s closed unexpectedly",
-			       config.remote_server);
+		syslog(LOG_ERR, "read from %s failed", config.remote_server);
 		return -1;
 	}
 
