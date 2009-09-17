@@ -483,6 +483,7 @@ static void client_ack (void *ack_data, const unsigned char *header,
 		return;
 	}
 #endif
+	// Send the header and a text error message if it exists
 	ar_write (io->io.fd, header, AUDIT_RMW_HEADER_SIZE);
 	if (msg[0])
 		ar_write (io->io.fd, msg, strlen(msg));
