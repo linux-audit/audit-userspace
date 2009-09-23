@@ -1,6 +1,6 @@
 /*
 * interpret.c - Lookup values to something more readable
-* Copyright (c) 2007,08 Red Hat Inc., Durham, North Carolina.
+* Copyright (c) 2007-09 Red Hat Inc., Durham, North Carolina.
 * All Rights Reserved. 
 *
 * This software may be freely redistributed and/or modified under the
@@ -1051,6 +1051,14 @@ static const char *print_tty_data(const char *raw_data)
 	return buf.buf;
 }
 
+static const char *print_session(const char *val)
+{
+	if (strcmp(val, "4294967295") == 0)
+		return strdup("unset");
+	else
+		return strdup(val);
+}
+
 int lookup_type(const char *name)
 {
 	int i;
@@ -1143,6 +1151,9 @@ const char *interpret(const rnode *r)
 			break;
 		case AUPARSE_TYPE_TTY_DATA:
 			out = print_tty_data(val);
+			break;
+		case AUPARSE_TYPE_SESSION:
+			out = print_session(val);
 			break;
 		case AUPARSE_TYPE_UNCLASSIFIED:
 		default: {

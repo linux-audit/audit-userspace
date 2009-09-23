@@ -1,6 +1,6 @@
 /*
 * ausearch-report.c - Format and output events
-* Copyright (c) 2005-08 Red Hat Inc., Durham, North Carolina.
+* Copyright (c) 2005-09 Red Hat Inc., Durham, North Carolina.
 * All Rights Reserved. 
 *
 * This software may be freely redistributed and/or modified under the
@@ -51,7 +51,7 @@ struct nv_pair {
 /* This is the list of field types that we can interpret */
 enum { T_UID, T_GID, T_SYSCALL, T_ARCH, T_EXIT, T_ESCAPED, T_PERM, T_MODE, 
 T_SOCKADDR, T_FLAGS, T_PROMISC, T_CAPABILITY, T_SIGNAL, T_KEY, T_LIST,
-T_TTY_DATA };
+T_TTY_DATA, T_SESSION };
 
 /* Function in ausearch-parse for unescaping filenames */
 extern char *unescape(char *buf);
@@ -356,6 +356,7 @@ static struct nv_pair typetab[] = {
 	{T_CAPABILITY, "capability"},
 	{T_SIGNAL, "sig"},
 	{T_LIST, "list"},
+	{T_SESSION, "ses"},
 };
 #define TYPE_NAMES (sizeof(typetab)/sizeof(typetab[0]))
 
@@ -906,6 +907,14 @@ static void print_list(char *val)
 	printf("%s ", audit_flag_to_name(i));
 }
 
+static void print_session(char *val)
+{
+	if (strcmp(val, "4294967295") == 0)
+		printf("unset ");
+	else
+		printf("%s ", val);
+}
+
 static void interpret(char *name, char *val, int comma, int rtype)
 {
 	int type;
@@ -976,6 +985,9 @@ static void interpret(char *name, char *val, int comma, int rtype)
 			break;
 		case T_TTY_DATA:
 			print_tty_data(val);
+			break;
+		case T_SESSION:
+			print_session(val);
 			break;
 		default:
 			printf("%s%c", val, comma ? ',' : ' ');

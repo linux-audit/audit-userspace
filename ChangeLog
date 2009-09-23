@@ -7,6 +7,7 @@
 - In audisp-remote plugin, timeout network reads (#514090)
 - Make some error logging in audisp-remote plugin more prominent
 - Add audit.rules man page
+- Interpret the session field in audit events
 
 2.0
 - Remove system-config-audit

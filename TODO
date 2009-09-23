@@ -2,7 +2,6 @@ Things that need to be done:
 ===========================
 2.0.1
 * audisp-prelude is preferring directories over files in the target sb both
-* if ses==4294967295 & mode is -i, call it unset like auid is
 
 2.0.2
 * Get store and forward working for remote logging app
