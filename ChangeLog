@@ -6,6 +6,7 @@
 - Add a couple new init script actions for LSB 3.2
 - In audisp-remote plugin, timeout network reads (#514090)
 - Make some error logging in audisp-remote plugin more prominent
+- Add audit.rules man page
 
 2.0
 - Remove system-config-audit
