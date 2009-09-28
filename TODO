@@ -1,9 +1,7 @@
 Things that need to be done:
 ===========================
-2.0.1
-* audisp-prelude is preferring directories over files in the target sb both
-
 2.0.2
+* audisp-prelude is preferring directories over files in the target sb both
 * Get store and forward working for remote logging app
 * Fix auparse to handle out of order messages
 * Fix SIGHUP for auditd network settings
@@ -44,7 +42,6 @@ Things that need to be done:
 
 2.3
 * Consolidate parsing code between libaudit and auditd-conf.c
-* Add mode where it ignores syscalls it can't resolve for arch
 * Look at variadic avc logging patch 
 * If relative file in cwd, need to build also (realpath). watch out for (null) and socket
 * Change ausearch to output name="" unless its a real null. (mount) ausearch-report.c, 523. FIXME
