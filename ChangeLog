@@ -1,3 +1,5 @@
+2.0.2
+
 2.0.1
 - Aulast now reads daemon_start events for the kernel version of reboot
 - Clarify the man pages for ausearch/report regarding locale and date formats
