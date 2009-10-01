@@ -293,7 +293,7 @@ int main(int argc, char *argv[])
 {
 	event_t *e;
 	struct sigaction sa;
-	int rc;
+	int rc, q_len;
 
 	/* Register sighandlers */
 	sa.sa_flags = 0;
@@ -404,11 +404,12 @@ int main(int argc, char *argv[])
 	} while (stop == 0);
 	close(sock);
 	free_config(&config);
+	q_len = queue_length();
 	destroy_queue();
 	if (stop)
 		syslog(LOG_NOTICE, "audisp-remote is exiting on stop request");
 
-	return 0;
+	return q_len ? 1 : 0;
 }
 
 #ifdef USE_GSSAPI

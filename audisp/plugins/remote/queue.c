@@ -149,6 +149,16 @@ event_t *dequeue(int peek)
 	}
 } */
 
+int queue_length(void)
+{
+	if (q_next == q_last)
+		return 0;
+	if (q_last > q_next)
+		return (q_depth + q_next) - q_last;
+	else
+		return q_next - q_last;
+}
+
 void destroy_queue(void)
 {
 	unsigned int i;
