@@ -702,8 +702,8 @@ static int check_second_connection(struct sockaddr_in *aaddr)
 {
 	struct ev_tcp *client = client_chain;
 	while (client) {
-		if (memcmp(aaddr, &client->addr, 
-					sizeof(struct sockaddr_in)) == 0)
+		if (memcmp(&aaddr->sin_addr, &client->addr.sin_addr, 
+					sizeof(struct in_addr)) == 0)
 			return 1;
 		client = client->next;
 	}
