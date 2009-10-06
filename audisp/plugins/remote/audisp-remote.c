@@ -123,6 +123,14 @@ static void user2_handler( int sig )
 }
 
 /*
+ * SIGCHLD handler: reap exiting processes
+ */
+static void child_handler(int sig)
+{
+	while (waitpid(-1, NULL, WNOHANG) > 0)
+		; /* empty */
+}
+/*
  * Handlers for various events coming back from the remote server.
  * Return -1 if the remote dispatcher should exit.
  */
@@ -305,6 +313,8 @@ int main(int argc, char *argv[])
 	sigaction(SIGHUP, &sa, NULL);
 	sa.sa_handler = user2_handler;
 	sigaction(SIGUSR2, &sa, NULL);
+	sa.sa_handler = child_handler;
+	sigaction(SIGCHLD, &sa, NULL);
 	if (load_config(&config, CONFIG_FILE))
 		return 6;
 
