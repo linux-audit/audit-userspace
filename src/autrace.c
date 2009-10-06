@@ -49,7 +49,7 @@ static void usage(void)
 static int insert_rule(int audit_fd, const char *field)
 {
 	int rc;
-	int flags = AUDIT_FILTER_ENTRY;
+	int flags = AUDIT_FILTER_EXIT;
 	int action = AUDIT_ALWAYS;
 	struct audit_rule_data *rule = malloc(sizeof(struct audit_rule_data));
 
