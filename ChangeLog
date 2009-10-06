@@ -2,6 +2,7 @@
 - If audisp-remote plugin has a queue at exit, use non-zero exit code
 - Fix autrace to use the exit filter
 - In audisp-remote, add a sigchld handler
+- In auditd, check for duplicate remote connections before accepting
 
 2.0.1
 - Aulast now reads daemon_start events for the kernel version of reboot

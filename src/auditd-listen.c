@@ -698,6 +698,18 @@ static int auditd_tcpd_check(int sock)
 }
 #endif
 
+static int check_second_connection(struct sockaddr_in *aaddr)
+{
+	struct ev_tcp *client = client_chain;
+	while (client) {
+		if (memcmp(aaddr, &client->addr, 
+					sizeof(struct sockaddr_in)) == 0)
+			return 1;
+		client = client->next;
+	}
+	return 0;
+}
+
 static void auditd_tcp_listen_handler( struct ev_loop *loop,
 	struct ev_io *_io, int revents )
 {
@@ -706,7 +718,6 @@ static void auditd_tcp_listen_handler( struct ev_loop *loop,
 	socklen_t aaddrlen;
 	struct sockaddr_in aaddr;
 	struct ev_tcp *client;
-	unsigned char *uaddr;
 	char emsg[DEFAULT_BUF_SZ];
 
 	/* Accept the connection and see where it's coming from.  */
@@ -723,23 +734,35 @@ static void auditd_tcp_listen_handler( struct ev_loop *loop,
 	        	audit_msg(LOG_ERR, "TCP connection from %s rejected",
 					sockaddr_to_ip (&aaddr));
 			snprintf(emsg, sizeof(emsg),
-				"addr=%s port=%d res=no",
+				"op=wrap addr=%s port=%d res=no",
 				sockaddr_to_ip (&aaddr),
 				ntohs (aaddr.sin_port));
 			send_audit_event(AUDIT_DAEMON_ACCEPT, emsg);
 			return;
 		}
 	}
-	uaddr = (unsigned char *)&aaddr.sin_addr;
 
 	/* Verify it's coming from an authorized port.  We assume the firewall
-	 *  will block attempts from unauthorized machines.  */
+	 * will block attempts from unauthorized machines.  */
 	if (min_port > ntohs (aaddr.sin_port) ||
 					ntohs (aaddr.sin_port) > max_port) {
         	audit_msg(LOG_ERR, "TCP connection from %s rejected",
 				sockaddr_to_ip (&aaddr));
 		snprintf(emsg, sizeof(emsg),
-			"addr=%s port=%d res=no", sockaddr_to_ip (&aaddr),
+			"op=port addr=%s port=%d res=no",
+			sockaddr_to_ip (&aaddr),
+			ntohs (aaddr.sin_port));
+		send_audit_event(AUDIT_DAEMON_ACCEPT, emsg);
+		close (afd);
+		return;
+	}
+
+	if (check_second_connection(&aaddr)) {
+        	audit_msg(LOG_ERR, "Second TCP connection from %s rejected",
+				sockaddr_to_ip (&aaddr));
+		snprintf(emsg, sizeof(emsg),
+			"op=dup addr=%s port=%d res=no",
+			sockaddr_to_ip (&aaddr),
 			ntohs (aaddr.sin_port));
 		send_audit_event(AUDIT_DAEMON_ACCEPT, emsg);
 		close (afd);
@@ -755,7 +778,8 @@ static void auditd_tcp_listen_handler( struct ev_loop *loop,
 	if (client == NULL) {
         	audit_msg(LOG_CRIT, "Unable to allocate TCP client data");
 		snprintf(emsg, sizeof(emsg),
-			"addr=%s port=%d res=no", sockaddr_to_ip (&aaddr),
+			"op=alloc addr=%s port=%d res=no",
+			sockaddr_to_ip (&aaddr),
 			ntohs (aaddr.sin_port));
 		send_audit_event(AUDIT_DAEMON_ACCEPT, emsg);
 		close (afd);
@@ -763,7 +787,6 @@ static void auditd_tcp_listen_handler( struct ev_loop *loop,
 	}
 
 	memset (client, 0, sizeof (struct ev_tcp));
-
 	client->client_active = 1;
 
 	// Was watching for EV_ERROR, but libev 3.48 took it away
@@ -790,7 +813,7 @@ static void auditd_tcp_listen_handler( struct ev_loop *loop,
 	snprintf(emsg, sizeof(emsg),
 		"addr=%s port=%d res=success", sockaddr_to_ip (&aaddr),
 		ntohs (aaddr.sin_port));
-	send_audit_event(AUDIT_DAEMON_ACCEPT,emsg);
+	send_audit_event(AUDIT_DAEMON_ACCEPT, emsg);
 }
 
 void auditd_set_ports(int minp, int maxp)
