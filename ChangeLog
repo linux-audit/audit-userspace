@@ -3,6 +3,7 @@
 - Fix autrace to use the exit filter
 - In audisp-remote, add a sigchld handler
 - In auditd, check for duplicate remote connections before accepting
+- Remove trailing ':' if any are at the end of acct fields in ausearch
 
 2.0.1
 - Aulast now reads daemon_start events for the kernel version of reboot

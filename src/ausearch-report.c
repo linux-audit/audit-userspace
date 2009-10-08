@@ -922,12 +922,18 @@ static void interpret(char *name, char *val, int comma, int rtype)
 	while (*name == ' '||*name == '(')
 		name++;
 
+
 	/* Do some fixups */
 	if (rtype == AUDIT_EXECVE && name[0] == 'a')
 		type = T_ESCAPED;
 	else if (rtype == AUDIT_AVC && strcmp(name, "saddr") == 0)
 		type = -1;
 	else if (strcmp(name, "acct") == 0) {
+		// Remove trailing punctuation
+		int len = strlen(val);
+		if (val[len-1] == ':')
+			val[len-1] = 0;
+
 		if (val[0] == '"')
 			type = T_ESCAPED;
 		else if (is_hex_string(val))
