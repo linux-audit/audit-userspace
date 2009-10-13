@@ -1157,7 +1157,6 @@ static int parse_sockaddr(const lnode *n, search_items *s)
 static int parse_integrity(const lnode *n, search_items *s)
 {
 	char *ptr, *str, *term;
-	int rc=0;
 
 	term = n->message;
 	// get pid

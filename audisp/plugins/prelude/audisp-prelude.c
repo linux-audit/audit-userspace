@@ -916,6 +916,7 @@ static int add_execve_data(auparse_state_t *au, idmef_alert_t *alert)
 	if (goto_record_type(au, AUDIT_EXECVE) != AUDIT_EXECVE)
 		return 0;
 
+	msg[0] = 0;
 	for (i=0; i<8; i++) {
 		snprintf(var, sizeof(var), "a%d", i);
 		msgptr = auparse_find_field(au, var);

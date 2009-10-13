@@ -245,7 +245,7 @@ static int write_pid_file(void)
 	char val[16];
 
 	len = snprintf(val, sizeof(val), "%u\n", getpid());
-	if (len < 0) {
+	if (len <= 0) {
 		audit_msg(LOG_ERR, "Pid error (%s)", strerror(errno));
 		pidfile = 0;
 		return 1;
