@@ -2,11 +2,15 @@ Things that need to be done:
 ===========================
 2.0.2
 * audisp-prelude is preferring directories over files in the target sb both
+* Fix idle disconnect in auditd-listen.c
+
+2.0.3
 * Get store and forward working for remote logging app
 * Fix auparse to handle out of order messages
+* Add definitions for kernel virt events
+* Add rule verify to detect mismatch between in-kernel and on-disk rules
 * Fix SIGHUP for auditd network settings
 * If auparse input is a pipe timeout events by wall clock
-* Add definitions for kernel virt events
 
 2.1
 * Look at gssapi support being done via dlopen()
@@ -17,7 +21,6 @@ Things that need to be done:
 * Update prelude detections to send anomaly events
 * Look at adding the direction read/write to file report (threat modelling)
 * Add basic responses to prelude plugin
-* Add rule verify to detect mismatch between in-kernel and on-disk rules
 * Should session number go into logins and AVCs for prelude?
 * Changes in uid/gid, failed changes in credentials in aureport
 * aureport get specific reports working
