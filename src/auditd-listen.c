@@ -193,6 +193,11 @@ static int recv_token (int s, gss_buffer_t tok)
 	       | (lenbuf[1] << 16)
 	       | (lenbuf[2] << 8)
 	       | lenbuf[3]);
+	if (len > MAX_AUDIT_MESSAGE_LENGTH) {
+		audit_msg(LOG_ERR,
+			"GSS-API error: event length excedes MAX_AUDIT_LENGTH");
+		return -1;
+	}
 	tok->length = len;
 
 	tok->value = (char *) malloc(tok->length ? tok->length : 1);
@@ -674,7 +679,7 @@ more_messages:
 
 	/* Now copy any remaining bytes to the beginning of the
 	   buffer.  */
-	memmove (io->buffer, io->buffer + i, io->bufptr);
+	memmove(io->buffer, io->buffer + i, io->bufptr - i);
 	io->bufptr -= i;
 
 	/* See if this packet had more than one message in it. */
