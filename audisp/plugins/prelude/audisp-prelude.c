@@ -28,6 +28,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <pwd.h>
+#include <sys/stat.h>
 #include <libprelude/prelude.h>
 #include <libprelude/idmef-message-print.h>
 #ifdef HAVE_LIBCAP_NG
@@ -758,11 +759,15 @@ static int get_comm_info(auparse_state_t *au, idmef_source_t *source,
         return -1;
 }
 
+/*
+ * Fill in a file record for idmef. Note that we always get the
+ * full path name unless we have an AVC.
+ */
 static int get_file_info(auparse_state_t *au, idmef_target_t *target, int full)
 {
 	int ret;
 	idmef_file_t *file;
-	const char *name, *cwd;
+	const char *name;
 	char path[PATH_MAX+1];
 
 	ret = idmef_target_new_file(target, &file, 0);
@@ -770,22 +775,37 @@ static int get_file_info(auparse_state_t *au, idmef_target_t *target, int full)
 
 	*path = 0;
 	if (full) {
+		const char *cwd;
 		auparse_first_field(au);
 		cwd = auparse_find_field(au, "cwd");
 		if (cwd) {
 			if ((cwd = auparse_interpret_field(au)))
 				strcat(path, cwd);
 		}
+		// Loop across all PATH records in the event
 		goto_record_type(au, AUDIT_PATH);
-		name = auparse_find_field(au, "name");
+		name = NULL;
+		do {	// Make sure that we have an actual file record
+			if (auparse_find_field(au, "mode")) {
+				int m = auparse_get_field_int(au);
+				if (S_ISREG(m)) {
+					// Now back up and get file name
+					auparse_first_field(au);
+					name = auparse_find_field(au, "name");
+					break;
+				}
+			}
+		} while (auparse_next_record(au) > 0 &&
+				auparse_get_type(au) == AUDIT_PATH);
 	} else {
+		// SE Linux AVC
 		int type = auparse_get_type(au);
 		auparse_first_field(au);
 		name = auparse_find_field(au, "path");
 		if (name == NULL) {
 			goto_record_type(au, type);
 			name = auparse_find_field(au, "name");
-		} 
+		}
 	}
 	if (name)
 		name = auparse_interpret_field(au); 
