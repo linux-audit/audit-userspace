@@ -109,6 +109,7 @@ rm -f $RPM_BUILD_ROOT/%{_libdir}/python?.?/site-packages/auparse.la
 
 # On platforms with 32 & 64 bit libs, we need to coordinate the timestamp
 touch -r ./audit.spec $RPM_BUILD_ROOT/etc/libaudit.conf
+touch -r ./audit.spec $RPM_BUILD_ROOT/usr/share/man/man5/libaudit.conf.5.gz
 
 %check
 make check
@@ -217,6 +218,6 @@ fi
 
 
 %changelog
-* Mon Sep 28 2009 Steve Grubb <sgrubb@redhat.com> 2.0.2-1
+* Fri Oct 16 2009 Steve Grubb <sgrubb@redhat.com> 2.0.2-1
 - New upstream release
 
