@@ -6,6 +6,7 @@
 - Remove trailing ':' if any are at the end of acct fields in ausearch
 - Update remote logging code to do better sanity check of data
 - Fix audisp-prelude to prefer files if multiple path records are encountered
+- Add libaudit.conf man page
 
 2.0.1
 - Aulast now reads daemon_start events for the kernel version of reboot
