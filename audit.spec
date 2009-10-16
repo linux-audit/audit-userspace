@@ -139,6 +139,7 @@ fi
 %attr(755,root,root) /%{_lib}/libaudit.so.1*
 %attr(755,root,root) /%{_lib}/libauparse.*
 %config(noreplace) %attr(640,root,root) /etc/libaudit.conf
+%{_mandir}/man5/libaudit.conf.5.gz
 
 %files libs-devel
 %defattr(-,root,root,-)

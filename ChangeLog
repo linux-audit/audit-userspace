@@ -7,6 +7,7 @@
 - Update remote logging code to do better sanity check of data
 - Fix audisp-prelude to prefer files if multiple path records are encountered
 - Add libaudit.conf man page
+- In auditd, disconnect idle clients
 
 2.0.1
 - Aulast now reads daemon_start events for the kernel version of reboot

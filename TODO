@@ -1,8 +1,5 @@
 Things that need to be done:
 ===========================
-2.0.2
-* Fix idle disconnect in auditd-listen.c
-
 2.0.3
 * Get store and forward working for remote logging app
 * Fix auparse to handle out of order messages
