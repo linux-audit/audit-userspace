@@ -963,6 +963,7 @@ void auditd_tcp_listen_check_idle (struct ev_loop *loop )
 		audit_msg(LOG_NOTICE,
 			"client %s idle too long - closing connection\n",
 			sockaddr_to_ip (&(ev->addr)));
+		ev_io_stop (loop, &ev->io);
 		close_client(ev);
 	}
 }
