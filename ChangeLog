@@ -1,3 +1,5 @@
+2.0.3
+
 2.0.2
 - If audisp-remote plugin has a queue at exit, use non-zero exit code
 - Fix autrace to use the exit filter
