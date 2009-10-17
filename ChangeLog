@@ -1,5 +1,6 @@
 2.0.3
 - In auditd, tell libev to stop processing a connection when idle timeout
+- In auditd, tell libev to stop processing a connection when shutting down
 
 2.0.2
 - If audisp-remote plugin has a queue at exit, use non-zero exit code

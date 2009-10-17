@@ -945,6 +945,7 @@ void auditd_tcp_listen_uninit ( struct ev_loop *loop )
 
 		AUDIT_RMW_PACK_HEADER (ack, 0, AUDIT_RMW_TYPE_ENDING, 0, 0);
 		client_ack (client_chain, ack, "");
+		ev_io_stop (loop, &client_chain->io);
 		close_client (client_chain);
 	}
 }
