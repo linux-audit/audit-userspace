@@ -285,7 +285,8 @@ typedef enum {
 	MACH_PPC,
 	MACH_S390X,
 	MACH_S390,
-        MACH_ALPHA
+	MACH_ALPHA,
+	MACH_ARMEB
 } machine_t;
 
 /* These are the valid audit failure tunable enum values */

@@ -1,5 +1,6 @@
 2.0.4
 - Make alpha processor support optional
+- Add support for the arm eabi processor
 
 2.0.3
 - In auditd, tell libev to stop processing a connection when idle timeout

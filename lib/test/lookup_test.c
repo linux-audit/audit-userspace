@@ -136,6 +136,24 @@ test_alpha_table(void)
 }
 #endif
 
+#ifdef WITH_ARMEB
+static void
+test_armeb_table(void)
+{
+	static const struct entry t[] = {
+#include "../armeb_table.h"
+	};
+
+	printf("Testing armeb_table...\n");
+#define I2S(I) audit_syscall_to_name((I), MACH_ARMEB)
+#define S2I(S) audit_name_to_syscall((S), MACH_ARMEB)
+	TEST_I2S(0);
+	TEST_S2I(-1);
+#undef I2S
+#undef S2I
+}
+#endif
+
 static void
 test_i386_table(void)
 {
@@ -348,6 +366,9 @@ main(void)
 {
 #ifdef WITH_ALPHA
 	test_alpha_table();
+#endif
+#ifdef WITH_ARMEB
+	test_armeb_table();
 #endif
 	test_i386_table();
 	test_ia64_table();
