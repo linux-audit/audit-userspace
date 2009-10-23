@@ -20,6 +20,7 @@
  *      Miloslav Trmač <mitr@redhat.com>
  */
 
+#include "config.h"
 #include <assert.h>
 #include <errno.h>
 #include <stdio.h>
@@ -28,7 +29,8 @@
 
 #include "../libaudit.h"
 
-/* Number of lookups of random strings */
+/* Number of looku
+ * #include "config.h"ps of random strings */
 #define RAND_ITERATIONS 1000
 
 /* Maximum size of randomly generated strings, including the terminating NUL. */
@@ -116,6 +118,7 @@ gen_id(char *dest)
 		}							\
 	} while (0)
 
+#ifdef WITH_ALPHA
 static void
 test_alpha_table(void)
 {
@@ -131,6 +134,7 @@ test_alpha_table(void)
 #undef I2S
 #undef S2I
 }
+#endif
 
 static void
 test_i386_table(void)
@@ -342,7 +346,9 @@ test_optab(void)
 int
 main(void)
 {
+#ifdef WITH_ALPHA
 	test_alpha_table();
+#endif
 	test_i386_table();
 	test_ia64_table();
 	test_ppc_table();
