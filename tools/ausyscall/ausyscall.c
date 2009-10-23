@@ -64,6 +64,12 @@ int main(int argc, char *argv[])
 			dump=1;
 		} else if (strcmp("--exact", argv[i]) == 0) {
 			exact=1;
+#ifndef WITH_ALPHA
+		} else if (strcmp("alpha", argv[i]) == 0) {
+			fputs("Alpha processor support is not enabled\n",
+					stderr);
+			exit(1);
+#endif
 		} else {
 			if (name != NULL) {
 				fputs("Two syscall names not allowed\n",stderr);

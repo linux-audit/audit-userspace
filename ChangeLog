@@ -1,4 +1,5 @@
 2.0.4
+- Make alpha processor support optional
 
 2.0.3
 - In auditd, tell libev to stop processing a connection when idle timeout

@@ -1,5 +1,5 @@
 /* machine.h --
- * Copyright 2005,2006 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2005,2006,2009 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -30,4 +30,6 @@ _S(MACH_PPC64,   "ppc64"  )
 _S(MACH_PPC,     "ppc"    )
 _S(MACH_S390X,   "s390x"  )
 _S(MACH_S390,    "s390"   )
+#ifdef WITH_ALPHA
 _S(MACH_ALPHA,   "alpha"  )
+#endif

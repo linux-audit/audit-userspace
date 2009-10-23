@@ -126,6 +126,18 @@ else
 fi
 ],WARNS="$ALLWARNS")
 
+AC_MSG_CHECKING(whether to include alpha processor support)
+AC_ARG_WITH(alpha,
+AS_HELP_STRING([--with-alpha],[enable Alpha processor support]),
+use_alpha=$withval,
+use_alpha=no)
+if test x$use_alpha != xno ; then
+      AC_DEFINE(WITH_ALPHA,1,[Define if you want to enable Alpha processor support.])
+else
+	AC_MSG_RESULT(no)
+fi
+AM_CONDITIONAL(USE_ALPHA, test x$use_alpha = xyes)
+
 AC_MSG_CHECKING(whether to use apparmor)
 AC_ARG_WITH(apparmor,
 AS_HELP_STRING([--with-apparmor],[enable AppArmor events]),
