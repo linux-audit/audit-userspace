@@ -27,7 +27,6 @@
 #include "auditd-config.h"
 #include "data_buf.h"
 #include <stdio.h>
-#include <regex.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -82,8 +81,6 @@ struct opaque
 					//	 searching
 	austop_t search_where;		// Where to put the cursors on a match
 	auparser_state_t parse_state;	// parsing state
-	regex_t regex;			// compiled regex if regex_valid != 0
-	int regex_valid;
 	DataBuf databuf;		// input data
 
 	// function to call to notify user of parsing changes

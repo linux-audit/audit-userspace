@@ -44,6 +44,19 @@ The only defined escape sequences are
 and \fB\e\(dq\fR.
 The semantics of other escape sequences is undefined.
 
+.TP
+Regexps
+A sequence of characters surrounded by the
+.B /
+characters.
+The
+.B \e
+character starts an escape sequence.
+The only defined escape sequences are
+.B \e\e
+and \fB\e/\fR.
+The semantics of other escape sequences is undefined.
+
 .PP
 Anywhere an unquoted string is valid, a quoted string is valid as well,
 and vice versa.
@@ -52,10 +65,14 @@ and field values may be specified using unquoted strings.
 
 .SH EXPRESSION SYNTAX
 
-The primary expression has the following form:
+The primary expression has one of the following forms:
 .IP
 .I field comparison-operator value
+
+.B \eregexp
+.I string-or-regexp
 .PP
+
 .I field
 is either a string,
 which specifies the first field with that name within the current audit record,
@@ -121,8 +138,20 @@ the result of the comparison is
 If
 .I field
 does not define a "value", an error is reported when parsing the expression.
-
 .PP
+
+In the special case of
+.B \eregexp
+\fIregexp-or-string\fR,
+the current audit record is taken as a string
+(without interpreting field values),
+and matched against \fIregexp-or-string\fR.
+.I regexp-or-string
+is an extended regular expression, using a string or regexp token
+(in other words, delimited by
+.B \(dq
+or \fB/\fR).
+
 If
 .I E1
 and
