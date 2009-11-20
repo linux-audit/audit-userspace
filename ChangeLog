@@ -2,6 +2,7 @@
 - Make alpha processor support optional
 - Add support for the arm eabi processor
 - add a compatible regexp processing capability to auparse (Miloslav Trmač)
+- Fix regression in parsing user space originating records in aureport
 
 2.0.3
 - In auditd, tell libev to stop processing a connection when idle timeout

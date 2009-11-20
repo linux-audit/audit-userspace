@@ -782,11 +782,15 @@ static int parse_user(const lnode *n, search_items *s)
 		if (str) {
 			str += 9;
 			term = strchr(str, ',');
-			if (term == NULL)
-				return 15;
+			if (term == NULL) {
+				term = strchr(str, ' ');
+				if (term == NULL)
+					return 15;
+			}
+			saved = *term;
 			*term = 0;
 			s->hostname = strdup(str);
-			*term = ',';
+			*term = saved;
 
 			// Lets see if there is something more
 			// meaningful in addr
@@ -796,12 +800,16 @@ static int parse_user(const lnode *n, search_items *s)
 				if (str) {
 					str += 5;
 					term = strchr(str, ',');
-					if (term == NULL)
-						return 16;
+					if (term == NULL) {
+						term = strchr(str, ' ');
+						if (term == NULL)
+							return 16;
+					}
+					saved = *term;
 					*term = 0;
 					free(s->hostname);
 					s->hostname = strdup(str);
-					*term = ',';
+					*term = saved;
 				}
 			}
 		}
