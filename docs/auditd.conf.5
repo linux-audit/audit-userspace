@@ -15,8 +15,8 @@ keywords recognized are:
 .IR  action_mail_acct ", " space_left_action ", " admin_space_left ",
 .IR  admin_space_left_action ", " disk_full_action ",
 .IR  disk_error_action ", " tcp_listen_port ",
-.IR  tcp_listen_queue ", use_libwrap ", " tcp_client_ports ",
-.IR  tcp_client_max_idle ", " enable_krb5 ",
+.IR  tcp_listen_queue ", " tcp_max_per_addr ", " use_libwrap ",
+.IR  tcp_client_ports ", " tcp_client_max_idle ", " enable_krb5 ",
 .IR  krb5_principal ", and " krb5_key_file ".
 These keywords are described below.
 
@@ -228,6 +228,13 @@ This is a numeric value which indicates how many pending (requested
 but unaccepted) connections are allowed.  The default is 5.  Setting
 this too small may cause connections to be rejected if too many hosts
 start up at exactly the same time, such as after a power failure.
+.TP
+.I tcp_max_per_addr
+This is a numeric value which indicates how many concurrent connections from
+one IP address is allowed.  The default is 1 and the maximum is 16. Setting
+this too large may allow for a Denial of Service attack on the logging
+server. The default should be adequate in most cases unless a custom written
+recovery script runs to forward unsent events. In this case you would increase the number only large enough to let it in too.
 .TP
 .I use_libwrap
 This setting determines whether or not to use tcp_wrappers to discern connection attempts that are from allowed machines. Legal values are either 

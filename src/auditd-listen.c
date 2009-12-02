@@ -75,7 +75,7 @@ typedef struct ev_tcp {
 
 static int listen_socket;
 static struct ev_io tcp_listen_watcher;
-static int min_port, max_port;
+static int min_port, max_port, max_per_addr;
 static int use_libwrap = 1;
 #ifdef USE_GSSAPI
 /* This is used to hold our own private key.  */
@@ -709,13 +709,23 @@ static int auditd_tcpd_check(int sock)
 }
 #endif
 
-static int check_second_connection(struct sockaddr_in *aaddr)
+/*
+ * This function counts the number of concurrent connections and returns
+ * a 1 if there are too many and a 0 otherwise. It assumes the incoming
+ * connection has not been added to the linked list yet.
+ */
+static int check_num_connections(struct sockaddr_in *aaddr)
 {
+	int num = 0;
 	struct ev_tcp *client = client_chain;
+
 	while (client) {
 		if (memcmp(&aaddr->sin_addr, &client->addr.sin_addr, 
-					sizeof(struct in_addr)) == 0)
-			return 1;
+					sizeof(struct in_addr)) == 0) {
+			num++;
+			if (num > max_per_addr)
+				return 1;
+		}
 		client = client->next;
 	}
 	return 0;
@@ -768,8 +778,9 @@ static void auditd_tcp_listen_handler( struct ev_loop *loop,
 		return;
 	}
 
-	if (check_second_connection(&aaddr)) {
-        	audit_msg(LOG_ERR, "Second TCP connection from %s rejected",
+	/* Make sure we don't have too many connections */
+	if (check_num_connections(&aaddr)) {
+        	audit_msg(LOG_ERR, "Too many connections from %s - rejected",
 				sockaddr_to_ip (&aaddr));
 		snprintf(emsg, sizeof(emsg),
 			"op=dup addr=%s port=%d res=no",
@@ -780,11 +791,13 @@ static void auditd_tcp_listen_handler( struct ev_loop *loop,
 		return;
 	}
 
+	/* Connection is accepted...start setting it up */
 	setsockopt(afd, SOL_SOCKET, SO_REUSEADDR, (char *)&one, sizeof (int));
 	setsockopt(afd, SOL_SOCKET, SO_KEEPALIVE, (char *)&one, sizeof (int));
 	setsockopt(afd, IPPROTO_TCP, TCP_NODELAY, (char *)&one, sizeof (int));
 	set_close_on_exec (afd);
 
+	/* Make the client data structure */
 	client = (struct ev_tcp *) malloc (sizeof (struct ev_tcp));
 	if (client == NULL) {
         	audit_msg(LOG_CRIT, "Unable to allocate TCP client data");
@@ -816,21 +829,24 @@ static void auditd_tcp_listen_handler( struct ev_loop *loop,
 	fcntl(afd, F_SETFL, O_NONBLOCK | O_NDELAY);
 	ev_io_start (loop, &(client->io));
 
-	/* Keep a linked list of active clients.  */
+	/* Add the new connection to a linked list of active clients.  */
 	client->next = client_chain;
 	if (client->next)
 		client->next->prev = client;
 	client_chain = client;
+
+	/* And finally log that we accepted the connection */
 	snprintf(emsg, sizeof(emsg),
 		"addr=%s port=%d res=success", sockaddr_to_ip (&aaddr),
 		ntohs (aaddr.sin_port));
 	send_audit_event(AUDIT_DAEMON_ACCEPT, emsg);
 }
 
-void auditd_set_ports(int minp, int maxp)
+void auditd_set_ports(int minp, int maxp, int max_p_addr)
 {
 	min_port = minp;
 	max_port = maxp;
+	max_per_addr = max_p_addr;
 }
 
 int auditd_tcp_listen_init ( struct ev_loop *loop, struct daemon_conf *config )
@@ -880,10 +896,9 @@ int auditd_tcp_listen_init ( struct ev_loop *loop, struct daemon_conf *config )
 	ev_io_start (loop, &tcp_listen_watcher);
 
 	use_libwrap = config->use_libwrap;
-	min_port = config->tcp_client_min_port;
-	max_port = config->tcp_client_max_port;
 	auditd_set_ports(config->tcp_client_min_port,
-			config->tcp_client_max_port);
+			config->tcp_client_max_port,
+			config->tcp_max_per_addr);
 
 #ifdef USE_GSSAPI
 	if (config->enable_krb5) {

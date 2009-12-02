@@ -72,6 +72,7 @@ struct daemon_conf
 	const char *disk_error_exe;
 	unsigned long tcp_listen_port;
 	unsigned long tcp_listen_queue;
+	unsigned long tcp_max_per_addr;
 	int use_libwrap;
 	unsigned long tcp_client_min_port;
 	unsigned long tcp_client_max_port;

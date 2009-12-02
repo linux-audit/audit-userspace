@@ -1102,11 +1102,14 @@ static void reconfigure(struct auditd_consumer_data *data)
 
 	/* Look at network things that do not need restarting */
 	if (oconf->tcp_client_min_port != nconf->tcp_client_min_port ||
-		    oconf->tcp_client_max_port != nconf->tcp_client_max_port) {
+		    oconf->tcp_client_max_port != nconf->tcp_client_max_port ||
+		    oconf->tcp_max_per_addr != nconf->tcp_max_per_addr) {
 		oconf->tcp_client_min_port = nconf->tcp_client_min_port;
 		oconf->tcp_client_max_port = nconf->tcp_client_max_port;
+		oconf->tcp_max_per_addr = nconf->tcp_max_per_addr;
 		auditd_set_ports(oconf->tcp_client_min_port,
-				oconf->tcp_client_max_port);
+				oconf->tcp_client_max_port,
+				oconf->tcp_max_per_addr);
 	}
 	if (oconf->tcp_client_max_idle != nconf->tcp_client_max_idle) {
 		oconf->tcp_client_max_idle = nconf->tcp_client_max_idle;

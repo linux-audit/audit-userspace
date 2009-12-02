@@ -109,6 +109,8 @@ static int tcp_listen_port_parser(struct nv_pair *nv, int line,
 		struct daemon_conf *config);
 static int tcp_listen_queue_parser(struct nv_pair *nv, int line,
 		struct daemon_conf *config);
+static int tcp_max_per_addr_parser(struct nv_pair *nv, int line,
+		struct daemon_conf *config);
 static int use_libwrap_parser(struct nv_pair *nv, int line,
 		struct daemon_conf *config);
 static int tcp_client_ports_parser(struct nv_pair *nv, int line,
@@ -147,6 +149,7 @@ static const struct kw_pair keywords[] =
   {"priority_boost",           priority_boost_parser,		0 },
   {"tcp_listen_port",          tcp_listen_port_parser,          0 },
   {"tcp_listen_queue",         tcp_listen_queue_parser,         0 },
+  {"tcp_max_per_addr",         tcp_max_per_addr_parser,         0 },
   {"use_libwrap",              use_libwrap_parser,              0 },
   {"tcp_client_ports",         tcp_client_ports_parser,         0 },
   {"tcp_client_max_idle",      tcp_client_max_idle_parser,      0 },
@@ -262,6 +265,7 @@ static void clear_config(struct daemon_conf *config)
 	config->disk_error_exe = NULL;
 	config->tcp_listen_port = 0;
 	config->tcp_listen_queue = 5;
+	config->tcp_max_per_addr = 1;
 	config->use_libwrap = 1;
 	config->tcp_client_min_port = 0;
 	config->tcp_client_max_port = TCP_PORT_MAX;
@@ -1257,6 +1261,54 @@ static int tcp_listen_queue_parser(struct nv_pair *nv, int line,
 		return 1;
 	}
 	config->tcp_listen_queue = (unsigned int)i;
+	return 0;
+}
+
+
+static int tcp_max_per_addr_parser(struct nv_pair *nv, int line,
+	struct daemon_conf *config)
+{
+	const char *ptr = nv->value;
+	unsigned long i;
+
+	audit_msg(LOG_DEBUG, "tcp_max_per_addr_parser called with: %s",
+		  nv->value);
+
+	/* check that all chars are numbers */
+	for (i=0; ptr[i]; i++) {
+		if (!isdigit(ptr[i])) {
+			audit_msg(LOG_ERR, 
+				"Value %s should only be numbers - line %d",
+				nv->value, line);
+			return 1;
+		}
+	}
+
+	/* convert to unsigned int */
+	errno = 0;
+	i = strtoul(nv->value, NULL, 10);
+	if (errno) {
+		audit_msg(LOG_ERR, 
+			"Error converting string to a number (%s) - line %d",
+			strerror(errno), line);
+		return 1;
+	}
+	/* Check its range.  While this value is technically
+	   unlimited, it's limited by the kernel, and we limit it here
+	   for sanity. */
+	if (i > 16) {
+		audit_msg(LOG_ERR, 
+			"Error - converted number (%s) is too large - line %d",
+			nv->value, line);
+		return 1;
+	}
+	if (i < 1) {
+		audit_msg(LOG_ERR, 
+			"Error - converted number (%s) is too small - line %d",
+			nv->value, line);
+		return 1;
+	}
+	config->tcp_max_per_addr = (unsigned int)i;
 	return 0;
 }
 
