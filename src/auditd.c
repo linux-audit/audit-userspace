@@ -764,10 +764,16 @@ int main(int argc, char *argv[])
 				"auditd normal halt, sending auid=? "
 				"pid=? subj=? res=success");
 	free(rep);
-	shutdown_dispatcher();
 
 	// Tear down IO watchers Part 2
 	ev_io_stop (loop, &netlink_watcher);
+
+	// Give DAEMON_END event a little time to be sent in case
+	// of remote logging
+	usleep(10000); // 10 milliseconds
+	shutdown_dispatcher();
+
+	// Tear down IO watchers Part 3
 	ev_signal_stop (loop, &sigchld_watcher);
 
 	close_down();

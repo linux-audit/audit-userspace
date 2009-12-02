@@ -4,6 +4,7 @@
 - add a compatible regexp processing capability to auparse (Miloslav Trmač)
 - Fix regression in parsing user space originating records in aureport
 - Add tcp_max_per_addr option in auditd.conf to limit concurrent connections
+- Rearrange shutdown of auditd to allow DAEMON_END event more time
 
 2.0.3
 - In auditd, tell libev to stop processing a connection when idle timeout
