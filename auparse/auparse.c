@@ -782,6 +782,10 @@ static int retrieve_next_line(auparse_state_t *au)
 		case AUSOURCE_FILE_ARRAY:
 			// if the first time through, open file
 			if (au->list_idx == 0 && au->in == NULL) {
+				if (au->source_list[au->list_idx] == NULL) {
+					errno = 0;
+					return -2;
+				}
 				au->line_number = 0;
 				au->in = fopen(au->source_list[au->list_idx],
 									"r");
