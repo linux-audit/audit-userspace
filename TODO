@@ -4,30 +4,32 @@ Things that need to be done:
 * Get store and forward working for remote logging app
 * Fix auparse to handle out of order messages
 * Add definitions for kernel virt events
+
+2.0.6
 * Add rule verify to detect mismatch between in-kernel and on-disk rules
 * Fix SIGHUP for auditd network settings
 * If auparse input is a pipe timeout events by wall clock
 
 2.1
+* Performance improvements for auparse
 * Look at gssapi support being done via dlopen()
 * Look at pulling audispd into auditd
 * auditctl needs to be able to take file names with spaces in rule files
+* Add gzip format for logs
 * Consider adding node/machine name to records going to rt interface in daemon    as protocol version 2.
-* Add libaudit.m4 to make audit easier to include
 * Update prelude detections to send anomaly events
-* Look at adding the direction read/write to file report (threat modelling)
 * Add basic responses to prelude plugin
 * Should session number go into logins and AVCs for prelude?
+* Add libaudit.m4 to make audit easier to include
+* Look at adding the direction read/write to file report (threat modelling)
 * Changes in uid/gid, failed changes in credentials in aureport
 * aureport get specific reports working
 * auditctl should ignore invalid arches for rules
 * Remove evil getopt cruft in auditctl
-* Add gzip format for logs
 * Group message types in ausearch help.
 
 2.2
 * Fix retry logic in distribute event, buffer is freed by the logger thread
-* Interpret more syscall args: ioctl,[sg]etsockopt,ptrace,fcntl,chmod 
 * interpret contexts
 * Add keywords for time: month-ago
 * Allow -F path!=/var/my/app
