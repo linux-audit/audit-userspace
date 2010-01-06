@@ -86,8 +86,7 @@ AC_ARG_ENABLE(gssapi_krb5,
          yes) want_gssapi_krb5="yes" ;;
           no) want_gssapi_krb5="no" ;;
            *) AC_MSG_ERROR(bad value ${enableval} for --enable-gssapi-krb5) ;;
-         esac],
-	[want_gssapi_krb5=yes]
+         esac]
 )
 if test $want_gssapi_krb5 = yes; then
 	AC_CHECK_LIB(gssapi_krb5, gss_acquire_cred, [
