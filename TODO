@@ -4,6 +4,7 @@ Things that need to be done:
 * Get store and forward working for remote logging app
 * Fix auparse to handle out of order messages
 * Add definitions for kernel virt events
+* Review sshd login data being put into prelude events, add source addr/port
 
 2.0.6
 * Add rule verify to detect mismatch between in-kernel and on-disk rules

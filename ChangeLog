@@ -1,5 +1,6 @@
 2.0.5
 - Make auparse handle empty AUSOURCE_FILE_ARRAY correctly (Miloslav Trmač)
+- On i386, audit rules do not work on inode's with a large number (#554553)
 
 2.0.4
 - Make alpha processor support optional
