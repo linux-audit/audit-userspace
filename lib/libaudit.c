@@ -34,6 +34,7 @@
 #include <errno.h>
 #include <sys/poll.h>
 #include <sys/utsname.h>
+#include <sys/stat.h>
 #include <fcntl.h>	/* O_NOFOLLOW needs gnu defined */
 #include <limits.h>	/* for PATH_MAX */
 
