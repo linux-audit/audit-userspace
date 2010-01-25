@@ -1396,7 +1396,13 @@ static int audit_print_reply(struct audit_reply *rep)
 							strcat(perms, "a");
 						printf(" perm=%s", perms);
 						show_syscall = 0;
+					} else if (field == AUDIT_INODE) {
+						// Unsigned items
+						printf(" %s%s%u", name, 
+							audit_operator_to_symbol(op),
+							rep->ruledata->values[i]);
 					} else {
+						// Signed items
 						printf(" %s%s%d", name, 
 							audit_operator_to_symbol(op),
 							rep->ruledata->values[i]);
