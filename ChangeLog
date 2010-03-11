@@ -2,6 +2,7 @@
 - Make auparse handle empty AUSOURCE_FILE_ARRAY correctly (Miloslav Trmač)
 - On i386, audit rules do not work on inode's with a large number (#554553)
 - Fix displaying of inode values to be unsigned integers when listing rules
+- Correct Makefile install of audispd (Jason Tang)
 
 2.0.4
 - Make alpha processor support optional
