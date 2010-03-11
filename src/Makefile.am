@@ -34,7 +34,7 @@ auditd_SOURCES = auditd.c auditd-event.c auditd-config.c auditd-reconfig.c audit
 auditd_CFLAGS = -fPIE -DPIE -g -D_REENTRANT -D_GNU_SOURCE -fno-strict-aliasing 
 auditd_LDFLAGS = -pie -Wl,-z,relro
 auditd_DEPENDENCIES = mt/libauditmt.a libev/libev.a
-auditd_LDADD = @LIBWRAP_LIBS@ @libev_LIBS@ -Llibev -lev -lrt -lm $(gss_libs)
+auditd_LDADD = @LIBWRAP_LIBS@ @libev_LIBS@ -Llibev -lev -lrt -lpthread -lm $(gss_libs)
 
 auditctl_SOURCES = auditctl.c auditctl-llist.c delete_all.c
 auditctl_DEPENDENCIES = mt/libauditmt.a 
