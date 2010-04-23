@@ -1,5 +1,5 @@
 /* ia64_table.h --
- * Copyright 2005-09 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2005-10 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -312,4 +312,5 @@ _S(1318, "inotify_init1")
 _S(1319, "preadv")
 _S(1320, "pwritev")
 _S(1321, "rt_tgsigqueueinfo")
+_S(1322, "recvmmsg")
 
