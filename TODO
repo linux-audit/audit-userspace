@@ -1,6 +1,8 @@
 Things that need to be done:
 ===========================
 2.0.5
+* When searching, build log time list & only read the ones that are in range
+* Change ausearch-string to be AVL based
 * Get store and forward working for remote logging app
 * Fix auparse to handle out of order messages
 * Add definitions for kernel virt events

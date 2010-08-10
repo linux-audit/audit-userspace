@@ -1,5 +1,5 @@
 /* libaudit.h -- 
- * Copyright 2004-2009 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2004-2010 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -88,6 +88,8 @@ extern "C" {
 #define AUDIT_SYSTEM_BOOT	1127	/* System boot */
 #define AUDIT_SYSTEM_SHUTDOWN	1128	/* System shutdown */
 #define AUDIT_SYSTEM_RUNLEVEL	1129	/* System runlevel change */
+#define AUDIT_SERVICE_START	1130	/* Service (daemon) start */
+#define AUDIT_SERVICE_STOP	1131	/* Service (daemon) stop */
 
 #define AUDIT_FIRST_DAEMON	1200
 #define AUDIT_LAST_DAEMON	1299

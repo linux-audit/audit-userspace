@@ -4,6 +4,7 @@
 - Fix displaying of inode values to be unsigned integers when listing rules
 - Correct Makefile install of audispd (Jason Tang)
 - Syscall table updates for 2.6.34 kernel
+- Add definitions for service start and stop
 
 2.0.4
 - Make alpha processor support optional

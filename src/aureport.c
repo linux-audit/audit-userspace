@@ -159,6 +159,7 @@ static int process_logs(struct daemon_conf *config)
 	do {
 		if (access(filename, R_OK) != 0)
 			break;
+// FIXME: do a time check and put them on linked list for later
 		num++;
 		snprintf(filename, len, "%s.%d", config->log_file, num);
 	} while (1);
