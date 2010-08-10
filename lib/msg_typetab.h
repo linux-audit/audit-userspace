@@ -1,5 +1,5 @@
 /* msg_typetab.h --
- * Copyright 2005-07,2009 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2005-07,2009-10 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -71,6 +71,8 @@ _S(AUDIT_GRP_AUTH,                   "GRP_AUTH"                      )
 _S(AUDIT_SYSTEM_BOOT,                "SYSTEM_BOOT"                   )
 _S(AUDIT_SYSTEM_SHUTDOWN,            "SYSTEM_SHUTDOWN"               )
 _S(AUDIT_SYSTEM_RUNLEVEL,            "SYSTEM_RUNLEVEL"               )
+_S(AUDIT_SERVICE_START,              "SERVICE_START"                 )
+_S(AUDIT_SERVICE_STOP,               "SERVICE_STOP"                  )
 _S(AUDIT_DAEMON_START,               "DAEMON_START"                  )
 _S(AUDIT_DAEMON_END,                 "DAEMON_END"                    )
 _S(AUDIT_DAEMON_ABORT,               "DAEMON_ABORT"                  )
