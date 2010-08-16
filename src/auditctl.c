@@ -489,6 +489,7 @@ static int setopt(int count, int lineno, char *vars[])
 		break;
 	case 'i':
 		ignore = 1;
+		retval = -2;
 		break;
         case 's':
 		retval = audit_request_status(fd);
@@ -1040,7 +1041,7 @@ static int fileopt(const char *file)
 					fclose(f);
 					return 0;
 				}
-				if (!ignore) {
+				if (ignore == 0) {
 					fclose(f);
 					return -1;
 				}
