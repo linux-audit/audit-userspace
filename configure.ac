@@ -94,7 +94,7 @@ if test $want_gssapi_krb5 = yes; then
 		AC_CHECK_HEADER(gssapi/gssapi.h, [
 			AC_DEFINE(USE_GSSAPI,,
 				  Define if you want to use GSSAPI)
-			gss_libs="-lgssapi_krb5"
+			gss_libs="-lgssapi_krb5 -lkrb5"
 			AC_SUBST(gss_libs)
 		])
 	])

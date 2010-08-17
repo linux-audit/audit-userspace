@@ -286,7 +286,9 @@ static void gss_failure (const char *msg, int major_status, int minor_status)
 }
 
 #define KCHECK(x,f) if (x) { \
-		audit_msg (LOG_ERR, "krb5 error: %s in %s\n", krb5_get_error_message (kcontext, x), f); \
+		const char *kstr = krb5_get_error_message(kcontext, x); \
+		audit_msg(LOG_ERR, "krb5 error: %s in %s\n", kstr, f); \
+		krb5_free_error_message(kcontext, kstr); \
 		return -1; }
 
 /* These are our private credentials, which come from a key file on

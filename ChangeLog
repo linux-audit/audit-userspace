@@ -6,6 +6,7 @@
 - Syscall table updates for 2.6.34 kernel
 - Add definitions for service start and stop
 - Fix handling of ignore errors in auditctl
+- Fix gssapi support to build with new linker options
 
 2.0.4
 - Make alpha processor support optional
