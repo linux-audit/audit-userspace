@@ -190,4 +190,8 @@ _S(AUDIT_CRYPTO_LOGOUT,              "CRYPTO_LOGOUT"                 )
 _S(AUDIT_CRYPTO_KEY_USER,            "CRYPTO_KEY_USER"               )
 _S(AUDIT_CRYPTO_FAILURE_USER,        "CRYPTO_FAILURE_USER"           )
 _S(AUDIT_CRYPTO_REPLAY_USER,         "CRYPTO_REPLAY_USER"            )
+_S(AUDIT_CRYPTO_SESSION,             "CRYPTO_SESSION"                )
+_S(AUDIT_VIRT_CONTROL,               "VIRT_CONTROL"                  )
+_S(AUDIT_VIRT_RESOURCE,              "VIRT_RESOURCE"                 )
+_S(AUDIT_VIRT_MACHINE_ID,            "VIRT_MACHINE_ID"               )
 
