@@ -33,6 +33,9 @@ Only select failed events for processing in the reports. The default is both suc
 .BR \-h ,\  \-\-host
 Report about hosts
 .TP
+.BR \-\-help
+Print brief command summary
+.TP
 .BR \-i ,\  \-\-interpret
 Interpret  numeric  entities into text. For example, uid is converted to account name. The conversion is done using the current resources  of  the machine where the search is being run. If you have renamed the accounts, or don't have the  same  accounts  on your machine, you could get misleading results.
 .TP
@@ -53,6 +56,9 @@ Report about account modifications
 .TP
 .BR \-ma ,\  \-\-mac
 Report about Mandatory Access Control (MAC) events
+.TP
+.BR \-n ,\  \-\-anomaly
+Report about anomaly events. These events include NIC going into promiscuous mode and programs segfaulting.
 .TP
 .BR \-\-node \ \fInode-name\fP
 Only select events originating from \fInode name\fP string for processing in the reports. The default is to include all nodes. Multiple nodes are allowed.

@@ -150,7 +150,7 @@ static void usage(void)
 {
 	printf("usage: aureport [options]\n"
 	"\t-a,--avc\t\t\tAvc report\n"
-	"\t--auth\t\t\t\tAuthentication report\n"
+	"\t-au,--auth\t\t\tAuthentication report\n"
 	"\t-c,--config\t\t\tConfig change report\n"
 	"\t-cr,--crypto\t\t\tCrypto report\n"
 	"\t-e,--event\t\t\tEvent report\n"
@@ -176,6 +176,7 @@ static void usage(void)
 	"\t-te,--end [end date] [end time]\tending date & time for reports\n"
 	"\t-tm,--terminal\t\t\tTerMinal name report\n"
 	"\t-ts,--start [start date] [start time]\tstarting data & time for reports\n"
+	"\t--tty\t\t\t\tReport about tty keystrokes\n"
 	"\t-u,--user\t\t\tUser name report\n"
 	"\t-v,--version\t\t\tVersion\n"
 	"\t-x,--executable\t\t\teXecutable name report\n"
