@@ -218,6 +218,6 @@ fi
 
 
 %changelog
-* Tue Dec 08 2009 Steve Grubb <sgrubb@redhat.com> 2.0.5-1
+* Wed Sep 22 2010 Steve Grubb <sgrubb@redhat.com> 2.0.5-1
 - New upstream release
 
