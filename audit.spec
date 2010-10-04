@@ -2,7 +2,7 @@
 
 Summary: User space tools for 2.6 kernel auditing
 Name: audit
-Version: 2.0.5
+Version: 2.0.6
 Release: 1
 License: GPLv2+
 Group: System Environment/Daemons
