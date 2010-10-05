@@ -256,7 +256,7 @@ int load_config(remote_conf_t *config, const char *file)
 	}
 
 	/* it's ok, read line by line */
-	f = fdopen(fd, "r");
+	f = fdopen(fd, "rm");
 	if (f == NULL) {
 		syslog(LOG_ERR, "Error - fdopen failed (%s)", 
 			strerror(errno));

@@ -1,5 +1,5 @@
 /* auditd-config.c -- 
- * Copyright 2004-2009 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2004-2010 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -334,7 +334,7 @@ int load_config(struct daemon_conf *config, log_test_t lt)
 	}
 
 	/* it's ok, read line by line */
-	f = fdopen(fd, "r");
+	f = fdopen(fd, "rm");
 	if (f == NULL) {
 		audit_msg(LOG_ERR, "Error - fdopen failed (%s)", 
 			strerror(errno));

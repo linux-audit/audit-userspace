@@ -170,10 +170,7 @@ static int extract_timestamp(const char *b, event *e)
 				else {
 					if (tnode)
 						e->node = strdup(tnode);
-					if (event_type) {
-						e->type =
-						  audit_name_to_msg_type(ttype);
-					}
+					e->type = audit_name_to_msg_type(ttype);
 				}
 				return 1;
 			}

@@ -25,7 +25,6 @@
 #define AUREPORT_COMMON_H
 
 #include "ausearch-string.h"
-#include "ausearch-int.h"
 
 /* Global variables that describe what search is to be performed */
 extern time_t start_time, end_time;
@@ -43,7 +42,6 @@ extern int event_syscall;
 extern const char *event_exe;
 extern int event_ua, event_ga;
 extern int event_exit, event_exit_is_set;
-extern ilist *event_type;
 
 typedef enum { F_BOTH, F_FAILED, F_SUCCESS } failed_t;
 typedef enum { C_NEITHER, C_ADD, C_DEL } conf_act_t;

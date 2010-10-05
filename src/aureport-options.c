@@ -31,7 +31,6 @@
 #include <time.h>
 #include "aureport-options.h"
 #include "ausearch-time.h"
-#include "ausearch-int.h"
 #include "libaudit.h"
 
 
@@ -52,7 +51,6 @@ const char *event_subject = NULL;
 const char *event_object = NULL;
 int event_exit = 0, event_exit_is_set = 0;
 int event_ppid = -1, event_session_id = -1;
-ilist *event_type = -1;
 
 /* These are used by aureport */
 const char *dummy = "dummy";

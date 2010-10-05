@@ -1,5 +1,5 @@
 /* auditctl.c -- 
- * Copyright 2004-2009 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2004-2010 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -984,7 +984,7 @@ static int fileopt(const char *file)
 		return 1;
 	}
 
-        f = fdopen(tfd, "r");
+        f = fdopen(tfd, "rm");
         if (f == NULL) {
                 fprintf(stderr, "Error - fdopen failed (%s)\n",
                         strerror(errno));

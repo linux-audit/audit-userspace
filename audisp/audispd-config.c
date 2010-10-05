@@ -1,5 +1,5 @@
 /* audispd-config.c -- 
- * Copyright 2007-08 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2007-08,2010 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -170,7 +170,7 @@ int load_config(daemon_conf_t *config, const char *file)
 	}
 
 	/* it's ok, read line by line */
-	f = fdopen(fd, "r");
+	f = fdopen(fd, "rm");
 	if (f == NULL) {
 		audit_msg(LOG_ERR, "Error - fdopen failed (%s)", 
 			strerror(errno));

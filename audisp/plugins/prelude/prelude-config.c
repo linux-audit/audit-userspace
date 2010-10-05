@@ -1,5 +1,5 @@
 /* prelude-config.c -- 
- * Copyright 2008 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2008,2010 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -271,7 +271,7 @@ int load_config(prelude_conf_t *config, const char *file)
 	}
 
 	/* it's ok, read line by line */
-	f = fdopen(fd, "r");
+	f = fdopen(fd, "rm");
 	if (f == NULL) {
 		syslog(LOG_ERR, "Error - fdopen failed (%s)", 
 			strerror(errno));
