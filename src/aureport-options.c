@@ -1,5 +1,5 @@
 /* aureport-options.c - parse commandline options and configure aureport
- * Copyright 2005-08 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2005-08,2010 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -31,6 +31,7 @@
 #include <time.h>
 #include "aureport-options.h"
 #include "ausearch-time.h"
+#include "ausearch-int.h"
 #include "libaudit.h"
 
 
@@ -51,6 +52,7 @@ const char *event_subject = NULL;
 const char *event_object = NULL;
 int event_exit = 0, event_exit_is_set = 0;
 int event_ppid = -1, event_session_id = -1;
+ilist *event_type = -1;
 
 /* These are used by aureport */
 const char *dummy = "dummy";

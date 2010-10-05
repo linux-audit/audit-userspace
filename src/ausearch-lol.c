@@ -1,6 +1,6 @@
 /*
 * ausearch-lol.c - linked list of linked lists library
-* Copyright (c) 2008 Red Hat Inc., Durham, North Carolina.
+* Copyright (c) 2008,2010 Red Hat Inc., Durham, North Carolina.
 * All Rights Reserved. 
 *
 * This software may be freely redistributed and/or modified under the
@@ -127,9 +127,9 @@ static int inline events_are_equal(event *e1, event *e2)
 /*
  * This function will look at the line and pick out pieces of it.
  */
-static void extract_timestamp(const char *b, event *e)
+static int extract_timestamp(const char *b, event *e)
 {
-	char *ptr, *tmp;
+	char *ptr, *tmp, *tnode, *ttype;
 
 	e->node = NULL;
 	tmp = strndupa(b, 120);
@@ -137,12 +137,13 @@ static void extract_timestamp(const char *b, event *e)
 	if (ptr) {
 		// Check to see if this is the node info
 		if (*ptr == 'n') {
-			e->node = strdup(ptr+5);
+			tnode = ptr+5;
 			ptr = strtok(NULL, " ");
-		}
+		} else
+			tnode = NULL;
 
 		// at this point we have type=
-		e->type = audit_name_to_msg_type(ptr+5);
+		ttype = ptr+5;
 
 		// Now should be pointing to msg=
 		ptr = strtok(NULL, " ");
@@ -162,13 +163,26 @@ static void extract_timestamp(const char *b, event *e)
 					fprintf(stderr,
 					  "Error extracting time stamp (%s)\n",
 						ptr);
+					return 0;
+				} else if ((start_time && e->sec < start_time)
+					|| (end_time && e->sec > end_time))
+					return 0;
+				else {
+					if (tnode)
+						e->node = strdup(tnode);
+					if (event_type) {
+						e->type =
+						  audit_name_to_msg_type(ttype);
+					}
 				}
+				return 1;
 			}
 			// else we have a bad line
 		}
 		// else we have a bad line
 	}
 	// else we have a bad line
+	return 0;
 }
 
 // This function will check events to see if they are complete 
@@ -206,17 +220,13 @@ int lol_add_record(lol *lo, char *buff)
 	ptr = strrchr(buff, 0x0a);
 	if (ptr)
 		*ptr = 0;
-	extract_timestamp(buff, &e);
 
 	// Short circuit if event is not of interest
-        if ((start_time && e.sec < start_time) ||
-			(end_time && e.sec > end_time)) {
-		free((char *)e.node);
+	if (extract_timestamp(buff, &e) == 0)
 		return 0;
-	} else {
-		n.message=strdup(buff);
-		n.type = e.type;
-	}
+
+	n.message=strdup(buff);
+	n.type = e.type;
 
 	// Now see where this belongs
 	for (i=0; i<=lo->maxi; i++) {

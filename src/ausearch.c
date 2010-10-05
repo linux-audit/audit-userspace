@@ -225,7 +225,7 @@ static int process_stdin(void)
 
 static int process_file(char *filename)
 {
-	log_fd = fopen(filename, "r");
+	log_fd = fopen(filename, "rm");
 	if (log_fd == NULL) {
 		fprintf(stderr, "Error opening %s (%s)\n", filename, 
 			strerror(errno));
@@ -281,7 +281,8 @@ static int get_record(llist **l)
 			}
 		} else {
 			free(buff);
-			if ((ferror(log_fd) && errno == EINTR)||feof(log_fd)) {
+			if ((ferror_unlocked(log_fd) &&
+			     errno == EINTR) || feof_unlocked(log_fd)) {
 				terminate_all_events(&lo);
 				*l = get_ready_event(&lo);
 				if (*l)

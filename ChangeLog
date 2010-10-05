@@ -1,4 +1,5 @@
 2.0.6
+- ausearch/report performance improvement
 
 2.0.5
 - Make auparse handle empty AUSOURCE_FILE_ARRAY correctly (Miloslav Trmač)
