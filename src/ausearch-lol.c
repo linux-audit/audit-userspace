@@ -214,14 +214,13 @@ int lol_add_record(lol *lo, char *buff)
 	char *ptr;
 	llist *l;
 
-	ptr = strrchr(buff, 0x0a);
-	if (ptr)
-		*ptr = 0;
-
 	// Short circuit if event is not of interest
 	if (extract_timestamp(buff, &e) == 0)
 		return 0;
 
+	ptr = strrchr(buff, 0x0a);
+	if (ptr)
+		*ptr = 0;
 	n.message=strdup(buff);
 	n.type = e.type;
 
