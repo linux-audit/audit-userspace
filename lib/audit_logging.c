@@ -1,5 +1,5 @@
 /* audit_logging.c -- 
- * Copyright 2005-2008 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2005-2008,2010 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -393,10 +393,13 @@ int audit_log_acct_message(int audit_fd, int type, const char *pgname,
 	else
 		strncat(addrbuf, addr, sizeof(addrbuf)-1);
 
-	if (pgname == NULL) {
-		_get_exename(exename, sizeof(exename));
-		pgname = exename;
-	}
+        if (pgname == NULL)
+                _get_exename(exename, sizeof(exename));
+        else if (pgname[0] != '"')
+                snprintf(exename, sizeof(exename), "\"%s\"", pgname);
+        else
+                snprintf(exename, sizeof(exename), "%s", pgname);
+
 	if (tty == NULL) 
 		tty = _get_tty(ttyname, TTY_PATH);
 	else if (*tty == 0)
@@ -420,7 +423,7 @@ int audit_log_acct_message(int audit_fd, int type, const char *pgname,
 	 "op=%s acct=\"%s\" exe=%s hostname=%s addr=%s terminal=%s res=%s";
 
 		snprintf(buf, sizeof(buf), format,
-			op, user, pgname,
+			op, user, exename,
 			host ? host : "?",
 			addrbuf,
 			tty ? tty : "?",
@@ -429,7 +432,7 @@ int audit_log_acct_message(int audit_fd, int type, const char *pgname,
 	} else
 		snprintf(buf, sizeof(buf),
 		"op=%s id=%u exe=%s hostname=%s addr=%s terminal=%s res=%s",
-			op, id, pgname,
+			op, id, exename,
 			host ? host : "?",
 			addrbuf,
 			tty ? tty : "?",

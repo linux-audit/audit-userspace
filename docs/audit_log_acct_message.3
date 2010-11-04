@@ -1,4 +1,4 @@
-.TH "AUDIT_LOG_ACCT_MESSAGE" "3" "Oct 2006" "Red Hat" "Linux Audit API"
+.TH "AUDIT_LOG_ACCT_MESSAGE" "3" "Oct 2010" "Red Hat" "Linux Audit API"
 .SH NAME
 audit_log_acct_message \- log a user account message
 .SH SYNOPSIS
@@ -18,9 +18,9 @@ type - type of message: AUDIT_USER_CHAUTHTOK for changing any account attributes
 pgname - program's name, if NULL will attempt to figure out
 op  -  operation. Ex: "adding user", "changing finger info", "deleting group"
 name - user's account or group name. If not available use NULL.
-id  -  uid or gid that the operation is being performed on. This is used only when user is NULL.
-host - The hostname if known
-addr - The network address of the user
+id  -  uid or gid that the operation is being performed on. If the user is unknown, pass a -1 and fill in the name parameter. This is used only when user is NULL.
+host - The hostname if known. If not available pass a NULL.
+addr - The network address of the user. If not available pass a NULL.
 tty  - The tty of the user, if NULL will attempt to figure out
 result - 1 is "success" and 0 is "failed"
 .if

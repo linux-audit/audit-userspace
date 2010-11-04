@@ -1,6 +1,7 @@
 2.0.6
 - ausearch/report performance improvements
 - Synchronize all sample syscall rules to use action,list
+- If program name provided to audit_log_acct_message, escape it
 
 2.0.5
 - Make auparse handle empty AUSOURCE_FILE_ARRAY correctly (Miloslav Trmač)
