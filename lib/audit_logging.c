@@ -118,13 +118,13 @@ char *audit_encode_nv_string(const char *name, const char *value,
 	if (vlen == 0)
 		vlen = strlen(value);
 
-	if (audit_value_needs_encoding(value, vlen)) {
+	if (value && audit_value_needs_encoding(value, vlen)) {
 		char *tmp = malloc(2*vlen + 1);
 		audit_encode_value(tmp, value, vlen);
 		asprintf(&str, "%s=%s", name, tmp);
 		free(tmp);
 	} else
-		asprintf(&str, "%s=\"%s\"", name, value);
+		asprintf(&str, "%s=\"%s\"", name, value ? value : "?");
 	return str;
 }
 

@@ -2,6 +2,8 @@
 - ausearch/report performance improvements
 - Synchronize all sample syscall rules to use action,list
 - If program name provided to audit_log_acct_message, escape it
+- Fix man page for the audit_encode_nv_string function (#647131)
+- If value is NULL, don't segfault (#647128)
 
 2.0.5
 - Make auparse handle empty AUSOURCE_FILE_ARRAY correctly (Miloslav Trmač)

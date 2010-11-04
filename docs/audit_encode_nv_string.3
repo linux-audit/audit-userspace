@@ -1,10 +1,10 @@
-.TH "AUDIT_ENCODE_NV_STRING" "3" "Sept 2008" "Red Hat" "Linux Audit API"
+.TH "AUDIT_ENCODE_NV_STRING" "3" "Oct 2010" "Red Hat" "Linux Audit API"
 .SH NAME
 audit_encode_nv_string \- encode a name/value pair in a string
 .SH SYNOPSIS
 .B #include <libaudit.h>
 .sp
-.B int audit_encode_nv_string(const char *name, const char *value, unsigned int vlen)
+.B char *audit_encode_nv_string(const char *name, const char *value, unsigned int vlen)
 
 .SH DESCRIPTION
 This function is used to encode a name/value pair. This should be used on any field being logged that potentially contains a space, a double-quote, or a control character. Any value containing those have to be specially encoded for the auparse library to correctly handle the value. The encoding method is designed to prevent log injection attacks where malicious values could cause parsing errors.
