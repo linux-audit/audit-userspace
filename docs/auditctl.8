@@ -50,8 +50,8 @@ Report status. Note that a pid of 0 indicates that the audit daemon is not runni
 .BI \-t
 Trim the subtrees after a mount command.
 .TP
-.BI \-a\  list,action
-Append rule to the end of \fIlist\fP with \fIaction\fP. Please note the comma separating the two values. Omitting it will cause errors. The following describes the valid \fIlist\fP names:
+.BI \-a\  [ list,action | action,list ]
+Append rule to the end of \fIlist\fP with \fIaction\fP. Please note the comma separating the two values. Omitting it will cause errors. The fields may be in either order. It could be list,action or action,list. The following describes the valid \fIlist\fP names:
 .RS
 .TP 12
 .B task

@@ -23,13 +23,13 @@
 ## involved, and the action involved.
 
 ## Things that could affect time
--a exit,always -F arch=b32 -S adjtimex -S clock_settime -S settimeofday -k time-change
--a exit,always -F arch=b64 -S adjtimex -S clock_settime -S settimeofday -k time-change
+-a always,exit -F arch=b32 -S adjtimex -S clock_settime -S settimeofday -k time-change
+-a always,exit -F arch=b64 -S adjtimex -S clock_settime -S settimeofday -k time-change
 -w /etc/localtime -p wa -k time-change
 
 ## Things that could affect system locale
--a exit,always -F arch=b32 -S sethostname -k system-locale
--a exit,always -F arch=b64 -S sethostname -k system-locale
+-a always,exit -F arch=b32 -S sethostname -k system-locale
+-a always,exit -F arch=b64 -S sethostname -k system-locale
 -w /etc/issue -p wa -k system-locale
 -w /etc/issue.net -p wa -k system-locale
 -w /etc/hosts -p wa -k system-locale
@@ -48,38 +48,38 @@
 ## creation, open, close, modification, and deletion.
 
 ## unsuccessful creation
--a exit,always -F arch=b32 -S creat -S mkdir -S mknod -S link -S symlink -F exit=-EACCES -k creation
--a exit,always -F arch=b64 -S creat -S mkdir -S mknod -S link -S symlink -F exit=-EACCES -k creation
--a exit,always -F arch=b32 -S mkdirat -S mknodat -S linkat -S symlinkat -F exit=-EACCES -k creation
--a exit,always -F arch=b64 -S mkdirat -S mknodat -S linkat -S symlinkat -F exit=-EACCES -k creation
+-a always,exit -F arch=b32 -S creat -S mkdir -S mknod -S link -S symlink -F exit=-EACCES -k creation
+-a always,exit -F arch=b64 -S creat -S mkdir -S mknod -S link -S symlink -F exit=-EACCES -k creation
+-a always,exit -F arch=b32 -S mkdirat -S mknodat -S linkat -S symlinkat -F exit=-EACCES -k creation
+-a always,exit -F arch=b64 -S mkdirat -S mknodat -S linkat -S symlinkat -F exit=-EACCES -k creation
 
 ## unsuccessful open - open and openat may be combined on support arches
--a exit,always -F arch=b32 -S open -F exit=-EACCES -k open
--a exit,always -F arch=b64 -S open -F exit=-EACCES -k open
--a exit,always -F arch=b32 -S open -F exit=-EPERM -k open
--a exit,always -F arch=b64 -S open -F exit=-EPERM -k open
--a exit,always -F arch=b32 -S openat -F exit=-EACCES -k open
--a exit,always -F arch=b64 -S openat -F exit=-EACCES -k open
--a exit,always -F arch=b32 -S openat -F exit=-EPERM -k open
--a exit,always -F arch=b64 -S openat -F exit=-EPERM -k open
+-a always,exit -F arch=b32 -S open -F exit=-EACCES -k open
+-a always,exit -F arch=b64 -S open -F exit=-EACCES -k open
+-a always,exit -F arch=b32 -S open -F exit=-EPERM -k open
+-a always,exit -F arch=b64 -S open -F exit=-EPERM -k open
+-a always,exit -F arch=b32 -S openat -F exit=-EACCES -k open
+-a always,exit -F arch=b64 -S openat -F exit=-EACCES -k open
+-a always,exit -F arch=b32 -S openat -F exit=-EPERM -k open
+-a always,exit -F arch=b64 -S openat -F exit=-EPERM -k open
 
 ## unsuccessful close
--a exit,always -F arch=b32 -S close -F exit=-EACCES -k close
--a exit,always -F arch=b64 -S close -F exit=-EACCES -k close
+-a always,exit -F arch=b32 -S close -F exit=-EACCES -k close
+-a always,exit -F arch=b64 -S close -F exit=-EACCES -k close
 
 ## unsuccessful modifications - renameat may be combined on supported arches
--a exit,always -F arch=b32 -S rename -S truncate -S ftruncate -F exit=-EACCES -k mods
--a exit,always -F arch=b64 -S rename -S truncate -S ftruncate -F exit=-EACCES -k mods
--a exit,always -F arch=b32 -S renameat -F exit=-EACCES -k mods
--a exit,always -F arch=b64 -S renameat -F exit=-EACCES -k mods
--a exit,always -F perm=a -F exit=-EACCES -k mods
--a exit,always -F perm=a -F exit=-EPERM -k mods
+-a always,exit -F arch=b32 -S rename -S truncate -S ftruncate -F exit=-EACCES -k mods
+-a always,exit -F arch=b64 -S rename -S truncate -S ftruncate -F exit=-EACCES -k mods
+-a always,exit -F arch=b32 -S renameat -F exit=-EACCES -k mods
+-a always,exit -F arch=b64 -S renameat -F exit=-EACCES -k mods
+-a always,exit -F perm=a -F exit=-EACCES -k mods
+-a always,exit -F perm=a -F exit=-EPERM -k mods
 
 ## unsuccessful deletion - unlinkat may be combined on supported arches
--a exit,always -F arch=b32 -S rmdir -S unlink -F exit=-EACCES -k delete 
--a exit,always -F arch=b64 -S rmdir -S unlink -F exit=-EACCES -k delete 
--a exit,always -F arch=b32 -S unlinkat -F exit=-EACCES -k delete
--a exit,always -F arch=b64 -S unlinkat -F exit=-EACCES -k delete
+-a always,exit -F arch=b32 -S rmdir -S unlink -F exit=-EACCES -k delete 
+-a always,exit -F arch=b64 -S rmdir -S unlink -F exit=-EACCES -k delete 
+-a always,exit -F arch=b32 -S unlinkat -F exit=-EACCES -k delete
+-a always,exit -F arch=b64 -S unlinkat -F exit=-EACCES -k delete
 
 ## Audit 1, 1(d) Changes in user authenticators.
 ## Covered by patches to libpam, passwd, and shadow-utils
@@ -108,12 +108,12 @@
 ## Not specifically required by NISPOM; but common sense items
 ## Optional - could indicate someone trying to do something bad or
 ## just debugging
-#-a exit,always -F arch=b32 -S ptrace -k paranoid
-#-a exit,always -F arch=b64 -S ptrace -k paranoid
+#-a always,exit -F arch=b32 -S ptrace -k paranoid
+#-a always,exit -F arch=b64 -S ptrace -k paranoid
 
 ## Optional - could be an attempt to bypass audit or simply legacy program
-#-a exit,always -F arch=b32 -S personality -k paranoid
-#-a exit,always -F arch=b64 -S personality -k paranoid
+#-a always,exit -F arch=b32 -S personality -k paranoid
+#-a always,exit -F arch=b64 -S personality -k paranoid
 
 ## Put your own watches after this point
 # -w /your-file -p rwxa -k mykey

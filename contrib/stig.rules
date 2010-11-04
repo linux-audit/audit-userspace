@@ -48,8 +48,8 @@
 -w /etc/security/opasswd -p wa -k identity
 
 ## Things that could affect system locale
--a exit,always -F arch=b32 -S sethostname -S setdomainname -k system-locale
--a exit,always -F arch=b64 -S sethostname -S setdomainname -k system-locale
+-a always,exit -F arch=b32 -S sethostname -S setdomainname -k system-locale
+-a always,exit -F arch=b64 -S sethostname -S setdomainname -k system-locale
 -w /etc/issue -p wa -k system-locale
 -w /etc/issue.net -p wa -k system-locale
 -w /etc/hosts -p wa -k system-locale
@@ -146,8 +146,8 @@
 ## Not specifically required by the STIG; but common sense items
 ## Optional - could indicate someone trying to do something bad or
 ## just debugging
-#-a exit,always -F arch=b32 -S ptrace -k tracing
-#-a exit,always -F arch=b64 -S ptrace -k tracing
+#-a always,exit -F arch=b32 -S ptrace -k tracing
+#-a always,exit -F arch=b64 -S ptrace -k tracing
 
 ## Optional - could be an attempt to bypass audit or simply legacy program
 #-a always,exit -F arch=b32 -S personality -k bypass
