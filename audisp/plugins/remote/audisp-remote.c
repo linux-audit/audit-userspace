@@ -587,6 +587,7 @@ static int negotiate_credentials (void)
 
 	token_ptr = GSS_C_NO_BUFFER;
 	*gss_context = GSS_C_NO_CONTEXT;
+	recv_tok.value = NULL;
 
 	krberr = krb5_init_context (&kcontext);
 	KCHECK (krberr, "krb5_init_context");

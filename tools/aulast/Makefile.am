@@ -1,5 +1,5 @@
 # Makefile.am --
-# Copyright 2008 Red Hat Inc., Durham, North Carolina.
+# Copyright 2008,2010 Red Hat Inc., Durham, North Carolina.
 # All Rights Reserved.
 #
 # This library is free software; you can redistribute it and/or
@@ -25,6 +25,7 @@ AUTOMAKE_OPTIONS = no-dependencies
 EXTRA_DIST = $(man_MANS)
 INCLUDES = -I${top_srcdir} -I${top_srcdir}/lib -I${top_srcdir}/auparse
 LIBS = -L${top_builddir}/auparse -lauparse
+AM_CFLAGS = -D_GNU_SOURCE
 bin_PROGRAMS = aulast
 noinst_HEADERS = aulast-llist.h
 man_MANS = aulast.8

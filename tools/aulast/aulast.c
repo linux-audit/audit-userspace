@@ -203,7 +203,7 @@ static void create_new_session(auparse_state_t *au)
 
 static void update_session_login(auparse_state_t *au)
 {
-	const char *tpid, *tses, *tuid, *tacct, *host, *term, *tres;
+	const char *tpid, *tses, *tuid, *tacct=NULL, *host, *term, *tres;
 	int pid = -1, uid = -1, ses = -1, result = -1;
 	time_t start;
 	lnode *cur;
