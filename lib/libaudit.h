@@ -211,6 +211,11 @@ extern "C" {
 #define AUDIT_LAST_USER_MSG2   2999
 #endif
 
+/* New kernel event definitions since 2.6.30 */
+#ifndef AUDIT_MMAP
+#define AUDIT_MMAP			1323 /* Record showing descriptor and flags in mmap */
+#endif
+
 
 /* This is related to the filterkey patch */
 #define AUDIT_KEY_SEPARATOR 0x01

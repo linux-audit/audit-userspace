@@ -5,6 +5,7 @@
 - Fix man page for the audit_encode_nv_string function (#647131)
 - If value is NULL, don't segfault (#647128)
 - Fix simple event parsing to not assume session id can't be last (Peng Haitao)
+- Add support for new mmap audit event type
 
 2.0.5
 - Make auparse handle empty AUSOURCE_FILE_ARRAY correctly (Miloslav Trmač)
