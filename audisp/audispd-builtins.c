@@ -1,6 +1,6 @@
 /*
 * audispd-builtins.c - some common builtin plugins
-* Copyright (c) 2007 Red Hat Inc., Durham, North Carolina.
+* Copyright (c) 2007,2010 Red Hat Inc., Durham, North Carolina.
 * All Rights Reserved. 
 *
 * This software may be freely redistributed and/or modified under the
@@ -255,33 +255,56 @@ void destroy_af_unix(void)
 
 static void init_syslog(const plugin_conf_t *conf)
 {
-	if (conf->args[1]) {
-		if (strcasecmp(conf->args[1], "LOG_DEBUG") == 0)
-			priority = LOG_DEBUG;
-		else if (strcasecmp(conf->args[1], "LOG_INFO") == 0)
-			priority = LOG_INFO;
-		else if (strcasecmp(conf->args[1], "LOG_NOTICE") == 0)
-			priority = LOG_NOTICE;
-		else if (strcasecmp(conf->args[1], "LOG_WARNING") == 0)
-			priority = LOG_WARNING;
-		else if (strcasecmp(conf->args[1], "LOG_ERR") == 0)
-			priority = LOG_ERR;
-		else if (strcasecmp(conf->args[1], "LOG_CRIT") == 0)
-			priority = LOG_CRIT;
-		else if (strcasecmp(conf->args[1], "LOG_ALERT") == 0)
-			priority = LOG_ALERT;
-		else if (strcasecmp(conf->args[1], "LOG_EMERG") == 0)
-			priority = LOG_EMERG;
-		else {
-			syslog(LOG_ERR, "Unknown log priority %s",
-				conf->args[1]);
-			syslog_started = 0;
-			return;
+	int i, facility = LOG_USER;
+	priority = LOG_INFO;
+
+	for (i = 1; i<3; i++) {
+		if (conf->args[i]) {
+			if (strcasecmp(conf->args[i], "LOG_DEBUG") == 0)
+				priority = LOG_DEBUG;
+			else if (strcasecmp(conf->args[i], "LOG_INFO") == 0)
+				priority = LOG_INFO;
+			else if (strcasecmp(conf->args[i], "LOG_NOTICE") == 0)
+				priority = LOG_NOTICE;
+			else if (strcasecmp(conf->args[i], "LOG_WARNING") == 0)
+				priority = LOG_WARNING;
+			else if (strcasecmp(conf->args[i], "LOG_ERR") == 0)
+				priority = LOG_ERR;
+			else if (strcasecmp(conf->args[i], "LOG_CRIT") == 0)
+				priority = LOG_CRIT;
+			else if (strcasecmp(conf->args[i], "LOG_ALERT") == 0)
+				priority = LOG_ALERT;
+			else if (strcasecmp(conf->args[i], "LOG_EMERG") == 0)
+				priority = LOG_EMERG;
+			else if (strcasecmp(conf->args[i], "LOG_LOCAL0") == 0)
+				facility = LOG_LOCAL0;
+			else if (strcasecmp(conf->args[i], "LOG_LOCAL1") == 0)
+				facility = LOG_LOCAL1;
+			else if (strcasecmp(conf->args[i], "LOG_LOCAL2") == 0)
+				facility = LOG_LOCAL2;
+			else if (strcasecmp(conf->args[i], "LOG_LOCAL3") == 0)
+				facility = LOG_LOCAL3;
+			else if (strcasecmp(conf->args[i], "LOG_LOCAL4") == 0)
+				facility = LOG_LOCAL4;
+			else if (strcasecmp(conf->args[i], "LOG_LOCAL5") == 0)
+				facility = LOG_LOCAL5;
+			else if (strcasecmp(conf->args[i], "LOG_LOCAL6") == 0)
+				facility = LOG_LOCAL6;
+			else if (strcasecmp(conf->args[i], "LOG_LOCAL7") == 0)
+				facility = LOG_LOCAL7;
+			else {
+				syslog(LOG_ERR, 
+					"Unknown log priority/facility %s",
+					conf->args[i]);
+				syslog_started = 0;
+				return;
+			}
 		}
-	} else
-		priority = LOG_INFO;
-	syslog_started = 1;
+	}
 	syslog(LOG_INFO, "syslog plugin initialized");
+	if (facility != LOG_USER)
+		openlog("audispd", 0, facility);
+	syslog_started = 1;
 }
 
 void send_syslog(const char *s)
