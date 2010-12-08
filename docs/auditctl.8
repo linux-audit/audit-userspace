@@ -1,4 +1,4 @@
-.TH AUDITCTL: "8" "Aug 2009" "Red Hat" "System Administration Utilities"
+.TH AUDITCTL: "8" "Dec 2010" "Red Hat" "System Administration Utilities"
 .SH NAME
 auditctl \- a utility to assist controlling the kernel's audit system
 .SH SYNOPSIS
@@ -30,10 +30,10 @@ List all rules 1 per line. This can take a key option (-k), too.
 Set a filter key on an audit rule. The filter key is an arbitrary string of text that can be up to 31 bytes long. It can uniquely identify the audit records produced by a rule. Typical use is for when you have several rules that together satisfy a security requirement. The key value can be searched on with ausearch so that no matter which rule triggered the event, you can find its results. The key can also be used on delete all (-D) and list rules (-l) to select rules with a specific key. You may have more than one key on a rule if you want to be able to search logged events in multiple ways or if you have an audispd plugin that uses a key to aid its analysis.
 .TP
 .BI \-m\  text
-Send a user space message into the audit system. This can only be done by the root user.
+Send a user space message into the audit system. This can only be done if you have CAP_AUDIT_WRITE capability (normally the root user has this). The resulting event will be the USER type.
 .TP
 \fB\-p\fP [\fBr\fP|\fBw\fP|\fBx\fP|\fBa\fP]
-Set permissions filter for a file system watch. \fBr\fP=read, \fBw\fP=write, \fBx\fP=execute, \fBa\fP=attribute change. These permissions are not the standard file permissions, but rather the kind of syscall that would do this kind of thing. The read & write syscalls are omitted from this set since they would overwhelm the logs. But rather for reads or writes, the open flags are looked at to see what permission was requested.
+Describe the permission access type that a file system watch will trigger on. \fBr\fP=read, \fBw\fP=write, \fBx\fP=execute, \fBa\fP=attribute change. These permissions are not the standard file permissions, but rather the kind of syscall that would do this kind of thing. The read & write syscalls are omitted from this set since they would overwhelm the logs. But rather for reads or writes, the open flags are looked at to see what permission was requested.
 .TP
 .BI \-q\  mount-point,subtree
 If you have an existing directory watch and bind or move mount another subtree in the watched subtree, you need to tell the kernel to make the subtree being mounted equivalent to the directory being watched. If the subtree is already mounted at the time the directory watch is issued, the subtree is automatically tagged for watching. Please note the comma separating the two values. Omitting it will cause errors.
@@ -45,7 +45,7 @@ Set limit in messages/sec (\fB0\fP=none). If this \fIrate\fP is non-zero and is 
 Read rules from a \fIfile\fP. The rules must be 1 per line and in the order that they are to be executed in. The rule file must be owned by root and not readable by other users or it will be rejected. The rule file may have comments embedded by starting the line with a '#' character. Rules that are read from a file are identical to what you would type on a command line except they are not preceeded by auditctl (since auditctl is the one executing the file).
 .TP
 .B \-s
-Report status. Note that a pid of 0 indicates that the audit daemon is not running.
+Report the kernel's audit subsystem status. It will tell you the in-kernel values that can be set by \fB-e\fP, \fB-f\fP, \fB-r\fP, and \fB-b\fP options. The pid value is the process number of the audit daemon. Note that a pid of 0 indicates that the audit daemon is not running. The lost entry will tell you how many event records that have been discarded due to the kernel audit queue overflowing. The backlog field tells how many event records are currently queued waiting for auditd to read them.
 .TP
 .BI \-t
 Trim the subtrees after a mount command.
@@ -81,13 +81,13 @@ Allocate an audit context, always fill it in at syscall entry time, and always w
 Add rule to the beginning \fIlist\fP with \fIaction\fP.
 .TP
 .BI \-d\  list , action
-Delete rule from \fIlist\fP with \fIaction\fP. The rule is deleted only if it exactly matches syscall name and field names.
+Delete rule from \fIlist\fP with \fIaction\fP. The rule is deleted only if it exactly matches syscall name(s) and every field name and value.
 .TP
 .B \-D
 Delete all rules and watches. This can take a key option (-k), too.
 .TP
 \fB\-S\fP [\fISyscall name or number\fP|\fBall\fP]
-Any \fIsyscall name\fP or \fInumber\fP may be used. The word '\fBall\fP' may also be used.  If this syscall is made by a program, then start an audit record. If a field rule is given and no syscall is specified, it will default to all syscalls. You may also specify multiple syscalls in the same rule by using multiple -S options in the same rule. Doing so improves performance since fewer rules need to be evaluated. If you are on a bi-arch system, like x86_64, you should be aware that auditctl simply takes the text, looks it up for the native arch (in this case b64) and sends that rule to the kernel. If there are no additional arch directives, IT WILL APPLY TO BOTH 32 & 64 BIT SYSCALLS. This can have undesirable effects since there is no guarantee that, for example, the open syscall has the same number on both 32 and 64 bit interfaces. You may want to control this and write 2 rules, one with arch equal to b32 and one with b64 to make sure the kernel finds the events that you intend.
+Any \fIsyscall name\fP or \fInumber\fP may be used. The word '\fBall\fP' may also be used.  If the given syscall is made by a program, then start an audit record. If a field rule is given and no syscall is specified, it will default to all syscalls. You may also specify multiple syscalls in the same rule by using multiple -S options in the same rule. Doing so improves performance since fewer rules need to be evaluated. If you are on a bi-arch system, like x86_64, you should be aware that auditctl simply takes the text, looks it up for the native arch (in this case b64) and sends that rule to the kernel. If there are no additional arch directives, IT WILL APPLY TO BOTH 32 & 64 BIT SYSCALLS. This can have undesirable effects since there is no guarantee that, for example, the open syscall has the same number on both 32 and 64 bit interfaces. You will likely want to control this and write 2 rules, one with arch equal to b32 and one with b64 to make sure the kernel finds the events that you intend. See the arch field discussion for more info.
 .TP
 \fB\-F\fP [\fIn\fP\fB=\fP\fIv\fP | \fIn\fP\fB!=\fP\fIv\fP | \fIn\fP\fB<\fP\fIv\fP | \fIn\fP\fB>\fP\fIv\fP | \fIn\fP\fB<=\fP\fIv\fP | \fIn\fP\fB>=\fP\fIv\fP | \fIn\fP\fB&\fP\fIv\fP | \fIn\fP\fB&=\fP\fIv\fP]
 Build a rule field: name, operation, value. You may have up to 64 fields passed on a single command line. Each one must start with \fB\-F\fP. Each field equation is anded with each other to trigger an audit record. There are 8 operators supported - equal, not equal, less than, greater than, less than or equal, and greater than or equal, bit mask, and bit test respectively. Bit test will "and" the values and check that they are equal, bit mask just "ands" the values. Fields that take a user ID may instead have the user's name; the program will convert the name to user ID. The same is true of group names. Valid fields are:
@@ -104,7 +104,7 @@ for the arch. The same applies to the 64 bit syscall table, you can use
 In this way, you can write rules that are somewhat arch independent because the family type will be auto detected. However, syscalls can be arch specific and what is available on x86_64, may not be available on ppc. The arch directive should preceed the -S option so that auditctl knows which internal table to use to look up the syscall numbers.
 .TP
 .B auid
-The original ID the user logged in with. Its an abbreviation of audit uid. Sometimes its referred to as loginuid. Either the text or number may be used.
+The original ID the user logged in with. Its an abbreviation of audit uid. Sometimes its referred to as loginuid. Either the user account text or number may be used.
 .TP
 .B devmajor
 Device Major Number
@@ -113,28 +113,28 @@ Device Major Number
 Device Minor Number
 .TP
 .B dir
-Full Path of Directory to watch. This will place a recursive watch on the directory and its whole subtree. Should only be used on exit list. See "\fB\-w\fP".
+Full Path of Directory to watch. This will place a recursive watch on the directory and its whole subtree. It can only be used on exit list. See "\fB\-w\fP".
 .TP
 .B egid
-Effective Group ID
+Effective Group ID. May be numeric or the groups name.
 .TP
 .B euid
-Effective User ID
+Effective User ID. May be numeric or the user account name.
 .TP
 .B exit
 Exit value from a syscall. If the exit code is an errno, you may use the text representation, too.
 .TP
 .B fsgid
-Filesystem Group ID
+Filesystem Group ID. May be numeric or the groups name.
 .TP
 .B fsuid
-Filesystem User ID
+Filesystem User ID. May be numeric or the user account name.
 .TP
 .B filetype
 The target file's type. Can be either file, dir, socket, symlink, char, block, or fifo.
 .TP
 .B gid
-Group ID
+Group ID. May be numeric or the groups name.
 .TP
 .B inode
 Inode Number
@@ -143,7 +143,7 @@ Inode Number
 This is another way of setting a filter key. See discussion above for \fB\-k\fP option.
 .TP
 .B msgtype
-This is used to match the message type number. It should only be used on the exclude filter list.
+This is used to match the event's record type. It should only be used on the exclude filter list.
 .TP
 .B obj_user
 Resource's SE Linux User
@@ -161,10 +161,10 @@ Resource's SE Linux Low Level
 Resource's SE Linux High Level
 .TP
 .B path
-Full Path of File to watch. Should only be used on exit list.
+Full Path of File to watch. It can only be used on exit list.
 .TP
 .B perm
-Permission filter for file operations. See "\fB\-p\fP". Should only be used on exit list. You can use this without specifying a syscall and the kernel will select the syscalls that satisfy the permissions being requested.
+Permission filter for file operations. See "\fB\-p\fP". It can only be used on exit list. You can use this without specifying a syscall and the kernel will select the syscalls that satisfy the permissions being requested.
 .TP
 .B pers
 OS Personality Number
@@ -200,16 +200,16 @@ If the exit value is >= 0 this is true/yes otherwise its false/no. When writing 
 Saved User ID. See getresuid(2) man page.
 .TP
 .B uid
-User ID
+User ID. May be numeric or the user account name.
 .RE
 .TP
 .BI \-w\  path
 Insert a watch for the file system object at \fIpath\fP. You cannot insert a watch to the top level directory. This is prohibited by the kernel. Wildcards are not supported either and will generate a warning. The way that watches work is by tracking the inode internally. If you place a watch on a file, its the same as using the \-F path option on a syscall rule. If you place a watch on a directory, its the same as using the \-F dir option on a syscall rule. The \-w form of writing watches is for backwards compatibility and the syscall based form is more expressive. Unlike most syscall auditing rules, watches do not impact performance based on the number of rules sent to the kernel. The only valid options when using a watch are the \-p and \-k. If you need to anything fancy like audit a specific user accessing a file, then use the syscall auditing form with the path or dir fields. See the EXAMPLES section for an example of converting one form to another.
 .TP
 .BI \-W\  path
-Remove a watch for the file system object at \fIpath\fP.
+Remove a watch for the file system object at \fIpath\fP. The rule must match exactly. See \fB-d\fP discussion for more info.
 .SH "PERFORMANCE TIPS"
-Syscall rules get evaluated for each syscall for each program. If you have 10 syscall rules, every program on your system will delay during a syscall while the audit system evaulates each one. Too many syscall rules will hurt performance. Try to combine as many as you can whenever the filter, action, key, and fields are identical. For example:
+Syscall rules get evaluated for each syscall for every program. If you have 10 syscall rules, every program on your system will delay during a syscall while the audit system evaluates each rule. Too many syscall rules will hurt performance. Try to combine as many as you can whenever the filter, action, key, and fields are identical. For example:
 
 .nf
 .B auditctl \-a exit,always \-S open \-F success=0
