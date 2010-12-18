@@ -29,6 +29,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <time.h>
+#include <linux/net.h>
 #include "libaudit.h"
 #include "private.h"
 
@@ -52,6 +53,7 @@ static int insert_rule(int audit_fd, const char *field)
 	int flags = AUDIT_FILTER_EXIT;
 	int action = AUDIT_ALWAYS;
 	struct audit_rule_data *rule = malloc(sizeof(struct audit_rule_data));
+	int machine = audit_detect_machine();
 
 	if (rule == NULL)
 		goto err;
@@ -84,11 +86,15 @@ static int insert_rule(int audit_fd, const char *field)
 		rc |= audit_rule_syscallbyname_data(rule, "readlink");
 		rc |= audit_rule_syscallbyname_data(rule, "readlinkat");
 		rc |= audit_rule_syscallbyname_data(rule, "execve");
-		rc |= audit_rule_syscallbyname_data(rule, "connect");
-		rc |= audit_rule_syscallbyname_data(rule, "bind");
-		rc |= audit_rule_syscallbyname_data(rule, "accept");
-		rc |= audit_rule_syscallbyname_data(rule, "sendto");
-		rc |= audit_rule_syscallbyname_data(rule, "recvfrom");
+
+		if (machine != MACH_X86) {
+			rc |= audit_rule_syscallbyname_data(rule, "connect");
+			rc |= audit_rule_syscallbyname_data(rule, "bind");
+			rc |= audit_rule_syscallbyname_data(rule, "accept");
+			rc |= audit_rule_syscallbyname_data(rule, "sendto");
+			rc |= audit_rule_syscallbyname_data(rule, "recvfrom");
+		}
+
 		rc |= audit_rule_syscallbyname_data(rule, "sendfile");
 	} else
 		rc = audit_rule_syscallbyname_data(rule, "all");
@@ -100,6 +106,20 @@ static int insert_rule(int audit_fd, const char *field)
 	rc = audit_add_rule_data(audit_fd, rule, flags, action);
 	if (rc < 0)
 		goto err;
+
+	// Now if i386, lets add its network rules
+	if (machine == MACH_X86) {
+		int i, a0[5] = { SYS_CONNECT, SYS_BIND, SYS_ACCEPT, SYS_SENDTO, SYS_RECVFROM };
+		for (i=0; i<5; i++) {
+			char pair[32];
+
+			memset(rule, 0, sizeof(struct audit_rule_data));
+			rc |= audit_rule_syscallbyname_data(rule, "socketcall");
+			snprintf(pair, sizeof(pair), "a0=%d", a0[i]);
+			rc |= audit_rule_fieldpair_data(&rule, pair, flags);
+			rc |= audit_add_rule_data(audit_fd, rule, flags, action);
+		}
+	}
 	free(rule);
 	return 0;
 err:
