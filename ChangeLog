@@ -7,7 +7,8 @@
 - Fix simple event parsing to not assume session id can't be last (Peng Haitao)
 - Add support for new mmap audit event type
 - Add ability for audispd syslog plugin to choose facility local0-7 (#593340)
-- Fix autrace to use right syscalls on i386 systems (Peng Haitao)
+- Fix autrace to use correct syscalls on i386 systems (Peng Haitao)
+- On startup and reconfig, check for excess logs and unlink them
 
 2.0.5
 - Make auparse handle empty AUSOURCE_FILE_ARRAY correctly (Miloslav Trmač)
