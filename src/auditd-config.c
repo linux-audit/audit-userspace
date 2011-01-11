@@ -686,6 +686,7 @@ static int name_format_parser(struct nv_pair *nv, int line,
 {
 	int i;
 
+	audit_msg(LOG_DEBUG, "name_format_parser called with: %s", nv->value);
 	for (i=0; node_name_formats[i].name != NULL; i++) {
 		if (strcasecmp(nv->value, node_name_formats[i].name) == 0) {
 			config->node_name_format = node_name_formats[i].option;
@@ -699,6 +700,7 @@ static int name_format_parser(struct nv_pair *nv, int line,
 static int name_parser(struct nv_pair *nv, int line,
 		struct daemon_conf *config)
 {
+	audit_msg(LOG_DEBUG, "name_parser called with: %s", nv->value);
 	if (nv->value == NULL)
 		config->node_name = NULL;
 	else
