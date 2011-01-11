@@ -1627,6 +1627,9 @@ int resolve_node(struct daemon_conf *config)
 				struct addrinfo *ai;
 				struct addrinfo hints;
 
+				audit_msg(LOG_DEBUG,
+					"Resolving numeric address for %s",
+					tmp_name);
 				memset(&hints, 0, sizeof(hints));
 				hints.ai_flags = AI_ADDRCONFIG | AI_PASSIVE;
 				hints.ai_socktype = SOCK_STREAM;
@@ -1635,7 +1638,7 @@ int resolve_node(struct daemon_conf *config)
 				if (rc2 != 0) {
 					audit_msg(LOG_ERR,
 					"Cannot resolve hostname %s (%s)",
-					tmp_name, gai_strerror(rc));
+					tmp_name, gai_strerror(rc2));
 					rc = -1;
 					break;
 				}
@@ -1649,6 +1652,9 @@ int resolve_node(struct daemon_conf *config)
 			}
 			break;
 	}
+	if (rc == 0 && config->node_name)
+		audit_msg(LOG_DEBUG, "Resolved node name: %s",
+				config->node_name);
 	return rc;
 }
 
