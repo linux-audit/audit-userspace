@@ -1,5 +1,5 @@
 /* msg_typetab.h --
- * Copyright 2005-07,2009-10 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2005-07,2009-11 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -105,6 +105,8 @@ _S(AUDIT_EOE,                        "EOE"                           )
 _S(AUDIT_BPRM_FCAPS,                 "BPRM_FCAPS"                    )
 _S(AUDIT_CAPSET,                     "CAPSET"                        )
 _S(AUDIT_MMAP,                       "MMAP"                          )
+_S(AUDIT_NETFILTER_PKT,              "NETFILTER_PKT"                 )
+_S(AUDIT_NETFILTER_CFG,              "NETFILTER_CFG"                 )
 _S(AUDIT_AVC,                        "AVC"                           )
 _S(AUDIT_SELINUX_ERR,                "SELINUX_ERR"                   )
 _S(AUDIT_AVC_PATH,                   "AVC_PATH"                      )

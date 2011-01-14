@@ -11,6 +11,7 @@
 - On startup and reconfig, check for excess logs and unlink them
 - Add a couple missing parser debug messages
 - Fix error output resolving numeric address and update man page
+- Add netfilter event types
 
 2.0.5
 - Make auparse handle empty AUSOURCE_FILE_ARRAY correctly (Miloslav Trmač)

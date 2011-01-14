@@ -1,5 +1,5 @@
 /* libaudit.h -- 
- * Copyright 2004-2010 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2004-2011 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -213,7 +213,14 @@ extern "C" {
 
 /* New kernel event definitions since 2.6.30 */
 #ifndef AUDIT_MMAP
-#define AUDIT_MMAP			1323 /* Record showing descriptor and flags in mmap */
+#define AUDIT_MMAP		1323 /* Descriptor and flags in mmap */
+#endif
+
+#ifndef AUDIT_NETFILTER_PKT
+#define AUDIT_NETFILTER_PKT	1324 /* Packets traversing netfilter chains */
+#endif
+#ifndef AUDIT_NETFILTER_CFG
+#define AUDIT_NETFILTER_CFG	1325 /* Netfilter chain modifications */
 #endif
 
 
