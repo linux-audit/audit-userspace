@@ -1,5 +1,5 @@
 /* s390x_table.h --
- * Copyright 2005,2006,2008-10 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2005,2006,2008-11 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -293,4 +293,7 @@ _S(328, "preadv")
 _S(329, "pwritev")
 _S(330, "rt_tgsigqueueinfo")
 _S(331, "perf_event_open")
+_S(332, "fanotify_init")
+_S(333, "fanotify_mark")
+_S(334, "prlimit64")
 

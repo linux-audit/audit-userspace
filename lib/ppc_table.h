@@ -1,5 +1,5 @@
 /* ppc_table.h --
- * Copyright 2005-09 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2005-09,2011 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -336,4 +336,26 @@ _S(319, "perf_counter_open")
 _S(320, "preadv")
 _S(321, "pwritev")
 _S(322, "rt_tgsigqueueinfo")
+_S(323, "fanotify_init")
+_S(324, "fanotify_mark")
+_S(325, "prlimit64")
+_S(326, "socket")
+_S(327, "bind")
+_S(328, "connect")
+_S(329, "listen")
+_S(330, "accept")
+_S(331, "getsockname")
+_S(332, "getpeername")
+_S(333, "socketpair")
+_S(334, "send")
+_S(335, "sendto")
+_S(336, "recv")
+_S(337, "recvfrom")
+_S(338, "shutdown")
+_S(339, "setsockopt")
+_S(340, "getsockopt")
+_S(341, "sendmsg")
+_S(342, "recvmsg")
+_S(343, "recvmmsg")
+_S(344, "accept4")
 

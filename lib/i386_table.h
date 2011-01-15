@@ -1,5 +1,5 @@
 /* i386_table.h --
- * Copyright 2005-10 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2005-11 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -356,4 +356,7 @@ _S(334, "pwritev")
 _S(335, "rt_tgsigqueueinfo")
 _S(336, "perf_event_open")
 _S(337, "recvmmsg")
+_S(338, "fanotify_init")
+_S(339, "fanotify_mark")
+_S(340, "prlimit64")
 

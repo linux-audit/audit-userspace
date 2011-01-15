@@ -1,5 +1,5 @@
 /* ia64_table.h --
- * Copyright 2005-10 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2005-11 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -313,4 +313,7 @@ _S(1319, "preadv")
 _S(1320, "pwritev")
 _S(1321, "rt_tgsigqueueinfo")
 _S(1322, "recvmmsg")
+_S(1323, "fanotify_init")
+_S(1324, "fanotify_mark")
+_S(1325, "prlimit64")
 

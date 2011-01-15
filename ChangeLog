@@ -14,6 +14,7 @@
 - Add netfilter event types
 - Fix spelling error in audit.rules man page (#667845)
 - Improve warning in auditctl regarding immutable mode (#654883)
+- Update syscall tables for the 2.6.37 kernel
 
 2.0.5
 - Make auparse handle empty AUSOURCE_FILE_ARRAY correctly (Miloslav Trmač)

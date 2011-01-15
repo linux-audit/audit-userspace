@@ -1,5 +1,5 @@
 /* alpha_table.h --
- * Copyright 2005-07,2010 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2005-07,2010-11 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -434,4 +434,7 @@ _S(490, "preadv")
 _S(491, "pwritev")
 _S(492, "rt_tgsigqueueinfo")
 _S(493, "perf_event_open")
+_S(494, "fanotify_init")
+_S(495, "fanotify_mark")
+_S(496, "prlimit64")
 
