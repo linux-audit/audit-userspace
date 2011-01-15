@@ -67,7 +67,7 @@ Next in the rule would normally be the
 .B -S
 option. This field can either be the syscall name or number. For readability, the name is almost always used. You may give more that one syscall in a rule by specifying another
 .B -S
-option. When sent into the kernel, all syscall fields are put into a mask so that one compare can determine if the syscall is of interest. So, adding multiple syscalls in one rule is very efficient. When you specify a syscall name, auditctl will look up the name and get its syscall number. This leads to some problems on bi-arch machines. The 32 and 64 bit syscall numbers sometimes, but not always line up. So, to solve this problem, you would generally need to break the rule into 2 with one specifying -F arch=b32 and the other specifying -F arch=b64. This needs to go infront of the
+option. When sent into the kernel, all syscall fields are put into a mask so that one compare can determine if the syscall is of interest. So, adding multiple syscalls in one rule is very efficient. When you specify a syscall name, auditctl will look up the name and get its syscall number. This leads to some problems on bi-arch machines. The 32 and 64 bit syscall numbers sometimes, but not always, line up. So, to solve this problem, you would generally need to break the rule into 2 with one specifying -F arch=b32 and the other specifying -F arch=b64. This needs to go in front of the
 .B -S
 option so that auditctl looks at the right lookup table when returning the number.
 

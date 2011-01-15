@@ -12,6 +12,7 @@
 - Add a couple missing parser debug messages
 - Fix error output resolving numeric address and update man page
 - Add netfilter event types
+- Fix spelling error in audit.rules (#667845)
 
 2.0.5
 - Make auparse handle empty AUSOURCE_FILE_ARRAY correctly (Miloslav Trmač)
