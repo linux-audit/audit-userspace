@@ -1,5 +1,5 @@
 /* auditctl.c -- 
- * Copyright 2004-2010 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2004-2011 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -1076,7 +1076,7 @@ int main(int argc, char *argv[])
 		if (audit_is_enabled(fd) == 2) {
 			fprintf(stderr,
 				"The audit system is in immutable "
-				"mode, no rules loaded\n");
+				"mode, no rule changes allowed\n");
 			return 0;
 		} else if (errno == ECONNREFUSED) {
 			fprintf(stderr, "The audit system is disabled\n");
@@ -1102,7 +1102,7 @@ int main(int argc, char *argv[])
 		if (audit_is_enabled(fd) == 2) {
 			fprintf(stderr,
 				"The audit system is in immutable "
-				"mode, no rules loaded\n");
+				"mode, no rule changes allowed\n");
 			free(rule_new);
 			return 0;
 		} else if (errno == ECONNREFUSED) {
