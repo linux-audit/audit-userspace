@@ -1,6 +1,6 @@
 /*
 * ausearch-llist.c - Minimal linked list library
-* Copyright (c) 2005-2008 Red Hat Inc., Durham, North Carolina.
+* Copyright (c) 2005-2008, 2011 Red Hat Inc., Durham, North Carolina.
 * All Rights Reserved. 
 *
 * This software may be freely redistributed and/or modified under the
@@ -42,7 +42,7 @@ void list_create(llist *l)
 	l->s.success = S_UNSET;
 	l->s.uid = -1;            
 	l->s.euid = -1;           
-	l->s.loginuid = -1;
+	l->s.loginuid = -2;
 	l->s.hostname = NULL;
 	l->s.filename = NULL;
 	l->s.terminal = NULL;
@@ -54,7 +54,7 @@ void list_create(llist *l)
 	l->s.acct = NULL;
 	l->s.arch = 0;
 	l->s.syscall = 0;
-	l->s.session_id = -1;
+	l->s.session_id = -2;
 	l->s.exit = 0;
 	l->s.exit_is_set = 0;
 }
@@ -166,7 +166,7 @@ void list_clear(llist* l)
 	l->s.success = S_UNSET;
 	l->s.uid = -1;
 	l->s.euid = -1;
-	l->s.loginuid = -1;
+	l->s.loginuid = -2;
 	free(l->s.hostname);
 	l->s.hostname = NULL;
 	if (l->s.filename) {
@@ -196,7 +196,7 @@ void list_clear(llist* l)
 	l->s.acct = NULL;
 	l->s.arch = 0;
 	l->s.syscall = 0;
-	l->s.session_id = -1;
+	l->s.session_id = -2;
 	l->s.exit = 0;
 	l->s.exit_is_set = 0;
 }

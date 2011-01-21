@@ -1,6 +1,6 @@
 /*
 * ausearch-match.c - Extract interesting fields and check for match
-* Copyright (c) 2005-08 Red Hat Inc., Durham, North Carolina.
+* Copyright (c) 2005-08, 2011 Red Hat Inc., Durham, North Carolina.
 * All Rights Reserved. 
 *
 * This software may be freely redistributed and/or modified under the
@@ -85,7 +85,7 @@ int match(llist *l)
 				if ((event_syscall != -1) &&
 						(event_syscall != l->s.syscall))
 					return 0;
-				if ((event_session_id != -1) &&
+				if ((event_session_id != -2) &&
 					(event_session_id != l->s.session_id))
 					return 0;
 				if (event_exit_is_set) {
@@ -247,7 +247,7 @@ static int user_match(llist *l)
 			return 0;
 		if ((event_euid != -1) &&(event_euid != l->s.euid))
 			return 0;
-		if ((event_loginuid != -1) &&
+		if ((event_loginuid != -2) &&
 				(event_loginuid != l->s.loginuid))
 			return 0;
 	}

@@ -1,5 +1,5 @@
 /* aureport-options.c - parse commandline options and configure aureport
- * Copyright 2005-08,2010 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2005-08,2010-11 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -50,7 +50,7 @@ const char *event_terminal = NULL;
 const char *event_subject = NULL;
 const char *event_object = NULL;
 int event_exit = 0, event_exit_is_set = 0;
-int event_ppid = -1, event_session_id = -1;
+int event_ppid = -1, event_session_id = -2;
 
 /* These are used by aureport */
 const char *dummy = "dummy";
