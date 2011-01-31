@@ -4,7 +4,7 @@ audispd \- an event multiplexor
 .SH SYNOPSIS
 .B audispd
 .SH DESCRIPTION
-\fBaudispd\fP is an audit event multiplexor. It has to be started by the audit daemon in order to get events. It takes audit events and distributes them to child programs that want to analyze events in realtime. When the audit daemon recieves a SIGTERM or SIGHUP, it passes that signal to the dispatcher, too. The dispatcher in turn passes those signals to its child processes.
+\fBaudispd\fP is an audit event multiplexor. It has to be started by the audit daemon in order to get events. It takes audit events and distributes them to child programs that want to analyze events in realtime. When the audit daemon receives a SIGTERM or SIGHUP, it passes that signal to the dispatcher, too. The dispatcher in turn passes those signals to its child processes.
 
 The child programs install a configuration file in a plugins directory, \fI/etc/audisp/plugins.d\fP. Filenames are not allowed to have more than one '.' in the name or it will be treated as a backup copy and skipped. Options are given one per line with an equal sign between the keyword and its value. The available options are as follows:
 

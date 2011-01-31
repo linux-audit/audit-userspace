@@ -42,7 +42,7 @@ If you have an existing directory watch and bind or move mount another subtree i
 Set limit in messages/sec (\fB0\fP=none). If this \fIrate\fP is non-zero and is exceeded, the failure flag is consulted by the kernel for action. The default value is \fB0\fP.
 .TP
 .BI \-R\  file
-Read rules from a \fIfile\fP. The rules must be 1 per line and in the order that they are to be executed in. The rule file must be owned by root and not readable by other users or it will be rejected. The rule file may have comments embedded by starting the line with a '#' character. Rules that are read from a file are identical to what you would type on a command line except they are not preceeded by auditctl (since auditctl is the one executing the file).
+Read rules from a \fIfile\fP. The rules must be 1 per line and in the order that they are to be executed in. The rule file must be owned by root and not readable by other users or it will be rejected. The rule file may have comments embedded by starting the line with a '#' character. Rules that are read from a file are identical to what you would type on a command line except they are not preceded by auditctl (since auditctl is the one executing the file).
 .TP
 .B \-s
 Report the kernel's audit subsystem status. It will tell you the in-kernel values that can be set by \fB-e\fP, \fB-f\fP, \fB-r\fP, and \fB-b\fP options. The pid value is the process number of the audit daemon. Note that a pid of 0 indicates that the audit daemon is not running. The lost entry will tell you how many event records that have been discarded due to the kernel audit queue overflowing. The backlog field tells how many event records are currently queued waiting for auditd to read them.
@@ -101,7 +101,7 @@ The CPU architecture of the syscall. The arch can be found doing 'uname -m'. If 
 .B b32
 for the arch. The same applies to the 64 bit syscall table, you can use
 .B b64.
-In this way, you can write rules that are somewhat arch independent because the family type will be auto detected. However, syscalls can be arch specific and what is available on x86_64, may not be available on ppc. The arch directive should preceed the -S option so that auditctl knows which internal table to use to look up the syscall numbers.
+In this way, you can write rules that are somewhat arch independent because the family type will be auto detected. However, syscalls can be arch specific and what is available on x86_64, may not be available on ppc. The arch directive should precede the -S option so that auditctl knows which internal table to use to look up the syscall numbers.
 .TP
 .B auid
 The original ID the user logged in with. Its an abbreviation of audit uid. Sometimes its referred to as loginuid. Either the user account text or number may be used.
@@ -244,7 +244,7 @@ To see files opened by a specific user:
 .B auditctl \-a exit,always \-S open \-F auid=510
 .fi
 
-To see unsuccessful open call's:
+To see unsuccessful open calls:
 
 .nf
 .B auditctl \-a exit,always \-S open \-F success=0
