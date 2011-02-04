@@ -1,3 +1,5 @@
+2.0.7
+
 2.0.6
 - ausearch/report performance improvements
 - Synchronize all sample syscall rules to use action,list
