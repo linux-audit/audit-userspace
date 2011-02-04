@@ -1,5 +1,5 @@
 /* audisp-remote.c --
- * Copyright 2008,2009 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2008-2011 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -73,7 +73,7 @@ static FILE *in;
 
 static const char *SINGLE = "1";
 static const char *HALT = "0";
-static remote_conf_t config;
+remote_conf_t config;
 
 /* Local function declarations */
 static int check_message(void);

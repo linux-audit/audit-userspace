@@ -1,5 +1,5 @@
 /* remote-config.h -- 
- * Copyright 2008, 2009 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2008, 2009, 2011 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -29,6 +29,8 @@ typedef enum { T_TCP, T_SSL, T_GSSAPI, T_LABELED } transport_t;
 typedef enum { F_ASCII, F_MANAGED } format_t;
 typedef enum { FA_IGNORE, FA_SYSLOG, FA_EXEC, FA_RECONNECT, FA_SUSPEND,
 	       FA_SINGLE, FA_HALT, FA_STOP } failure_action_t;
+typedef enum { OA_IGNORE, OA_SYSLOG, OA_SUSPEND, OA_SINGLE,
+	       OA_HALT } overflow_action_t;
 
 typedef struct remote_conf
 {
@@ -62,6 +64,7 @@ typedef struct remote_conf
 	const char *generic_error_exe;
 	failure_action_t generic_warning_action;
 	const char *generic_warning_exe;
+	overflow_action_t overflow_action;
 } remote_conf_t;
 
 void clear_config(remote_conf_t *config);

@@ -1,5 +1,5 @@
 /* queue.c --
- * Copyright 2009 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2009, 2011 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -29,9 +29,9 @@
 
 static volatile event_t **q;
 static unsigned int q_next, q_last, q_depth;
-//static const char *SINGLE = "1";
-//static const char *HALT = "0";
-
+static const char *SINGLE = "1";
+static const char *HALT = "0";
+extern remote_conf_t config;
 
 int init_queue(unsigned int size)
 {
@@ -50,7 +50,7 @@ int init_queue(unsigned int size)
 	return 0;
 }
 
-/* static void change_runlevel(const char *level)
+static void change_runlevel(const char *level)
 {
 	char *argv[3];
 	int pid;
@@ -58,7 +58,7 @@ int init_queue(unsigned int size)
 
 	pid = fork();
 	if (pid < 0) {
-		syslog(LOG_ALERT, "Audispd failed to fork switching runlevels");
+		syslog(LOG_ALERT, "Audisp-remote failed to fork switching runlevels");
 		return;
 	}
 	if (pid)	// Parent
@@ -68,38 +68,38 @@ int init_queue(unsigned int size)
 	argv[1] = (char *)level;
 	argv[2] = NULL;
 	execve(init_pgm, argv, NULL);
-	syslog(LOG_ALERT, "Audispd failed to exec %s", init_pgm);
+	syslog(LOG_ALERT, "Audisp-remote failed to exec %s", init_pgm);
 	exit(1);
 }
 
-static void do_overflow_action(remote_conf_t *config)
+static void do_overflow_action(void)
 {
-        switch (config->generic_error_action) // FIXME: overflow action var
+        switch (config.overflow_action)
         {
-                case FA_IGNORE:
+                case OA_IGNORE:
 			break;
-                case FA_SYSLOG:
+                case OA_SYSLOG:
 			syslog(LOG_ERR, "queue is full - dropping event");
                         break;
-                case FA_SUSPEND:
+                case OA_SUSPEND:
                         syslog(LOG_ALERT,
-                            "Audispd-remote is suspending event processing due to overflowing its queue.");
+                            "Audisp-remote is suspending event processing due to overflowing its queue.");
                         break;
-                case FA_SINGLE:
+                case OA_SINGLE:
                         syslog(LOG_ALERT,
-                                "Audispd-remote is now changing the system to single user mode due to overflowing its queue");
+                                "Audisp-remote is now changing the system to single user mode due to overflowing its queue");
                         change_runlevel(SINGLE);
                         break;
-                case FA_HALT:
+                case OA_HALT:
                         syslog(LOG_ALERT,
-                                "Audispd-remote is now halting the system due to overflowing its queue");
+                                "Audisp-remote is now halting the system due to overflowing its queue");
                         change_runlevel(HALT);
                         break;
                 default:
                         syslog(LOG_ALERT, "Unknown overflow action requested");
                         break;
         }
-} */
+}
 
 void enqueue(event_t *e)
 {
@@ -111,7 +111,9 @@ void enqueue(event_t *e)
 		q[n] = e;
 		q_next = (n+1) % q_depth;
 	} else {
-// FIXME: overflow
+		// Overflowed the queue
+		do_overflow_action();
+		free(e);
 	}
 }
 

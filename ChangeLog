@@ -16,6 +16,7 @@
 - Improve warning in auditctl regarding immutable mode (#654883)
 - Update syscall tables for the 2.6.37 kernel
 - In ausearch, allow searching for auid -1
+- Add queue overflow_action to audisp-remote to control queue overflows
 
 2.0.5
 - Make auparse handle empty AUSOURCE_FILE_ARRAY correctly (Miloslav Trmač)

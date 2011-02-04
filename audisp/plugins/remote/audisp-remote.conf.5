@@ -6,7 +6,7 @@ audisp-remote.conf \- the audisp-remote configuration file
 
 .TP
 .I remote_server
-This is a one word character string that is the remote server hostname or address that this daemon will send log information to. This can be the numeric address or a resolvable hostname.
+This is a one word character string that is the remote server hostname or address that this plugin will send log information to. This can be the numeric address or a resolvable hostname.
 .TP
 .I port
 This option is an unsigned integer that indicates what port to connect to on the remote machine.
@@ -85,7 +85,7 @@ detected when sending audit events to the remote system. Valid values are
 .IR ignore ", " syslog ", " exec ", " suspend ", " single ", " halt ", and " stop .
 If set to
 .IR ignore ,
-the audit daemon does nothing.
+the remote logging app does nothing.
 .I Syslog
 means that it will issue a warning to syslog.  This is the default.
 .I exec
@@ -126,6 +126,22 @@ it to syslog.
 Likewise, this parameter tells the system what action to take if the
 remote end signals a warning we don't recognize.  The default is to
 log it to syslog.
+.TP
+.I overflow_action
+This parameter tells the system what action to take if the
+internal event queue overflows. Valid values are
+.IR ignore ", " syslog ", " suspend ", " single ", and " halt " .
+If set to
+.IR ignore ,
+the remote logging app does nothing.
+.I Syslog
+means that it will issue a warning to syslog.  This is the default.
+.I Suspend
+will cause the remote logging app to stop sending records to the remote system. The logging app will still be alive. The
+.I single
+option will cause the remote logging app to put the computer system in single user mode. The
+.I halt
+option will cause the remote logging app to shutdown the computer system.
 .TP
 .I enable_krb5
 If set to "yes", Kerberos 5 will be used for authentication and

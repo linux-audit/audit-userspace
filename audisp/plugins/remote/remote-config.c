@@ -1,5 +1,5 @@
 /* remote-config.c -- 
- * Copyright 2008, 2009 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2008, 2009, 2011 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -99,6 +99,8 @@ AP(generic_warning)
 #undef AP
 static int remote_ending_action_parser(struct nv_pair *nv, int line,
                 remote_conf_t *config);
+static int overflow_action_parser(struct nv_pair *nv, int line, 
+		remote_conf_t *config);
 static int sanity_check(remote_conf_t *config, const char *file);
 
 static const struct kw_pair keywords[] = 
@@ -125,6 +127,7 @@ static const struct kw_pair keywords[] =
   {"remote_ending_action",   remote_ending_action_parser,	1 },
   {"generic_error_action",   generic_error_action_parser,	1 },
   {"generic_warning_action", generic_warning_action_parser,	1 },
+  {"overflow_action",        overflow_action_parser,		1 },
   { NULL,                    NULL,                              0 }
 };
 
@@ -150,6 +153,16 @@ static const struct nv_list fail_action_words[] =
   {"single",   FA_SINGLE },
   {"halt",     FA_HALT },
   {"stop",     FA_STOP },
+  { NULL,  0 }
+};
+
+static const struct nv_list overflow_action_words[] =
+{
+  {"ignore",   OA_IGNORE },
+  {"syslog",   OA_SYSLOG },
+  {"suspend",  OA_SUSPEND },
+  {"single",   OA_SINGLE },
+  {"halt",     OA_HALT },
   { NULL,  0 }
 };
 
@@ -196,6 +209,7 @@ void clear_config(remote_conf_t *config)
 	IA(generic_error, FA_SYSLOG);
 	IA(generic_warning, FA_SYSLOG);
 #undef IA
+	config->overflow_action = OA_SYSLOG;
 
 	config->enable_krb5 = 0;
 	config->krb5_principal = NULL;
@@ -568,6 +582,21 @@ AP(disk_error)
 AP(generic_error)
 AP(generic_warning)
 #undef AP
+
+static int overflow_action_parser(struct nv_pair *nv, int line,
+	remote_conf_t *config)
+{
+        int i;
+
+        for (i=0; overflow_action_words[i].name != NULL; i++) {
+                if (strcasecmp(nv->value, overflow_action_words[i].name) == 0) {
+                        config->overflow_action = overflow_action_words[i].option;
+                        return 0;
+                }
+        }
+        syslog(LOG_ERR, "Option %s not found - line %d", nv->value, line);
+        return 1;
+}
 
 static int remote_ending_action_parser(struct nv_pair *nv, int line,
                 remote_conf_t *config)
