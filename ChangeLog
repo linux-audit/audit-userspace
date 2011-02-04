@@ -17,6 +17,7 @@
 - Update syscall tables for the 2.6.37 kernel
 - In ausearch, allow searching for auid -1
 - Add queue overflow_action to audisp-remote to control queue overflows
+- Update sample rules for new syscalls and packages
 
 2.0.5
 - Make auparse handle empty AUSOURCE_FILE_ARRAY correctly (Miloslav Trmač)
