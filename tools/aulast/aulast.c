@@ -69,7 +69,10 @@ static void report_session(lnode* cur)
 		}
 	} else {
 		struct passwd *p = getpwuid(cur->auid);
-		printf("%-8.8s ", p->pw_name);
+		if (p)
+			printf("%-8.8s ", p->pw_name);
+		else
+			printf("%-8.u ", cur->auid);
 	}
 	if (strncmp("/dev/", cur->term, 5) == 0)
 		printf("%-12.12s ", cur->term+5);

@@ -1,5 +1,6 @@
 2.0.7
 - Update auditctl man page for new field on user filter
+- Fix crash in aulast when auid is foreign to the system
 
 2.0.6
 - ausearch/report performance improvements
