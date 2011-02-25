@@ -1,6 +1,6 @@
 /*
  * aulast.c - A last program based on audit logs 
- * Copyright (c) 2008-2009 Red Hat Inc., Durham, North Carolina.
+ * Copyright (c) 2008-2009,2011 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This software may be freely redistributed and/or modified under the
@@ -25,6 +25,7 @@
 #include <stdio.h>
 #include <locale.h>
 #include <string.h>
+#include <unistd.h>
 #include <errno.h>
 #include <pwd.h>
 #include <stdlib.h>
@@ -505,10 +506,14 @@ int main(int argc, char *argv[])
 		au = auparse_init(AUSOURCE_FILE, file);
 	else if (use_stdin)
 		au = auparse_init(AUSOURCE_FILE_POINTER, stdin);
-	else
+	else {
+		if (getuid()) {
+			fprintf(stderr, "You probably need to be root for this to work\n");
+		}
 		au = auparse_init(AUSOURCE_LOGS, NULL);
+	}
 	if (au == NULL) {
-		printf("Error - %s\n", strerror(errno));
+		fprintf(stderr, "Error - %s\n", strerror(errno));
 		goto error_exit_1;
 	}
 
