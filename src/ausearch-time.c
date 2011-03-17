@@ -1,5 +1,5 @@
 /* ausearch-time.c - time handling utility functions
- * Copyright 2006-08 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2006-08,2011 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -126,7 +126,7 @@ static void set_tm_this_week(struct tm *d)
 static void set_tm_week_ago(struct tm *d)
 {
         time_t t = time(NULL);
-        struct tm *tv = localtime(&t);
+        struct tm *tv;
         d->tm_sec = 0;          /* seconds */
         d->tm_min = 0;          /* minutes */
         d->tm_hour = 0;         /* hours */

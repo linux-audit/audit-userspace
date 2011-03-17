@@ -1,5 +1,5 @@
 /* auditd-event.c -- 
- * Copyright 2004-08 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2004-08,2011 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -686,7 +686,7 @@ static void check_excess_logs(struct auditd_consumer_data *data)
 			    "Log %s removed as it exceeds num_logs parameter",
 			     name);
 	}
-
+	free(name);
 }
  
 static void rotate_logs(struct auditd_consumer_data *data, 
@@ -1201,9 +1201,10 @@ static void reconfigure(struct auditd_consumer_data *data)
 			logging_suspended = 1;
 			// Likely errors: ENOMEM, ENOSPC
 			do_disk_error_action("reconfig", data->config);
-		} else
+		} else {
 			logging_suspended = 0;
-		check_log_file_size(data->log_fd, data);
+			check_log_file_size(data->log_fd, data);
+		}
 	}
 
 	/* At this point we will start working on items that are 

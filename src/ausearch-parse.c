@@ -968,6 +968,8 @@ static int parse_login(const lnode *n, search_items *s)
 	}
 	// ses
 	if (event_session_id != -2 ) {
+		if (term == NULL)
+			term = n->message;
 		str = strstr(term, "new ses=");
 		if (str) {
 			ptr = str + 8;

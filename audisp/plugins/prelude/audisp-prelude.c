@@ -1,5 +1,5 @@
 /* audisp-prelude.c --
- * Copyright 2008-09 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2008-09,2011 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -1033,7 +1033,9 @@ static int do_assessment(idmef_alert_t *alert, auparse_state_t *au,
 	if (descr) {
 		prelude_string_t *str;
 		ret = idmef_impact_new_description(impact, &str);
-		prelude_string_set_ref(str, descr);
+		PRELUDE_FAIL_CHECK;
+		ret = prelude_string_set_ref(str, descr);
+		PRELUDE_FAIL_CHECK;
 	}
 
 	// FIXME: I think this is wrong. sb a way to express indeterminate

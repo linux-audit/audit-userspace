@@ -1,5 +1,5 @@
 /* auditd-listen.c -- 
- * Copyright 2008,2009 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2008,2009,2011 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -862,7 +862,7 @@ int auditd_tcp_listen_init ( struct ev_loop *loop, struct daemon_conf *config )
 		return 0;
 
 	listen_socket = socket (AF_INET, SOCK_STREAM, 0);
-	if (listen_socket == 0) {
+	if (listen_socket < 0) {
         	audit_msg(LOG_ERR, "Cannot create tcp listener socket");
 		return 1;
 	}

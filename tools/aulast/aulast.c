@@ -301,6 +301,7 @@ static void update_session_login(auparse_state_t *au)
 				auparse_get_serial(au));
 
 		// If the results were failed, we can close it out
+		// FIXME: result cannot be true. This is dead code.
 		if (result) {
 			report_session(cur);
 			list_delete_cur(&l);

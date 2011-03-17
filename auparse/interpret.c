@@ -1,6 +1,6 @@
 /*
 * interpret.c - Lookup values to something more readable
-* Copyright (c) 2007-09 Red Hat Inc., Durham, North Carolina.
+* Copyright (c) 2007-09,2011 Red Hat Inc., Durham, North Carolina.
 * All Rights Reserved. 
 *
 * This software may be freely redistributed and/or modified under the
@@ -494,7 +494,7 @@ static const char *print_sockaddr(const char *val)
         const struct sockaddr *saddr;
         char name[NI_MAXHOST], serv[NI_MAXSERV];
         const char *host;
-        char *out;
+        char *out = NULL;
         const char *str;
 
         slen = strlen(val)/2;

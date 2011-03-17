@@ -1,5 +1,5 @@
 /* data_buf.c --
- * Copyright 2007 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2007,2011 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -141,6 +141,7 @@ void databuf_print(DataBuf *db, int print_data, char *fmt, ...)
         printf("]");
     }
     printf("\n");
+    va_end(ap);
 }
 
 int databuf_init(DataBuf *db, size_t size, unsigned flags)
