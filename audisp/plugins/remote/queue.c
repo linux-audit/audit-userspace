@@ -80,20 +80,6 @@ event_t *dequeue(int peek)
 	return e;
 }
 
-/* void increase_queue_depth(unsigned int size)
-{
-	if (size > q_depth) {
-		int i;
-		void *tmp_q;
-
-		tmp_q = realloc(q, size * sizeof(event_t *));
-		q = tmp_q;
-		for (i=q_depth; i<size; i++)
-			q[i] = NULL;
-		q_depth = size;
-	}
-} */
-
 int queue_length(void)
 {
 	if (q_next == q_last)
