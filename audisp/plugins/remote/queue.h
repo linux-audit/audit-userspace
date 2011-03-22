@@ -32,7 +32,7 @@ typedef struct event
 
 
 int init_queue(unsigned int size);
-void enqueue(event_t *e);
+int enqueue(event_t *e);
 event_t *dequeue(int peek);
 void increase_queue_depth(unsigned int size);
 int queue_length(void);

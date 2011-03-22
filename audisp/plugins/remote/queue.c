@@ -22,16 +22,10 @@
 
 #include "config.h"
 #include <stdlib.h>
-#include <unistd.h>
-#include <syslog.h>
 #include "queue.h"
-#include "remote-config.h"
 
 static volatile event_t **q;
 static unsigned int q_next, q_last, q_depth;
-static const char *SINGLE = "1";
-static const char *HALT = "0";
-extern remote_conf_t config;
 
 int init_queue(unsigned int size)
 {
@@ -50,58 +44,7 @@ int init_queue(unsigned int size)
 	return 0;
 }
 
-static void change_runlevel(const char *level)
-{
-	char *argv[3];
-	int pid;
-	static const char *init_pgm = "/sbin/init";
-
-	pid = fork();
-	if (pid < 0) {
-		syslog(LOG_ALERT, "Audisp-remote failed to fork switching runlevels");
-		return;
-	}
-	if (pid)	// Parent
-		return;
-	// Child
-	argv[0] = (char *)init_pgm;
-	argv[1] = (char *)level;
-	argv[2] = NULL;
-	execve(init_pgm, argv, NULL);
-	syslog(LOG_ALERT, "Audisp-remote failed to exec %s", init_pgm);
-	exit(1);
-}
-
-static void do_overflow_action(void)
-{
-        switch (config.overflow_action)
-        {
-                case OA_IGNORE:
-			break;
-                case OA_SYSLOG:
-			syslog(LOG_ERR, "queue is full - dropping event");
-                        break;
-                case OA_SUSPEND:
-                        syslog(LOG_ALERT,
-                            "Audisp-remote is suspending event processing due to overflowing its queue.");
-                        break;
-                case OA_SINGLE:
-                        syslog(LOG_ALERT,
-                                "Audisp-remote is now changing the system to single user mode due to overflowing its queue");
-                        change_runlevel(SINGLE);
-                        break;
-                case OA_HALT:
-                        syslog(LOG_ALERT,
-                                "Audisp-remote is now halting the system due to overflowing its queue");
-                        change_runlevel(HALT);
-                        break;
-                default:
-                        syslog(LOG_ALERT, "Unknown overflow action requested");
-                        break;
-        }
-}
-
-void enqueue(event_t *e)
+int enqueue(event_t *e)
 {
 	unsigned int n;
 
@@ -110,10 +53,10 @@ void enqueue(event_t *e)
 	if (q[n] == NULL) {
 		q[n] = e;
 		q_next = (n+1) % q_depth;
+		return 0;
 	} else {
-		// Overflowed the queue
-		do_overflow_action();
 		free(e);
+		return -1;
 	}
 }
 

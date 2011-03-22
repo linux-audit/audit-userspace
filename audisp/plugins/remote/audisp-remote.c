@@ -298,6 +298,35 @@ static void send_heartbeat (void)
 	relay_event (NULL, 0);
 }
 
+static void do_overflow_action(void)
+{
+        switch (config.overflow_action)
+        {
+                case OA_IGNORE:
+			break;
+                case OA_SYSLOG:
+			syslog(LOG_ERR, "queue is full - dropping event");
+                        break;
+                case OA_SUSPEND:
+                        syslog(LOG_ALERT,
+                            "Audisp-remote is suspending event processing due to overflowing its queue.");
+                        break;
+                case OA_SINGLE:
+                        syslog(LOG_ALERT,
+                                "Audisp-remote is now changing the system to single user mode due to overflowing its queue");
+                        change_runlevel(SINGLE);
+                        break;
+                case OA_HALT:
+                        syslog(LOG_ALERT,
+                                "Audisp-remote is now halting the system due to overflowing its queue");
+                        change_runlevel(HALT);
+                        break;
+                default:
+                        syslog(LOG_ALERT, "Unknown overflow action requested");
+                        break;
+        }
+}
+
 int main(int argc, char *argv[])
 {
 	event_t *e;
@@ -399,7 +428,8 @@ int main(int argc, char *argv[])
 				free(e);
 				continue;
 			}
-			enqueue(e);
+			if (enqueue(e) != 0)
+				do_overflow_action();
 			rc = 0;
 			while (!suspend && rc >= 0 && transport_ok &&
 							(e = dequeue(1))) {
