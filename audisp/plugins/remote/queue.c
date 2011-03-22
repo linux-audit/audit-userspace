@@ -600,43 +600,32 @@ int init_queue(remote_conf_t *config)
 	return 0;
 }
 
-int enqueue(event_t *e)
+int enqueue(const char *data)
 {
-	int ret;
-
-	if (q_append(q, e->data) == 0)
-		ret = 0;
+	if (q_append(q, data) == 0)
+		return 0;
 	else if (errno == ENOSPC)
-		ret = -1;
+		return -1;
 	else {
 		queue_error();
-		ret = 0;
+		return 0;
 	}
-	free(e);
-	return ret;
 }
 
-event_t *peek_queue(void)
+int peek_queue(char *buf, size_t size)
 {
-	event_t *e;
 	int r;
 
-	e = malloc(sizeof(*e));
-	if (e == NULL)
-		goto err;
-	r = q_peek(q, e->data, sizeof(e->data));
-	if (r == 0) {
-		free(e);
-		return NULL;
-	}
+	r = q_peek(q, buf, size);
+	if (r == 0)
+		return 0;
 	if (r != 1)
 		goto err;
-	return e;
+	return 1;
 
 err:
 	queue_error();
-	free(e);
-	return NULL;
+	return 0;
 }
 
 void dequeue(void)

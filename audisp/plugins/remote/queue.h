@@ -28,15 +28,9 @@
 #include "libaudit.h"
 #include "remote-config.h"
 
-typedef struct event
-{
-	char data[MAX_AUDIT_MESSAGE_LENGTH];
-} event_t;
-
-
 int init_queue(remote_conf_t *config);
-int enqueue(event_t *e);
-event_t *peek_queue(void);
+int enqueue(const char *data);
+int peek_queue(char *buf, size_t);
 void dequeue(void);
 int queue_length(void);
 void destroy_queue(void);

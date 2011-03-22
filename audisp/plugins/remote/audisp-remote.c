@@ -340,7 +340,6 @@ static void do_overflow_action(void)
 
 int main(int argc, char *argv[])
 {
-	event_t *e;
 	struct sigaction sa;
 	int rc, q_len;
 
@@ -383,6 +382,7 @@ int main(int argc, char *argv[])
 	do {
 		fd_set rfd;
 		struct timeval tv;
+		char event[MAX_AUDIT_MESSAGE_LENGTH];
 		int n, fds = ifd + 1;
 
 		/* Load configuration */
@@ -428,8 +428,7 @@ int main(int argc, char *argv[])
 		if (hup != 0 || stop != 0)
 			continue;
 
-		e = (event_t *)malloc(sizeof(event_t));
-		if (fgets_unlocked(e->data, MAX_AUDIT_MESSAGE_LENGTH, in)) {
+		if (fgets_unlocked(event, sizeof(event), in)) {
 			if (!transport_ok && remote_ended && 
 				config.remote_ending_action == FA_RECONNECT) {
 				quiet = 1;
@@ -438,25 +437,20 @@ int main(int argc, char *argv[])
 				quiet = 0;
 			}
 			/* Strip out EOE records */
-			if (strstr(e->data,"type=EOE msg=audit(")) {
-				free(e);
+			if (strstr(event,"type=EOE msg=audit("))
 				continue;
-			}
-			if (enqueue(e) != 0)
+			if (enqueue(event) != 0)
 				do_overflow_action();
 			rc = 0;
 			while (!suspend && rc >= 0 && transport_ok &&
-			       (e = peek_queue()) != NULL) {
-				rc = relay_event(e->data, 
-					strnlen(e->data,
+			       peek_queue(event, sizeof(event)) != 0) {
+				rc = relay_event(event,
+					strnlen(event,
 					MAX_AUDIT_MESSAGE_LENGTH));
-				if (rc >= 0) {
-					free(e);
+				if (rc >= 0)
 					dequeue(); // delete it
-				}
 			}
-		} else
-			free(e);
+		}
 		if (feof(in))
 			break;
 	} while (stop == 0);
