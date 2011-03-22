@@ -382,9 +382,11 @@ int main(int argc, char *argv[])
 		if (!FD_ISSET(ifd, &rfd))
 			continue;
 
+		if (hup != 0 || stop != 0)
+			continue;
+
 		e = (event_t *)malloc(sizeof(event_t));
-		if (fgets_unlocked(e->data, MAX_AUDIT_MESSAGE_LENGTH, in) &&
-							hup==0 && stop==0) {
+		if (fgets_unlocked(e->data, MAX_AUDIT_MESSAGE_LENGTH, in)) {
 			if (!transport_ok && remote_ended && 
 				config.remote_ending_action == FA_RECONNECT) {
 				quiet = 1;
