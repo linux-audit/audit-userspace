@@ -56,6 +56,10 @@
 #define CONFIG_FILE "/etc/audisp/audisp-remote.conf"
 #define BUF_SIZE 32
 
+/* MAX_AUDIT_MESSAGE_LENGTH, aligned to 4 KB so that an average q_append() only
+   writes to two disk disk blocks (1 aligned data block, 1 header block). */
+#define QUEUE_ENTRY_SIZE (3*4096)
+
 /* Error types */
 #define ET_SUCCESS	 0
 #define ET_PERMANENT	-1
@@ -92,6 +96,12 @@ gss_ctx_id_t my_context;
 #define REQ_FLAGS GSS_C_MUTUAL_FLAG | GSS_C_REPLAY_FLAG | GSS_C_INTEG_FLAG | GSS_C_CONF_FLAG
 #define USE_GSS (config.enable_krb5)
 #endif
+
+/* Compile-time expression verification */
+#define verify(E) do {				\
+		char verify__[(E) ? 1 : -1];	\
+		(void)verify__;			\
+	} while (0)
 
 /*
  * SIGTERM handler
@@ -294,7 +304,7 @@ static int generic_remote_warning_handler (const char *message)
 }
 
 /* Report and handle a queue error, using errno. */
-void queue_error(void)
+static void queue_error(void)
 {
 	char *errno_str;
 	va_list ap;
@@ -338,10 +348,31 @@ static void do_overflow_action(void)
         }
 }
 
+/* Initialize and return a queue depending on user's configuration.
+   On error return NULL and set errno. */
+static struct queue *init_queue(void)
+{
+	const char *path;
+	int q_flags;
+
+	if (config.queue_file != NULL)
+		path = config.queue_file;
+	else
+		path = "/var/lib/auditd-remote/queue";
+	q_flags = Q_IN_MEMORY;
+	if (config.mode == M_STORE_AND_FORWARD)
+		/* FIXME: let user control Q_SYNC? */
+		q_flags |= Q_IN_FILE | Q_CREAT | Q_RESIZE;
+	verify(QUEUE_ENTRY_SIZE >= MAX_AUDIT_MESSAGE_LENGTH);
+	return q_open(q_flags, path, config.queue_depth, QUEUE_ENTRY_SIZE);
+}
+
 int main(int argc, char *argv[])
 {
 	struct sigaction sa;
-	int rc, q_len;
+	struct queue *queue;
+	int rc;
+	size_t q_len;
 
 	/* Register sighandlers */
 	sa.sa_flags = 0;
@@ -368,8 +399,9 @@ int main(int argc, char *argv[])
 	rc = init_transport();
 	if (rc == ET_PERMANENT)
 		return 1;
-	if (init_queue(&config) != 0) {
-		syslog(LOG_ERR, "Error initializing audit record queue");
+	queue = init_queue();
+	if (queue == NULL) {
+		syslog(LOG_ERR, "Error initializing audit record queue: %m");
 		return 1;
 	}
 
@@ -439,16 +471,28 @@ int main(int argc, char *argv[])
 			/* Strip out EOE records */
 			if (strstr(event,"type=EOE msg=audit("))
 				continue;
-			if (enqueue(event) != 0)
-				do_overflow_action();
-			rc = 0;
-			while (!suspend && rc >= 0 && transport_ok &&
-			       peek_queue(event, sizeof(event)) != 0) {
-				rc = relay_event(event,
+			if (q_append(queue, event) != 0) {
+				if (errno == ENOSPC)
+					do_overflow_action();
+				else
+					queue_error();
+			}
+			while (!suspend && transport_ok) {
+				rc = q_peek(queue, event, sizeof(event));
+				if (rc == 0)
+					break;
+				if (rc != 1) {
+					queue_error();
+					break;
+				}
+				if (relay_event(event,
 					strnlen(event,
-					MAX_AUDIT_MESSAGE_LENGTH));
-				if (rc >= 0)
-					dequeue(); // delete it
+					MAX_AUDIT_MESSAGE_LENGTH)) < 0)
+					break;
+				if (q_drop_head(queue) != 0) {
+					queue_error();
+					break;
+				}
 			}
 		}
 		if (feof(in))
@@ -456,8 +500,8 @@ int main(int argc, char *argv[])
 	} while (stop == 0);
 	close(sock);
 	free_config(&config);
-	q_len = queue_length();
-	destroy_queue();
+	q_len = q_queue_length(queue);
+	q_close(queue);
 	if (stop)
 		syslog(LOG_NOTICE, "audisp-remote is exiting on stop request");
 

@@ -25,17 +25,6 @@
 #define QUEUE_HEADER
 
 #include <sys/types.h>
-#include "libaudit.h"
-#include "remote-config.h"
-
-int init_queue(remote_conf_t *config);
-int enqueue(const char *data);
-int peek_queue(char *buf, size_t);
-void dequeue(void);
-int queue_length(void);
-void destroy_queue(void);
-
- /* The new interface */
 
 struct queue;
 
