@@ -367,6 +367,30 @@ static struct queue *init_queue(void)
 	return q_open(q_flags, path, config.queue_depth, QUEUE_ENTRY_SIZE);
 }
 
+/* Send as many items from QUEUE to the remote system as possible */
+static void flush_queue(struct queue *queue)
+{
+	while (!suspend && transport_ok) {
+		char event[MAX_AUDIT_MESSAGE_LENGTH];
+		int rc;
+
+		rc = q_peek(queue, event, sizeof(event));
+		if (rc == 0)
+			break;
+		if (rc != 1) {
+			queue_error();
+			break;
+		}
+		if (relay_event(event, strnlen(event, MAX_AUDIT_MESSAGE_LENGTH))
+		    < 0)
+			break;
+		if (q_drop_head(queue) != 0) {
+			queue_error();
+			break;
+		}
+	}
+}
+
 int main(int argc, char *argv[])
 {
 	struct sigaction sa;
@@ -411,7 +435,8 @@ int main(int argc, char *argv[])
 	capng_apply(CAPNG_SELECT_BOTH);
 #endif
 
-	do {
+	flush_queue(queue);
+	while (stop == 0 && !feof(in)) {
 		fd_set rfd;
 		struct timeval tv;
 		char event[MAX_AUDIT_MESSAGE_LENGTH];
@@ -477,27 +502,9 @@ int main(int argc, char *argv[])
 				else
 					queue_error();
 			}
-			while (!suspend && transport_ok) {
-				rc = q_peek(queue, event, sizeof(event));
-				if (rc == 0)
-					break;
-				if (rc != 1) {
-					queue_error();
-					break;
-				}
-				if (relay_event(event,
-					strnlen(event,
-					MAX_AUDIT_MESSAGE_LENGTH)) < 0)
-					break;
-				if (q_drop_head(queue) != 0) {
-					queue_error();
-					break;
-				}
-			}
+			flush_queue(queue);
 		}
-		if (feof(in))
-			break;
-	} while (stop == 0);
+	}
 	close(sock);
 	free_config(&config);
 	q_len = q_queue_length(queue);
