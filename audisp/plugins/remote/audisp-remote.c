@@ -411,7 +411,8 @@ int main(int argc, char *argv[])
 					free(e);
 				}
 			}
-		}
+		} else
+			free(e);
 		if (feof(in))
 			break;
 	} while (stop == 0);
