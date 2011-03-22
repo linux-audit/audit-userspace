@@ -25,6 +25,9 @@ If set to
 .IR tcp ,
 the remote logging app will just make a normal clear text connection to the remote system. This is not used if kerberos is enabled.
 .TP
+.I queue_file
+This is the absolute path to the file to be used as a persistent queue.
+.TP
 .I mode
 This parameter tells the remote logging app what strategy to use getting records to the remote system. Valid values are
 .IR immediate ", and " forward " .
