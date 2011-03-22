@@ -39,6 +39,7 @@ typedef struct remote_conf
 	unsigned int local_port;
 	transport_t transport;
 	rmode_t mode;
+	const char *queue_file;
 	unsigned int queue_depth;
 	format_t format;
 	unsigned int network_retry_time;
@@ -64,6 +65,8 @@ typedef struct remote_conf
 	const char *generic_error_exe;
 	failure_action_t generic_warning_action;
 	const char *generic_warning_exe;
+	failure_action_t queue_error_action;
+	const char *queue_error_exe;
 	overflow_action_t overflow_action;
 } remote_conf_t;
 

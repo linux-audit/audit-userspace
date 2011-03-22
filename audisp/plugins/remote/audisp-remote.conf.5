@@ -1,4 +1,4 @@
-.TH AUDISP-REMOTE.CONF: "5" "Dec 2008" "Red Hat" "System Administration Utilities"
+.TH AUDISP-REMOTE.CONF: "5" "Mar 2011" "Red Hat" "System Administration Utilities"
 .SH NAME
 audisp-remote.conf \- the audisp-remote configuration file
 .SH DESCRIPTION
@@ -32,9 +32,14 @@ If set to
 .IR immediate ,
 the remote logging app will attempt to send events immediately after getting them.
 .I forward
-, which is not implemented yet, means that it will store the events to disk and then attempt to send the records. If the connection cannot be made, it will queue records until it can connection to the remote system. The depth of the queue is controlled by the
+means that it will store the events to disk and then attempt to send the records. If the connection cannot be made, it will queue records until it can connect to the remote system. The depth of the queue is controlled by the
 .I queue_depth
 option.
+.TP
+.I queue_file
+Path of a file used for the event queue if
+.I mode
+is set to \fIforward\fP.  The default is \fB/var/lib/auditd-remote/queue\fP.
 .TP
 .I queue_depth
 This option is an unsigned integer that determines how many records can be buffered to disk or in memory before considering it to be a failure sending. This parameter affects the
@@ -52,7 +57,11 @@ the remote end, and to receive status messages from the remote server.
 If
 .I ascii
 is given instead, each message is a simple ASCII text line with no
-overhead at all.
+overhead at all.  If
+.I mode
+is set to \fIforward\fP,
+.I format
+must be \fImanaged\fP.
 .TP
 .I network_retry_time
 The time, in seconds, between retries when a network error is
@@ -126,6 +135,10 @@ it to syslog.
 Likewise, this parameter tells the system what action to take if the
 remote end signals a warning we don't recognize.  The default is to
 log it to syslog.
+.TP
+.I queue_error_action
+Likewise, this parameter tells the system what action to take if there
+is a problem working with a local record queue.  The default is to exit.
 .TP
 .I overflow_action
 This parameter tells the system what action to take if the

@@ -68,6 +68,8 @@ static int transport_parser(struct nv_pair *nv, int line,
 		remote_conf_t *config);
 static int mode_parser(struct nv_pair *nv, int line, 
 		remote_conf_t *config);
+static int queue_file_parser(struct nv_pair *nv, int line,
+		remote_conf_t *config);
 static int depth_parser(struct nv_pair *nv, int line, 
 		remote_conf_t *config);
 static int format_parser(struct nv_pair *nv, int line, 
@@ -96,6 +98,7 @@ AP(disk_full)
 AP(disk_error)
 AP(generic_error)
 AP(generic_warning)
+AP(queue_error)
 #undef AP
 static int remote_ending_action_parser(struct nv_pair *nv, int line,
                 remote_conf_t *config);
@@ -110,6 +113,7 @@ static const struct kw_pair keywords[] =
   {"local_port",       local_port_parser,	0 },
   {"transport",        transport_parser,	0 },
   {"mode",             mode_parser,		0 },
+  {"queue_file",       queue_file_parser,	0 },
   {"queue_depth",      depth_parser,		0 },
   {"format",           format_parser,		0 },
   {"network_retry_time",     network_retry_time_parser,         0 },
@@ -127,6 +131,7 @@ static const struct kw_pair keywords[] =
   {"remote_ending_action",   remote_ending_action_parser,	1 },
   {"generic_error_action",   generic_error_action_parser,	1 },
   {"generic_warning_action", generic_warning_action_parser,	1 },
+  {"queue_error_action",     queue_error_action_parser,		1 },
   {"overflow_action",        overflow_action_parser,		1 },
   { NULL,                    NULL,                              0 }
 };
@@ -140,7 +145,7 @@ static const struct nv_list transport_words[] =
 static const struct nv_list mode_words[] =
 {
   {"immediate",  M_IMMEDIATE },
-//  {"forward",    M_STORE_AND_FORWARD },
+  {"forward",    M_STORE_AND_FORWARD },
   { NULL,  0 }
 };
 
@@ -192,6 +197,7 @@ void clear_config(remote_conf_t *config)
 	config->local_port = 0;
 	config->transport = T_TCP;
 	config->mode = M_IMMEDIATE;
+	config->queue_file = NULL;
 	config->queue_depth = 200;
 	config->format = F_MANAGED;
 
@@ -208,6 +214,7 @@ void clear_config(remote_conf_t *config)
 	IA(remote_ending, FA_SUSPEND);
 	IA(generic_error, FA_SYSLOG);
 	IA(generic_warning, FA_SYSLOG);
+	IA(queue_error, FA_STOP);
 #undef IA
 	config->overflow_action = OA_SYSLOG;
 
@@ -543,6 +550,21 @@ static int mode_parser(struct nv_pair *nv, int line, remote_conf_t *config)
 	return 1;
 }
 
+static int queue_file_parser(struct nv_pair *nv, int line,
+		remote_conf_t *config)
+{
+	if (nv->value) {
+		if (*nv->value != '/') {
+			syslog(LOG_ERR, "Absolute path needed for %s - line %d",
+			       nv->value, line);
+			return 1;
+		}
+		config->queue_file = strdup(nv->value);
+	} else
+		config->queue_file = NULL;
+	return 0;
+}
+
 static int depth_parser(struct nv_pair *nv, int line,
 		remote_conf_t *config)
 {
@@ -581,6 +603,7 @@ AP(disk_full)
 AP(disk_error)
 AP(generic_error)
 AP(generic_warning)
+AP(queue_error)
 #undef AP
 
 static int overflow_action_parser(struct nv_pair *nv, int line,
@@ -729,12 +752,19 @@ static int sanity_check(remote_conf_t *config, const char *file)
 // port should be less that 32k
 // queue_depth should be less than 100k
 // If fail_action is F_EXEC, fail_exec must exist
+	if (config->mode == M_STORE_AND_FORWARD
+	    && config->format != F_MANAGED) {
+		syslog(LOG_ERR, "\"mode=forward\" is valid only with "
+		       "\"format=managed\"");
+		return 1;
+	}
 	return 0;
 }
 
 void free_config(remote_conf_t *config)
 {
 	free((void *)config->remote_server);
+	free((void *)config->queue_file);
 	free((void *)config->network_failure_exe);
 	free((void *)config->disk_low_exe);
 	free((void *)config->disk_full_exe);
@@ -742,6 +772,7 @@ void free_config(remote_conf_t *config)
 	free((void *)config->remote_ending_exe);
 	free((void *)config->generic_error_exe);
 	free((void *)config->generic_warning_exe);
+	free((void *)config->queue_error_exe);
 	free((void *)config->krb5_principal);
 	free((void *)config->krb5_client_name);
 	free((void *)config->krb5_key_file);
