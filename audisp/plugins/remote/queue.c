@@ -616,7 +616,7 @@ int enqueue(event_t *e)
 	return ret;
 }
 
-event_t *dequeue(int peek)
+event_t *peek_queue(void)
 {
 	event_t *e;
 	int r;
@@ -631,14 +631,18 @@ event_t *dequeue(int peek)
 	}
 	if (r != 1)
 		goto err;
-	if (!peek && q_drop_head(q) != 0)
-		goto err;
 	return e;
 
 err:
 	queue_error();
 	free(e);
 	return NULL;
+}
+
+void dequeue(void)
+{
+	if (q_drop_head(q) != 0)
+		queue_error();
 }
 
 int queue_length(void)

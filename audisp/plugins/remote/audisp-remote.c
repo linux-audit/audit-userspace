@@ -446,14 +446,13 @@ int main(int argc, char *argv[])
 				do_overflow_action();
 			rc = 0;
 			while (!suspend && rc >= 0 && transport_ok &&
-							(e = dequeue(1))) {
+			       (e = peek_queue()) != NULL) {
 				rc = relay_event(e->data, 
 					strnlen(e->data,
 					MAX_AUDIT_MESSAGE_LENGTH));
 				if (rc >= 0) {
 					free(e);
-					e = dequeue(0); // delete it
-					free(e);
+					dequeue(); // delete it
 				}
 			}
 		} else

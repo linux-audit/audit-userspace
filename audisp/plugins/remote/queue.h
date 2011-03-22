@@ -36,7 +36,8 @@ typedef struct event
 
 int init_queue(remote_conf_t *config);
 int enqueue(event_t *e);
-event_t *dequeue(int peek);
+event_t *peek_queue(void);
+void dequeue(void);
 int queue_length(void);
 void destroy_queue(void);
 
