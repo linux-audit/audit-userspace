@@ -22,7 +22,6 @@
 
 CONFIG_CLEAN_FILES = *.loT *.rej *.orig
 EXTRA_DIST = au-remote.conf audisp-remote.conf $(man_MANS)
-AUTOMAKE_OPTIONS = no-dependencies
 INCLUDES = -I${top_srcdir} -I${top_srcdir}/lib 
 prog_confdir = $(sysconfdir)/audisp
 prog_conf = audisp-remote.conf
