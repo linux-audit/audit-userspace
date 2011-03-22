@@ -38,7 +38,7 @@ typedef struct remote_conf
 	unsigned int port;
 	unsigned int local_port;
 	transport_t transport;
-	mode_t mode;
+	rmode_t mode;
 	unsigned int queue_depth;
 	format_t format;
 	unsigned int network_retry_time;
