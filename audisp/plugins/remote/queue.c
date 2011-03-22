@@ -163,7 +163,7 @@ static int sync_fh_state (struct queue *q)
 	return q_sync(q);
 }
 
- /* Implementation */
+ /* Queue implementation */
 
 /* Open PATH for Q, update Q from it, and return 0.
    On error, return -1 and set errno; Q->fd may be set even on error. */
@@ -570,81 +570,84 @@ err_errno_q:
 	return NULL;
 }
 
- /* The old interface */
+ /* audisp-remote interface */
 
-static volatile event_t **q;
-static unsigned int q_next, q_last, q_depth;
+/* MAX_AUDIT_MESSAGE_LENGTH, aligned to 4 KB so that an average q_append() only
+   writes to two disk disk blocks (1 aligned data block, 1 header block). */
+#define QUEUE_ENTRY_SIZE (3*4096)
 
-int init_queue(unsigned int size)
+extern void queue_error(void); /* This will go away in a few more patches. */
+
+static struct queue *q;
+
+int init_queue(remote_conf_t *config)
 {
-	unsigned int i;
+	const char *path;
+	int q_flags;
 
-	q_next = 0;
-	q_last = 0;
-	q_depth = size;
-	q = malloc(q_depth * sizeof(event_t *));
+	if (config->queue_file != NULL)
+		path = config->queue_file;
+	else
+		path = "/var/lib/auditd-remote/queue";
+	q_flags = Q_IN_MEMORY;
+	if (config->mode == M_STORE_AND_FORWARD)
+		/* FIXME: let user control Q_SYNC? */
+		q_flags |= Q_IN_FILE | Q_CREAT | Q_RESIZE;
+	verify(QUEUE_ENTRY_SIZE >= MAX_AUDIT_MESSAGE_LENGTH);
+	q = q_open(q_flags, path, config->queue_depth, QUEUE_ENTRY_SIZE);
 	if (q == NULL)
 		return -1;
-
-	for (i=0; i<q_depth; i++) 
-		q[i] = NULL;
-
 	return 0;
 }
 
 int enqueue(event_t *e)
 {
-	unsigned int n;
+	int ret;
 
-	// OK, add event
-	n = q_next%q_depth;
-	if (q[n] == NULL) {
-		q[n] = e;
-		q_next = (n+1) % q_depth;
-		return 0;
-	} else {
-		free(e);
-		return -1;
+	if (q_append(q, e->data) == 0)
+		ret = 0;
+	else if (errno == ENOSPC)
+		ret = -1;
+	else {
+		queue_error();
+		ret = 0;
 	}
+	free(e);
+	return ret;
 }
 
 event_t *dequeue(int peek)
 {
 	event_t *e;
-	unsigned int n;
+	int r;
 
-	// OK, grab the next event
-	n = q_last%q_depth;
-	if (q[n] != NULL) {
-		e = (event_t *)q[n];
-		if (peek == 0) {
-			q[n] = NULL;
-			q_last = (n+1) % q_depth;
-		}
-	} else
-		e = NULL;
-
-	// Process the event
+	e = malloc(sizeof(*e));
+	if (e == NULL)
+		goto err;
+	r = q_peek(q, e->data, sizeof(e->data));
+	if (r == 0) {
+		free(e);
+		return NULL;
+	}
+	if (r != 1)
+		goto err;
+	if (!peek && q_drop_head(q) != 0)
+		goto err;
 	return e;
+
+err:
+	queue_error();
+	free(e);
+	return NULL;
 }
 
 int queue_length(void)
 {
-	if (q_next == q_last)
-		return 0;
-	if (q_last > q_next)
-		return (q_depth + q_next) - q_last;
-	else
-		return q_next - q_last;
+	return q_queue_length(q);
 }
 
 void destroy_queue(void)
 {
-	unsigned int i;
-
-	for (i=0; i<q_depth; i++)
-		free((void *)q[i]);
-
-	free(q);
+	q_close(q);
 }
 

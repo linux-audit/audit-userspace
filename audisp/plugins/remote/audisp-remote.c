@@ -293,6 +293,17 @@ static int generic_remote_warning_handler (const char *message)
 			  config.generic_warning_exe);
 }
 
+/* Report and handle a queue error, using errno. */
+void queue_error(void)
+{
+	char *errno_str;
+	va_list ap;
+
+	errno_str = strerror(errno);
+	do_action("queue error", errno_str, LOG_ERR, config.queue_error_action,
+		  config.queue_error_exe);
+}
+
 static void send_heartbeat (void)
 {
 	relay_event (NULL, 0);
@@ -358,7 +369,10 @@ int main(int argc, char *argv[])
 	rc = init_transport();
 	if (rc == ET_PERMANENT)
 		return 1;
-	init_queue(config.queue_depth);
+	if (init_queue(&config) != 0) {
+		syslog(LOG_ERR, "Error initializing audit record queue");
+		return 1;
+	}
 
 #ifdef HAVE_LIBCAP_NG
 	// Drop all capabilities
@@ -437,7 +451,8 @@ int main(int argc, char *argv[])
 					strnlen(e->data,
 					MAX_AUDIT_MESSAGE_LENGTH));
 				if (rc >= 0) {
-					dequeue(0); // delete it
+					free(e);
+					e = dequeue(0); // delete it
 					free(e);
 				}
 			}

@@ -26,6 +26,7 @@
 
 #include <sys/types.h>
 #include "libaudit.h"
+#include "remote-config.h"
 
 typedef struct event
 {
@@ -33,7 +34,7 @@ typedef struct event
 } event_t;
 
 
-int init_queue(unsigned int size);
+int init_queue(remote_conf_t *config);
 int enqueue(event_t *e);
 event_t *dequeue(int peek);
 int queue_length(void);
