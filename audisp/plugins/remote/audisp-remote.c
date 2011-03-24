@@ -358,7 +358,7 @@ static struct queue *init_queue(void)
 	if (config.queue_file != NULL)
 		path = config.queue_file;
 	else
-		path = "/var/lib/auditd-remote/queue";
+		path = "/var/spool/audit/remote.log";
 	q_flags = Q_IN_MEMORY;
 	if (config.mode == M_STORE_AND_FORWARD)
 		/* FIXME: let user control Q_SYNC? */
