@@ -3,6 +3,7 @@
 - Fix crash in aulast when auid is foreign to the system
 - Code cleanups
 - Add store and forward model to audispd-remote (Mirek Trmac)
+- Free memory on failed startups in audisp-prelude
 
 2.0.6
 - ausearch/report performance improvements

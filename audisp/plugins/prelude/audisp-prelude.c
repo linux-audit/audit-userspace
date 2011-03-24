@@ -225,6 +225,7 @@ int main(int argc, char *argv[])
 	if (au == NULL) {
 		syslog(LOG_ERR,
 		    "audisp-prelude is exiting due to auparse init errors");
+		free_config(&config);
 		return -1;
 	}
 	auparse_add_callback(au, handle_event, NULL, NULL);
@@ -234,6 +235,7 @@ int main(int argc, char *argv[])
 		else
 			syslog(LOG_ERR,
 		    "audisp-prelude is exiting due to init_prelude failure");
+		free_config(&config);
 		return -1;
 	}
 #ifdef HAVE_LIBCAP_NG

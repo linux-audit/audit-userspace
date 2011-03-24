@@ -231,6 +231,7 @@ int load_config(prelude_conf_t *config, const char *file)
 	mode = O_RDONLY;
 	rc = open(file, mode);
 	if (rc < 0) {
+		free_config(config);
 		if (errno != ENOENT) {
 			syslog(LOG_ERR, "Error opening %s (%s)", file,
 				strerror(errno));
@@ -246,24 +247,28 @@ int load_config(prelude_conf_t *config, const char *file)
 	 * not symlink.
 	 */
 	if (fstat(fd, &st) < 0) {
+		free_config(config);
 		syslog(LOG_ERR, "Error fstat'ing config file (%s)", 
 			strerror(errno));
 		close(fd);
 		return 1;
 	}
 	if (st.st_uid != 0) {
+		free_config(config);
 		syslog(LOG_ERR, "Error - %s isn't owned by root", 
 			file);
 		close(fd);
 		return 1;
 	}
 	if ((st.st_mode & S_IWOTH) == S_IWOTH) {
+		free_config(config);
 		syslog(LOG_ERR, "Error - %s is world writable", 
 			file);
 		close(fd);
 		return 1;
 	}
 	if (!S_ISREG(st.st_mode)) {
+		free_config(config);
 		syslog(LOG_ERR, "Error - %s is not a regular file", 
 			file);
 		close(fd);
@@ -273,6 +278,7 @@ int load_config(prelude_conf_t *config, const char *file)
 	/* it's ok, read line by line */
 	f = fdopen(fd, "rm");
 	if (f == NULL) {
+		free_config(config);
 		syslog(LOG_ERR, "Error - fdopen failed (%s)", 
 			strerror(errno));
 		close(fd);
@@ -308,6 +314,7 @@ int load_config(prelude_conf_t *config, const char *file)
 			continue;
 		}
 		if (nv.value == NULL) {
+			free_config(config);
 			fclose(f);
 			return 1;
 		}
@@ -315,6 +322,7 @@ int load_config(prelude_conf_t *config, const char *file)
 		/* identify keyword or error */
 		kw = kw_lookup(nv.name);
 		if (kw->name == NULL) {
+			free_config(config);
 			syslog(LOG_ERR, 
 				"Unknown keyword \"%s\" in line %d of %s", 
 				nv.name, lineno, file);
@@ -324,6 +332,7 @@ int load_config(prelude_conf_t *config, const char *file)
 
 		/* Check number of options */
 		if (kw->max_options == 0 && nv.option != NULL) {
+			free_config(config);
 			syslog(LOG_ERR, 
 				"Keyword \"%s\" has invalid option "
 				"\"%s\" in line %d of %s", 
@@ -335,6 +344,7 @@ int load_config(prelude_conf_t *config, const char *file)
 		/* dispatch to keyword's local parser */
 		rc = kw->parser(&nv, lineno, config);
 		if (rc != 0) {
+			free_config(config);
 			fclose(f);
 			return 1; // local parser puts message out
 		}
