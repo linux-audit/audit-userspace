@@ -4,6 +4,7 @@
 - Code cleanups
 - Add store and forward model to audispd-remote (Mirek Trmac)
 - Free memory on failed startups in audisp-prelude
+- Fix memory leak in aureport
 
 2.0.6
 - ausearch/report performance improvements
