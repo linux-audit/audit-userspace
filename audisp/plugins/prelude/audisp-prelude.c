@@ -236,6 +236,7 @@ int main(int argc, char *argv[])
 			syslog(LOG_ERR,
 		    "audisp-prelude is exiting due to init_prelude failure");
 		free_config(&config);
+		auparse_destroy(au);
 		return -1;
 	}
 #ifdef HAVE_LIBCAP_NG
