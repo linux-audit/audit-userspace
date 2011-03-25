@@ -85,6 +85,9 @@ int audit_value_needs_encoding(const char *str, unsigned int size)
 {
 	int i;
 
+	if (str == NULL)
+		return 0;
+
 	for (i=0; i<size; i++) {
 		// we don't test for > 0x7f because str[] is signed.
 		if (str[i] == '"' || str[i] < 0x21 || str[i] == 0x7F)
@@ -102,6 +105,14 @@ char *audit_encode_value(char *final, const char *buf, unsigned int size)
 	char *ptr = final;
 	const char *hex = "0123456789ABCDEF";
 
+	if (final == NULL)
+		return NULL;
+
+	if (buf == NULL) {
+		*final = 0;
+		return final;
+	}
+
 	for (i=0; i<size; i++) {
 		*ptr++ = hex[(buf[i] & 0xF0)>>4]; /* Upper nibble */
 		*ptr++ = hex[buf[i] & 0x0F];      /* Lower nibble */
@@ -115,14 +126,17 @@ char *audit_encode_nv_string(const char *name, const char *value,
 {
 	char *str;
 
-	if (vlen == 0)
+	if (vlen == 0 && value)
 		vlen = strlen(value);
 
 	if (value && audit_value_needs_encoding(value, vlen)) {
 		char *tmp = malloc(2*vlen + 1);
-		audit_encode_value(tmp, value, vlen);
-		asprintf(&str, "%s=%s", name, tmp);
-		free(tmp);
+		if (tmp) {
+			audit_encode_value(tmp, value, vlen);
+			asprintf(&str, "%s=%s", name, tmp);
+			free(tmp);
+		} else
+			str = NULL;
 	} else
 		asprintf(&str, "%s=\"%s\"", name, value ? value : "?");
 	return str;
