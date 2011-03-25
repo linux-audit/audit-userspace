@@ -1111,7 +1111,9 @@ int main(int argc, char *argv[])
 			return 0;
 		}
 	}
-	return handle_request(retval);
+	retval = handle_request(retval);
+	free(rule_new);
+	return retval;
 }
 
 /*
