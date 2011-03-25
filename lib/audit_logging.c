@@ -1,5 +1,5 @@
 /* audit_logging.c -- 
- * Copyright 2005-2008,2010 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2005-2008,2010,2011 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -134,19 +134,14 @@ char *audit_encode_nv_string(const char *name, const char *value,
 static char *_get_exename(char *exename, int size)
 {
 	int res;
-	char tmp[PATH_MAX];
+	char tmp[PATH_MAX+1];
 
 	/* get the name of the current executable */
-	if ((res = readlink("/proc/self/exe", tmp, PATH_MAX - 1)) == -1) {
+	if ((res = readlink("/proc/self/exe", tmp, PATH_MAX)) == -1) {
 		strcpy(exename, "\"?\"");
 		audit_msg(LOG_ERR, "get_exename: cannot determine executable");
 	} else {
-		int len;
-
 		tmp[res] = '\0';
-		len = strlen(tmp);
-		if (len < res)
-			res = len;
 		if (audit_value_needs_encoding(tmp, res))
 			return audit_encode_value(exename, tmp, res);
 		snprintf(exename, size, "\"%s\"", tmp);
