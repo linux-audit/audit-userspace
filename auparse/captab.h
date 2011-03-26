@@ -56,4 +56,5 @@ _S(30,	"audit_control"		)
 _S(31,	"setfcap"		)
 _S(32,	"mac_override"		)
 _S(33,	"mac_admin"		)
+_S(34,	"syslog"		)
 

@@ -834,6 +834,7 @@ static struct nv_pair captab[] = {
         {31, "setfcap"},
         {32, "mac_overide"},
         {33, "mac_admin"},
+        {34, "syslog"},
 };
 #define CAP_NAMES (sizeof(captab)/sizeof(captab[0]))
 
