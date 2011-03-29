@@ -1140,6 +1140,9 @@ static void interpret(char *name, char *val, int comma, int rtype)
 		case T_ICMPTYPE:
 			print_icmptype(val);
 			break;
+		case T_PROTOCOL:
+			print_protocol(val);
+			break;
 		default:
 			printf("%s%c", val, comma ? ',' : ' ');
 	}

@@ -313,7 +313,6 @@ static int generic_remote_warning_handler (const char *message)
 static void queue_error(void)
 {
 	char *errno_str;
-	va_list ap;
 
 	errno_str = strerror(errno);
 	do_action("queue error", errno_str, LOG_ERR, config.queue_error_action,

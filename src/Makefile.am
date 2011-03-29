@@ -31,7 +31,7 @@ AM_CFLAGS = -D_REENTRANT -D_GNU_SOURCE
 noinst_HEADERS = auditd-config.h auditd-event.h auditd-listen.h ausearch-llist.h ausearch-options.h auditctl-llist.h aureport-options.h ausearch-parse.h aureport-scan.h ausearch-lookup.h ausearch-int.h auditd-dispatch.h ausearch-string.h ausearch-nvpair.h ausearch-common.h ausearch-avc.h ausearch-time.h ausearch-lol.h
 
 auditd_SOURCES = auditd.c auditd-event.c auditd-config.c auditd-reconfig.c auditd-sendmail.c auditd-dispatch.c auditd-listen.c
-auditd_CFLAGS = -fPIE -DPIE -g -D_REENTRANT -fno-strict-aliasing 
+auditd_CFLAGS = -fPIE -DPIE -g -D_REENTRANT -D_GNU_SOURCE -fno-strict-aliasing 
 auditd_LDFLAGS = -pie -Wl,-z,relro
 auditd_DEPENDENCIES = mt/libauditmt.a libev/libev.a
 auditd_LDADD = @LIBWRAP_LIBS@ @libev_LIBS@ -Llibev -lev -lrt -lpthread -lm $(gss_libs)
