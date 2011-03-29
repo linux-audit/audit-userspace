@@ -944,6 +944,12 @@ static void safe_exec(const char *exe)
 	char *argv[2];
 	int pid;
 
+	if (exe = NULL) {
+		audit_msg(LOG_ALERT,
+			"Safe_exec passed NULL for program to execute");
+		return;
+	}
+
 	pid = fork();
 	if (pid < 0) {
 		audit_msg(LOG_ALERT, 
