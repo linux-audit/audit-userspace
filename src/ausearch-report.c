@@ -1,6 +1,6 @@
 /*
 * ausearch-report.c - Format and output events
-* Copyright (c) 2005-09 Red Hat Inc., Durham, North Carolina.
+* Copyright (c) 2005-09,2011 Red Hat Inc., Durham, North Carolina.
 * All Rights Reserved. 
 *
 * This software may be freely redistributed and/or modified under the
@@ -362,6 +362,11 @@ static struct nv_pair typetab[] = {
 	{T_CAP_BITMAP, "cap_pp"},
 	{T_CAP_BITMAP, "cap_fi"},
 	{T_CAP_BITMAP, "cap_fp"},
+	{T_ESCAPED, "vm"},
+	{T_ESCAPED, "old-disk"},
+	{T_ESCAPED, "new-disk"},
+	{T_ESCAPED, "device"},
+	{T_ESCAPED, "cgroup"},
 };
 #define TYPE_NAMES (sizeof(typetab)/sizeof(typetab[0]))
 

@@ -1,6 +1,5 @@
-
 /* typetab.h --
- * Copyright 2007-09 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2007-09,2011 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -55,6 +54,11 @@ _S(AUPARSE_TYPE_ESCAPED,	"cmd"		)
 _S(AUPARSE_TYPE_ESCAPED,	"acct"		)
 _S(AUPARSE_TYPE_ESCAPED,	"dir"		)
 _S(AUPARSE_TYPE_ESCAPED,	"key"		)
+_S(AUPARSE_TYPE_ESCAPED,	"vm"		)
+_S(AUPARSE_TYPE_ESCAPED,	"old-disk"	)
+_S(AUPARSE_TYPE_ESCAPED,	"new-disk"	)
+_S(AUPARSE_TYPE_ESCAPED,	"device"	)
+_S(AUPARSE_TYPE_ESCAPED,	"cgroup"	)
 _S(AUPARSE_TYPE_PERM,		"perm"		)
 _S(AUPARSE_TYPE_PERM,		"perm_mask"	)
 _S(AUPARSE_TYPE_MODE,		"mode"		)
