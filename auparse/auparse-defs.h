@@ -1,5 +1,5 @@
 /* auparse-defs.h --
- * Copyright 2006-07, 09 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2006-07,09,2011 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -78,7 +78,8 @@ enum {  AUPARSE_TYPE_UNCLASSIFIED,  AUPARSE_TYPE_UID, AUPARSE_TYPE_GID,
 	AUPARSE_TYPE_CAPABILITY, AUPARSE_TYPE_SUCCESS, AUPARSE_TYPE_A0,
 	AUPARSE_TYPE_A1, AUPARSE_TYPE_A2, AUPARSE_TYPE_SIGNAL, 
 	AUPARSE_TYPE_LIST, AUPARSE_TYPE_TTY_DATA,
-	AUPARSE_TYPE_SESSION, AUPARSE_TYPE_CAP_BITMAP } auparse_type_t;
+	AUPARSE_TYPE_SESSION, AUPARSE_TYPE_CAP_BITMAP, AUPARSE_TYPE_NFPROTO,
+	AUPARSE_TYPE_ICMPTYPE } auparse_type_t;
 
 #ifdef __cplusplus
 }

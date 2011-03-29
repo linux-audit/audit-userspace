@@ -51,7 +51,7 @@ struct nv_pair {
 /* This is the list of field types that we can interpret */
 enum { T_UID, T_GID, T_SYSCALL, T_ARCH, T_EXIT, T_ESCAPED, T_PERM, T_MODE, 
 T_SOCKADDR, T_FLAGS, T_PROMISC, T_CAPABILITY, T_SIGNAL, T_KEY, T_LIST,
-T_TTY_DATA, T_SESSION, T_CAP_BITMAP };
+T_TTY_DATA, T_SESSION, T_CAP_BITMAP, T_NFPROTO, T_ICMPTYPE };
 
 /* Function in ausearch-parse for unescaping filenames */
 extern char *unescape(char *buf);
@@ -367,6 +367,8 @@ static struct nv_pair typetab[] = {
 	{T_ESCAPED, "new-disk"},
 	{T_ESCAPED, "device"},
 	{T_ESCAPED, "cgroup"},
+	{T_NFPROTO, "family"},
+	{T_ICMPTYPE, "icmptype"},
 };
 #define TYPE_NAMES (sizeof(typetab)/sizeof(typetab[0]))
 
@@ -859,7 +861,6 @@ static void print_capabilities(char *val)
                         printf("%s ", captab[i].name);
 			return;
 		}
-
 	}
 }
 
@@ -890,6 +891,44 @@ static void print_cap_bitmap(char *val)
 	if (found == 0)
 		printf("none");
 	printf(" ");
+}
+
+static void print_nfproto(char *val)
+{
+	int proto, i;
+
+	errno = 0;
+	proto = strtoul(val, NULL, 10);
+	if (errno) {
+		printf("conversion error(%s) ", val);
+		return;
+	}
+
+        for (i = 0; i < CAP_NAMES; i++) {
+                if (captab[i].value == proto) {
+                        printf("%s ", captab[i].name);
+			return;
+		}
+	}
+}
+
+static void print_icmptype(char *val)
+{
+	int icmptype, i;
+
+	errno = 0;
+	icmptype = strtoul(val, NULL, 10);
+	if (errno) {
+		printf("conversion error(%s) ", val);
+		return;
+	}
+
+        for (i = 0; i < CAP_NAMES; i++) {
+                if (captab[i].value == icmptype) {
+                        printf("%s ", captab[i].name);
+			return;
+		}
+	}
 }
 
 static void print_signals(char *val)
@@ -1040,6 +1079,12 @@ static void interpret(char *name, char *val, int comma, int rtype)
 			break;
 		case T_CAP_BITMAP:
 			print_cap_bitmap(val);
+			break;
+		case T_NFPROTO:
+			print_nfproto(val);
+			break;
+		case T_ICMPTYPE:
+			print_icmptype(val);
 			break;
 		default:
 			printf("%s%c", val, comma ? ',' : ' ');

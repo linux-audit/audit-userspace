@@ -13,6 +13,7 @@
 - In audisp-remote, overflow_action wasn't suspending if that action was chosen
 - Update interpretations for virt events
 - Improve remote logging warning and error messages
+- Add interpretations for netfilter events
 
 2.0.6
 - ausearch/report performance improvements
