@@ -31,7 +31,7 @@ _S(12,	"parameter-problem"		)
 _S(13,	"timestamp-request"		)
 _S(14,	"timestamp-reply"		)
 _S(15,	"info-request"			)
-_S(16,	"information-reply"		)
+_S(16,	"info-reply"			)
 _S(17,	"address-mask-request"		)
 _S(18,	"address-mask-reply"		)
 

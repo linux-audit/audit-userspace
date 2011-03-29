@@ -985,6 +985,25 @@ static const char *print_icmptype(const char *val)
 	return out;
 }
 
+static const char *print_protocol(const char *val)
+{
+	int i;
+	char *out;
+
+	errno = 0;
+        i = strtoul(val, NULL, 10);
+	if (errno) 
+		asprintf(&out, "conversion error(%s)", val);
+	else {
+		struct protoent *p = getprotobynumber(i);
+		if (p)
+			out = strdup(p->p_name);
+		else
+			out = strdup("undefined protocol");
+	}
+	return out;
+}
+
 static const char *print_list(const char *val)
 {
 	int i;
@@ -1241,6 +1260,9 @@ const char *interpret(const rnode *r)
 			break; 
 		case AUPARSE_TYPE_ICMPTYPE:
 			out = print_icmptype(val);
+			break; 
+		case AUPARSE_TYPE_PROTOCOL:
+			out = print_protocol(val);
 			break; 
 		case AUPARSE_TYPE_UNCLASSIFIED:
 		default: {

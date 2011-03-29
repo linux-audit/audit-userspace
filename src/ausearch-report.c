@@ -34,6 +34,8 @@
 #include <linux/if.h>	// FIXME: remove when ipx.h is fixed
 #include <linux/ipx.h>
 #include <linux/net.h>
+#include <linux/netfilter.h>
+#include <linux/icmp.h>
 #include <time.h>
 #include <stdlib.h>
 #include <ctype.h>
@@ -51,7 +53,7 @@ struct nv_pair {
 /* This is the list of field types that we can interpret */
 enum { T_UID, T_GID, T_SYSCALL, T_ARCH, T_EXIT, T_ESCAPED, T_PERM, T_MODE, 
 T_SOCKADDR, T_FLAGS, T_PROMISC, T_CAPABILITY, T_SIGNAL, T_KEY, T_LIST,
-T_TTY_DATA, T_SESSION, T_CAP_BITMAP, T_NFPROTO, T_ICMPTYPE };
+T_TTY_DATA, T_SESSION, T_CAP_BITMAP, T_NFPROTO, T_ICMPTYPE, T_PROTOCOL };
 
 /* Function in ausearch-parse for unescaping filenames */
 extern char *unescape(char *buf);
@@ -369,6 +371,7 @@ static struct nv_pair typetab[] = {
 	{T_ESCAPED, "cgroup"},
 	{T_NFPROTO, "family"},
 	{T_ICMPTYPE, "icmptype"},
+	{T_PROTOCOL, "proto"},
 };
 #define TYPE_NAMES (sizeof(typetab)/sizeof(typetab[0]))
 
@@ -722,7 +725,7 @@ static void print_sockaddr(char *val)
 			break;
                 case AF_INET6:
 			if (len < sizeof(struct sockaddr_in6)) {
-				printf("sockaddr6 len too short");
+				printf("sockaddr6 len too short ");
 				free(host);
 				return;
 			}
@@ -804,7 +807,7 @@ static void print_promiscuous(const char *val)
 }
 
 /*
- * This table maps file system flags to their text name
+ * This table maps posix capability defines to their text name
  */
 static struct nv_pair captab[] = {
         {0, "chown"},
@@ -893,6 +896,19 @@ static void print_cap_bitmap(char *val)
 	printf(" ");
 }
 
+/*
+ * This table maps netfilter protocol defines to their text name
+ */
+static struct nv_pair nfprototab[] = {
+        {NFPROTO_UNSPEC, "unspecified"},
+        {NFPROTO_IPV4, "ipv4"},
+        {NFPROTO_ARP, "arp"},
+        {NFPROTO_BRIDGE, "bridge"},
+        {NFPROTO_IPV6, "ipv6"},
+        {NFPROTO_DECNET, "decnet"},
+};
+#define NFPROTO_NAMES (sizeof(nfprototab)/sizeof(nfprototab[0]))
+
 static void print_nfproto(char *val)
 {
 	int proto, i;
@@ -904,13 +920,33 @@ static void print_nfproto(char *val)
 		return;
 	}
 
-        for (i = 0; i < CAP_NAMES; i++) {
-                if (captab[i].value == proto) {
-                        printf("%s ", captab[i].name);
+        for (i = 0; i < NFPROTO_NAMES; i++) {
+                if (nfprototab[i].value == proto) {
+                        printf("%s ", nfprototab[i].name);
 			return;
 		}
 	}
 }
+
+/*
+ * This table maps icmp type defines to their text name
+ */
+static struct nv_pair icmptypetab[] = {
+        {ICMP_ECHOREPLY, "echo-reply"},
+        {ICMP_DEST_UNREACH, "destination-unreachable"},
+        {ICMP_SOURCE_QUENCH, "source-quench"},
+        {ICMP_REDIRECT, "redirect"},
+        {ICMP_ECHO, "echo"},
+        {ICMP_TIME_EXCEEDED, "time-exceeded"},
+        {ICMP_PARAMETERPROB, "parameter-problem"},
+        {ICMP_TIMESTAMP, "timestamp-request"},
+        {ICMP_TIMESTAMPREPLY, "timestamp-reply"},
+        {ICMP_INFO_REQUEST, "info-request"},
+        {ICMP_INFO_REPLY, "info-reply"},
+        {ICMP_ADDRESS, "address-mask-request"},
+        {ICMP_ADDRESSREPLY, "address-mask-reply"},
+};
+#define ICMPTYPE_NAMES (sizeof(icmptypetab)/sizeof(icmptypetab[0]))
 
 static void print_icmptype(char *val)
 {
@@ -923,9 +959,9 @@ static void print_icmptype(char *val)
 		return;
 	}
 
-        for (i = 0; i < CAP_NAMES; i++) {
-                if (captab[i].value == icmptype) {
-                        printf("%s ", captab[i].name);
+        for (i = 0; i < ICMPTYPE_NAMES; i++) {
+                if (icmptypetab[i].value == icmptype) {
+                        printf("%s ", icmptypetab[i].name);
 			return;
 		}
 	}
@@ -938,10 +974,28 @@ static void print_signals(char *val)
 	errno = 0;
 	i = strtoul(val, NULL, 10);
 	if (errno) {
-		printf("conversion error(%s)", val);
+		printf("conversion error(%s) ", val);
 		return;
 	}
 	printf("%s ", strsignal(i));
+}
+
+static void print_protocol(char *val)
+{
+	int i;
+	struct protoent *p;
+
+	errno = 0;
+	i = strtoul(val, NULL, 10);
+	if (errno) {
+		printf("conversion error(%s) ", val);
+		return;
+	}
+	p = getprotobynumber(i);
+	if (p)
+		printf("%s ", p->p_name);
+	else
+		printf("unknown protocol ");
 }
 
 static const char key_sep[2] = { AUDIT_KEY_SEPARATOR, 0 };
@@ -983,7 +1037,7 @@ static void print_list(char *val)
 	errno = 0;
 	i = strtoul(val, NULL, 10);
 	if (errno) {
-		printf("conversion error(%s)", val);
+		printf("conversion error(%s) ", val);
 		return;
 	}
 	printf("%s ", audit_flag_to_name(i));
