@@ -265,21 +265,21 @@ static int network_failure_handler (const char *message)
 
 static int remote_disk_low_handler (const char *message)
 {
-	return do_action ("remote disk low", message,
+	return do_action ("remote server is low on disk space", message,
 			  LOG_WARNING,
 			  config.disk_low_action, config.disk_low_exe);
 }
 
 static int remote_disk_full_handler (const char *message)
 {
-	return do_action ("remote disk full", message,
+	return do_action ("remote server's disk is full", message,
 			  LOG_ERR,
 			  config.disk_full_action, config.disk_full_exe);
 }
 
 static int remote_disk_error_handler (const char *message)
 {
-	return do_action ("remote disk error", message,
+	return do_action ("remote server has a disk error", message,
 			  LOG_ERR,
 			  config.disk_error_action, config.disk_error_exe);
 }
@@ -288,7 +288,7 @@ static int remote_server_ending_handler (const char *message)
 {
 	stop_transport();
 	remote_ended = 1;
-	return do_action ("remote server ending", message,
+	return do_action ("remote server is going down", message,
 			  LOG_NOTICE,
 			  config.remote_ending_action,
 			  config.remote_ending_exe);
