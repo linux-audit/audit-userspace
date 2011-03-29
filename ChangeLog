@@ -8,6 +8,7 @@
 - Fix parsing state problem in libauparse
 - Improve the robustness of libaudit field encoding functions
 - Update capability tables
+- In auditd, make failure action config checking consistent 
 
 2.0.6
 - ausearch/report performance improvements

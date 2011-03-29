@@ -1,5 +1,5 @@
 /* auditd-config.c -- 
- * Copyright 2004-2010 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2004-2011 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -1066,7 +1066,7 @@ static int admin_space_left_action_parser(struct nv_pair *nv, int line,
 		"Email option is specified but %s doesn't seem executable.",
 						 email_command);
 				}
-			} else if (i == FA_EXEC) {
+			} else if (failure_actions[i].option == FA_EXEC) {
 				if (check_exe_name(nv->option, line))
 					return 1;
 				config->admin_space_left_exe = 
@@ -1122,7 +1122,7 @@ static int disk_error_action_parser(struct nv_pair *nv, int line,
 			"Illegal option %s for disk_error_action - line %d",
 					nv->value, line);
 				return 1;
-			} else if (i == FA_EXEC) {
+			} else if (failure_actions[i].option == FA_EXEC) {
 				if (check_exe_name(nv->option, line))
 					return 1;
 				config->disk_error_exe = strdup(nv->option);
