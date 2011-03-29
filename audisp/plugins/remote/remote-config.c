@@ -577,7 +577,7 @@ static int action_parser(struct nv_pair *nv, int line,
 	int i;
 	for (i=0; fail_action_words[i].name != NULL; i++) {
 		if (strcasecmp(nv->value, fail_action_words[i].name) == 0) {
-			if (i == FA_EXEC) {
+			if (fail_action_words[i].option == FA_EXEC) {
 				if (check_exe_name(nv->option, line))
 					return 1;
 				*exep = strdup(nv->option);

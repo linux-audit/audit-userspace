@@ -186,6 +186,12 @@ static void safe_exec(const char *exe, const char *message)
 	char *argv[3];
 	int pid;
 
+	if (exe == NULL) {
+		syslog(LOG_ALERT,  
+			"Safe_exec passed NULL for program to execute");
+		return;
+	}
+
 	pid = fork();
 	if (pid < 0) {
 		syslog(LOG_ALERT,
@@ -331,6 +337,7 @@ static void do_overflow_action(void)
                 case OA_SUSPEND:
                         syslog(LOG_ALERT,
                             "Audisp-remote is suspending event processing due to overflowing its queue.");
+			suspend = 1;
                         break;
                 case OA_SINGLE:
                         syslog(LOG_ALERT,

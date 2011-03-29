@@ -10,6 +10,7 @@
 - Update capability tables
 - In auditd, make failure action config checking consistent 
 - In auditd, check that NULL is not being passed to safe_exec
+- In audisp-remote, overflow_action wasn't suspending if that action was chosen
 
 2.0.6
 - ausearch/report performance improvements
