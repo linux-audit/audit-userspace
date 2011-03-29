@@ -1127,7 +1127,7 @@ static int disk_error_action_parser(struct nv_pair *nv, int line,
 					return 1;
 				config->disk_error_exe = strdup(nv->option);
 			}
-			config->disk_error_action = FA_EXEC;
+			config->disk_error_action = failure_actions[i].option;
 			return 0;
 		}
 	}
