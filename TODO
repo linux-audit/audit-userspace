@@ -1,9 +1,7 @@
 Things that need to be done:
 ===========================
-2.1
-* When searching, build log time list & only read the ones that are in range
-
 2.1.1
+* When searching, build log time list & only read the ones that are in range
 * Change ausearch-string to be AVL based
 * Fix auparse to handle out of order messages
 * Look at gssapi support being done via dlopen()
