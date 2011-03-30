@@ -2,7 +2,7 @@
 
 Summary: User space tools for 2.6 kernel auditing
 Name: audit
-Version: 2.1
+Version: 2.1.1
 Release: 1
 License: GPLv2+
 Group: System Environment/Daemons
@@ -220,6 +220,6 @@ fi
 
 
 %changelog
-* Tue Mar 29 2011 Steve Grubb <sgrubb@redhat.com> 2.1-1
+* Tue Mar 29 2011 Steve Grubb <sgrubb@redhat.com> 2.1.1-1
 - New upstream release
 
