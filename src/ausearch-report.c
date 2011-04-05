@@ -164,6 +164,7 @@ static void output_interpreted(llist *l)
 static void output_interpreted_node(const lnode *n)
 {
 	char *ptr, *str = n->message, *node = NULL;
+	int found;
 
 	/* Check and see if we start with a node */
 	if (str[0] == 'n') {
@@ -255,9 +256,11 @@ no_print:
 		a0 = n->a0;
 
 	// for each item.
+	found = 0;
 	while (str && *str && (ptr = strchr(str, '='))) {
 		char *name, *val;
 		int comma = 0;
+		found = 1;
 
 		// look back to last space - this is name
 		name = ptr;
@@ -307,6 +310,9 @@ no_print:
 		// print interpreted string
 		interpret(name, val, comma, n->type);
 	}
+	// If nothing found, just print out as is
+	if (!found && ptr == NULL && str)
+		printf("%s", str);
 	printf("\n");
 }
 
