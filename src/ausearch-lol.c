@@ -63,9 +63,9 @@ static void lol_append(lol *lo, llist *l)
 
 	for(i=0; i<lo->limit; i++) {
 		lolnode *cur = &lo->array[i];
-		if (cur->status == 0) {
+		if (cur->status == L_EMPTY) {
 			cur->l = l;
-			cur->status = 1;
+			cur->status = L_BUILDING;
 			if (i > lo->maxi)
 				lo->maxi = i;
 			return;
@@ -78,7 +78,7 @@ static void lol_append(lol *lo, llist *l)
 		lo->array = ptr;
 		memset(&lo->array[lo->limit], 0, sizeof(lolnode) * ARRAY_LIMIT);
 		lo->array[i].l = l;
-		lo->array[i].status = 1;
+		lo->array[i].status = L_BUILDING;
 		lo->maxi = i;
 		lo->limit += ARRAY_LIMIT;
 	}
@@ -183,21 +183,22 @@ static int extract_timestamp(const char *b, event *e)
 }
 
 // This function will check events to see if they are complete 
+// FIXME: Can we think of other ways to determine if the event is done?
 static void check_events(lol *lo, time_t sec)
 {
 	int i;
 
 	for(i=0;i<=lo->maxi; i++) {
 		lolnode *cur = &lo->array[i];
-		if (cur->status == 1) {
+		if (cur->status == L_BUILDING) {
 			// If 2 seconds have elapsed, we are done
 			if (cur->l->e.sec + 2 < sec) { 
-				cur->status = 2;
+				cur->status = L_COMPLETE;
 				ready++;
 			} else if (cur->l->e.type < AUDIT_FIRST_EVENT ||
 				    cur->l->e.type >= AUDIT_FIRST_ANOM_MSG) {
 				// If known to be 1 record event, we are done
-				cur->status = 2;
+				cur->status = L_COMPLETE;
 				ready++;
 			} 
 		}
@@ -226,7 +227,7 @@ int lol_add_record(lol *lo, char *buff)
 
 	// Now see where this belongs
 	for (i=0; i<=lo->maxi; i++) {
-		if (lo->array[i].status == 1) {
+		if (lo->array[i].status == L_BUILDING) {
 			l = lo->array[i].l;
 			if (events_are_equal(&l->e, &e)) {
 				free((char *)e.node);
@@ -256,11 +257,12 @@ void terminate_all_events(lol *lo)
 
 	for (i=0; i<=lo->maxi; i++) {
 		lolnode *cur = &lo->array[i];
-		if (cur->status == 1) {
-			cur->status = 2;
+		if (cur->status == L_BUILDING) {
+			cur->status = L_COMPLETE;
 			ready++;
 		}
 	}
+//printf("maxi = %d\n",lo->maxi);
 }
 
 /* Search the list for any event that is ready to go. The caller
@@ -274,8 +276,8 @@ llist* get_ready_event(lol *lo)
 
 	for (i=0; i<=lo->maxi; i++) {
 		lolnode *cur = &lo->array[i];
-		if (cur->status == 2) {
-			cur->status = 0;
+		if (cur->status == L_COMPLETE) {
+			cur->status = L_EMPTY;
 			ready--;
 			return cur->l;
 		}

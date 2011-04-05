@@ -27,7 +27,8 @@
 #include "config.h"
 #include "ausearch-llist.h"
 
-
+typedef enum { L_EMPTY, L_BUILDING, L_COMPLETE } lol_t;
+ 
 /* This is the node of the linked list. message & item are the only elements
  * at this time. Any data elements that are per item goes here. */
 typedef struct _lolnode{
