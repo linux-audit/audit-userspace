@@ -872,7 +872,7 @@ int auditd_tcp_listen_init ( struct ev_loop *loop, struct daemon_conf *config )
 			(char *)&one, sizeof (int));
 
 	memset (&address, 0, sizeof(address));
-	address.sin_family = htons(AF_INET);
+	address.sin_family = AF_INET;
 	address.sin_port = htons(config->tcp_listen_port);
 	address.sin_addr.s_addr = htonl(INADDR_ANY);
 

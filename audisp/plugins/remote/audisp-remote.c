@@ -941,7 +941,7 @@ static int init_sock(void)
 		struct sockaddr_in address;
 		
 		memset (&address, 0, sizeof(address));
-		address.sin_family = htons(AF_INET);
+		address.sin_family = AF_INET;
 		address.sin_port = htons(config.local_port);
 		address.sin_addr.s_addr = htonl(INADDR_ANY);
 
