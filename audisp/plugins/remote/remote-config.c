@@ -198,7 +198,7 @@ void clear_config(remote_conf_t *config)
 	config->transport = T_TCP;
 	config->mode = M_IMMEDIATE;
 	config->queue_file = NULL;
-	config->queue_depth = 200;
+	config->queue_depth = 2048;
 	config->format = F_MANAGED;
 
 	config->network_retry_time = 1;

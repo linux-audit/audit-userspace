@@ -13,4 +13,4 @@ AUDITD_CLEAN_STOP="yes"
 #
 # This option determines whether the audit system should be disabled when
 # the audit daemon is shutdown
-AUDITD_STOP_DISABLE="no"
+AUDITD_STOP_DISABLE="yes"
