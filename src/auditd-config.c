@@ -1635,7 +1635,7 @@ int resolve_node(struct daemon_conf *config)
 				hints.ai_socktype = SOCK_STREAM;
 
 				rc2 = getaddrinfo(tmp_name, NULL, &hints, &ai);
-				if (rc2 != 0) {
+				if (rc2) {
 					audit_msg(LOG_ERR,
 					"Cannot resolve hostname %s (%s)",
 					tmp_name, gai_strerror(rc2));

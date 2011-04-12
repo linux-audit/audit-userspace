@@ -662,11 +662,12 @@ static int event_loop(void)
 					close(conf->p->plug_pipe[1]);
 					conf->p->plug_pipe[1] = -1;
 					conf->p->active = A_NO;
-					if (start_one_plugin(conf) == 0) {
+					if (start_one_plugin(conf)) {
 						rc = write_to_plugin(e, conf);
 						syslog(LOG_NOTICE,
 						"plugin %s was restarted",
 							conf->p->path);
+						conf->p->active = A_YES;
 					} 
 				}
 			}

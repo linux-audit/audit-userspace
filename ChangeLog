@@ -2,6 +2,7 @@
 - When ausearch is interpretting, output "as is" if no = is found
 - Correct socket setup in remote logging
 - Adjusted a couple default settings for remote logging and init script
+- Audispd was not marking restarted plugins as active
 
 2.1
 - Update auditctl man page for new field on user filter
