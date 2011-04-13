@@ -4,6 +4,7 @@
 - Adjusted a couple default settings for remote logging and init script
 - Audispd was not marking restarted plugins as active
 - Audisp-remote should keep a capability if local_port < 1024
+- When audispd restarts plugin, send event in its preferred format
 
 2.1
 - Update auditctl man page for new field on user filter
