@@ -179,7 +179,7 @@ test_basic_data (void)
 	if (q_queue_length(q) != 2)
 		die("Unexpected q_queue_length");
 
-	if (q_peek(q, buf, sizeof(buf)) != 1)
+	if (q_peek(q, buf, sizeof(buf)) < 1)
 		err("q_peek");
 	if (strcmp(buf, " ") != 0)
 		die("invalid data returned");
@@ -193,7 +193,7 @@ test_basic_data (void)
 	for (i = 0; i < 2; i++) {
 		size_t j;
 
-		if (q_peek(q, buf, sizeof(buf)) != 1)
+		if (q_peek(q, buf, sizeof(buf)) < 1)
 			err("q_peek");
 		for (j = 0; j < ENTRY_SIZE - 1; j++) {
 			if (buf[j] != 'A')
@@ -229,7 +229,7 @@ verify_sample_entries(size_t count)
 	if (q_queue_length(q) != count)
 		die("Unexpected q_queue_length");
 	for (i = 0; i < count; i++) {
-		if (q_peek(q, buf, sizeof(buf)) != 1)
+		if (q_peek(q, buf, sizeof(buf)) < 1)
 			err("q_peek %zu", i);
 		if (strcmp(buf, sample_entries[i % NUM_SAMPLE_ENTRIES]) != 0)
 			die("invalid data %zu", i);
@@ -283,8 +283,6 @@ test_run(int flags)
 static void
 test_resizing(void)
 {
-	size_t j;
-
 	q = q_open(Q_IN_FILE | Q_CREAT | Q_EXCL, filename, NUM_ENTRIES,
 		   ENTRY_SIZE);
 	if (q == NULL)

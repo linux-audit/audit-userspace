@@ -68,8 +68,9 @@ int q_peek(struct queue *q, char *buf, size_t size);
 /* Drop head of Q and return 0.
    On error, return -1 and set errno. */
 int q_drop_head(struct queue *q);
-/* Return the number of entires in Q. */
-size_t q_queue_length(struct queue *q);
+
+/* Return the number of entries in Q. */
+size_t q_queue_length(struct queue *q); 
 
 #endif
 

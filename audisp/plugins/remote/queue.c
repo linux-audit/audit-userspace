@@ -40,7 +40,7 @@ struct queue
 	int fd;			/* -1 if !Q_IN_FILE */
 	/* NULL if !Q_IN_MEMORY.  [i] contains a memory copy of the queue entry
 	   "i", if known - it may be NULL even if entry exists. */
-	char **memory;
+	unsigned char **memory;
 	size_t num_entries;
 	size_t entry_size;
 	size_t queue_head;
@@ -286,13 +286,12 @@ static struct queue *q_open_no_resize(int q_flags, const char *path,
 	q->queue_length = 0;
 
 	if ((q_flags & Q_IN_MEMORY) != 0) {
-		size_t i;
+		size_t sz = num_entries * sizeof(*q->memory);
 
-		q->memory = malloc(num_entries * sizeof(*q->memory));
+		q->memory = malloc(sz);
 		if (q->memory == NULL)
 			goto err;
-		for (i = 0; i < num_entries; i++)
-			q->memory[i] = NULL;
+		memset(q->memory, 0, sz);
 	}
 
 	if ((q_flags & Q_IN_FILE) != 0 && q_open_file(q, path) != 0)
@@ -328,7 +327,7 @@ void q_close(struct queue *q)
 static int q_append_no_sync_fh_state(struct queue *q, const char *data)
 {
 	size_t data_size, entry_index;
-	char *copy;
+	unsigned char *copy;
 
 	if (q->queue_length == q->num_entries) {
 		errno = ENOSPC;
@@ -398,7 +397,7 @@ int q_peek(struct queue *q, char *buf, size_t size)
 
 	if (q->memory != NULL && q->memory[q->queue_head] != NULL) {
 		data = q->memory[q->queue_head];
-		data_size = strlen(data) + 1;
+		data_size = strlen((char *)data) + 1;
 	} else if (q->fd != -1) {
 		const unsigned char *end;
 
@@ -415,7 +414,7 @@ int q_peek(struct queue *q, char *buf, size_t size)
 		data_size = (end - data) + 1;
 
 		if (q->memory != NULL) {
-			char *copy;
+			unsigned char *copy;
 
 			copy = malloc(data_size);
 			if (copy != NULL) { /* Silently ignore failures. */
@@ -433,7 +432,7 @@ int q_peek(struct queue *q, char *buf, size_t size)
 		return -1;
 	}
 	memcpy(buf, data, data_size);
-	return 1;
+	return data_size;
 }
 
 /* Internal use only: drop head of Q, but don't write this into the file */
@@ -537,7 +536,7 @@ struct queue *q_open(int q_flags, const char *path, size_t num_entries,
 		r = q_peek(q, buf, entry_size);
 		if (r == 0)
 			break;
-		if (r != 1)
+		if (r < 0)
 			goto err_q2;
 
 		if (q_append_no_sync_fh_state(q2, buf) != 0)

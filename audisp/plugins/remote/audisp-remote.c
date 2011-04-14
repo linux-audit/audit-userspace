@@ -373,27 +373,25 @@ static struct queue *init_queue(void)
 	return q_open(q_flags, path, config.queue_depth, QUEUE_ENTRY_SIZE);
 }
 
-/* Send as many items from QUEUE to the remote system as possible */
-static void flush_queue(struct queue *queue)
+/* Send a record from QUEUE to the remote system */
+static void send_one(struct queue *queue)
 {
-	while (!suspend && transport_ok) {
+	if (!suspend && transport_ok) {
 		char event[MAX_AUDIT_MESSAGE_LENGTH];
-		int rc;
+		int len;
 
-		rc = q_peek(queue, event, sizeof(event));
-		if (rc == 0)
-			break;
-		if (rc != 1) {
+		len = q_peek(queue, event, sizeof(event));
+		if (len == 0)
+			return;
+		if (len < 0) {
 			queue_error();
-			break;
+			return;
 		}
-		if (relay_event(event, strnlen(event, MAX_AUDIT_MESSAGE_LENGTH))
-		    < 0)
-			break;
-		if (q_drop_head(queue) != 0) {
+
+		if (relay_event(event, len) < 0)
+			return;
+		if (q_drop_head(queue) != 0)
 			queue_error();
-			break;
-		}
 	}
 }
 
@@ -425,7 +423,7 @@ int main(int argc, char *argv[])
 	in = stdin;
 
 	/* We fail here if the transport can't be initialized because of some
-	 * permenent (i.e. operator) problem, such as misspelled host name. */
+	 * permanent (i.e. operator) problem, such as misspelled host name. */
 	rc = init_transport();
 	if (rc == ET_PERMANENT)
 		return 1;
@@ -444,9 +442,8 @@ int main(int argc, char *argv[])
 	capng_apply(CAPNG_SELECT_BOTH);
 #endif
 
-	flush_queue(queue);
 	while (stop == 0 && !feof(in)) {
-		fd_set rfd;
+		fd_set rfd, wfd;
 		struct timeval tv;
 		char event[MAX_AUDIT_MESSAGE_LENGTH];
 		int n, fds = ifd + 1;
@@ -457,17 +454,23 @@ int main(int argc, char *argv[])
 
 		FD_ZERO(&rfd);
 		FD_SET(ifd, &rfd);	// input fd
+		FD_ZERO(&wfd);
 		if (sock > 0) {
+			// Setup socket to read acks from server
 			FD_SET(sock, &rfd); // remote socket
 			if (sock > ifd)
 				fds = sock + 1;
+			// If we have anything in the queue,
+			// find out if we can send it
+			if (q_queue_length(queue) && !suspend && transport_ok)
+				FD_SET(sock, &wfd);
 		}
 		if (config.heartbeat_timeout > 0) {
 			tv.tv_sec = config.heartbeat_timeout;
 			tv.tv_usec = 0;
-			n = select(fds, &rfd, NULL, NULL, &tv);
+			n = select(fds, &rfd, &wfd, NULL, &tv);
 		} else
-			n = select(fds, &rfd, NULL, NULL, NULL);
+			n = select(fds, &rfd, &wfd, NULL, NULL);
 		if (n < 0)
 			// If we are here, we had some kind of problem
 			continue;
@@ -483,36 +486,38 @@ int main(int argc, char *argv[])
 		}
 
 		// See if we got a shutdown message from the server
-		if (sock > 0 && FD_ISSET(sock, &rfd)) {
+		if (sock > 0 && FD_ISSET(sock, &rfd))
 			check_message();
-		}
 
-		// See if input fd is also set, otherwise we are done
-		if (!FD_ISSET(ifd, &rfd))
-			continue;
-
+		// If we broke out due to one of these, cycle to start
 		if (hup != 0 || stop != 0)
 			continue;
 
-		if (fgets_unlocked(event, sizeof(event), in)) {
-			if (!transport_ok && remote_ended && 
-				config.remote_ending_action == FA_RECONNECT) {
-				quiet = 1;
-				if (init_transport() == ET_SUCCESS)
-					remote_ended = 0;
-				quiet = 0;
+		// See if input fd is also set
+		if (FD_ISSET(ifd, &rfd)) {
+			if (fgets_unlocked(event, sizeof(event), in)) {
+				if (!transport_ok && remote_ended && 
+					config.remote_ending_action ==
+							 FA_RECONNECT) {
+					quiet = 1;
+					if (init_transport() == ET_SUCCESS)
+						remote_ended = 0;
+					quiet = 0;
+				}
+				/* Strip out EOE records */
+				if (strstr(event,"type=EOE msg=audit("))
+					continue;
+				if (q_append(queue, event) != 0) {
+					if (errno == ENOSPC)
+						do_overflow_action();
+					else
+						queue_error();
+				}
 			}
-			/* Strip out EOE records */
-			if (strstr(event,"type=EOE msg=audit("))
-				continue;
-			if (q_append(queue, event) != 0) {
-				if (errno == ENOSPC)
-					do_overflow_action();
-				else
-					queue_error();
-			}
-			flush_queue(queue);
 		}
+		// See if output fd is also set
+		if (sock > 0 && FD_ISSET(sock, &wfd)) 
+			send_one(queue);
 	}
 	close(sock);
 	free_config(&config);
