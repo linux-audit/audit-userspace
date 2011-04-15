@@ -406,7 +406,8 @@ static void send_one(struct queue *queue)
 			return;
 		}
 
-		if (relay_event(event, len) < 0)
+		/* We send len -1 to remove trailing \n */
+		if (relay_event(event, len-1) < 0)
 			return;
 		if (q_drop_head(queue) != 0)
 			queue_error();
