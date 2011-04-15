@@ -75,17 +75,19 @@ static volatile int sock=-1;
 static volatile int remote_ended = 0, quiet = 0;
 static int ifd;
 static FILE *in;
+remote_conf_t config;
 
+/* Constants */
 static const char *SINGLE = "1";
 static const char *HALT = "0";
-remote_conf_t config;
+static const char *INIT_PGM = "/sbin/init";
+static const char *SPOOL_FILE = "/var/spool/audit/remote.log";
 
 /* Local function declarations */
 static int check_message(void);
 static int relay_event(const char *s, size_t len);
 static int init_transport(void);
 static int stop_transport(void);
-
 static int ar_read (int, void *, int);
 static int ar_write (int, const void *, int);
 
@@ -159,6 +161,7 @@ static void child_handler(int sig)
 	while (waitpid(-1, NULL, WNOHANG) > 0)
 		; /* empty */
 }
+
 /*
  * Handlers for various events coming back from the remote server.
  * Return -1 if the remote dispatcher should exit.
@@ -179,7 +182,6 @@ static void change_runlevel(const char *level)
 {
 	char *argv[3];
 	int pid;
-	static const char *init_pgm = "/sbin/init";
 
 	pid = fork();
 	if (pid < 0) {
@@ -191,11 +193,11 @@ static void change_runlevel(const char *level)
 		return;
 
 	/* Child */
-	argv[0] = (char *)init_pgm;
+	argv[0] = (char *)INIT_PGM;
 	argv[1] = (char *)level;
 	argv[2] = NULL;
-	execve(init_pgm, argv, NULL);
-	syslog(LOG_ALERT, "audisp-remote failed to exec %s", init_pgm);
+	execve(INIT_PGM, argv, NULL);
+	syslog(LOG_ALERT, "audisp-remote failed to exec %s", INIT_PGM);
 	exit(1);
 }
 
@@ -382,7 +384,7 @@ static struct queue *init_queue(void)
 	if (config.queue_file != NULL)
 		path = config.queue_file;
 	else
-		path = "/var/spool/audit/remote.log";
+		path = SPOOL_FILE;
 	q_flags = Q_IN_MEMORY;
 	if (config.mode == M_STORE_AND_FORWARD)
 		/* FIXME: let user control Q_SYNC? */
@@ -394,24 +396,26 @@ static struct queue *init_queue(void)
 /* Send a record from QUEUE to the remote system */
 static void send_one(struct queue *queue)
 {
-	if (!suspend && transport_ok) {
-		char event[MAX_AUDIT_MESSAGE_LENGTH];
-		int len;
+	char event[MAX_AUDIT_MESSAGE_LENGTH];
+	int len;
 
-		len = q_peek(queue, event, sizeof(event));
-		if (len == 0)
-			return;
-		if (len < 0) {
-			queue_error();
-			return;
-		}
+	if (suspend || !transport_ok)
+		return;
 
-		/* We send len -1 to remove trailing \n */
-		if (relay_event(event, len-1) < 0)
-			return;
-		if (q_drop_head(queue) != 0)
-			queue_error();
+	len = q_peek(queue, event, sizeof(event));
+	if (len == 0)
+		return;
+	if (len < 0) {
+		queue_error();
+		return;
 	}
+
+	/* We send len -1 to remove trailing \n */
+	if (relay_event(event, len-1) < 0)
+		return;
+
+	if (q_drop_head(queue) != 0)
+		queue_error();
 }
 
 int main(int argc, char *argv[])
@@ -455,7 +459,7 @@ int main(int argc, char *argv[])
 	}
 
 #ifdef HAVE_LIBCAP_NG
-	// Drop all capabilities
+	// Drop capabilities
 	capng_clear(CAPNG_SELECT_BOTH);
 	if (config.local_port && config.local_port < 1024)
 		capng_update(CAPNG_ADD, CAPNG_EFFECTIVE|CAPNG_PERMITTED,
@@ -476,6 +480,7 @@ int main(int argc, char *argv[])
 		if (dump)
 			dump_stats(queue);
 
+		/* Setup select flags */
 		FD_ZERO(&rfd);
 		FD_SET(ifd, &rfd);	// input fd
 		FD_ZERO(&wfd);
@@ -489,6 +494,7 @@ int main(int argc, char *argv[])
 			if (q_queue_length(queue) && !suspend && transport_ok)
 				FD_SET(sock, &wfd);
 		}
+
 		if (config.heartbeat_timeout > 0) {
 			tv.tv_sec = config.heartbeat_timeout;
 			tv.tv_usec = 0;
@@ -496,8 +502,7 @@ int main(int argc, char *argv[])
 		} else
 			n = select(fds, &rfd, &wfd, NULL, NULL);
 		if (n < 0)
-			// If we are here, we had some kind of problem
-			continue;
+			continue; // If here, we had some kind of problem
 
 		if ((config.heartbeat_timeout > 0) && n == 0 && !remote_ended) {
 			/* We attempt a hearbeat if select fails, which

@@ -18,6 +18,7 @@
  *
  * Authors:
  *      Steve Grubb <sgrubb@redhat.com>
+ *      Miloslav Trmač <mitr@redhat.com>
  */
 
 #include "config.h"
@@ -48,7 +49,7 @@ struct queue
 	unsigned char buffer[];	/* Used only locally within q_peek() */
 };
 
- /* Infrastructure */
+/* Infrastructure */
 
 /* Compile-time expression verification */
 #define verify(E) do {				\
@@ -106,7 +107,7 @@ static int full_pwrite(int fd, const void *buf, size_t size, off_t offset)
 	return 0;
 }
 
- /* File format and utilities */
+/* File format and utilities */
 
 /* The mutable part of struct file_header */
 struct fh_state {
@@ -164,7 +165,7 @@ static int sync_fh_state (struct queue *q)
 	return q_sync(q);
 }
 
- /* Queue implementation */
+/* Queue implementation */
 
 /* Open PATH for Q, update Q from it, and return 0.
    On error, return -1 and set errno; Q->fd may be set even on error. */
@@ -466,7 +467,7 @@ int q_drop_head(struct queue *q)
 	return sync_fh_state(q); /* Calls q_sync() */
 }
 
-size_t q_queue_length(struct queue *q)
+size_t q_queue_length(const struct queue *q)
 {
 	return q->queue_length;
 }
