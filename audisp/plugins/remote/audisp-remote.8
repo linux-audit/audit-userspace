@@ -1,4 +1,4 @@
-.TH AUDISP-REMOTE: "8" "Mar 2008" "Red Hat" "System Administration Utilities"
+.TH AUDISP-REMOTE: "8" "Apr 2011" "Red Hat" "System Administration Utilities"
 .SH NAME
 audisp-remote \- plugin for remote logging 
 .SH SYNOPSIS
@@ -11,8 +11,17 @@ If you are aggregating multiple machines, you should enable node information in 
 
 .SH SIGNALS
 .TP
+SIGUSR1
+Causes the audisp-remote program to write the value of some of its internal flags to syslog. The
+.IR suspend
+flag tells whether or not logging has been suspended. The
+.IR transport_ok
+flag tells whether or not the connection to the remote server is healthy. The
+.IR queue_size
+tells how many records are enqueued to be sent to the remote server.
+.TP
 SIGUSR2
-causes the audisp-remote program to resume logging if it were suspended due to an error.
+Causes the audisp-remote program to resume logging if it were suspended due to an error.
 
 .SH FILES
 /etc/audisp/plugins.d/au-remote.conf, /etc/audit/auditd.conf, /etc/audisp/audispd.conf, /etc/audisp/audisp-remote.conf

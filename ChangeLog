@@ -6,6 +6,7 @@
 - Audisp-remote should keep a capability if local_port < 1024
 - When audispd restarts plugin, send event in its preferred format
 - In audisp-remote, make all I/O asynchronous
+- In audisp-remote, add sigusr1 handler to dump internal state
 
 2.1
 - Update auditctl man page for new field on user filter

@@ -69,6 +69,7 @@
 static volatile int stop = 0;
 static volatile int hup = 0;
 static volatile int suspend = 0;
+static volatile int dump = 0;
 static volatile int transport_ok = 0;
 static volatile int sock=-1;
 static volatile int remote_ended = 0, quiet = 0;
@@ -123,6 +124,23 @@ static void reload_config(void)
 {
 	stop_transport(); // FIXME: We should only stop transport if necessary
 	hup = 0;
+}
+
+/*
+ * SIGSUR1 handler: dump stats
+ */
+static void user1_handler( int sig )
+{
+        dump = 1;
+}
+
+static void dump_stats(struct queue *queue)
+{
+	syslog(LOG_INFO, "suspend=%s, transport_ok=%s, queue_size=%zu",
+		suspend ? "yes" : "no",
+		transport_ok ? "yes" : "no",
+		q_queue_length(queue));
+	dump = 0;
 }
 
 /*
@@ -410,6 +428,8 @@ int main(int argc, char *argv[])
 	sigaction(SIGTERM, &sa, NULL);
 	sa.sa_handler = hup_handler;
 	sigaction(SIGHUP, &sa, NULL);
+	sa.sa_handler = user1_handler;
+	sigaction(SIGUSR1, &sa, NULL);
 	sa.sa_handler = user2_handler;
 	sigaction(SIGUSR2, &sa, NULL);
 	sa.sa_handler = child_handler;
@@ -451,6 +471,9 @@ int main(int argc, char *argv[])
 		/* Load configuration */
 		if (hup) 
 			reload_config();
+
+		if (dump)
+			dump_stats(queue);
 
 		FD_ZERO(&rfd);
 		FD_SET(ifd, &rfd);	// input fd
