@@ -446,6 +446,7 @@ int main(int argc, char *argv[])
 	// in = fdopen(ifd, "r");
 	ifd = 0;
 	in = stdin;
+	setlinebuf(); // FIXME: remove when fgets_unlocked is replaced
 
 	/* We fail here if the transport can't be initialized because of some
 	 * permanent (i.e. operator) problem, such as misspelled host name. */
