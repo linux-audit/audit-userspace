@@ -7,6 +7,7 @@
 - When audispd restarts plugin, send event in its preferred format
 - In audisp-remote, make all I/O asynchronous
 - In audisp-remote, add sigusr1 handler to dump internal state
+- Fix autrace to use correct syscalls on s390 and s390x systems
 
 2.1
 - Update auditctl man page for new field on user filter

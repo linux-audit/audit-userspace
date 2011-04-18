@@ -1,5 +1,5 @@
 /* autrace.c -- 
- * Copyright 2005-09 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2005-09,2011 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -87,7 +87,8 @@ static int insert_rule(int audit_fd, const char *field)
 		rc |= audit_rule_syscallbyname_data(rule, "readlinkat");
 		rc |= audit_rule_syscallbyname_data(rule, "execve");
 
-		if (machine != MACH_X86) {
+		if (machine != MACH_X86 && machine != MACH_S390X && 
+						machine != MACH_S390) {
 			rc |= audit_rule_syscallbyname_data(rule, "connect");
 			rc |= audit_rule_syscallbyname_data(rule, "bind");
 			rc |= audit_rule_syscallbyname_data(rule, "accept");
@@ -108,7 +109,8 @@ static int insert_rule(int audit_fd, const char *field)
 		goto err;
 
 	// Now if i386, lets add its network rules
-	if (machine == MACH_X86) {
+	if (machine == MACH_X86 || machine == MACH_S390X ||
+						machine == MACH_S390) {
 		int i, a0[5] = { SYS_CONNECT, SYS_BIND, SYS_ACCEPT, SYS_SENDTO, SYS_RECVFROM };
 		for (i=0; i<5; i++) {
 			char pair[32];
