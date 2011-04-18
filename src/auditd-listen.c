@@ -118,7 +118,8 @@ static void close_client (struct ev_tcp *client)
 	if (client->remote_name)
 		free (client->remote_name);
 #endif
-	close (client->io.fd);
+	shutdown(client->io.fd, SHUT_RDWR);
+	close(client->io.fd);
 	if (client_chain == client)
 		client_chain = client->next;
 	if (client->next)
@@ -753,7 +754,8 @@ static void auditd_tcp_listen_handler( struct ev_loop *loop,
 
 	if (use_libwrap) {
 		if (auditd_tcpd_check(afd)) {
-			close (afd);
+			shutdown(afd, SHUT_RDWR);
+			close(afd);
 	        	audit_msg(LOG_ERR, "TCP connection from %s rejected",
 					sockaddr_to_ip (&aaddr));
 			snprintf(emsg, sizeof(emsg),
@@ -776,7 +778,8 @@ static void auditd_tcp_listen_handler( struct ev_loop *loop,
 			sockaddr_to_ip (&aaddr),
 			ntohs (aaddr.sin_port));
 		send_audit_event(AUDIT_DAEMON_ACCEPT, emsg);
-		close (afd);
+		shutdown(afd, SHUT_RDWR);
+		close(afd);
 		return;
 	}
 
@@ -789,7 +792,8 @@ static void auditd_tcp_listen_handler( struct ev_loop *loop,
 			sockaddr_to_ip (&aaddr),
 			ntohs (aaddr.sin_port));
 		send_audit_event(AUDIT_DAEMON_ACCEPT, emsg);
-		close (afd);
+		shutdown(afd, SHUT_RDWR);
+		close(afd);
 		return;
 	}
 
@@ -808,7 +812,8 @@ static void auditd_tcp_listen_handler( struct ev_loop *loop,
 			sockaddr_to_ip (&aaddr),
 			ntohs (aaddr.sin_port));
 		send_audit_event(AUDIT_DAEMON_ACCEPT, emsg);
-		close (afd);
+		shutdown(afd, SHUT_RDWR);
+		close(afd);
 		return;
 	}
 
@@ -822,8 +827,9 @@ static void auditd_tcp_listen_handler( struct ev_loop *loop,
 
 #ifdef USE_GSSAPI
 	if (use_gss && negotiate_credentials (client)) {
-		close (afd);
-		free (client);
+		shutdown(afd, SHUT_RDWR);
+		close(afd);
+		free(client);
 		return;
 	}
 #endif

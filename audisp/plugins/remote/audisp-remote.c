@@ -549,7 +549,10 @@ int main(int argc, char *argv[])
 		if (sock > 0 && FD_ISSET(sock, &wfd)) 
 			send_one(queue);
 	}
-	close(sock);
+	if (sock >= 0) {
+		shutdown(sock, SHUT_RDWR);
+		close(sock);
+	}
 	free_config(&config);
 	q_len = q_queue_length(queue);
 	q_close(queue);
@@ -916,7 +919,10 @@ static int negotiate_credentials (void)
 
 static int stop_sock(void)
 {
-	close(sock);
+	if (sock >= 0) {
+		shutdown(sock, SHUT_RDWR);
+		close(sock);
+	}
 	sock = -1;
 	transport_ok = 0;
 
