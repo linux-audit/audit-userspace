@@ -9,6 +9,7 @@
 - In audisp-remote, add sigusr1 handler to dump internal state
 - Fix autrace to use correct syscalls on s390 and s390x systems
 - Add shutdown syscall to remote logging teardowns
+- Correct autrace rule for 32 bits systems
 
 2.1
 - Update auditctl man page for new field on user filter

@@ -54,6 +54,7 @@ static int insert_rule(int audit_fd, const char *field)
 	int action = AUDIT_ALWAYS;
 	struct audit_rule_data *rule = malloc(sizeof(struct audit_rule_data));
 	int machine = audit_detect_machine();
+	char *t_field = strdup(field);
 
 	if (rule == NULL)
 		goto err;
@@ -101,7 +102,8 @@ static int insert_rule(int audit_fd, const char *field)
 		rc = audit_rule_syscallbyname_data(rule, "all");
 	if (rc < 0)
 		goto err;
-	rc = audit_rule_fieldpair_data(&rule, field, flags);
+	rc = audit_rule_fieldpair_data(&rule, t_field, flags);
+	free(t_field);
 	if (rc < 0)
 		goto err;
 	rc = audit_add_rule_data(audit_fd, rule, flags, action);
@@ -119,6 +121,9 @@ static int insert_rule(int audit_fd, const char *field)
 			rc |= audit_rule_syscallbyname_data(rule, "socketcall");
 			snprintf(pair, sizeof(pair), "a0=%d", a0[i]);
 			rc |= audit_rule_fieldpair_data(&rule, pair, flags);
+			t_field = strdup(field);
+			rc |= audit_rule_fieldpair_data(&rule, t_field, flags);
+			free(t_field);
 			rc |= audit_add_rule_data(audit_fd, rule, flags, action);
 		}
 	}
@@ -218,19 +223,19 @@ int main(int argc, char *argv[])
 			close(fd[0]);
 			fcntl(fd[1], F_SETFD, FD_CLOEXEC);
 			{
-				char rule[16];
+				char field[16];
 				int audit_fd;
   				audit_fd = audit_open();
 				if (audit_fd < 0)
 					exit(1);
-				snprintf(rule, sizeof(rule), "pid=%d", pid);
-				if (insert_rule(audit_fd, rule)) {
+				snprintf(field, sizeof(field), "pid=%d", pid);
+				if (insert_rule(audit_fd, field)) {
 					kill(pid,SIGTERM);
 					(void)delete_all_rules(audit_fd);
 					exit(1);
 				}
-				snprintf(rule, sizeof(rule), "ppid=%d", pid);
-				if (insert_rule(audit_fd, rule)) {
+				snprintf(field, sizeof(field), "ppid=%d", pid);
+				if (insert_rule(audit_fd, field)) {
 					kill(pid,SIGTERM);
 					(void)delete_all_rules(audit_fd);
 					exit(1);
