@@ -1,3 +1,5 @@
+2.1.2
+
 2.1.1
 - When ausearch is interpretting, output "as is" if no = is found
 - Correct socket setup in remote logging
