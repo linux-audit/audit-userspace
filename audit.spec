@@ -220,6 +220,6 @@ fi
 
 
 %changelog
-* Tue Mar 29 2011 Steve Grubb <sgrubb@redhat.com> 2.1.1-1
+* Wed Apr 20 2011 Steve Grubb <sgrubb@redhat.com> 2.1.1-1
 - New upstream release
 
