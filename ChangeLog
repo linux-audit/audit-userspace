@@ -1,4 +1,5 @@
 2.1.2
+- In ausearch/report, fix a segfault caused by MAC_POLICY_LOAD records
 
 2.1.1
 - When ausearch is interpretting, output "as is" if no = is found

@@ -1566,6 +1566,8 @@ static int parse_simple_message(const lnode *n, search_items *s)
 
 	// Now get subj label
 	if (event_subject) {
+		if (term == NULL)
+			term = n->message;
 		// scontext
 		str = strstr(term, "subj=");
 		if (str != NULL) {
@@ -1589,6 +1591,8 @@ static int parse_simple_message(const lnode *n, search_items *s)
 	}
 
 	if (event_key) {
+		if (term == NULL)
+			term = n->message;
 		str = strstr(term, "key=");
 		if (str != NULL) {
 			if (!s->key) {
@@ -1645,6 +1649,8 @@ static int parse_simple_message(const lnode *n, search_items *s)
 
 	// and results (usually last)
 	if (event_success != S_UNSET) {
+		if (term == NULL)
+			term = n->message;
 		str = strstr(term, "res=");
 		if (str != NULL) {
 			ptr = str + 4;
