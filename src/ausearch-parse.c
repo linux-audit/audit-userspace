@@ -142,6 +142,7 @@ int extract_search_items(llist *l)
 			case AUDIT_SELINUX_ERR:
 			case AUDIT_EXECVE:
 			case AUDIT_BPRM_FCAPS:
+			case AUDIT_NETFILTER_CFG:
 				// Nothing to parse
 				break;
 			case AUDIT_TTY:
