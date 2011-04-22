@@ -45,8 +45,10 @@ static int common_path_parser(search_items *s, char *path);
 static int avc_parse_path(const lnode *n, search_items *s);
 static int parse_path(const lnode *n, search_items *s);
 static int parse_user(const lnode *n, search_items *s);
+static int parse_obj(const lnode *n, search_items *s);
 static int parse_login(const lnode *n, search_items *s);
 static int parse_daemon(const lnode *n, search_items *s);
+static int parse_success(const lnode *n, search_items *s);
 static int parse_sockaddr(const lnode *n, search_items *s);
 static int parse_avc(const lnode *n, search_items *s);
 static int parse_integrity(const lnode *n, search_items *s);
@@ -104,12 +106,20 @@ int extract_search_items(llist *l)
 			case AUDIT_LOGIN:
 				ret = parse_login(n, s);
 				break;
+			case AUDIT_OBJ_PID:
+				ret = parse_obj(n, s);
+				break;
 			case AUDIT_DAEMON_START:
 			case AUDIT_DAEMON_END:
 			case AUDIT_DAEMON_ABORT:
 			case AUDIT_DAEMON_CONFIG:
 			case AUDIT_DAEMON_ROTATE:
+			case AUDIT_DAEMON_RESUME:
 				ret = parse_daemon(n, s);
+				break;
+			case AUDIT_DAEMON_ACCEPT:
+			case AUDIT_DAEMON_CLOSE:
+				ret = parse_success(n, s);
 				break;
 			case AUDIT_CONFIG_CHANGE:
 				ret = parse_simple_message(n, s);
@@ -130,12 +140,15 @@ int extract_search_items(llist *l)
 			case AUDIT_KERNEL:
 			case AUDIT_IPC:
 			case AUDIT_SELINUX_ERR:
+			case AUDIT_EXECVE:
+			case AUDIT_BPRM_FCAPS:
 				// Nothing to parse
 				break;
 			case AUDIT_TTY:
 				ret = parse_tty(n, s);
 				break;
 			default:
+				// printf("unparsed type:%d\n", n->type);
 				break;
 			}
 			// if (ret) printf("type:%d ret:%d\n", n->type, ret);
@@ -507,7 +520,7 @@ static int common_path_parser(search_items *s, char *path)
 		//create
 		s->filename = malloc(sizeof(slist));
 		if (s->filename == NULL)
-			return 4;
+			return 1;
 		slist_create(s->filename);
 	}
 	if (*path == '"') {
@@ -515,7 +528,7 @@ static int common_path_parser(search_items *s, char *path)
 		path++;
 		term = strchr(path, '"');
 		if (term == NULL)
-			return 1;
+			return 2;
 		*term = 0;
 		if (s->filename) {
 			// append
@@ -548,7 +561,7 @@ static int common_path_parser(search_items *s, char *path)
 				goto append;
 			}
 			if (!isxdigit(path[0]))
-				return 5;
+				return 4;
 			if (path[0] == '0' && path[1] == '0')
 				sn.str = unescape(&path[2]); // Abstract name
 			else
@@ -558,7 +571,7 @@ static int common_path_parser(search_items *s, char *path)
 				(sn.str[1] == '/')) && s->cwd) {
 				char *tmp = malloc(PATH_MAX);
 				if (tmp == NULL)
-					return 6;
+					return 5;
 				snprintf(tmp, PATH_MAX, "%s/%s", 
 					s->cwd, sn.str);
 				free(sn.str);
@@ -623,6 +636,34 @@ static int parse_path(const lnode *n, search_items *s)
 					*term = ' ';
 			} else
 				return 7;
+		}
+	}
+	return 0;
+}
+
+static int parse_obj(const lnode *n, search_items *s)
+{
+	char *str, *term;
+
+	term = n->message;
+	if (event_object) {
+		// obj context
+		str = strstr(term, "obj=");
+		if (str != NULL) {
+			str += 4;
+			term = strchr(str, ' ');
+			if (term)
+				*term = 0;
+			if (audit_avc_init(s) == 0) {
+				anode an;
+
+				anode_init(&an);
+				an.tcontext = strdup(str);
+				alist_append(s->avc, &an);
+				if (term)
+					*term = ' ';
+			} else
+				return 1;
 		}
 	}
 	return 0;
@@ -999,34 +1040,34 @@ static int parse_daemon(const lnode *n, search_items *s)
 	// auid
 	str = strstr(mptr, "auid=");
 	if (str == NULL)
-		return 2;
+		return 1;
 	ptr = str + 5;
 	term = strchr(ptr, ' ');
 	if (term == NULL)
-		return 3;
+		return 2;
 	saved = *term;
 	*term = 0;
 	errno = 0;
 	s->loginuid = strtoul(ptr, NULL, 10);
 	if (errno)
-		return 4;
+		return 3;
 	*term = saved;
 
 	// pid
 	if (event_pid != -1) {
 		str = strstr(term, "pid=");
 		if (str == NULL)
-			return 5;
+			return 4;
 		ptr = str + 4;
 		term = strchr(ptr, ' ');
 		if (term == NULL) 
-			return 6;
+			return 5;
 		saved = *term;
 		*term = 0;
 		errno = 0;
 		s->pid = strtoul(ptr, NULL, 10);
 		if (errno)
-			return 7;
+			return 6;
 		*term = saved;
 	}
 
@@ -1037,7 +1078,7 @@ static int parse_daemon(const lnode *n, search_items *s)
 			str += 5;
 			term = strchr(str, ' ');
 			if (term == NULL)
-				return 8;
+				return 7;
 			*term = 0;
 			if (audit_avc_init(s) == 0) {
 				anode an;
@@ -1047,7 +1088,7 @@ static int parse_daemon(const lnode *n, search_items *s)
 				alist_append(s->avc, &an);
 				*term = ' ';
 			} else
-				return 9;
+				return 8;
 		}
 	}
 
@@ -1059,7 +1100,32 @@ static int parse_daemon(const lnode *n, search_items *s)
 			while (isalpha(*term))
 				term++;
 			if (term == ptr)
-				return 10;
+				return 9;
+			saved = *term;
+			*term = 0;
+			if (strncmp(ptr, "failed", 6) == 0)
+				s->success = S_FAILED;
+			else
+				s->success = S_SUCCESS;
+			*term = saved;
+		}
+	}
+
+	return 0;
+}
+
+static int parse_success(const lnode *n, search_items *s)
+{
+	if (event_success != S_UNSET) {
+		char *str = strstr(n->message, "res=");
+		if (str) {
+			char *ptr, *term, saved;
+
+			ptr = term = str + 4;
+			while (isalpha(*term))
+				term++;
+			if (term == ptr)
+				return 1;
 			saved = *term;
 			*term = 0;
 			if (strncmp(ptr, "failed", 6) == 0)
@@ -1175,12 +1241,12 @@ static int parse_integrity(const lnode *n, search_items *s)
 		ptr = str + 4;
 		term = strchr(ptr, ' ');
 		if (term == NULL)
-			return 2;
+			return 1;
 		*term = 0;
 		errno = 0;
 		s->pid = strtoul(ptr, NULL, 10);
 		if (errno)
-			return 3;
+			return 2;
 		*term = ' ';
 	}
 
@@ -1190,12 +1256,12 @@ static int parse_integrity(const lnode *n, search_items *s)
 		ptr = str + 4;
 		term = strchr(ptr, ' ');
 		if (term == NULL)
-			return 4;
+			return 3;
 		*term = 0;
 		errno = 0;
 		s->uid = strtoul(ptr, NULL, 10);
 		if (errno)
-			return 5;
+			return 4;
 		*term = ' ';
 	}
 
@@ -1205,12 +1271,12 @@ static int parse_integrity(const lnode *n, search_items *s)
 		ptr = str + 5;
 		term = strchr(ptr, ' ');
 		if (term == NULL)
-			return 6;
+			return 5;
 		*term = 0;
 		errno = 0;
 		s->loginuid = strtoul(ptr, NULL, 10);
 		if (errno)
-			return 7;
+			return 6;
 		*term = ' ';
 	}
 
@@ -1221,7 +1287,7 @@ static int parse_integrity(const lnode *n, search_items *s)
 			str++;
 			term = strchr(str, '"');
 			if (term == NULL)
-				return 8;
+				return 7;
 			*term = 0;
 			s->comm = strdup(str);
 			*term = '"';
@@ -1233,7 +1299,7 @@ static int parse_integrity(const lnode *n, search_items *s)
 	if (str) {
 		str += 6;
 		if (common_path_parser(s, str))
-			return 9;
+			return 8;
 	}
 
 	// and results (usually last)
@@ -1246,7 +1312,7 @@ static int parse_integrity(const lnode *n, search_items *s)
 		errno = 0;
 		s->success = strtoul(ptr, NULL, 10);
 		if (errno)
-			return 10;
+			return 9;
 		if (term)
 			*term = ' ';
 	}
