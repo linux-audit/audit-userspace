@@ -47,8 +47,8 @@ static int parse_path(const lnode *n, search_items *s);
 static int parse_user(const lnode *n, search_items *s);
 static int parse_obj(const lnode *n, search_items *s);
 static int parse_login(const lnode *n, search_items *s);
-static int parse_daemon(const lnode *n, search_items *s);
-static int parse_success(const lnode *n, search_items *s);
+static int parse_daemon1(const lnode *n, search_items *s);
+static int parse_daemon2(const lnode *n, search_items *s);
 static int parse_sockaddr(const lnode *n, search_items *s);
 static int parse_avc(const lnode *n, search_items *s);
 static int parse_integrity(const lnode *n, search_items *s);
@@ -115,11 +115,11 @@ int extract_search_items(llist *l)
 			case AUDIT_DAEMON_CONFIG:
 			case AUDIT_DAEMON_ROTATE:
 			case AUDIT_DAEMON_RESUME:
-				ret = parse_daemon(n, s);
+				ret = parse_daemon1(n, s);
 				break;
 			case AUDIT_DAEMON_ACCEPT:
 			case AUDIT_DAEMON_CLOSE:
-				ret = parse_success(n, s);
+				ret = parse_daemon2(n, s);
 				break;
 			case AUDIT_CONFIG_CHANGE:
 				ret = parse_simple_message(n, s);
@@ -1028,7 +1028,7 @@ static int parse_login(const lnode *n, search_items *s)
 	return 0;
 }
 
-static int parse_daemon(const lnode *n, search_items *s)
+static int parse_daemon1(const lnode *n, search_items *s)
 {
 	char *ptr, *str, *term, saved, *mptr;
 
@@ -1114,10 +1114,31 @@ static int parse_daemon(const lnode *n, search_items *s)
 	return 0;
 }
 
-static int parse_success(const lnode *n, search_items *s)
+static int parse_daemon2(const lnode *n, search_items *s)
 {
+	char *str, saved, *term = n->message;
+
+	if (event_hostname) {
+		str = strstr(term, "addr=");
+		if (str) {
+			str += 5;
+			term = strchr(str, ':');
+			if (term == NULL) {
+				term = strchr(str, ' ');
+				if (term == NULL)
+					return 1;
+			}
+			saved = *term;
+			*term = 0;
+			free(s->hostname);
+			s->hostname = strdup(str);
+			*term = saved;
+		} else
+			term = n->message; 
+	}
+
 	if (event_success != S_UNSET) {
-		char *str = strstr(n->message, "res=");
+		char *str = strstr(term, "res=");
 		if (str) {
 			char *ptr, *term, saved;
 
@@ -1125,7 +1146,7 @@ static int parse_success(const lnode *n, search_items *s)
 			while (isalpha(*term))
 				term++;
 			if (term == ptr)
-				return 1;
+				return 2;
 			saved = *term;
 			*term = 0;
 			if (strncmp(ptr, "failed", 6) == 0)
