@@ -686,7 +686,7 @@ static int extract_timestamp(const char *b, au_event_t *e)
 		// Optionally grab the node - may or may not be included
 		if (*ptr == 'n') {
 			e->host = strdup(ptr+5);
-			ptr = strtok(NULL, " "); // Bump along to the next one
+			(void)strtok(NULL, " "); // Bump along to the next one
 		}
 		// at this point we have type=
 		ptr = strtok(NULL, " ");

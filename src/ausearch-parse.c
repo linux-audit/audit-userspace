@@ -1803,6 +1803,8 @@ static int parse_tty(const lnode *n, search_items *s)
 		return 6;
 	if (term)
 		*term = ' ';
+	else
+		term = ptr;
 
 	// ses
 	if (event_session_id != -2 ) {

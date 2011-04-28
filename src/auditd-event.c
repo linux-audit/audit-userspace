@@ -710,12 +710,14 @@ static void rotate_logs(struct auditd_consumer_data *data,
 	oldname = (char *)malloc(len);
 	if (oldname == NULL) { /* Not fatal - just messy */
 		audit_msg(LOG_ERR, "No memory rotating logs");
+		logging_suspended = 1;
 		return;
 	}
 	newname = (char *)malloc(len);
 	if (newname == NULL) { /* Not fatal - just messy */
 		audit_msg(LOG_ERR, "No memory rotating logs");
 		free(oldname);
+		logging_suspended = 1;
 		return;
 	}
 
