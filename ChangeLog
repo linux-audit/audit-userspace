@@ -3,6 +3,7 @@
 - In ausearch/report, add update parsers
 - In auditd, cleanup DAEMON_ACCEPT and DAEMON_CLOSE addr fields
 - In ausearch/report, parse addr field of DAEMON_ACCEPT & DAEMON_CLOSE records
+- In auditd, move startup success to after events are registered
 
 2.1.1
 - When ausearch is interpretting, output "as is" if no = is found

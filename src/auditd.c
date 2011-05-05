@@ -664,9 +664,6 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	/* Now tell parent that everything went OK */
-	tell_parent(SUCCESS);
-
 	/* Depending on value of opt_startup (-s) set initial audit state */
 	if (opt_startup != startup_nochange && (audit_is_enabled(fd) < 2) &&
 	    audit_set_enabled(fd, (int)opt_startup) < 0) {
@@ -688,12 +685,9 @@ int main(int argc, char *argv[])
 		if (pidfile)
 			unlink(pidfile);
 		shutdown_dispatcher();
+		tell_parent(FAILURE);
 		return 1;
 	}
-	audit_msg(LOG_NOTICE,
-	    "Init complete, auditd %s listening for events (startup state %s)",
-		VERSION,
-		startup_states[opt_startup]);
 
 	/* Parent should be gone by now...   */
 	if (do_fork)
@@ -727,8 +721,16 @@ int main(int argc, char *argv[])
 	if (auditd_tcp_listen_init (loop, &config)) {
 		tell_parent (FAILURE);
 		stop = 1;
+	} else {
+		/* Now tell parent that everything went OK */
+		tell_parent(SUCCESS);
+		audit_msg(LOG_NOTICE,
+	    "Init complete, auditd %s listening for events (startup state %s)",
+			VERSION,
+			startup_states[opt_startup]);
 	}
 
+	// Init complete, start event loop
 	if (!stop)
 		ev_loop (loop, 0);
 
