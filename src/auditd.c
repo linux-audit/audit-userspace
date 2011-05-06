@@ -689,10 +689,6 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	/* Parent should be gone by now...   */
-	if (do_fork)
-		close(init_pipe[1]);
-
 	loop = ev_default_loop (EVFLAG_NOENV);
 
 	ev_io_init (&netlink_watcher, netlink_handler, fd, EV_READ);
@@ -744,6 +740,10 @@ int main(int argc, char *argv[])
 			VERSION,
 			startup_states[opt_startup]);
 	}
+
+	/* Parent should be gone by now...   */
+	if (do_fork)
+		close(init_pipe[1]);
 
 	// Init complete, start event loop
 	if (!stop)
