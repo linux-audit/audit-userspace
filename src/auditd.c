@@ -719,8 +719,23 @@ int main(int argc, char *argv[])
 		ev_periodic_start (loop, &periodic_watcher);
 
 	if (auditd_tcp_listen_init (loop, &config)) {
-		tell_parent (FAILURE);
+		char emsg[DEFAULT_BUF_SZ];
+		if (*subj)
+			snprintf(emsg, sizeof(emsg),
+			"auditd error halt, auid=%u pid=%d subj=%s res=failed",
+				audit_getloginuid(), getpid(), subj);
+		else
+			snprintf(emsg, sizeof(emsg),
+				"auditd error halt, auid=%u pid=%d res=failed",
+				audit_getloginuid(), getpid());
 		stop = 1;
+		send_audit_event(AUDIT_DAEMON_ABORT, emsg);
+		close_down();
+		if (pidfile)
+			unlink(pidfile);
+		shutdown_dispatcher();
+		tell_parent(FAILURE);
+		return 1;
 	} else {
 		/* Now tell parent that everything went OK */
 		tell_parent(SUCCESS);
