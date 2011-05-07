@@ -1,5 +1,5 @@
 /* auditd.c -- 
- * Copyright 2004-09 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2004-09,2011 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -726,12 +726,7 @@ int main(int argc, char *argv[])
 				audit_getloginuid(), getpid());
 		stop = 1;
 		send_audit_event(AUDIT_DAEMON_ABORT, emsg);
-		close_down();
-		if (pidfile)
-			unlink(pidfile);
-		shutdown_dispatcher();
 		tell_parent(FAILURE);
-		return 1;
 	} else {
 		/* Now tell parent that everything went OK */
 		tell_parent(SUCCESS);
