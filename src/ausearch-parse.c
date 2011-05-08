@@ -748,7 +748,7 @@ static int parse_user(const lnode *n, search_items *s)
 			str += 5;
 			term = strchr(str, ' ');
 			if (term == NULL)
-				return 10;
+				return 12;
 			*term = 0;
 			if (audit_avc_init(s) == 0) {
 				anode an;
@@ -758,7 +758,7 @@ static int parse_user(const lnode *n, search_items *s)
 				alist_append(s->avc, &an);
 				*term = ' ';
 			} else
-				return 11;
+				return 13;
 		}
 	}
 	// get uid - something has uid after auid ??
@@ -769,17 +769,35 @@ static int parse_user(const lnode *n, search_items *s)
 		while (isdigit(*term))
 			term++;
 		if (term == ptr)
-			return 12;
+			return 14;
 
 		saved = *term;
 		*term = 0;
 		errno = 0;
 		s->uid = strtoul(ptr, NULL, 10);
 		if (errno)
-			return 13;
+			return 15;
 		*term = saved;
 	}
 	mptr = term + 1;
+
+	if (event_comm) {
+		// dont do this search unless needed
+		str = strstr(mptr, "comm=");
+		if (str) {
+			str += 5;
+			if (*str == '"') {
+				str++;
+				term = strchr(str, '"');
+				if (term == NULL)
+					return 16;
+				*term = 0;
+				s->comm = strdup(str);
+				*term = '"';
+			} else 
+				s->comm = unescape(str);
+		}
+	}
 
 	// Get acct for user/group add/del
 	str = strstr(mptr, "acct=");
@@ -827,7 +845,7 @@ static int parse_user(const lnode *n, search_items *s)
 			if (term == NULL) {
 				term = strchr(str, ' ');
 				if (term == NULL)
-					return 15;
+					return 17;
 			}
 			saved = *term;
 			*term = 0;
@@ -845,7 +863,7 @@ static int parse_user(const lnode *n, search_items *s)
 					if (term == NULL) {
 						term = strchr(str, ' ');
 						if (term == NULL)
-							return 16;
+							return 18;
 					}
 					saved = *term;
 					*term = 0;
@@ -865,7 +883,7 @@ static int parse_user(const lnode *n, search_items *s)
 			if (term == NULL) {
 				term = strchr(str, ')');
 				if (term == NULL)
-					return 17;
+					return 19;
 			}
 			*term = 0;
 			s->terminal = strdup(str);
@@ -881,7 +899,7 @@ static int parse_user(const lnode *n, search_items *s)
 				str++;
 				term = strchr(str, '"');
 				if (term == NULL)
-					return 18;
+					return 20;
 				*term = 0;
 				s->exe = strdup(str);
 				*term = '"';
@@ -915,7 +933,7 @@ static int parse_user(const lnode *n, search_items *s)
 			ptr = str + 4;
 			term = strchr(ptr, '\'');
 			if (term == NULL)
-				return 19;
+				return 21;
 			*term = 0;
 			if (strncmp(ptr, "failed", 6) == 0)
 				s->success = S_FAILED;
@@ -926,7 +944,7 @@ static int parse_user(const lnode *n, search_items *s)
 			ptr = str + 7;
 			term = strchr(ptr, ')');
 			if (term == NULL)
-				return 20;
+				return 22;
 			*term = 0;
 			if (strcasecmp(ptr, "success") == 0)
 				s->success = S_SUCCESS;
@@ -1522,7 +1540,7 @@ static int parse_kernel_anom(const lnode *n, search_items *s)
 		term = n->message;
 
 	// get uid
-	str = strstr(term, " uid="); // if promiscuous, we start over
+	str = strstr(term, "uid="); // if promiscuous, we start over
 	if (str) {
 		ptr = str + 4;
 		term = strchr(ptr, ' ');
@@ -1551,6 +1569,22 @@ static int parse_kernel_anom(const lnode *n, search_items *s)
 		*term = ' ';
 	}
 
+	str = strstr(term, "ses=");
+	if (str) {
+		ptr = str + 4;
+		term = strchr(ptr, ' ');
+		if (term)
+			*term = 0;
+		errno = 0;
+		s->session_id = strtoul(ptr, NULL, 10);
+		if (errno)
+			return 7;
+		if (term)
+			*term = ' ';
+		else
+			term = ptr;
+	}
+
 	if (event_subject) {
 		// scontext
 		str = strstr(term, "subj=");
@@ -1558,7 +1592,7 @@ static int parse_kernel_anom(const lnode *n, search_items *s)
 			str += 5;
 			term = strchr(str, ' ');
 			if (term == NULL)
-				return 7;
+				return 8;
 			*term = 0;
 			if (audit_avc_init(s) == 0) {
 				anode an;
@@ -1568,7 +1602,7 @@ static int parse_kernel_anom(const lnode *n, search_items *s)
 				alist_append(s->avc, &an);
 				*term = ' ';
 			} else
-				return 8;
+				return 9;
 		}
 	}
 
@@ -1579,12 +1613,12 @@ static int parse_kernel_anom(const lnode *n, search_items *s)
 			ptr = str + 4;
 			term = strchr(ptr, ' ');
 			if (term == NULL)
-				return 9;
+				return 10;
 			*term = 0;
 			errno = 0;
 			s->pid = strtoul(ptr, NULL, 10);
 			if (errno)
-				return 10;
+				return 11;
 			*term = ' ';
 		}
 	}
@@ -1598,7 +1632,7 @@ static int parse_kernel_anom(const lnode *n, search_items *s)
 				str++;
 				term = strchr(str, '"');
 				if (term == NULL)
-					return 11;
+					return 12;
 				*term = 0;
 				s->comm = strdup(str);
 				*term = '"';
