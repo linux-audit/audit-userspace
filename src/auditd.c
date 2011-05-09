@@ -265,7 +265,14 @@ static int write_pid_file(void)
 static void avoid_oom_killer(void)
 {
 	int oomfd;
-	
+
+	/* New kernels use different technique */	
+	oomfd = open("/proc/self/oom_score_adj", O_NOFOLLOW | O_WRONLY);
+	if (oomfd >= 0) {
+		(void)write(oomfd, "-1000", 5);
+		close(oomfd);
+		return;
+	}
 	oomfd = open("/proc/self/oom_adj", O_NOFOLLOW | O_WRONLY);
 	if (oomfd >= 0) {
 		(void)write(oomfd, "-17", 3);
