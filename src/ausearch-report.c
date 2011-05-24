@@ -53,7 +53,8 @@ struct nv_pair {
 /* This is the list of field types that we can interpret */
 enum { T_UID, T_GID, T_SYSCALL, T_ARCH, T_EXIT, T_ESCAPED, T_PERM, T_MODE, 
 T_SOCKADDR, T_FLAGS, T_PROMISC, T_CAPABILITY, T_SIGNAL, T_KEY, T_LIST,
-T_TTY_DATA, T_SESSION, T_CAP_BITMAP, T_NFPROTO, T_ICMPTYPE, T_PROTOCOL };
+T_TTY_DATA, T_SESSION, T_CAP_BITMAP, T_NFPROTO, T_ICMPTYPE, T_PROTOCOL,
+T_ADDR };
 
 /* Function in ausearch-parse for unescaping filenames */
 extern char *unescape(char *buf);
@@ -754,6 +755,11 @@ static void print_sockaddr(char *val)
 	free(host);
 }
 
+static void print_addr(char *val)
+{
+	printf("%s ", val);
+}
+
 /*
  * This table maps file system flags to their text name
  */
@@ -1070,6 +1076,8 @@ static void interpret(char *name, char *val, int comma, int rtype)
 		type = T_ESCAPED;
 	else if (rtype == AUDIT_AVC && strcmp(name, "saddr") == 0)
 		type = -1;
+	else if (rtype == AUDIT_NETFILTER_PKT && strcmp(name, "saddr") == 0)
+		type = T_ADDR;
 	else if (strcmp(name, "acct") == 0) {
 		// Remove trailing punctuation
 		int len = strlen(val);
@@ -1112,6 +1120,9 @@ static void interpret(char *name, char *val, int comma, int rtype)
 			break;
 		case T_SOCKADDR:
 			print_sockaddr(val);
+			break;
+		case T_ADDR:
+			print_addr(val);
 			break;
 		case T_FLAGS:
 			print_flags(val);

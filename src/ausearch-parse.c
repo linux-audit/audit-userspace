@@ -55,6 +55,7 @@ static int parse_integrity(const lnode *n, search_items *s);
 static int parse_kernel_anom(const lnode *n, search_items *s);
 static int parse_simple_message(const lnode *n, search_items *s);
 static int parse_tty(const lnode *n, search_items *s);
+static int parse_pkt(const lnode *n, search_items *s);
 
 
 static int audit_avc_init(search_items *s)
@@ -126,6 +127,9 @@ int extract_search_items(llist *l)
 				break;
 			case AUDIT_AVC:
 				ret = parse_avc(n, s);
+				break;
+			case AUDIT_NETFILTER_PKT:
+				ret = parse_pkt(n, s);
 				break;
 			case
 			   AUDIT_FIRST_KERN_ANOM_MSG...AUDIT_LAST_KERN_ANOM_MSG:
@@ -1899,3 +1903,23 @@ static int parse_tty(const lnode *n, search_items *s)
 	return 0;
 }
 
+static int parse_pkt(const lnode *n, search_items *s)
+{
+	char *str, *ptr, *term=n->message;
+
+	// get hostname
+	if (event_hostname) {
+		str = strstr(n->message, "saddr=");
+		if (str) {
+			ptr = str + 6;
+			term = strchr(ptr, ' ');
+			if (term == NULL)
+				return 1;
+			*term = 0;
+			s->hostname = strdup(ptr);
+			*term = ' ';
+		}
+	}
+
+	return 0;
+}
