@@ -7,6 +7,7 @@
 - If auditd shutsdown due to failed tcp init, write a DAEMON_ABORT event
 - Update auditd to avoid the oom killer in new kernels (Andreas Jaeger)
 - Parse and interpret NETFILTER_PKT events correctly
+- Return error if auditctl -l fails (#709345)
 
 2.1.1
 - When ausearch is interpretting, output "as is" if no = is found

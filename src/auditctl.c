@@ -424,12 +424,14 @@ static int equiv_parse(char *optarg, char **mp, char **sub)
 	return 0;
 }
 
-void audit_request_rule_list(int fd)
+int audit_request_rule_list(int fd)
 {
 	if (audit_request_rules_list_data(fd) > 0) {
 		list_requested = 1;
 		get_reply();
+		return 1;
 	}
+	return 0;
 }
 
 void check_rule_mismatch(int lineno, const char *option)
@@ -583,8 +585,10 @@ static int setopt(int count, int lineno, char *vars[])
 				break;
 			}
 		}
-		audit_request_rule_list(fd);
-		retval = -2;
+		if (audit_request_rule_list(fd))
+			retval = -2;
+		else
+			retval = -1;
 		break;
         case 'a':
 		if (strstr(optarg, "task") && audit_syscalladded) {
@@ -773,7 +777,7 @@ static int setopt(int count, int lineno, char *vars[])
 		}
 		retval = delete_all_rules(fd);
 		if (retval == 0) {
-			audit_request_rule_list(fd);
+			(void)audit_request_rule_list(fd);
 			key[0] = 0;
 			retval = -2;
 		}
