@@ -8,6 +8,7 @@
 - Update auditd to avoid the oom killer in new kernels (Andreas Jaeger)
 - Parse and interpret NETFILTER_PKT events correctly
 - Return error if auditctl -l fails (#709345)
+- In audisp-remote, replace glibc's fgets with custom implementation
 
 2.1.1
 - When ausearch is interpretting, output "as is" if no = is found

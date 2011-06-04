@@ -28,12 +28,12 @@ prog_conf = audisp-remote.conf
 plugin_confdir=$(prog_confdir)/plugins.d
 plugin_conf = au-remote.conf
 sbin_PROGRAMS = audisp-remote
-noinst_HEADERS = remote-config.h queue.h
+noinst_HEADERS = remote-config.h queue.h remote-fgets.h
 man_MANS = audisp-remote.8 audisp-remote.conf.5
 check_PROGRAMS = test-queue
 TESTS = $(check_PROGRAMS)
 
-audisp_remote_SOURCES = audisp-remote.c remote-config.c queue.c
+audisp_remote_SOURCES = audisp-remote.c remote-config.c queue.c remote-fgets.c
 audisp_remote_CFLAGS = -fPIE -DPIE -g -D_REENTRANT -D_GNU_SOURCE -Wundef
 audisp_remote_LDFLAGS = -pie -Wl,-z,relro $(gss_libs)
 audisp_remote_LDADD = $(CAPNG_LDADD)

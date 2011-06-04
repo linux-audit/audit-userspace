@@ -52,6 +52,7 @@
 #include "private.h"
 #include "remote-config.h"
 #include "queue.h"
+#include "remote-fgets.h"
 
 #define CONFIG_FILE "/etc/audisp/audisp-remote.conf"
 #define BUF_SIZE 32
@@ -74,7 +75,6 @@ static volatile int transport_ok = 0;
 static volatile int sock=-1;
 static volatile int remote_ended = 0, quiet = 0;
 static int ifd;
-static FILE *in;
 remote_conf_t config;
 
 /* Constants */
@@ -443,10 +443,8 @@ int main(int argc, char *argv[])
 		return 6;
 
 	// ifd = open("test.log", O_RDONLY);
-	// in = fdopen(ifd, "r");
 	ifd = 0;
-	in = stdin;
-	setlinebuf(in); // FIXME: remove when fgets_unlocked is replaced
+	fcntl(ifd, F_SETFL, O_NONBLOCK);
 
 	/* We fail here if the transport can't be initialized because of some
 	 * permanent (i.e. operator) problem, such as misspelled host name. */
@@ -468,7 +466,7 @@ int main(int argc, char *argv[])
 	capng_apply(CAPNG_SELECT_BOTH);
 #endif
 
-	while (stop == 0 && !feof(in)) {
+	while (stop == 0) { //FIXME break out when socket is closed
 		fd_set rfd, wfd;
 		struct timeval tv;
 		char event[MAX_AUDIT_MESSAGE_LENGTH];
@@ -525,25 +523,29 @@ int main(int argc, char *argv[])
 
 		// See if input fd is also set
 		if (FD_ISSET(ifd, &rfd)) {
-			if (fgets_unlocked(event, sizeof(event), in)) {
-				if (!transport_ok && remote_ended && 
-					config.remote_ending_action ==
-							 FA_RECONNECT) {
-					quiet = 1;
-					if (init_transport() == ET_SUCCESS)
-						remote_ended = 0;
-					quiet = 0;
-				}
-				/* Strip out EOE records */
-				if (strstr(event,"type=EOE msg=audit("))
-					continue;
-				if (q_append(queue, event) != 0) {
-					if (errno == ENOSPC)
-						do_overflow_action();
-					else
-						queue_error();
-				}
-			}
+			do {
+				if (remote_fgets(event, sizeof(event), ifd)) {
+					if (!transport_ok && remote_ended && 
+						config.remote_ending_action ==
+								 FA_RECONNECT) {
+						quiet = 1;
+						if (init_transport() ==
+								ET_SUCCESS)
+							remote_ended = 0;
+						quiet = 0;
+					}
+					/* Strip out EOE records */
+					if (strstr(event,"type=EOE msg=audit("))
+						continue;
+					if (q_append(queue, event) != 0) {
+						if (errno == ENOSPC)
+							do_overflow_action();
+						else
+							queue_error();
+					}
+				} else if (remote_fgets_eof())
+					stop = 1;
+			} while (remote_fgets_more(sizeof(event)));
 		}
 		// See if output fd is also set
 		if (sock > 0 && FD_ISSET(sock, &wfd)) 
