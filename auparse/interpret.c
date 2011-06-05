@@ -1004,6 +1004,12 @@ static const char *print_protocol(const char *val)
 	return out;
 }
 
+static const char *print_addr(const char *val)
+{
+	char *out = strdup(val);
+	return out;
+}
+
 static const char *print_list(const char *val)
 {
 	int i;
@@ -1181,6 +1187,8 @@ const char *interpret(const rnode *r)
 		type = -1;
 	else if (r->type == AUDIT_USER_TTY && strcmp(name, "msg") == 0)
 		type = AUPARSE_TYPE_ESCAPED;
+	else if (r->type == AUDIT_NETFILTER_PKT && strcmp(name, "saddr") == 0)
+		type = AUPARSE_TYPE_ADDR;
 	else if (strcmp(name, "acct") == 0) {
 		if (val[0] == '"')
 			type = AUPARSE_TYPE_ESCAPED;
@@ -1264,6 +1272,9 @@ const char *interpret(const rnode *r)
 		case AUPARSE_TYPE_PROTOCOL:
 			out = print_protocol(val);
 			break; 
+		case AUPARSE_TYPE_ADDR:
+			out = print_addr(val);
+			break;
 		case AUPARSE_TYPE_UNCLASSIFIED:
 		default: {
 			char *out2;
