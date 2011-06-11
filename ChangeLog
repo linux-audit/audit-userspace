@@ -1,3 +1,5 @@
+2.1.3
+
 2.1.2
 - In ausearch/report, fix a segfault caused by MAC_POLICY_LOAD records
 - In ausearch/report, add and update parsers
