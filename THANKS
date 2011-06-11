@@ -11,5 +11,5 @@ to this project.
 * Lisa Smith of HP for the audit failure query function
 * Dan Walsh for Python bindings
 * John Dennis for rewriting the python bindings and auparse updates
-* Miloslav Trmac for system config audit program
+* Miloslav Trmac for numerous patches including store forward remote logging
 * DJ Delorie for the remote logging code
