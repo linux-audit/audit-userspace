@@ -61,7 +61,8 @@ static void check_log_file_size(int lfd, struct auditd_consumer_data *data);
 static void check_space_left(int lfd, struct daemon_conf *config);
 static void do_space_left_action(struct daemon_conf *config, int admin);
 static void do_disk_full_action(struct daemon_conf *config);
-static void do_disk_error_action(const char *func, struct daemon_conf *config);
+static void do_disk_error_action(const char *func, struct daemon_conf *config,
+	int err);
 static void check_excess_logs(struct auditd_consumer_data *data); 
 static void rotate_logs_now(struct auditd_consumer_data *data);
 static void rotate_logs(struct auditd_consumer_data *data, 
@@ -355,17 +356,32 @@ static void handle_event(struct auditd_consumer_data *data)
 		        	        } else
 					     //EIO is only likely failure mode
 					     do_disk_error_action("flush", 
-						data->config);
+						data->config, errno);
 				}
 
 				/* EIO is only likely failure mode */
 				if ((data->config->daemonize == D_BACKGROUND)&& 
 						(fsync(data->log_fd) != 0)) {
 				     do_disk_error_action("fsync",
-					data->config);
+					data->config, errno);
 				}
 			}
 		}
+	}
+}
+
+static void send_ack(struct auditd_consumer_data *data, int ack_type,
+			const char *msg)
+{
+	if (data->head->ack_func) {
+		unsigned char header[AUDIT_RMW_HEADER_SIZE];
+
+		if (fs_space_warning)
+			ack_type = AUDIT_RMW_TYPE_DISKLOW;
+
+		AUDIT_RMW_PACK_HEADER (header, 0, ack_type, strlen(msg), data->head->sequence_id);
+
+		data->head->ack_func (data->head->ack_data, header, msg);
 	}
 }
 
@@ -383,42 +399,33 @@ static void write_to_log(const char *buf, struct auditd_consumer_data *data)
 
 	/* error? Handle it */
 	if (rc < 0) {
-		int saved_errno = errno;
-		audit_msg(LOG_ERR, "Record was not written to disk (%s)", 
-			strerror(errno));
-		if (saved_errno == ENOSPC && fs_space_left == 1) {
-			fs_space_left = 0;
-			do_disk_full_action(config);
+		if (errno == ENOSPC) {
 			ack_type = AUDIT_RMW_TYPE_DISKFULL;
 			msg = "disk full";
+			send_ack(data, ack_type, msg);
+			if (fs_space_left == 1) {
+				fs_space_left = 0;
+				do_disk_full_action(config);
+			}
 		} else  {
-			do_disk_error_action("write", config);
+			int saved_errno = errno;
 			ack_type = AUDIT_RMW_TYPE_DISKERROR;
 			msg = "disk write error";
+			send_ack(data, ack_type, msg);
+			do_disk_error_action("write", config, saved_errno);
 		}
-		
 	} else {
-
 		/* check log file size & space left on partition */
 		if (config->daemonize == D_BACKGROUND) {
-			// If either of these fail, I consider it an inconvenience 
-			// as opposed to something that is actionable. There may be
-			// some temporary condition that the system recovers from. 
-			// The real error occurs on write.
+			// If either of these fail, I consider it an
+			// inconvenience as opposed to something that is
+			// actionable. There may be some temporary condition
+			// that the system recovers from. The real error
+			// occurs on write.
 			check_log_file_size(data->log_fd, data);
 			check_space_left(data->log_fd, config);
 		}
-	}
-
-	if (data->head->ack_func) {
-		unsigned char header[AUDIT_RMW_HEADER_SIZE];
-
-		if (fs_space_warning)
-			ack_type = AUDIT_RMW_TYPE_DISKLOW;
-
-		AUDIT_RMW_PACK_HEADER (header, 0, ack_type, strlen(msg), data->head->sequence_id);
-
-		data->head->ack_func (data->head->ack_data, header, msg);
+		send_ack(data, ack_type, msg);
 	}
 }
 
@@ -606,13 +613,13 @@ static void do_disk_full_action(struct daemon_conf *config)
 	} 
 }
 
-static void do_disk_error_action(const char * func, struct daemon_conf *config)
+static void do_disk_error_action(const char * func, struct daemon_conf *config, int err)
 {
 	char text[128];
 
 	snprintf(text, sizeof(text), 
 	    "%s: Audit daemon detected an error writing an event to disk (%s)",
-		func, strerror(errno));
+		func, strerror(err));
 	audit_msg(LOG_ALERT, "%s", text);
 
 	switch (config->disk_error_action)
@@ -744,7 +751,8 @@ static void rotate_logs(struct auditd_consumer_data *data,
 				fs_space_left = 0;
 				do_disk_full_action(data->config);
 			} else
-				do_disk_error_action("rotate", data->config);
+				do_disk_error_action("rotate", data->config,
+							saved_errno);
 		}
 	}
 	free(newname);
@@ -761,7 +769,8 @@ static void rotate_logs(struct auditd_consumer_data *data,
 			fs_space_left = 0;
 			do_disk_full_action(data->config);
 		} else
-			do_disk_error_action("rotate2", data->config);
+			do_disk_error_action("rotate2", data->config,
+						saved_errno);
 
 		/* At this point, we've failed to rotate the original log.
 		 * So, let's make the old log writable and try again next
@@ -774,10 +783,11 @@ static void rotate_logs(struct auditd_consumer_data *data,
 
 	/* open new audit file */
 	if (open_audit_log(data)) {
+		int saved_errno = errno;
 		audit_msg(LOG_NOTICE, 
 			"Could not reopen a log after rotating.");
 		logging_suspended = 1;
-		do_disk_error_action("reopen", data->config);
+		do_disk_error_action("reopen", data->config, saved_errno);
 	}
 }
 
@@ -1096,18 +1106,22 @@ static void reconfigure(struct auditd_consumer_data *data)
 		if (oconf->dispatcher == NULL) {
 			oconf->dispatcher = strdup(nconf->dispatcher);
 			if (oconf->dispatcher == NULL) {
+				int saved_errno = errno;
 				audit_msg(LOG_NOTICE,
 					"Could not allocate dispatcher memory"
 					" in reconfigure");
 				// Likely errors: ENOMEM
-				do_disk_error_action("reconfig", data->config);
+				do_disk_error_action("reconfig", data->config,
+							saved_errno);
 			}
 			if(init_dispatcher(oconf)) {// dispatcher & qos is used
+				int saved_errno = errno;
 				audit_msg(LOG_NOTICE,
 					"Could not start dispatcher %s"
 					" in reconfigure", oconf->dispatcher);
 				// Likely errors: Socketpairs or exec perms
-				do_disk_error_action("reconfig", data->config);
+				do_disk_error_action("reconfig", data->config,
+							saved_errno);
 			}
 		} 
 		// have one, but none after this
@@ -1122,18 +1136,22 @@ static void reconfigure(struct auditd_consumer_data *data)
 			free((char *)oconf->dispatcher);
 			oconf->dispatcher = strdup(nconf->dispatcher);
 			if (oconf->dispatcher == NULL) {
+				int saved_errno = errno;
 				audit_msg(LOG_NOTICE,
 					"Could not allocate dispatcher memory"
 					" in reconfigure");
 				// Likely errors: ENOMEM
-				do_disk_error_action("reconfig", data->config);
+				do_disk_error_action("reconfig", data->config,
+							saved_errno);
 			}
 			if(init_dispatcher(oconf)) {// dispatcher & qos is used
+				int saved_errno = errno;
 				audit_msg(LOG_NOTICE,
 					"Could not start dispatcher %s"
 					" in reconfigure", oconf->dispatcher);
 				// Likely errors: Socketpairs or exec perms
-				do_disk_error_action("reconfig", data->config);
+				do_disk_error_action("reconfig", data->config,
+							saved_errno);
 			}
 		}
 		// they are the same app - just signal it
@@ -1204,11 +1222,13 @@ static void reconfigure(struct auditd_consumer_data *data)
 	if (need_reopen) {
 		fclose(data->log_file);
 		if (open_audit_log(data)) {
+			int saved_errno = errno;
 			audit_msg(LOG_NOTICE, 
 				"Could not reopen a log after reconfigure");
 			logging_suspended = 1;
 			// Likely errors: ENOMEM, ENOSPC
-			do_disk_error_action("reconfig", data->config);
+			do_disk_error_action("reconfig", data->config,
+						saved_errno);
 		} else {
 			logging_suspended = 0;
 			check_log_file_size(data->log_fd, data);
