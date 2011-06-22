@@ -186,7 +186,7 @@ detected that the partition to which log files are written has become full. Vali
 .IR ignore ", " syslog ", " exec ", " suspend ", " single ", and " halt .
 If set to
 .IR ignore ,
-the audit daemon does nothing.
+the audit daemon will issue a syslog message but no other action is taken.
 .I Syslog
 means that it will issue a warning to syslog.
 .I exec
@@ -204,7 +204,7 @@ detected when writing audit events to disk or rotating logs. Valid values are
 .IR ignore ", " syslog ", " exec ", " suspend ", " single ", and " halt .
 If set to
 .IR ignore ,
-the audit daemon does nothing.
+the audit daemon will issue a syslog message but no other action is taken.
 .I Syslog
 means that it will issue a warning to syslog.
 .I exec
