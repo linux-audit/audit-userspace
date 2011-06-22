@@ -376,12 +376,10 @@ static void send_ack(struct auditd_consumer_data *data, int ack_type,
 	if (data->head->ack_func) {
 		unsigned char header[AUDIT_RMW_HEADER_SIZE];
 
-		if (fs_space_warning)
-			ack_type = AUDIT_RMW_TYPE_DISKLOW;
+		AUDIT_RMW_PACK_HEADER(header, 0, ack_type, strlen(msg),
+					data->head->sequence_id);
 
-		AUDIT_RMW_PACK_HEADER (header, 0, ack_type, strlen(msg), data->head->sequence_id);
-
-		data->head->ack_func (data->head->ack_data, header, msg);
+		data->head->ack_func(data->head->ack_data, header, msg);
 	}
 }
 
@@ -425,6 +423,9 @@ static void write_to_log(const char *buf, struct auditd_consumer_data *data)
 			check_log_file_size(data->log_fd, data);
 			check_space_left(data->log_fd, config);
 		}
+
+		if (fs_space_warning)
+			ack_type = AUDIT_RMW_TYPE_DISKLOW;
 		send_ack(data, ack_type, msg);
 	}
 }
