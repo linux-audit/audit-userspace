@@ -221,7 +221,7 @@ void clear_config(prelude_conf_t *config)
 	config->watched_exec_act = A_IDMEF;
 	config->watched_mk_exe = E_YES;
 	config->watched_mk_exe_act = A_IDMEF;
-	config->tty = E_YES;
+	config->tty = E_NO;
 	config->tty_act = A_IDMEF;
 	ilist_create(&config->watched_accounts);
 }
