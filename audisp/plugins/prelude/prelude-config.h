@@ -64,6 +64,8 @@ typedef struct prelude_conf
 	action_t watched_exec_act;
 	enable_t watched_mk_exe;
 	action_t watched_mk_exe_act;
+	enable_t tty;
+	action_t tty_act;
 } prelude_conf_t;
 
 void clear_config(prelude_conf_t *config);

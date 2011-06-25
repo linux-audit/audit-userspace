@@ -1,5 +1,5 @@
 /* prelude-config.c -- 
- * Copyright 2008,2010 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2008,2010-2011 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -122,6 +122,10 @@ static int watched_mk_exe_parser(struct nv_pair *nv, int line,
 		prelude_conf_t *config);
 static int watched_mk_exe_act_parser(struct nv_pair *nv, int line, 
 		prelude_conf_t *config);
+static int tty_parser(struct nv_pair *nv, int line, 
+		prelude_conf_t *config);
+static int tty_act_parser(struct nv_pair *nv, int line, 
+		prelude_conf_t *config);
 static int sanity_check(prelude_conf_t *config, const char *file);
 
 static const struct kw_pair keywords[] = 
@@ -158,6 +162,8 @@ static const struct kw_pair keywords[] =
   {"watched_exec_action",        watched_exec_act_parser,	0 },
   {"detect_watched_mk_exe",      watched_mk_exe_parser,		0 },
   {"watched_mk_exe_action",      watched_mk_exe_act_parser,	0 },
+  {"detect_tty",                 tty_parser,		0 },
+  {"tty_action",                 tty_act_parser,	0 },
   { NULL,             NULL }
 };
 
@@ -215,6 +221,8 @@ void clear_config(prelude_conf_t *config)
 	config->watched_exec_act = A_IDMEF;
 	config->watched_mk_exe = E_YES;
 	config->watched_mk_exe_act = A_IDMEF;
+	config->tty = E_YES;
+	config->tty_act = A_IDMEF;
 	ilist_create(&config->watched_accounts);
 }
 
@@ -800,6 +808,23 @@ static int watched_mk_exe_act_parser(struct nv_pair *nv, int line,
         return 1;
 }
 
+static int tty_parser(struct nv_pair *nv, int line,
+	prelude_conf_t *config)
+{
+	if (lookup_enabler(nv->value, &config->tty) == 0)
+		return 0;
+	syslog(LOG_ERR, "Option %s not found - line %d", nv->value, line);
+	return 1;
+}
+
+static int tty_act_parser(struct nv_pair *nv, int line,
+	prelude_conf_t *config)
+{
+	if (lookup_action(nv->value, &config->tty_act) == 0)
+		return 0;
+	syslog(LOG_ERR, "Option %s not found - line %d", nv->value, line);
+	return 1;
+}
 /*
  * This function is where we do the integrated check of the audispd config
  * options. At this point, all fields have been read. Returns 0 if no
