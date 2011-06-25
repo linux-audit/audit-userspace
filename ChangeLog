@@ -2,6 +2,7 @@
 - Fix parsing of EXECVE records to not escape argc field
 - If auditd's disk is full, send the right reason to client (#715315)
 - Add CAP_WAKE_ALARM to interpretations
+- Some updates to audisp-remote's remote-fgets function (Mirek Trmac)
 
 2.1.2
 - In ausearch/report, fix a segfault caused by MAC_POLICY_LOAD records

@@ -29,7 +29,8 @@
 
 #define BUF_SIZE 8192
 static char buffer[2*BUF_SIZE+1] = { 0 };
-static char *current = buffer, *eptr = buffer+(2*BUF_SIZE);
+static char *current = buffer;
+static char *const eptr = buffer+(2*BUF_SIZE);
 static int eof = 0;
 
 int remote_fgets_eof(void)
@@ -53,19 +54,19 @@ int remote_fgets_more(size_t blen)
 int remote_fgets(char *buf, size_t blen, int fd)
 {
 	int complete = 0;
-	size_t check;
-	char *ptr = NULL;
+	size_t line_len;
+	char *line_end = NULL;
 
 	assert(blen != 0);
 	/* See if we have more in the buffer first */
 	if (current != buffer) {
-		ptr = strchr(buffer, '\n');
-		if (ptr == NULL && (size_t)(current - buffer) >= blen-1)
-			ptr = current-1; // have enough to fill blen, so point to end
+		line_end = strchr(buffer, '\n');
+		if (line_end == NULL && (size_t)(current - buffer) >= blen-1)
+			line_end = current-1; // have enough to fill blen, so point to end
 	}
 
 	/* Otherwise get some new bytes */
-	if (ptr == NULL && current != eptr && !eof) {
+	if (line_end == NULL && current != eptr && !eof) {
 		ssize_t len;
 
 		/* Use current since we may be adding more */
@@ -81,47 +82,42 @@ int remote_fgets(char *buf, size_t blen, int fd)
 		current += len;
 
 		/* Start from beginning to see if we have one */
-		ptr = strchr(buffer, '\n');
+		line_end = strchr(buffer, '\n');
 	}
 
 	/* See what we have */
-	if (ptr) {
-		ptr++; /* Include the newline */
-		check = ptr - buffer;
+	if (line_end) {
+		/* Include the last character (usually newline) */
+		line_len = (line_end+1) - buffer;
 		/* Make sure we are within the right size */
-		if (check > blen-1)
-			check = blen-1;
+		if (line_len > blen-1)
+			line_len = blen-1;
 		complete = 1;
 	} else if (current == eptr) {
 		/* We are full but no newline */
-		check = blen-1;
+		line_len = blen-1;
 		complete = 1;
 	} else if (current >= buffer+blen-1) {
 		/* Not completely full, no newline, but enough to fill buf */
-		check = blen-1;
+		line_len = blen-1;
 		complete = 1;
 	}
 	if (complete) {
 		size_t remainder_len;
 
 		/* Move to external buf and terminate it */
-		memmove(buf, buffer, check);
-		buf[check] = 0;
-		remainder_len = current - (buffer + check);
+		memcpy(buf, buffer, line_len);
+		buf[line_len] = 0;
+		remainder_len = current - (buffer + line_len);
 		if (remainder_len > 0) {
 			/* We have a few leftover bytes to move */
-			memmove(buffer, buffer+check, remainder_len);
+			memmove(buffer, buffer+line_len, remainder_len);
 			current = buffer+remainder_len;
-			*current = 0;
 		} else {
 			/* Got the whole thing, just reset */
 			current = buffer;
-			buffer[0] = 0;
 		}
-	} else {
-		/* To get here, no newline, not completely full, and less
-		 * than blen-1. */
-		check = 0;
+		*current = 0;
 	}
-	return check;
+	return complete;
 }
