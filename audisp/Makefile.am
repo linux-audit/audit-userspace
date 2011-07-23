@@ -1,5 +1,5 @@
 # Makefile.am-- 
-# Copyright 2007 Red Hat Inc., Durham, North Carolina.
+# Copyright 2007,2011 Red Hat Inc., Durham, North Carolina.
 # All Rights Reserved.
 #
 # This program is free software; you can redistribute it and/or modify
@@ -34,7 +34,7 @@ AM_CFLAGS = -D_REENTRANT
 audispd_SOURCES = audispd.c audispd-config.c audispd-pconfig.c \
 	audispd-llist.c queue.c audispd-builtins.c
 audispd_CFLAGS = -fPIE -DPIE -g -D_GNU_SOURCE
-audispd_LDFLAGS = -pie -Wl,-z,relro
+audispd_LDFLAGS = -pie -Wl,-z,relro -Wl,-z,now
 
 install-exec-hook:
 	chmod 0750 $(DESTDIR)$(sbindir)/audispd

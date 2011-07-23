@@ -5,6 +5,7 @@
 - Some updates to audisp-remote's remote-fgets function (Mirek Trmac)
 - Add detection of TTY events to audisp-prelude (Matteo Sessa)
 - Updated syscall tables for the 3.0 kernel
+- Update linker flags for better relro support
 
 2.1.2
 - In ausearch/report, fix a segfault caused by MAC_POLICY_LOAD records

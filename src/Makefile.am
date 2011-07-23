@@ -1,5 +1,5 @@
 # Makefile.am-- 
-# Copyright 2004-2006, 2008 Red Hat Inc., Durham, North Carolina.
+# Copyright 2004-2006, 2008,2011 Red Hat Inc., Durham, North Carolina.
 # All Rights Reserved.
 #
 # This program is free software; you can redistribute it and/or modify
@@ -32,7 +32,7 @@ noinst_HEADERS = auditd-config.h auditd-event.h auditd-listen.h ausearch-llist.h
 
 auditd_SOURCES = auditd.c auditd-event.c auditd-config.c auditd-reconfig.c auditd-sendmail.c auditd-dispatch.c auditd-listen.c
 auditd_CFLAGS = -fPIE -DPIE -g -D_REENTRANT -D_GNU_SOURCE -fno-strict-aliasing 
-auditd_LDFLAGS = -pie -Wl,-z,relro
+auditd_LDFLAGS = -pie -Wl,-z,relro -Wl,-z,now
 auditd_DEPENDENCIES = mt/libauditmt.a libev/libev.a
 auditd_LDADD = @LIBWRAP_LIBS@ @libev_LIBS@ -Llibev -lev -lrt -lpthread -lm $(gss_libs)
 

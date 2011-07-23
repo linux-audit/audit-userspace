@@ -35,7 +35,7 @@ TESTS = $(check_PROGRAMS)
 
 audisp_remote_SOURCES = audisp-remote.c remote-config.c queue.c remote-fgets.c
 audisp_remote_CFLAGS = -fPIE -DPIE -g -D_REENTRANT -D_GNU_SOURCE -Wundef
-audisp_remote_LDFLAGS = -pie -Wl,-z,relro $(gss_libs)
+audisp_remote_LDFLAGS = -pie -Wl,-z,relro -Wl,-z,now $(gss_libs)
 audisp_remote_LDADD = $(CAPNG_LDADD)
 
 test_queue_SOURCES = queue.c test-queue.c

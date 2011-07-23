@@ -1,5 +1,5 @@
 # Makefile.am --
-# Copyright 2007, 2008 Red Hat Inc., Durham, North Carolina.
+# Copyright 2007,2008,2011 Red Hat Inc., Durham, North Carolina.
 # All Rights Reserved.
 #
 # This library is free software; you can redistribute it and/or
@@ -27,5 +27,5 @@ pyexec_LTLIBRARIES = auparse.la
 
 auparse_la_SOURCES = auparse_python.c
 auparse_la_CPPFLAGS = -I$(top_srcdir)/auparse $(AM_CPPFLAGS) -I/usr/include/python$(PYTHON_VERSION) -fno-strict-aliasing
-auparse_la_LDFLAGS = -module -avoid-version
+auparse_la_LDFLAGS = -module -avoid-version -Wl,-z,relro
 auparse_la_LIBADD = ../../auparse/libauparse.la ../../lib/libaudit.la
