@@ -6,6 +6,7 @@
 - Add detection of TTY events to audisp-prelude (Matteo Sessa)
 - Updated syscall tables for the 3.0 kernel
 - Update linker flags for better relro support
+- Make default size of logs bigger (#727310)
 
 2.1.2
 - In ausearch/report, fix a segfault caused by MAC_POLICY_LOAD records
