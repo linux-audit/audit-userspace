@@ -1921,5 +1921,27 @@ static int parse_pkt(const lnode *n, search_items *s)
 		}
 	}
 
+	// obj context
+	if (event_object) {
+		str = strstr(term, "obj=");
+		if (str != NULL) {
+			str += 4;
+			term = strchr(str, ' ');
+			if (term)
+				*term = 0;
+			if (audit_avc_init(s) == 0) {
+				anode an;
+
+				anode_init(&an);
+				an.tcontext = strdup(str);
+				alist_append(s->avc, &an);
+				if (term)
+					*term = ' ';
+			} else
+				return 2;
+		}
+	}
+
 	return 0;
 }
+
