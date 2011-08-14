@@ -643,8 +643,6 @@ parse_primary(struct parsing *p)
 			 p->token_start);
 		return NULL;
 	}
-	abort();		/* Should never get here */
-
 err_e:
 	expr_free(e);
 	return NULL;
