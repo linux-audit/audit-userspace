@@ -164,8 +164,10 @@
 ## FPT_STM.1
 ## changes to the time
 ##
--a always,exit -F arch=b32 -S adjtimex -S settimeofday -S stime -S clock_settime
--a always,exit -F arch=b64 -S adjtimex -S settimeofday -S clock_settime
+-a always,exit -F arch=b32 -S adjtimex -S settimeofday -S stime
+-a always,exit -F arch=b64 -S adjtimex -S settimeofday
+-a always,exit -F arch=b32 -S clock_settime -F a0=0
+-a always,exit -F arch=b64 -S clock_settime -F a0=0
 
 ##
 ## FTP_ITC.1
