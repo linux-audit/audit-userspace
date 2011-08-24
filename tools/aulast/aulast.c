@@ -252,6 +252,8 @@ static void update_session_login(auparse_state_t *au)
 		host = auparse_find_field(au, "addr");
 
 	term = auparse_find_field(au, "terminal");
+	if (term == NULL)
+		term = "?";
 	tres = auparse_find_field(au, "res");
 	if (tres)
 		tres = auparse_interpret_field(au);

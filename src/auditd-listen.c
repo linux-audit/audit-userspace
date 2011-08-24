@@ -494,6 +494,7 @@ static void client_ack (void *ack_data, const unsigned char *header,
 			free (utok.value);
 			return;
 		}
+		// FIXME: What were we going to do with rc?
 		rc = send_token (io->io.fd, &etok);
 		free (utok.value);
 		(void) gss_release_buffer(&minor_status, &etok);

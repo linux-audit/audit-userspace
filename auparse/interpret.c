@@ -501,6 +501,10 @@ static const char *print_sockaddr(const char *val)
 
         slen = strlen(val)/2;
         host = au_unescape((char *)val);
+	if (host == NULL) {
+                asprintf(&out, "malformed host(%s)", val);
+		return out;
+	}
         saddr = (struct sockaddr *)host;
 
 
@@ -1174,7 +1178,7 @@ int lookup_type(const char *name)
 const char *interpret(const rnode *r)
 {
 	const nvlist *nv = &r->nv;
-	int type, comma = 0;
+	int type;
 	nvnode *n;
 	const char *out;
 	const char *name = nvlist_get_cur_name(nv);
@@ -1276,14 +1280,9 @@ const char *interpret(const rnode *r)
 			out = print_addr(val);
 			break;
 		case AUPARSE_TYPE_UNCLASSIFIED:
-		default: {
-			char *out2;
-			if (comma)
-				asprintf(&out2, "%s,", val);
-			else
-				out2 = strdup(val);
-			out = out2;
-			}
+		default:
+			out = strdup(val);
+			break;
         }
 
 	n = nvlist_get_cur(nv);

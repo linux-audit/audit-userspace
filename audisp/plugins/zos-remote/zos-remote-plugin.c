@@ -490,6 +490,10 @@ int main(int argc, char *argv[])
 
                 /* initialize auparse */
                 au = auparse_init(AUSOURCE_FEED, 0);               /* 2 */
+                if (au == NULL) {
+                        log_err("Error - exiting due to auparse init errors");
+                        return -1;
+                }
                 
                 /* 
                  * Block signals for everyone,
