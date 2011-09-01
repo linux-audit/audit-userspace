@@ -37,9 +37,9 @@ static inline unsigned int nvlist_get_cnt(nvlist *l) { return l->cnt; }
 static inline void nvlist_first(nvlist *l) { l->cur = l->head; }
 static inline nvnode *nvlist_get_cur(const nvlist *l) { return l->cur; }
 nvnode *nvlist_next(nvlist *l) hidden;
-static inline const char *nvlist_get_cur_name(const nvlist *l) {return l->cur->name;}
-static inline const char *nvlist_get_cur_val(const nvlist *l) {return l->cur->val;}
-static inline const char *nvlist_get_cur_val_interp(const nvlist *l) {return l->cur->interp_val;}
+static inline const char *nvlist_get_cur_name(const nvlist *l) {if (l->cur) return l->cur->name; else return NULL;}
+static inline const char *nvlist_get_cur_val(const nvlist *l) {if (l->cur) return l->cur->val; else return NULL;}
+static inline const char *nvlist_get_cur_val_interp(const nvlist *l) {if (l->cur) return l->cur->interp_val; else return NULL;}
 int nvlist_get_cur_type(const rnode *r) hidden;
 const char *nvlist_interp_cur_val(const rnode *r) hidden;
 void nvlist_append(nvlist *l, nvnode *node) hidden;

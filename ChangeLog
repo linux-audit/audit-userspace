@@ -1,5 +1,6 @@
 2.1.4
 - Correct all rules for clock_settime
+- Fix possible segfault in auparse library
 
 2.1.3
 - Fix parsing of EXECVE records to not escape argc field
