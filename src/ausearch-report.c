@@ -659,7 +659,10 @@ static void print_sockaddr(char *val)
 	len = strlen(val)/2;
 	host = unescape(val);
 	saddr = (struct sockaddr *)host;
-
+	if (saddr == NULL) {
+		printf("Malformed address ");
+		return;
+	}
 	
 	str = audit_lookup_fam(saddr->sa_family);
 	if (str)
