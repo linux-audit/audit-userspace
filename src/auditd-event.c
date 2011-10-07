@@ -86,6 +86,7 @@ static int logging_suspended = 0;
 static const char *SINGLE = "1";
 static const char *HALT = "0";
 static char *format_buf = NULL;
+static off_t log_size = 0;
 
 
 void shutdown_events(void)
@@ -420,6 +421,7 @@ static void write_to_log(const char *buf, struct auditd_consumer_data *data)
 			// actionable. There may be some temporary condition
 			// that the system recovers from. The real error
 			// occurs on write.
+			log_size += rc;
 			check_log_file_size(data->log_fd, data);
 			check_space_left(data->log_fd, config);
 		}
@@ -440,7 +442,12 @@ static void check_log_file_size(int lfd, struct auditd_consumer_data *data)
 	rc = fstat(lfd, &st);
 	if (rc == 0) {
 		/* did we cross the size limit? */
-		unsigned long sz = st.st_size / MEGABYTE;
+		off_t sz = st.st_size / MEGABYTE;
+		{
+			// FIXME: delete
+			if (log_size != st.st_size)
+				audit_msg(LOG_ERR, "log size miscompare - is:%lu calc:%lu", st.st_size, log_size);
+		}
 		if (sz >= config->max_log_size && 
 				(config->daemonize == D_BACKGROUND)) {
 			switch (config->max_log_size_action)
@@ -862,6 +869,7 @@ retry:
 			close(lfd);
 			lfd = open(data->config->log_file, 
 				O_WRONLY|O_APPEND|O_NOFOLLOW);
+			log_size = 0;
 		} else if (errno == ENFILE) {
 			// All system descriptors used, try again...
 			goto retry;
@@ -869,6 +877,17 @@ retry:
 		if (lfd < 0) {
 			audit_msg(LOG_ERR, "Couldn't open log file %s (%s)",
 				data->config->log_file, strerror(errno));
+			return 1;
+		}
+	} else {
+		// Get initial size
+		struct stat st;
+
+		int rc = fstat(lfd, &st);
+		if (rc == 0)
+			 log_size = st.st_size;
+		else {
+			close(lfd);
 			return 1;
 		}
 	}
