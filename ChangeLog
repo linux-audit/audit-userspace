@@ -2,6 +2,7 @@
 - Correct all rules for clock_settime
 - Fix possible segfault in auparse library
 - Handle malformed socket addresses better
+- Improve preformance in audit_log_user_message() 
 
 2.1.3
 - Fix parsing of EXECVE records to not escape argc field

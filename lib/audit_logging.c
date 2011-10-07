@@ -83,7 +83,7 @@ static void _resolve_addr(char buf[], const char *host)
  */
 int audit_value_needs_encoding(const char *str, unsigned int size)
 {
-	int i;
+	unsigned int i;
 
 	if (str == NULL)
 		return 0;
@@ -240,7 +240,7 @@ int audit_log_user_message(int audit_fd, int type, const char *message,
 {
 	char buf[MAX_AUDIT_MESSAGE_LENGTH];
 	char addrbuf[INET6_ADDRSTRLEN];
-	char exename[PATH_MAX*2];
+	static char exename[PATH_MAX*2]="";
 	char ttyname[TTY_PATH];
 	const char *success;
 	int ret;
@@ -262,7 +262,8 @@ int audit_log_user_message(int audit_fd, int type, const char *message,
 	else
 		strncat(addrbuf, addr, sizeof(addrbuf)-1);
 
-	_get_exename(exename, sizeof(exename));
+	if (exename[0] == 0)
+		_get_exename(exename, sizeof(exename));
 	if (tty == NULL) 
 		tty = _get_tty(ttyname, TTY_PATH);
 	else if (*tty == 0)
@@ -307,7 +308,7 @@ int audit_log_user_comm_message(int audit_fd, int type, const char *message,
 {
 	char buf[MAX_AUDIT_MESSAGE_LENGTH];
 	char addrbuf[INET6_ADDRSTRLEN];
-	char exename[PATH_MAX*2];
+	static char exename[PATH_MAX*2]="";
 	char commname[PATH_MAX*2];
 	char ttyname[TTY_PATH];
 	const char *success;
@@ -329,7 +330,8 @@ int audit_log_user_comm_message(int audit_fd, int type, const char *message,
 		_resolve_addr(addrbuf, hostname);
 	else
 		strncat(addrbuf, addr, sizeof(addrbuf)-1);
-	_get_exename(exename, sizeof(exename));
+	if (exename[0] == 0)
+		_get_exename(exename, sizeof(exename));
 	if (tty == NULL) 
 		tty = _get_tty(ttyname, TTY_PATH);
 	else if (*tty == 0)
