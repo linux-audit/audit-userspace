@@ -436,54 +436,42 @@ static void check_log_file_size(int lfd, struct auditd_consumer_data *data)
 {
 	int rc;
 	struct daemon_conf *config = data->config;
-	struct stat st;
 
-	/* get file size */
-	rc = fstat(lfd, &st);
-	if (rc == 0) {
-		/* did we cross the size limit? */
-		off_t sz = st.st_size / MEGABYTE;
+	/* did we cross the size limit? */
+	off_t sz = log_size / MEGABYTE;
+
+	if (sz >= config->max_log_size && (config->daemonize == D_BACKGROUND)) {
+		switch (config->max_log_size_action)
 		{
-			// FIXME: delete
-			if (log_size != st.st_size)
-				audit_msg(LOG_ERR, "log size miscompare - is:%lu calc:%lu", st.st_size, log_size);
-		}
-		if (sz >= config->max_log_size && 
-				(config->daemonize == D_BACKGROUND)) {
-			switch (config->max_log_size_action)
-			{
-				case SZ_IGNORE:
-					break;
-				case SZ_SYSLOG:
-					audit_msg(LOG_ERR,
+			case SZ_IGNORE:
+				break;
+			case SZ_SYSLOG:
+				audit_msg(LOG_ERR,
 			    "Audit daemon log file is larger than max size");
-					break;
-				case SZ_SUSPEND:
-					audit_msg(LOG_ERR,
+				break;
+			case SZ_SUSPEND:
+				audit_msg(LOG_ERR,
 		    "Audit daemon is suspending logging due to logfile size.");
-					logging_suspended = 1;
-					break;
-				case SZ_ROTATE:
-					if (data->config->num_logs > 1) {
-						audit_msg(LOG_NOTICE,
+				logging_suspended = 1;
+				break;
+			case SZ_ROTATE:
+				if (data->config->num_logs > 1) {
+					audit_msg(LOG_NOTICE,
 					    "Audit daemon rotating log files");
 						rotate_logs(data, 0);
-					}
-					break;
-				case SZ_KEEP_LOGS:
-					audit_msg(LOG_NOTICE,
+				}
+				break;
+			case SZ_KEEP_LOGS:
+				audit_msg(LOG_NOTICE,
 			    "Audit daemon rotating log files with keep option");
 					shift_logs(data);
-					break;
-				default:
-					audit_msg(LOG_ALERT, 
+				break;
+			default:
+				audit_msg(LOG_ALERT, 
   "Audit daemon log file is larger than max size and unknown action requested");
-					break;
-			}
+				break;
 		}
-	} else 
-		audit_msg(LOG_ERR, "Unable to fstat log file (%s)",
-			strerror(errno));
+	}
 }
 
 static void check_space_left(int lfd, struct daemon_conf *config)
