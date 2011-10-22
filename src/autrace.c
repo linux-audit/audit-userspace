@@ -113,8 +113,8 @@ static int insert_rule(int audit_fd, const char *field)
 	// Now if i386, lets add its network rules
 	if (machine == MACH_X86 || machine == MACH_S390X ||
 						machine == MACH_S390) {
-		int i, a0[5] = { SYS_CONNECT, SYS_BIND, SYS_ACCEPT, SYS_SENDTO, SYS_RECVFROM };
-		for (i=0; i<5; i++) {
+		int i, a0[11] = { SYS_CONNECT, SYS_BIND, SYS_ACCEPT, SYS_SEND, SYS_RECV, SYS_SENDTO, SYS_RECVFROM, SYS_SENDMSG, SYS_RECVMSG, SYS_ACCEPT4, SYS_RECVMMSG };
+		for (i=0; i<11; i++) {
 			char pair[32];
 
 			memset(rule, 0, sizeof(struct audit_rule_data));

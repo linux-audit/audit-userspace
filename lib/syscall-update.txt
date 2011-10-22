@@ -8,6 +8,9 @@ arch/ia64/include/asm/unistd.h
 arch/alpha/include/asm/unistd.h
 arch/arm/include/asm/unistd.h
 
+Inspect include/linux/net.h for socketcall updates
+Inspect include/linux/ipc.h for ipccall updates
+
 For adding new arches, the following might be useful to get a first pass file:
 
 cat unistd.h | grep '^#define __NR_' | tr -d ')' | tr 'NR+' ' ' | awk '{ printf "_S(%s, \"%s\")\n", $6, $3 }; '
