@@ -93,14 +93,9 @@ static int insert_rule(int audit_fd, const char *field)
 			rc |= audit_rule_syscallbyname_data(rule, "connect");
 			rc |= audit_rule_syscallbyname_data(rule, "bind");
 			rc |= audit_rule_syscallbyname_data(rule, "accept");
-			rc |= audit_rule_syscallbyname_data(rule, "send");
-			rc |= audit_rule_syscallbyname_data(rule, "recv");
 			rc |= audit_rule_syscallbyname_data(rule, "sendto");
 			rc |= audit_rule_syscallbyname_data(rule, "recvfrom");
-			rc |= audit_rule_syscallbyname_data(rule, "sendmsg");
-			rc |= audit_rule_syscallbyname_data(rule, "recvmsg");
 			rc |= audit_rule_syscallbyname_data(rule, "accept4");
-			rc |= audit_rule_syscallbyname_data(rule, "recvmmsg");
 		}
 
 		rc |= audit_rule_syscallbyname_data(rule, "sendfile");
@@ -119,8 +114,9 @@ static int insert_rule(int audit_fd, const char *field)
 	// Now if i386, lets add its network rules
 	if (machine == MACH_X86 || machine == MACH_S390X ||
 						machine == MACH_S390) {
-		int i, a0[11] = { SYS_CONNECT, SYS_BIND, SYS_ACCEPT, SYS_SEND, SYS_RECV, SYS_SENDTO, SYS_RECVFROM, SYS_SENDMSG, SYS_RECVMSG, SYS_ACCEPT4, SYS_RECVMMSG };
-		for (i=0; i<11; i++) {
+		int i, a0[6] = { SYS_CONNECT, SYS_BIND, SYS_ACCEPT, SYS_SENDTO,
+				 SYS_RECVFROM, SYS_ACCEPT4 };
+		for (i=0; i<6; i++) {
 			char pair[32];
 
 			memset(rule, 0, sizeof(struct audit_rule_data));
