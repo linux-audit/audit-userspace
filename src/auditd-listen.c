@@ -961,7 +961,7 @@ int auditd_tcp_listen_init ( struct ev_loop *loop, struct daemon_conf *config )
 void auditd_tcp_listen_uninit ( struct ev_loop *loop )
 {
 #ifdef USE_GSSAPI
-	int status;
+	OM_uint32 status;
 #endif
 
 	ev_io_stop ( loop, &tcp_listen_watcher );
