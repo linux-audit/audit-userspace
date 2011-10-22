@@ -5,6 +5,7 @@
 - Improve preformance in audit_log_user_message() 
 - Improve performance in writing to the log file in auditd
 - Syscall update for accept4 and recvmmsg
+- Update autrace resource usage mode syscall list
 
 2.1.3
 - Fix parsing of EXECVE records to not escape argc field

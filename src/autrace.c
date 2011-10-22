@@ -93,8 +93,14 @@ static int insert_rule(int audit_fd, const char *field)
 			rc |= audit_rule_syscallbyname_data(rule, "connect");
 			rc |= audit_rule_syscallbyname_data(rule, "bind");
 			rc |= audit_rule_syscallbyname_data(rule, "accept");
+			rc |= audit_rule_syscallbyname_data(rule, "send");
+			rc |= audit_rule_syscallbyname_data(rule, "recv");
 			rc |= audit_rule_syscallbyname_data(rule, "sendto");
 			rc |= audit_rule_syscallbyname_data(rule, "recvfrom");
+			rc |= audit_rule_syscallbyname_data(rule, "sendmsg");
+			rc |= audit_rule_syscallbyname_data(rule, "recvmsg");
+			rc |= audit_rule_syscallbyname_data(rule, "accept4");
+			rc |= audit_rule_syscallbyname_data(rule, "recvmmsg");
 		}
 
 		rc |= audit_rule_syscallbyname_data(rule, "sendfile");
