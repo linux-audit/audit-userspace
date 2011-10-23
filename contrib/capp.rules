@@ -63,8 +63,8 @@
 
 ## File content modification. Permissions are checked at open time,
 ## monitoring individual read/write calls is not useful.
-#-a always,exit -F arch=b32 -S creat -S open -S openat -S truncate -S ftruncate -S fallocate
-#-a always,exit -F arch=b64 -S creat -S open -S openat -S truncate -S ftruncate -S fallocate
+#-a always,exit -F arch=b32 -S creat -S open -S openat -S open_by_handle_at -S truncate -S ftruncate -S fallocate
+#-a always,exit -F arch=b64 -S creat -S open -S openat -S open_by_handle_at -S truncate -S ftruncate -S fallocate
 ## Enable *64 rules if you are running on i386, ppc, ppc64, s390
 ## Do not use for x86_64, ia64, or s390x
 #-a always,exit -F arch=b32 -S truncate64 -S ftruncate64
@@ -168,6 +168,9 @@
 -a always,exit -F arch=b64 -S adjtimex -S settimeofday
 -a always,exit -F arch=b32 -S clock_settime -F a0=0
 -a always,exit -F arch=b64 -S clock_settime -F a0=0
+# Introduced in 2.6.39, commented out because it can make false positives
+#-a always,exit -F arch=b32 -S clock_adjtime -k time-change
+#-a always,exit -F arch=b64 -S clock_adjtime -k time-change
 
 ##
 ## FTP_ITC.1
@@ -267,8 +270,8 @@
 #-a always,exit -F arch=b64 -S ptrace -k paranoid
 
 ## Optional - could be an attempt to bypass audit or simply legacy program
-#-a always,exit -F arch=b32 -S personality -k paranoid
-#-a always,exit -F arch=b64 -S personality -k paranoid
+#-a always,exit -F arch=b32 -S personality -F a0!=4294967295 -k paranoid
+#-a always,exit -F arch=b64 -S personality -F a0!=4294967295 -k paranoid
 
 ## Optional - might want to watch module insertion
 #-w /sbin/insmod -p x -k modules

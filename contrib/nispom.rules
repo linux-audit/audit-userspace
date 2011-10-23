@@ -27,6 +27,9 @@
 -a always,exit -F arch=b64 -S adjtimex -S settimeofday -k time-change
 -a always,exit -F arch=b32 -S clock_settime -F a0=0 -k time-change
 -a always,exit -F arch=b64 -S clock_settime -F a0=0 -k time-change
+# Introduced in 2.6.39, commented out because it can make false positives
+#-a always,exit -F arch=b32 -S clock_adjtime -k time-change
+#-a always,exit -F arch=b64 -S clock_adjtime -k time-change
 -w /etc/localtime -p wa -k time-change
 
 ## Things that could affect system locale
@@ -57,10 +60,10 @@
 -a always,exit -F arch=b64 -S mkdir -S mkdirat -S link -S symlink -F exit=-EPERM -k creation
 
 ## unsuccessful open
--a always,exit -F arch=b32 -S open -S openat -F exit=-EACCES -k open
--a always,exit -F arch=b64 -S open -S openat -F exit=-EACCES -k open
--a always,exit -F arch=b32 -S open -S openat -F exit=-EPERM -k open
--a always,exit -F arch=b64 -S open -S openat -F exit=-EPERM -k open
+-a always,exit -F arch=b32 -S open -S openat -S open_by_handle_at -F exit=-EACCES -k open
+-a always,exit -F arch=b64 -S open -S openat -S open_by_handle_at -F exit=-EACCES -k open
+-a always,exit -F arch=b32 -S open -S openat -S open_by_handle_at -F exit=-EPERM -k open
+-a always,exit -F arch=b64 -S open -S openat -S open_by_handle_at -F exit=-EPERM -k open
 
 ## unsuccessful close
 -a always,exit -F arch=b32 -S close -F exit=-EIO -k close
@@ -109,8 +112,8 @@
 #-a always,exit -F arch=b64 -S ptrace -k paranoid
 
 ## Optional - could be an attempt to bypass audit or simply legacy program
-#-a always,exit -F arch=b32 -S personality -k paranoid
-#-a always,exit -F arch=b64 -S personality -k paranoid
+#-a always,exit -F arch=b32 -S personality -F a0!=4294967295 -k paranoid
+#-a always,exit -F arch=b64 -S personality -F a0!=4294967295 -k paranoid
 
 ## Optional - might want to watch module insertion
 #-w /sbin/insmod -p x -k modules
