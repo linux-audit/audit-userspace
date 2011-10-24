@@ -465,6 +465,8 @@ int main(int argc, char *argv[])
 			CAP_NET_BIND_SERVICE);
 	capng_apply(CAPNG_SELECT_BOTH);
 #endif
+	syslog(LOG_NOTICE, "Audisp-remote started with queue_size: %zu",
+		q_queue_length(queue));
 
 	while (stop == 0) { //FIXME break out when socket is closed
 		fd_set rfd, wfd;
@@ -559,7 +561,7 @@ int main(int argc, char *argv[])
 	q_len = q_queue_length(queue);
 	q_close(queue);
 	if (stop)
-		syslog(LOG_NOTICE, "audisp-remote is exiting on stop request");
+		syslog(LOG_NOTICE, "audisp-remote is exiting on stop request, queue_size: %zu", q_len);
 
 	return q_len ? 1 : 0;
 }
