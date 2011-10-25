@@ -38,15 +38,17 @@ drop_srcdir = sed 's,$(srcdir)/test,test,'
 check: auparse_test
 	test "$(top_srcdir)" = "$(top_builddir)" || \
 			cp $(top_srcdir)/auparse/test/test*.log .
-		cp ${top_builddir}/swig/.libs/_audit.so ${top_builddir}/swig
 	LC_ALL=C \
 	./auparse_test > auparse_test.cur
 	diff -u $(top_srcdir)/auparse/test/auparse_test.ref auparse_test.cur
+if HAVE_PYTHON
+	cp ${top_builddir}/swig/.libs/_audit.so ${top_builddir}/swig
 	PYTHONPATH=${top_builddir}/bindings/python/.libs/:${top_builddir}/swig:${top_builddir}/swig/.libs \
 	LD_LIBRARY_PATH=${top_builddir}/auparse/.libs \
 		srcdir=$(srcdir) $(srcdir)/auparse_test.py \
 		| $(drop_srcdir) > auparse_test.cur
 	diff -u $(top_srcdir)/auparse/test/auparse_test.ref.py auparse_test.cur
+endif
 	echo -e "===================\nAuparse Test Passes\n==================="
 
 diffcheck: auparse_test
@@ -56,25 +58,34 @@ diffcheck: auparse_test
 memcheck: auparse_test
 	valgrind --leak-check=yes --show-reachable=yes ./auparse_test 
 
-pycheck: auparse_test.py ${top_builddir}/bindings/python/build/*/auparse.so
+pycheck: auparse_test.py
+if HAVE_PYTHON
 	PYTHONPATH=${top_builddir}/bindings/python/.libs/:${top_builddir}/swig:${top_builddir}/swig/.libs \
 	LD_LIBRARY_PATH=${top_builddir}/auparse/.libs \
 		srcdir=$(srcdir) $(srcdir)/auparse_test.py
+endif
 
-pydiffcheck: auparse_test.py ${top_builddir}/bindings/python/build/*/auparse.so
+pydiffcheck: auparse_test.py 
+if HAVE_PYTHON
 	PYTHONPATH=${top_builddir}/bindings/python/.libs/:${top_builddir}/swig:${top_builddir}/swig/.libs \
 	LD_LIBRARY_PATH=${top_builddir}/auparse/.libs \
 		srcdir=$(srcdir) $(srcdir)/auparse_test.py \
 		| $(drop_srcdir) > auparse_test.cur
 	diff $(srcdir)/auparse_test.ref auparse_test.cur
+endif
 
-pymemcheck: auparse_test.py ${top_builddir}/bindings/python/build/*/auparse.so
+pymemcheck: auparse_test.py
+if HAVE_PYTHON
 	PYTHONPATH=${top_builddir}/bindings/python/.libs/:${top_builddir}/swig:${top_builddir}/swig/.libs \
 	LD_LIBRARY_PATH=${top_builddir}/auparse/.libs srcdir=$(srcdir) valgrind --leak-check=yes --show-reachable=yes python $(srcdir)/auparse_test.py
 
 ${top_builddir}/bindings/python/build/*/auparse.so: ${top_srcdir}/bindings/python/auparse_python.c
 	cd ${top_builddir}/bindings/python && make
+endif
+
 clean-generic:
 	$(RM) *.cur
+if HAVE_PYTHON
 	$(RM) ${top_builddir}/swig/_audit.so
+endif
 	test "$(top_srcdir)" = "$(top_builddir)" || $(RM) test*.log

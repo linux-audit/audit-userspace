@@ -21,8 +21,11 @@
 #   Rickard E. (Rik) Faith <faith@redhat.com>
 #
 
-SUBDIRS = lib auparse src/mt src/libev src audisp tools swig bindings init.d \
+SUBDIRS = lib auparse src/mt src/libev src audisp tools bindings init.d \
 	docs
+if HAVE_PYTHON
+SUBDIRS += swig
+endif
 EXTRA_DIST = ChangeLog AUTHORS NEWS README INSTALL audit.spec \
 	contrib/capp.rules contrib/nispom.rules contrib/lspp.rules \
 	contrib/stig.rules contrib/skeleton.c contrib/avc_snap \
