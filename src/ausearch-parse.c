@@ -545,8 +545,10 @@ static int common_path_parser(search_items *s, char *path)
 			if ((sn.str[0] == '.') && ((sn.str[1] == '.') ||
 				(sn.str[1] == '/')) && s->cwd) {
 				char *tmp = malloc(PATH_MAX);
-				if (tmp == NULL)
+				if (tmp == NULL) {
+					free(sn.str);
 					return 3;
+				}
 				snprintf(tmp, PATH_MAX,
 					"%s/%s", s->cwd, sn.str);
 				free(sn.str);
@@ -1418,13 +1420,17 @@ static int parse_avc(const lnode *n, search_items *s)
 		if (str) {
 			str = str + 4;
 			term = strchr(str, ' ');
-			if (term == NULL)
-				return 3;
+			if (term == NULL) {
+				rc = 3;
+				goto err;
+			}
 			*term = 0;
 			errno = 0;
 			s->pid = strtoul(str, NULL, 10);
-			if (errno)
-				return 4;
+			if (errno) {
+				rc = 4;
+				goto err;
+			}
 			*term = ' ';
 		}
 	}

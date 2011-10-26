@@ -54,7 +54,7 @@ static int insert_rule(int audit_fd, const char *field)
 	int action = AUDIT_ALWAYS;
 	struct audit_rule_data *rule = malloc(sizeof(struct audit_rule_data));
 	int machine = audit_detect_machine();
-	char *t_field = strdup(field);
+	char *t_field = NULL;
 
 	if (rule == NULL)
 		goto err;
@@ -104,6 +104,7 @@ static int insert_rule(int audit_fd, const char *field)
 		rc = audit_rule_syscallbyname_data(rule, "all");
 	if (rc < 0)
 		goto err;
+	t_field = strdup(field);
 	rc = audit_rule_fieldpair_data(&rule, t_field, flags);
 	free(t_field);
 	if (rc < 0)
