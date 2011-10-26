@@ -79,6 +79,7 @@ static void reconfigure(struct auditd_consumer_data *data);
 /* Local Data */
 static struct auditd_consumer_data consumer_data;
 static pthread_t event_thread;
+static unsigned int disk_err_warning = 0;
 static int fs_space_warning = 0;
 static int fs_admin_space_warning = 0;
 static int fs_space_left = 1;
@@ -256,6 +257,7 @@ void resume_logging(void)
 {
 	logging_suspended = 0; 
 	fs_space_left = 1;
+	disk_err_warning = 0;
 	fs_space_warning = 0;
 	fs_admin_space_warning = 0;
 	audit_msg(LOG_ERR, "Audit daemon is attempting to resume logging.");
@@ -429,6 +431,7 @@ static void write_to_log(const char *buf, struct auditd_consumer_data *data)
 		if (fs_space_warning)
 			ack_type = AUDIT_RMW_TYPE_DISKLOW;
 		send_ack(data, ack_type, msg);
+		disk_err_warning = 0;
 	}
 }
 
@@ -613,15 +616,23 @@ static void do_disk_error_action(const char * func, struct daemon_conf *config, 
 {
 	char text[128];
 
-	snprintf(text, sizeof(text), 
-	    "%s: Audit daemon detected an error writing an event to disk (%s)",
-		func, strerror(err));
-	audit_msg(LOG_ALERT, "%s", text);
 
 	switch (config->disk_error_action)
 	{
 		case FA_IGNORE:
-		case FA_SYSLOG: /* Message is syslogged above */
+			if (disk_err_warning < 5) {
+				snprintf(text, sizeof(text), 
+			    "%s: Audit daemon detected an error writing an event to disk (%s)",
+					func, strerror(err));
+				audit_msg(LOG_ALERT, "%s", text);
+				disk_err_warning++;
+			}
+			break;
+		case FA_SYSLOG:
+			snprintf(text, sizeof(text), 
+			    "%s: Audit daemon detected an error writing an event to disk (%s)",
+				func, strerror(err));
+			audit_msg(LOG_ALERT, "%s", text);
 			break;
 		case FA_EXEC:
 			safe_exec(config->disk_error_exe);
@@ -1073,6 +1084,7 @@ static void reconfigure(struct auditd_consumer_data *data)
 	oconf->disk_error_action = nconf->disk_error_action;
 	free((char *)oconf->disk_error_exe);
 	oconf->disk_error_exe = nconf->disk_error_exe;
+	disk_err_warning = 0;
 
 	// numlogs is next
 	oconf->num_logs = nconf->num_logs;
