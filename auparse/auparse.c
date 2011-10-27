@@ -216,6 +216,11 @@ bad_exit:
 void auparse_add_callback(auparse_state_t *au, auparse_callback_ptr callback,
 			  void *user_data, user_destroy user_destroy_func)
 {
+	if (au == NULL) {
+		errno = EINVAL;
+		return;
+	}
+
 	if (au->callback_user_data_destroy) {
 		(*au->callback_user_data_destroy)(au->callback_user_data);
 		au->callback_user_data = NULL;

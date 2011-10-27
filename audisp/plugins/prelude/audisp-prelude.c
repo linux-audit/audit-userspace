@@ -2056,7 +2056,7 @@ static int tty_alert(auparse_state_t *au, idmef_message_t *idmef,
 	PRELUDE_FAIL_CHECK;
 	ret = idmef_impact_new_description(impact, &str);
 	PRELUDE_FAIL_CHECK;
-	prelude_string_set_ref(str, assessment_description[AS_TTY]);
+	ret = prelude_string_set_ref(str, assessment_description[AS_TTY]);
 	PRELUDE_FAIL_CHECK;
 
 	send_idmef(client, idmef);

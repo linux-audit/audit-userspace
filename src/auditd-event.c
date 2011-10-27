@@ -57,7 +57,7 @@ struct auditd_consumer_data {
 static void *event_thread_main(void *arg); 
 static void handle_event(struct auditd_consumer_data *data);
 static void write_to_log(const char *buf, struct auditd_consumer_data *data);
-static void check_log_file_size(int lfd, struct auditd_consumer_data *data);
+static void check_log_file_size(struct auditd_consumer_data *data);
 static void check_space_left(int lfd, struct daemon_conf *config);
 static void do_space_left_action(struct daemon_conf *config, int admin);
 static void do_disk_full_action(struct daemon_conf *config);
@@ -138,7 +138,7 @@ int init_event(struct daemon_conf *config)
 	}
 
 	if (config->daemonize == D_BACKGROUND) {
-		check_log_file_size(consumer_data.log_fd, &consumer_data);
+		check_log_file_size(&consumer_data);
 		check_excess_logs(&consumer_data);
 		check_space_left(consumer_data.log_fd, config);
 	}
@@ -424,7 +424,7 @@ static void write_to_log(const char *buf, struct auditd_consumer_data *data)
 			// that the system recovers from. The real error
 			// occurs on write.
 			log_size += rc;
-			check_log_file_size(data->log_fd, data);
+			check_log_file_size(data);
 			check_space_left(data->log_fd, config);
 		}
 
@@ -435,7 +435,7 @@ static void write_to_log(const char *buf, struct auditd_consumer_data *data)
 	}
 }
 
-static void check_log_file_size(int lfd, struct auditd_consumer_data *data)
+static void check_log_file_size(struct auditd_consumer_data *data)
 {
 	int rc;
 	struct daemon_conf *config = data->config;
@@ -1221,7 +1221,7 @@ static void reconfigure(struct auditd_consumer_data *data)
 
 	if (need_size_check) {
 		logging_suspended = 0;
-		check_log_file_size(data->log_fd, data);
+		check_log_file_size(data);
 	}
 
 	// flush technique
@@ -1251,7 +1251,7 @@ static void reconfigure(struct auditd_consumer_data *data)
 						saved_errno);
 		} else {
 			logging_suspended = 0;
-			check_log_file_size(data->log_fd, data);
+			check_log_file_size(data);
 		}
 	}
 
