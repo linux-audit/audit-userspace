@@ -632,7 +632,7 @@ static int event_loop(void)
 		do {
 			if (conf == NULL || conf->p == NULL)
 				continue;
-			if (conf->p->active == A_NO)
+			if (conf->p->active == A_NO || stop)
 				continue;
 
 			/* Now send the event to the right child */
@@ -643,7 +643,7 @@ static int event_loop(void)
 					send_af_unix_string(v, len);
 				else
 					send_af_unix_binary(e);
-			} else if (conf->p->type == S_ALWAYS) {
+			} else if (conf->p->type == S_ALWAYS && !stop) {
 				int rc;
 				rc = write_to_plugin(e, v, len, conf);
 				if (rc < 0 && errno == EPIPE) {
@@ -662,7 +662,7 @@ static int event_loop(void)
 					close(conf->p->plug_pipe[1]);
 					conf->p->plug_pipe[1] = -1;
 					conf->p->active = A_NO;
-					if (start_one_plugin(conf)) {
+					if (!stop && start_one_plugin(conf)) {
 						rc = write_to_plugin(e, v, len,
 								     conf);
 						syslog(LOG_NOTICE,
@@ -672,7 +672,7 @@ static int event_loop(void)
 					} 
 				}
 			}
-		} while ((conf = plist_next(&plugin_conf)));
+		} while (!stop && (conf = plist_next(&plugin_conf)));
 
 		/* Done with the memory...release it */
 		free(v);
