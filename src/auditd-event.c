@@ -612,14 +612,16 @@ static void do_disk_full_action(struct daemon_conf *config)
 	} 
 }
 
-static void do_disk_error_action(const char * func, struct daemon_conf *config, int err)
+static void do_disk_error_action(const char * func, struct daemon_conf *config,
+	int err)
 {
 	char text[128];
-
 
 	switch (config->disk_error_action)
 	{
 		case FA_IGNORE:
+			break;
+		case FA_SYSLOG:
 			if (disk_err_warning < 5) {
 				snprintf(text, sizeof(text), 
 			    "%s: Audit daemon detected an error writing an event to disk (%s)",
@@ -627,12 +629,6 @@ static void do_disk_error_action(const char * func, struct daemon_conf *config, 
 				audit_msg(LOG_ALERT, "%s", text);
 				disk_err_warning++;
 			}
-			break;
-		case FA_SYSLOG:
-			snprintf(text, sizeof(text), 
-			    "%s: Audit daemon detected an error writing an event to disk (%s)",
-				func, strerror(err));
-			audit_msg(LOG_ALERT, "%s", text);
 			break;
 		case FA_EXEC:
 			safe_exec(config->disk_error_exe);

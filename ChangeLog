@@ -9,7 +9,7 @@
 - Improved sample rules for recent syscalls
 - Add some debug info to audidp-remote startup and shutdown
 - Make compiling with Python optional
-- In auditd, if disk_error_action is ignore, limit syslog messages to 5
+- In auditd, if disk_error_action is ignore, don't syslog anything
 - Fix some memory leaks
 - If audispd is stopping, don't restart children
 
