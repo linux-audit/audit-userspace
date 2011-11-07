@@ -204,9 +204,9 @@ detected when writing audit events to disk or rotating logs. Valid values are
 .IR ignore ", " syslog ", " exec ", " suspend ", " single ", and " halt .
 If set to
 .IR ignore ,
-the audit daemon will issue up to 5 syslog messages before suppressing them but no other action is taken.
+the audit daemon will not take any action.
 .I Syslog
-means that it will issue a warning to syslog.
+means that it will issue one warning to syslog.
 .I exec
 /path-to-script will execute the script. You cannot pass parameters to the script.
 .I Suspend
