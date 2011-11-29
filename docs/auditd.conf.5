@@ -51,15 +51,15 @@ Then the
 parameter is used to determine how often an explicit flush to disk is issued.
 The
 .I data
-parameter tells the audit damon to keep the data portion of the disk file
+parameter tells the audit daemon to keep the data portion of the disk file
 sync'd at all times. The
 .I sync
 option tells the audit daemon to keep both the data and meta-data fully
 sync'd with every write to disk.
 .TP
 .I freq
-This is a non-negative number that tells the audit damon how many records to
-write before issuing an explicit flush to disk command. this value is only
+This is a non-negative number that tells the audit daemon how many records to
+write before issuing an explicit flush to disk command. This value is only
 valid when the
 .I flush
 keyword is set to
