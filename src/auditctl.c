@@ -24,6 +24,7 @@
 #include "config.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <string.h>	/* strdup needs xopen define */
 #include <getopt.h>
 #include <time.h>
@@ -939,6 +940,66 @@ static char *get_line(FILE *f, char *buf)
 	return NULL;
 }
 
+
+void preprocess(char *buf)
+{
+	unsigned int i = 0;
+	bool esc_ctx = false;
+
+	while (buf[i]) {
+		if (buf[i] == '\\' && esc_ctx == false)
+			esc_ctx = true;
+		else {
+			if (esc_ctx == true) {
+				if (buf[i] == ' ') {
+					buf[i] = 0x07;
+					buf[i - 1] = 0x07;
+				} else if (buf[i] == '\\') {
+					buf[i] = 0x04;
+					buf[i - 1] = 0x04;
+				}
+
+				esc_ctx = false;
+			}
+		}
+
+		i++;
+	}
+}
+
+
+void postprocess(char *buf)
+{
+	char *str = strdup(buf);
+	char *pos1 = str;
+	char *pos2 = buf;
+
+	if (!str)
+		return;
+    
+	while (*pos1) {
+		if (*pos1 == 0x07) {
+			*pos2 = ' ';
+			pos1 += 2;
+			pos2++;
+			continue;
+		} else if (*pos1 == 0x04) {
+			*pos2 = '\\';
+			pos1 += 2;
+			pos2++;
+			continue;
+		}
+
+		*pos2 = *pos1;
+		pos2++;
+		pos1++;
+	}
+
+	*pos2 = 0;
+	free(str);
+}
+
+
 /*
  * This function reads the given file line by line and executes the rule.
  * It returns 0 if everything went OK, 1 if there are problems before reading
@@ -1009,9 +1070,12 @@ static int fileopt(const char *file)
 			lineno++;
 			continue;
 		}
+		
+		preprocess(buf);
 		ptr = strtok(buf, " ");
 		if (ptr == NULL)
 			break;
+		
 		/* allow comments */
 		if (ptr[0] == '#') {
 			lineno++;
@@ -1021,8 +1085,10 @@ static int fileopt(const char *file)
 		options[i++] = "auditctl";
 		options[i++] = ptr;
 		while( (ptr=strtok(NULL, " ")) && i<NUM_OPTIONS-1 ) {
+		        postprocess(ptr);
 			options[i++] = ptr;
 		}
+		
 		options[i] = NULL;
 
 		/* Parse it */
