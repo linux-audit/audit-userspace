@@ -270,7 +270,7 @@ int audit_log_user_message(int audit_fd, int type, const char *message,
 		tty = NULL;
 
 	snprintf(buf, sizeof(buf),
-		"%s: exe=%s hostname=%s addr=%s terminal=%s res=%s",
+		"%s exe=%s hostname=%s addr=%s terminal=%s res=%s",
 		message, exename,
 		hostname ? hostname : "?",
 		addrbuf,
@@ -340,7 +340,7 @@ int audit_log_user_comm_message(int audit_fd, int type, const char *message,
 	_get_commname(comm, commname, sizeof(commname));
 
 	snprintf(buf, sizeof(buf),
-		"%s: comm=%s exe=%s hostname=%s addr=%s terminal=%s res=%s",
+		"%s comm=%s exe=%s hostname=%s addr=%s terminal=%s res=%s",
 		message, commname, exename,
 		hostname ? hostname : "?",
 		addrbuf,
@@ -499,7 +499,7 @@ int audit_log_user_avc_message(int audit_fd, int type, const char *message,
 		tty = NULL;
 
 	snprintf(buf, sizeof(buf),
-	    "%s: exe=%s sauid=%d hostname=%s addr=%s terminal=%s",
+	    "%s exe=%s sauid=%d hostname=%s addr=%s terminal=%s",
 		message, exename, uid,
 		hostname ? hostname : "?",
 		addrbuf,
