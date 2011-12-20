@@ -374,6 +374,8 @@ static struct nv_pair typetab[] = {
 	{T_ESCAPED, "vm"},
 	{T_ESCAPED, "old-disk"},
 	{T_ESCAPED, "new-disk"},
+	{T_ESCAPED, "old-fs"},
+	{T_ESCAPED, "new-fs"},
 	{T_ESCAPED, "device"},
 	{T_ESCAPED, "cgroup"},
 	{T_NFPROTO, "family"},
