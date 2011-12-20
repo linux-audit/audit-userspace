@@ -1,6 +1,7 @@
 /*
 * ausearch-parse.c - Extract interesting fields and check for match
 * Copyright (c) 2005-08, 2011 Red Hat Inc., Durham, North Carolina.
+* Copyright (c) 2011 IBM Corp. 
 * All Rights Reserved. 
 *
 * This software may be freely redistributed and/or modified under the
@@ -19,6 +20,7 @@
 *
 * Authors:
 *   Steve Grubb <sgrubb@redhat.com>
+*   Marcelo Henrique Cerri <mhcerri@br.ibm.com>
 */
 
 #include "config.h"
@@ -767,6 +769,37 @@ static int parse_user(const lnode *n, search_items *s)
 				return 13;
 		}
 	}
+	if (event_vmname) {
+		str = strstr(term, "vm=");
+		if (str) {
+			str += 3;
+			if (*str == '"') {
+				str++;
+				term = strchr(str, '"');
+				if (term == NULL)
+					return 23;
+			       *term = 0;
+				s->vmname = strdup(str);
+				*term = '"';
+			} else
+				s->vmname = unescape(str);
+		}
+	}
+	if (event_uuid) {
+		str = strstr(term, "uuid=");
+		if (str) {
+			str += 5;
+			term = str;
+			while (*term != ' ' && *term != ':')
+				term++;
+			if (term == str) 
+				return 24;
+			saved = *term;
+			*term = 0;
+			s->uuid = strdup(str);
+			*term = saved;
+		}
+	}
 	// get uid - something has uid after auid ??
 	str = strstr(term, "uid=");
 	if (str != NULL) {
@@ -959,6 +992,7 @@ static int parse_user(const lnode *n, search_items *s)
 			*term = ')';
 		}
 	}
+	/* last return code used = 24 */
 	return 0;
 }
 

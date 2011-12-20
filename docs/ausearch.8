@@ -129,8 +129,14 @@ Search for an event with the given \fIuser ID\fP.
 .BR \-ul ,\  \-\-loginuid \ \fIlogin-id\fP
 Search for an event with the given \fIlogin user ID\fP. All entry point programs that are pamified need to be configured with pam_loginuid required for the session for searching on loginuid (auid) to be accurate.
 .TP
+.BR \-uu ,\  \-\-uuid \ \fIguest-uuid\fP
+Search for an event with the given \fIguest UUID\fP.
+.TP
 .BR \-v ,\  \-\-version
 Print the version and exit
+.TP
+.BR \-vm ,\  \-\-vm-name \ \fIguest-name\fP
+Search for an event with the given \fIguest name\fP.
 .TP
 .BR \-w ,\  \-\-word
 String based matches must match the whole word. This category of matches include: filename, hostname, terminal, and SE Linux context.

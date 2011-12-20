@@ -1,6 +1,7 @@
 /*
 * ausearch-match.c - Extract interesting fields and check for match
 * Copyright (c) 2005-08, 2011 Red Hat Inc., Durham, North Carolina.
+* Copyright (c) 2011 IBM Corp.
 * All Rights Reserved. 
 *
 * This software may be freely redistributed and/or modified under the
@@ -19,6 +20,7 @@
 *
 * Authors:
 *   Steve Grubb <sgrubb@redhat.com>
+*   Marcelo Henrique Cerri <mhcerri@br.ibm.com>
 */
 
 #include "config.h"
@@ -201,6 +203,20 @@ int match(llist *l)
 							return 0;
 					}
 				}				
+				if (event_vmname) {
+					if (l->s.vmname == NULL)
+						return 0;
+					if (strmatch(event_vmname,
+							l->s.vmname) == 0)
+						return 0;
+				}
+				if (event_uuid) {
+					if (l->s.uuid == NULL)
+						return 0;
+					if (strmatch(event_uuid,
+							l->s.uuid) == 0)
+						return 0;
+				}
 				if (context_match(l) == 0)
 					return 0;
 				return 1;

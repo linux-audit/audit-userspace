@@ -1,6 +1,7 @@
 /*
 * ausearch-llist.c - Minimal linked list library
 * Copyright (c) 2005-2008, 2011 Red Hat Inc., Durham, North Carolina.
+* Copyright (c) 2011 IBM Corp.
 * All Rights Reserved. 
 *
 * This software may be freely redistributed and/or modified under the
@@ -19,6 +20,7 @@
 *
 * Authors:
 *   Steve Grubb <sgrubb@redhat.com>
+*   Marcelo Henrique Cerri <mhcerri@br.ibm.com>
 */
 
 #include <stdlib.h>
@@ -55,6 +57,8 @@ void list_create(llist *l)
 	l->s.arch = 0;
 	l->s.syscall = 0;
 	l->s.session_id = -2;
+	l->s.uuid = NULL;
+	l->s.vmname = NULL;
 	l->s.exit = 0;
 	l->s.exit_is_set = 0;
 }
@@ -197,6 +201,10 @@ void list_clear(llist* l)
 	l->s.arch = 0;
 	l->s.syscall = 0;
 	l->s.session_id = -2;
+	free(l->s.uuid);
+	l->s.uuid = NULL;
+	free(l->s.vmname);
+	l->s.vmname = NULL;
 	l->s.exit = 0;
 	l->s.exit_is_set = 0;
 }

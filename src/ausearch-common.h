@@ -1,5 +1,6 @@
 /* ausearch-common.h -- 
  * Copyright 2006-08,2010 Red Hat Inc., Durham, North Carolina.
+ * Copyright (c) 2011 IBM Corp.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -18,6 +19,7 @@
  *
  * Authors:
  *   Steve Grubb <sgrubb@redhat.com>
+ *   Marcelo Henrique Cerri <mhcerri@br.ibm.com>
  * 
  */
 
@@ -42,6 +44,8 @@ extern int event_syscall;
 extern const char *event_exe;
 extern int event_ua, event_ga;
 extern int event_exit, event_exit_is_set;
+extern const char *event_uuid;
+extern const char *event_vmname;
 
 typedef enum { F_BOTH, F_FAILED, F_SUCCESS } failed_t;
 typedef enum { C_NEITHER, C_ADD, C_DEL } conf_act_t;

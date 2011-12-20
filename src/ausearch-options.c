@@ -1,5 +1,6 @@
 /* ausearch-options.c - parse commandline options and configure ausearch
  * Copyright 2005-08,2010-11 Red Hat Inc., Durham, North Carolina.
+ * Copyright (c) 2011 IBM Corp.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -19,6 +20,7 @@
  * Authors:
  *     Debora Velarde <dvelarde@us.ibm.com>
  *     Steve Grubb <sgrubb@redhat.com>
+ *     Marcelo Henrique Cerri <mhcerri@br.ibm.com>
  */
 
 #include "config.h"
@@ -61,6 +63,8 @@ const char *event_hostname = NULL;
 const char *event_terminal = NULL;
 const char *event_subject = NULL;
 const char *event_object = NULL;
+const char *event_uuid = NULL;
+const char *event_vmname = NULL;
 report_t report_format = RPT_DEFAULT;
 ilist *event_type;
 
@@ -77,7 +81,7 @@ S_HOSTNAME, S_INTERP, S_INFILE, S_MESSAGE_TYPE, S_PID, S_SYSCALL, S_OSUCCESS,
 S_TIME_END, S_TIME_START, S_TERMINAL, S_ALL_UID, S_EFF_UID, S_UID, S_LOGINID,
 S_VERSION, S_EXACT_MATCH, S_EXECUTABLE, S_CONTEXT, S_SUBJECT, S_OBJECT,
 S_PPID, S_KEY, S_RAW, S_NODE, S_IN_LOGS, S_JUST_ONE, S_SESSION, S_EXIT,
-S_LINEBUFFERED };
+S_LINEBUFFERED, S_UUID, S_VMNAME};
 
 static struct nv_pair optiontab[] = {
 	{ S_EVENT, "-a" },
@@ -141,10 +145,14 @@ static struct nv_pair optiontab[] = {
 	{ S_EFF_UID, "--uid-effective" },
 	{ S_UID, "-ui" },
 	{ S_UID, "--uid" },
+	{ S_UUID, "-uu" },
+	{ S_UUID, "--uuid" },
 	{ S_LOGINID, "-ul" },
 	{ S_LOGINID, "--loginuid" },
 	{ S_VERSION, "-v" },
 	{ S_VERSION, "--version" },
+	{ S_VMNAME, "-vm" },
+	{ S_VMNAME, "--vm-name" },
 	{ S_EXACT_MATCH, "-w" },
 	{ S_EXACT_MATCH, "--word" },
 	{ S_EXECUTABLE, "-x" },
@@ -199,7 +207,11 @@ static void usage(void)
 	"\t-ue,--uid-effective <effective User id>  search based on Effective\n\t\t\t\t\tuser id\n"
 	"\t-ui,--uid <User Id>\t\tsearch based on user id\n"
 	"\t-ul,--loginuid <login id>\tsearch based on the User's Login id\n"
+	"\t-uu,--uuid <guest UUID>\t\tsearch for events related to the virtual\n"
+	"\t\t\t\t\tmachine with the given UUID.\n"
 	"\t-v,--version\t\t\tversion\n"
+	"\t-vm,--vm-name <guest name>\tsearch for events related to the virtual\n"
+	"\t\t\t\t\tmachine with the name.\n"
 	"\t-w,--word\t\t\tstring matches are whole word\n"
 	"\t-x,--executable  <executable name>  search based on excutable name\n"
 	);
@@ -996,6 +1008,34 @@ int check_params(int count, char *vars[])
 				event_loginuid = pw->pw_uid;
                         }
 			c++;
+			break;
+		case S_UUID:
+			if (!optarg) {
+				fprintf(stderr,
+					"Argument is required for %s\n",
+					vars[c]);
+				retval = -1;
+			} else {
+				event_uuid = strdup(optarg);
+				if (event_uuid == NULL) {
+					retval = -1;
+				}
+				c++;
+			}
+			break;
+		case S_VMNAME:
+			if (!optarg) {
+				fprintf(stderr,
+					"Argument is required for %s\n",
+					vars[c]);
+				retval = -1;
+			} else {
+				event_vmname= strdup(optarg);
+				if (event_vmname == NULL) {
+					retval = -1;
+				}
+				c++;
+			}
 			break;
 		case S_VERSION:
 	                printf("ausearch version %s\n", VERSION);

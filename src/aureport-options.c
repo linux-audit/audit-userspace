@@ -1,5 +1,6 @@
 /* aureport-options.c - parse commandline options and configure aureport
  * Copyright 2005-08,2010-11 Red Hat Inc., Durham, North Carolina.
+ * Copyright (c) 2011 IBM Corp.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -18,6 +19,7 @@
  *
  * Authors:
  *     Steve Grubb <sgrubb@redhat.com>
+ *     Marcelo Henrique Cerri <mhcerri@br.ibm.com>
  */
 
 #include "config.h"
@@ -49,6 +51,8 @@ const char *event_hostname = NULL;
 const char *event_terminal = NULL;
 const char *event_subject = NULL;
 const char *event_object = NULL;
+const char *event_uuid = NULL;
+const char *event_vmname = NULL;
 int event_exit = 0, event_exit_is_set = 0;
 int event_ppid = -1, event_session_id = -2;
 
