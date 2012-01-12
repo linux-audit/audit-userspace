@@ -15,6 +15,7 @@
 - Add support in auditctl for shell escaped filenames (Alexander)
 - Add search support for virt events (Marcelo Cerri)
 - Update interpretation tables
+- Sync auparse's auditd config parser with auditd's parser
 
 2.1.3
 - Fix parsing of EXECVE records to not escape argc field

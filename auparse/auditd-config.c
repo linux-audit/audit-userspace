@@ -159,7 +159,7 @@ int load_config(struct daemon_conf *config, log_test_t lt)
 	}
 
 	/* it's ok, read line by line */
-	f = fdopen(fd, "r");
+	f = fdopen(fd, "rm");
 	if (f == NULL) {
 		audit_msg(LOG_ERR, "Error - fdopen failed (%s)", 
 			strerror(errno));
@@ -259,8 +259,12 @@ static int nv_split(char *buf, struct _pair *nv)
 
 	/* Make sure there's nothing else */
 	ptr = strtok(NULL, " ");
-	if (ptr)
-		return 1;
+	if (ptr) {
+		/* Allow one option, but check that there's not 2 */
+		ptr = strtok(NULL, " ");
+		if (ptr)
+			return 1;
+	}
 
 	/* Everything is OK */
 	return 0;
