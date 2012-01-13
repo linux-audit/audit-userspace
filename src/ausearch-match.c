@@ -147,8 +147,16 @@ int match(llist *l)
 								break;
 							}
 						} while ((sn=slist_next(sptr)));
-						if (!found)
-							return 0;
+
+						if (!found) {
+							/* Check cwd, too */
+							if (l->s.cwd == NULL)
+								return 0;
+							if (strmatch(
+								event_filename,
+								l->s.cwd) == 0)
+								return 0;
+						}
 					}
 				}
 				if (event_hostname) {
