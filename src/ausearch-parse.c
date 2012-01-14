@@ -913,6 +913,41 @@ static int parse_user(const lnode *n, search_items *s)
 			}
 		}
 	}
+	if (event_filename) {
+		// dont do this search unless needed
+		str = strstr(mptr, "cwd=");
+		if (str) {
+			str += 4;
+			if (*str == '"') {
+				str++;
+				term = strchr(str, '"');
+				if (term == NULL)
+					return 20;
+				*term = 0;
+				s->cwd = strdup(str);
+				*term = '"';
+			} else {
+				char *end = str;
+				int legacy = 0;
+
+				while (*end != ' ') {
+					if (!isxdigit(*end)) {
+						legacy = 1;
+					}
+					end++;
+				}
+				term = end;
+				if (!legacy)
+					s->cwd = unescape(str);
+				else {
+					saved = *term;
+					*term = 0;
+					s->cwd = strdup(str);
+					*term = saved;
+				}
+			}
+		}
+	}
 	if (event_terminal) {
 		// dont do this search unless needed
 		str = strstr(mptr, "terminal=");

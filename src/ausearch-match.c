@@ -128,10 +128,10 @@ int match(llist *l)
 				// Done all the easy compares, now do the 
 				// string searches.
 				if (event_filename) {
-					if (l->s.filename == NULL)
+					int found = 0;
+					if (l->s.filename == NULL && l->s.cwd == NULL)
 						return 0;
-					else {
-						int found = 0;
+					if (l->s.filename) {
 						const snode *sn;
 						slist *sptr = l->s.filename;
 
@@ -148,15 +148,14 @@ int match(llist *l)
 							}
 						} while ((sn=slist_next(sptr)));
 
-						if (!found) {
-							/* Check cwd, too */
-							if (l->s.cwd == NULL)
-								return 0;
-							if (strmatch(
-								event_filename,
+						if (!found && l->s.cwd == NULL)
+							return 0;
+					}
+					if (l->s.cwd && !found) {
+						/* Check cwd, too */
+						if (strmatch(event_filename,
 								l->s.cwd) == 0)
-								return 0;
-						}
+							return 0;
 					}
 				}
 				if (event_hostname) {
