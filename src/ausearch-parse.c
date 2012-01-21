@@ -800,9 +800,14 @@ static int parse_user(const lnode *n, search_items *s)
 			*term = saved;
 		}
 	}
-	// get uid - something has uid after auid ??
+	// get uid - some records the second uid is what we want.
+	// USER_LOGIN for example.
 	str = strstr(term, "uid=");
-	if (str != NULL) {
+	if (str) {
+		if (*(str-1)=='a' || *(str-1)=='s')
+			goto skip;
+		if (!(*(str-1)=='\'' || *(str-1)==' '))
+			return 25;
 		ptr = str + 4;
 		term = ptr;
 		while (isdigit(*term))
@@ -818,6 +823,7 @@ static int parse_user(const lnode *n, search_items *s)
 			return 15;
 		*term = saved;
 	}
+skip:
 	mptr = term + 1;
 
 	if (event_comm) {
@@ -973,7 +979,7 @@ static int parse_user(const lnode *n, search_items *s)
 				str++;
 				term = strchr(str, '"');
 				if (term == NULL)
-					return 20;
+					return 26;
 				*term = 0;
 				s->exe = strdup(str);
 				*term = '"';
