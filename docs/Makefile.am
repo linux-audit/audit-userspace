@@ -30,7 +30,7 @@ audit_encode_nv_string.3 audit_getloginuid.3 \
 audit_get_reply.3 auparse_goto_record_num.3 \
 audit_log_acct_message.3 audit_log_user_avc_message.3 \
 audit_log_user_command.3 audit_log_user_comm_message.3 \
-audit_log_user_message.3 audit_log_user_semanage_message.3 \
+audit_log_user_message.3 audit_log_semanage_message.3 \
 audit_open.3 audit_request_rules_list_data.3 \
 audit_request_signal_info.3 audit_request_status.3 audit.rules.7 \
 audit_set_backlog_limit.3 audit_set_enabled.3 audit_set_failure.3 \
