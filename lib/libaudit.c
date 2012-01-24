@@ -37,6 +37,8 @@
 #include <sys/stat.h>
 #include <fcntl.h>	/* O_NOFOLLOW needs gnu defined */
 #include <limits.h>	/* for PATH_MAX */
+#include <sys/stat.h>
+#include <sys/types.h>
 
 #include "libaudit.h"
 #include "private.h"

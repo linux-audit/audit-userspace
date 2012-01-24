@@ -20,6 +20,7 @@
 - In ausearch, parse cwd in USER_CMD events
 - In ausearch, correct parsing of uid in user space events
 - In ausearch, update parsing of integrity events
+- Apply some text cleanups from Debian (Russell Coker)
 
 2.1.3
 - Fix parsing of EXECVE records to not escape argc field

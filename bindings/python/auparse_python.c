@@ -882,7 +882,7 @@ AuParser_search_set_stop(AuParser *self, PyObject *args)
  * ausearch_clear
  ********************************/
 PyDoc_STRVAR(search_clear_doc,
-"search_clear() Clear search paramters.\n\
+"search_clear() Clear search parameters.\n\
 \n\
 ausearch_clear clears any search parameters stored in the parser\n\
 instance and frees memory associated with it.\n\
