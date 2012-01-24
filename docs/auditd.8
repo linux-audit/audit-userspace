@@ -26,7 +26,7 @@ allow the audit daemon to follow symlinks for config files.
 no fork. This is useful for running off of inittab
 .TP
 .B \-s=\fIENABLE_STATE\fR
-specify when starting if auditd should change the current value for the kernel enabled flag. Valid values for ENABLE_STATE are "disable", "enable" or "nochange". The default is to enable (and disable when auditd terminates). The value of the enabled flag may be changed during the lifetime of auditd using 'auditctl -e'.
+specify when starting if auditd should change the current value for the kernel enabled flag. Valid values for ENABLE_STATE are "disable", "enable" or "nochange". The default is to enable (and disable when auditd terminates). The value of the enabled flag may be changed during the lifetime of auditd using 'auditctl \-e'.
 .SH SIGNALS
 .TP
 SIGHUP
@@ -54,7 +54,7 @@ causes auditd to attemp to resume logging. This is usually used after logging ha
 .SH NOTES
 A boot param of audit=1 should be added to ensure that all processes that run before the audit daemon starts is marked as auditable by the kernel. Not doing that will make a few processes impossible to properly audit.
 
-The audit daemon can receive audit events from other audit daemons via the audisp-remote audispd plugin. The audit daemon may be linked with tcp_wrappers to control which machines can connect. If this is the case, you can add an entry to hosts.allow and deny.
+The audit daemon can receive audit events from other audit daemons via the audisp\-remote audispd plugin. The audit daemon may be linked with tcp_wrappers to control which machines can connect. If this is the case, you can add an entry to hosts.allow and deny.
 
 .SH "SEE ALSO"
 .BR auditd.conf (5),

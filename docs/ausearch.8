@@ -27,7 +27,7 @@ Search for an event based on the given syscall \fIexit code or errno\fP.
 .BR \-f ,\  \-\-file \ \fIfile-name\fP
 Search for an event based on the given \fIfilename\fP.
 .TP
-.BR \-ga ,\  \-\-gid-all \ \fIall-group-id\fP
+.BR \-ga ,\  \-\-gid\-all \ \fIall-group-id\fP
 Search for an event with either effective group ID or group ID matching the given \fIgroup ID\fP.
 .TP
 .BR \-ge ,\  \-\-gid\-effective \ \fIeffective-group-id\fP
@@ -48,16 +48,16 @@ Interpret numeric entities into text. For example, uid is converted to account n
 .BR \-if ,\  \-\-input \ \fIfile-name\fP
 Use the given \fIfile\fP instead of the logs. This is to aid analysis where the logs have been moved to another machine or only part of a log was saved.
 .TP
-.BR \-\-input-logs
+.BR \-\-input\-logs
 Use the log file location from auditd.conf as input for searching. This is needed if you are using ausearch from a cron job.
 .TP
-.BR \-\-just-one
+.BR \-\-just\-one
 Stop after emitting the first event that matches the search criteria.
 .TP
 .BR \-k ,\  \-\-key \ \fIkey-string\fP
 Search for an event based on the given \fIkey string\fP.
 .TP
-.BR \-l ,\  \-\-line-buffered
+.BR \-l ,\  \-\-line\-buffered
 Flush output on every line. Most useful when stdout is connected to a pipe and the default block buffering strategy is undesirable. May impose a performance penalty.
 .TP
 .BR \-m ,\  \-\-message \ \fImessage-type\fP\ |\ \fIcomma-sep-message-type-list\fP
@@ -117,10 +117,10 @@ You may also use the word: \fBnow\fP, \fBrecent\fP, \fBtoday\fP, \fByesterday\fP
 .BR \-tm ,\  \-\-terminal \ \fIterminal\fP
 Search for an event matching the given \fIterminal\fP value. Some daemons such as cron and atd use the daemon name for the terminal.
 .TP
-.BR \-ua ,\  \-\-uid-all \ \fIall-user-id\fP
+.BR \-ua ,\  \-\-uid\-all \ \fIall-user-id\fP
 Search for an event with either user ID, effective user ID, or login user ID (auid) matching the given \fIuser ID\fP.
 .TP
-.BR \-ue ,\  \-\-uid-effective \ \fIeffective-user-id\fP
+.BR \-ue ,\  \-\-uid\-effective \ \fIeffective-user-id\fP
 Search for an event with the given \fIeffective user ID\fP.
 .TP
 .BR \-ui ,\  \-\-uid \ \fIuser-id\fP

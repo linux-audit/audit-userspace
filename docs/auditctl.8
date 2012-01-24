@@ -24,10 +24,10 @@ Help
 Ignore errors when reading rules from a file
 .TP
 .B \-l
-List all rules 1 per line. This can take a key option (-k), too.
+List all rules 1 per line. This can take a key option (\-k), too.
 .TP
 .BI \-k\  key
-Set a filter key on an audit rule. The filter key is an arbitrary string of text that can be up to 31 bytes long. It can uniquely identify the audit records produced by a rule. Typical use is for when you have several rules that together satisfy a security requirement. The key value can be searched on with ausearch so that no matter which rule triggered the event, you can find its results. The key can also be used on delete all (-D) and list rules (-l) to select rules with a specific key. You may have more than one key on a rule if you want to be able to search logged events in multiple ways or if you have an audispd plugin that uses a key to aid its analysis.
+Set a filter key on an audit rule. The filter key is an arbitrary string of text that can be up to 31 bytes long. It can uniquely identify the audit records produced by a rule. Typical use is for when you have several rules that together satisfy a security requirement. The key value can be searched on with ausearch so that no matter which rule triggered the event, you can find its results. The key can also be used on delete all (\-D) and list rules (\-l) to select rules with a specific key. You may have more than one key on a rule if you want to be able to search logged events in multiple ways or if you have an audispd plugin that uses a key to aid its analysis.
 .TP
 .BI \-m\  text
 Send a user space message into the audit system. This can only be done if you have CAP_AUDIT_WRITE capability (normally the root user has this). The resulting event will be the USER type.
@@ -87,7 +87,7 @@ Delete rule from \fIlist\fP with \fIaction\fP. The rule is deleted only if it ex
 Delete all rules and watches. This can take a key option (-k), too.
 .TP
 \fB\-S\fP [\fISyscall name or number\fP|\fBall\fP]
-Any \fIsyscall name\fP or \fInumber\fP may be used. The word '\fBall\fP' may also be used.  If the given syscall is made by a program, then start an audit record. If a field rule is given and no syscall is specified, it will default to all syscalls. You may also specify multiple syscalls in the same rule by using multiple -S options in the same rule. Doing so improves performance since fewer rules need to be evaluated. If you are on a bi-arch system, like x86_64, you should be aware that auditctl simply takes the text, looks it up for the native arch (in this case b64) and sends that rule to the kernel. If there are no additional arch directives, IT WILL APPLY TO BOTH 32 & 64 BIT SYSCALLS. This can have undesirable effects since there is no guarantee that, for example, the open syscall has the same number on both 32 and 64 bit interfaces. You will likely want to control this and write 2 rules, one with arch equal to b32 and one with b64 to make sure the kernel finds the events that you intend. See the arch field discussion for more info.
+Any \fIsyscall name\fP or \fInumber\fP may be used. The word '\fBall\fP' may also be used.  If the given syscall is made by a program, then start an audit record. If a field rule is given and no syscall is specified, it will default to all syscalls. You may also specify multiple syscalls in the same rule by using multiple \-S options in the same rule. Doing so improves performance since fewer rules need to be evaluated. If you are on a bi-arch system, like x86_64, you should be aware that auditctl simply takes the text, looks it up for the native arch (in this case b64) and sends that rule to the kernel. If there are no additional arch directives, IT WILL APPLY TO BOTH 32 & 64 BIT SYSCALLS. This can have undesirable effects since there is no guarantee that, for example, the open syscall has the same number on both 32 and 64 bit interfaces. You will likely want to control this and write 2 rules, one with arch equal to b32 and one with b64 to make sure the kernel finds the events that you intend. See the arch field discussion for more info.
 .TP
 \fB\-F\fP [\fIn\fP\fB=\fP\fIv\fP | \fIn\fP\fB!=\fP\fIv\fP | \fIn\fP\fB<\fP\fIv\fP | \fIn\fP\fB>\fP\fIv\fP | \fIn\fP\fB<=\fP\fIv\fP | \fIn\fP\fB>=\fP\fIv\fP | \fIn\fP\fB&\fP\fIv\fP | \fIn\fP\fB&=\fP\fIv\fP]
 Build a rule field: name, operation, value. You may have up to 64 fields passed on a single command line. Each one must start with \fB\-F\fP. Each field equation is anded with each other to trigger an audit record. There are 8 operators supported - equal, not equal, less than, greater than, less than or equal, and greater than or equal, bit mask, and bit test respectively. Bit test will "and" the values and check that they are equal, bit mask just "ands" the values. Fields that take a user ID may instead have the user's name; the program will convert the name to user ID. The same is true of group names. Valid fields are:
@@ -97,11 +97,11 @@ Build a rule field: name, operation, value. You may have up to 64 fields passed 
 Respectively, the first 4 arguments to a syscall. Note that string arguments are not supported. This is because the kernel is passed a pointer to the string. Triggering on a pointer address value is not likely to work. So, when using this, you should only use on numeric values. This is most likely to be used on platforms that multiplex socket or IPC operations.
 .TP
 .B arch
-The CPU architecture of the syscall. The arch can be found doing 'uname -m'. If you do not know the arch of your machine but you want to use the 32 bit syscall table and your machine supports 32 bit, you can also use
+The CPU architecture of the syscall. The arch can be found doing 'uname \-m'. If you do not know the arch of your machine but you want to use the 32 bit syscall table and your machine supports 32 bit, you can also use
 .B b32
 for the arch. The same applies to the 64 bit syscall table, you can use
 .B b64.
-In this way, you can write rules that are somewhat arch independent because the family type will be auto detected. However, syscalls can be arch specific and what is available on x86_64, may not be available on ppc. The arch directive should precede the -S option so that auditctl knows which internal table to use to look up the syscall numbers.
+In this way, you can write rules that are somewhat arch independent because the family type will be auto detected. However, syscalls can be arch specific and what is available on x86_64, may not be available on ppc. The arch directive should precede the \-S option so that auditctl knows which internal table to use to look up the syscall numbers.
 .TP
 .B auid
 The original ID the user logged in with. Its an abbreviation of audit uid. Sometimes its referred to as loginuid. Either the user account text or number may be used.

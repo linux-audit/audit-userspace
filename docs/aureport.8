@@ -5,7 +5,7 @@ aureport \- a tool that produces summary reports of audit daemon logs
 .B aureport
 .RI [ options ]
 .SH DESCRIPTION
-\fBaureport\fP is a tool that produces summary reports of the audit system logs. The aureport utility can also take input from stdin as long as the input is the raw log data. The reports have a column label at the top to help with interpretation of the various fields. Except for the main summary report, all reports have the audit event number. You can subsequently lookup the full event with ausearch \fB-a\fP \fIevent number\fP. You may need to specify start & stop times if you get multiple hits. The reports produced by aureport can be used as building blocks for more complicated analysis.
+\fBaureport\fP is a tool that produces summary reports of the audit system logs. The aureport utility can also take input from stdin as long as the input is the raw log data. The reports have a column label at the top to help with interpretation of the various fields. Except for the main summary report, all reports have the audit event number. You can subsequently lookup the full event with ausearch \fB\-a\fP \fIevent number\fP. You may need to specify start & stop times if you get multiple hits. The reports produced by aureport can be used as building blocks for more complicated analysis.
 
 .SH OPTIONS
 .TP
@@ -42,7 +42,7 @@ Interpret  numeric  entities into text. For example, uid is converted to account
 .BR \-if ,\  \-\-input \ \fIfile\fP
 Use the given \fIfile\fP instead if the logs. This is to aid analysis where the logs have been moved to another machine or only part of a log was saved.
 .TP
-.BR \-\-input-logs 
+.B \-\-input\-logs
 Use the log file location from auditd.conf as input for analysis. This is needed if you are using aureport from a cron job.
 .TP
 .BR \-k ,\  \-\-key

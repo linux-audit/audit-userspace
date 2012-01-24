@@ -247,7 +247,7 @@ by a dash (no spaces allowed).  It indicates which client ports are
 allowed for incoming connections.  If not specified, any port is
 allowed.  Allowed values are 1..65535.  For example, to require the
 client use a priviledged port, specify
-.I 1-1023
+.I 1\-1023
 for this parameter. You will also need to set the local_port option in the audisp-remote.conf file. Making sure that clients send from a privileged port is a security feature to prevent log injection attacks by untrusted users.
 .TP
 .I tcp_client_max_idle
@@ -279,7 +279,7 @@ The flush parameter should be set to sync or data.
 .PP
 Max_log_file and num_logs need to be adjusted so that you get complete use of your partition. It should be noted that the more files that have to be rotated, the longer it takes to get back to receiving audit events. Max_log_file_action should be set to keep_logs.
 .PP
-Space_left should be set to a number that gives the admin enough time to react to any alert message and perform some maintenance to free up disk space. This would typically involve running the \fBaureport \-t\fP report and moving the oldest logs to an archive area. The value of space_left is site dependant since the rate at which events are generated varies with each deployment. The space_left_action is recommended to be set to email. If you need something like an snmp trap, you can use the exec option to send one.
+Space_left should be set to a number that gives the admin enough time to react to any alert message and perform some maintenance to free up disk space. This would typically involve running the \fBaureport \-t\fP report and moving the oldest logs to an archive area. The value of space_left is site dependent since the rate at which events are generated varies with each deployment. The space_left_action is recommended to be set to email. If you need something like an snmp trap, you can use the exec option to send one.
 .PP
 Admin_space_left should be set to the amount of disk space on the audit partition needed for admin actions to be recorded. Admin_space_left_action would be set to single so that use of the machine is restricted to just the console.
 .PP
@@ -299,7 +299,7 @@ Audit daemon configuration file
 
 .SH "SEE ALSO"
 .BR auditd (8),
-.BR audisp-remote.conf (5).
+.BR audisp\-remote.conf (5).
 
 .SH AUTHOR
 Steve Grubb

@@ -20,13 +20,13 @@
 .\"
 .TH AUDISP-RACF 8 "Oct 2007" "IBM" "System Administration Utilities"
 .SH NAME
-audispd-zos-remote \- z/OS Remote-services Audit dispatcher plugin
+audispd\-zos\-remote \- z/OS Remote-services Audit dispatcher plugin
 .SH SYNOPSIS
-.B audispd-zos-remote [
+.B audispd\-zos\-remote [
 .I config-file
 .B ]
 .SH DESCRIPTION
-.B audispd-zos-remote
+.B audispd\-zos\-remote
 is a remote-auditing plugin for the Audit subsystem. It should be started by the
 .BR audispd (8)
 daemon and will forward all incoming audit events, as they happen, to a configured z/OS SMF (Service Management Facility) database, through an IBM Tivoli Directory Server (ITDS) set for Remote Audit service.
@@ -36,44 +36,44 @@ section below for more information about the resulting SMF record format.
 
 .BR audispd (8)
 must be configured to start the plugin. This is done by a configuration file usually located at
-.IR /etc/audisp/plugins.d/audispd-zos-remote.conf ,
+.IR /etc/audisp/plugins.d/audispd\-zos\-remote.conf ,
 but multiple instances can be spawned by having multiple configuration files in
 .I /etc/audisp/plugins.d
 for the same plugin executable (see
 .BR audispd (8)).
 
 Each instance needs a configuration file, located by default at
-.IR /etc/audisp/zos-remote.conf .
+.IR /etc/audisp/zos\-remote.conf .
 Check
-.BR zos-remote.conf (5)
+.BR zos\-remote.conf (5)
 for details about the plugin configuration.
 
 .SH OPTIONS
 .IP config-file
 Use an alternate configuration file instead of
-.IR /etc/audisp/zos-remote.conf .
+.IR /etc/audisp/zos\-remote.conf .
 
 .SH SIGNALS
-.B audispd-zos-remote
+.B audispd\-zos\-remote
 reacts to SIGTERM and SIGHUP signals (according to the
 .BR audispd (8)
 specification):
 .TP
 .B SIGHUP
 Instructs the
-.B audispd-zos-remote
+.B audispd\-zos\-remote
 plugin to re-read it's configuration and flush existing network connections.
 .TP
 .B SIGTERM
 Performs a clean exit.
-.B audispd-zos-remote
+.B audispd\-zos\-remote
 will wait up to 10 seconds if there are queued events to be delivered, dropping any remaining queued events after that time.
 
 .SH IBM z/OS ITDS Server and RACF configuration
 In order to use this plugin, you must have an IBM z/OS v1R8 (or higher) server with IBM Tivoli Directory Server (ITDS) configured for Remote Audit service. For more detailed information about how to configure the z/OS server for Remote Auditing, refer to
 .B z/OS V1R8.0-9.0 Intergrated Security Services Enterprise Identity Mapping (EIM) Guide and Reference
 .nf
-.RI ( http://publibz.boulder.ibm.com/cgi-bin/bookmgr_OS390/FRAMESET/EIMA1140/CCONTENTS?DT=20070827115119 ),
+.RI ( http://publibz.boulder.ibm.com/cgi\-bin/bookmgr_OS390/FRAMESET/EIMA1140/CCONTENTS?DT=20070827115119 ),
 chapter "2.0 - Working with remote services".
 .fi
 
@@ -90,7 +90,7 @@ permit IRR.RAUDITX class(FACILITY) id(ITDSUSER) access(READ)
 
 .SS Create/enable RACF user ID to perform Remote Audit requests
 A z/OS RACF user ID is needed by the plugin - Every Audit request performed by the plugin will use a RACF user ID, as configured in the plugin configuration
-.BR zos-remote.conf (5).
+.BR zos\-remote.conf (5).
 This user ID needs READ access to FACILITY Class resource IRR.LDAP.REMOTE.AUDIT. If the user ID is
 .IR BINDUSER ,
 the administrator can configure RACF to enable this user to perform Remote Auditing requests with the following TSO commands:
@@ -103,7 +103,7 @@ permit IRR.LDAP.REMOTE.AUDIT class(FACILITY) id(BINDUSER) access(READ)
 
 .SS Add @LINUX Class to RACF
 When performing remote auditing requests, the
-.B audispd-zos-remote
+.B audispd\-zos\-remote
 plugin will use the special
 .B @LINUX 
 .I CDT Class 
@@ -232,10 +232,10 @@ don't have access to the IRR.LDAP.REMOTE.AUDIT FACILITY Class profile. See
 The plugin currently does remote auditing in a best-effort basis, and will dischard events in case the z/OS server cannot be contacted (network failures) or in any other case that event submission fails. 
 
 .SH FILES
-/etc/audisp/plugins.d/audispd-zos-remote.conf
-/etc/audisp/zos-remote.conf
+/etc/audisp/plugins.d/audispd\-zos\-remote.conf
+/etc/audisp/zos\-remote.conf
 .SH "SEE ALSO"
 .BR auditd (8),
-.BR zos-remote.conf (5).
+.BR zos\-remote.conf (5).
 .SH AUTHOR
 Klaus Heinrich Kiwi <klausk@br.ibm.com>

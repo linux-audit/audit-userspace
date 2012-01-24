@@ -12,7 +12,7 @@ Control commands generally involve configuring the audit system rather than tell
 File System rules are sometimes called watches. These rules are used to audit access to particular files or directories that you may be interested in. If the path given in the rule is a directory, then the rule used is recursive to the bottom of the directory tree excluding any directories that may be mount points. The syntax of these rules generally follow this format:
 
 .nf
-.B -w path-to-file -p permissions -k keyname
+.B \-w path-to-file \-p permissions \-k keyname
 
 .if
 
@@ -44,11 +44,11 @@ The user filter is used to filter some events that originate in user space. Fiel
 Syscall rules take the general form of:
 
 .nf
-.B -a action,list -S syscall -F field=value -k keyname
+.B \-a action,list \-S syscall \-F field=value \-k keyname
 .fi
 
 The
-.B -a
+.B \-a
 option tells the kernel's rule matching engine that we want to append a rule and the end of the rule list. But we need to specify which rule list it goes on and what action to take when it triggers. Valid actions are:
 
 .RS
@@ -64,21 +64,21 @@ The action and list are separated by a comma but no space in between. Valid list
 .IR task ", " entry ", " exit ", " user ", and " exclude ". There meaning was explained earlier.
 
 Next in the rule would normally be the
-.B -S
+.B \-S
 option. This field can either be the syscall name or number. For readability, the name is almost always used. You may give more that one syscall in a rule by specifying another
-.B -S
-option. When sent into the kernel, all syscall fields are put into a mask so that one compare can determine if the syscall is of interest. So, adding multiple syscalls in one rule is very efficient. When you specify a syscall name, auditctl will look up the name and get its syscall number. This leads to some problems on bi-arch machines. The 32 and 64 bit syscall numbers sometimes, but not always, line up. So, to solve this problem, you would generally need to break the rule into 2 with one specifying -F arch=b32 and the other specifying -F arch=b64. This needs to go in front of the
-.B -S
+.B \-S
+option. When sent into the kernel, all syscall fields are put into a mask so that one compare can determine if the syscall is of interest. So, adding multiple syscalls in one rule is very efficient. When you specify a syscall name, auditctl will look up the name and get its syscall number. This leads to some problems on bi-arch machines. The 32 and 64 bit syscall numbers sometimes, but not always, line up. So, to solve this problem, you would generally need to break the rule into 2 with one specifying \-F arch=b32 and the other specifying \-F arch=b64. This needs to go in front of the
+.B \-S
 option so that auditctl looks at the right lookup table when returning the number.
 
 After the syscall is specified, you would normally have one or more
-.B -F
+.B \-F
 options that fine tune what to match against. Rather than list all the valid field types here, the reader should look at the auditctl man page which has a full listing of each field and what it means. But its worth mentioning a couple things.
 
-The audit system considers uids to be unsigned numbers. The audit system uses the number -1 to indicate that a loginuid is not set. This means that when its printed out, it looks like 4294967295. If you write a rule that you wanted try to get the valid users over 500, then you would also need to take into account that the representation of -1 is higher than 500. So you would address this with the following piece of a rule:
+The audit system considers uids to be unsigned numbers. The audit system uses the number \-1 to indicate that a loginuid is not set. This means that when its printed out, it looks like 4294967295. If you write a rule that you wanted try to get the valid users over 500, then you would also need to take into account that the representation of \-1 is higher than 500. So you would address this with the following piece of a rule:
 
 .nf
--F auid>=500 -F auid!=4294967295
+\-F auid>=500 \-F auid!=4294967295
 .fi
 
 These rules are "anded" and both have to be true.
@@ -91,43 +91,43 @@ The purpose of auditing is to be able to do an investigation periodically or whe
 When doing an investigation, you would normally start off with the main aureport output to just get an idea about what is happening on the system. This report mostly tells you about events that are hard coded by the audit system such as login/out, uses of authentication, system anomalies, how many users have been on the machine, and if SE Linux has detected any AVCs.
 
 .nf
-aureport --start this-week
+aureport \-\-start this-week
 .fi
 
 After looking at the report, you probably want to get a second view about what rules you loaded that have been triggering. This is where keys become important. You would generally run the key summary report like this:
 
 .nf
-aureport --start this-week --keys --summary
+aureport \-\-start this-week \-\-keys \-\-summary
 .fi
 
 This will give an ordered listing of the keys associated with rules that have been triggering. If, for example, you had a syscall audit rule that triggered on the failure to open files with EPERM that had a key field of access like this:
 
 .nf
--a always,exit -F arch=b64 -S open -F exit=-EPERM -k access
+\-a always,exit \-F arch=b64 \-S open \-F exit=\-EPERM \-k access
 .fi
 
 Then you can isolate these failures with ausearch and pipe the results to aureport for display. Suppose your investigation noticed a lot of the access denied events. If you wanted to see the files that unauthorized access has been attempted, you could run the following command:
 
 .nf
-ausearch --start this-week -k access --raw | aureport --file --summary
+ausearch \-\-start this-week \-k access \-\-raw | aureport \-\-file \-\-summary
 .fi
 
 This will give an ordered list showing which files are being accessed with the EPERM failure. Suppose you wanted to see which users might be having failed access, you would run the following command:
 
 .nf
-ausearch --start this-week -k access --raw | aureport --user --summary
+ausearch \-\-start this-week \-k access \-\-raw | aureport \-\-user \-\-summary
 .fi
 
 If your investigation showed a lot of failed accesses to a particular file, you could run the following report to see who is doing it:
 
 .fi
-ausearch --start this-week -k access -f /path-to/file --raw | aureport --user -i
+ausearch \-\-start this-week \-k access \-f /path-to/file \-\-raw | aureport \-\-user \-i
 .fi
 
 This report will give you the individual access attempts by person. If you needed to see the actual audit event that is being reported, you would look at the date, time, and event columns. Assuming the event was 822 and it occurred at 2:30 on 09/01/2009 and you use the en_US.utf8 locale, the command would look something like this:
 
 .nf
-ausearch --start 09/01/2009 02:30 -a 822 -i --just-one
+ausearch \-\-start 09/01/2009 02:30 \-a 822 \-i \-\-just\-one
 .fi
 
 This will select the first event from that day and time with the matching event id and interpret the numeric values into human readable values.
@@ -140,14 +140,14 @@ If you are not getting events on syscall rules that you think you should, try ru
 If you get a warning from auditctl saying, "32/64 bit syscall mismatch in line XX, you should specify an arch". This means that you specified a syscall rule on a bi-arch system where the syscall has a different syscall number for the 32 and 64 bit interfaces. This means that on one of those interfaces you are likely auditing the wrong syscall. To solve the problem, re-write the rule as two rules specifying the intended arch for each rule. For example,
 
 .nf
--always,exit -S open -k access
+\-always,exit \-S open \-k access
 .fi
 
 would be rewritten as
 
 .nf
--always,exit -F arch=b32 -S open -k access
--always,exit -F arch=b64 -S open -k access
+\-always,exit \-F arch=b32 \-S open \-k access
+\-always,exit \-F arch=b64 \-S open \-k access
 .fi
 
 If you get a warning that says, "entry rules deprecated, changing to exit rule". This means that you have a rule intended for the entry filter, but that filter is not going to be available at some point in the future. Auditctl moved your rule to the exit filter so that its not lost. But to solve this so that you do not get the warning any more, you need to change the offending rule from entry to exit.
@@ -156,10 +156,10 @@ If you get a warning that says, "entry rules deprecated, changing to exit rule".
 The following rule shows how to audit failed access to files due permission problems. Note that it takes two rules for each arch ABI to audit this since file access can fail with two different failure codes indicating permission problems.
 
 .nf
-.B -a always,exit -F arch=b32 -S open -S openat -F exit=-EACCES -k access
-.B -a always,exit -F arch=b32 -S open -S openat -F exit=-EPERM -k access
-.B -a always,exit -F arch=b64 -S open -S openat -F exit=-EACCES -k access
-.B -a always,exit -F arch=b64 -S open -S openat -F exit=-EPERM -k access
+.B \-a always,exit \-F arch=b32 \-S open \-S openat \-F exit=\-EACCES \-k access
+.B \-a always,exit \-F arch=b32 \-S open \-S openat \-F exit=\-EPERM \-k access
+.B \-a always,exit \-F arch=b64 \-S open \-S openat \-F exit=\-EACCES \-k access
+.B \-a always,exit \-F arch=b64 \-S open \-S openat \-F exit=\-EPERM \-k access
 .fi
 
 .SH "SEE ALSO"

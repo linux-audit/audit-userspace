@@ -21,7 +21,7 @@ Report on the bad logins.
 Write raw audit records used to create the displayed report into a file aulast.log in the current working directory.
 
 .TP
-.B \-f file
+.BI \-f file
 Use the file instead of the audit logs for input.
 
 .TP
@@ -35,7 +35,7 @@ Take audit records from stdin.
 .SH "EXAMPLES"
 .nf
 To see this month's logins
-.B ausearch --start this-month --raw | aulast --stdin
+.B ausearch \-\-start this-month \-\-raw | aulast \-\-stdin
 
 .SH "SEE ALSO"
 .BR last (1),

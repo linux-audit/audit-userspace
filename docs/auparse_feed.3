@@ -57,7 +57,7 @@ auparse_callback(auparse_state_t *au, auparse_cb_event_t cb_event_type,
             const au_event_t *e = auparse_get_timestamp(au);
             if (e == NULL) return;
             printf("event time: %u.%u:%lu\\n",
-                    (unsigned)e->sec, e->milli, e->serial);
+                    (unsigned)e\->sec, e\->milli, e\->serial);
             auparse_first_field(au);
             do {
                 printf("%s=%s (%s)\\n", auparse_get_field_name(au),
@@ -98,7 +98,7 @@ main(int argc, char **argv)
 
 .SH "RETURN VALUE"
 
-Returns -1 if an error occurs; otherwise, 0 for success.
+Returns \-1 if an error occurs; otherwise, 0 for success.
 
 .SH "SEE ALSO"
 
