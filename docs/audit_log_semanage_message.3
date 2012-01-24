@@ -1,14 +1,14 @@
-.TH "AUDIT_LOG_USER_SEMANAGE_MESSAGE" "3" "Oct 2006" "Red Hat" "Linux Audit API"
+.TH "AUDIT_LOG_SEMANAGE_MESSAGE" "3" "Jan 2012" "Red Hat" "Linux Audit API"
 .SH NAME
 audit_log_semanage_message \- log a semanage message
 .SH SYNOPSIS
 .B #include <libaudit.h>
 .sp
 .B int audit_log_semanage_message(int audit_fd, int type,
-const char *pgname, const char *op, const char *name, unsigned int id,
-const char *new_seuser, const char *new_role, const char *new_range,
-const char *old_seuser, const char *old_role, const char *old_range,
-const char *host, const char *addr, const char *tty, int result)
+.B const char *pgname, const char *op, const char *name, unsigned int id,
+.B const char *new_seuser, const char *new_role, const char *new_range,
+.B const char *old_seuser, const char *old_role, const char *old_range,
+.B const char *host, const char *addr, const char *tty, int result)
 
 .SH DESCRIPTION
 
