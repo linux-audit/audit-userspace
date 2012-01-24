@@ -1401,6 +1401,44 @@ static int parse_integrity(const lnode *n, search_items *s)
 		*term = ' ';
 	}
 
+	// ses
+	if (event_session_id != -2 ) {
+		str = strstr(term, "ses=");
+		if (str) {
+			ptr = str + 4;
+			term = strchr(ptr, ' ');
+			if (term == NULL)
+				return 10;
+			*term = 0;
+			errno = 0;
+			s->session_id = strtoul(ptr, NULL, 10);
+			if (errno)
+				return 11;
+			*term = ' ';
+		}
+	}
+
+	if (event_subject) {
+		// scontext
+		str = strstr(term, "subj=");
+		if (str) {
+			str += 5;
+			term = strchr(str, ' ');
+			if (term == NULL)
+				return 12;
+			*term = 0;
+			if (audit_avc_init(s) == 0) {
+				anode an;
+
+				anode_init(&an);
+				an.scontext = strdup(str);
+				alist_append(s->avc, &an);
+				*term = ' ';
+			} else
+				return 13;
+		}
+	}
+
 	str = strstr(term, "comm=");
 	if (str) {
 		str += 5;
