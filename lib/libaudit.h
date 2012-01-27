@@ -185,6 +185,7 @@ extern "C" {
 #define AUDIT_DEV_DEALLOC		2308 /* Device was deallocated */
 #define AUDIT_FS_RELABEL		2309 /* Filesystem relabeled */
 #define AUDIT_USER_MAC_POLICY_LOAD	2310 /* Userspc daemon loaded policy */
+#define AUDIT_ROLE_MODIFY		2311 /* Admin modified a role */
 
 #define AUDIT_FIRST_CRYPTO_MSG		2400
 #define AUDIT_CRYPTO_TEST_USER		2400 /* Crypto test results */
