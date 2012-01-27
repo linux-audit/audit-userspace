@@ -518,7 +518,7 @@ int check_params(int count, char *vars[])
 				int i;
                         	fprintf(stderr, 
 					"Valid message types are: ALL ");
-				for (i=AUDIT_USER;i<=AUDIT_LAST_CRYPTO_MSG;i++){
+				for (i=AUDIT_USER;i<=AUDIT_LAST_VIRT_MSG;i++){
 					const char *name;
 					if (i == AUDIT_WATCH_INS) // Skip a few
 						i = AUDIT_FIRST_USER_MSG;
