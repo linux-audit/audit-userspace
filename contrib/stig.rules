@@ -16,7 +16,8 @@
 ## NOTE:
 ## 1) if this is being used on a 32 bit machine, comment out the b64 lines
 ## 2) These rules assume that login under the root account is not allowed.
-## 3) It is also assumed that 500 represents the first usable user account.
+## 3) It is also assumed that 500 represents the first usable user account. To
+##    be sure, look at UID_MIN in /etc/login.defs.
 ## 4) If these rules generate too much spurious data for your tastes, limit the
 ## the syscall file rules with a directory, like -F dir=/etc
 ## 5) You can search for the results on the key fields in the rules
