@@ -62,7 +62,7 @@ extern int delete_all_rules(int fd);
 static int fd = -1;
 static int list_requested = 0;
 static int add = AUDIT_FILTER_UNSET, del = AUDIT_FILTER_UNSET, action = -1;
-static int ignore = 0;
+static int ignore = 0, continue_error = 0;
 static int exclude = 0;
 static int multiple = 0;
 static struct audit_rule_data *rule_new = NULL;
@@ -114,6 +114,7 @@ static void usage(void)
      "    -A <l,a>            Add rule at beginning of <l>ist with <a>ction\n"
      "    -b <backlog>        Set max number of outstanding audit buffers\n"
      "                        allowed Default=64\n"
+     "    -C                  Continue through errors in rules\n"
      "    -d <l,a>            Delete rule from <l>ist with <a>ction\n"
      "                        l=task,entry,exit,user,watch,exclude\n"
      "                        a=never,possible,always\n"
@@ -482,7 +483,7 @@ static int setopt(int count, int lineno, char *vars[])
     keylen = AUDIT_MAX_KEY_LEN;
 
     while ((retval >= 0) && (c = getopt(count, vars,
-			"hislDvte:f:r:b:a:A:d:S:F:m:R:w:W:k:p:q:")) != EOF) {
+			"hiCslDvte:f:r:b:a:A:d:S:F:m:R:w:W:k:p:q:")) != EOF) {
 	int flags = AUDIT_FILTER_UNSET;
 	rc = 10;	// Init to something impossible to see if unused.
         switch (c) {
@@ -492,6 +493,11 @@ static int setopt(int count, int lineno, char *vars[])
 		break;
 	case 'i':
 		ignore = 1;
+		retval = -2;
+		break;
+	case 'C':
+		ignore = 1;
+		continue_error = 1;
 		retval = -2;
 		break;
         case 's':
@@ -1115,6 +1121,8 @@ static int fileopt(const char *file)
 					fclose(f);
 					return -1;
 				}
+				if (continue_error)
+					continue_error = -1;
 			}
 		}
 		lineno++;
@@ -1153,8 +1161,11 @@ int main(int argc, char *argv[])
 			return 0;
 		} else if (fileopt(argv[2]))
 			return 1;
-		else
+		else {
+			if (continue_error < 0)
+				return 1;
 			return 0;
+		}
 	} else {
 		if (reset_vars()) {
 			free(rule_new);
