@@ -117,7 +117,7 @@ static void set_close_on_exec (int fd)
 	fcntl (fd, F_SETFD, flags);
 }
 
-static void close_client (struct ev_tcp *client)
+static void release_client(struct ev_tcp *client)
 {
 	char emsg[DEFAULT_BUF_SZ];
 
@@ -136,6 +136,11 @@ static void close_client (struct ev_tcp *client)
 		client->next->prev = client->prev;
 	if (client->prev)
 		client->prev->next = client->next;
+}
+
+static void close_client(struct ev_tcp *client)
+{
+	release_client (client);
 	free (client);
 }
 
@@ -986,10 +991,10 @@ void auditd_tcp_listen_uninit ( struct ev_loop *loop )
 
 void auditd_tcp_listen_check_idle (struct ev_loop *loop )
 {
-	struct ev_tcp *ev;
+	struct ev_tcp *ev, *next = NULL;
 	int active;
 
-	for (ev = client_chain; ev; ev = ev->next) {
+	for (ev = client_chain; ev; ev = next) {
 		active = ev->client_active;
 		ev->client_active = 0;
 		if (active)
@@ -999,6 +1004,8 @@ void auditd_tcp_listen_check_idle (struct ev_loop *loop )
 			"client %s idle too long - closing connection\n",
 			sockaddr_to_addr4(&(ev->addr)));
 		ev_io_stop (loop, &ev->io);
-		close_client(ev);
+		release_client(ev);
+		next = ev->next;
+		free(ev);
 	}
 }
