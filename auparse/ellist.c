@@ -104,8 +104,10 @@ static int parse_up_record(rnode* r)
 
 	buf = strdup(r->record);
 	ptr = strtok_r(buf, " ", &saved);
-	if (ptr == NULL)
+	if (ptr == NULL) {
+		free(buf);
 		return -1;
+	}
 
 	do {	// If there's an '=' sign, its a keeper
 		nvnode n;

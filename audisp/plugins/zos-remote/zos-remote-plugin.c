@@ -219,6 +219,7 @@ push_event(auparse_state_t * au, auparse_cb_event_t cb_event_type,
          * 'originating' audit record
          */
         sprintf(logString, "Linux (%s): type: %s", node, orig_type);
+	free(node);
 
         /* 
          * Start writing to BER element.

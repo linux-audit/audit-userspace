@@ -70,9 +70,14 @@ static int setup_log_file_array(auparse_state_t *au)
 		num++;
 		snprintf(filename, len, "%s.%d", config.log_file, num);
 	} while (1);
+
+	if (num == 0) {
+		fprintf(stderr, "No log file\n");
+		free_config(&config);
+		return 1;
+	}
 	num--;
 	tmp = malloc((num+2)*sizeof(char *));
-
 
         /* Got it, now process logs from last to first */
 	if (num > 0)
@@ -189,7 +194,7 @@ auparse_state_t *auparse_init(ausource_t source, const void *b)
 			break;
 		default:
 			errno = EINVAL;
-			return NULL;
+			goto bad_exit;
 			break;
 	}
 	au->source = source;

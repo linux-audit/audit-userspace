@@ -230,18 +230,22 @@ static int load_libaudit_config(const char *path)
 	if (fstat(fd, &st) < 0) {
 		audit_msg(LOG_ERR, "Error fstat'ing %s (%s)",
 			path, strerror(errno));
+		close(fd);
 		return 1;
 	}
 	if (st.st_uid != 0) {
 		audit_msg(LOG_ERR, "Error - %s isn't owned by root", path);
+		close(fd);
 		return 1;
 	}
 	if ((st.st_mode & S_IWOTH) == S_IWOTH) {
 		audit_msg(LOG_ERR, "Error - %s is world writable", path);
+		close(fd);
 		return 1;
 	}
 	if (!S_ISREG(st.st_mode)) {
 		audit_msg(LOG_ERR, "Error - %s is not a regular file", path);
+		close(fd);
 		return 1;
 	}
 
@@ -250,6 +254,7 @@ static int load_libaudit_config(const char *path)
 	if (f == NULL) {
 		audit_msg(LOG_ERR, "Error - fdopen failed (%s)",
 			strerror(errno));
+		close(fd);
 		return 1;
 	}
 

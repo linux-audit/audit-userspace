@@ -132,6 +132,7 @@ int plugin_load_config(plugin_conf_t * c, const char *file)
         if ((st.st_mode & (S_IRUSR | S_IWUSR | S_IRGRP)) !=
             (S_IRUSR | S_IWUSR | S_IRGRP)) {
                 log_err("%s permissions should be 0640", file);
+                close(fd);
                 return 1;
         }
         if (!S_ISREG(st.st_mode)) {

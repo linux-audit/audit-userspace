@@ -58,7 +58,8 @@ void lol_clear(lol *lo)
 
 static void lol_append(lol *lo, llist *l)
 {
-	int i, new_size;
+	int i;
+	size_t new_size;
 	lolnode *ptr;
 
 	for(i=0; i<lo->limit; i++) {

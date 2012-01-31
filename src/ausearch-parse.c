@@ -1233,8 +1233,7 @@ static int parse_daemon2(const lnode *n, search_items *s)
 			free(s->hostname);
 			s->hostname = strdup(str);
 			*term = saved;
-		} else
-			term = n->message; 
+		}
 	}
 
 	if (event_success != S_UNSET) {

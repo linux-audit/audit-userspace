@@ -145,6 +145,7 @@ lnode *list_delete_cur(llist *l)
 				free((void *)cur->term);
 				free((void *)cur->host);
 				free(cur);
+				prev = NULL;
 			} else {
 				prev->next = cur->next;
 				free((void *)cur->name);
