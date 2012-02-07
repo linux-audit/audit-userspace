@@ -28,13 +28,12 @@ INCLUDES = -I${top_srcdir} \
 		   -I${top_srcdir}/lib \
 		   -I${top_srcdir}/auparse \
 		   -I${top_srcdir}/src
-LIBS = -L${top_builddir}/auparse \
-	   -lauparse
+LIBS = -L${top_builddir}/auparse -lauparse
 AM_CFLAGS = -D_GNU_SOURCE
 bin_PROGRAMS = auvirt
 noinst_HEADERS = auvirt-list.h
 man_MANS = auvirt.8
 
 auvirt_SOURCES = auvirt.c \
-				 auvirt-list.c \
-				 ${top_srcdir}/src/ausearch-time.c
+		 auvirt-list.c \
+		 ${top_srcdir}/src/ausearch-time.c

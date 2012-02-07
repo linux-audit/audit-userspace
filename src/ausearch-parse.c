@@ -719,7 +719,7 @@ static int parse_user(const lnode *n, search_items *s)
 	str = strstr(term, "auid=");
 	if (str == NULL) { // Try the older one
 		str = strstr(term, "loginuid=");
-		if (str == NULL) 
+		if (str == NULL)
 			return 7;
 		ptr = str + 9;
 	} else
@@ -792,7 +792,7 @@ static int parse_user(const lnode *n, search_items *s)
 			term = str;
 			while (*term != ' ' && *term != ':')
 				term++;
-			if (term == str) 
+			if (term == str)
 				return 24;
 			saved = *term;
 			*term = 0;
@@ -804,9 +804,9 @@ static int parse_user(const lnode *n, search_items *s)
 	// USER_LOGIN for example.
 	str = strstr(term, "uid=");
 	if (str) {
-		if (*(str-1)=='a' || *(str-1)=='s')
+		if (*(str - 1) == 'a' || *(str - 1) == 's' || *(str - 1) == 'u')
 			goto skip;
-		if (!(*(str-1)=='\'' || *(str-1)==' '))
+		if (!(*(str - 1) == '\'' || *(str - 1) == ' '))
 			return 25;
 		ptr = str + 4;
 		term = ptr;
