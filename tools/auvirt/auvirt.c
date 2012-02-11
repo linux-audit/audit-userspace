@@ -312,23 +312,7 @@ int create_search_criteria(auparse_state_t *au)
 		}
 	}
 	if (vm) {
-		/*
-		 * If a field has its value quoted in the audit log, for
-		 * example:
-		 *	vm="guest-name"
-		 *
-		 * auparse will consider the field value with quotes when
-		 * matching a rule. For example, using the example above the
-		 * following rule will not match:
-		 *     ausearch_add_item(au, "vm", "=", "guest-name", how);
-		 *
-		 * But this rule will match:
-		 *     ausearch_add_item(au, "vm", "=", "\"guest-name\"", how);
-		 *
-		 * TODO use a better approach for this problem...
-		 */
-		snprintf(expr, sizeof(expr), "\"%s\"", vm);
-		if (ausearch_add_item(au, "vm", "=", expr,
+		if (ausearch_add_interpreted_item(au, "vm", "=", vm,
 					AUSEARCH_RULE_AND)) {
 			fprintf(stderr, "Criteria error: id\n");
 			return 1;
@@ -390,7 +374,7 @@ int extract_virt_fields(auparse_state_t *au, const char **p_uuid,
 	if (p_name) {
 		if (!auparse_find_field(au, field = "vm"))
 			goto error;
-		*p_name = auparse_get_field_str(au);
+		*p_name = auparse_interpret_field(au);
 	}
 	if (p_uuid) {
 		if (!auparse_find_field(au, field = "uuid"))
@@ -759,10 +743,11 @@ int process_resource_event(auparse_state_t *au)
 	    strcmp("vcpu", res_type) == 0 ||
 	    strcmp("mem", res_type) == 0 ||
 	    strcmp("net", res_type) == 0) {
-		const char *res;
+		const char *res = NULL;
 		/* Resource removed */
 		snprintf(field, sizeof(field), "old-%s", res_type);
-		res = auparse_find_field(au, field);
+		if(auparse_find_field(au, field))
+			res = auparse_interpret_field(au);
 		if (res == NULL && debug) {
 			fprintf(stderr, "Failed to get %s field.\n", field);
 		} else {
@@ -771,8 +756,10 @@ int process_resource_event(auparse_state_t *au)
 		}
 
 		/* Resource added */
+		res = NULL;
 		snprintf(field, sizeof(field), "new-%s", res_type);
-		res = auparse_find_field(au, field);
+		if (auparse_find_field(au, field))
+			res = auparse_interpret_field(au);
 		if (res == NULL && debug) {
 			fprintf(stderr, "Failed to get %s field.\n", field);
 		} else {
@@ -781,7 +768,9 @@ int process_resource_event(auparse_state_t *au)
 		}
 	} else if (strcmp("cgroup", res_type) == 0) {
 		auparse_first_record(au);
-		const char *cgroup = auparse_find_field(au, "cgroup");
+		const char *cgroup = NULL;
+		if (auparse_find_field(au, "cgroup"))
+			cgroup = auparse_interpret_field(au);
 		rc += add_resource(au, uuid, uid, time, name, success, reason,
 				res_type, cgroup);
 	} else if (debug) {
@@ -856,8 +845,10 @@ int process_avc(auparse_state_t *au)
 	auparse_first_record(au);
 	avc->seresult = copy_str(auparse_find_field(au, "seresult"));
 	avc->seperms = copy_str(auparse_find_field(au, "seperms"));
-	avc->comm = copy_str(auparse_find_field(au, "comm"));
-	avc->target = copy_str(auparse_find_field(au, "name"));
+	if (auparse_find_field(au, "comm"))
+		avc->comm = copy_str(auparse_interpret_field(au));
+	if (auparse_find_field(au, "name"))
+		avc->target = copy_str(auparse_interpret_field(au));
 	add_proof(avc, au);
 	if (list_append(events, avc) == NULL) {
 		event_free(avc);
