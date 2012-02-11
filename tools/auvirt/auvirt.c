@@ -80,6 +80,10 @@ struct event {
 	char *reason;
 	char *res_type;
 	char *res;
+	/* Fields specific for cgroup resources */
+	char *cgroup_class;
+	char *cgroup_detail;
+	char *cgroup_acl;
 	/* Fields specific for machine id events: */
 	char *seclevel;
 	/* Fields specific for avc events: */
@@ -123,6 +127,9 @@ void event_free(struct event *event)
 		free(event->comm);
 		free(event->seresult);
 		free(event->seperms);
+		free(event->cgroup_class);
+		free(event->cgroup_detail);
+		free(event->cgroup_acl);
 		free(event);
 	}
 }
@@ -669,6 +676,22 @@ int add_resource(auparse_state_t *au, const char *uuid, uid_t uid, time_t time,
 	event->uid = uid;
 	event->start = time;
 	add_proof(event, au);
+
+	/* Get cgroup specific fields. */
+	if (strcmp("cgroup", res_type) == 0) {
+		event->cgroup_class = copy_str(auparse_find_field(au, "class"));
+		if (event->cgroup_class) {
+			const char *detail = NULL;
+			if (strcmp("path", event->cgroup_class) == 0) {
+				detail = auparse_find_field(au, "path");
+			} else if (strcmp("major", event->cgroup_class) == 0) {
+				detail = auparse_find_field(au, "category");
+			}
+			event->cgroup_detail = copy_str(detail);
+		}
+		event->cgroup_acl = copy_str(auparse_find_field(au, "acl"));
+	}
+
 	if (list_append(events, event) == NULL) {
 		event_free(event);
 		return 1;
@@ -1105,7 +1128,13 @@ void print_event(struct event *event)
 	if (event->type == ET_RES) {
 		printf("\t%-12.12s", N(event->res_type));
 		printf("\t%-10.10s", N(event->reason));
-		printf("\t%s", N(event->res));
+		if (strcmp("cgroup", event->res_type) != 0) {
+			printf("\t%s", N(event->res));
+		} else {
+			printf("\t%s\t%s\t%s", N(event->cgroup_class),
+					N(event->cgroup_acl),
+					N(event->cgroup_detail));
+		}
 	} else if (event->type == ET_MACHINE_ID) {
 		printf("\t%s", N(event->seclevel));
 	} else if (event->type == ET_AVC) {
