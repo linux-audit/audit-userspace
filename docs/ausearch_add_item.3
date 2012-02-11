@@ -1,4 +1,4 @@
-.TH "AUSEARCH_ADD_ITEM" "3" "Nov 2007" "Red Hat" "Linux Audit API"
+.TH "AUSEARCH_ADD_ITEM" "3" "Feb 2012" "Red Hat" "Linux Audit API"
 .SH NAME
 ausearch_add_item \- build up search rule
 .SH "SYNOPSIS"
@@ -22,7 +22,7 @@ ausearch_add_item adds one search condition to the current audit search expressi
  locate the field name and check that the value associated with it is NOT equal to the value given in this rule.
 .RE
 
-The value parameter is compared to the uninterpreted field value.
+The value parameter is compared to the uninterpreted field value. If you are trying to match against a field who's type is AUPARSE_TYPE_ESCAPED, you will want to use the ausearch_add_interpreted_item() function instead.
 
 The how value determines how this search condition will affect the existing search expression if one is already defined. The possible values are:
 .RS
