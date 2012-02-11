@@ -91,6 +91,7 @@ struct event {
 	char *comm;
 	char *seresult;
 	char *seperms;
+	char *context;
 	/* Fields to print proof information: */
 	struct record_id proof[4];
 };
@@ -130,6 +131,7 @@ void event_free(struct event *event)
 		free(event->cgroup_class);
 		free(event->cgroup_detail);
 		free(event->cgroup_acl);
+		free(event->context);
 		free(event);
 	}
 }
@@ -872,6 +874,18 @@ int process_avc(auparse_state_t *au)
 		avc->comm = copy_str(auparse_interpret_field(au));
 	if (auparse_find_field(au, "name"))
 		avc->target = copy_str(auparse_interpret_field(au));
+
+	/* get the context related to the permission that was denied. */
+	if (avc->seperms) {
+		const char *ctx = NULL;
+		if (strcmp("relabelfrom", avc->seperms) == 0) {
+			ctx = auparse_find_field(au, "scontext");
+		} else if (strcmp("relabelto", avc->seperms) == 0) {
+			ctx = auparse_find_field(au, "tcontext");
+		}
+		avc->context = copy_str(ctx);
+	}
+
 	add_proof(avc, au);
 	if (list_append(events, avc) == NULL) {
 		event_free(avc);
@@ -1140,7 +1154,8 @@ void print_event(struct event *event)
 	} else if (event->type == ET_AVC) {
 		printf("\t%-12.12s", N(event->seperms));
 		printf("\t%-10.10s", N(event->seresult));
-		printf("\t%s\t%s", N(event->comm), N(event->target));
+		printf("\t%s\t%s\t%s", N(event->comm), N(event->target),
+				N(event->context));
 	}
 	printf("\n");
 
