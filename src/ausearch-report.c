@@ -333,7 +333,6 @@ static struct nv_pair typetab[] = {
 	{T_UID, "id"},
 	{T_UID, "inode_uid"},
 	{T_UID, "sauid"},
-	{T_UID, "obj_uid"},
 	{T_GID, "gid"},
 	{T_GID, "egid"},
 	{T_GID, "sgid"},
