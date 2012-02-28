@@ -26,7 +26,7 @@ SUBDIRS = test
 INCLUDES = -I${top_srcdir} -I${top_srcdir}/lib -I${top_srcdir}/src/libev
 sbin_PROGRAMS = auditd auditctl aureport ausearch autrace
 LIBS = -Lmt -lauditmt -lpthread
-LDFLAGS = -pthread
+AM_LDFLAGS = -pthread
 AM_CFLAGS = -D_REENTRANT -D_GNU_SOURCE -pthread
 noinst_HEADERS = auditd-config.h auditd-event.h auditd-listen.h ausearch-llist.h ausearch-options.h auditctl-llist.h aureport-options.h ausearch-parse.h aureport-scan.h ausearch-lookup.h ausearch-int.h auditd-dispatch.h ausearch-string.h ausearch-nvpair.h ausearch-common.h ausearch-avc.h ausearch-time.h ausearch-lol.h
 
