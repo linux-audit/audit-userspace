@@ -233,6 +233,92 @@ extern "C" {
 #define AUDIT_FILTER_MASK	0x07	/* Mask to get actual filter */
 #define AUDIT_FILTER_UNSET	0x80	/* This value means filter is unset */
 
+/* Defines for interfield comparison update */
+#ifndef AUDIT_OBJ_UID
+#define AUDIT_OBJ_UID  109
+#endif
+#ifndef AUDIT_OBJ_GID
+#define AUDIT_OBJ_GID  110
+#endif
+#ifndef AUDIT_FIELD_COMPARE
+#define AUDIT_FIELD_COMPARE 111
+#endif
+
+#ifndef AUDIT_COMPARE_UID_TO_OBJ_UID
+#define AUDIT_COMPARE_UID_TO_OBJ_UID   1
+#endif
+#ifndef AUDIT_COMPARE_GID_TO_OBJ_GID
+#define AUDIT_COMPARE_GID_TO_OBJ_GID   2
+#endif
+#ifndef AUDIT_COMPARE_EUID_TO_OBJ_UID
+#define AUDIT_COMPARE_EUID_TO_OBJ_UID  3
+#endif
+#ifndef AUDIT_COMPARE_EGID_TO_OBJ_GID
+#define AUDIT_COMPARE_EGID_TO_OBJ_GID  4
+#endif
+#ifndef AUDIT_COMPARE_AUID_TO_OBJ_UID
+#define AUDIT_COMPARE_AUID_TO_OBJ_UID  5
+#endif
+#ifndef AUDIT_COMPARE_SUID_TO_OBJ_UID
+#define AUDIT_COMPARE_SUID_TO_OBJ_UID  6
+#endif
+#ifndef AUDIT_COMPARE_SGID_TO_OBJ_GID
+#define AUDIT_COMPARE_SGID_TO_OBJ_GID  7
+#endif
+#ifndef AUDIT_COMPARE_FSUID_TO_OBJ_UID
+#define AUDIT_COMPARE_FSUID_TO_OBJ_UID 8
+#endif
+#ifndef AUDIT_COMPARE_FSGID_TO_OBJ_GID
+#define AUDIT_COMPARE_FSGID_TO_OBJ_GID 9
+#endif
+#ifndef AUDIT_COMPARE_UID_TO_AUID
+#define AUDIT_COMPARE_UID_TO_AUID      10
+#endif
+#ifndef AUDIT_COMPARE_UID_TO_EUID
+#define AUDIT_COMPARE_UID_TO_EUID      11
+#endif
+#ifndef AUDIT_COMPARE_UID_TO_FSUID
+#define AUDIT_COMPARE_UID_TO_FSUID     12
+#endif
+#ifndef AUDIT_COMPARE_UID_TO_SUID
+#define AUDIT_COMPARE_UID_TO_SUID      13
+#endif
+#ifndef AUDIT_COMPARE_AUID_TO_FSUID
+#define AUDIT_COMPARE_AUID_TO_FSUID    14
+#endif
+#ifndef AUDIT_COMPARE_AUID_TO_SUID
+#define AUDIT_COMPARE_AUID_TO_SUID     15
+#endif
+#ifndef AUDIT_COMPARE_AUID_TO_EUID
+#define AUDIT_COMPARE_AUID_TO_EUID     16
+#endif
+#ifndef AUDIT_COMPARE_EUID_TO_SUID
+#define AUDIT_COMPARE_EUID_TO_SUID     17
+#endif
+#ifndef AUDIT_COMPARE_EUID_TO_FSUID
+#define AUDIT_COMPARE_EUID_TO_FSUID    18
+#endif
+#ifndef AUDIT_COMPARE_SUID_TO_FSUID
+#define AUDIT_COMPARE_SUID_TO_FSUID    19
+#endif
+#ifndef AUDIT_COMPARE_GID_TO_EGID
+#define AUDIT_COMPARE_GID_TO_EGID      20
+#endif
+#ifndef AUDIT_COMPARE_GID_TO_FSGID
+#define AUDIT_COMPARE_GID_TO_FSGID     21
+#endif
+#ifndef AUDIT_COMPARE_GID_TO_SGID
+#define AUDIT_COMPARE_GID_TO_SGID      22
+#endif
+#ifndef AUDIT_COMPARE_EGID_TO_FSGID
+#define AUDIT_COMPARE_EGID_TO_FSGID    23
+#endif
+#ifndef AUDIT_COMPARE_EGID_TO_SGID
+#define AUDIT_COMPARE_EGID_TO_SGID     24
+#endif
+#ifndef AUDIT_COMPARE_SGID_TO_FSGID
+#define AUDIT_COMPARE_SGID_TO_FSGID    25
+#endif
 
 //////////////////////////////////////////////////////
 // This is an external ABI. Any changes in here will
@@ -429,6 +515,8 @@ extern int  audit_rule_syscallbyname_data(struct audit_rule_data *rule,
  * adding new fields */
 extern int  audit_rule_fieldpair_data(struct audit_rule_data **rulep,
                                       const char *pair, int flags);
+extern int audit_rule_interfield_fieldpair_data(struct audit_rule_data **rulep,
+					 const char *pair, int flags);
 extern void audit_rule_free_data(struct audit_rule_data *rule);
 
 #ifdef __cplusplus

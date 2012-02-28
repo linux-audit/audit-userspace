@@ -115,9 +115,11 @@ static void usage(void)
      "    -b <backlog>        Set max number of outstanding audit buffers\n"
      "                        allowed Default=64\n"
      "    -c                  Continue through errors in rules\n"
+     "    -C f=f              Compare collected fields if available:\n"
+     "                        Field name, operator(=,!=), field name\n"
      "    -d <l,a>            Delete rule from <l>ist with <a>ction\n"
-     "                        l=task,entry,exit,user,watch,exclude\n"
-     "                        a=never,possible,always\n"
+     "                        l=task,exit,user,exclude\n"
+     "                        a=never,always\n"
      "    -D                  Delete all rules and watches\n"
      "    -e [0..2]           Set enabled flag\n"
      "    -f [0..2]           Set failure flag\n"
@@ -483,7 +485,7 @@ static int setopt(int count, int lineno, char *vars[])
     keylen = AUDIT_MAX_KEY_LEN;
 
     while ((retval >= 0) && (c = getopt(count, vars,
-			"hicslDvte:f:r:b:a:A:d:S:F:m:R:w:W:k:p:q:")) != EOF) {
+			"hicslDvtC:e:f:r:b:a:A:d:S:F:m:R:w:W:k:p:q:")) != EOF) {
 	int flags = AUDIT_FILTER_UNSET;
 	rc = 10;	// Init to something impossible to see if unused.
         switch (c) {
@@ -748,6 +750,23 @@ static int setopt(int count, int lineno, char *vars[])
 				audit_permadded = 1;
 		}
 
+		break;
+	case 'C':
+		if (add != AUDIT_FILTER_UNSET)
+			flags = add & AUDIT_FILTER_MASK;
+		else if (del != AUDIT_FILTER_UNSET)
+			flags = del & AUDIT_FILTER_MASK;
+
+		rc = audit_rule_interfield_fieldpair_data(&rule_new, optarg,
+							flags);
+		if (rc != 0) {
+			audit_number_to_errmsg(rc, optarg);
+			retval = -1;
+		} else {
+			if (rule_new->fields[rule_new->field_count - 1] ==
+			    AUDIT_PERM)
+				audit_permadded = 1;
+		}
 		break;
         case 'm':
 		if (count > 3) {
@@ -1485,6 +1504,85 @@ static int audit_print_reply(struct audit_reply *rep)
 						printf(" %s%s%u", name, 
 							audit_operator_to_symbol(op),
 							rep->ruledata->values[i]);
+					} else if (field == AUDIT_FIELD_COMPARE) {
+						switch (rep->ruledata->values[i])
+						{
+						case AUDIT_COMPARE_UID_TO_OBJ_UID:
+							printf(" uid%sobj_uid",audit_operator_to_symbol(op));
+							break;
+						case AUDIT_COMPARE_GID_TO_OBJ_GID:
+							printf(" gid%sobj_gid",audit_operator_to_symbol(op));
+							break;
+						case AUDIT_COMPARE_EUID_TO_OBJ_UID:
+							printf(" euid%sobj_uid",audit_operator_to_symbol(op));
+							break;
+						case AUDIT_COMPARE_EGID_TO_OBJ_GID:
+							printf(" egid%sobj_gid",audit_operator_to_symbol(op));
+							break;
+						case AUDIT_COMPARE_AUID_TO_OBJ_UID:
+							printf(" auid%sobj_uid",audit_operator_to_symbol(op));
+							break;
+						case AUDIT_COMPARE_SUID_TO_OBJ_UID:
+							printf(" suid%sobj_uid",audit_operator_to_symbol(op));
+							break;
+						case AUDIT_COMPARE_SGID_TO_OBJ_GID:
+							printf(" sgid%sobj_gid",audit_operator_to_symbol(op));
+							break;
+						case AUDIT_COMPARE_FSUID_TO_OBJ_UID:
+							printf(" fsuid%sobj_uid",audit_operator_to_symbol(op));
+							break;
+						case AUDIT_COMPARE_FSGID_TO_OBJ_GID:
+							printf(" fsgid%sobj_gid",audit_operator_to_symbol(op));
+							break;
+						case AUDIT_COMPARE_UID_TO_AUID:
+							printf(" uid%sauid",audit_operator_to_symbol(op));
+							break;
+						case AUDIT_COMPARE_UID_TO_EUID:
+							printf(" uid%seuid",audit_operator_to_symbol(op));
+							break;
+						case AUDIT_COMPARE_UID_TO_FSUID:
+							printf(" uid%sfsuid",audit_operator_to_symbol(op));
+							break;
+						case AUDIT_COMPARE_UID_TO_SUID:
+							printf(" uid%ssuid",audit_operator_to_symbol(op));
+							break;
+						case AUDIT_COMPARE_AUID_TO_FSUID:
+							printf(" auid%sfsuid",audit_operator_to_symbol(op));
+							break;
+						case AUDIT_COMPARE_AUID_TO_SUID:
+							printf(" auid%ssuid",audit_operator_to_symbol(op));
+							break;
+						case AUDIT_COMPARE_AUID_TO_EUID:
+							printf(" auid%seuid",audit_operator_to_symbol(op));
+							break;
+						case AUDIT_COMPARE_EUID_TO_SUID:
+							printf(" euid%ssuid",audit_operator_to_symbol(op));
+							break;
+						case AUDIT_COMPARE_EUID_TO_FSUID:
+							printf(" euid%sfsuid",audit_operator_to_symbol(op));
+							break;
+						case AUDIT_COMPARE_SUID_TO_FSUID:
+							printf(" suid%sfsuid",audit_operator_to_symbol(op));
+							break;
+						case AUDIT_COMPARE_GID_TO_EGID:
+							printf(" gid%segid",audit_operator_to_symbol(op));
+							break;
+						case AUDIT_COMPARE_GID_TO_FSGID:
+							printf(" gid%sfsgid",audit_operator_to_symbol(op));
+							break;
+						case AUDIT_COMPARE_GID_TO_SGID:
+							printf(" gid%ssgid",audit_operator_to_symbol(op));
+							break;
+						case AUDIT_COMPARE_EGID_TO_FSGID:
+							printf(" egid%sfsgid",audit_operator_to_symbol(op));
+							break;
+						case AUDIT_COMPARE_EGID_TO_SGID:
+							printf(" egid%ssgid",audit_operator_to_symbol(op));
+							break;
+						case AUDIT_COMPARE_SGID_TO_FSGID:
+							printf(" sgid%sfsgid",audit_operator_to_symbol(op));
+							break;
+						}
 					} else {
 						// Signed items
 						printf(" %s%s%d", name, 
@@ -1503,7 +1601,8 @@ static int audit_print_reply(struct audit_reply *rep)
 						 field > AUDIT_SUBJ_CLR) &&
 						field != AUDIT_WATCH &&
 						field != AUDIT_FILTERKEY &&
-						field != AUDIT_PERM)
+						field != AUDIT_PERM &&
+						field != AUDIT_FIELD_COMPARE)
 					printf(" (0x%x)", rep->ruledata->values[i]);
 			}
 			if (show_syscall &&

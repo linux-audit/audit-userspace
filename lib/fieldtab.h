@@ -55,6 +55,8 @@ _S(AUDIT_WATCH,        "path"         )
 _S(AUDIT_PERM,         "perm"         )
 _S(AUDIT_DIR,          "dir"          )
 _S(AUDIT_FILETYPE,     "filetype"     )
+_S(AUDIT_OBJ_UID,      "obj_uid"      )
+_S(AUDIT_OBJ_GID,      "obj_gid"      )
 
 _S(AUDIT_ARG0,         "a0"           )
 _S(AUDIT_ARG1,         "a1"           )
@@ -63,3 +65,4 @@ _S(AUDIT_ARG3,         "a3"           )
 
 _S(AUDIT_FILTERKEY,    "key"          )
 
+_S(AUDIT_FIELD_COMPARE, "field_compare" )
