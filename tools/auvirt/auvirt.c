@@ -87,10 +87,10 @@ struct event {
 	/* Fields specific for machine id events: */
 	char *seclevel;
 	/* Fields specific for avc events: */
+	char *avc_result;
+	char *avc_operation;
 	char *target;
 	char *comm;
-	char *seresult;
-	char *seperms;
 	char *context;
 	/* Fields to print proof information: */
 	struct record_id proof[4];
@@ -123,11 +123,11 @@ void event_free(struct event *event)
 		free(event->reason);
 		free(event->res_type);
 		free(event->res);
+		free(event->avc_result);
+		free(event->avc_operation);
 		free(event->seclevel);
 		free(event->target);
 		free(event->comm);
-		free(event->seresult);
-		free(event->seperms);
 		free(event->cgroup_class);
 		free(event->cgroup_detail);
 		free(event->cgroup_acl);
@@ -468,7 +468,7 @@ int process_machine_id_event(auparse_state_t *au)
 	seclevel = get_seclevel(auparse_find_field(au, "vm-ctx"));
 	if (seclevel == NULL) {
 		if (debug)
-			fprintf(stderr, "security context not found for "
+			fprintf(stderr, "Security context not found for "
 					"MACHINE_ID event.\n");
 	}
 
@@ -592,7 +592,7 @@ int add_stop_guest_event(auparse_state_t *au)
 	}
 	if (start == NULL) {
 		if (debug) {
-			fprintf(stderr, "Couldn't find the correlated start i"
+			fprintf(stderr, "Couldn't find the correlated start "
 					"record to the stop event.\n");
 		}
 		return 0;
@@ -824,19 +824,18 @@ struct event *get_machine_id_by_seclevel(const char *seclevel)
 	return machine_id;
 }
 
-/* AVC records are correlated to guest through the selinux context. */
-int process_avc(auparse_state_t *au)
+int process_avc_selinux_context(auparse_state_t *au, const char *context)
 {
 	const char *target, *seclevel;
 	struct event *machine_id, *avc;
 	uid_t uid;
 	time_t time;
 
-	seclevel = get_seclevel(auparse_find_field(au, "tcontext"));
+	seclevel = get_seclevel(auparse_find_field(au, context));
 	if (seclevel == NULL) {
 		if (debug) {
-			fprintf(stderr, "Security context not found for "
-					"AVC event.\n");
+			fprintf(stderr, "Security context not found "
+					"for AVC event.\n");
 		}
 		return 0;
 	}
@@ -847,8 +846,8 @@ int process_avc(auparse_state_t *au)
 	machine_id = get_machine_id_by_seclevel(seclevel);
 	if (machine_id == NULL) {
 		if (debug) {
-			fprintf(stderr, "Couldn't get the security level from "
-					"the AVC event.\n");
+			fprintf(stderr, "Couldn't get the security "
+					"level from the AVC event.\n");
 		}
 		return 0;
 	}
@@ -868,19 +867,19 @@ int process_avc(auparse_state_t *au)
 	avc->uid = uid;
 	avc->seclevel = copy_str(seclevel);
 	auparse_first_record(au);
-	avc->seresult = copy_str(auparse_find_field(au, "seresult"));
-	avc->seperms = copy_str(auparse_find_field(au, "seperms"));
+	avc->avc_result = copy_str(auparse_find_field(au, "seresult"));
+	avc->avc_operation = copy_str(auparse_find_field(au, "seperms"));
 	if (auparse_find_field(au, "comm"))
 		avc->comm = copy_str(auparse_interpret_field(au));
 	if (auparse_find_field(au, "name"))
 		avc->target = copy_str(auparse_interpret_field(au));
 
 	/* get the context related to the permission that was denied. */
-	if (avc->seperms) {
+	if (avc->avc_operation) {
 		const char *ctx = NULL;
-		if (strcmp("relabelfrom", avc->seperms) == 0) {
+		if (strcmp("relabelfrom", avc->avc_operation) == 0) {
 			ctx = auparse_find_field(au, "scontext");
-		} else if (strcmp("relabelto", avc->seperms) == 0) {
+		} else if (strcmp("relabelto", avc->avc_operation) == 0) {
 			ctx = auparse_find_field(au, "tcontext");
 		}
 		avc->context = copy_str(ctx);
@@ -890,6 +889,19 @@ int process_avc(auparse_state_t *au)
 	if (list_append(events, avc) == NULL) {
 		event_free(avc);
 		return 1;
+	}
+	return 0;
+}
+
+/* AVC records are correlated to guest through the selinux context. */
+int process_avc(auparse_state_t *au)
+{
+	const char **context;
+	const char *contexts[] = { "tcontext", "scontext", NULL };
+
+	for (context = contexts; context && *context; context++) {
+		if (process_avc_selinux_context(au, *context))
+			return 1;
 	}
 	return 0;
 }
@@ -1152,8 +1164,8 @@ void print_event(struct event *event)
 	} else if (event->type == ET_MACHINE_ID) {
 		printf("\t%s", N(event->seclevel));
 	} else if (event->type == ET_AVC) {
-		printf("\t%-12.12s", N(event->seperms));
-		printf("\t%-10.10s", N(event->seresult));
+		printf("\t%-12.12s", N(event->avc_operation));
+		printf("\t%-10.10s", N(event->avc_result));
 		printf("\t%s\t%s\t%s", N(event->comm), N(event->target),
 				N(event->context));
 	}
