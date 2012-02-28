@@ -114,7 +114,7 @@ static void usage(void)
      "    -A <l,a>            Add rule at beginning of <l>ist with <a>ction\n"
      "    -b <backlog>        Set max number of outstanding audit buffers\n"
      "                        allowed Default=64\n"
-     "    -C                  Continue through errors in rules\n"
+     "    -c                  Continue through errors in rules\n"
      "    -d <l,a>            Delete rule from <l>ist with <a>ction\n"
      "                        l=task,entry,exit,user,watch,exclude\n"
      "                        a=never,possible,always\n"
@@ -483,7 +483,7 @@ static int setopt(int count, int lineno, char *vars[])
     keylen = AUDIT_MAX_KEY_LEN;
 
     while ((retval >= 0) && (c = getopt(count, vars,
-			"hiCslDvte:f:r:b:a:A:d:S:F:m:R:w:W:k:p:q:")) != EOF) {
+			"hicslDvte:f:r:b:a:A:d:S:F:m:R:w:W:k:p:q:")) != EOF) {
 	int flags = AUDIT_FILTER_UNSET;
 	rc = 10;	// Init to something impossible to see if unused.
         switch (c) {
@@ -495,7 +495,7 @@ static int setopt(int count, int lineno, char *vars[])
 		ignore = 1;
 		retval = -2;
 		break;
-	case 'C':
+	case 'c':
 		ignore = 1;
 		continue_error = 1;
 		retval = -2;

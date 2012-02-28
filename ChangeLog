@@ -23,7 +23,7 @@
 - Apply some text cleanups from Debian (Russell Coker)
 - In auditd, relax some permission checks for external apps
 - Add ROLE_MODIFY event type
-- In auditctl, new -C option to continue through bad rules but with failed exit
+- In auditctl, new -c option to continue through bad rules but with failed exit
 - Add auvirt program to do special reporting on virt events (Marcelo Cerri)
 
 2.1.3
