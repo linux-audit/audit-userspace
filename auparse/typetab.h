@@ -88,3 +88,11 @@ _S(AUPARSE_TYPE_NFPROTO,	"family"	)
 _S(AUPARSE_TYPE_ICMPTYPE,	"icmptype"	)
 _S(AUPARSE_TYPE_PROTOCOL,	"proto"		)
 _S(AUPARSE_TYPE_ADDR,		"addr"		)
+#ifdef WITH_APPARMOR
+_S(AUPARSE_TYPE_ESCAPED,	"apparmor"	)
+_S(AUPARSE_TYPE_ESCAPED,	"operation"	)
+_S(AUPARSE_TYPE_ESCAPED,	"denied_mask"	)
+_S(AUPARSE_TYPE_ESCAPED,	"info"		)
+_S(AUPARSE_TYPE_ESCAPED,	"profile"	)
+_S(AUPARSE_TYPE_ESCAPED,	"requested_mask")
+#endif
