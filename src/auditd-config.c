@@ -1304,7 +1304,7 @@ static int tcp_max_per_addr_parser(struct nv_pair *nv, int line,
 	/* Check its range.  While this value is technically
 	   unlimited, it's limited by the kernel, and we limit it here
 	   for sanity. */
-	if (i > 16) {
+	if (i > 1024) {
 		audit_msg(LOG_ERR, 
 			"Error - converted number (%s) is too large - line %d",
 			nv->value, line);

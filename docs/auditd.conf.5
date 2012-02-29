@@ -231,10 +231,13 @@ start up at exactly the same time, such as after a power failure.
 .TP
 .I tcp_max_per_addr
 This is a numeric value which indicates how many concurrent connections from
-one IP address is allowed.  The default is 1 and the maximum is 16. Setting
+one IP address is allowed.  The default is 1 and the maximum is 1024. Setting
 this too large may allow for a Denial of Service attack on the logging
-server. The default should be adequate in most cases unless a custom written
-recovery script runs to forward unsent events. In this case you would increase the number only large enough to let it in too.
+server. Also note that the kernel has an internal maximum that will eventually
+prevent this even if auditd allows it by config. The default should be adequate
+in most cases unless a custom written recovery script runs to forward unsent
+events. In this case you would increase the number only large enough to let it
+in too.
 .TP
 .I use_libwrap
 This setting determines whether or not to use tcp_wrappers to discern connection attempts that are from allowed machines. Legal values are either 
