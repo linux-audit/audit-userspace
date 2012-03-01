@@ -13,3 +13,5 @@ to this project.
 * John Dennis for rewriting the python bindings and auparse updates
 * Miloslav Trmac for numerous patches including store forward remote logging
 * DJ Delorie for the remote logging code
+* Marcelo Cerri fpr the auvirt program
+* Peter Moody for the interfield comparator code
