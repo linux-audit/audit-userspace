@@ -99,7 +99,7 @@ list_t *events = NULL;
 
 
 /* Auxiliary functions to allocate and to free events. */
-struct event *event_alloc()
+struct event *event_alloc(void)
 {
 	struct event *event = malloc(sizeof(struct event));
 	if (event) {
@@ -280,7 +280,7 @@ error:
 }
 
 /* Initialize an auparse_state_t with the correct log source. */
-auparse_state_t *init_auparse()
+auparse_state_t *init_auparse(void)
 {
 	auparse_state_t *au = NULL;
 	if (stdin_flag) {
@@ -1419,7 +1419,7 @@ void print_event(struct event *event)
 }
 
 /* Print all events */
-void print_events()
+void print_events(void)
 {
 	list_node_t *it;
 	for (it = events->head; it; it = it->next) {
@@ -1430,12 +1430,13 @@ void print_events()
 }
 
 /* Count and print summary */
-void print_summary()
+void print_summary(void)
 {
 	/* Summary numbers */
 	time_t start_time = 0, end_time = 0;
 	long start = 0, stop = 0, res = 0, avc = 0, anom = 0,
 	     shutdown = 0, failure = 0;
+	char start_buf[32], end_buf[32];
 
 	/* Calculate summary */
 	list_node_t *it;
@@ -1489,10 +1490,18 @@ void print_summary()
 
 	}
 
+	if (start_time)
+		ctime_r(&start_time, start_buf);
+	else
+		strcpy(start_buf, "undef");
+	if (end_time)
+		ctime_r(&end_time, end_buf);
+	else
+		strcpy(end_buf, "undef");
+
 	/* Print summary */
 	printf("Range of time for report:       %-.16s - %-.16s\n",
-			(start_time) ? ctime(&start_time) : "undef",
-			(end_time) ? ctime(&end_time) : "undef");
+			start_buf, end_buf);
 	printf("Number of guest starts:         %ld\n", start);
 	printf("Number of guest stops:          %ld\n", stop);
 	printf("Number of resource assignments: %ld\n", res);
