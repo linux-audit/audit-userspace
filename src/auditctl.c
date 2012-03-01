@@ -757,8 +757,7 @@ static int setopt(int count, int lineno, char *vars[])
 		else if (del != AUDIT_FILTER_UNSET)
 			flags = del & AUDIT_FILTER_MASK;
 
-		rc = audit_rule_interfield_fieldpair_data(&rule_new, optarg,
-							flags);
+		rc = audit_rule_interfield_comp_data(&rule_new, optarg, flags);
 		if (rc != 0) {
 			audit_number_to_errmsg(rc, optarg);
 			retval = -1;

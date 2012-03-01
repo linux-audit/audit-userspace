@@ -1,5 +1,5 @@
 /* libaudit.c -- 
- * Copyright 2004-2009 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2004-2009,2012 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -790,15 +790,13 @@ int audit_rule_syscallbyname_data(struct audit_rule_data *rule,
 }
 hidden_def(audit_rule_syscallbyname_data)
 
-int audit_rule_interfield_fieldpair_data(struct audit_rule_data **rulep,
+int audit_rule_interfield_comp_data(struct audit_rule_data **rulep,
 					 const char *pair,
 					 int flags) {
 	const char *f = pair;
 	char       *v;
 	int        op;
 	int        field1, field2;
-	int        vlen;
-	int        offset;
 	struct audit_rule_data *rule = *rulep;
 
 	if (f == NULL)
@@ -835,9 +833,9 @@ int audit_rule_interfield_fieldpair_data(struct audit_rule_data **rulep,
 	if ((field2 = audit_name_to_field(v)) < 0)
 		return -27;
 
-	/* Exclude filter can be used only with MSGTYPE field */
-	if (flags == AUDIT_FILTER_EXCLUDE && field1 != AUDIT_MSGTYPE)
-		return -12;
+	/* Interfield comparison can only be in exit filter */
+	if (flags != AUDIT_FILTER_EXIT)
+		return -7;
 
 	// It should always be AUDIT_FIELD_COMPARE
 	rule->fields[rule->field_count] = AUDIT_FIELD_COMPARE;
@@ -1064,27 +1062,8 @@ int audit_rule_interfield_fieldpair_data(struct audit_rule_data **rulep,
 				return -1;
 			}
 			break;
-			/* fallthrough */
 		default:
-			if (field1 == AUDIT_INODE) {
-				if (!(op == AUDIT_NOT_EQUAL ||
-							op == AUDIT_EQUAL))
-					return -13;
-			}
-
-			if (field1 == AUDIT_PPID && !(flags == AUDIT_FILTER_EXIT
-				|| flags == AUDIT_FILTER_ENTRY))
-				return -17;
-		
-			if (!isdigit((char)*(v)))
-				return -21;
-
-			if (field1 == AUDIT_INODE)
-				rule->values[rule->field_count] =
-					strtoul(v, NULL, 0);
-			else
-				rule->values[rule->field_count] =
-					strtol(v, NULL, 0);
+			return -1;
 			break;
 	}
 	rule->field_count++;

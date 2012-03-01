@@ -515,7 +515,7 @@ extern int  audit_rule_syscallbyname_data(struct audit_rule_data *rule,
  * adding new fields */
 extern int  audit_rule_fieldpair_data(struct audit_rule_data **rulep,
                                       const char *pair, int flags);
-extern int audit_rule_interfield_fieldpair_data(struct audit_rule_data **rulep,
+extern int audit_rule_interfield_comp_data(struct audit_rule_data **rulep,
 					 const char *pair, int flags);
 extern void audit_rule_free_data(struct audit_rule_data *rule);
 

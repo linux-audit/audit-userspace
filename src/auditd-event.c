@@ -437,7 +437,6 @@ static void write_to_log(const char *buf, struct auditd_consumer_data *data)
 
 static void check_log_file_size(struct auditd_consumer_data *data)
 {
-	int rc;
 	struct daemon_conf *config = data->config;
 
 	/* did we cross the size limit? */

@@ -31,6 +31,7 @@
 #include <time.h>
 #include <sys/types.h>
 #include <pwd.h>
+#include <unistd.h>
 #include "auparse.h"
 #include "libaudit.h"
 #include "ausearch-time.h"
@@ -826,7 +827,7 @@ struct event *get_machine_id_by_seclevel(const char *seclevel)
 
 int process_avc_selinux_context(auparse_state_t *au, const char *context)
 {
-	const char *target, *seclevel;
+	const char *seclevel;
 	struct event *machine_id, *avc;
 	uid_t uid;
 	time_t time;
@@ -1537,7 +1538,6 @@ int main(int argc, char **argv)
 		goto error;
 
 	while (ausearch_next_event(au) > 0) {
-		const char *op;
 		int err = 0;
 
 		switch(auparse_get_type(au)) {
