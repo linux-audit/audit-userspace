@@ -157,10 +157,9 @@ use_alpha=$withval,
 use_alpha=no)
 if test x$use_alpha != xno ; then
       AC_DEFINE(WITH_ALPHA,1,[Define if you want to enable Alpha processor support.])
-else
-	AC_MSG_RESULT(no)
 fi
 AM_CONDITIONAL(USE_ALPHA, test x$use_alpha = xyes)
+AC_MSG_RESULT($use_alpha)
 
 AC_MSG_CHECKING(whether to include arm eabi processor support)
 AC_ARG_WITH(armeb,
@@ -169,10 +168,9 @@ use_armeb=$withval,
 use_armeb=no)
 if test x$use_armeb != xno ; then
       AC_DEFINE(WITH_ARMEB,1,[Define if you want to enable Arm eabi processor support.])
-else
-	AC_MSG_RESULT(no)
 fi
 AM_CONDITIONAL(USE_ARMEB, test x$use_armeb = xyes)
+AC_MSG_RESULT($use_armeb)
 
 AC_MSG_CHECKING(whether to use apparmor)
 AC_ARG_WITH(apparmor,
@@ -181,17 +179,17 @@ use_apparmor=$withval,
 use_apparmor=no)
 if test x$use_apparmor != xno ; then
       AC_DEFINE(WITH_APPARMOR,1,[Define if you want to enable AppArmor events.])
-else
-	AC_MSG_RESULT(no)
 fi
+AC_MSG_RESULT($use_apparmor)
 
+AC_MSG_CHECKING(whether to use prelude)
 AC_ARG_WITH(prelude,
 AS_HELP_STRING([--with-prelude],[enable prelude IDS support]),
 use_prelude=$withval,
 use_prelude=no)
+AC_MSG_RESULT($use_prelude)
 if test x$use_prelude = xno ; then
 	have_prelude=no;
-	AC_MSG_RESULT(no)
 else
       AC_CHECK_LIB(prelude, prelude_init,
                  have_prelude=yes, have_prelude=no)
@@ -200,7 +198,7 @@ else
       else
 	LIBPRELUDE_CFLAGS=`libprelude-config --pthread-cflags 2>/dev/null`
 	LIBPRELUDE_LDFLAGS=`libprelude-config --ldflags 2>/dev/null`
-
+        AC_MSG_RESULT(yes)
       fi
 fi
 AM_CONDITIONAL(HAVE_PRELUDE, test x$have_prelude = xyes)
