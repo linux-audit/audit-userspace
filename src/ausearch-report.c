@@ -1,6 +1,6 @@
 /*
 * ausearch-report.c - Format and output events
-* Copyright (c) 2005-09,2011 Red Hat Inc., Durham, North Carolina.
+* Copyright (c) 2005-09,2011-12 Red Hat Inc., Durham, North Carolina.
 * All Rights Reserved. 
 *
 * This software may be freely redistributed and/or modified under the
@@ -52,9 +52,9 @@ struct nv_pair {
 
 /* This is the list of field types that we can interpret */
 enum { T_UID, T_GID, T_SYSCALL, T_ARCH, T_EXIT, T_ESCAPED, T_PERM, T_MODE, 
-T_SOCKADDR, T_FLAGS, T_PROMISC, T_CAPABILITY, T_SIGNAL, T_KEY, T_LIST,
-T_TTY_DATA, T_SESSION, T_CAP_BITMAP, T_NFPROTO, T_ICMPTYPE, T_PROTOCOL,
-T_ADDR };
+T_SOCKADDR, T_FLAGS, T_PROMISC, T_CAPABILITY, T_A0, T_A1, T_A2, T_SIGNAL,
+T_KEY, T_LIST, T_TTY_DATA, T_SESSION, T_CAP_BITMAP, T_NFPROTO, T_ICMPTYPE,
+T_PROTOCOL, T_ADDR };
 
 /* Function in ausearch-parse for unescaping filenames */
 extern char *unescape(char *buf);
@@ -71,6 +71,7 @@ static int machine = -1;
 
 /* The first syscall argument */
 static unsigned long long a0;
+static const char *sys = NULL;
 
 /* This function branches to the correct output format */
 void output_record(llist *l)
@@ -363,6 +364,9 @@ static struct nv_pair typetab[] = {
 	{T_PROMISC, "prom"},
 	{T_PROMISC, "old_prom"},
 	{T_CAPABILITY, "capability"},
+	{T_A0, "a0"},
+	{T_A1, "a1"},
+	{T_A2, "a2"},
 	{T_SIGNAL, "sig"},
 	{T_LIST, "list"},
 	{T_SESSION, "ses"},
@@ -396,13 +400,13 @@ static int audit_lookup_type(const char *name)
         return -1;
 }
 
-static void print_uid(const char *val)
+static void print_uid(const char *val, unsigned int base)
 {
 	int uid;
 	char name[64];
 
 	errno = 0;
-	uid = strtoul(val, NULL, 10);
+	uid = strtoul(val, NULL, base);
 	if (errno) {
 		printf("conversion error(%s) ", val);
 		return;
@@ -411,13 +415,13 @@ static void print_uid(const char *val)
 	printf("%s ", aulookup_uid(uid, name, sizeof(name)));
 }
 
-static void print_gid(const char *val)
+static void print_gid(const char *val, unsigned int base)
 {
 	int gid;
 	char name[64];
 
 	errno = 0;
-	gid = strtoul(val, NULL, 10);
+	gid = strtoul(val, NULL, base);
 	if (errno) {
 		printf("conversion error(%s) ", val);
 		return;
@@ -448,7 +452,6 @@ static void print_arch(const char *val)
 
 static void print_syscall(const char *val)
 {
-	const char *sys;
 	int ival;
 
 	if (machine < 0) 
@@ -605,6 +608,29 @@ static void print_mode(const char *val)
 
 	// and the read, write, execute flags in octal
 	printf("%03o ",  (S_IRWXU|S_IRWXG|S_IRWXO) & ival);
+}
+
+static void print_mode_short(const char *val)
+{
+	unsigned int ival;
+
+	errno = 0;
+	ival = strtoul(val, NULL, 16);
+	if (errno) {
+		printf("conversion error(%s) ", val);
+		return;
+	}
+
+	// check on special bits
+	if (S_ISUID & ival)
+		printf("suid,");
+	if (S_ISGID & ival)
+		printf("sgid,");
+	if (S_ISVTX & ival)
+		printf("sticky,");
+
+	// and the read, write, execute flags in octal
+	printf("0%03o ",  (S_IRWXU|S_IRWXG|S_IRWXO) & ival);
 }
 
 /*
@@ -885,6 +911,87 @@ static void print_capabilities(char *val)
 	}
 }
 
+static void print_signals(const char *val, unsigned int base)
+{
+	unsigned int i;
+
+	errno = 0;
+	i = strtoul(val, NULL, base);
+	if (errno) {
+		printf("conversion error(%s) ", val);
+		return;
+	}
+	printf("%s ", strsignal(i));
+}
+
+static void print_a0(const char *val)
+{
+	if (sys) {
+		if (strcmp(sys, "rt_sigaction") == 0)
+			return print_signals(val, 16);
+		else if (strcmp(sys, "setuid") == 0)
+			return print_uid(val, 16);
+		else if (strcmp(sys, "setreuid") == 0)
+			return print_uid(val, 16);
+		else if (strcmp(sys, "setresuid") == 0)
+			return print_uid(val, 16);
+		else if (strcmp(sys, "setfsuid") == 0)
+			return print_uid(val, 16);
+		else if (strcmp(sys, "setgid") == 0)
+			return print_gid(val, 16);
+		else if (strcmp(sys, "setregid") == 0)
+			return print_gid(val, 16);
+		else if (strcmp(sys, "setresgid") == 0)
+			return print_gid(val, 16);
+		else if (strcmp(sys, "setfsgid") == 0)
+			return print_gid(val, 16);
+		else goto normal;
+	} else
+normal:
+		printf("%s ", val);
+}
+
+static void print_a1(const char *val)
+{
+	if (sys) {
+		if (strcmp(sys, "chmod") == 0)
+			return print_mode_short(val);
+		else if (strcmp(sys, "fchmod") == 0)
+			return print_mode_short(val);
+		else if (strstr(sys, "chown"))
+			return print_uid(val, 16);
+		else if (strcmp(sys, "setreuid") == 0)
+			return print_uid(val, 16);
+		else if (strcmp(sys, "setresuid") == 0)
+			return print_uid(val, 16);
+		else if (strcmp(sys, "setregid") == 0)
+			return print_gid(val, 16);
+		else if (strcmp(sys, "setresgid") == 0)
+			return print_gid(val, 16);
+		else goto normal;
+	} else
+normal:
+		printf("%s ", val);
+}
+
+static void print_a2(const char *val)
+{
+	if (sys) {
+		if (strcmp(sys, "fchmodat") == 0)
+			return print_mode_short(val);
+		else if (strstr(sys, "chown"))
+			return print_gid(val, 16);
+		else if (strcmp(sys, "setresuid") == 0)
+			return print_uid(val, 16);
+		else if (strcmp(sys, "setresgid") == 0)
+			return print_gid(val, 16);
+		else goto normal;
+	} else
+normal:
+		printf("%s ", val);
+	sys = NULL;
+}
+
 static void print_cap_bitmap(char *val)
 {
 #define MASK(x) (1U << (x))
@@ -983,19 +1090,6 @@ static void print_icmptype(char *val)
 			return;
 		}
 	}
-}
-
-static void print_signals(char *val)
-{
-	int i;
-
-	errno = 0;
-	i = strtoul(val, NULL, 10);
-	if (errno) {
-		printf("conversion error(%s) ", val);
-		return;
-	}
-	printf("%s ", strsignal(i));
 }
 
 static void print_protocol(char *val)
@@ -1101,10 +1195,10 @@ static void interpret(char *name, char *val, int comma, int rtype)
 
 	switch(type) {
 		case T_UID:
-			print_uid(val);
+			print_uid(val, 10);
 			break;
 		case T_GID:
-			print_gid(val);
+			print_gid(val, 10);
 			break;
 		case T_SYSCALL:
 			print_syscall(val);
@@ -1139,8 +1233,17 @@ static void interpret(char *name, char *val, int comma, int rtype)
 		case T_CAPABILITY:
 			print_capabilities(val);
 			break;
+		case T_A0:
+			print_a0(val);
+			break;
+		case T_A1:
+			print_a1(val);
+			break;
+		case T_A2:
+			print_a2(val);
+			break;
 		case T_SIGNAL:
-			print_signals(val);
+			print_signals(val, 10);
 			break;
 		case T_KEY:
 			print_key(val);

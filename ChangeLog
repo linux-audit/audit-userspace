@@ -1,5 +1,6 @@
 2.2.1
 - Add more interpretations in auparse for syscall parameters 
+- Add some interpretations to ausearch for syscall parameters
 
 2.2
 - Correct all rules for clock_settime

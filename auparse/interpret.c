@@ -80,7 +80,7 @@
 typedef enum { AVC_UNSET, AVC_DENIED, AVC_GRANTED } avc_t;
 typedef enum { S_UNSET=-1, S_FAILED, S_SUCCESS } success_t;
 
-static const char *print_signals(const char *val);
+static const char *print_signals(const char *val, unsigned int base);
 
 
 /*
@@ -271,13 +271,13 @@ void aulookup_destroy_gid_list(void)
 	gid_list_created = 0;
 }
 
-static const char *print_uid(const char *val)
+static const char *print_uid(const char *val, unsigned int base)
 {
         int uid;
         char name[64];
 
         errno = 0;
-        uid = strtoul(val, NULL, 10);
+        uid = strtoul(val, NULL, base);
         if (errno) {
 		char *out;
                 asprintf(&out, "conversion error(%s)", val);
@@ -287,13 +287,13 @@ static const char *print_uid(const char *val)
         return strdup(aulookup_uid(uid, name, sizeof(name)));
 }
 
-static const char *print_gid(const char *val)
+static const char *print_gid(const char *val, unsigned int base)
 {
         int gid;
         char name[64];
 
         errno = 0;
-        gid = strtoul(val, NULL, 10);
+        gid = strtoul(val, NULL, base);
         if (errno) {
 		char *out;
                 asprintf(&out, "conversion error(%s)", val);
@@ -487,6 +487,35 @@ static const char *print_mode(const char *val)
 
 	// and the read, write, execute flags in octal
         asprintf(&out, "%s,%03o",  buf, (S_IRWXU|S_IRWXG|S_IRWXO) & ival);
+	return out;
+}
+
+static const char *print_mode_short(const char *val)
+{
+        unsigned int ival;
+	char *out, buf[48];
+
+        errno = 0;
+        ival = strtoul(val, NULL, 16);
+        if (errno) {
+                asprintf(&out, "conversion error(%s)", val);
+                return out;
+        }
+
+        // check on special bits
+        buf[0] = 0;
+        if (S_ISUID & ival)
+                strcat(buf, ",suid");
+        if (S_ISGID & ival)
+                strcat(buf, ",sgid");
+        if (S_ISVTX & ival)
+                strcat(buf, ",sticky");
+
+	// and the read, write, execute flags in octal
+	if (buf[0] == 0)
+	        asprintf(&out, "0%03o", (S_IRWXU|S_IRWXG|S_IRWXO) & ival);
+	else
+	        asprintf(&out, "%s,%03o", buf, (S_IRWXU|S_IRWXG|S_IRWXO)&ival);
 	return out;
 }
 
@@ -843,23 +872,23 @@ static const char *print_a0(const char *val, const rnode *r)
 	        	}
 			return print_clone_flags(ival);
 		}  else if (strcmp(sys, "rt_sigaction") == 0)
-                        return print_signals(val);
+                        return print_signals(val, 16);
                 else if (strcmp(sys, "setuid") == 0)
-			return print_uid(val);
+			return print_uid(val, 16);
                 else if (strcmp(sys, "setreuid") == 0)
-			return print_uid(val);
+			return print_uid(val, 16);
                 else if (strcmp(sys, "setresuid") == 0)
-			return print_uid(val);
+			return print_uid(val, 16);
                 else if (strcmp(sys, "setfsuid") == 0)
-			return print_uid(val);
+			return print_uid(val, 16);
                 else if (strcmp(sys, "setgid") == 0)
-			return print_gid(val);
+			return print_gid(val, 16);
                 else if (strcmp(sys, "setregid") == 0)
-			return print_gid(val);
+			return print_gid(val, 16);
                 else if (strcmp(sys, "setresgid") == 0)
-			return print_gid(val);
+			return print_gid(val, 16);
                 else if (strcmp(sys, "setfsgid") == 0)
-			return print_gid(val);
+			return print_gid(val, 16);
 	}
 	return strdup(val);
 }
@@ -901,19 +930,19 @@ static const char *print_a1(const char *val, const rnode *r)
 			}
 			return print_epoll_ctl(ival);
 		} else if (strcmp(sys, "chmod") == 0)
-			return print_mode(val);
+			return print_mode_short(val);
 		else if (strcmp(sys, "fchmod") == 0)
-			return print_mode(val);
+			return print_mode_short(val);
 		else if (strstr(sys, "chown"))
-			return print_uid(val);
+			return print_uid(val, 16);
                 else if (strcmp(sys, "setreuid") == 0)
-			return print_uid(val);
+			return print_uid(val, 16);
                 else if (strcmp(sys, "setresuid") == 0)
-			return print_uid(val);
+			return print_uid(val, 16);
                 else if (strcmp(sys, "setregid") == 0)
-			return print_gid(val);
+			return print_gid(val, 16);
                 else if (strcmp(sys, "setresgid") == 0)
-			return print_gid(val);
+			return print_gid(val, 16);
 	}
 	return strdup(val);
 }
@@ -936,7 +965,7 @@ static const char *print_a2(const char *val, const rnode *r)
 			switch (r->a1)
 			{
 				case F_SETOWN:
-					return print_uid(val);
+					return print_uid(val, 16);
 				case F_SETFD:
 					if (ival == FD_CLOEXEC)
 						return strdup("FD_CLOEXEC");
@@ -958,24 +987,24 @@ static const char *print_a2(const char *val, const rnode *r)
 			}
 			return print_seek(ival);
 		} else if (strcmp(sys, "fchmodat") == 0)
-			return print_mode(val);
+			return print_mode_short(val);
 		else if (strstr(sys, "chown"))
-			return print_gid(val);
+			return print_gid(val, 16);
                 else if (strcmp(sys, "setresuid") == 0)
-			return print_uid(val);
+			return print_uid(val, 16);
                 else if (strcmp(sys, "setresgid") == 0)
-			return print_gid(val);
+			return print_gid(val, 16);
 	}
 	return strdup(val);
 }
 
-static const char *print_signals(const char *val)
+static const char *print_signals(const char *val, unsigned int base)
 {
 	int i;
 	char *out;
 
 	errno = 0;
-        i = strtoul(val, NULL, 10);
+        i = strtoul(val, NULL, base);
 	if (errno) 
 		asprintf(&out, "conversion error(%s)", val);
 	else
@@ -1239,10 +1268,10 @@ const char *interpret(const rnode *r)
 
 	switch(type) {
 		case AUPARSE_TYPE_UID:
-			out = print_uid(val);
+			out = print_uid(val, 10);
 			break;
 		case AUPARSE_TYPE_GID:
-			out = print_gid(val);
+			out = print_gid(val, 10);
 			break;
 		case AUPARSE_TYPE_SYSCALL:
 			out = print_syscall(val, r);
@@ -1287,7 +1316,7 @@ const char *interpret(const rnode *r)
 			out = print_a2(val, r);
 			break; 
 		case AUPARSE_TYPE_SIGNAL:
-			out = print_signals(val);
+			out = print_signals(val, 10);
 			break; 
 		case AUPARSE_TYPE_LIST:
 			out = print_list(val);
