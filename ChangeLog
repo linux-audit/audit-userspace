@@ -1,15 +1,16 @@
 2.2.1
+- Add more interpretations in auparse for syscall parameters 
 
 2.2
 - Correct all rules for clock_settime
 - Fix possible segfault in auparse library
 - Handle malformed socket addresses better
-- Improve preformance in audit_log_user_message() 
+- Improve performance in audit_log_user_message() 
 - Improve performance in writing to the log file in auditd
 - Syscall update for accept4 and recvmmsg
 - Update autrace resource usage mode syscall list
 - Improved sample rules for recent syscalls
-- Add some debug info to audidp-remote startup and shutdown
+- Add some debug info to audisp-remote startup and shutdown
 - Make compiling with Python optional
 - In auditd, if disk_error_action is ignore, don't syslog anything
 - Fix some memory leaks

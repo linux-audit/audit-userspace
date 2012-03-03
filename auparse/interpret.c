@@ -842,10 +842,24 @@ static const char *print_a0(const char *val, const rnode *r)
 	                	return out;
 	        	}
 			return print_clone_flags(ival);
-		}  else if (strcmp(sys, "rt_sigaction") == 0) {
+		}  else if (strcmp(sys, "rt_sigaction") == 0)
                         return print_signals(val);
-                }
-
+                else if (strcmp(sys, "setuid") == 0)
+			return print_uid(val);
+                else if (strcmp(sys, "setreuid") == 0)
+			return print_uid(val);
+                else if (strcmp(sys, "setresuid") == 0)
+			return print_uid(val);
+                else if (strcmp(sys, "setfsuid") == 0)
+			return print_uid(val);
+                else if (strcmp(sys, "setgid") == 0)
+			return print_gid(val);
+                else if (strcmp(sys, "setregid") == 0)
+			return print_gid(val);
+                else if (strcmp(sys, "setresgid") == 0)
+			return print_gid(val);
+                else if (strcmp(sys, "setfsgid") == 0)
+			return print_gid(val);
 	}
 	return strdup(val);
 }
@@ -886,7 +900,20 @@ static const char *print_a1(const char *val, const rnode *r)
 				return out;
 			}
 			return print_epoll_ctl(ival);
-		}
+		} else if (strcmp(sys, "chmod") == 0)
+			return print_mode(val);
+		else if (strcmp(sys, "fchmod") == 0)
+			return print_mode(val);
+		else if (strstr(sys, "chown"))
+			return print_uid(val);
+                else if (strcmp(sys, "setreuid") == 0)
+			return print_uid(val);
+                else if (strcmp(sys, "setresuid") == 0)
+			return print_uid(val);
+                else if (strcmp(sys, "setregid") == 0)
+			return print_gid(val);
+                else if (strcmp(sys, "setresgid") == 0)
+			return print_gid(val);
 	}
 	return strdup(val);
 }
@@ -930,7 +957,14 @@ static const char *print_a2(const char *val, const rnode *r)
 				return out;
 			}
 			return print_seek(ival);
-		}
+		} else if (strcmp(sys, "fchmodat") == 0)
+			return print_mode(val);
+		else if (strstr(sys, "chown"))
+			return print_gid(val);
+                else if (strcmp(sys, "setresuid") == 0)
+			return print_uid(val);
+                else if (strcmp(sys, "setresgid") == 0)
+			return print_gid(val);
 	}
 	return strdup(val);
 }

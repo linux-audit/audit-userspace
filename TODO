@@ -14,7 +14,6 @@ Things that need to be done:
 * Change ausearch-string to be AVL based
 * Performance improvements for auparse
 * Look at pulling audispd into auditd
-* auditctl needs to be able to take file names with spaces in rule files
 * Add gzip format for logs
 * Consider adding node/machine name to records going to rt interface in daemon    as protocol version 2.
 * Update prelude detections to send anomaly events
