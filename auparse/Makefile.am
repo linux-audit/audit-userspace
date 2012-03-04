@@ -42,12 +42,13 @@ libauparse_la_LDFLAGS = -Wl,-z,relro
 message.c:
 	cp ${top_srcdir}/lib/message.c .
 
-BUILT_SOURCES = captabs.h clone-flagtabs.h epoll_ctls.h famtabs.h \
+BUILT_SOURCES = captabs.h clocktabs.h clone-flagtabs.h epoll_ctls.h famtabs.h \
 	fcntl-cmdtabs.h flagtabs.h icmptypetabs.h ipctabs.h \
 	nfprototabs.h open-flagtabs.h \
 	seeks.h signaltabs.h socktabs.h typetabs.h
-noinst_PROGRAMS = gen_captabs_h gen_clone-flagtabs_h gen_epoll_ctls_h \
-	gen_famtabs_h gen_fcntl-cmdtabs_h gen_flagtabs_h \
+noinst_PROGRAMS = gen_captabs_h gen_clock_h gen_clone-flagtabs_h \
+	gen_epoll_ctls_h gen_famtabs_h \
+	gen_fcntl-cmdtabs_h gen_flagtabs_h \
 	gen_icmptypetabs_h gen_ipctabs_h gen_nfprototabs_h \
 	gen_open-flagtabs_h gen_seeks_h gen_signals_h \
 	gen_socktabs_h gen_typetabs_h
@@ -56,6 +57,11 @@ gen_captabs_h_SOURCES = ../lib/gen_tables.c ../lib/gen_tables.h captab.h
 gen_captabs_h_CFLAGS = $(AM_CFLAGS) '-DTABLE_H="captab.h"'
 captabs.h: gen_captabs_h Makefile
 	./gen_captabs_h --i2s cap > $@
+
+gen_clock_h_SOURCES = ../lib/gen_tables.c ../lib/gen_tables.h clocktab.h
+gen_clock_h_CFLAGS = $(AM_CFLAGS) '-DTABLE_H="clocktab.h"'
+clocktabs.h: gen_clock_h Makefile
+	./gen_clock_h --i2s clock > $@
 
 gen_clone_flagtabs_h_SOURCES = ../lib/gen_tables.c ../lib/gen_tables.h \
 	clone-flagtab.h

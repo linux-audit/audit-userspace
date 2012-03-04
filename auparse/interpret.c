@@ -74,6 +74,7 @@
 #include "socktabs.h"
 #include "seeks.h"
 #include "signaltabs.h"
+#include "clocktabs.h"
 #include "typetabs.h"
 #include "nfprototabs.h"
 #include "icmptypetabs.h"
@@ -856,6 +857,26 @@ static const char *print_seek(int cmd)
 	return out;
 }
 
+static const char *print_clock_id(const char *val)
+{
+	int i;
+	char *out;
+
+	errno = 0;
+        i = strtoul(val, NULL, 16);
+	if (errno) {
+		asprintf(&out, "conversion error(%s)", val);
+		return out;
+	}
+	else if (i < 7) {
+		const char *s = clock_i2s(i);
+		if (s != NULL)
+			return strdup(s);
+	}
+	asprintf(&out, "unknown clk_id (%s)", val);
+	return out;
+}
+
 static const char *print_a0(const char *val, const rnode *r)
 {
 	int machine = r->machine, syscall = r->syscall;
@@ -890,6 +911,8 @@ static const char *print_a0(const char *val, const rnode *r)
 			return print_gid(val, 16);
                 else if (strcmp(sys, "setfsgid") == 0)
 			return print_gid(val, 16);
+                else if (strcmp(sys, "clock_settime") == 0)
+			return print_clock_id(val);
 	}
 	return strdup(val);
 }
@@ -948,6 +971,10 @@ static const char *print_a1(const char *val, const rnode *r)
 			return print_signals(val, 16);
 		else if (strcmp(sys, "tkill") == 0)
 			return print_signals(val, 16);
+		else if (strcmp(sys, "mkdir") == 0)
+			return print_mode_short(val);
+		else if (strcmp(sys, "creat") == 0)
+			return print_mode_short(val);
 	}
 	return strdup(val);
 }
@@ -1011,6 +1038,8 @@ static const char *print_a2(const char *val, const rnode *r)
 			return print_gid(val, 16);
 		else if (strcmp(sys, "tgkill") == 0)
 			return print_signals(val, 16);
+		else if (strcmp(sys, "mkdirat") == 0)
+			return print_mode_short(val);
 	}
 	return strdup(val);
 }
@@ -1034,7 +1063,6 @@ static const char *print_signals(const char *val, unsigned int base)
 	asprintf(&out, "unknown signal (%s)", val);
 	return out;
 }
-
 
 static const char *print_nfproto(const char *val)
 {

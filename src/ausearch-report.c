@@ -913,7 +913,7 @@ static void print_capabilities(char *val)
 	}
 }
 
-const char *signals[]=
+static const char *signals[]=
 {
 	"0",
 	"SIGHUP",
@@ -966,7 +966,7 @@ static void print_signals(const char *val, unsigned int base)
 }
 
 #define OPEN_FLAG_NUM_ENTRIES 13
-const char *oflags[OPEN_FLAG_NUM_ENTRIES] = 
+static const char *oflags[OPEN_FLAG_NUM_ENTRIES] = 
 {
 	"O_CREAT",
 	"O_EXCL",
@@ -1024,6 +1024,32 @@ static void print_open_flags(const char *val)
 		printf("0x%s ", val);
 }
 
+static const char *clocks[] = {
+	"CLOCK_REALTIME",
+	"CLOCK_MONOTONIC",
+	"CLOCK_PROCESS_CPUTIME_ID",
+	"CLOCK_THREAD_CPUTIME_ID",
+	"CLOCK_MONOTONIC_RAW",
+	"CLOCK_REALTIME_COARSE",
+	"CLOCK_MONOTONIC_COARSE"
+};
+
+static void print_clock_id(const char *val)
+{
+	unsigned int i;
+
+	errno = 0;
+	i = strtoul(val, NULL, 16);
+	if (errno) {
+		printf("conversion error(%s) ", val);
+		return;
+	}
+	if (i < 7)
+		printf("%s ", clocks[i]);
+	else
+		printf("Unknown:%s ", val);
+}
+
 static void print_a0(const char *val)
 {
 	if (sys) {
@@ -1045,6 +1071,8 @@ static void print_a0(const char *val)
 			return print_gid(val, 16);
 		else if (strcmp(sys, "setfsgid") == 0)
 			return print_gid(val, 16);
+		else if (strcmp(sys, "clock_settime") == 0)
+			return print_clock_id(val);
 		else goto normal;
 	} else
 normal:
@@ -1054,7 +1082,9 @@ normal:
 static void print_a1(const char *val)
 {
 	if (sys) {
-		if (strcmp(sys, "chmod") == 0)
+		if (strcmp(sys, "open") == 0)
+			return print_open_flags(val);
+		else if (strcmp(sys, "chmod") == 0)
 			return print_mode_short(val);
 		else if (strcmp(sys, "fchmod") == 0)
 			return print_mode_short(val);
@@ -1072,8 +1102,10 @@ static void print_a1(const char *val)
 			return print_signals(val, 16);
 		else if (strcmp(sys, "tkill") == 0)
 			return print_signals(val, 16);
-		else if (strcmp(sys, "open") == 0)
-			return print_open_flags(val);
+		else if (strcmp(sys, "mkdir") == 0)
+			return print_mode_short(val);
+		else if (strcmp(sys, "creat") == 0)
+			return print_mode_short(val);
 		else goto normal;
 	} else
 normal:
@@ -1095,16 +1127,18 @@ static void print_a2(const char *val)
 			return print_signals(val, 16);
 		else if (strcmp(sys, "openat") == 0)
 			return print_open_flags(val);
+		else if (strcmp(sys, "mkdirat") == 0)
+			return print_mode_short(val);
 		else goto normal;
 	} else
 normal:
 		printf("0x%s ", val);
-	sys = NULL;
 }
 
 static void print_a3(const char *val)
 {
 	printf("0x%s ", val);
+	sys = NULL;
 }
 
 static void print_cap_bitmap(char *val)
