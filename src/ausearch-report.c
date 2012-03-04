@@ -52,9 +52,9 @@ struct nv_pair {
 
 /* This is the list of field types that we can interpret */
 enum { T_UID, T_GID, T_SYSCALL, T_ARCH, T_EXIT, T_ESCAPED, T_PERM, T_MODE, 
-T_SOCKADDR, T_FLAGS, T_PROMISC, T_CAPABILITY, T_A0, T_A1, T_A2, T_SIGNAL,
-T_KEY, T_LIST, T_TTY_DATA, T_SESSION, T_CAP_BITMAP, T_NFPROTO, T_ICMPTYPE,
-T_PROTOCOL, T_ADDR };
+T_SOCKADDR, T_FLAGS, T_PROMISC, T_CAPABILITY, T_A0, T_A1, T_A2, T_A3,
+T_SIGNAL, T_KEY, T_LIST, T_TTY_DATA, T_SESSION, T_CAP_BITMAP, T_NFPROTO,
+T_ICMPTYPE, T_PROTOCOL, T_ADDR };
 
 /* Function in ausearch-parse for unescaping filenames */
 extern char *unescape(char *buf);
@@ -367,6 +367,7 @@ static struct nv_pair typetab[] = {
 	{T_A0, "a0"},
 	{T_A1, "a1"},
 	{T_A2, "a2"},
+	{T_A3, "a3"},
 	{T_SIGNAL, "sig"},
 	{T_LIST, "list"},
 	{T_SESSION, "ses"},
@@ -911,6 +912,42 @@ static void print_capabilities(char *val)
 	}
 }
 
+const char *signals[]=
+{
+	"0",
+	"SIGHUP",
+	"SIGINT",
+	"SIGQUIT",
+	"SIGILL",
+	"SIGTRAP",
+	"SIGABRT",
+	"SIGBUS",
+	"SIGFPE",
+	"SIGKILL",
+	"SIGUSR1",
+	"SIGSEGV",
+	"SIGUSR2",
+	"SIGPIPE",
+	"SIGALRM",
+	"SIGTERM",
+	"SIGSTKFLT",
+	"SIGCHLD",
+	"SIGCONT",
+	"SIGSTOP",
+	"SIGTSTP",
+	"SIGTTIN",
+	"SIGTTOU",
+	"SIGURG",
+	"SIGXCPU",
+	"SIGXFSZ",
+	"SIGVTALRM",
+	"SIGPROF",
+	"SIGWINCH",
+	"SIGIO",
+	"IGPWR",
+	"SIGSYS"
+};
+
 static void print_signals(const char *val, unsigned int base)
 {
 	unsigned int i;
@@ -921,7 +958,10 @@ static void print_signals(const char *val, unsigned int base)
 		printf("conversion error(%s) ", val);
 		return;
 	}
-	printf("%s ", strsignal(i));
+	if (i < 32)
+		printf("%s ", signals[i]);
+	else
+		printf("Unknown:%s ", val);
 }
 
 static void print_a0(const char *val)
@@ -948,7 +988,7 @@ static void print_a0(const char *val)
 		else goto normal;
 	} else
 normal:
-		printf("%s ", val);
+		printf("0x%s ", val);
 }
 
 static void print_a1(const char *val)
@@ -971,7 +1011,7 @@ static void print_a1(const char *val)
 		else goto normal;
 	} else
 normal:
-		printf("%s ", val);
+		printf("0x%s ", val);
 }
 
 static void print_a2(const char *val)
@@ -988,8 +1028,13 @@ static void print_a2(const char *val)
 		else goto normal;
 	} else
 normal:
-		printf("%s ", val);
+		printf("0x%s ", val);
 	sys = NULL;
+}
+
+static void print_a3(const char *val)
+{
+	printf("0x%s ", val);
 }
 
 static void print_cap_bitmap(char *val)
@@ -1241,6 +1286,9 @@ static void interpret(char *name, char *val, int comma, int rtype)
 			break;
 		case T_A2:
 			print_a2(val);
+			break;
+		case T_A3:
+			print_a3(val);
 			break;
 		case T_SIGNAL:
 			print_signals(val, 10);

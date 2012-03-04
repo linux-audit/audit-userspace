@@ -73,6 +73,7 @@
 #include "open-flagtabs.h"
 #include "socktabs.h"
 #include "seeks.h"
+#include "signaltabs.h"
 #include "typetabs.h"
 #include "nfprototabs.h"
 #include "icmptypetabs.h"
@@ -1005,12 +1006,19 @@ static const char *print_signals(const char *val, unsigned int base)
 
 	errno = 0;
         i = strtoul(val, NULL, base);
-	if (errno) 
+	if (errno) {
 		asprintf(&out, "conversion error(%s)", val);
-	else
-		out = strdup(strsignal(i));
+		return out;
+	}
+	else if (i < 32) {
+		const char *s = signal_i2s(i);
+		if (s != NULL)
+			return strdup(s);
+	}
+	asprintf(&out, "unknown signal (%s)", val);
 	return out;
 }
+
 
 static const char *print_nfproto(const char *val)
 {

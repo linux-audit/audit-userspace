@@ -45,11 +45,11 @@ message.c:
 BUILT_SOURCES = captabs.h clone-flagtabs.h epoll_ctls.h famtabs.h \
 	fcntl-cmdtabs.h flagtabs.h icmptypetabs.h ipctabs.h \
 	nfprototabs.h open-flagtabs.h \
-	seeks.h socktabs.h typetabs.h
+	seeks.h signaltabs.h socktabs.h typetabs.h
 noinst_PROGRAMS = gen_captabs_h gen_clone-flagtabs_h gen_epoll_ctls_h \
 	gen_famtabs_h gen_fcntl-cmdtabs_h gen_flagtabs_h \
 	gen_icmptypetabs_h gen_ipctabs_h gen_nfprototabs_h \
-	gen_open-flagtabs_h gen_seeks_h \
+	gen_open-flagtabs_h gen_seeks_h gen_signals_h \
 	gen_socktabs_h gen_typetabs_h
 
 gen_captabs_h_SOURCES = ../lib/gen_tables.c ../lib/gen_tables.h captab.h
@@ -110,6 +110,11 @@ gen_seeks_h_SOURCES = ../lib/gen_tables.c ../lib/gen_tables.h seek.h
 gen_seeks_h_CFLAGS = $(AM_CFLAGS) '-DTABLE_H="seek.h"'
 seeks.h: gen_seeks_h Makefile
 	./gen_seeks_h --i2s seek > $@
+
+gen_signals_h_SOURCES = ../lib/gen_tables.c ../lib/gen_tables.h signaltab.h
+gen_signals_h_CFLAGS = $(AM_CFLAGS) '-DTABLE_H="signaltab.h"'
+signaltabs.h: gen_signals_h Makefile
+	./gen_signals_h --i2s signal > $@
 
 gen_socktabs_h_SOURCES = ../lib/gen_tables.c ../lib/gen_tables.h socktab.h
 gen_socktabs_h_CFLAGS = $(AM_CFLAGS) '-DTABLE_H="socktab.h"'
