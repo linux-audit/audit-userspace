@@ -944,6 +944,14 @@ static const char *print_a1(const char *val, const rnode *r)
 			return print_gid(val, 16);
                 else if (strcmp(sys, "setresgid") == 0)
 			return print_gid(val, 16);
+		else if (strcmp(sys, "kill") == 0)
+			return print_signals(val, 16);
+		else if (strcmp(sys, "killpg") == 0)
+			return print_signals(val, 16);
+		else if (strcmp(sys, "tkill") == 0)
+			return print_signals(val, 16);
+		else if (strcmp(sys, "sigqueue") == 0)
+			return print_signals(val, 16);
 	}
 	return strdup(val);
 }
@@ -995,6 +1003,8 @@ static const char *print_a2(const char *val, const rnode *r)
 			return print_uid(val, 16);
                 else if (strcmp(sys, "setresgid") == 0)
 			return print_gid(val, 16);
+		else if (strcmp(sys, "tgkill") == 0)
+			return print_signals(val, 16);
 	}
 	return strdup(val);
 }
