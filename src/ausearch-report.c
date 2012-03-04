@@ -1010,11 +1010,7 @@ static void print_a1(const char *val)
 			return print_gid(val, 16);
 		else if (strcmp(sys, "kill") == 0)
 			return print_signals(val, 16);
-		else if (strcmp(sys, "killpg") == 0)
-			return print_signals(val, 16);
 		else if (strcmp(sys, "tkill") == 0)
-			return print_signals(val, 16);
-		else if (strcmp(sys, "sigqueue") == 0)
 			return print_signals(val, 16);
 		else goto normal;
 	} else
