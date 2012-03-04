@@ -981,6 +981,16 @@ static const char *print_a2(const char *val, const rnode *r)
 				case F_NOTIFY:
 					break;
 			}
+		} else if (strcmp(sys, "openat") == 0) {
+			int ival;
+
+			errno = 0;
+			ival = strtoul(val, NULL, 16);
+		        if (errno) {
+                		asprintf(&out, "conversion error(%s)", val);
+	                	return out;
+	        	}
+			return print_open_flags(ival);
 		} else if (strcmp(sys, "lseek") == 0) {
 			int ival;
 

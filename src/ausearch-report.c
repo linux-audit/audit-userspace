@@ -39,6 +39,7 @@
 #include <time.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <fcntl.h>
 #include "libaudit.h"
 #include "ausearch-options.h"
 #include "ausearch-parse.h"
@@ -964,6 +965,65 @@ static void print_signals(const char *val, unsigned int base)
 		printf("Unknown:%s ", val);
 }
 
+#define OPEN_FLAG_NUM_ENTRIES 13
+const char *oflags[OPEN_FLAG_NUM_ENTRIES] = 
+{
+	"O_CREAT",
+	"O_EXCL",
+	"O_NOCTTY",
+	"O_TRUNC",
+	"O_APPEND",
+	"O_NONBLOCK",
+	"O_SYNC",
+	"O_ASYNC",
+	"O_DIRECT",
+	"UNKNOWN",
+	"O_DIRECTORY",
+	"O_NOFOLLOW",
+	"O_NOATIME"
+};
+
+static void print_open_flags(const char *val)
+{
+	unsigned int i, flag, found = 0;
+
+	errno = 0;
+	flag = strtoul(val, NULL, 16);
+	if (errno) {
+		printf("conversion error(%s) ", val);
+		return;
+	}
+
+	switch (flag & O_ACCMODE) {
+		case 0:
+			printf("O_RDONLY");
+			found = 1;
+			break;
+		case 1:
+			printf("O_WRONLY");
+			found = 1;
+			break;
+		case 2:
+			printf("O_RDWR");
+			found = 1;
+			break;
+	}
+
+        for (i = 0; i < OPEN_FLAG_NUM_ENTRIES; i++) {
+                if (flag & 1<<(6+i)) {
+			if (found == 0) {
+	                        printf("%s", oflags[i]);
+				found = 1;
+			} else
+	                        printf("|%s", oflags[i]);
+		}
+	}
+	if (found)
+		putchar(' ');
+	else
+		printf("0x%s ", val);
+}
+
 static void print_a0(const char *val)
 {
 	if (sys) {
@@ -1012,6 +1072,8 @@ static void print_a1(const char *val)
 			return print_signals(val, 16);
 		else if (strcmp(sys, "tkill") == 0)
 			return print_signals(val, 16);
+		else if (strcmp(sys, "open") == 0)
+			return print_open_flags(val);
 		else goto normal;
 	} else
 normal:
@@ -1031,6 +1093,8 @@ static void print_a2(const char *val)
 			return print_gid(val, 16);
 		else if (strcmp(sys, "tgkill") == 0)
 			return print_signals(val, 16);
+		else if (strcmp(sys, "openat") == 0)
+			return print_open_flags(val);
 		else goto normal;
 	} else
 normal:
