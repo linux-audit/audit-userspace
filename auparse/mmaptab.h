@@ -1,4 +1,4 @@
-/* prottab.h --
+/* mmaptab.h --
  * Copyright 2012 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
@@ -20,8 +20,18 @@
  *      Steve Grubb <sgrubb@redhat.com>
  */
 
-_S(1,	"PROT_READ"	)
-_S(2,	"PROT_WRITE"	)
-_S(4,	"PROT_EXEC"	)
-_S(8,	"PROT_SEM"	)
+_S(0x00001, "MAP_SHARED"	)
+_S(0x00002, "MAP_PRIVATE"	)
+_S(0x00010, "MAP_FIXED"		)
+_S(0x00020, "MAP_ANONYMOUS"	)
+_S(0x00040, "MAP_32BIT"		)
+_S(0x00100, "MAP_GROWSDOWN"	)
+_S(0x00800, "MAP_DENYWRITE"	)
+_S(0x01000, "MAP_EXECUTABLE"	)
+_S(0x02000, "MAP_LOCKED"	)
+_S(0x04000, "MAP_NORESERVE"	)
+_S(0x08000, "MAP_POPULATE"	)
+_S(0x10000, "MAP_NONBLOCK"	)
+_S(0x20000, "MAP_STACK"		)
+_S(0x40000, "MAP_HUGETLB"	)
 

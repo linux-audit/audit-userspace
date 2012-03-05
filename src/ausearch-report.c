@@ -1054,12 +1054,14 @@ static const char *prots[] =
 {
 	"PROT_READ",
 	"PROT_WRITE",
-	"PROT_EXEC"
+	"PROT_EXEC",
+	"PROT_SEM"
 };
 
-static void print_prot(const char *val)
+static void print_prot(const char *val, unsigned int is_mmap)
 {
-	unsigned int i, prot, found = 0;
+	unsigned int i, found = 0, limit;
+	unsigned long prot;
 
 	errno = 0;
 	prot = strtoul(val, NULL, 16);
@@ -1073,13 +1075,79 @@ static void print_prot(const char *val)
 		return;
 	}
 
-        for (i = 0; i < 3; i++) {
+	if (is_mmap)
+		limit = 4;
+	else
+		limit = 3;
+
+        for (i = 0; i < limit; i++) {
                 if (prot & 1<<i) {
 			if (found == 0) {
 	                        printf("%s", prots[i]);
 				found = 1;
 			} else
 	                        printf("|%s", prots[i]);
+		}
+	}
+	if (is_mmap) {
+		if (prot & 0x01000000) {
+			if (found == 0) {
+	                        printf("PROT_GROWSDOWN");
+				found = 1;
+			} else
+	                        printf("|PROT_GROWSDOWN");
+		} else if (prot & 0x02000000) {
+			if (found == 0)
+	                        printf("PROT_GROWSUP");
+			else
+	                        printf("|PROT_GROWSUP");
+		}
+	}
+	putchar(' ');
+}
+
+static struct nv_pair mmaptab[] =
+{
+ {0x00001, "MAP_SHARED"},
+ {0x00002, "MAP_PRIVATE"},
+ {0x00010, "MAP_FIXED"},
+ {0x00020, "MAP_ANONYMOUS"},
+ {0x00040, "MAP_32BIT"},
+ {0x00100, "MAP_GROWSDOWN"},
+ {0x00800, "MAP_DENYWRITE"},
+ {0x01000, "MAP_EXECUTABLE"},
+ {0x02000, "MAP_LOCKED"},
+ {0x04000, "MAP_NORESERVE"},
+ {0x08000, "MAP_POPULATE"},
+ {0x10000, "MAP_NONBLOCK"},
+ {0x20000, "MAP_STACK"},
+ {0x40000, "MAP_HUGETLB"}
+};
+#define MMAP_NAMES (sizeof(mmaptab)/sizeof(mmaptab[0]))
+
+static void print_mmap(const char *val)
+{
+	unsigned int mmaps, i, found = 0;
+
+	errno = 0;
+	mmaps = strtoul(val, NULL, 16);
+	if (errno) {
+		printf("conversion error(%s) ", val);
+		return;
+	}
+
+	if ((mmaps & 0xF) == 0) {
+		printf("MAP_FILE");
+		found = 1;
+	}
+
+	for (i = 0; i < MMAP_NAMES; i++) {
+		if (mmaptab[i].value & mmaps) {
+			if (found == 0) {
+				printf("%s", mmaptab[i].name);
+				found = 1;
+			} else
+				printf("|%s", mmaptab[i].name);
 		}
 	}
 	putchar(' ');
@@ -1165,9 +1233,9 @@ static void print_a2(const char *val)
 		else if (strcmp(sys, "mkdirat") == 0)
 			return print_mode_short(val);
 		else if (strcmp(sys, "mmap") == 0)
-			return print_prot(val);
+			return print_prot(val, 1);
 		else if (strcmp(sys, "mprotect") == 0)
-			return print_prot(val);
+			return print_prot(val, 0);
 		else goto normal;
 	} else
 normal:
@@ -1176,7 +1244,14 @@ normal:
 
 static void print_a3(const char *val)
 {
-	printf("0x%s ", val);
+	if (sys) {
+		if (strcmp(sys, "mmap") == 0)
+			print_mmap(val);
+		else
+			goto normal;
+	} else
+normal:
+		printf("0x%s ", val);
 	sys = NULL;
 }
 

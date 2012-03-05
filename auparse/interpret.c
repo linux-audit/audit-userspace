@@ -70,6 +70,7 @@
 #include "fcntl-cmdtabs.h"
 #include "flagtabs.h"
 #include "ipctabs.h"
+#include "mmaptabs.h"
 #include "open-flagtabs.h"
 #include "prottabs.h"
 #include "socktabs.h"
@@ -878,10 +879,10 @@ static const char *print_clock_id(const char *val)
 	return out;
 }
 
-static const char *print_prot(const char *val)
+static const char *print_prot(const char *val, unsigned int is_mmap)
 {
 	size_t i;
-	int cnt = 0;
+	int cnt = 0, limit;
 	char buf[144];
 	char *out;
 
@@ -897,7 +898,11 @@ static const char *print_prot(const char *val)
                 strcat(buf, "PROT_NONE");
 		return strdup(buf);
         }
-        for (i=0; i<3; i++) {
+	if (is_mmap)
+		limit = 4;
+	else
+		limit = 3;
+        for (i=0; i<limit; i++) {
                 if (prot_table[i].value & i) {
                         if (!cnt) {
                                 strcat(buf,
@@ -907,6 +912,41 @@ static const char *print_prot(const char *val)
                                 strcat(buf, "|");
                                 strcat(buf,
 				prot_strings + prot_table[i].offset);
+			}
+                }
+        }
+	return strdup(buf);
+}
+
+static const char *print_mmap(const char *val)
+{
+	size_t i;
+	int cnt = 0;
+	char buf[144];
+	char *out;
+
+	errno = 0;
+        i = strtoul(val, NULL, 16);
+	if (errno) {
+		asprintf(&out, "conversion error(%s)", val);
+		return out;
+	}
+	buf[0] = 0;
+        if ((i & 0x0F) == 0) {
+		// Handle MAP_FILE specially
+                strcat(buf, "MAP_FILE");
+		cnt++;
+        }
+        for (i=0; i<MMAP_NUM_ENTRIES; i++) {
+                if (mmap_table[i].value & i) {
+                        if (!cnt) {
+                                strcat(buf,
+				mmap_strings + mmap_table[i].offset);
+                                cnt++;
+                        } else {
+                                strcat(buf, "|");
+                                strcat(buf,
+				mmap_strings + mmap_table[i].offset);
 			}
                 }
         }
@@ -1077,9 +1117,21 @@ static const char *print_a2(const char *val, const rnode *r)
 		else if (strcmp(sys, "mkdirat") == 0)
 			return print_mode_short(val);
 		else if (strcmp(sys, "mmap") == 0)
-			return print_prot(val);
+			return print_prot(val, 1);
 		else if (strcmp(sys, "mprotect") == 0)
-			return print_prot(val);
+			return print_prot(val, 0);
+	}
+	return strdup(val);
+}
+
+static const char *print_a3(const char *val, const rnode *r)
+{
+	int machine = r->machine, syscall = r->syscall;
+	char *out;
+	const char *sys = audit_syscall_to_name(syscall, machine);
+	if (sys) {
+		if (strcmp(sys, "mmap") == 0)
+			return print_mmap(val);
 	}
 	return strdup(val);
 }
@@ -1406,6 +1458,9 @@ const char *interpret(const rnode *r)
 			break;
 		case AUPARSE_TYPE_A2:
 			out = print_a2(val, r);
+			break; 
+		case AUPARSE_TYPE_A3:
+			out = print_a3(val, r);
 			break; 
 		case AUPARSE_TYPE_SIGNAL:
 			out = print_signals(val, 10);
