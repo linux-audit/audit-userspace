@@ -30,8 +30,11 @@ Continue loading rules in spite of an error. This summarizes the results of load
 Build an inter-field comparison rule: field, operation, field. You may pass multiple comparisons on a single command line. Each one must start with \fB\-C\fP. Each inter-field equation is anded with each other as well as equations starting with \fB\-F\fP to trigger an audit record. There are 2 operators supported - equal, and not equal. Valid fields are:
 .RS
 .TP 12
-.B auid, uid, euid, suid, fsuid, obj_uid, gid, egid, sgid, fsgid, obj_gid
+.B auid, uid, euid, suid, fsuid, obj_uid; and gid, egid, sgid, fsgid, obj_gid
 .RE
+
+The two groups of uid and gid cannot be mixed. But any comparison within the group can be made. The obj_uid/gid fields are collected from the object of the event such as a file or directory.
+
 .TP
 .B \-l
 List all rules 1 per line. This can take a key option (\-k), too.
@@ -278,6 +281,12 @@ To recursively watch a directory for changes (2 ways to express):
 .nf
 .B auditctl \-w /etc/ \-p wa
 .B auditctl \-a exit,always \-F dir=/etc/ \-F perm=wa
+.fi
+
+To see if an admin is accessing other user's files:
+
+.nf
+.B auditctl \-a exit,always \-F dir=/home/ \-F uid=0 \-C auid!=obj_uid
 .fi
 
 .SH FILES
