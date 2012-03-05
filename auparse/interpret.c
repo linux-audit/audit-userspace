@@ -1,6 +1,6 @@
 /*
 * interpret.c - Lookup values to something more readable
-* Copyright (c) 2007-09,2011 Red Hat Inc., Durham, North Carolina.
+* Copyright (c) 2007-09,2011-12 Red Hat Inc., Durham, North Carolina.
 * All Rights Reserved. 
 *
 * This software may be freely redistributed and/or modified under the
@@ -71,6 +71,7 @@
 #include "flagtabs.h"
 #include "ipctabs.h"
 #include "open-flagtabs.h"
+#include "prottabs.h"
 #include "socktabs.h"
 #include "seeks.h"
 #include "signaltabs.h"
@@ -877,6 +878,41 @@ static const char *print_clock_id(const char *val)
 	return out;
 }
 
+static const char *print_prot(const char *val)
+{
+	size_t i;
+	int cnt = 0;
+	char buf[144];
+	char *out;
+
+	errno = 0;
+        i = strtoul(val, NULL, 16);
+	if (errno) {
+		asprintf(&out, "conversion error(%s)", val);
+		return out;
+	}
+	buf[0] = 0;
+        if ((i & 0x07) == 0) {
+		// Handle PROT_NONE specially
+                strcat(buf, "PROT_NONE");
+		return strdup(buf);
+        }
+        for (i=0; i<3; i++) {
+                if (prot_table[i].value & i) {
+                        if (!cnt) {
+                                strcat(buf,
+				prot_strings + prot_table[i].offset);
+                                cnt++;
+                        } else {
+                                strcat(buf, "|");
+                                strcat(buf,
+				prot_strings + prot_table[i].offset);
+			}
+                }
+        }
+	return strdup(buf);
+}
+
 static const char *print_a0(const char *val, const rnode *r)
 {
 	int machine = r->machine, syscall = r->syscall;
@@ -1040,6 +1076,10 @@ static const char *print_a2(const char *val, const rnode *r)
 			return print_signals(val, 16);
 		else if (strcmp(sys, "mkdirat") == 0)
 			return print_mode_short(val);
+		else if (strcmp(sys, "mmap") == 0)
+			return print_prot(val);
+		else if (strcmp(sys, "mprotect") == 0)
+			return print_prot(val);
 	}
 	return strdup(val);
 }

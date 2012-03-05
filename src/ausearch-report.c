@@ -1050,6 +1050,41 @@ static void print_clock_id(const char *val)
 		printf("Unknown:%s ", val);
 }
 
+static const char *prots[] =
+{
+	"PROT_READ",
+	"PROT_WRITE",
+	"PROT_EXEC"
+};
+
+static void print_prot(const char *val)
+{
+	unsigned int i, prot, found = 0;
+
+	errno = 0;
+	prot = strtoul(val, NULL, 16);
+	if (errno) {
+		printf("conversion error(%s) ", val);
+		return;
+	}
+
+	if ((prot & 0x7) == 0) {
+		printf("PROT_NONE ");
+		return;
+	}
+
+        for (i = 0; i < 3; i++) {
+                if (prot & 1<<i) {
+			if (found == 0) {
+	                        printf("%s", prots[i]);
+				found = 1;
+			} else
+	                        printf("|%s", prots[i]);
+		}
+	}
+	putchar(' ');
+}
+
 static void print_a0(const char *val)
 {
 	if (sys) {
@@ -1129,6 +1164,10 @@ static void print_a2(const char *val)
 			return print_open_flags(val);
 		else if (strcmp(sys, "mkdirat") == 0)
 			return print_mode_short(val);
+		else if (strcmp(sys, "mmap") == 0)
+			return print_prot(val);
+		else if (strcmp(sys, "mprotect") == 0)
+			return print_prot(val);
 		else goto normal;
 	} else
 normal:
