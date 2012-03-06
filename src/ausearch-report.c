@@ -505,7 +505,7 @@ static void print_exit(const char *val)
 		printf("%s ", val);
 }
 
-static void print_escaped(char *val)
+static void print_escaped(const char *val)
 {
 	char *str;
 
@@ -681,7 +681,7 @@ static const char *audit_lookup_fam(int fam)
         return NULL;
 }
 
-static void print_sockaddr(char *val)
+static void print_sockaddr(const char *val)
 {
 	int len;
 	struct sockaddr *saddr;
@@ -791,7 +791,7 @@ static void print_sockaddr(char *val)
 	free(host);
 }
 
-static void print_addr(char *val)
+static void print_addr(const char *val)
 {
 	printf("%s ", val);
 }
@@ -812,7 +812,7 @@ static struct nv_pair flagtab[] = {
 };
 #define FLAG_NAMES (sizeof(flagtab)/sizeof(flagtab[0]))
 
-static void print_flags(char *val)
+static void print_flags(const char *val)
 {
 	int flags, i,cnt = 0;
 
@@ -897,7 +897,7 @@ static struct nv_pair captab[] = {
 };
 #define CAP_NAMES (sizeof(captab)/sizeof(captab[0]))
 
-static void print_capabilities(char *val)
+static void print_capabilities(const char *val)
 {
 	int cap, i;
 
@@ -1352,6 +1352,48 @@ static void print_mount(const char *val)
 	putchar(' ');
 }
 
+static struct nv_pair fcntltab[]=
+{
+ {0,           "F_DUPFD" },
+ {1,           "F_GETFD" },
+ {2,           "F_SETFD" },
+ {3,           "F_GETFL" },
+ {4,           "F_SETFL" },
+ {5,           "F_GETLK" },
+ {6,           "F_SETLK" },
+ {7,           "F_SETLKW" },
+ {8,           "F_SETOWN" },
+ {9,           "F_GETOWN" },
+ {10,          "F_SETSIG" },
+ {11,          "F_GETSIG" },
+ {12,          "F_GETLK64" },
+ {13,          "F_SETLK64" },
+ {14,          "F_SETLKW64" },
+ {1024,        "F_SETLEASE" },
+ {1025,        "F_GETLEASE" },
+ {1026,        "F_NOTIFY" }
+};
+#define FCNTL_NAMES (sizeof(fcntltab)/sizeof(fcntltab[0]))
+
+static void print_fcntl(const char *val)
+{
+	int s, i;
+
+	errno = 0;
+	s = strtoul(val, NULL, 16);
+	if (errno) {
+		printf("conversion error(%s) ", val);
+		return;
+	}
+
+        for (i = 0; i < FCNTL_NAMES; i++) {
+                if (fcntltab[i].value == s) {
+                        printf("%s ", fcntltab[i].name);
+			return;
+		}
+	}
+}
+
 static void print_a0(const char *val)
 {
 	if (sys) {
@@ -1414,6 +1456,8 @@ static void print_a1(const char *val)
 			return print_mode_short(val);
 		else if (strcmp(sys, "access") == 0)
 			return print_access(val);
+		else if (strncmp(sys, "fcntl", 5) == 0)
+			return print_fcntl(val);
 		else goto normal;
 	} else
 normal:
