@@ -1319,7 +1319,8 @@ static struct nv_pair mount_tab[]=
  {MS_RELATIME, "MS_RELATIME"},
  {MS_KERNMOUNT, "MS_KERNMOUNT"},
  {MS_I_VERSION, "MS_I_VERSION"},
- {MS_STRICTATIME, "MS_STRICTATIME"},
+ {(1<<24), "MS_STRICTATIME"},
+ {(1<<28), "MS_NOSEC"},
  {(1<<29), "MS_BORN"},
  {MS_ACTIVE, "MS_ACTIVE"},
  {MS_NOUSER, "MS_NOUSER"}
