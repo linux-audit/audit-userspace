@@ -72,7 +72,9 @@
 #include "ipctabs.h"
 #include "mmaptabs.h"
 #include "open-flagtabs.h"
+#include "persontabs.h"
 #include "prottabs.h"
+#include "ptracetabs.h"
 #include "socktabs.h"
 #include "seeks.h"
 #include "signaltabs.h"
@@ -953,6 +955,46 @@ static const char *print_mmap(const char *val)
 	return strdup(buf);
 }
 
+static const char *print_personality(const char *val)
+{
+        int pers;
+	char *out;
+	const char *s;
+
+        errno = 0;
+        pers = strtoul(val, NULL, 16);
+        if (errno) {
+                asprintf(&out, "conversion error(%s)", val);
+                return out;
+        }
+
+	s = person_i2s(pers);
+	if (s != NULL)
+		return strdup(s);
+	asprintf(&out, "unknown personality (%s)", val);
+	return out;
+}
+
+static const char *print_ptrace(const char *val)
+{
+        int trace;
+	char *out;
+	const char *s;
+
+        errno = 0;
+        trace = strtoul(val, NULL, 16);
+        if (errno) {
+                asprintf(&out, "conversion error(%s)", val);
+                return out;
+        }
+
+	s = ptrace_oi2s(trace);
+	if (s != NULL)
+		return strdup(s);
+	asprintf(&out, "unknown ptrace (%s)", val);
+	return out;
+}
+
 static const char *print_a0(const char *val, const rnode *r)
 {
 	int machine = r->machine, syscall = r->syscall;
@@ -989,6 +1031,10 @@ static const char *print_a0(const char *val, const rnode *r)
 			return print_gid(val, 16);
                 else if (strcmp(sys, "clock_settime") == 0)
 			return print_clock_id(val);
+                else if (strcmp(sys, "personality") == 0)
+			return print_personality(val);
+//                else if (strcmp(sys, "ptrace") == 0)
+//			return print_ptrace(val);
 	}
 	return strdup(val);
 }

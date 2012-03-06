@@ -40,6 +40,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <fcntl.h>
+#include <sys/personality.h>
 #include "libaudit.h"
 #include "ausearch-options.h"
 #include "ausearch-parse.h"
@@ -47,7 +48,7 @@
 
 /* This is the name/value pair used by search tables */
 struct nv_pair {
-	int        value;
+	unsigned int value;
 	const char *name;
 };
 
@@ -1153,6 +1154,141 @@ static void print_mmap(const char *val)
 	putchar(' ');
 }
 
+static struct nv_pair perstab[] =
+{
+ {0x0000, "PER_LINUX"},
+ {0x0000 | ADDR_LIMIT_32BIT, "PER_LINUX_32BIT"},
+ {0x0001 | STICKY_TIMEOUTS | MMAP_PAGE_ZERO, "PER_SVR4"},
+ {0x0002 | STICKY_TIMEOUTS | SHORT_INODE, "PER_SVR3"},
+ {0x0003 | STICKY_TIMEOUTS | WHOLE_SECONDS | SHORT_INODE, "PER_SCOSVR3"},
+ {0x0003 | STICKY_TIMEOUTS | WHOLE_SECONDS, "PER_OSR5"},
+ {0x0004 | STICKY_TIMEOUTS | SHORT_INODE, "PER_WYSEV386"},
+ {0x0005 | STICKY_TIMEOUTS, "PER_ISCR4"},
+ {0x0006, "PER_BSD"},
+ {0x0006 | STICKY_TIMEOUTS, "PER_SUNOS"},
+ {0x0007 | STICKY_TIMEOUTS | SHORT_INODE, "PER_XENIX"},
+ {0x0008, "PER_LINUX32"},
+ {0x0008 | ADDR_LIMIT_3GB, "PER_LINUX32_3GB"},
+ {0x0009 | STICKY_TIMEOUTS, "PER_IRIX32"},
+ {0x000a | STICKY_TIMEOUTS, "PER_IRIXN32"},
+ {0x000b | STICKY_TIMEOUTS, "PER_IRIX64"},
+ {0x000c, "PER_RISCOS"},
+ {0x000d | STICKY_TIMEOUTS, "PER_SOLARIS"},
+ {0x000e | STICKY_TIMEOUTS | MMAP_PAGE_ZERO, "PER_UW7"},
+ {0x000f, "PER_OSF4"},
+ {0x0010, "PER_HPUX"}
+};
+#define PERSONALITY_NAMES (sizeof(perstab)/sizeof(perstab[0]))
+
+static void print_personality(const char *val)
+{
+	unsigned int person, i;
+
+	errno = 0;
+	person = strtoul(val, NULL, 16);
+	if (errno) {
+		printf("conversion error(%s) ", val);
+		return;
+	}
+
+	for (i = 0; i < PERSONALITY_NAMES; i++) {
+		if (perstab[i].value == person) {
+			printf("%s ", perstab[i].name);
+			return;
+		}
+	}
+	printf("Unknown (%s) ", val);
+}
+
+static struct nv_pair accesstab[] =
+{
+ {1, "X_OK"},
+ {2, "W_OK"},
+ {4, "R_OK"}
+#define F_OK    0               /* Test for existence.  */
+};
+
+static void print_access(const char *val)
+{
+	unsigned int mode, i, found = 0;
+
+	errno = 0;
+	mode = strtoul(val, NULL, 16);
+	if (errno) {
+		printf("conversion error(%s) ", val);
+		return;
+	}
+
+	if ((mode & 0xF) == 0) {
+		printf("F_OK ");
+		return;
+	}
+
+	for (i = 0; i < 3; i++) {
+		if (accesstab[i].value & mode) {
+			if (found == 0) {
+				printf("%s", accesstab[i].name);
+				found = 1;
+			} else
+				printf("|%s", accesstab[i].name);
+		}
+	}
+	putchar(' ');
+}
+
+static struct nv_pair tracetab[] =
+{
+ {0,           "PTRACE_TRACEME"        },
+ {1,           "PTRACE_PEEKTEXT"       },
+ {2,           "PTRACE_PEEKDATA"       },
+ {3,           "PTRACE_PEEKUSER"       },
+ {4,           "PTRACE_POKETEXT"       },
+ {5,           "PTRACE_POKEDATA"       },
+ {6,           "PTRACE_POKEUSER"       },
+ {7,           "PTRACE_CONT"           },
+ {8,           "PTRACE_KILL"           },
+ {9,           "PTRACE_SINGLESTEP"     },
+ {12,          "PTRACE_GETREGS"        },
+ {13,          "PTRACE_SETREGS"        },
+ {14,          "PTRACE_GETFPREGS"      },
+ {15,          "PTRACE_SETFPREGS"      },
+ {16,          "PTRACE_ATTACH"         },
+ {17,          "PTRACE_DETACH"         },
+ {18,          "PTRACE_GETFPXREGS"     },
+ {19,          "PTRACE_SETFPXREGS"     },
+ {24,          "PTRACE_SYSCALL"        },
+ {0x4200,      "PTRACE_SETOPTIONS"     },
+ {0x4201,      "PTRACE_GETEVENTMSG"    },
+ {0x4202,      "PTRACE_GETSIGINFO"     },
+ {0x4203,      "PTRACE_SETSIGINFO"     },
+ {0x4204,      "PTRACE_GETREGSET"      },
+ {0x4205,      "PTRACE_SETREGSET"      },
+ {0x4206,      "PTRACE_SEIZE"          },
+ {0x4207,      "PTRACE_INTERRUPT"      },
+ {0x4208,      "PTRACE_LISTEN"         }
+};
+#define PTRACE_NAMES (sizeof(tracetab)/sizeof(tracetab[0]))
+
+static void print_ptrace(const char *val)
+{
+	unsigned int trace, i;
+
+	errno = 0;
+	trace = strtoul(val, NULL, 16);
+	if (errno) {
+		printf("conversion error(%s) ", val);
+		return;
+	}
+
+	for (i = 0; i < PTRACE_NAMES; i++) {
+		if (tracetab[i].value == trace) {
+			printf("%s ", tracetab[i].name);
+			return;
+		}
+	}
+	printf("Unknown (%s) ", val);
+}
+
 static void print_a0(const char *val)
 {
 	if (sys) {
@@ -1176,6 +1312,10 @@ static void print_a0(const char *val)
 			return print_gid(val, 16);
 		else if (strcmp(sys, "clock_settime") == 0)
 			return print_clock_id(val);
+		else if (strcmp(sys, "personality") == 0)
+			return print_personality(val);
+//		else if (strcmp(sys, "ptrace") == 0)
+//			return print_ptrace(val);
 		else goto normal;
 	} else
 normal:
@@ -1209,6 +1349,8 @@ static void print_a1(const char *val)
 			return print_mode_short(val);
 		else if (strcmp(sys, "creat") == 0)
 			return print_mode_short(val);
+		else if (strcmp(sys, "access") == 0)
+			return print_access(val);
 		else goto normal;
 	} else
 normal:
@@ -1314,6 +1456,7 @@ static void print_nfproto(char *val)
 			return;
 		}
 	}
+	printf("Unknown (%s) ", val);
 }
 
 /*
@@ -1353,6 +1496,7 @@ static void print_icmptype(char *val)
 			return;
 		}
 	}
+	printf("Unknown (%s) ", val);
 }
 
 static void print_protocol(char *val)

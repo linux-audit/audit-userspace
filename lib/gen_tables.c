@@ -31,6 +31,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <sys/personality.h>
 
 #include "gen_tables.h"
 #include "libaudit.h"
