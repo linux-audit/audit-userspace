@@ -46,6 +46,7 @@
 #include <linux/if.h>   // FIXME: remove when ipx.h is fixed
 #include <linux/ipx.h>
 #include <linux/capability.h>
+#include <sys/personality.h>
 #include "auparse-defs.h"
 #include "gen_tables.h"
 
@@ -989,7 +990,7 @@ static const char *print_ptrace(const char *val)
                 return out;
         }
 
-	s = ptrace_oi2s(trace);
+	s = ptrace_i2s(trace);
 	if (s != NULL)
 		return strdup(s);
 	asprintf(&out, "unknown ptrace (%s)", val);
@@ -1174,7 +1175,6 @@ static const char *print_a2(const char *val, const rnode *r)
 static const char *print_a3(const char *val, const rnode *r)
 {
 	int machine = r->machine, syscall = r->syscall;
-	char *out;
 	const char *sys = audit_syscall_to_name(syscall, machine);
 	if (sys) {
 		if (strcmp(sys, "mmap") == 0)
