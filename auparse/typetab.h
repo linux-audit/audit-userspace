@@ -97,3 +97,4 @@ _S(AUPARSE_TYPE_ESCAPED,	"info"		)
 _S(AUPARSE_TYPE_ESCAPED,	"profile"	)
 _S(AUPARSE_TYPE_ESCAPED,	"requested_mask")
 #endif
+_S(AUPARSE_TYPE_PERSONALITY,	"per"		)

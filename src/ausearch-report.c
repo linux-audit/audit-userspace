@@ -56,7 +56,7 @@ struct nv_pair {
 enum { T_UID, T_GID, T_SYSCALL, T_ARCH, T_EXIT, T_ESCAPED, T_PERM, T_MODE, 
 T_SOCKADDR, T_FLAGS, T_PROMISC, T_CAPABILITY, T_A0, T_A1, T_A2, T_A3,
 T_SIGNAL, T_KEY, T_LIST, T_TTY_DATA, T_SESSION, T_CAP_BITMAP, T_NFPROTO,
-T_ICMPTYPE, T_PROTOCOL, T_ADDR };
+T_ICMPTYPE, T_PROTOCOL, T_ADDR, T_PERSONALITY };
 
 /* Function in ausearch-parse for unescaping filenames */
 extern char *unescape(char *buf);
@@ -388,6 +388,7 @@ static struct nv_pair typetab[] = {
 	{T_NFPROTO, "family"},
 	{T_ICMPTYPE, "icmptype"},
 	{T_PROTOCOL, "proto"},
+	{T_PERSONALITY, "per"},
 };
 #define TYPE_NAMES (sizeof(typetab)/sizeof(typetab[0]))
 
@@ -1185,7 +1186,8 @@ static void print_personality(const char *val)
 	unsigned int person, i;
 
 	errno = 0;
-	person = strtoul(val, NULL, 16);
+	// GDB disables randomization, so factor this out
+	person = strtoul(val, NULL, 16)&~ADDR_NO_RANDOMIZE;
 	if (errno) {
 		printf("conversion error(%s) ", val);
 		return;
@@ -1314,8 +1316,8 @@ static void print_a0(const char *val)
 			return print_clock_id(val);
 		else if (strcmp(sys, "personality") == 0)
 			return print_personality(val);
-//		else if (strcmp(sys, "ptrace") == 0)
-//			return print_ptrace(val);
+		else if (strcmp(sys, "ptrace") == 0)
+			return print_ptrace(val);
 		else goto normal;
 	} else
 normal:
@@ -1678,6 +1680,9 @@ static void interpret(char *name, char *val, int comma, int rtype)
 			break;
 		case T_PROTOCOL:
 			print_protocol(val);
+			break;
+		case T_PERSONALITY:
+			print_personality(val);
 			break;
 		default:
 			printf("%s%c", val, comma ? ',' : ' ');

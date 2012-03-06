@@ -962,7 +962,8 @@ static const char *print_personality(const char *val)
 	const char *s;
 
         errno = 0;
-        pers = strtoul(val, NULL, 16);
+	// GDB disables randomization, so factor this out
+        pers = strtoul(val, NULL, 16)&~ADDR_NO_RANDOMIZE;
         if (errno) {
                 asprintf(&out, "conversion error(%s)", val);
                 return out;
@@ -1033,8 +1034,8 @@ static const char *print_a0(const char *val, const rnode *r)
 			return print_clock_id(val);
                 else if (strcmp(sys, "personality") == 0)
 			return print_personality(val);
-//                else if (strcmp(sys, "ptrace") == 0)
-//			return print_ptrace(val);
+                else if (strcmp(sys, "ptrace") == 0)
+			return print_ptrace(val);
 	}
 	return strdup(val);
 }
@@ -1534,6 +1535,9 @@ const char *interpret(const rnode *r)
 			break; 
 		case AUPARSE_TYPE_ADDR:
 			out = print_addr(val);
+			break;
+		case AUPARSE_TYPE_PERSONALITY:
+			out = print_personality(val);
 			break;
 		case AUPARSE_TYPE_UNCLASSIFIED:
 		default:
