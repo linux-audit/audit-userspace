@@ -32,6 +32,7 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/personality.h>
+#include <sys/mount.h>
 
 #include "gen_tables.h"
 #include "libaudit.h"

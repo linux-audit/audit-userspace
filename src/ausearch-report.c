@@ -41,6 +41,7 @@
 #include <ctype.h>
 #include <fcntl.h>
 #include <sys/personality.h>
+#include <sys/mount.h>
 #include "libaudit.h"
 #include "ausearch-options.h"
 #include "ausearch-parse.h"
@@ -1186,16 +1187,19 @@ static void print_personality(const char *val)
 	unsigned int person, i;
 
 	errno = 0;
-	// GDB disables randomization, so factor this out
-	person = strtoul(val, NULL, 16)&~ADDR_NO_RANDOMIZE;
+	person = strtoul(val, NULL, 16);
 	if (errno) {
 		printf("conversion error(%s) ", val);
 		return;
 	}
 
 	for (i = 0; i < PERSONALITY_NAMES; i++) {
-		if (perstab[i].value == person) {
-			printf("%s ", perstab[i].name);
+		if (perstab[i].value == (person & ~ADDR_NO_RANDOMIZE)) {
+			if (person & ADDR_NO_RANDOMIZE)
+				printf("%s|ADDR_NO_RANDOMIZE ",
+						perstab[i].name);
+			else
+				printf("%s ", perstab[i].name);
 			return;
 		}
 	}
@@ -1289,6 +1293,62 @@ static void print_ptrace(const char *val)
 		}
 	}
 	printf("Unknown (%s) ", val);
+}
+
+static struct nv_pair mount_tab[]=
+{
+ {MS_RDONLY, "MS_RDONLY"},
+ {MS_NOSUID, "MS_NOSUID"},
+ {MS_NODEV, "MS_NODEV" },
+ {MS_NOEXEC, "MS_NOEXEC"},
+ {MS_SYNCHRONOUS, "MS_SYNCHRONOUS"},
+ {MS_REMOUNT, "MS_REMOUNT"},
+ {MS_MANDLOCK, "MS_MANDLOCK"},
+ {MS_DIRSYNC, "MS_DIRSYNC"},
+ {MS_NOATIME, "MS_NOATIME"},
+ {MS_NODIRATIME, "MS_NODIRATIME"},
+ {MS_BIND, "MS_BIND"},
+ {MS_MOVE, "MS_MOVE"},
+ {MS_REC, "MS_REC"},
+ {MS_SILENT, "MS_SILENT"},
+ {MS_POSIXACL, "MS_POSIXACL"},
+ {MS_UNBINDABLE, "MS_UNBINDABLE"},
+ {MS_PRIVATE, "MS_PRIVATE"},
+ {MS_SLAVE, "MS_SLAVE"},
+ {MS_SHARED, "MS_SHARED"},
+ {MS_RELATIME, "MS_RELATIME"},
+ {MS_KERNMOUNT, "MS_KERNMOUNT"},
+ {MS_I_VERSION, "MS_I_VERSION"},
+ {MS_STRICTATIME, "MS_STRICTATIME"},
+ {(1<<29), "MS_BORN"},
+ {MS_ACTIVE, "MS_ACTIVE"},
+ {MS_NOUSER, "MS_NOUSER"}
+};
+#define MOUNT_NAMES (sizeof(mount_tab)/sizeof(mount_tab[0]))
+
+static void print_mount(const char *val)
+{
+	unsigned int mnt, i, found = 0;
+
+	errno = 0;
+	mnt = strtoul(val, NULL, 16);
+	if (errno) {
+		printf("conversion error(%s) ", val);
+		return;
+	}
+
+	for (i = 0; i < MOUNT_NAMES; i++) {
+		if (mount_tab[i].value & mnt) {
+			if (found == 0) {
+				printf("%s", mount_tab[i].name);
+				found = 1;
+			} else
+				printf("|%s", mount_tab[i].name);
+		}
+	}
+	if (!found)
+		printf("no-mount-options");
+	putchar(' ');
 }
 
 static void print_a0(const char *val)
@@ -1391,6 +1451,8 @@ static void print_a3(const char *val)
 	if (sys) {
 		if (strcmp(sys, "mmap") == 0)
 			print_mmap(val);
+		else if (strcmp(sys, "mount") == 0)
+			print_mount(val);
 		else
 			goto normal;
 	} else

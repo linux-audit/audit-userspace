@@ -44,12 +44,14 @@ message.c:
 
 BUILT_SOURCES = captabs.h clocktabs.h clone-flagtabs.h epoll_ctls.h famtabs.h \
 	fcntl-cmdtabs.h flagtabs.h icmptypetabs.h ipctabs.h \
-	mmaptabs.h nfprototabs.h open-flagtabs.h persontabs.h prottabs.h \
-	ptracetabs.h seeks.h signaltabs.h socktabs.h typetabs.h
+	mmaptabs.h mounttabs.h nfprototabs.h open-flagtabs.h \
+	persontabs.h prottabs.h ptracetabs.h \
+	seeks.h signaltabs.h socktabs.h typetabs.h
 noinst_PROGRAMS = gen_captabs_h gen_clock_h gen_clone-flagtabs_h \
 	gen_epoll_ctls_h gen_famtabs_h \
 	gen_fcntl-cmdtabs_h gen_flagtabs_h \
-	gen_icmptypetabs_h gen_ipctabs_h gen_nfprototabs_h gen_mmaptabs_h \
+	gen_icmptypetabs_h gen_ipctabs_h gen_nfprototabs_h \
+	gen_mmaptabs_h gen_mounttabs_h \
 	gen_open-flagtabs_h gen_persontabs_h gen_prottabs_h \
 	gen_ptracetabs_h gen_seeks_h \
 	gen_signals_h gen_socktabs_h gen_typetabs_h
@@ -106,6 +108,11 @@ gen_mmaptabs_h_SOURCES = ../lib/gen_tables.c ../lib/gen_tables.h mmaptab.h
 gen_mmaptabs_h_CFLAGS = $(AM_CFLAGS) '-DTABLE_H="mmaptab.h"'
 mmaptabs.h: gen_mmaptabs_h Makefile
 	./gen_mmaptabs_h --i2s-transtab mmap > $@
+
+gen_mounttabs_h_SOURCES = ../lib/gen_tables.c ../lib/gen_tables.h mounttab.h
+gen_mounttabs_h_CFLAGS = $(AM_CFLAGS) '-DTABLE_H="mounttab.h"'
+mounttabs.h: gen_mounttabs_h Makefile
+	./gen_mounttabs_h --i2s-transtab mount > $@
 
 gen_nfprototabs_h_SOURCES = ../lib/gen_tables.c ../lib/gen_tables.h nfprototab.h
 gen_nfprototabs_h_CFLAGS = $(AM_CFLAGS) '-DTABLE_H="nfprototab.h"'

@@ -72,6 +72,7 @@
 #include "flagtabs.h"
 #include "ipctabs.h"
 #include "mmaptabs.h"
+#include "mounttabs.h"
 #include "open-flagtabs.h"
 #include "persontabs.h"
 #include "prottabs.h"
@@ -958,21 +959,26 @@ static const char *print_mmap(const char *val)
 
 static const char *print_personality(const char *val)
 {
-        int pers;
+        int pers, pers2;
 	char *out;
 	const char *s;
 
         errno = 0;
-	// GDB disables randomization, so factor this out
-        pers = strtoul(val, NULL, 16)&~ADDR_NO_RANDOMIZE;
+        pers = strtoul(val, NULL, 16);
         if (errno) {
                 asprintf(&out, "conversion error(%s)", val);
                 return out;
         }
 
-	s = person_i2s(pers);
-	if (s != NULL)
-		return strdup(s);
+	pers2 = pers & ~ADDR_NO_RANDOMIZE;
+	s = person_i2s(pers2);
+	if (s != NULL) {
+		if (pers & ADDR_NO_RANDOMIZE) {
+			asprintf(&out, "%s|~ADDR_NO_RANDOMIZE", s);
+			return out;
+		} else
+			return strdup(s);
+	}
 	asprintf(&out, "unknown personality (%s)", val);
 	return out;
 }
@@ -995,6 +1001,36 @@ static const char *print_ptrace(const char *val)
 		return strdup(s);
 	asprintf(&out, "unknown ptrace (%s)", val);
 	return out;
+}
+
+static const char *print_mount(const char *val)
+{
+	size_t i;
+	int cnt = 0;
+	char buf[144];
+	char *out;
+
+	errno = 0;
+        i = strtoul(val, NULL, 16);
+	if (errno) {
+		asprintf(&out, "conversion error(%s)", val);
+		return out;
+	}
+	buf[0] = 0;
+        for (i=0; i<MOUNT_NUM_ENTRIES; i++) {
+                if (mount_table[i].value & i) {
+                        if (!cnt) {
+                                strcat(buf,
+				mount_strings + mount_table[i].offset);
+                                cnt++;
+                        } else {
+                                strcat(buf, "|");
+                                strcat(buf,
+				mount_strings + mount_table[i].offset);
+			}
+                }
+        }
+	return strdup(buf);
 }
 
 static const char *print_a0(const char *val, const rnode *r)
@@ -1179,6 +1215,8 @@ static const char *print_a3(const char *val, const rnode *r)
 	if (sys) {
 		if (strcmp(sys, "mmap") == 0)
 			return print_mmap(val);
+		if (strcmp(sys, "mount") == 0)
+			return print_mount(val);
 	}
 	return strdup(val);
 }
