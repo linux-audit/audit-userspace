@@ -133,7 +133,10 @@ static int extract_timestamp(const char *b, event *e)
 	char *ptr, *tmp, *tnode, *ttype;
 
 	e->node = NULL;
-	tmp = strndupa(b, 120);
+	if (*b == 'n')
+		tmp = strndupa(b, 340);
+	else
+		tmp = strndupa(b, 80);
 	ptr = strtok(tmp, " ");
 	if (ptr) {
 		// Check to see if this is the node info
