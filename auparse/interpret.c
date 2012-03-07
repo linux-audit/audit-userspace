@@ -77,6 +77,7 @@
 #include "persontabs.h"
 #include "prottabs.h"
 #include "ptracetabs.h"
+#include "rlimittabs.h"
 #include "socktabs.h"
 #include "seeks.h"
 #include "signaltabs.h"
@@ -460,14 +461,14 @@ static const char *print_perm(const char *val)
 	return strdup(buf);
 }
 
-static const char *print_mode(const char *val)
+static const char *print_mode(const char *val, unsigned int base)
 {
         unsigned int ival;
 	char *out, buf[48];
 	const char *name;
 
         errno = 0;
-        ival = strtoul(val, NULL, 8);
+        ival = strtoul(val, NULL, base);
         if (errno) {
                 asprintf(&out, "conversion error(%s)", val);
                 return out;
@@ -525,6 +526,26 @@ static const char *print_mode_short(const char *val)
 	else
 	        asprintf(&out, "%s,%03o", buf, (S_IRWXU|S_IRWXG|S_IRWXO)&ival);
 	return out;
+}
+
+static const char *print_socket_type(const char *val)
+{
+	int i;
+	char *out;
+        const char *str;
+
+	errno = 0;
+        i = strtoul(val, NULL, 16);
+	if (errno) {
+		asprintf(&out, "conversion error(%s)", val);
+		return out;
+	}
+        str = fam_i2s(i);
+        if (str == NULL) {
+                asprintf(&out, "unknown family(%s)", val);
+		return out;
+	} else
+		return strdup(str);
 }
 
 static const char *print_sockaddr(const char *val)
@@ -1033,6 +1054,26 @@ static const char *print_mount(const char *val)
 	return strdup(buf);
 }
 
+static const char *print_rlimit(const char *val)
+{
+	int i;
+	char *out;
+
+	errno = 0;
+        i = strtoul(val, NULL, 16);
+	if (errno) {
+		asprintf(&out, "conversion error(%s)", val);
+		return out;
+	}
+	else if (i < 17) {
+		const char *s = rlimit_i2s(i);
+		if (s != NULL)
+			return strdup(s);
+	}
+	asprintf(&out, "unknown rlimit (%s)", val);
+	return out;
+}
+
 static const char *print_a0(const char *val, const rnode *r)
 {
 	int machine = r->machine, syscall = r->syscall;
@@ -1073,6 +1114,10 @@ static const char *print_a0(const char *val, const rnode *r)
 			return print_personality(val);
                 else if (strcmp(sys, "ptrace") == 0)
 			return print_ptrace(val);
+                else if (strstr(sys, "etrlimit"))
+			return print_rlimit(val);
+                else if (strcmp(sys, "socket") == 0)
+			return print_socket_type(val);
 	}
 	return strdup(val);
 }
@@ -1135,6 +1180,8 @@ static const char *print_a1(const char *val, const rnode *r)
 			return print_mode_short(val);
 		else if (strcmp(sys, "creat") == 0)
 			return print_mode_short(val);
+		else if (strcmp(sys, "mknod") == 0)
+			return print_mode(val, 16);
 	}
 	return strdup(val);
 }
@@ -1518,7 +1565,7 @@ const char *interpret(const rnode *r)
 			out = print_perm(val);
 			break;
 		case AUPARSE_TYPE_MODE:
-			out = print_mode(val);
+			out = print_mode(val,8);
 			break;
 		case AUPARSE_TYPE_SOCKADDR:
 			out = print_sockaddr(val);

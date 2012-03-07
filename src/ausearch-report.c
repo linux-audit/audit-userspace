@@ -579,13 +579,13 @@ static void print_perm(const char *val)
 	printf(" ");
 }
 
-static void print_mode(const char *val)
+static void print_mode(const char *val, unsigned int base)
 {
 	const char *name;
 	unsigned int ival;
 
 	errno = 0;
-	ival = strtoul(val, NULL, 8);
+	ival = strtoul(val, NULL, base);
 	if (errno) {
 		printf("conversion error(%s) ", val);
 		return;
@@ -679,6 +679,24 @@ static const char *audit_lookup_fam(int fam)
                         return famtab[i].name;
 
         return NULL;
+}
+
+static void print_socket_type(const char *val)
+{
+	unsigned int i;
+	const char *str;
+
+	errno = 0;
+	i = strtoul(val, NULL, 16);
+	if (errno) {
+		printf("conversion error(%s) ", val);
+		return;
+	}
+	str = audit_lookup_fam(i);
+	if (str)
+		printf("%s ", str);
+	else
+		printf("Unknown:%s ", val);
 }
 
 static void print_sockaddr(const char *val)
@@ -1394,6 +1412,44 @@ static void print_fcntl(const char *val)
 	}
 }
 
+#define LIMIT_NAMES 17
+static const char *lim[LIMIT_NAMES] =
+{
+  "RLIMIT_CPU",
+  "RLIMIT_FSIZE",
+  "RLIMIT_DATA",
+  "RLIMIT_STACK",
+  "RLIMIT_CORE",
+  "RLIMIT_RSS",
+  "RLIMIT_NPROC",
+  "RLIMIT_NOFILE",
+  "RLIMIT_MEMLOCK",
+  "RLIMIT_AS",
+  "RLIMIT_LOCKS",
+  "RLIMIT_SIGPENDING",
+  "RLIMIT_MSGQUEUE",
+  "RLIMIT_NICE",
+  "RLIMIT_RTPRIO",
+  "RLIMIT_RTTIME",
+  "RLIMIT_NLIMITS"
+};
+
+static void print_rlimit(const char *val)
+{
+	unsigned int i;
+
+	errno = 0;
+	i = strtoul(val, NULL, 16);
+	if (errno) {
+		printf("conversion error(%s) ", val);
+		return;
+	}
+	if (i < LIMIT_NAMES)
+		printf("%s ", lim[i]);
+	else
+		printf("Unknown:%s ", val);
+}
+
 static void print_a0(const char *val)
 {
 	if (sys) {
@@ -1421,6 +1477,10 @@ static void print_a0(const char *val)
 			return print_personality(val);
 		else if (strcmp(sys, "ptrace") == 0)
 			return print_ptrace(val);
+		else if (strstr(sys, "etrlimit"))
+			return print_rlimit(val);
+		else if (strcmp(sys, "socket") == 0)
+			return print_socket_type(val);
 		else goto normal;
 	} else
 normal:
@@ -1458,6 +1518,8 @@ static void print_a1(const char *val)
 			return print_access(val);
 		else if (strncmp(sys, "fcntl", 5) == 0)
 			return print_fcntl(val);
+		else if (strcmp(sys, "mknod") == 0)
+			return print_mode(val, 16);
 		else goto normal;
 	} else
 normal:
@@ -1732,7 +1794,7 @@ static void interpret(char *name, char *val, int comma, int rtype)
 			print_perm(val);
 			break;
 		case T_MODE:
-			print_mode(val);
+			print_mode(val, 8);
 			break;
 		case T_SOCKADDR:
 			print_sockaddr(val);
