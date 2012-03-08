@@ -681,7 +681,7 @@ static const char *audit_lookup_fam(int fam)
         return NULL;
 }
 
-static void print_socket_type(const char *val)
+static void print_socket_domain(const char *val)
 {
 	unsigned int i;
 	const char *str;
@@ -1450,6 +1450,86 @@ static void print_rlimit(const char *val)
 		printf("Unknown:%s ", val);
 }
 
+static struct nv_pair sock_typetab[] =
+{
+ {1, "SOCK_STREAM"},
+ {2, "SOCK_DGRAM"},
+ {3, "SOCK_RAW"},
+ {4, "SOCK_RDM"},
+ {5, "SOCK_SEQPACKET"},
+ {6, "SOCK_DCCP"},
+ {10, "SOCK_PACKET"}
+};
+#define SOCK_TYPE_NAMES (sizeof(sock_typetab)/sizeof(sock_typetab[0]))
+
+static void print_socket_type(const char *val)
+{
+	unsigned int type, ftype, i;
+
+	errno = 0;
+	ftype = strtoul(val, NULL, 16);
+	if (errno) {
+		printf("conversion error(%s) ", val);
+		return;
+	}
+
+	type = ftype & 0xFF;
+	for (i = 0; i < SOCK_TYPE_NAMES; i++) {
+		if (sock_typetab[i].value == type) {
+			printf("%s", sock_typetab[i].name);
+			break;
+		}
+	}
+	if (ftype & SOCK_CLOEXEC)
+		printf("|SOCK_CLOEXEC");
+	if (ftype & SOCK_NONBLOCK)
+		printf("|SOCK_NONBLOCK");
+	putchar(' ');
+}
+
+static void print_socket_proto(const char *val)
+{
+	unsigned int proto;
+	struct protoent *p;
+
+	errno = 0;
+	proto = strtoul(val, NULL, 16);
+	if (errno) {
+		printf("conversion error(%s) ", val);
+		return;
+	}
+	p = getprotobynumber(proto);
+	if (p == NULL)
+		printf("unknown proto(%s) ", val);
+	else
+		printf("%s ", p->p_name);
+}
+
+static const char *seeks[] =
+{
+	"SEEK_SET",
+	"SEEK_CUR",
+	"SEEK_END"
+};
+
+static void print_seeks(const char *val)
+{
+	unsigned int whence, i, found = 0;
+
+	errno = 0;
+	whence = strtoul(val, NULL, 16);
+	if (errno) {
+		printf("conversion error(%s) ", val);
+		return;
+	}
+
+	if (whence > 3) {
+		printf("unknown whence(%s)", val);
+		return;
+	}
+	printf("%s ", seeks[whence]);
+}
+
 static void print_a0(const char *val)
 {
 	if (sys) {
@@ -1480,7 +1560,7 @@ static void print_a0(const char *val)
 		else if (strstr(sys, "etrlimit"))
 			return print_rlimit(val);
 		else if (strcmp(sys, "socket") == 0)
-			return print_socket_type(val);
+			return print_socket_domain(val);
 		else goto normal;
 	} else
 normal:
@@ -1520,6 +1600,8 @@ static void print_a1(const char *val)
 			return print_fcntl(val);
 		else if (strcmp(sys, "mknod") == 0)
 			return print_mode(val, 16);
+		else if (strcmp(sys, "socket") == 0)
+			return print_socket_type(val);
 		else goto normal;
 	} else
 normal:
@@ -1547,6 +1629,10 @@ static void print_a2(const char *val)
 			return print_prot(val, 1);
 		else if (strcmp(sys, "mprotect") == 0)
 			return print_prot(val, 0);
+		else if (strcmp(sys, "socket") == 0)
+			return print_socket_proto(val);
+		else if (strcmp(sys, "lseek") == 0)
+			return print_seeks(val);
 		else goto normal;
 	} else
 normal:

@@ -79,6 +79,7 @@
 #include "ptracetabs.h"
 #include "rlimittabs.h"
 #include "socktabs.h"
+#include "socktypetabs.h"
 #include "seeks.h"
 #include "signaltabs.h"
 #include "clocktabs.h"
@@ -528,7 +529,7 @@ static const char *print_mode_short(const char *val)
 	return out;
 }
 
-static const char *print_socket_type(const char *val)
+static const char *print_socket_domain(const char *val)
 {
 	int i;
 	char *out;
@@ -546,6 +547,46 @@ static const char *print_socket_type(const char *val)
 		return out;
 	} else
 		return strdup(str);
+}
+
+static const char *print_socket_type(const char *val)
+{
+	unsigned int type;
+	char *out;
+        const char *str;
+
+	errno = 0;
+        type = 0xFF & strtoul(val, NULL, 16);
+	if (errno) {
+		asprintf(&out, "conversion error(%s)", val);
+		return out;
+	}
+        str = sock_type_i2s(type);
+        if (str == NULL) {
+                asprintf(&out, "unknown type(%s)", val);
+		return out;
+	} else
+		return strdup(str);
+}
+
+static const char *print_socket_proto(const char *val)
+{
+	unsigned int proto;
+	char *out;
+        struct protoent *p;
+
+	errno = 0;
+        proto = strtoul(val, NULL, 16);
+	if (errno) {
+		asprintf(&out, "conversion error(%s)", val);
+		return out;
+	}
+        p = getprotobynumber(proto);
+        if (p == NULL) {
+                asprintf(&out, "unknown proto(%s)", val);
+		return out;
+	} else
+		return strdup(p->p_name);
 }
 
 static const char *print_sockaddr(const char *val)
@@ -795,11 +836,19 @@ static const char *print_success(const char *val)
 		return strdup(val);
 }
 
-static const char *print_open_flags(int flags)
+static const char *print_open_flags(const char *val)
 {
 	size_t i;
+	unsigned int flags;
 	int cnt = 0;
-	char buf[144];
+	char *out, buf[144];
+
+	errno = 0;
+	flags = strtoul(val, NULL, 16);
+        if (errno) {
+		asprintf(&out, "conversion error(%s)", val);
+               	return out;
+       	}
 
 	buf[0] = 0;
         if ((flags & O_ACCMODE) == 0) {
@@ -823,11 +872,19 @@ static const char *print_open_flags(int flags)
 	return strdup(buf);
 }
 
-static const char *print_clone_flags(int flags)
+static const char *print_clone_flags(const char *val)
 {
         size_t i;
+	int flags;
 	int cnt = 0;
-	char buf[352];
+	char *out, buf[352];
+
+	errno = 0;
+	flags = strtoul(val, NULL, 16);
+        if (errno) {
+		asprintf(&out, "conversion error(%s)", val);
+               	return out;
+       	}
 
 	buf[0] = 0;
         for (i=0; i<CLONE_FLAG_NUM_ENTRIES; i++) {
@@ -848,10 +905,18 @@ static const char *print_clone_flags(int flags)
 	return strdup(buf);
 }
 
-static const char *print_fcntl_cmd(int cmd)
+static const char *print_fcntl_cmd(const char *val)
 {
 	char *out;
 	const char *s;
+	int cmd;
+
+	errno = 0;
+	cmd = strtoul(val, NULL, 16);
+        if (errno) {
+		asprintf(&out, "conversion error(%s)", val);
+		return out;
+       	}
 
 	s = fcntl_i2s(cmd);
 	if (s != NULL)
@@ -860,10 +925,18 @@ static const char *print_fcntl_cmd(int cmd)
 	return out;
 }
 
-static const char *print_epoll_ctl(int cmd)
+static const char *print_epoll_ctl(const char *val)
 {
 	char *out;
 	const char *s;
+	int cmd;
+
+	errno = 0;
+	cmd = strtoul(val, NULL, 16);
+	if (errno) {
+		asprintf(&out, "conversion error(%s)", val);
+		return out;
+	}
 
 	s = epoll_ctl_i2s(cmd);
 	if (s != NULL)
@@ -872,10 +945,18 @@ static const char *print_epoll_ctl(int cmd)
 	return out;
 }
 
-static const char *print_seek(int cmd)
+static const char *print_seek(const char *val)
 {
+	unsigned int cmd;
 	char *out;
 	const char *s;
+
+	errno = 0;
+	cmd = strtoul(val, NULL, 16);
+	if (errno) {
+		asprintf(&out, "conversion error(%s)", val);
+		return out;
+	}
 
 	s = seek_i2s(cmd);
 	if (s != NULL)
@@ -1077,20 +1158,11 @@ static const char *print_rlimit(const char *val)
 static const char *print_a0(const char *val, const rnode *r)
 {
 	int machine = r->machine, syscall = r->syscall;
-	char *out;
 	const char *sys = audit_syscall_to_name(syscall, machine);
 	if (sys) {
-		if (strcmp(sys, "clone") == 0) {
-			int ival;
-
-			errno = 0;
-			ival = strtoul(val, NULL, 16);
-		        if (errno) {
-                		asprintf(&out, "conversion error(%s)", val);
-	                	return out;
-	        	}
-			return print_clone_flags(ival);
-		}  else if (strcmp(sys, "rt_sigaction") == 0)
+		if (strcmp(sys, "clone") == 0)
+			return print_clone_flags(val);
+		else if (strcmp(sys, "rt_sigaction") == 0)
                         return print_signals(val, 16);
                 else if (strcmp(sys, "setuid") == 0)
 			return print_uid(val, 16);
@@ -1117,7 +1189,7 @@ static const char *print_a0(const char *val, const rnode *r)
                 else if (strstr(sys, "etrlimit"))
 			return print_rlimit(val);
                 else if (strcmp(sys, "socket") == 0)
-			return print_socket_type(val);
+			return print_socket_domain(val);
 	}
 	return strdup(val);
 }
@@ -1125,40 +1197,15 @@ static const char *print_a0(const char *val, const rnode *r)
 static const char *print_a1(const char *val, const rnode *r)
 {
 	int machine = r->machine, syscall = r->syscall;
-	char *out;
 	const char *sys = audit_syscall_to_name(syscall, machine);
 	if (sys) {
-		if (strcmp(sys, "open") == 0) {
-			int ival;
-
-			errno = 0;
-			ival = strtoul(val, NULL, 16);
-		        if (errno) {
-                		asprintf(&out, "conversion error(%s)", val);
-	                	return out;
-	        	}
-			return print_open_flags(ival);
-		} else if (strncmp(sys, "fcntl", 5) == 0) {
-			int ival;
-
-			errno = 0;
-			ival = strtoul(val, NULL, 16);
-		        if (errno) {
-                		asprintf(&out, "conversion error(%s)", val);
-	                	return out;
-	        	}
-			return print_fcntl_cmd(ival);
-		} else if (strcmp(sys, "epoll_ctl") == 0) {
-			int ival;
-
-			errno = 0;
-			ival = strtoul(val, NULL, 16);
-			if (errno) {
-				asprintf(&out, "conversion error(%s)", val);
-				return out;
-			}
-			return print_epoll_ctl(ival);
-		} else if (strcmp(sys, "chmod") == 0)
+		if (strcmp(sys, "open") == 0)
+			return print_open_flags(val);
+		else if (strncmp(sys, "fcntl", 5) == 0)
+			return print_fcntl_cmd(val);
+		else if (strcmp(sys, "epoll_ctl") == 0)
+			return print_epoll_ctl(val);
+		else if (strcmp(sys, "chmod") == 0)
 			return print_mode_short(val);
 		else if (strcmp(sys, "fchmod") == 0)
 			return print_mode_short(val);
@@ -1182,6 +1229,8 @@ static const char *print_a1(const char *val, const rnode *r)
 			return print_mode_short(val);
 		else if (strcmp(sys, "mknod") == 0)
 			return print_mode(val, 16);
+                else if (strcmp(sys, "socket") == 0)
+			return print_socket_type(val);
 	}
 	return strdup(val);
 }
@@ -1215,27 +1264,11 @@ static const char *print_a2(const char *val, const rnode *r)
 				case F_NOTIFY:
 					break;
 			}
-		} else if (strcmp(sys, "openat") == 0) {
-			int ival;
-
-			errno = 0;
-			ival = strtoul(val, NULL, 16);
-		        if (errno) {
-                		asprintf(&out, "conversion error(%s)", val);
-	                	return out;
-	        	}
-			return print_open_flags(ival);
-		} else if (strcmp(sys, "lseek") == 0) {
-			int ival;
-
-			errno = 0;
-			ival = strtoul(val, NULL, 16);
-			if (errno) {
-				asprintf(&out, "conversion error(%s)", val);
-				return out;
-			}
-			return print_seek(ival);
-		} else if (strcmp(sys, "fchmodat") == 0)
+		} else if (strcmp(sys, "openat") == 0)
+			return print_open_flags(val);
+		else if (strcmp(sys, "lseek") == 0)
+			return print_seek(val);
+		else if (strcmp(sys, "fchmodat") == 0)
 			return print_mode_short(val);
 		else if (strstr(sys, "chown"))
 			return print_gid(val, 16);
@@ -1251,6 +1284,8 @@ static const char *print_a2(const char *val, const rnode *r)
 			return print_prot(val, 1);
 		else if (strcmp(sys, "mprotect") == 0)
 			return print_prot(val, 0);
+                else if (strcmp(sys, "socket") == 0)
+			return print_socket_proto(val);
 	}
 	return strdup(val);
 }
