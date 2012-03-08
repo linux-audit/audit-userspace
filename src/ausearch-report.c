@@ -1555,6 +1555,55 @@ static void print_clone(const char *val)
 		putchar(' ');
 }
 
+static struct nv_pair recvtab[] =
+{
+  {0x00000001,    "MSG_OOB"},
+  {0x00000002,    "MSG_PEEK"},
+  {0x00000004,    "MSG_DONTROUTE"},
+  {0x00000008,    "MSG_CTRUNC"},
+  {0x00000010,    "MSG_PROXY"},
+  {0x00000020,    "MSG_TRUNC"},
+  {0x00000040,    "MSG_DONTWAIT"},
+  {0x00000080,    "MSG_EOR"},
+  {0x00000100,    "MSG_WAITALL"},
+  {0x00000200,    "MSG_FIN"},
+  {0x00000400,    "MSG_SYN"},
+  {0x00000800,    "MSG_CONFIRM"},
+  {0x00001000,    "MSG_RST"},
+  {0x00002000,    "MSG_ERRQUEUE"},
+  {0x00004000,    "MSG_NOSIGNAL"},
+  {0x00008000,    "MSG_MORE"},
+  {0x00010000,    "MSG_WAITFORONE"},
+  {0x40000000,    "MSG_CMSG_CLOEXEC"}
+};
+#define RECV_NAMES (sizeof(recvtab)/sizeof(recvtab[0]))
+
+static void print_recv(const char *val)
+{
+	unsigned int rec, i, found = 0;
+
+	errno = 0;
+	rec = strtoul(val, NULL, 16);
+	if (errno) {
+		printf("conversion error(%s) ", val);
+		return;
+	}
+
+	for (i = 0; i < RECV_NAMES; i++) {
+		if (recvtab[i].value & rec) {
+			if (found == 0) {
+				printf("%s", recvtab[i].name);
+				found = 1;
+			} else
+				printf("|%s", recvtab[i].name);
+		}
+	}
+	if (!found)
+		printf("0x%s ", val);
+	else
+		putchar(' ');
+}
+
 static void print_a0(const char *val)
 {
 	if (sys) {
@@ -1636,7 +1685,9 @@ normal:
 static void print_a2(const char *val)
 {
 	if (sys) {
-		if (strcmp(sys, "fchmodat") == 0)
+		if (strcmp(sys, "openat") == 0)
+			return print_open_flags(val);
+		else if (strcmp(sys, "fchmodat") == 0)
 			return print_mode_short(val);
 		else if (strstr(sys, "chown"))
 			return print_gid(val, 16);
@@ -1646,8 +1697,6 @@ static void print_a2(const char *val)
 			return print_gid(val, 16);
 		else if (strcmp(sys, "tgkill") == 0)
 			return print_signals(val, 16);
-		else if (strcmp(sys, "openat") == 0)
-			return print_open_flags(val);
 		else if (strcmp(sys, "mkdirat") == 0)
 			return print_mode_short(val);
 		else if (strcmp(sys, "mmap") == 0)
@@ -1658,6 +1707,8 @@ static void print_a2(const char *val)
 			return print_socket_proto(val);
 		else if (strcmp(sys, "clone") == 0)
 			return print_clone(val);
+		else if (strcmp(sys, "recvmsg") == 0)
+			print_recv(val);
 		else goto normal;
 	} else
 normal:
@@ -1671,6 +1722,12 @@ static void print_a3(const char *val)
 			print_mmap(val);
 		else if (strcmp(sys, "mount") == 0)
 			print_mount(val);
+		else if (strcmp(sys, "recv") == 0)
+			print_recv(val);
+		else if (strcmp(sys, "recvfrom") == 0)
+			print_recv(val);
+		else if (strcmp(sys, "recvmmsg") == 0)
+			print_recv(val);
 		else
 			goto normal;
 	} else

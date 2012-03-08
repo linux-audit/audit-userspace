@@ -77,6 +77,7 @@
 #include "persontabs.h"
 #include "prottabs.h"
 #include "ptracetabs.h"
+#include "recvtabs.h"
 #include "rlimittabs.h"
 #include "socktabs.h"
 #include "socktypetabs.h"
@@ -873,8 +874,7 @@ static const char *print_open_flags(const char *val)
 
 static const char *print_clone_flags(const char *val)
 {
-        size_t i;
-	int flags;
+	unsigned int flags, i;
 	int cnt = 0;
 	char *out, buf[352];
 
@@ -966,19 +966,19 @@ static const char *print_clock_id(const char *val)
 
 static const char *print_prot(const char *val, unsigned int is_mmap)
 {
-	size_t i;
+	unsigned int prot, i;
 	int cnt = 0, limit;
 	char buf[144];
 	char *out;
 
 	errno = 0;
-        i = strtoul(val, NULL, 16);
+        prot = strtoul(val, NULL, 16);
 	if (errno) {
 		asprintf(&out, "conversion error(%s)", val);
 		return out;
 	}
 	buf[0] = 0;
-        if ((i & 0x07) == 0) {
+        if ((prot & 0x07) == 0) {
 		// Handle PROT_NONE specially
                 strcat(buf, "PROT_NONE");
 		return strdup(buf);
@@ -988,7 +988,7 @@ static const char *print_prot(const char *val, unsigned int is_mmap)
 	else
 		limit = 3;
         for (i=0; i<limit; i++) {
-                if (prot_table[i].value & i) {
+                if (prot_table[i].value & prot) {
                         if (!cnt) {
                                 strcat(buf,
 				prot_strings + prot_table[i].offset);
@@ -1005,25 +1005,25 @@ static const char *print_prot(const char *val, unsigned int is_mmap)
 
 static const char *print_mmap(const char *val)
 {
-	size_t i;
+	unsigned int maps, i;
 	int cnt = 0;
 	char buf[144];
 	char *out;
 
 	errno = 0;
-        i = strtoul(val, NULL, 16);
+        maps = strtoul(val, NULL, 16);
 	if (errno) {
 		asprintf(&out, "conversion error(%s)", val);
 		return out;
 	}
 	buf[0] = 0;
-        if ((i & 0x0F) == 0) {
+        if ((maps & 0x0F) == 0) {
 		// Handle MAP_FILE specially
                 strcat(buf, "MAP_FILE");
 		cnt++;
         }
         for (i=0; i<MMAP_NUM_ENTRIES; i++) {
-                if (mmap_table[i].value & i) {
+                if (mmap_table[i].value & maps) {
                         if (!cnt) {
                                 strcat(buf,
 				mmap_strings + mmap_table[i].offset);
@@ -1086,20 +1086,20 @@ static const char *print_ptrace(const char *val)
 
 static const char *print_mount(const char *val)
 {
-	size_t i;
+	unsigned int mounts, i;
 	int cnt = 0;
 	char buf[144];
 	char *out;
 
 	errno = 0;
-        i = strtoul(val, NULL, 16);
+        mounts = strtoul(val, NULL, 16);
 	if (errno) {
 		asprintf(&out, "conversion error(%s)", val);
 		return out;
 	}
 	buf[0] = 0;
         for (i=0; i<MOUNT_NUM_ENTRIES; i++) {
-                if (mount_table[i].value & i) {
+                if (mount_table[i].value & mounts) {
                         if (!cnt) {
                                 strcat(buf,
 				mount_strings + mount_table[i].offset);
@@ -1134,14 +1134,42 @@ static const char *print_rlimit(const char *val)
 	return out;
 }
 
+static const char *print_recv(const char *val)
+{
+	unsigned int rec, i;
+	int cnt = 0;
+	char buf[144];
+	char *out;
+
+	errno = 0;
+        rec = strtoul(val, NULL, 16);
+	if (errno) {
+		asprintf(&out, "conversion error(%s)", val);
+		return out;
+	}
+	buf[0] = 0;
+        for (i=0; i<RECV_NUM_ENTRIES; i++) {
+                if (recv_table[i].value & rec) {
+                        if (!cnt) {
+                                strcat(buf,
+				recv_strings + recv_table[i].offset);
+                                cnt++;
+                        } else {
+                                strcat(buf, "|");
+                                strcat(buf,
+				recv_strings + recv_table[i].offset);
+			}
+                }
+        }
+	return strdup(buf);
+}
+
 static const char *print_a0(const char *val, const rnode *r)
 {
 	int machine = r->machine, syscall = r->syscall;
 	const char *sys = audit_syscall_to_name(syscall, machine);
 	if (sys) {
-		if (strcmp(sys, "clone") == 0)
-			return print_clone_flags(val);
-		else if (strcmp(sys, "rt_sigaction") == 0)
+		if (strcmp(sys, "rt_sigaction") == 0)
                         return print_signals(val, 16);
                 else if (strcmp(sys, "setuid") == 0)
 			return print_uid(val, 16);
@@ -1180,8 +1208,6 @@ static const char *print_a1(const char *val, const rnode *r)
 	if (sys) {
 		if (strcmp(sys, "open") == 0)
 			return print_open_flags(val);
-		else if (strncmp(sys, "fcntl", 5) == 0)
-			return print_fcntl_cmd(val);
 		else if (strcmp(sys, "epoll_ctl") == 0)
 			return print_epoll_ctl(val);
 		else if (strcmp(sys, "chmod") == 0)
@@ -1206,6 +1232,8 @@ static const char *print_a1(const char *val, const rnode *r)
 			return print_mode_short(val);
 		else if (strcmp(sys, "creat") == 0)
 			return print_mode_short(val);
+		else if (strncmp(sys, "fcntl", 5) == 0)
+			return print_fcntl_cmd(val);
 		else if (strcmp(sys, "mknod") == 0)
 			return print_mode(val, 16);
                 else if (strcmp(sys, "socket") == 0)
@@ -1263,6 +1291,10 @@ static const char *print_a2(const char *val, const rnode *r)
 			return print_prot(val, 0);
                 else if (strcmp(sys, "socket") == 0)
 			return print_socket_proto(val);
+		else if (strcmp(sys, "clone") == 0)
+			return print_clone_flags(val);
+                else if (strcmp(sys, "recvmsg") == 0)
+			return print_recv(val);
 	}
 	return strdup(val);
 }
@@ -1274,8 +1306,14 @@ static const char *print_a3(const char *val, const rnode *r)
 	if (sys) {
 		if (strcmp(sys, "mmap") == 0)
 			return print_mmap(val);
-		if (strcmp(sys, "mount") == 0)
+		else if (strcmp(sys, "mount") == 0)
 			return print_mount(val);
+                else if (strcmp(sys, "recv") == 0)
+			return print_recv(val);
+                else if (strcmp(sys, "recvfrom") == 0)
+			return print_recv(val);
+                else if (strcmp(sys, "recvmmsg") == 0)
+			return print_recv(val);
 	}
 	return strdup(val);
 }
