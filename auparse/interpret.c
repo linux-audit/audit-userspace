@@ -80,7 +80,6 @@
 #include "rlimittabs.h"
 #include "socktabs.h"
 #include "socktypetabs.h"
-#include "seeks.h"
 #include "signaltabs.h"
 #include "clocktabs.h"
 #include "typetabs.h"
@@ -945,26 +944,6 @@ static const char *print_epoll_ctl(const char *val)
 	return out;
 }
 
-static const char *print_seek(const char *val)
-{
-	unsigned int cmd;
-	char *out;
-	const char *s;
-
-	errno = 0;
-	cmd = strtoul(val, NULL, 16);
-	if (errno) {
-		asprintf(&out, "conversion error(%s)", val);
-		return out;
-	}
-
-	s = seek_i2s(cmd);
-	if (s != NULL)
-		return strdup(s);
-	asprintf(&out, "unknown seek whence (%d)", cmd);
-	return out;
-}
-
 static const char *print_clock_id(const char *val)
 {
 	int i;
@@ -1266,8 +1245,6 @@ static const char *print_a2(const char *val, const rnode *r)
 			}
 		} else if (strcmp(sys, "openat") == 0)
 			return print_open_flags(val);
-		else if (strcmp(sys, "lseek") == 0)
-			return print_seek(val);
 		else if (strcmp(sys, "fchmodat") == 0)
 			return print_mode_short(val);
 		else if (strstr(sys, "chown"))

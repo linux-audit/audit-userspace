@@ -312,7 +312,7 @@ static unsigned char x2c(unsigned char *buf)
 }
 
 /* returns a freshly malloc'ed and converted buffer */
-char *unescape(char *buf)
+char *unescape(const char *buf)
 {
 	int len, i;
 	char saved, *ptr = buf, *str;

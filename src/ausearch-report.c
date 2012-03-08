@@ -59,8 +59,8 @@ T_SOCKADDR, T_FLAGS, T_PROMISC, T_CAPABILITY, T_A0, T_A1, T_A2, T_A3,
 T_SIGNAL, T_KEY, T_LIST, T_TTY_DATA, T_SESSION, T_CAP_BITMAP, T_NFPROTO,
 T_ICMPTYPE, T_PROTOCOL, T_ADDR, T_PERSONALITY };
 
-/* Function in ausearch-parse for unescaping filenames */
-extern char *unescape(char *buf);
+/* Function in ausearch-lookup for unescaping filenames */
+extern char *unescape(const char *buf);
 
 /* Local functions */
 static void output_raw(llist *l);
@@ -1505,29 +1505,54 @@ static void print_socket_proto(const char *val)
 		printf("%s ", p->p_name);
 }
 
-static const char *seeks[] =
+static struct nv_pair clonetab[] =
 {
-	"SEEK_SET",
-	"SEEK_CUR",
-	"SEEK_END"
+  {0x00000100,  "CLONE_VM"},
+  {0x00000200,  "CLONE_FS"},
+  {0x00000400,  "CLONE_FILES"},
+  {0x00000800,  "CLONE_SIGHAND"},
+  {0x00002000,  "CLONE_PTRACE"},
+  {0x00004000,  "CLONE_VFORK"},
+  {0x00008000,  "CLONE_PARENT"},
+  {0x00010000,  "CLONE_THREAD"},
+  {0x00020000,  "CLONE_NEWNS"},
+  {0x00040000,  "CLONE_SYSVSEM"},
+  {0x00080000,  "CLONE_SETTLS"},
+  {0x00100000,  "CLONE_PARENT_SETTID"},
+  {0x00200000,  "CLONE_CHILD_CLEARTID"},
+  {0x00400000,  "CLONE_DETACHED"},
+  {0x00800000,  "CLONE_UNTRACED"},
+  {0x01000000,  "CLONE_CHILD_SETTID"},
+  {0x02000000,  "CLONE_STOPPED"},
+  {0x04000000,  "CLONE_NEWUTS"},
+  {0x08000000,  "CLONE_NEWIPC"}
 };
+#define CLONE_NAMES (sizeof(clonetab)/sizeof(clonetab[0]))
 
-static void print_seeks(const char *val)
+static void print_clone(const char *val)
 {
-	unsigned int whence, i, found = 0;
+	unsigned int clones, i, found = 0;
 
 	errno = 0;
-	whence = strtoul(val, NULL, 16);
+	clones = strtoul(val, NULL, 16);
 	if (errno) {
 		printf("conversion error(%s) ", val);
 		return;
 	}
 
-	if (whence > 3) {
-		printf("unknown whence(%s)", val);
-		return;
+	for (i = 0; i < CLONE_NAMES; i++) {
+		if (clonetab[i].value & clones) {
+			if (found == 0) {
+				printf("%s", clonetab[i].name);
+				found = 1;
+			} else
+				printf("|%s", clonetab[i].name);
+		}
 	}
-	printf("%s ", seeks[whence]);
+	if (!found)
+		printf("0x%s ", val);
+	else
+		putchar(' ');
 }
 
 static void print_a0(const char *val)
@@ -1631,8 +1656,8 @@ static void print_a2(const char *val)
 			return print_prot(val, 0);
 		else if (strcmp(sys, "socket") == 0)
 			return print_socket_proto(val);
-		else if (strcmp(sys, "lseek") == 0)
-			return print_seeks(val);
+		else if (strcmp(sys, "clone") == 0)
+			return print_clone(val);
 		else goto normal;
 	} else
 normal:
