@@ -1,6 +1,5 @@
-
 /* famtab.h --
- * Copyright 2007 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2007,2012 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -19,6 +18,7 @@
  *
  * Authors:
  *      Steve Grubb <sgrubb@redhat.com>
+ * Location: include/linux/socket.h
  */
 
 _S(AF_LOCAL,		"local"		)
@@ -41,10 +41,21 @@ _S(AF_PACKET,		"packet"	)
 _S(AF_ASH,		"ash"		)
 _S(AF_ECONET,		"econet"	)
 _S(AF_ATMSVC,		"atmsvc"	)
+_S(AF_RDS,		"rds"		)
 _S(AF_SNA,		"sna"		)
 _S(AF_IRDA,		"irda"		)
 _S(AF_PPPOX,		"pppox"		)
 _S(AF_WANPIPE,		"wanpipe"	)
+_S(AF_LLC,		"llc"		)
+_S(AF_CAN,		"can"		)
+_S(AF_TIPC,		"tipc"		)
 _S(AF_BLUETOOTH,	"bluetooth"	)
-
+_S(AF_IUCV,		"iucv"		)
+_S(AF_RXRPC,		"rxrpc"		)
+_S(AF_ISDN,		"isdn"		)
+_S(AF_PHONET,		"phonet"	)
+_S(AF_IEEE802154,	"ieee802154"	)
+_S(37,			"caif"		)
+_S(38,			"alg"		)
+_S(39,			"nfc"		)
 

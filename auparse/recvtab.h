@@ -18,6 +18,7 @@
  *
  * Authors:
  *      Steve Grubb <sgrubb@redhat.com>
+ * Location: include/linux/socket.h
  */
 
 _S(0x00000001,    "MSG_OOB")

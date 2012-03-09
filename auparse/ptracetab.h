@@ -18,6 +18,7 @@
  *
  * Authors:
  *      Steve Grubb <sgrubb@redhat.com>
+ * Location: include/linux/ptrace.h
  */
 
 _S(0,		"PTRACE_TRACEME"	)

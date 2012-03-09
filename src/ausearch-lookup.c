@@ -1,6 +1,6 @@
 /*
 * ausearch-lookup.c - Lookup values to something more readable
-* Copyright (c) 2005-06,2011 Red Hat Inc., Durham, North Carolina.
+* Copyright (c) 2005-06,2011-12 Red Hat Inc., Durham, North Carolina.
 * All Rights Reserved. 
 *
 * This software may be freely redistributed and/or modified under the
@@ -116,7 +116,8 @@ static struct nv_pair socktab[] = {
 	{SYS_SENDMSG, "sendmsg"},
 	{SYS_RECVMSG, "recvmsg"},
 	{SYS_ACCEPT4, "accept4"},
-	{SYS_RECVMMSG, "recvmmsg"}
+	{SYS_RECVMMSG, "recvmmsg"},
+	{20, "sendmmsg"}
 };
 #define SOCK_NAMES (sizeof(socktab)/sizeof(socktab[0]))
 
@@ -136,6 +137,7 @@ const char *aulookup_socketcall(long sc)
 #define SEMOP            1
 #define SEMGET           2
 #define SEMCTL           3
+#define SEMTIMEDOP	 4
 #define MSGSND          11
 #define MSGRCV          12
 #define MSGGET          13
@@ -152,6 +154,7 @@ static struct nv_pair ipctab[] = {
         {SEMOP, "semop"},
         {SEMGET, "semget"},
         {SEMCTL, "semctl"},
+        {SEMTIMEDOP, "semtimedop"},
         {MSGSND, "msgsnd"},
         {MSGRCV, "msgrcv"},
         {MSGGET, "msgget"},

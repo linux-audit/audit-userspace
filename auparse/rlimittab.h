@@ -18,6 +18,7 @@
  *
  * Authors:
  *      Steve Grubb <sgrubb@redhat.com>
+ * Location: include/asm-generic/resource.h
  */
 
  _S(0, "RLIMIT_CPU")
@@ -36,5 +37,4 @@
  _S(13,"RLIMIT_NICE")
  _S(14,"RLIMIT_RTPRIO")
  _S(15,"RLIMIT_RTTIME")
- _S(16,"RLIMIT_NLIMITS")
 

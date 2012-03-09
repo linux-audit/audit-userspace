@@ -18,6 +18,7 @@
  *
  * Authors:
  *      Steve Grubb <sgrubb@redhat.com>
+ * Location: include/linux/time.h
  */
 
 _S(0,	"CLOCK_REALTIME"		)
@@ -27,4 +28,7 @@ _S(3,	"CLOCK_THREAD_CPUTIME_ID"	)
 _S(4,	"CLOCK_MONOTONIC_RAW"		)
 _S(5,	"CLOCK_REALTIME_COARSE"		)
 _S(6,	"CLOCK_MONOTONIC_COARSE"	)
+_S(7,	"CLOCK_BOOTTIME"		)
+_S(8,	"CLOCK_REALTIME_ALARM"		)
+_S(9,	"CLOCK_BOOTTIME_ALARM"		)
 

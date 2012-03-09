@@ -1,6 +1,5 @@
-
 /* socktab.h --
- * Copyright 2007,2011 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2007,2011-12 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -19,6 +18,7 @@
  *
  * Authors:
  *      Steve Grubb <sgrubb@redhat.com>
+ * Location: include/linux/net.h
  */
 
 _S(SYS_SOCKET,		"socket"	)
@@ -40,4 +40,5 @@ _S(SYS_SENDMSG,		"sendmsg"	)
 _S(SYS_RECVMSG,		"recvmsg"	)
 _S(SYS_ACCEPT4,		"accept4"	)
 _S(SYS_RECVMMSG,	"recvmmsg"	)
+_S(20,			"sendmmsg"	)
 

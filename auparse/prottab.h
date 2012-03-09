@@ -18,6 +18,7 @@
  *
  * Authors:
  *      Steve Grubb <sgrubb@redhat.com>
+ * Location: include/asm-generic/mman-common.h
  */
 
 _S(1,	"PROT_READ"	)

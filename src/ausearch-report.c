@@ -662,11 +662,23 @@ static struct nv_pair famtab[] = {
         {AF_ASH, "ash"},
         {AF_ECONET, "econet"},
         {AF_ATMSVC, "atmsvc"},
+	{AF_RDS, "rds"},
         {AF_SNA, "sna"},
         {AF_IRDA, "irda"},
         {AF_PPPOX, "pppox"},
         {AF_WANPIPE, "wanpipe"},
-        {AF_BLUETOOTH, "bluetooth"}
+	{AF_LLC, "llc"},
+	{AF_CAN, "can"},
+	{AF_TIPC, "tipc"},
+        {AF_BLUETOOTH, "bluetooth"},
+	{AF_IUCV, "iucv"},
+	{AF_RXRPC, "rxrpc"},
+	{AF_ISDN, "isdn"},
+	{AF_PHONET, "phonet"},
+	{AF_IEEE802154, "ieee802154"},
+	{37, "caif"},
+	{38, "alg"},
+	{39, "nfc"}
 };
 #define FAM_NAMES (sizeof(famtab)/sizeof(famtab[0]))
 
@@ -815,7 +827,7 @@ static void print_addr(const char *val)
 }
 
 /*
- * This table maps file system flags to their text name
+ * This table maps file system flags in RHEL4 to their text name
  */
 static struct nv_pair flagtab[] = {
         {0x0001, "follow"},
@@ -986,8 +998,7 @@ static void print_signals(const char *val, unsigned int base)
 		printf("Unknown:%s ", val);
 }
 
-#define OPEN_FLAG_NUM_ENTRIES 13
-static const char *oflags[OPEN_FLAG_NUM_ENTRIES] = 
+static const char *oflags[] = 
 {
 	"O_CREAT",
 	"O_EXCL",
@@ -1001,8 +1012,10 @@ static const char *oflags[OPEN_FLAG_NUM_ENTRIES] =
 	"UNKNOWN",
 	"O_DIRECTORY",
 	"O_NOFOLLOW",
-	"O_NOATIME"
+	"O_NOATIME",
+	"O_CLOEXEC"
 };
+#define OPEN_FLAG_NUM_ENTRIES (sizeof(oflags)/sizeof(oflags[0]))
 
 static void print_open_flags(const char *val)
 {
@@ -1052,8 +1065,12 @@ static const char *clocks[] = {
 	"CLOCK_THREAD_CPUTIME_ID",
 	"CLOCK_MONOTONIC_RAW",
 	"CLOCK_REALTIME_COARSE",
-	"CLOCK_MONOTONIC_COARSE"
+	"CLOCK_MONOTONIC_COARSE",
+	"CLOCK_BOOTTIME",
+	"CLOCK_REALTIME_ALARM",
+	"CLOCK_BOOTTIME_ALARM"
 };
+#define CLOCK_NAMES (sizeof(clocks)/sizeof(clocks[0]))
 
 static void print_clock_id(const char *val)
 {
@@ -1065,7 +1082,7 @@ static void print_clock_id(const char *val)
 		printf("conversion error(%s) ", val);
 		return;
 	}
-	if (i < 7)
+	if (i < CLOCK_NAMES)
 		printf("%s ", clocks[i]);
 	else
 		printf("Unknown:%s ", val);
@@ -1387,9 +1404,15 @@ static struct nv_pair fcntltab[]=
  {12,          "F_GETLK64" },
  {13,          "F_SETLK64" },
  {14,          "F_SETLKW64" },
+ {15,          "F_SETOWN_EX"},
+ {16,          "F_GETOWN_EX"},
  {1024,        "F_SETLEASE" },
  {1025,        "F_GETLEASE" },
- {1026,        "F_NOTIFY" }
+ {1026,        "F_NOTIFY" },
+ {1029,        "F_CANCELLK"},
+ {1030,        "F_DUPFD_CLOEXEC"},
+ {1031,        "F_SETPIPE_SZ"},
+ {1032,        "F_GETPIPE_SZ"}
 };
 #define FCNTL_NAMES (sizeof(fcntltab)/sizeof(fcntltab[0]))
 
@@ -1412,7 +1435,7 @@ static void print_fcntl(const char *val)
 	}
 }
 
-#define LIMIT_NAMES 17
+#define LIMIT_NAMES 16
 static const char *lim[LIMIT_NAMES] =
 {
   "RLIMIT_CPU",
@@ -1431,7 +1454,6 @@ static const char *lim[LIMIT_NAMES] =
   "RLIMIT_NICE",
   "RLIMIT_RTPRIO",
   "RLIMIT_RTTIME",
-  "RLIMIT_NLIMITS"
 };
 
 static void print_rlimit(const char *val)
@@ -1525,7 +1547,11 @@ static struct nv_pair clonetab[] =
   {0x01000000,  "CLONE_CHILD_SETTID"},
   {0x02000000,  "CLONE_STOPPED"},
   {0x04000000,  "CLONE_NEWUTS"},
-  {0x08000000,  "CLONE_NEWIPC"}
+  {0x08000000,  "CLONE_NEWIPC"},
+  {0x10000000,  "CLONE_NEWUSER"},
+  {0x20000000,  "CLONE_NEWPID"},
+  {0x40000000,  "CLONE_NEWNET"},
+  {0x80000000,  "CLONE_IO"}
 };
 #define CLONE_NAMES (sizeof(clonetab)/sizeof(clonetab[0]))
 

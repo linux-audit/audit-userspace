@@ -18,6 +18,7 @@
  *
  * Authors:
  *      Steve Grubb <sgrubb@redhat.com>
+ * Location: include/linux/personality.h
  */
 
 _S(0x0000, "PER_LINUX")

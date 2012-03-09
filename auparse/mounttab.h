@@ -18,9 +18,9 @@
  *
  * Authors:
  *      Steve Grubb <sgrubb@redhat.com>
+ * Location: include/linux/fs.h
  */
 
-_S(0,		"PTRACE_TRACEME"	)
 _S(MS_RDONLY, "MS_RDONLY")
 _S(MS_NOSUID, "MS_NOSUID")
 _S(MS_NODEV, "MS_NODEV" )

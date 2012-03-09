@@ -1,4 +1,3 @@
-
 /* socktypetab.h --
  * Copyright 2012 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
@@ -19,6 +18,7 @@
  *
  * Authors:
  *      Steve Grubb <sgrubb@redhat.com>
+ * Location: include/linux/net.h
  */
 
 _S(1, "SOCK_STREAM")

@@ -18,6 +18,7 @@
  *
  * Authors:
  *      Steve Grubb <sgrubb@redhat.com>
+ * Location: include/asm-generic/signal.h
  */
 
 _S(0,	"0"		)

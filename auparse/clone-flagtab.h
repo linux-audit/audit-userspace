@@ -1,6 +1,5 @@
-
 /* clone-flagtab.h --
- * Copyright 2007 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2007,2012 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -19,6 +18,7 @@
  *
  * Authors:
  *      Steve Grubb <sgrubb@redhat.com>
+ * Location: include/linux/sched.h
  */
 
 _S(0x00000100,	"CLONE_VM" )
@@ -40,4 +40,8 @@ _S(0x01000000,	"CLONE_CHILD_SETTID" )
 _S(0x02000000,	"CLONE_STOPPED" )
 _S(0x04000000,	"CLONE_NEWUTS" )
 _S(0x08000000,	"CLONE_NEWIPC" )
+_S(0x10000000,	"CLONE_NEWUSER" )
+_S(0x20000000,	"CLONE_NEWPID" )
+_S(0x40000000,	"CLONE_NEWNET" )
+_S(0x80000000,	"CLONE_IO" )
 

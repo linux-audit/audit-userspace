@@ -1,6 +1,5 @@
-
 /* ipctab.h --
- * Copyright 2007 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2007,2012 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -19,12 +18,14 @@
  *
  * Authors:
  *      Steve Grubb <sgrubb@redhat.com>
+ * Location: include/linux/ipc.h
  */
 
 
 _S(SEMOP,	"semop"		)
 _S(SEMGET,	"semget"	)
 _S(SEMCTL,	"semctl"	)
+_S(4,		"semtimedop"	)
 _S(MSGSND,	"msgsnd"	)
 _S(MSGRCV,	"msgrcv"	)
 _S(MSGGET,	"msgget"	)

@@ -1,6 +1,5 @@
-
 /* open-flagtab.h --
- * Copyright 2007 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2007,2012 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -19,6 +18,7 @@
  *
  * Authors:
  *      Steve Grubb <sgrubb@redhat.com>
+ * Location: include/asm-generic/fcntl.h
  */
 
 // Handled in the code: _S(00,		"O_RDONLY" )
@@ -36,4 +36,5 @@ _S(040000,	"O_DIRECT" )
 _S(0200000,	"O_DIRECTORY" )
 _S(0400000,	"O_NOFOLLOW" )
 _S(01000000,	"O_NOATIME" )
+_S(02000000,	"O_CLOEXEC")
 

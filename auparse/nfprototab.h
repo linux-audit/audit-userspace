@@ -1,6 +1,5 @@
-
 /* nfprototab.h --
- * Copyright 2011 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2011-12 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -19,6 +18,7 @@
  *
  * Authors:
  *      Steve Grubb <sgrubb@redhat.com>
+ * Location: include/linux/netfilter.h
  */
 
 _S(0,	"unspecified"	)
