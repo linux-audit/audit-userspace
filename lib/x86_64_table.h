@@ -1,5 +1,5 @@
 /* x86_64_table.h --
- * Copyright 2005-11 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2005-12 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -329,3 +329,6 @@ _S(305, "clock_adjtime")
 _S(306, "syncfs")
 _S(307, "sendmmsg")
 _S(308, "setns")
+_S(309, "getcpu")
+_S(310, "process_vm_readv")
+_S(311, "process_vm_writev")

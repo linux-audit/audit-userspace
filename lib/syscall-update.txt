@@ -8,6 +8,7 @@ arch/ia64/include/asm/unistd.h
 arch/alpha/include/asm/unistd.h
 arch/arm/include/asm/unistd.h
 
+For src/ausearch-lookup.c:
 Inspect include/linux/net.h for socketcall updates
 Inspect include/linux/ipc.h for ipccall updates
 

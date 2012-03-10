@@ -2,6 +2,7 @@
 - Add more interpretations in auparse for syscall parameters 
 - Add some interpretations to ausearch for syscall parameters
 - In ausearch/report and auparse, allocate extra space for node names
+- Update syscall tables for the 3.3.0 kernel
 
 2.2
 - Correct all rules for clock_settime

@@ -1,5 +1,5 @@
 /* i386_table.h --
- * Copyright 2005-11 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2005-12 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -365,3 +365,5 @@ _S(343, "clock_adjtime")
 _S(344, "syncfs")
 _S(345, "sendmmsg")
 _S(346, "setns")
+_S(347, "process_vm_readv")
+_S(348, "process_vm_writev")

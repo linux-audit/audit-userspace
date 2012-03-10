@@ -1,5 +1,5 @@
 /* ia64_table.h --
- * Copyright 2005-11 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2005-12 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -322,3 +322,6 @@ _S(1328, "clock_adjtime")
 _S(1329, "syncfs")
 _S(1330, "setns")
 _S(1331, "sendmmsg")
+_S(1332, "process_vm_readv")
+_S(1333, "process_vm_writev")
+_S(1334, "accept4")

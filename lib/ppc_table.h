@@ -1,5 +1,5 @@
 /* ppc_table.h --
- * Copyright 2005-09,2011 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2005-09,2011-12 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -364,3 +364,5 @@ _S(347, "clock_adjtime")
 _S(348, "syncfs")
 _S(349, "sendmmsg")
 _S(350, "setns")
+_S(351, "process_vm_readv")
+_S(352, "process_vm_writev")
