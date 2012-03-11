@@ -3,6 +3,7 @@
 - Add some interpretations to ausearch for syscall parameters
 - In ausearch/report and auparse, allocate extra space for node names
 - Update syscall tables for the 3.3.0 kernel
+- Update libev to 4.0.4
 
 2.2
 - Correct all rules for clock_settime
