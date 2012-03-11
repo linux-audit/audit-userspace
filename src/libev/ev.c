@@ -467,7 +467,7 @@ struct signalfd_siginfo
  * This value is good at least till the year 4000.
  */
 #define MIN_INTERVAL  0.0001220703125 /* 1/2**13, good till 4000 */
-/*#define MIN_INTERVAL  0.00000095367431640625 /* 1/2**20, good till 2200 */
+/*#define MIN_INTERVAL  0.00000095367431640625 * 1/2**20, good till 2200 */
 
 #define MIN_TIMEJUMP  1. /* minimum timejump that gets detected (if monotonic clock available) */
 #define MAX_BLOCKTIME 59.743 /* never wait longer than this time (to detect time jumps) */
@@ -1177,7 +1177,7 @@ ev_realloc (void *ptr, long size)
 }
 
 #define ev_malloc(size) ev_realloc (0, (size))
-#define ev_free(ptr)    ev_realloc ((ptr), 0)
+#define ev_free(ptr)    free (ptr)
 
 /*****************************************************************************/
 
@@ -1853,7 +1853,7 @@ evpipe_write (EV_P_ EV_ATOMIC_T *flag)
 
   if (pipe_write_wanted)
     {
-      int old_errno;
+      int old_errno, rc;
 
       pipe_write_skipped = 0; /* just an optimisation, no fence needed */
 
@@ -1863,7 +1863,9 @@ evpipe_write (EV_P_ EV_ATOMIC_T *flag)
       if (evfd >= 0)
         {
           uint64_t counter = 1;
-          write (evfd, &counter, sizeof (uint64_t));
+          do {
+            rc = write (evfd, &counter, sizeof (uint64_t));
+          } while (errno == EINTR && rc < 0);
         }
       else
 #endif
@@ -1873,7 +1875,9 @@ evpipe_write (EV_P_ EV_ATOMIC_T *flag)
           /* so when you think this write should be a send instead, please find out */
           /* where your send() is from - it's definitely not the microsoft send, and */
           /* tell me. thank you. */
-          write (evpipe [1], &(evpipe [1]), 1);
+          do {
+            rc = write (evpipe [1], &(evpipe [1]), 1);
+          } while (errno == EINTR && rc < 0);
         }
 
       errno = old_errno;
@@ -2781,8 +2785,6 @@ periodics_reify (EV_P)
 
   while (periodiccnt && ANHE_at (periodics [HEAP0]) < ev_rt_now)
     {
-      int feed_count = 0;
-
       do
         {
           ev_periodic *w = (ev_periodic *)ANHE_w (periodics [HEAP0]);
@@ -3234,7 +3236,7 @@ ev_io_start (EV_P_ ev_io *w)
   array_needsize (ANFD, anfds, anfdmax, fd + 1, array_init_zero);
   wlist_add (&anfds[fd].head, (WL)w);
 
-  fd_change (EV_A_ fd, w->events & EV__IOFDSET | EV_ANFD_REIFY);
+  fd_change (EV_A_ fd, (w->events & EV__IOFDSET) | EV_ANFD_REIFY);
   w->events &= ~EV__IOFDSET;
 
   EV_FREQUENT_CHECK;
@@ -4465,8 +4467,8 @@ ev_walk (EV_P_ int types, void (*cb)(EV_P_ int type, void *w))
           wl = wn;
         }
 #endif
-/* EV_STAT     0x00001000 /* stat data changed */
-/* EV_EMBED    0x00010000 /* embedded event loop needs sweep */
+/* EV_STAT     0x00001000 * stat data changed */
+/* EV_EMBED    0x00010000 * embedded event loop needs sweep */
 }
 #endif
 
