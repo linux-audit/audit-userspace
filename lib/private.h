@@ -48,7 +48,7 @@ extern "C" {
 typedef enum { REAL_ERR, HIDE_IT } hide_t;
 
 /* Internal syslog messaging */
-void audit_msg(int priority, const char *fmt, ...) hidden
+void audit_msg(int priority, const char *fmt, ...) 
 #ifdef __GNUC__
 	__attribute__ ((format (printf, 2, 3)));
 #else
@@ -137,8 +137,7 @@ struct auditd_remote_message_wrapper {
 	seq = _AUDIT_RMW_GETN32 (header,12);
 
 /* General */
-extern int audit_send(int fd, int type, const void *data, unsigned int size)
-	hidden;
+extern int audit_send(int fd, int type, const void *data, unsigned int size);
 
 // This is the main messaging function used internally
 // Don't hide it, it used to be a part of the public API!
@@ -146,6 +145,11 @@ extern int audit_send_user_message(int fd, int type, hide_t hide_err,
 	const char *message);
 
 // libaudit.c
+extern int _audit_permadded;
+extern int _audit_archadded;
+extern int _audit_syscalladded;
+extern unsigned int _audit_elf;
+
 hidden_proto(audit_send_user_message);
 hidden_proto(audit_add_watch_dir);
 hidden_proto(audit_detect_machine);
@@ -167,7 +171,10 @@ hidden_proto(audit_name_to_ftype);
 
 // netlink.c
 hidden_proto(audit_get_reply);
+hidden_proto(audit_send)
 
+// message.c
+hidden_proto(audit_msg)
 
 #ifdef __cplusplus
 }

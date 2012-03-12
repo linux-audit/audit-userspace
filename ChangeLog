@@ -4,6 +4,7 @@
 - In ausearch/report and auparse, allocate extra space for node names
 - Update syscall tables for the 3.3.0 kernel
 - Update libev to 4.0.4
+- Reduce the size of some applications
 
 2.2
 - Correct all rules for clock_settime

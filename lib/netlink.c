@@ -243,6 +243,7 @@ int audit_send(int fd, int type, const void *data, unsigned int size)
 
 	return 0;
 }
+hidden_def(audit_send)
 
 /*
  * This function will take a peek into the next packet and see if there's

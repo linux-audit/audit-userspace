@@ -1,5 +1,5 @@
 # Makefile.am -- 
-# Copyright 2005-06,2008 Red Hat Inc., Durham, North Carolina.
+# Copyright 2005-06,2008,2012 Red Hat Inc., Durham, North Carolina.
 # All Rights Reserved.
 #
 # This library is free software; you can redistribute it and/or
@@ -25,7 +25,7 @@
 AUTOMAKE_OPTIONS = no-dependencies
 INCLUDES = -I${top_srcdir}/lib -I${top_builddir}/lib
 CONFIG_CLEAN_FILES = *.rej *.orig
-AM_CFLAGS = -fPIC -DPIC -D_REENTRANT -D_GNU_SOURCE
+AM_CFLAGS = -fPIC -DPIC -D_REENTRANT -D_GNU_SOURCE -DNO_TABLES
 
 noinst_LIBRARIES = libauditmt.a
 

@@ -32,6 +32,7 @@ struct msg_tab {
     const char	*cvalue;
 };
 
+#ifndef NO_TABLES
 static const struct msg_tab err_msgtab[] = {
     { -1,    2,    "-F missing operation for" },
     { -2,    2,    "-F unknown field:" },
@@ -61,3 +62,4 @@ static const struct msg_tab err_msgtab[] = {
     { -26,    2,    "-C unknown field:" },
     { -27,    2,    "-C unknown right hand value for comparison with:" },
 };
+#endif

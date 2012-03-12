@@ -79,10 +79,10 @@ static const struct nv_list failure_actions[] =
   { NULL,		0 }
 };
 
-int audit_permadded hidden = 0;
-int audit_archadded hidden = 0;
-int audit_syscalladded hidden = 0;
-unsigned int audit_elf hidden = 0U;
+int _audit_permadded = 0;
+int _audit_archadded = 0;
+int _audit_syscalladded = 0;
+unsigned int _audit_elf = 0U;
 static struct libaudit_conf config;
 
 static int audit_failure_parser(const char *val, int line);
@@ -591,7 +591,7 @@ int audit_add_watch_dir(int type, struct audit_rule_data **rulep,
 	rule->values[1] = AUDIT_PERM_READ | AUDIT_PERM_WRITE |
 				AUDIT_PERM_EXEC | AUDIT_PERM_ATTR;
 	
-	audit_permadded = 1;
+	_audit_permadded = 1;
 
 	return  0;
 }
@@ -773,10 +773,10 @@ int audit_rule_syscallbyname_data(struct audit_rule_data *rule,
 			rule->mask[i] = ~0;
 		return 0;
 	}
-	if (!audit_elf)
+	if (!_audit_elf)
 		machine = audit_detect_machine();
 	else
-		machine = audit_elf_to_machine(audit_elf);
+		machine = audit_elf_to_machine(_audit_elf);
 	if (machine < 0)
 		return -2;
 	nr = audit_name_to_syscall(scall, machine);
@@ -1225,7 +1225,7 @@ int audit_rule_fieldpair_data(struct audit_rule_data **rulep, const char *pair,
 			if (flags != AUDIT_FILTER_EXIT)
 				return -7;
 			if (field == AUDIT_WATCH || field == AUDIT_DIR)
-				audit_permadded = 1;
+				_audit_permadded = 1;
 
 			/* fallthrough */
 		case AUDIT_SUBJ_USER:
@@ -1234,7 +1234,7 @@ int audit_rule_fieldpair_data(struct audit_rule_data **rulep, const char *pair,
 		case AUDIT_SUBJ_SEN:
 		case AUDIT_SUBJ_CLR:
 		case AUDIT_FILTERKEY:
-			if (field == AUDIT_FILTERKEY && !(audit_syscalladded || audit_permadded))
+			if (field == AUDIT_FILTERKEY && !(_audit_syscalladded || _audit_permadded))
                                 return -19;
 			vlen = strlen(v);
 			if (field == AUDIT_FILTERKEY &&
@@ -1257,7 +1257,7 @@ int audit_rule_fieldpair_data(struct audit_rule_data **rulep, const char *pair,
 
 			break;
 		case AUDIT_ARCH:
-			if (audit_syscalladded) 
+			if (_audit_syscalladded) 
 				return -3;
 			if (!(op == AUDIT_NOT_EQUAL || op == AUDIT_EQUAL))
 				return -13;
@@ -1265,12 +1265,12 @@ int audit_rule_fieldpair_data(struct audit_rule_data **rulep, const char *pair,
 				int machine;
 
 				errno = 0;
-				audit_elf = strtoul(v, NULL, 0);
+				_audit_elf = strtoul(v, NULL, 0);
 				if (errno) 
 					return -5;
 
 				// Make sure we have a valid mapping
-				machine = audit_elf_to_machine(audit_elf);
+				machine = audit_elf_to_machine(_audit_elf);
 				if (machine < 0)
 					return -5;
 			}
@@ -1341,10 +1341,10 @@ int audit_rule_fieldpair_data(struct audit_rule_data **rulep, const char *pair,
 				if (elf == 0)
 					return -5;
 
-				audit_elf = elf;
+				_audit_elf = elf;
 			}
-			rule->values[rule->field_count] = audit_elf; 
-			audit_archadded = 1;
+			rule->values[rule->field_count] = _audit_elf; 
+			_audit_archadded = 1;
 			break;
 		case AUDIT_PERM:
 			if (flags != AUDIT_FILTER_EXIT)
@@ -1471,6 +1471,7 @@ int audit_detect_machine(void)
 }
 hidden_def(audit_detect_machine)
 
+#ifndef NO_TABLES
 void audit_number_to_errmsg(int errnumber, const char *opt)
 {
 	unsigned int i;
@@ -1498,3 +1499,4 @@ void audit_number_to_errmsg(int errnumber, const char *opt)
 		}
 	}
 }
+#endif
