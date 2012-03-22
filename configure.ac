@@ -62,7 +62,7 @@ AC_C_INLINE
 AC_CHECK_SIZEOF([unsigned int])
 AC_CHECK_SIZEOF([unsigned long])
 AM_PROG_CC_C_O
-AC_CHECK_DECLS([MS_RDONLY], [], [], [[#include <sys/mount.h>]])
+AC_CHECK_DECLS([MS_DIRSYNC], [], [], [[#include <sys/mount.h>]])
 
 ALLWARNS=""
 ALLDEBUG="-g"

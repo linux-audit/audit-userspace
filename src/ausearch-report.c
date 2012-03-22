@@ -43,7 +43,7 @@
 #include <fcntl.h>
 #include <sys/personality.h>
 #include <sys/mount.h>
-#if !HAVE_DECL_MS_RDONLY
+#if !HAVE_DECL_MS_DIRSYNC
 #include <linux/fs.h>
 #endif
 #include "libaudit.h"
