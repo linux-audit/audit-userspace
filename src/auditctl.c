@@ -1,5 +1,5 @@
 /* auditctl.c -- 
- * Copyright 2004-2011 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2004-2012 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -36,6 +36,9 @@
 #include <errno.h>
 #include <libgen.h>	/* For basename */
 #include <limits.h>	/* PATH_MAX */
+#ifdef HAVE_LIBCAP_NG
+#include <cap-ng.h>
+#endif
 #include "libaudit.h"
 #include "private.h"
 
@@ -766,11 +769,20 @@ static int setopt(int count, int lineno, char *vars[])
 			fprintf(stderr,
 	"The -m option must be only the only option and takes 1 parameter\n");
 			retval = -1;
-		} else if (audit_log_user_message( fd, AUDIT_USER, optarg, NULL, 
-				NULL, NULL, 1) <=0)
-			retval = -1;
-		else
-			return -2;  // success - no reply for this
+		} else {
+#ifdef HAVE_LIBCAP_NG
+			if (capng_have_capability(CAPNG_PERMITTED,
+					CAP_AUDIT_WRITE) != 1) {
+				fprintf(stderr, "You must have the CAP_AUDIT_WRITE capability to send event\n");
+				retval = -1;
+			} else
+#endif
+			if (audit_log_user_message( fd, AUDIT_USER,
+					optarg, NULL, NULL, NULL, 1) <=0)
+				retval = -1;
+			else
+				return -2;  // success - no reply for this
+		}
 		break;
 	case 'R':
 		fprintf(stderr, "Error - nested rule files not supported\n");
@@ -1154,8 +1166,13 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 #ifndef DEBUG
+#ifdef HAVE_LIBCAP_NG
+	/* Make sure we have the approprirate capabilities */
+	if (capng_have_capability(CAPNG_PERMITTED, CAP_AUDIT_CONTROL) != 1) {
+#else
 	/* Make sure we are root */
-	if (getuid() != 0) {
+	if (geteuid() != 0) {
+#endif
 		fprintf(stderr, "You must be root to run this program.\n");
 		return 4;
 	}

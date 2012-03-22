@@ -5,6 +5,7 @@
 - Update syscall tables for the 3.3.0 kernel
 - Update libev to 4.0.4
 - Reduce the size of some applications
+- In auditctl, check usage against euid or capability rather than uid
 
 2.2
 - Correct all rules for clock_settime
