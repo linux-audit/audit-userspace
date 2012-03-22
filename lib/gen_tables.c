@@ -33,7 +33,9 @@
 #include <sys/stat.h>
 #include <sys/personality.h>
 #include <sys/mount.h>
-
+#if !HAVE_DECL_MS_RDONLY
+#include <linux/fs.h>
+#endif
 #include "gen_tables.h"
 #include "libaudit.h"
 #include "interpret.h"

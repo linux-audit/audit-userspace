@@ -28,6 +28,7 @@
 #include <sys/stat.h>
 #include <netdb.h>
 #include <sys/un.h>
+#include <limits.h>
 #include <linux/ax25.h>
 #include <linux/atm.h>
 #include <linux/x25.h>
@@ -42,6 +43,9 @@
 #include <fcntl.h>
 #include <sys/personality.h>
 #include <sys/mount.h>
+#if !HAVE_DECL_MS_RDONLY
+#include <linux/fs.h>
+#endif
 #include "libaudit.h"
 #include "ausearch-options.h"
 #include "ausearch-parse.h"
