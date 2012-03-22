@@ -49,9 +49,9 @@
 #include "x86_64_tables.h"
 #include "errtabs.h"
 #include "ftypetabs.h"
-#include "msg_typetabs.h"
 #include "fieldtabs.h"
 #endif
+#include "msg_typetabs.h"
 #include "actiontabs.h"
 #include "flagtabs.h"
 #include "machinetabs.h"
@@ -214,7 +214,6 @@ int audit_name_to_msg_type(const char *msg_type)
 {
 	int rc;
 
-#ifndef NO_TABLES
 	if (msg_type_s2i(msg_type, &rc) != 0)
 		return rc;
 
@@ -237,18 +236,14 @@ int audit_name_to_msg_type(const char *msg_type)
 		errno = 0;
 		return strtol(msg_type, NULL, 10);
 	}
-#endif
+
 	return -1;
 }
 hidden_def(audit_name_to_msg_type)
 
 const char *audit_msg_type_to_name(int msg_type)
 {
-#ifndef NO_TABLES
 	return msg_type_i2s(msg_type);
-#else
-	return NULL;
-#endif
 }
 hidden_def(audit_msg_type_to_name)
 
