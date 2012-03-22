@@ -771,7 +771,7 @@ static int setopt(int count, int lineno, char *vars[])
 			retval = -1;
 		} else {
 #ifdef HAVE_LIBCAP_NG
-			if (capng_have_capability(CAPNG_PERMITTED,
+			if (capng_have_capability(CAPNG_EFFECTIVE,
 					CAP_AUDIT_WRITE) != 1) {
 				fprintf(stderr, "You must have the CAP_AUDIT_WRITE capability to send event\n");
 				retval = -1;
@@ -1168,7 +1168,7 @@ int main(int argc, char *argv[])
 #ifndef DEBUG
 #ifdef HAVE_LIBCAP_NG
 	/* Make sure we have the approprirate capabilities */
-	if (capng_have_capability(CAPNG_PERMITTED, CAP_AUDIT_CONTROL) != 1) {
+	if (capng_have_capability(CAPNG_EFFECTIVE, CAP_AUDIT_CONTROL) != 1) {
 #else
 	/* Make sure we are root */
 	if (geteuid() != 0) {
