@@ -1,3 +1,5 @@
+2.2.2
+
 2.2.1
 - Add more interpretations in auparse for syscall parameters 
 - Add some interpretations to ausearch for syscall parameters
