@@ -44,7 +44,8 @@ int main(int argc, char *argv[])
 	if (argc > 4) {
 		fputs("Too many arguments\n", stderr);
 		usage();
-	}
+	} else if (argc < 2)
+		usage();
  
 	for (i=1; i<argc; i++) {
 		if (isdigit(argv[i][0])) {

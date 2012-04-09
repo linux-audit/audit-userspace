@@ -1312,7 +1312,7 @@ const char *get_rec_type(struct event *e)
 const char *get_username(struct event *e)
 {
 	static char s[256];
-	if (!e || e->uid < 0) {
+	if (!e || (int)e->uid == -1) {
 		s[0] = '?';
 		s[1] = '\0';
 	} else {

@@ -842,7 +842,7 @@ static const char *print_open_flags(const char *val)
 	size_t i;
 	unsigned int flags;
 	int cnt = 0;
-	char *out, buf[144];
+	char *out, buf[160];
 
 	errno = 0;
 	flags = strtoul(val, NULL, 16);
