@@ -742,7 +742,7 @@ static int check_num_connections(struct sockaddr_in *aaddr)
 		if (memcmp(&aaddr->sin_addr, &client->addr.sin_addr, 
 					sizeof(struct in_addr)) == 0) {
 			num++;
-			if (num > max_per_addr)
+			if (num >= max_per_addr)
 				return 1;
 		}
 		client = client->next;
