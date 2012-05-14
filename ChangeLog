@@ -1,6 +1,7 @@
 2.2.2
 - In auditd, tcp_max_per_addr was allowing 1 more connection than specified
 - In ausearch, fix matching of object records
+- Auditctl was returning -1 when listing rules filtered on a key field
 
 2.2.1
 - Add more interpretations in auparse for syscall parameters 

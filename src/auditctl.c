@@ -588,9 +588,10 @@ static int setopt(int count, int lineno, char *vars[])
 				break;
 			}
 		}
-		if (audit_request_rule_list(fd))
+		if (audit_request_rule_list(fd)) {
+			list_requested = 1;
 			retval = -2;
-		else
+		} else
 			retval = -1;
 		break;
         case 'a':
