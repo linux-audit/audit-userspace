@@ -58,4 +58,5 @@ _S(32,	"mac_override"		)
 _S(33,	"mac_admin"		)
 _S(34,	"syslog"		)
 _S(35,	"wake_alarm"		)
+_S(36,	"epollwakeup"		)
 

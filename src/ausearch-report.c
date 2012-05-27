@@ -928,6 +928,7 @@ static struct nv_pair captab[] = {
         {33, "mac_admin"},
         {34, "syslog"},
         {35, "wake_alarm"},
+	{36, "epollwakeup"},
 };
 #define CAP_NAMES (sizeof(captab)/sizeof(captab[0]))
 
