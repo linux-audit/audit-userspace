@@ -1970,7 +1970,7 @@ ev_feed_signal_event (EV_P_ int signum)
 {
   WL w;
 
-  if (expect_false (signum <= 0 || signum > EV_NSIG))
+  if (expect_false (signum <= 0 || signum >= EV_NSIG))
     return;
 
   --signum;
