@@ -323,6 +323,7 @@ static int become_daemon(void)
 							(dup2(fd, 2) < 0)) {
 				audit_msg(LOG_ERR,
 				    "Cannot reassign descriptors to /dev/null");
+				close(fd);
 				return -1;
 			}
 			close(fd);
