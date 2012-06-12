@@ -1970,7 +1970,7 @@ ev_feed_signal_event (EV_P_ int signum)
 {
   WL w;
 
-  if (expect_false (signum <= 0 || signum >= EV_NSIG))
+  if (expect_false (signum <= 0 || signum > EV_NSIG))
     return;
 
   --signum;
@@ -2606,7 +2606,7 @@ ev_verify (EV_P)
 # if 0
 #if EV_CHILD_ENABLE
   for (w = (ev_child *)childs [chain & ((EV_PID_HASHSIZE) - 1)]; w; w = (ev_child *)((WL)w)->next)
-  for (signum = EV_NSIG; signum--; ) if (signals [signum].pending)
+  for (signum = EV_NSIG -1; signum--; ) if (signals [signum].pending)
 #endif
 # endif
 #endif
@@ -3428,7 +3428,7 @@ ev_signal_start (EV_P_ ev_signal *w)
   if (expect_false (ev_is_active (w)))
     return;
 
-  assert (("libev: ev_signal_start called with illegal signal number", w->signum > 0 && w->signum < EV_NSIG));
+  assert (("libev: ev_signal_start called with illegal signal number", w->signum > 0 && w->signum <= EV_NSIG));
 
 #if EV_MULTIPLICITY
   assert (("libev: a signal must not be attached to two different loops",
