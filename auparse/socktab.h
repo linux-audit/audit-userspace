@@ -39,6 +39,6 @@ _S(SYS_GETSOCKOPT,	"getsockopt"	)
 _S(SYS_SENDMSG,		"sendmsg"	)
 _S(SYS_RECVMSG,		"recvmsg"	)
 _S(SYS_ACCEPT4,		"accept4"	)
-_S(SYS_RECVMMSG,	"recvmmsg"	)
+_S(19,			"recvmmsg"	)
 _S(20,			"sendmmsg"	)
 

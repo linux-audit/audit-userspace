@@ -116,7 +116,7 @@ static struct nv_pair socktab[] = {
 	{SYS_SENDMSG, "sendmsg"},
 	{SYS_RECVMSG, "recvmsg"},
 	{SYS_ACCEPT4, "accept4"},
-	{SYS_RECVMMSG, "recvmmsg"},
+	{19, "recvmmsg"},
 	{20, "sendmmsg"}
 };
 #define SOCK_NAMES (sizeof(socktab)/sizeof(socktab[0]))
