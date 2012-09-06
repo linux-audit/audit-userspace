@@ -1,5 +1,5 @@
 /* machine.h --
- * Copyright 2005,2006,2009 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2005,2006,2009,2012 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -35,4 +35,6 @@ _S(MACH_ALPHA,   "alpha"  )
 #endif
 #ifdef WITH_ARMEB
 _S(MACH_ARMEB,   "armeb"  )
+_S(MACH_ARMEB,   "armv5tejl")
+_S(MACH_ARMEB,   "armv7l")
 #endif

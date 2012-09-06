@@ -3,6 +3,7 @@
 - In ausearch, fix matching of object records
 - Auditctl was returning -1 when listing rules filtered on a key field
 - Add interpretations for CAP_EPOLLWAKEUP
+- Add armv5tejl and armv7l machines (Nathaniel Husted) 
 
 2.2.1
 - Add more interpretations in auparse for syscall parameters 
