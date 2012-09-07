@@ -1605,7 +1605,7 @@ static struct nv_pair recvtab[] =
   {0x00004000,    "MSG_NOSIGNAL"},
   {0x00008000,    "MSG_MORE"},
   {0x00010000,    "MSG_WAITFORONE"},
-  {0x20000000,    "MSG_FASTOPEN"}
+  {0x20000000,    "MSG_FASTOPEN"},
   {0x40000000,    "MSG_CMSG_CLOEXEC"}
 };
 #define RECV_NAMES (sizeof(recvtab)/sizeof(recvtab[0]))
