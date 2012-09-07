@@ -35,6 +35,8 @@ auditd_DEPENDENCIES = mt/libauditmt.a libev/libev.a
 auditd_LDADD = @LIBWRAP_LIBS@ -Llibev -lev -Lmt -lauditmt -lpthread -lrt -lm $(gss_libs)
 
 auditctl_SOURCES = auditctl.c auditctl-llist.c delete_all.c
+auditctl_CFLAGS = -fPIE -DPIE -g -D_GNU_SOURCE
+auditctl_LDFLAGS = -pie -Wl,-z,relro -Wl,-z,now
 auditctl_LDADD = -L${top_builddir}/lib -laudit
 
 aureport_SOURCES = aureport.c auditd-config.c ausearch-llist.c aureport-options.c ausearch-string.c ausearch-parse.c aureport-scan.c aureport-output.c ausearch-lookup.c ausearch-int.c ausearch-time.c ausearch-nvpair.c ausearch-avc.c ausearch-lol.c
