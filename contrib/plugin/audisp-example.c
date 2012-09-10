@@ -1,5 +1,5 @@
 /* audisp-example.c --
- * Copyright 2009 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2012 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -40,6 +40,8 @@
 #include <stdio.h>
 #include <signal.h>
 #include <string.h>
+#include <sys/select.h>
+#include <errno.h>
 #include "libaudit.h"
 #include "auparse.h"
 
@@ -95,17 +97,34 @@ int main(int argc, char *argv[])
 	}
 	auparse_add_callback(au, handle_event, NULL, NULL);
 	do {
+		fd_set read_mask;
+		struct timeval tv;
+		int retval;
+
 		/* Load configuration */
 		if (hup) {
 			reload_config();
 		}
+		do {
+			tv.tv_sec = 5;
+			tv.tv_usec = 0;
+			FD_ZERO(&read_mask);
+			FD_SET(0, &read_mask);
+			if (auparse_feed_has_data(au))
+				retval= select(1, &read_mask, NULL, NULL, &tv);
+			else
+				retval= select(1, &read_mask, NULL, NULL, NULL);
+		} while (retval == -1 && errno == EINTR && !hup && !stop);
 
 		/* Now the event loop */
-		while (fgets_unlocked(tmp, MAX_AUDIT_MESSAGE_LENGTH, stdin) &&
-							hup==0 && stop==0) {
-			auparse_feed(au, tmp, strnlen(tmp,
+		 if (!stop && !hup && retval > 0) {
+			if (fgets_unlocked(tmp, MAX_AUDIT_MESSAGE_LENGTH,
+				stdin)) {
+				auparse_feed(au, tmp, strnlen(tmp,
 						MAX_AUDIT_MESSAGE_LENGTH));
-		}
+			}
+		} else if (retval == 0)
+			auparse_flush_feed(au);
 		if (feof(stdin))
 			break;
 	} while (stop == 0);
@@ -127,7 +146,7 @@ static void dump_whole_event(auparse_state_t *au)
 	auparse_first_record(au);
 	do {
 		printf("%s\n", auparse_get_record_text(au));
-	} while(auparse_next_record(au) > 0);
+	} while (auparse_next_record(au) > 0);
 	printf("\n");
 }
 
