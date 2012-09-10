@@ -1,5 +1,5 @@
 /* audisp-prelude.c --
- * Copyright 2008-09,2011 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2008-09,2011-12 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -29,6 +29,8 @@
 #include <ctype.h>
 #include <pwd.h>
 #include <sys/stat.h>
+#include <sys/select.h>
+#include <errno.h>
 #include <libprelude/prelude.h>
 #include <libprelude/idmef-message-print.h>
 #ifdef HAVE_LIBCAP_NG
@@ -248,17 +250,33 @@ int main(int argc, char *argv[])
 	if (mode != M_TEST)
 		syslog(LOG_INFO, "audisp-prelude is ready for events");
 	do {
+		fd_set read_mask;
+		struct timeval tv;
+		int retval;
+
 		/* Load configuration */
 		if (hup) {
 			reload_config();
 		}
+		do {
+			tv.tv_sec = 5;
+			tv.tv_usec = 0;
+			FD_ZERO(&read_mask);
+			FD_SET(0, &read_mask);
+			if (auparse_feed_has_data(au))
+				retval= select(1, &read_mask, NULL, NULL, &tv);
+			else
+				retval= select(1, &read_mask, NULL, NULL, NULL);		} while (retval == -1 && errno == EINTR && !hup && !stop);
 
 		/* Now the event loop */
-		while (fgets_unlocked(tmp, MAX_AUDIT_MESSAGE_LENGTH, stdin) &&
-							hup==0 && stop==0) {
-			auparse_feed(au, tmp, strnlen(tmp,
+		if (!stop && !hup && retval > 0) {
+			if (fgets_unlocked(tmp, MAX_AUDIT_MESSAGE_LENGTH,
+				stdin)){
+				auparse_feed(au, tmp, strnlen(tmp,
 						MAX_AUDIT_MESSAGE_LENGTH));
-		}
+			}
+		} else if (retval == 0)
+			auparse_flush_feed(au);
 		if (feof(stdin))
 			break;
 	} while (stop == 0);

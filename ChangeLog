@@ -6,6 +6,7 @@
 - Add armv5tejl and armv7l machines (Nathaniel Husted) 
 - Updates for the 3.6 kernel
 - Add auparse_feed_has_data function to libauparse
+- Update audisp-prelude to use auparse_feed_has_data
 
 2.2.1
 - Add more interpretations in auparse for syscall parameters 
