@@ -1,5 +1,5 @@
 /* auparse.c --
- * Copyright 2006-08 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2006-08,2012 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -271,6 +271,15 @@ int auparse_feed(auparse_state_t *au, const char *data, size_t data_len)
 int auparse_flush_feed(auparse_state_t *au)
 {
 	consume_feed(au, 1);
+	return 0;
+}
+
+// If there is data in the state machine, return 1
+// Otherwise return 0 to indicate its empty
+int auparse_feed_has_data(const auparse_state_t *au)
+{
+	if (au->parse_state == EVENT_ACCUMULATING)
+		return 1;
 	return 0;
 }
 
