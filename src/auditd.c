@@ -445,7 +445,9 @@ static void netlink_handler(struct ev_loop *loop, struct ev_io *io,
 static void periodic_handler(struct ev_loop *loop, struct ev_periodic *per,
 			int revents )
 {
-	if (config.tcp_client_max_idle)
+	struct daemon_conf *config = (struct daemon_conf *) per->data;
+
+	if (config->tcp_client_max_idle)
 		auditd_tcp_listen_check_idle (loop);
 }
 
@@ -719,6 +721,7 @@ int main(int argc, char *argv[])
 
 	ev_periodic_init (&periodic_watcher, periodic_handler,
 			  0, config.tcp_client_max_idle, NULL);
+	periodic_watcher.data = &config;
 	if (config.tcp_client_max_idle)
 		ev_periodic_start (loop, &periodic_watcher);
 
