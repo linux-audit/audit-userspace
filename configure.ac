@@ -104,6 +104,20 @@ fi
 fi
 AM_CONDITIONAL(HAVE_PYTHON, test ${python_found} = "yes")
 
+#auditd listener
+AC_MSG_CHECKING(whether to include auditd network listener support)
+AC_ARG_ENABLE(listener,
+	      [AS_HELP_STRING([--disable-listener],
+			      [Disable auditd network listener support])],
+	      enable_listener=$enableval,
+	      enable_listener=yes)
+if test "x$enable_listener" != "xno"; then
+	AC_DEFINE(USE_LISTENER, 1,
+		  [Define if you want to use the auditd network listener.])
+fi
+AM_CONDITIONAL(ENABLE_LISTENER, test "x$enable_listener" != "xno")
+AC_MSG_RESULT($enable_listener)
+
 #gssapi
 AC_ARG_ENABLE(gssapi_krb5,
 	[AS_HELP_STRING([--enable-gssapi-krb5],[Enable GSSAPI Kerberos 5 support @<:@default=no@:>@])],

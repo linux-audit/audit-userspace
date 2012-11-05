@@ -1189,6 +1189,12 @@ static int tcp_listen_port_parser(struct nv_pair *nv, int line,
 	audit_msg(LOG_DEBUG, "tcp_listen_port_parser called with: %s",
 		  nv->value);
 
+#ifndef USE_LISTENER
+	audit_msg(LOG_DEBUG,
+		"Listener support is not enabled, ignoring value at line %d",
+		line);
+	return 0;
+#else
 	/* check that all chars are numbers */
 	for (i=0; ptr[i]; i++) {
 		if (!isdigit(ptr[i])) {
@@ -1223,6 +1229,7 @@ static int tcp_listen_port_parser(struct nv_pair *nv, int line,
 	}
 	config->tcp_listen_port = (unsigned int)i;
 	return 0;
+#endif
 }
 
 static int tcp_listen_queue_parser(struct nv_pair *nv, int line,
@@ -1234,6 +1241,12 @@ static int tcp_listen_queue_parser(struct nv_pair *nv, int line,
 	audit_msg(LOG_DEBUG, "tcp_listen_queue_parser called with: %s",
 		  nv->value);
 
+#ifndef USE_LISTENER
+	audit_msg(LOG_DEBUG,
+		"Listener support is not enabled, ignoring value at line %d",
+		line);
+	return 0;
+#else
 	/* check that all chars are numbers */
 	for (i=0; ptr[i]; i++) {
 		if (!isdigit(ptr[i])) {
@@ -1270,6 +1283,7 @@ static int tcp_listen_queue_parser(struct nv_pair *nv, int line,
 	}
 	config->tcp_listen_queue = (unsigned int)i;
 	return 0;
+#endif
 }
 
 
@@ -1282,6 +1296,12 @@ static int tcp_max_per_addr_parser(struct nv_pair *nv, int line,
 	audit_msg(LOG_DEBUG, "tcp_max_per_addr_parser called with: %s",
 		  nv->value);
 
+#ifndef USE_LISTENER
+	audit_msg(LOG_DEBUG,
+		"Listener support is not enabled, ignoring value at line %d",
+		line);
+	return 0;
+#else
 	/* check that all chars are numbers */
 	for (i=0; ptr[i]; i++) {
 		if (!isdigit(ptr[i])) {
@@ -1318,6 +1338,7 @@ static int tcp_max_per_addr_parser(struct nv_pair *nv, int line,
 	}
 	config->tcp_max_per_addr = (unsigned int)i;
 	return 0;
+#endif
 }
 
 static int use_libwrap_parser(struct nv_pair *nv, int line,
@@ -1348,6 +1369,12 @@ static int tcp_client_ports_parser(struct nv_pair *nv, int line,
 	audit_msg(LOG_DEBUG, "tcp_listen_queue_parser called with: %s",
 		  nv->value);
 
+#ifndef USE_LISTENER
+	audit_msg(LOG_DEBUG,
+		"Listener support is not enabled, ignoring value at line %d",
+		line);
+	return 0;
+#else
 	/* check that all chars are numbers, with an optional inclusive '-'. */
 	for (i=0; ptr[i]; i++) {
 		if (i > 0 && ptr[i] == '-' && ptr[i+1] != '\0') {
@@ -1412,6 +1439,7 @@ static int tcp_client_ports_parser(struct nv_pair *nv, int line,
 	config->tcp_client_min_port = (unsigned int)minv;
 	config->tcp_client_max_port = (unsigned int)maxv;
 	return 0;
+#endif
 }
 
 static int tcp_client_max_idle_parser(struct nv_pair *nv, int line,
@@ -1423,6 +1451,12 @@ static int tcp_client_max_idle_parser(struct nv_pair *nv, int line,
 	audit_msg(LOG_DEBUG, "tcp_client_max_idle_parser called with: %s",
 		  nv->value);
 
+#ifndef USE_LISTENER
+	audit_msg(LOG_DEBUG,
+		"Listener support is not enabled, ignoring value at line %d",
+		line);
+	return 0;
+#else
 	/* check that all chars are numbers */
 	for (i=0; ptr[i]; i++) {
 		if (!isdigit(ptr[i])) {
@@ -1453,6 +1487,7 @@ static int tcp_client_max_idle_parser(struct nv_pair *nv, int line,
 	}
 	config->tcp_client_max_idle = (unsigned int)i;
 	return 0;
+#endif
 }
 
 static int enable_krb5_parser(struct nv_pair *nv, int line,
