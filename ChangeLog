@@ -8,6 +8,7 @@
 - Add auparse_feed_has_data function to libauparse
 - Update audisp-prelude to use auparse_feed_has_data
 - Add support to conditionally build auditd network listener (Tyler Hicks)
+- Add armv6l to machintab for Raspberry Pi (Nathaniel Husted)
 
 2.2.1
 - Add more interpretations in auparse for syscall parameters 

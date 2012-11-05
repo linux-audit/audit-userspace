@@ -37,4 +37,5 @@ _S(MACH_ALPHA,   "alpha"  )
 _S(MACH_ARMEB,   "armeb"  )
 _S(MACH_ARMEB,   "armv5tejl")
 _S(MACH_ARMEB,   "armv7l")
+_S(MACH_ARMEB,   "armv6l")
 #endif
