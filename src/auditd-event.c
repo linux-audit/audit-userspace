@@ -1177,27 +1177,8 @@ static void reconfigure(struct auditd_consumer_data *data)
 		}
 	}
 
-	/* Look at network things that do not need restarting */
-	if (oconf->tcp_client_min_port != nconf->tcp_client_min_port ||
-		    oconf->tcp_client_max_port != nconf->tcp_client_max_port ||
-		    oconf->tcp_max_per_addr != nconf->tcp_max_per_addr) {
-		oconf->tcp_client_min_port = nconf->tcp_client_min_port;
-		oconf->tcp_client_max_port = nconf->tcp_client_max_port;
-		oconf->tcp_max_per_addr = nconf->tcp_max_per_addr;
-		auditd_set_ports(oconf->tcp_client_min_port,
-				oconf->tcp_client_max_port,
-				oconf->tcp_max_per_addr);
-	}
-	if (oconf->tcp_client_max_idle != nconf->tcp_client_max_idle) {
-		oconf->tcp_client_max_idle = nconf->tcp_client_max_idle;
-		periodic_reconfigure();
-	}
-	if (oconf->tcp_listen_port != nconf->tcp_listen_port ||
-			oconf->tcp_listen_queue != nconf->tcp_listen_queue) {
-		oconf->tcp_listen_port = nconf->tcp_listen_port;
-		oconf->tcp_listen_queue = nconf->tcp_listen_queue;
-		// FIXME: need to restart the network stuff
-	}
+	// network listener
+	auditd_tcp_listen_reconfigure(nconf, oconf);
 	
 	/* At this point we will work on the items that are related to 
 	 * a single log file. */

@@ -866,7 +866,7 @@ static void auditd_tcp_listen_handler( struct ev_loop *loop,
 	send_audit_event(AUDIT_DAEMON_ACCEPT, emsg);
 }
 
-void auditd_set_ports(int minp, int maxp, int max_p_addr)
+static void auditd_set_ports(int minp, int maxp, int max_p_addr)
 {
 	min_port = minp;
 	max_port = maxp;
@@ -1007,5 +1007,31 @@ void auditd_tcp_listen_check_idle (struct ev_loop *loop )
 		release_client(ev);
 		next = ev->next;
 		free(ev);
+	}
+}
+
+void auditd_tcp_listen_reconfigure ( struct daemon_conf *nconf,
+				     struct daemon_conf *oconf )
+{
+	/* Look at network things that do not need restarting */
+	if (oconf->tcp_client_min_port != nconf->tcp_client_min_port ||
+		    oconf->tcp_client_max_port != nconf->tcp_client_max_port ||
+		    oconf->tcp_max_per_addr != nconf->tcp_max_per_addr) {
+		oconf->tcp_client_min_port = nconf->tcp_client_min_port;
+		oconf->tcp_client_max_port = nconf->tcp_client_max_port;
+		oconf->tcp_max_per_addr = nconf->tcp_max_per_addr;
+		auditd_set_ports(oconf->tcp_client_min_port,
+				oconf->tcp_client_max_port,
+				oconf->tcp_max_per_addr);
+	}
+	if (oconf->tcp_client_max_idle != nconf->tcp_client_max_idle) {
+		oconf->tcp_client_max_idle = nconf->tcp_client_max_idle;
+		periodic_reconfigure();
+	}
+	if (oconf->tcp_listen_port != nconf->tcp_listen_port ||
+			oconf->tcp_listen_queue != nconf->tcp_listen_queue) {
+		oconf->tcp_listen_port = nconf->tcp_listen_port;
+		oconf->tcp_listen_queue = nconf->tcp_listen_queue;
+		// FIXME: need to restart the network stuff
 	}
 }
