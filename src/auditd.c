@@ -68,7 +68,6 @@ static int do_fork = 1;
 static struct auditd_reply_list *rep = NULL;
 static int hup_info_requested = 0, usr1_info_requested = 0;
 static char subj[SUBJ_LEN];
-static struct ev_periodic periodic_watcher;
 
 /* Local function prototypes */
 int send_audit_event(int type, const char *str);
@@ -442,27 +441,6 @@ static void netlink_handler(struct ev_loop *loop, struct ev_io *io,
 	}
 }
 
-static void periodic_handler(struct ev_loop *loop, struct ev_periodic *per,
-			int revents )
-{
-	struct daemon_conf *config = (struct daemon_conf *) per->data;
-
-	if (config->tcp_client_max_idle)
-		auditd_tcp_listen_check_idle (loop);
-}
-
-void periodic_reconfigure(void)
-{
-	struct ev_loop *loop = ev_default_loop (EVFLAG_AUTO);
-	if (config.tcp_client_max_idle) {
-		ev_periodic_set (&periodic_watcher, ev_now (loop),
-				 config.tcp_client_max_idle, NULL);
-		ev_periodic_start (loop, &periodic_watcher);
-	} else {
-		ev_periodic_stop (loop, &periodic_watcher);
-	}
-}
-
 int main(int argc, char *argv[])
 {
 	struct sigaction sa;
@@ -719,12 +697,6 @@ int main(int argc, char *argv[])
 	ev_signal_init (&sigchld_watcher, child_handler, SIGCHLD);
 	ev_signal_start (loop, &sigchld_watcher);
 
-	ev_periodic_init (&periodic_watcher, periodic_handler,
-			  0, config.tcp_client_max_idle, NULL);
-	periodic_watcher.data = &config;
-	if (config.tcp_client_max_idle)
-		ev_periodic_start (loop, &periodic_watcher);
-
 	if (auditd_tcp_listen_init (loop, &config)) {
 		char emsg[DEFAULT_BUF_SZ];
 		if (*subj)
@@ -755,15 +727,13 @@ int main(int argc, char *argv[])
 	if (!stop)
 		ev_loop (loop, 0);
 
-	auditd_tcp_listen_uninit (loop);
+	auditd_tcp_listen_uninit (loop, &config);
 
 	// Tear down IO watchers Part 1
 	ev_signal_stop (loop, &sighup_watcher);
 	ev_signal_stop (loop, &sigusr1_watcher);
 	ev_signal_stop (loop, &sigusr2_watcher);
 	ev_signal_stop (loop, &sigterm_watcher);
-	if (config.tcp_client_max_idle)
-		ev_periodic_stop (loop, &periodic_watcher);
 
 	/* Write message to log that we are going down */
 	rc = audit_request_signal_info(fd);

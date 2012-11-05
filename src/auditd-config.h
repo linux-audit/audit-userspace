@@ -96,7 +96,5 @@ int start_config_manager(struct auditd_reply_list *rep);
 void shutdown_config(void);
 void free_config(struct daemon_conf *config);
 
-void periodic_reconfigure(void);
-
 #endif
 

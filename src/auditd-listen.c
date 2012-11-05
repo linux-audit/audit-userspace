@@ -75,6 +75,7 @@ typedef struct ev_tcp {
 
 static int listen_socket;
 static struct ev_io tcp_listen_watcher;
+static struct ev_periodic periodic_watcher;
 static int min_port, max_port, max_per_addr;
 static int use_libwrap = 1;
 #ifdef USE_GSSAPI
@@ -86,6 +87,8 @@ static char msgbuf[MAX_AUDIT_MESSAGE_LENGTH + 1];
 #endif
 
 static struct ev_tcp *client_chain = NULL;
+
+static void auditd_tcp_listen_check_idle (struct ev_loop *loop );
 
 static char *sockaddr_to_ipv4(struct sockaddr_in *addr)
 {
@@ -873,10 +876,25 @@ static void auditd_set_ports(int minp, int maxp, int max_p_addr)
 	max_per_addr = max_p_addr;
 }
 
+static void periodic_handler(struct ev_loop *loop, struct ev_periodic *per,
+			int revents )
+{
+	struct daemon_conf *config = (struct daemon_conf *) per->data;
+
+	if (config->tcp_client_max_idle)
+		auditd_tcp_listen_check_idle (loop);
+}
+
 int auditd_tcp_listen_init ( struct ev_loop *loop, struct daemon_conf *config )
 {
 	struct sockaddr_in address;
 	int one = 1;
+
+	ev_periodic_init (&periodic_watcher, periodic_handler,
+			  0, config->tcp_client_max_idle, NULL);
+	periodic_watcher.data = config;
+	if (config->tcp_client_max_idle)
+		ev_periodic_start (loop, &periodic_watcher);
 
 	/* If the port is not set, that means we aren't going to
 	  listen for connections.  */
@@ -963,7 +981,8 @@ int auditd_tcp_listen_init ( struct ev_loop *loop, struct daemon_conf *config )
 	return 0;
 }
 
-void auditd_tcp_listen_uninit ( struct ev_loop *loop )
+void auditd_tcp_listen_uninit ( struct ev_loop *loop,
+				struct daemon_conf *config )
 {
 #ifdef USE_GSSAPI
 	OM_uint32 status;
@@ -987,9 +1006,12 @@ void auditd_tcp_listen_uninit ( struct ev_loop *loop )
 		ev_io_stop (loop, &client_chain->io);
 		close_client (client_chain);
 	}
+
+	if (config->tcp_client_max_idle)
+		ev_periodic_stop (loop, &periodic_watcher);
 }
 
-void auditd_tcp_listen_check_idle (struct ev_loop *loop )
+static void auditd_tcp_listen_check_idle (struct ev_loop *loop )
 {
 	struct ev_tcp *ev, *next = NULL;
 	int active;
@@ -1010,6 +1032,18 @@ void auditd_tcp_listen_check_idle (struct ev_loop *loop )
 	}
 }
 
+static void periodic_reconfigure(struct daemon_conf *config)
+{
+	struct ev_loop *loop = ev_default_loop (EVFLAG_AUTO);
+	if (config->tcp_client_max_idle) {
+		ev_periodic_set (&periodic_watcher, ev_now (loop),
+				 config->tcp_client_max_idle, NULL);
+		ev_periodic_start (loop, &periodic_watcher);
+	} else {
+		ev_periodic_stop (loop, &periodic_watcher);
+	}
+}
+
 void auditd_tcp_listen_reconfigure ( struct daemon_conf *nconf,
 				     struct daemon_conf *oconf )
 {
@@ -1026,7 +1060,7 @@ void auditd_tcp_listen_reconfigure ( struct daemon_conf *nconf,
 	}
 	if (oconf->tcp_client_max_idle != nconf->tcp_client_max_idle) {
 		oconf->tcp_client_max_idle = nconf->tcp_client_max_idle;
-		periodic_reconfigure();
+		periodic_reconfigure(oconf);
 	}
 	if (oconf->tcp_listen_port != nconf->tcp_listen_port ||
 			oconf->tcp_listen_queue != nconf->tcp_listen_queue) {
