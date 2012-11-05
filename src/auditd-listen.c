@@ -88,8 +88,6 @@ static char msgbuf[MAX_AUDIT_MESSAGE_LENGTH + 1];
 
 static struct ev_tcp *client_chain = NULL;
 
-static void auditd_tcp_listen_check_idle (struct ev_loop *loop );
-
 static char *sockaddr_to_ipv4(struct sockaddr_in *addr)
 {
 	unsigned char *uaddr = (unsigned char *)&(addr->sin_addr);
@@ -880,9 +878,26 @@ static void periodic_handler(struct ev_loop *loop, struct ev_periodic *per,
 			int revents )
 {
 	struct daemon_conf *config = (struct daemon_conf *) per->data;
+	struct ev_tcp *ev, *next = NULL;
+	int active;
 
-	if (config->tcp_client_max_idle)
-		auditd_tcp_listen_check_idle (loop);
+	if (!config->tcp_client_max_idle)
+		return;
+
+	for (ev = client_chain; ev; ev = next) {
+		active = ev->client_active;
+		ev->client_active = 0;
+		if (active)
+			continue;
+
+		audit_msg(LOG_NOTICE,
+			"client %s idle too long - closing connection\n",
+			sockaddr_to_addr4(&(ev->addr)));
+		ev_io_stop (loop, &ev->io);
+		release_client(ev);
+		next = ev->next;
+		free(ev);
+	}
 }
 
 int auditd_tcp_listen_init ( struct ev_loop *loop, struct daemon_conf *config )
@@ -1009,27 +1024,6 @@ void auditd_tcp_listen_uninit ( struct ev_loop *loop,
 
 	if (config->tcp_client_max_idle)
 		ev_periodic_stop (loop, &periodic_watcher);
-}
-
-static void auditd_tcp_listen_check_idle (struct ev_loop *loop )
-{
-	struct ev_tcp *ev, *next = NULL;
-	int active;
-
-	for (ev = client_chain; ev; ev = next) {
-		active = ev->client_active;
-		ev->client_active = 0;
-		if (active)
-			continue;
-
-		audit_msg(LOG_NOTICE,
-			"client %s idle too long - closing connection\n",
-			sockaddr_to_addr4(&(ev->addr)));
-		ev_io_stop (loop, &ev->io);
-		release_client(ev);
-		next = ev->next;
-		free(ev);
-	}
 }
 
 static void periodic_reconfigure(struct daemon_conf *config)
