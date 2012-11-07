@@ -427,6 +427,7 @@ static void netlink_handler(struct ev_loop *loop, struct ev_io *io,
 						 rep->reply.signal_info->ctx);
 				}
 				send_audit_event(AUDIT_DAEMON_ROTATE, usr1);
+				usr1_info_requested = 0;
 			}
 			break;
 		default:
