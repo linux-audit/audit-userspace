@@ -929,6 +929,7 @@ static struct nv_pair captab[] = {
         {34, "syslog"},
         {35, "wake_alarm"},
 	{36, "block_suspend"},
+	{37, "compromise_kernel"},
 };
 #define CAP_NAMES (sizeof(captab)/sizeof(captab[0]))
 
