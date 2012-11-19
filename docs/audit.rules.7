@@ -97,7 +97,7 @@ aureport \-\-start this-week
 After looking at the report, you probably want to get a second view about what rules you loaded that have been triggering. This is where keys become important. You would generally run the key summary report like this:
 
 .nf
-aureport \-\-start this-week \-\-keys \-\-summary
+aureport \-\-start this-week \-\-key \-\-summary
 .fi
 
 This will give an ordered listing of the keys associated with rules that have been triggering. If, for example, you had a syscall audit rule that triggered on the failure to open files with EPERM that had a key field of access like this:
