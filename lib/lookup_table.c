@@ -75,10 +75,10 @@ static const struct int_transtab elftab[] = {
     { MACH_S390X,   AUDIT_ARCH_S390X  },
     { MACH_S390,    AUDIT_ARCH_S390   },
 #ifdef WITH_ALPHA
-    { MACH_ALPHA,   AUDIT_ARCH_ALPHA  }
+    { MACH_ALPHA,   AUDIT_ARCH_ALPHA  },
 #endif
 #ifdef WITH_ARMEB
-    { MACH_ARMEB,   AUDIT_ARCH_ARMEB  }
+    { MACH_ARMEB,   AUDIT_ARCH_ARMEB  },
 #endif
 };
 #define AUDIT_ELF_NAMES (sizeof(elftab)/sizeof(elftab[0]))
