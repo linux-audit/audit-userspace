@@ -10,6 +10,7 @@
 - Add support to conditionally build auditd network listener (Tyler Hicks)
 - Add armv6l to machintab for Raspberry Pi (Nathaniel Husted)
 - In auditd, reset a flag after receiving USR1 signal info when rotating logs
+- Add optional systemd init script support
 
 2.2.1
 - Add more interpretations in auparse for syscall parameters 

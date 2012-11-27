@@ -140,6 +140,18 @@ if test $want_gssapi_krb5 = yes; then
 fi
 AM_CONDITIONAL(ENABLE_GSSAPI, test x$want_gssapi_krb5 = xyes)
 
+#systemd
+AC_ARG_ENABLE(systemd,
+	[AS_HELP_STRING([--enable-systemd],[Enable systemd init scripts @<:@default=no@:>@])],
+        [case "${enableval}" in
+         yes) want_systemd="yes" ;;
+          no) want_systemd="no" ;;
+           *) AC_MSG_ERROR(bad value ${enableval} for --enable-systemd) ;;
+         esac],
+	[want_systemd="no"]
+)
+AM_CONDITIONAL(ENABLE_SYSTEMD, test x$want_systemd = xyes)
+
 ALLDEBUG="-g"
 AC_ARG_WITH(debug,
 [  --with-debug            turn on debugging [[default=no]]],

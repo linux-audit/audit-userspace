@@ -1,5 +1,12 @@
 %{!?python_sitearch: %define python_sitearch %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib(1)")}
 
+# Do we want systemd?
+%if 0%{?!nosystemd:1}
+%define WITH_SYSTEMD 1
+%else
+%define WITH_SYSTEMD 0
+%endif
+
 Summary: User space tools for 2.6 kernel auditing
 Name: audit
 Version: 2.2.2
@@ -13,8 +20,15 @@ BuildRequires: swig python-devel
 BuildRequires: tcp_wrappers-devel krb5-devel libcap-ng-devel
 BuildRequires: kernel-headers >= 2.6.29
 Requires: %{name}-libs = %{version}-%{release}
-Requires: chkconfig
 Requires(pre): coreutils
+%if %{WITH_SYSTEMD}
+BuildRequires: systemd-units
+Requires(post): systemd-units systemd-sysv chkconfig coreutils
+Requires(preun): systemd-units
+Requires(postun): systemd-units coreutils
+%else
+Requires: chkconfig
+%endif
 
 %description
 The audit package contains the user space utilities for
@@ -72,12 +86,19 @@ behavior.
 %setup -q
 
 %build
-%configure --sbindir=/sbin --libdir=/%{_lib} --with-python=yes --with-prelude --with-libwrap --enable-gssapi-krb5=yes --with-libcap-ng=yes
+%configure --sbindir=/sbin --libdir=/%{_lib} --with-python=yes --with-prelude --with-libwrap --enable-gssapi-krb5=yes --with-libcap-ng=yes \
+%if %{WITH_SYSTEMD}
+	--enable-systemd
+%endif
+
 make %{?_smp_mflags}
 
 %install
 rm -rf $RPM_BUILD_ROOT
-mkdir -p $RPM_BUILD_ROOT/{sbin,etc/{sysconfig,audispd/plugins.d,rc.d/init.d}}
+mkdir -p $RPM_BUILD_ROOT/{sbin,etc/audispd/plugins.d}
+%if %{WITH_SYSTEMD}
+mkdir -p $RPM_BUILD_ROOT/{etc/{sysconfig,rc.d/init.d}}
+%endif
 mkdir -p $RPM_BUILD_ROOT/%{_mandir}/{man5,man8}
 mkdir -p $RPM_BUILD_ROOT/%{_lib}
 mkdir -p $RPM_BUILD_ROOT/%{_libdir}/audit
@@ -121,20 +142,32 @@ rm -rf $RPM_BUILD_ROOT
 %post libs -p /sbin/ldconfig
 
 %post
+%if %{WITH_SYSTEMD}
+%systemd_post auditd.service
+%else
 /sbin/chkconfig --add auditd
+%endif
 
 %preun
+%if %{WITH_SYSTEMD}
+%systemd_preun auditd.service
+%else
 if [ $1 -eq 0 ]; then
    /sbin/service auditd stop > /dev/null 2>&1
    /sbin/chkconfig --del auditd
 fi
+%endif
 
 %postun libs -p /sbin/ldconfig
 
 %postun
+%if %{WITH_SYSTEMD}
+%systemd_postun_with_restart auditd.service
+%else
 if [ $1 -ge 1 ]; then
    /sbin/service auditd condrestart > /dev/null 2>&1 || :
 fi
+%endif
 
 %files libs
 %defattr(-,root,root,-)
@@ -188,7 +221,12 @@ fi
 %attr(755,root,root) %{_bindir}/aulastlog
 %attr(755,root,root) %{_bindir}/ausyscall
 %attr(755,root,root) %{_bindir}/auvirt
+%if %{WITH_SYSTEMD}
+%attr(755,root,root) %{_unitdir}/auditd.service
+%else
 %attr(755,root,root) /etc/rc.d/init.d/auditd
+%config(noreplace) %attr(640,root,root) /etc/sysconfig/auditd
+%endif
 %attr(750,root,root) %dir %{_var}/log/audit
 %attr(750,root,root) %dir /etc/audit
 %attr(750,root,root) %dir /etc/audisp
@@ -196,7 +234,6 @@ fi
 %attr(750,root,root) %dir %{_libdir}/audit
 %config(noreplace) %attr(640,root,root) /etc/audit/auditd.conf
 %config(noreplace) %attr(640,root,root) /etc/audit/audit.rules
-%config(noreplace) %attr(640,root,root) /etc/sysconfig/auditd
 %config(noreplace) %attr(640,root,root) /etc/audisp/audispd.conf
 %config(noreplace) %attr(640,root,root) /etc/audisp/plugins.d/af_unix.conf
 %config(noreplace) %attr(640,root,root) /etc/audisp/plugins.d/syslog.conf
