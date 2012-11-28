@@ -87,6 +87,7 @@
 #include "typetabs.h"
 #include "nfprototabs.h"
 #include "icmptypetabs.h"
+#include "seccomptabs.h"
 
 typedef enum { AVC_UNSET, AVC_DENIED, AVC_GRANTED } avc_t;
 typedef enum { S_UNSET=-1, S_FAILED, S_SUCCESS } success_t;
@@ -1556,6 +1557,26 @@ static const char *print_session(const char *val)
 		return strdup(val);
 }
 
+#define SECCOMP_RET_ACTION      0x7fff0000U
+static const char *print_seccomp_code(const char *val)
+{
+	unsigned long code;
+	char *out;
+	const char *s;
+
+	errno = 0;
+        code = strtoul(val, NULL, 16);
+	if (errno) {
+		asprintf(&out, "conversion error(%s)", val);
+		return out;
+	}
+	s = seccomp_i2s(code & SECCOMP_RET_ACTION);
+	if (s != NULL)
+		return strdup(s);
+	asprintf(&out, "unknown seccomp code (%s)", val);
+	return out;
+}
+
 int lookup_type(const char *name)
 {
 	int i;
@@ -1674,6 +1695,9 @@ const char *interpret(const rnode *r)
 			break;
 		case AUPARSE_TYPE_PERSONALITY:
 			out = print_personality(val);
+			break;
+		case AUPARSE_TYPE_SECCOMP:
+			out = print_seccomp_code(val);
 			break;
 		case AUPARSE_TYPE_UNCLASSIFIED:
 		default:

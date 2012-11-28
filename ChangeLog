@@ -11,6 +11,7 @@
 - Add armv6l to machintab for Raspberry Pi (Nathaniel Husted)
 - In auditd, reset a flag after receiving USR1 signal info when rotating logs
 - Add optional systemd init script support
+- Add support for SECCOMP event type
 
 2.2.1
 - Add more interpretations in auparse for syscall parameters 

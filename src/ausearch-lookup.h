@@ -43,6 +43,7 @@ void aulookup_destroy_gid_list(void);
 char *unescape(const char *buf);
 int is_hex_string(const char *str);
 void print_tty_data(const char *val);
+const char *aulookup_seccomp_code(unsigned code);
 
 #endif
 

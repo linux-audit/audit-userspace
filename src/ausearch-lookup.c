@@ -455,3 +455,29 @@ void print_tty_data(const char *val)
 	free(data);
 }
 
+#define SECCOMP_RET_KILL        0x00000000U /* kill the task immediately */
+#define SECCOMP_RET_TRAP        0x00030000U /* disallow and force a SIGSYS */
+#define SECCOMP_RET_ERRNO       0x00050000U /* returns an errno */
+#define SECCOMP_RET_TRACE       0x7ff00000U /* pass to a tracer or disallow */
+#define SECCOMP_RET_ALLOW       0x7fff0000U /* allow */
+#define SECCOMP_RET_ACTION      0x7fff0000U
+
+static struct nv_pair seccomptab[] = {
+        {SECCOMP_RET_KILL, "kill"},
+        {SECCOMP_RET_TRAP, "trap"},
+        {SECCOMP_RET_ERRNO, "errno"},
+        {SECCOMP_RET_TRACE, "trace"},
+        {SECCOMP_RET_ALLOW, "allow"},
+};
+#define SECCOMP_NAMES (sizeof(seccomptab)/sizeof(seccomptab[0]))
+
+const char *aulookup_seccomp_code(unsigned code)
+{
+        int i;
+
+        for (i = 0; i < SECCOMP_NAMES; i++)
+                if ((unsigned)seccomptab[i].value == (SECCOMP_RET_ACTION&code))
+                        return seccomptab[i].name;
+
+        return NULL;
+}

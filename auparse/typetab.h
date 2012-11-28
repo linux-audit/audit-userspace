@@ -1,5 +1,5 @@
 /* typetab.h --
- * Copyright 2007-09,2011 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2007-09,2011-12 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -98,3 +98,5 @@ _S(AUPARSE_TYPE_ESCAPED,	"profile"	)
 _S(AUPARSE_TYPE_ESCAPED,	"requested_mask")
 #endif
 _S(AUPARSE_TYPE_PERSONALITY,	"per"		)
+_S(AUPARSE_TYPE_SECCOMP,	"code"		)
+

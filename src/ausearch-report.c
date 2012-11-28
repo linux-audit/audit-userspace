@@ -61,7 +61,7 @@ struct nv_pair {
 enum { T_UID, T_GID, T_SYSCALL, T_ARCH, T_EXIT, T_ESCAPED, T_PERM, T_MODE, 
 T_SOCKADDR, T_FLAGS, T_PROMISC, T_CAPABILITY, T_A0, T_A1, T_A2, T_A3,
 T_SIGNAL, T_KEY, T_LIST, T_TTY_DATA, T_SESSION, T_CAP_BITMAP, T_NFPROTO,
-T_ICMPTYPE, T_PROTOCOL, T_ADDR, T_PERSONALITY };
+T_ICMPTYPE, T_PROTOCOL, T_ADDR, T_PERSONALITY, T_SECCOMP };
 
 /* Function in ausearch-lookup for unescaping filenames */
 extern char *unescape(const char *buf);
@@ -394,6 +394,7 @@ static struct nv_pair typetab[] = {
 	{T_ICMPTYPE, "icmptype"},
 	{T_PROTOCOL, "proto"},
 	{T_PERSONALITY, "per"},
+	{T_SECCOMP, "code"},
 };
 #define TYPE_NAMES (sizeof(typetab)/sizeof(typetab[0]))
 
@@ -1942,6 +1943,20 @@ static void print_session(char *val)
 		printf("%s ", val);
 }
 
+static void print_seccomp_code(const char *val)
+{
+	unsigned long code;
+
+	errno = 0;
+	code = strtoul(val, NULL, 16);
+	if (errno) {
+		printf("conversion error(%s) ", val);
+		return;
+	}
+
+	printf("%s ", aulookup_seccomp_code(code));
+}
+
 static void interpret(char *name, char *val, int comma, int rtype)
 {
 	int type;
@@ -2053,6 +2068,9 @@ static void interpret(char *name, char *val, int comma, int rtype)
 			break;
 		case T_PERSONALITY:
 			print_personality(val);
+			break;
+		case T_SECCOMP:
+			print_seccomp_code(val);
 			break;
 		default:
 			printf("%s%c", val, comma ? ',' : ' ');
