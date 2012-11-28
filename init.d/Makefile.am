@@ -46,7 +46,8 @@ endif
 
 install-exec-hook:
 if ENABLE_SYSTEMD
-	$(INSTALL_SCRIPT) -D -m 640 ${srcdir}/auditd.service ${DESTDIR}${initdir}/
+	mkdir -p ${DESTDIR}${initdir}
+	$(INSTALL_SCRIPT) -D -m 640 ${srcdir}/auditd.service ${DESTDIR}${initdir}
 else
 	$(INSTALL_SCRIPT) -D ${srcdir}/auditd.init ${DESTDIR}${initdir}/auditd
 endif

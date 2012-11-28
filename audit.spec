@@ -96,7 +96,7 @@ make %{?_smp_mflags}
 %install
 rm -rf $RPM_BUILD_ROOT
 mkdir -p $RPM_BUILD_ROOT/{sbin,etc/audispd/plugins.d}
-%if %{WITH_SYSTEMD}
+%if !%{WITH_SYSTEMD}
 mkdir -p $RPM_BUILD_ROOT/{etc/{sysconfig,rc.d/init.d}}
 %endif
 mkdir -p $RPM_BUILD_ROOT/%{_mandir}/{man5,man8}
