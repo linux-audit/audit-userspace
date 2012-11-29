@@ -1966,7 +1966,8 @@ static void interpret(char *name, char *val, int comma, int rtype)
 
 
 	/* Do some fixups */
-	if (rtype == AUDIT_EXECVE && name[0] == 'a' && strcmp(name, "argc"))
+	if (rtype == AUDIT_EXECVE && name[0] == 'a' && strcmp(name, "argc") &&
+			!strstr(name, "_len"))
 		type = T_ESCAPED;
 	else if (rtype == AUDIT_AVC && strcmp(name, "saddr") == 0)
 		type = -1;

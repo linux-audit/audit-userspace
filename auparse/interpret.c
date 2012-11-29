@@ -1596,7 +1596,8 @@ const char *interpret(const rnode *r)
 	const char *val = nvlist_get_cur_val(nv);
 
 	/* Do some fixups */
-	if (r->type == AUDIT_EXECVE && name[0] == 'a' && strcmp(name, "argc"))
+	if (r->type == AUDIT_EXECVE && name[0] == 'a' && strcmp(name, "argc") &&
+			!strstr(name, "_len"))
 		type = AUPARSE_TYPE_ESCAPED;
 	else if (r->type == AUDIT_AVC && strcmp(name, "saddr") == 0)
 		type = -1;
