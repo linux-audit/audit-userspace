@@ -13,6 +13,7 @@
 - Add optional systemd init script support
 - Add support for SECCOMP event type
 - Don't interpret aN_len field in EXECVE records (#869555)
+- In auditp-remote, do better job of draining queue
 
 2.2.1
 - Add more interpretations in auparse for syscall parameters 
