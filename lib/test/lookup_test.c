@@ -26,6 +26,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 
 #include "../libaudit.h"
 
@@ -316,6 +317,22 @@ test_flagtab(void)
 }
 
 static void
+test_ftypetab(void)
+{
+	static const struct entry t[] = {
+#include "../ftypetab.h"
+	};
+
+	printf("Testing ftypetab...\n");
+#define I2S(I) audit_ftype_to_name(I)
+#define S2I(S) audit_name_to_ftype(S)
+	TEST_I2S(0);
+	TEST_S2I(-1);
+#undef I2S
+#undef S2I
+}
+
+static void
 test_machinetab(void)
 {
 	static const struct entry t[] = {
@@ -384,8 +401,10 @@ main(void)
 	test_errtab();
 	test_fieldtab();
 	test_flagtab();
+	test_ftypetab();
 	test_machinetab();
 	test_msg_typetab();
 	test_optab();
 	return EXIT_SUCCESS;
 }
+
