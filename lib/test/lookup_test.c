@@ -327,7 +327,7 @@ test_machinetab(void)
 #define S2I(S) audit_name_to_machine(S)
 	TEST_I2S((t[i].s[0] == 'i' && t[i].s[1] >= '4' && t[i].s[1] <= '6'
 		 && strcmp(t[i].s + 2, "86") == 0) ||
-		(strncmp(t[i].s, "arm", 3) == 0));
+		(strncmp(t[i].s, "armv", 4) == 0));
 	TEST_S2I(-1);
 #undef I2S
 #undef S2I
