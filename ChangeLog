@@ -15,6 +15,7 @@
 - Don't interpret aN_len field in EXECVE records (#869555)
 - In audisp-remote, do better job of draining queue
 - Fix capability parsing in ausearch/auparse
+- Interpret BPRM_FCAPS capability fields
 
 2.2.1
 - Add more interpretations in auparse for syscall parameters 
