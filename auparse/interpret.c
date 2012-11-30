@@ -801,8 +801,8 @@ static const char *print_cap_bitmap(const char *val)
                 return out;
 	}
 
-        caps[0] = temp & 0xFFFFFFFF;
-        caps[1] = (temp & 0xFFFFFFFF) >> 32;
+        caps[0] =  temp & 0x00000000FFFFFFFFLL;
+        caps[1] = (temp & 0xFFFFFFFF00000000LL) >> 32;
 	p = buf;
 	for (i=0; i <= CAP_LAST_CAP; i++) {
 		if (MASK(i%32) & caps[i/32]) {

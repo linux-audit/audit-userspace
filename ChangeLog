@@ -14,6 +14,7 @@
 - Add support for SECCOMP event type
 - Don't interpret aN_len field in EXECVE records (#869555)
 - In audisp-remote, do better job of draining queue
+- Fix capability parsing in ausearch/auparse
 
 2.2.1
 - Add more interpretations in auparse for syscall parameters 

@@ -1784,8 +1784,8 @@ static void print_cap_bitmap(char *val)
 		return;
 	}
 
-	caps[0] = temp & 0xFFFFFFFF;
-	caps[1] = (temp & 0xFFFFFFFF) >> 32;
+	caps[0] =  temp & 0x00000000FFFFFFFFLL;
+	caps[1] = (temp & 0xFFFFFFFF00000000LL) >> 32;
 	for (i=0; i< CAP_NAMES; i++) {
 		if (MASK(i%32) & caps[i/32]) {
 			if (found)
