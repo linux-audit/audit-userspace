@@ -818,9 +818,6 @@ int audit_rule_interfield_comp_data(struct audit_rule_data **rulep,
 		return -13;
 	}
 
-	if (v == NULL)
-		return -23;
-
 	if (*f == 0)
 		return -24;
 

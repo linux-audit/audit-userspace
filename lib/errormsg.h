@@ -56,7 +56,7 @@ static const struct msg_tab err_msgtab[] = {
     { -20,    2,    "-F missing value after operation for" },
     { -21,    2,    "-F value should be number for" },
     { -22,    2,    "-F missing field name before operator for" },
-    { -23,    2,    "-C missing operation for "},
+    { -23,    2,    "" }, // Unused
     { -24,    2,    "-C missing field name before operator for" },
     { -25,    2,    "-C missing value after operation for "},
     { -26,    2,    "-C unknown field:" },

@@ -1,5 +1,5 @@
 /* audisp-remote.c --
- * Copyright 2008-2011 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2008-2012 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -1142,7 +1142,9 @@ static int send_msg_gss (unsigned char *header, const char *msg, uint32_t mlen)
 	utok.value = malloc (utok.length);
 
 	memcpy (utok.value, header, AUDIT_RMW_HEADER_SIZE);
-	memcpy (utok.value+AUDIT_RMW_HEADER_SIZE, msg, mlen);
+	
+	if (msg != NULL && mlen > 0) {
+		memcpy (utok.value+AUDIT_RMW_HEADER_SIZE, msg, mlen);
 
 	major_status = gss_wrap (&minor_status,
 				 my_context,
