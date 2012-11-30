@@ -365,6 +365,9 @@ test_optab(void)
 int
 main(void)
 {
+	// This is only for preventing collisions in s2i tests.
+	// If collisions are found in future, change the number. 
+	srand(2);
 #ifdef WITH_ALPHA
 	test_alpha_table();
 #endif
