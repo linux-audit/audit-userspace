@@ -1143,7 +1143,7 @@ static int send_msg_gss (unsigned char *header, const char *msg, uint32_t mlen)
 
 	memcpy (utok.value, header, AUDIT_RMW_HEADER_SIZE);
 	
-	if (msg != NULL && mlen > 0) {
+	if (msg != NULL && mlen > 0)
 		memcpy (utok.value+AUDIT_RMW_HEADER_SIZE, msg, mlen);
 
 	major_status = gss_wrap (&minor_status,
