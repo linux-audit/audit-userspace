@@ -9,7 +9,7 @@
 
 Summary: User space tools for 2.6 kernel auditing
 Name: audit
-Version: 2.2.2
+Version: 2.2.3
 Release: 1
 License: GPLv2+
 Group: System Environment/Daemons
@@ -20,7 +20,6 @@ BuildRequires: swig python-devel
 BuildRequires: tcp_wrappers-devel krb5-devel libcap-ng-devel
 BuildRequires: kernel-headers >= 2.6.29
 Requires: %{name}-libs = %{version}-%{release}
-Requires(pre): coreutils
 %if %{WITH_SYSTEMD}
 BuildRequires: systemd-units
 Requires(post): systemd-units systemd-sysv chkconfig coreutils
@@ -45,16 +44,26 @@ The audit-libs package contains the dynamic libraries needed for
 applications to use the audit framework.
 
 %package libs-devel
-Summary: Header files and static library for libaudit
+Summary: Header files for libaudit
 License: LGPLv2+
 Group: Development/Libraries
 Requires: %{name}-libs = %{version}-%{release}
 Requires: kernel-headers >= 2.6.29
 
 %description libs-devel
-The audit-libs-devel package contains the static libraries and header 
-files needed for developing applications that need to use the audit 
-framework libraries.
+The audit-libs-devel package contains the header files needed for
+developing applications that need to use the audit framework libraries.
+
+%package libs-static
+Summary: Static version of libaudit library
+License: LGPLv2+
+Group: Development/Libraries
+Requires: kernel-headers >= 2.6.29
+
+%description libs-static
+The audit-libs-static package contains the static libraries
+needed for developing applications that need to use static audit
+framework libraries
 
 %package libs-python
 Summary: Python bindings for libaudit
@@ -179,14 +188,17 @@ fi
 %files libs-devel
 %defattr(-,root,root,-)
 %doc contrib/skeleton.c contrib/plugin
-%{_libdir}/libaudit.a
-%{_libdir}/libauparse.a
 %{_libdir}/libaudit.so
 %{_libdir}/libauparse.so
 %{_includedir}/libaudit.h
 %{_includedir}/auparse.h
 %{_includedir}/auparse-defs.h
 %{_mandir}/man3/*
+
+%files libs-static
+%defattr(-,root,root,-)
+%{_libdir}/libaudit.a
+%{_libdir}/libauparse.a
 
 %files libs-python
 %defattr(-,root,root,-)
@@ -259,6 +271,6 @@ fi
 
 
 %changelog
-* Wed Dec 12 2012 Steve Grubb <sgrubb@redhat.com> 2.2.2-1
+* Wed Dec 12 2012 Steve Grubb <sgrubb@redhat.com> 2.2.3-1
 - New upstream release
 
