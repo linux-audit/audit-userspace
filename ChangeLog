@@ -3,12 +3,11 @@
 - In ausearch, fix matching of object records
 - Auditctl was returning -1 when listing rules filtered on a key field
 - Add interpretations for CAP_BLOCK_SUSPEND and CAP_COMPROMISE_KERNEL
-- Add armv5tejl and armv7l machines (Nathaniel Husted) 
+- Add armv5tejl, armv5tel, armv6l and armv7l machine types (Nathaniel Husted) 
 - Updates for the 3.6 kernel
 - Add auparse_feed_has_data function to libauparse
 - Update audisp-prelude to use auparse_feed_has_data
 - Add support to conditionally build auditd network listener (Tyler Hicks)
-- Add armv6l to machintab for Raspberry Pi (Nathaniel Husted)
 - In auditd, reset a flag after receiving USR1 signal info when rotating logs
 - Add optional systemd init script support
 - Add support for SECCOMP event type

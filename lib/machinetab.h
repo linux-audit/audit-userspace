@@ -36,6 +36,7 @@ _S(MACH_ALPHA,   "alpha"  )
 #ifdef WITH_ARMEB
 _S(MACH_ARMEB,   "armeb"  )
 _S(MACH_ARMEB,   "armv5tejl")
-_S(MACH_ARMEB,   "armv7l")
+_S(MACH_ARMEB,   "armv5tel")
 _S(MACH_ARMEB,   "armv6l")
+_S(MACH_ARMEB,   "armv7l")
 #endif
