@@ -225,7 +225,11 @@ extern "C" {
 #endif
 
 #ifndef AUDIT_SECCOMP
-#define AUDIT_SECCOMP          1326  /* Secure Computing event */
+#define AUDIT_SECCOMP		1326 /* Secure Computing event */
+#endif
+
+#ifndef AUDIT_ANOM_LINK
+#define AUDIT_ANOM_LINK		1702 /* Suspicious use of file links */
 #endif
 
 /* This is related to the filterkey patch */

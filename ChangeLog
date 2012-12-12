@@ -16,6 +16,7 @@
 - In audisp-remote, do better job of draining queue
 - Fix capability parsing in ausearch/auparse
 - Interpret BPRM_FCAPS capability fields
+- Add ANOM_LINK event type
 
 2.2.1
 - Add more interpretations in auparse for syscall parameters 
