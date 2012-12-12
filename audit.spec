@@ -259,6 +259,6 @@ fi
 
 
 %changelog
-* Fri Mar 23 2012 Steve Grubb <sgrubb@redhat.com> 2.2.2-1
+* Wed Dec 12 2012 Steve Grubb <sgrubb@redhat.com> 2.2.2-1
 - New upstream release
 
