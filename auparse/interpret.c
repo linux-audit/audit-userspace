@@ -1009,7 +1009,7 @@ static const char *print_mmap(const char *val)
 {
 	unsigned int maps, i;
 	int cnt = 0;
-	char buf[144];
+	char buf[176];
 	char *out;
 
 	errno = 0;
@@ -1090,7 +1090,7 @@ static const char *print_mount(const char *val)
 {
 	unsigned int mounts, i;
 	int cnt = 0;
-	char buf[144];
+	char buf[318];
 	char *out;
 
 	errno = 0;
@@ -1140,7 +1140,7 @@ static const char *print_recv(const char *val)
 {
 	unsigned int rec, i;
 	int cnt = 0;
-	char buf[144];
+	char buf[212];
 	char *out;
 
 	errno = 0;

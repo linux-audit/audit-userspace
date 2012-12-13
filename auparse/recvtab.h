@@ -19,6 +19,7 @@
  * Authors:
  *      Steve Grubb <sgrubb@redhat.com>
  * Location: include/linux/socket.h
+ * NOTE: If any update are made, update buffer size in interpret.c:print_recv()
  */
 
 _S(0x00000001,    "MSG_OOB")

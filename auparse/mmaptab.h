@@ -20,6 +20,7 @@
  *      Steve Grubb <sgrubb@redhat.com>
  * Location: include/asm-generic/mman.h  >0x100
  *           include/asm-generic/mman-common.h < 0x100
+ * NOTE: If this is updated, also update interpret.c:print_mmap()
  */
 
 _S(0x00001, "MAP_SHARED"	)

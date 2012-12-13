@@ -19,6 +19,7 @@
  * Authors:
  *      Steve Grubb <sgrubb@redhat.com>
  * Location: include/linux/fs.h
+ * NOTE: When updating this table, update interpret.c:print_mount()
  */
 
 _S(MS_RDONLY, "MS_RDONLY")
