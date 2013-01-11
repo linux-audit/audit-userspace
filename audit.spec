@@ -243,7 +243,6 @@ fi
 %attr(750,root,root) %dir /etc/audit
 %attr(750,root,root) %dir /etc/audisp
 %attr(750,root,root) %dir /etc/audisp/plugins.d
-%attr(750,root,root) %dir %{_libdir}/audit
 %config(noreplace) %attr(640,root,root) /etc/audit/auditd.conf
 %config(noreplace) %attr(640,root,root) /etc/audit/audit.rules
 %config(noreplace) %attr(640,root,root) /etc/audisp/audispd.conf

@@ -1,5 +1,6 @@
 2.2.3
 - Code cleanups
+- In spec file, don't own lib64/audit
 
 2.2.2
 - In auditd, tcp_max_per_addr was allowing 1 more connection than specified
