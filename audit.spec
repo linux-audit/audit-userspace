@@ -234,7 +234,7 @@ fi
 %attr(755,root,root) %{_bindir}/ausyscall
 %attr(755,root,root) %{_bindir}/auvirt
 %if %{WITH_SYSTEMD}
-%attr(755,root,root) %{_unitdir}/auditd.service
+%attr(640,root,root) %{_unitdir}/auditd.service
 %else
 %attr(755,root,root) /etc/rc.d/init.d/auditd
 %config(noreplace) %attr(640,root,root) /etc/sysconfig/auditd
