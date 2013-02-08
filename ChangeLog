@@ -4,6 +4,7 @@
 - Update man pages
 - Aureport no longer reads auditd.conf when stdin is used
 - Don't let systemd kill auditd if auditctl errors out
+- Update syscall table for 3.7 kernels
 
 2.2.2
 - In auditd, tcp_max_per_addr was allowing 1 more connection than specified

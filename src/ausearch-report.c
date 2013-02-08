@@ -1,6 +1,6 @@
 /*
 * ausearch-report.c - Format and output events
-* Copyright (c) 2005-09,2011-12 Red Hat Inc., Durham, North Carolina.
+* Copyright (c) 2005-09,2011-13 Red Hat Inc., Durham, North Carolina.
 * All Rights Reserved. 
 *
 * This software may be freely redistributed and/or modified under the
@@ -964,7 +964,7 @@ static void print_capabilities(const char *val)
 
 static const char *signals[]=
 {
-	"0",
+	"SIG0",
 	"SIGHUP",
 	"SIGINT",
 	"SIGQUIT",
@@ -1422,6 +1422,7 @@ static struct nv_pair fcntltab[]=
  {14,          "F_SETLKW64" },
  {15,          "F_SETOWN_EX"},
  {16,          "F_GETOWN_EX"},
+ {17,          "F_GETOWNER_UIDS"},
  {1024,        "F_SETLEASE" },
  {1025,        "F_GETLEASE" },
  {1026,        "F_NOTIFY" },

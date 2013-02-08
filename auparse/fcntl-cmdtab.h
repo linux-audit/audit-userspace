@@ -1,5 +1,5 @@
 /* fcntl-cmdtab.h --
- * Copyright 2007,2012 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2007,2012-13 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -18,8 +18,8 @@
  *
  * Authors:
  *      Steve Grubb <sgrubb@redhat.com>
- * Location: include/asm-generic/fcntl.h <17
- *           include/linux/fcntl.h >= 1024
+ * Location: include/uapi/asm-generic/fcntl.h <17
+ *           include/uapi/linux/fcntl.h >= 1024
  */
 
 _S(0,		"F_DUPFD" )
@@ -39,6 +39,7 @@ _S(13,		"F_SETLK64" )
 _S(14,		"F_SETLKW64" )
 _S(15,		"F_SETOWN_EX" )
 _S(16,		"F_GETOWN_EX" )
+_S(17,		"F_GETOWNER_UIDS" )
 _S(1024,	"F_SETLEASE" )
 _S(1025,	"F_GETLEASE" )
 _S(1026,	"F_NOTIFY" )

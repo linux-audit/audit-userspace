@@ -21,7 +21,7 @@
  * Location: include/asm-generic/signal.h
  */
 
-_S(0,	"0"		)
+_S(0,	"SIG0"		)
 _S(1,	"SIGHUP"	)
 _S(2,	"SIGINT"	)
 _S(3,	"SIGQUIT"	)
