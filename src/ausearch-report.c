@@ -1720,6 +1720,8 @@ static void print_a1(const char *val)
 			return print_mode(val, 16);
 		else if (strcmp(sys, "socket") == 0)
 			return print_socket_type(val);
+		else if (strcmp(sys, "setns") == 0)
+			return print_clone(val);
 		else goto normal;
 	} else
 normal:

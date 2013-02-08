@@ -1240,6 +1240,8 @@ static const char *print_a1(const char *val, const rnode *r)
 			return print_mode(val, 16);
                 else if (strcmp(sys, "socket") == 0)
 			return print_socket_type(val);
+		else if (strcmp(sys, "setns") == 0)
+			return print_clone_flags(val);
 	}
 	return strdup(val);
 }
