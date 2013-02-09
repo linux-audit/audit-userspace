@@ -42,7 +42,7 @@ int force_logs = 0;
 
 /* These are for compatibility with parser */
 unsigned int event_id = -1;
-const slist *event_node_list = NULL;
+slist *event_node_list = NULL;
 const char *event_key = NULL;
 const char *event_filename = NULL;
 const char *event_exe = NULL;

@@ -68,7 +68,7 @@ const char *event_vmname = NULL;
 report_t report_format = RPT_DEFAULT;
 ilist *event_type;
 
-const slist *event_node_list = NULL;
+slist *event_node_list = NULL;
 
 struct nv_pair {
     int        value;

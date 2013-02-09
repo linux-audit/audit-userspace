@@ -318,7 +318,8 @@ static unsigned char x2c(unsigned char *buf)
 char *unescape(const char *buf)
 {
 	int len, i;
-	char saved, *ptr = buf, *str;
+	char *str, *strptr;
+	const char *ptr = buf;
 
 	/* Find the end of the name */
 	if (*ptr == '(') {
@@ -331,10 +332,7 @@ char *unescape(const char *buf)
 		while (isxdigit(*ptr))
 			ptr++;
 	}
-	saved = *ptr;
-	*ptr = 0;
-	str = strdup(buf);
-	*ptr = saved;
+	str = strndup(buf, ptr - buf);
 
 	if (*buf == '(')
 		return str;
@@ -347,12 +345,12 @@ char *unescape(const char *buf)
 		free(str);
 		return NULL;
 	}
-	ptr = str;
+	strptr = str;
 	for (i=0; i<len; i+=2) {
-		*ptr = x2c((unsigned char *)&str[i]);
-		ptr++;
+		*strptr = x2c((unsigned char *)&str[i]);
+		strptr++;
 	}
-	*ptr = 0;
+	*strptr = 0;
 	return str;
 }
 
