@@ -708,10 +708,18 @@ static void rotate_logs(struct auditd_consumer_data *data,
 	if (data->config->num_logs < 2)
 		return;
 
-	/* Close audit file */
-	fchmod(data->log_fd, 
-			data->config->log_group ? S_IRUSR|S_IRGRP : S_IRUSR);
-	fchown(data->log_fd, 0, data->config->log_group);
+	/* Close audit file. fchmod and fchown errors are not fatal because we
+	 * already adjusted log file permissions and ownership when opening the
+	 * log file. */
+	if (fchmod(data->log_fd, data->config->log_group ? S_IRUSR|S_IRGRP :
+								S_IRUSR) < 0) {
+		audit_msg(LOG_NOTICE, "Couldn't change permissions while "
+			"rotating log file (%s)", strerror(errno));
+	}
+	if (fchown(data->log_fd, 0, data->config->log_group) < 0) {
+		audit_msg(LOG_NOTICE, "Couldn't change ownership while "
+			"rotating log file (%s)", strerror(errno));
+	}
 	fclose(data->log_file);
 	
 	/* Rotate */
@@ -924,9 +932,20 @@ retry:
 			return 1;
 		}
 	}
-	fchmod(lfd, data->config->log_group ? S_IRUSR|S_IWUSR|S_IRGRP : 
-						S_IRUSR|S_IWUSR);
-	fchown(lfd, 0, data->config->log_group);
+	if (fchmod(lfd, data->config->log_group ? S_IRUSR|S_IWUSR|S_IRGRP :
+							S_IRUSR|S_IWUSR) < 0) {
+		audit_msg(LOG_ERR,
+			"Couldn't change permissions of log file (%s)",
+			strerror(errno));
+		close(lfd);
+		return 1;
+	}
+	if (fchown(lfd, 0, data->config->log_group) < 0) {
+		audit_msg(LOG_ERR, "Couldn't change ownership of log file (%s)",
+			strerror(errno));
+		close(lfd);
+		return 1;
+	}
 
 	data->log_fd = lfd;
 	data->log_file = fdopen(lfd, "a");
@@ -1089,8 +1108,14 @@ static void reconfigure(struct auditd_consumer_data *data)
 
 	// priority boost
 	if (oconf->priority_boost != nconf->priority_boost) {
+		int rc;
+
 		oconf->priority_boost = nconf->priority_boost;
-		nice(-oconf->priority_boost);
+		errno = 0;
+		rc = nice(-oconf->priority_boost);
+		if (rc == -1 && errno) 
+			audit_msg(LOG_NOTICE, "Cannot change priority in "
+					"reconfigure (%s)", strerror(errno));
 	}
 
 	// log format

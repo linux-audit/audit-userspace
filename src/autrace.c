@@ -245,7 +245,11 @@ int main(int argc, char *argv[])
 					exit(1);
 				}
 				sleep(1);
-				(void)write(fd[1],"1", 1);
+				if (write(fd[1],"1", 1) != 1) {
+					kill(pid,SIGTERM);
+					(void)delete_all_rules(audit_fd);
+					exit(1);
+				}
 				waitpid(pid, NULL, 0);
 				close(fd[1]);
 				puts("Cleaning up...");
