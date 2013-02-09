@@ -15,7 +15,7 @@ For each guest session the tool prints a record with the domain name, the user
 that started the guest, the time when the guest was started and the time when
 the guest was stoped.
 
-If the option "--all-events" is given a more detailed output is shown. In this
+If the option "\-\-all\-events" is given a more detailed output is shown. In this
 mode other records are shown for guest's stops, resource
 assignments, host shutdowns and AVC and anomaly events. The first field
 indicates the event type and can have the following values: start, stop,
@@ -110,7 +110,7 @@ Only show events related to the guest with the given name.
 .SH EXAMPLES
 To see all the records in this month for a guest
 
-\fBauvirt --start this-month --vm GuestVmName --all-events\fP
+\fBauvirt \-\-start this\-month \-\-vm GuestVmName \-\-all\-events\fP
 
 .SH SEE ALSO
 .BR aulast (8),

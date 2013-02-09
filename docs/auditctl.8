@@ -97,7 +97,7 @@ Add rule to the beginning \fIlist\fP with \fIaction\fP.
 Delete rule from \fIlist\fP with \fIaction\fP. The rule is deleted only if it exactly matches syscall name(s) and every field name and value.
 .TP
 .B \-D
-Delete all rules and watches. This can take a key option (-k), too.
+Delete all rules and watches. This can take a key option (\-k), too.
 .TP
 \fB\-S\fP [\fISyscall name or number\fP|\fBall\fP]
 Any \fIsyscall name\fP or \fInumber\fP may be used. The word '\fBall\fP' may also be used.  If the given syscall is made by a program, then start an audit record. If a field rule is given and no syscall is specified, it will default to all syscalls. You may also specify multiple syscalls in the same rule by using multiple \-S options in the same rule. Doing so improves performance since fewer rules need to be evaluated. If you are on a bi-arch system, like x86_64, you should be aware that auditctl simply takes the text, looks it up for the native arch (in this case b64) and sends that rule to the kernel. If there are no additional arch directives, IT WILL APPLY TO BOTH 32 & 64 BIT SYSCALLS. This can have undesirable effects since there is no guarantee that, for example, the open syscall has the same number on both 32 and 64 bit interfaces. You will likely want to control this and write 2 rules, one with arch equal to b32 and one with b64 to make sure the kernel finds the events that you intend. See the arch field discussion for more info.
