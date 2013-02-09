@@ -613,6 +613,7 @@ static int event_loop(void)
 			len = asprintf(&v, "type=%s msg=%.*s\n", 
 				type, e->hdr.size, e->data);
 		if (len <= 0) {
+			v = NULL;
 			free(e); /* Either corrupted event or no memory */
 			continue;
 		}

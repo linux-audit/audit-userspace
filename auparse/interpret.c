@@ -292,7 +292,8 @@ static const char *print_uid(const char *val, unsigned int base)
         uid = strtoul(val, NULL, base);
         if (errno) {
 		char *out;
-                asprintf(&out, "conversion error(%s)", val);
+		if (asprintf(&out, "conversion error(%s)", val) < 0)
+			out = NULL;
                 return out;
         }
 
@@ -308,7 +309,8 @@ static const char *print_gid(const char *val, unsigned int base)
         gid = strtoul(val, NULL, base);
         if (errno) {
 		char *out;
-                asprintf(&out, "conversion error(%s)", val);
+		if (asprintf(&out, "conversion error(%s)", val) < 0)
+			out = NULL;
                 return out;
         }
 
@@ -321,14 +323,16 @@ static const char *print_arch(const char *val, int machine)
 	char *out;
 
         if (machine < 0) {
-                asprintf(&out, "unknown elf type(%s)", val);
+		if (asprintf(&out, "unknown elf type(%s)", val) < 0)
+			out = NULL;
                 return out;
         }
         ptr = audit_machine_to_name(machine);
 	if (ptr)
 	        return strdup(ptr);
 	else {
-                asprintf(&out, "unknown machine type(%d)", machine);
+		if (asprintf(&out, "unknown machine type(%d)", machine) < 0)
+			out = NULL;
                 return out;
 	}
 }
@@ -355,13 +359,15 @@ static const char *print_syscall(const char *val, const rnode *r)
                 } else if (strcmp(sys, "ipc") == 0)
 			if ((int)a0 == a0)
 				func = ipc_i2s(a0);
-                if (func)
-                        asprintf(&out, "%s(%s)", sys, func);
-                else
+                if (func) {
+			if (asprintf(&out, "%s(%s)", sys, func) < 0)
+				out = NULL;
+		} else
                         return strdup(sys);
-        }
-        else
-                asprintf(&out, "unknown syscall(%d)", syscall);
+        } else {
+		if (asprintf(&out, "unknown syscall(%d)", syscall) < 0)
+			out = NULL;
+	}
 
 	return out;
 }
@@ -374,12 +380,14 @@ static const char *print_exit(const char *val)
         errno = 0;
         ival = strtol(val, NULL, 10);
         if (errno) {
-                asprintf(&out, "conversion error(%s)", val);
+		if (asprintf(&out, "conversion error(%s)", val) < 0)
+			out = NULL;
                 return out;
         }
 
         if (ival < 0) {
-                asprintf(&out, "%d(%s)", ival, strerror(-ival));
+		if (asprintf(&out, "%d(%s)", ival, strerror(-ival)) < 0)
+			out = NULL;
 		return out;
         }
         return strdup(val);
@@ -428,7 +436,8 @@ static const char *print_perm(const char *val)
         ival = strtol(val, NULL, 10);
         if (errno) {
 		char *out;
-                asprintf(&out, "conversion error(%s)", val);
+		if (asprintf(&out, "conversion error(%s)", val) < 0)
+			out = NULL;
                 return out;
         }
 
@@ -473,7 +482,8 @@ static const char *print_mode(const char *val, unsigned int base)
         errno = 0;
         ival = strtoul(val, NULL, base);
         if (errno) {
-                asprintf(&out, "conversion error(%s)", val);
+		if (asprintf(&out, "conversion error(%s)", val) < 0)
+			out = NULL;
                 return out;
         }
 
@@ -498,7 +508,9 @@ static const char *print_mode(const char *val, unsigned int base)
                 strcat(buf, ",sticky");
 
 	// and the read, write, execute flags in octal
-        asprintf(&out, "%s,%03o",  buf, (S_IRWXU|S_IRWXG|S_IRWXO) & ival);
+	if (asprintf(&out, "%s,%03o", buf,
+		     (S_IRWXU|S_IRWXG|S_IRWXO) & ival) < 0)
+		out = NULL;
 	return out;
 }
 
@@ -510,7 +522,8 @@ static const char *print_mode_short(const char *val)
         errno = 0;
         ival = strtoul(val, NULL, 16);
         if (errno) {
-                asprintf(&out, "conversion error(%s)", val);
+		if (asprintf(&out, "conversion error(%s)", val) < 0)
+			out = NULL;
                 return out;
         }
 
@@ -525,9 +538,13 @@ static const char *print_mode_short(const char *val)
 
 	// and the read, write, execute flags in octal
 	if (buf[0] == 0)
-	        asprintf(&out, "0%03o", (S_IRWXU|S_IRWXG|S_IRWXO) & ival);
+		if (asprintf(&out, "0%03o",
+			     (S_IRWXU|S_IRWXG|S_IRWXO) & ival) < 0)
+			out = NULL;
 	else
-	        asprintf(&out, "%s,%03o", buf, (S_IRWXU|S_IRWXG|S_IRWXO)&ival);
+		if (asprintf(&out, "%s,%03o", buf,
+			     (S_IRWXU|S_IRWXG|S_IRWXO) & ival) < 0)
+			out = NULL;
 	return out;
 }
 
@@ -540,12 +557,14 @@ static const char *print_socket_domain(const char *val)
 	errno = 0;
         i = strtoul(val, NULL, 16);
 	if (errno) {
-		asprintf(&out, "conversion error(%s)", val);
+		if (asprintf(&out, "conversion error(%s)", val) < 0)
+			out = NULL;
 		return out;
 	}
         str = fam_i2s(i);
         if (str == NULL) {
-                asprintf(&out, "unknown family(%s)", val);
+		if (asprintf(&out, "unknown family(%s)", val) < 0)
+			out = NULL;
 		return out;
 	} else
 		return strdup(str);
@@ -560,12 +579,14 @@ static const char *print_socket_type(const char *val)
 	errno = 0;
         type = 0xFF & strtoul(val, NULL, 16);
 	if (errno) {
-		asprintf(&out, "conversion error(%s)", val);
+		if (asprintf(&out, "conversion error(%s)", val) < 0)
+			out = NULL;
 		return out;
 	}
         str = sock_type_i2s(type);
         if (str == NULL) {
-                asprintf(&out, "unknown type(%s)", val);
+		if (asprintf(&out, "unknown type(%s)", val) < 0)
+			out = NULL;
 		return out;
 	} else
 		return strdup(str);
@@ -580,12 +601,14 @@ static const char *print_socket_proto(const char *val)
 	errno = 0;
         proto = strtoul(val, NULL, 16);
 	if (errno) {
-		asprintf(&out, "conversion error(%s)", val);
+		if (asprintf(&out, "conversion error(%s)", val) < 0)
+			out = NULL;
 		return out;
 	}
         p = getprotobynumber(proto);
         if (p == NULL) {
-                asprintf(&out, "unknown proto(%s)", val);
+		if (asprintf(&out, "unknown proto(%s)", val) < 0)
+			out = NULL;
 		return out;
 	} else
 		return strdup(p->p_name);
@@ -593,7 +616,7 @@ static const char *print_socket_proto(const char *val)
 
 static const char *print_sockaddr(const char *val)
 {
-        int slen;
+        int slen, rc = 0;
         const struct sockaddr *saddr;
         char name[NI_MAXHOST], serv[NI_MAXSERV];
         const char *host;
@@ -603,7 +626,8 @@ static const char *print_sockaddr(const char *val)
         slen = strlen(val)/2;
         host = au_unescape((char *)val);
 	if (host == NULL) {
-                asprintf(&out, "malformed host(%s)", val);
+		if (asprintf(&out, "malformed host(%s)", val) < 0)
+			out = NULL;
 		return out;
 	}
         saddr = (struct sockaddr *)host;
@@ -611,7 +635,8 @@ static const char *print_sockaddr(const char *val)
 
         str = fam_i2s(saddr->sa_family);
         if (str == NULL) {
-                asprintf(&out, "unknown family(%d)", saddr->sa_family);
+		if (asprintf(&out, "unknown family(%d)", saddr->sa_family) < 0)
+			out = NULL;
 		return out;
 	}
 
@@ -622,94 +647,96 @@ static const char *print_sockaddr(const char *val)
                                 const struct sockaddr_un *un =
                                         (struct sockaddr_un *)saddr;
                                 if (un->sun_path[0])
-                                        asprintf(&out, "%s %s", str,
-							un->sun_path);
+					rc = asprintf(&out, "%s %s", str,
+						      un->sun_path);
                                 else // abstract name
-                                        asprintf(&out, "%s %.108s", str,
-							&un->sun_path[1]);
+					rc = asprintf(&out, "%s %.108s", str,
+						      &un->sun_path[1]);
                         }
                         break;
                 case AF_INET:
                         if (slen < sizeof(struct sockaddr_in)) {
-                                asprintf(&out, "%s sockaddr len too short",
-						 str);
-                                free((char *)host);
-                                return out;
+				rc = asprintf(&out, "%s sockaddr len too short",
+					      str);
+				break;
                         }
                         slen = sizeof(struct sockaddr_in);
                         if (getnameinfo(saddr, slen, name, NI_MAXHOST, serv,
                                 NI_MAXSERV, NI_NUMERICHOST |
                                         NI_NUMERICSERV) == 0 ) {
-                                asprintf(&out, "%s host:%s serv:%s", str,
-						name, serv);
+				rc = asprintf(&out, "%s host:%s serv:%s", str,
+					      name, serv);
                         } else
-                                asprintf(&out, "%s (error resolving addr)",
-						 str);
+				rc = asprintf(&out, "%s (error resolving addr)",
+					      str);
                         break;
                 case AF_AX25:
                         {
                                 const struct sockaddr_ax25 *x =
                                                 (struct sockaddr_ax25 *)saddr;
-                                asprintf(&out, "%s call:%c%c%c%c%c%c%c", str,
-                                        x->sax25_call.ax25_call[0],
-                                        x->sax25_call.ax25_call[1],
-                                        x->sax25_call.ax25_call[2],
-                                        x->sax25_call.ax25_call[3],
-                                        x->sax25_call.ax25_call[4],
-                                        x->sax25_call.ax25_call[5],
-                                        x->sax25_call.ax25_call[6]
-                                );
+				rc = asprintf(&out, "%s call:%c%c%c%c%c%c%c",
+					      str,
+					      x->sax25_call.ax25_call[0],
+					      x->sax25_call.ax25_call[1],
+					      x->sax25_call.ax25_call[2],
+					      x->sax25_call.ax25_call[3],
+					      x->sax25_call.ax25_call[4],
+					      x->sax25_call.ax25_call[5],
+					      x->sax25_call.ax25_call[6]);
                         }
                         break;
                 case AF_IPX:
                         {
                                 const struct sockaddr_ipx *ip =
                                                 (struct sockaddr_ipx *)saddr;
-                                asprintf(&out, "%s port:%d net:%u", str,
-                                        ip->sipx_port, ip->sipx_network);
+				rc = asprintf(&out, "%s port:%d net:%u", str,
+					      ip->sipx_port, ip->sipx_network);
                         }
                         break;
                 case AF_ATMPVC:
                         {
                                 const struct sockaddr_atmpvc* at =
                                         (struct sockaddr_atmpvc *)saddr;
-                                asprintf(&out, "%s int:%d", str, 
-						at->sap_addr.itf);
+				rc = asprintf(&out, "%s int:%d", str,
+					      at->sap_addr.itf);
                         }
                         break;
                 case AF_X25:
                         {
                                 const struct sockaddr_x25* x =
                                         (struct sockaddr_x25 *)saddr;
-                                asprintf(&out, "%s addr:%.15s", str,
-						x->sx25_addr.x25_addr);
+				rc = asprintf(&out, "%s addr:%.15s", str,
+					      x->sx25_addr.x25_addr);
                         }
                         break;
                 case AF_INET6:
                         if (slen < sizeof(struct sockaddr_in6)) {
-                                asprintf(&out, "%s sockaddr6 len too short", 
-						str);
-                                free((char *)host);
-                                return out;
+				rc = asprintf(&out,
+					      "%s sockaddr6 len too short",
+					      str);
+				break;
                         }
                         slen = sizeof(struct sockaddr_in6);
                         if (getnameinfo(saddr, slen, name, NI_MAXHOST, serv,
                                 NI_MAXSERV, NI_NUMERICHOST |
                                         NI_NUMERICSERV) == 0 ) {
-                                asprintf(&out, "%s host:%s serv:%s", str,
-						name, serv);
+				rc = asprintf(&out, "%s host:%s serv:%s", str,
+					      name, serv);
                         } else
-                                asprintf(&out, "%s (error resolving addr)",
-						str);
+				rc = asprintf(&out, "%s (error resolving addr)",
+					      str);
                         break;
                 case AF_NETLINK:
                         {
                                 const struct sockaddr_nl *n =
                                                 (struct sockaddr_nl *)saddr;
-                                asprintf(&out, "%s pid:%u", str, n->nl_pid);
+				rc = asprintf(&out, "%s pid:%u", str,
+					      n->nl_pid);
                         }
                         break;
         }
+	if (rc < 0)
+		out = NULL;
         free((char *)host);
 	return out;
 }
@@ -723,11 +750,13 @@ static const char *print_flags(const char *val)
         errno = 0;
         flags = strtoul(val, NULL, 16);
         if (errno) {
-                asprintf(&out, "conversion error(%s)", val);
+		if (asprintf(&out, "conversion error(%s)", val) < 0)
+			out = NULL;
                 return out;
         }
         if (flags == 0) {
-                asprintf(&out, "none");
+		if (asprintf(&out, "none") < 0)
+			out = NULL;
                 return out;
         }
 	buf[0] = 0;
@@ -755,7 +784,8 @@ static const char *print_promiscuous(const char *val)
         ival = strtol(val, NULL, 10);
         if (errno) {
 		char *out;
-                asprintf(&out, "conversion error(%s)", val);
+		if (asprintf(&out, "conversion error(%s)", val) < 0)
+			out = NULL;
                 return out;
         }
 
@@ -774,14 +804,16 @@ static const char *print_capabilities(const char *val)
         errno = 0;
         cap = strtoul(val, NULL, 10);
         if (errno) {
-                asprintf(&out, "conversion error(%s)", val);
+		if (asprintf(&out, "conversion error(%s)", val) < 0)
+			out = NULL;
                 return out;
         }
 
 	s = cap_i2s(cap);
 	if (s != NULL)
 		return strdup(s);
-	asprintf(&out, "unknown capability(%s)", val);
+	if (asprintf(&out, "unknown capability(%s)", val) < 0)
+		out = NULL;
 	return out;
 }
 
@@ -797,7 +829,8 @@ static const char *print_cap_bitmap(const char *val)
 	temp = strtoull(val, NULL, 16);
 	if (errno) {
 		char *out;
-                asprintf(&out, "conversion error(%s)", val);
+		if (asprintf(&out, "conversion error(%s)", val) < 0)
+			out = NULL;
                 return out;
 	}
 
@@ -829,7 +862,8 @@ static const char *print_success(const char *val)
         	res = strtoul(val, NULL, 10);
 	        if (errno) {
 			char *out;
-                	asprintf(&out, "conversion error(%s)", val);
+			if (asprintf(&out, "conversion error(%s)", val) < 0)
+				out = NULL;
 	                return out;
         	}
 
@@ -848,7 +882,8 @@ static const char *print_open_flags(const char *val)
 	errno = 0;
 	flags = strtoul(val, NULL, 16);
         if (errno) {
-		asprintf(&out, "conversion error(%s)", val);
+		if (asprintf(&out, "conversion error(%s)", val) < 0)
+			out = NULL;
                	return out;
        	}
 
@@ -883,7 +918,8 @@ static const char *print_clone_flags(const char *val)
 	errno = 0;
 	flags = strtoul(val, NULL, 16);
         if (errno) {
-		asprintf(&out, "conversion error(%s)", val);
+		if (asprintf(&out, "conversion error(%s)", val) < 0)
+			out = NULL;
                	return out;
        	}
 
@@ -915,14 +951,16 @@ static const char *print_fcntl_cmd(const char *val)
 	errno = 0;
 	cmd = strtoul(val, NULL, 16);
         if (errno) {
-		asprintf(&out, "conversion error(%s)", val);
+		if (asprintf(&out, "conversion error(%s)", val) < 0)
+			out = NULL;
 		return out;
        	}
 
 	s = fcntl_i2s(cmd);
 	if (s != NULL)
 		return strdup(s);
-	asprintf(&out, "unknown fcntl command(%d)", cmd);
+	if (asprintf(&out, "unknown fcntl command(%d)", cmd) < 0)
+		out = NULL;
 	return out;
 }
 
@@ -935,14 +973,16 @@ static const char *print_epoll_ctl(const char *val)
 	errno = 0;
 	cmd = strtoul(val, NULL, 16);
 	if (errno) {
-		asprintf(&out, "conversion error(%s)", val);
+		if (asprintf(&out, "conversion error(%s)", val) < 0)
+			out = NULL;
 		return out;
 	}
 
 	s = epoll_ctl_i2s(cmd);
 	if (s != NULL)
 		return strdup(s);
-	asprintf(&out, "unknown epoll_ctl operation (%d)", cmd);
+	if (asprintf(&out, "unknown epoll_ctl operation (%d)", cmd) < 0)
+		out = NULL;
 	return out;
 }
 
@@ -954,7 +994,8 @@ static const char *print_clock_id(const char *val)
 	errno = 0;
         i = strtoul(val, NULL, 16);
 	if (errno) {
-		asprintf(&out, "conversion error(%s)", val);
+		if (asprintf(&out, "conversion error(%s)", val) < 0)
+			out = NULL;
 		return out;
 	}
 	else if (i < 7) {
@@ -962,7 +1003,8 @@ static const char *print_clock_id(const char *val)
 		if (s != NULL)
 			return strdup(s);
 	}
-	asprintf(&out, "unknown clk_id (%s)", val);
+	if (asprintf(&out, "unknown clk_id (%s)", val) < 0)
+		out = NULL;
 	return out;
 }
 
@@ -976,7 +1018,8 @@ static const char *print_prot(const char *val, unsigned int is_mmap)
 	errno = 0;
         prot = strtoul(val, NULL, 16);
 	if (errno) {
-		asprintf(&out, "conversion error(%s)", val);
+		if (asprintf(&out, "conversion error(%s)", val) < 0)
+			out = NULL;
 		return out;
 	}
 	buf[0] = 0;
@@ -1015,7 +1058,8 @@ static const char *print_mmap(const char *val)
 	errno = 0;
         maps = strtoul(val, NULL, 16);
 	if (errno) {
-		asprintf(&out, "conversion error(%s)", val);
+		if (asprintf(&out, "conversion error(%s)", val) < 0)
+			out = NULL;
 		return out;
 	}
 	buf[0] = 0;
@@ -1049,7 +1093,8 @@ static const char *print_personality(const char *val)
         errno = 0;
         pers = strtoul(val, NULL, 16);
         if (errno) {
-                asprintf(&out, "conversion error(%s)", val);
+		if (asprintf(&out, "conversion error(%s)", val) < 0)
+			out = NULL;
                 return out;
         }
 
@@ -1057,12 +1102,14 @@ static const char *print_personality(const char *val)
 	s = person_i2s(pers2);
 	if (s != NULL) {
 		if (pers & ADDR_NO_RANDOMIZE) {
-			asprintf(&out, "%s|~ADDR_NO_RANDOMIZE", s);
+			if (asprintf(&out, "%s|~ADDR_NO_RANDOMIZE", s) < 0)
+				out = NULL;
 			return out;
 		} else
 			return strdup(s);
 	}
-	asprintf(&out, "unknown personality (%s)", val);
+	if (asprintf(&out, "unknown personality (%s)", val) < 0)
+		out = NULL;
 	return out;
 }
 
@@ -1075,14 +1122,16 @@ static const char *print_ptrace(const char *val)
         errno = 0;
         trace = strtoul(val, NULL, 16);
         if (errno) {
-                asprintf(&out, "conversion error(%s)", val);
+		if (asprintf(&out, "conversion error(%s)", val) < 0)
+			out = NULL;
                 return out;
         }
 
 	s = ptrace_i2s(trace);
 	if (s != NULL)
 		return strdup(s);
-	asprintf(&out, "unknown ptrace (%s)", val);
+	if (asprintf(&out, "unknown ptrace (%s)", val) < 0)
+		out = NULL;
 	return out;
 }
 
@@ -1096,7 +1145,8 @@ static const char *print_mount(const char *val)
 	errno = 0;
         mounts = strtoul(val, NULL, 16);
 	if (errno) {
-		asprintf(&out, "conversion error(%s)", val);
+		if (asprintf(&out, "conversion error(%s)", val) < 0)
+			out = NULL;
 		return out;
 	}
 	buf[0] = 0;
@@ -1124,7 +1174,8 @@ static const char *print_rlimit(const char *val)
 	errno = 0;
         i = strtoul(val, NULL, 16);
 	if (errno) {
-		asprintf(&out, "conversion error(%s)", val);
+		if (asprintf(&out, "conversion error(%s)", val) < 0)
+			out = NULL;
 		return out;
 	}
 	else if (i < 17) {
@@ -1132,7 +1183,8 @@ static const char *print_rlimit(const char *val)
 		if (s != NULL)
 			return strdup(s);
 	}
-	asprintf(&out, "unknown rlimit (%s)", val);
+	if (asprintf(&out, "unknown rlimit (%s)", val) < 0)
+		out = NULL;
 	return out;
 }
 
@@ -1146,7 +1198,8 @@ static const char *print_recv(const char *val)
 	errno = 0;
         rec = strtoul(val, NULL, 16);
 	if (errno) {
-		asprintf(&out, "conversion error(%s)", val);
+		if (asprintf(&out, "conversion error(%s)", val) < 0)
+			out = NULL;
 		return out;
 	}
 	buf[0] = 0;
@@ -1258,7 +1311,9 @@ static const char *print_a2(const char *val, const rnode *r)
 			errno = 0;
 			ival = strtoul(val, NULL, 16);
 		        if (errno) {
-                		asprintf(&out, "conversion error(%s)", val);
+				if (asprintf(&out, "conversion error(%s)",
+					     val) < 0)
+					out = NULL;
 	                	return out;
 	        	}
 			switch (r->a1)
@@ -1330,7 +1385,8 @@ static const char *print_signals(const char *val, unsigned int base)
 	errno = 0;
         i = strtoul(val, NULL, base);
 	if (errno) {
-		asprintf(&out, "conversion error(%s)", val);
+		if (asprintf(&out, "conversion error(%s)", val) < 0)
+			out = NULL;
 		return out;
 	}
 	else if (i < 32) {
@@ -1338,7 +1394,8 @@ static const char *print_signals(const char *val, unsigned int base)
 		if (s != NULL)
 			return strdup(s);
 	}
-	asprintf(&out, "unknown signal (%s)", val);
+	if (asprintf(&out, "unknown signal (%s)", val) < 0)
+		out = NULL;
 	return out;
 }
 
@@ -1351,14 +1408,16 @@ static const char *print_nfproto(const char *val)
         errno = 0;
         proto = strtoul(val, NULL, 10);
         if (errno) {
-                asprintf(&out, "conversion error(%s)", val);
+		if (asprintf(&out, "conversion error(%s)", val) < 0)
+			out = NULL;
                 return out;
         }
 
 	s = nfproto_i2s(proto);
 	if (s != NULL)
 		return strdup(s);
-	asprintf(&out, "unknown netfilter protocol (%s)", val);
+	if (asprintf(&out, "unknown netfilter protocol (%s)", val) < 0)
+		out = NULL;
 	return out;
 }
 
@@ -1371,14 +1430,16 @@ static const char *print_icmptype(const char *val)
         errno = 0;
         icmptype = strtoul(val, NULL, 10);
         if (errno) {
-                asprintf(&out, "conversion error(%s)", val);
+		if (asprintf(&out, "conversion error(%s)", val) < 0)
+			out = NULL;
                 return out;
         }
 
 	s = icmptype_i2s(icmptype);
 	if (s != NULL)
 		return strdup(s);
-	asprintf(&out, "unknown icmp type (%s)", val);
+	if (asprintf(&out, "unknown icmp type (%s)", val) < 0)
+		out = NULL;
 	return out;
 }
 
@@ -1390,7 +1451,8 @@ static const char *print_protocol(const char *val)
 	errno = 0;
         i = strtoul(val, NULL, 10);
 	if (errno) 
-		asprintf(&out, "conversion error(%s)", val);
+		if (asprintf(&out, "conversion error(%s)", val) < 0)
+			out = NULL;
 	else {
 		struct protoent *p = getprotobynumber(i);
 		if (p)
@@ -1415,7 +1477,8 @@ static const char *print_list(const char *val)
 	errno = 0;
         i = strtoul(val, NULL, 10);
 	if (errno) 
-		asprintf(&out, "conversion error(%s)", val);
+		if (asprintf(&out, "conversion error(%s)", val) < 0)
+			out = NULL;
 	else
 		out = strdup(audit_flag_to_name(i));
 	return out;
@@ -1569,13 +1632,15 @@ static const char *print_seccomp_code(const char *val)
 	errno = 0;
         code = strtoul(val, NULL, 16);
 	if (errno) {
-		asprintf(&out, "conversion error(%s)", val);
+		if (asprintf(&out, "conversion error(%s)", val) < 0)
+			out = NULL;
 		return out;
 	}
 	s = seccomp_i2s(code & SECCOMP_RET_ACTION);
 	if (s != NULL)
 		return strdup(s);
-	asprintf(&out, "unknown seccomp code (%s)", val);
+	if (asprintf(&out, "unknown seccomp code (%s)", val) < 0)
+		out = NULL;
 	return out;
 }
 

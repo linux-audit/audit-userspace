@@ -930,16 +930,16 @@ static int setopt(int count, int lineno, char *vars[])
 		flags = del & AUDIT_FILTER_MASK;
 
 	/* Build the command */
-	asprintf(&cmd, "key=%s", key);
-	if (cmd) {
+	if (asprintf(&cmd, "key=%s", key) < 0) {
+		cmd = NULL;
+		fprintf(stderr, "Out of memory adding key\n");
+		retval = -1;
+	} else {
 		/* Add this to the rule */
 		int ret = audit_rule_fieldpair_data(&rule_new, cmd, flags);
 		if (ret < 0)
 			retval = -1;
 		free(cmd);
-	} else {
-		fprintf(stderr, "Out of memory adding key\n");
-		retval = -1;
 	}
     }
     if (retval == -1 && errno == ECONNREFUSED)
@@ -1351,8 +1351,9 @@ int key_match(struct audit_reply *rep)
 		int field = rep->ruledata->fields[i] & ~AUDIT_OPERATORS;
 		if (field == AUDIT_FILTERKEY) {
 			char *keyptr;
-			asprintf(&keyptr, "%.*s", rep->ruledata->values[i],
-				&rep->ruledata->buf[boffset]);
+			if (asprintf(&keyptr, "%.*s", rep->ruledata->values[i],
+				     &rep->ruledata->buf[boffset]) < 0)
+				keyptr = NULL;
 			if (strstr(keyptr, key)) {
 				free(keyptr);
 				return 1;
@@ -1467,9 +1468,10 @@ static int audit_print_reply(struct audit_reply *rep)
 						    rep->ruledata->values[i];
 					} else if (field == AUDIT_FILTERKEY) {
 						char *rkey, *ptr;
-						asprintf(&rkey, "%.*s",
-						rep->ruledata->values[i],
-						&rep->ruledata->buf[boffset]);
+						if (asprintf(&rkey, "%.*s",
+						      rep->ruledata->values[i],
+						      &rep->ruledata->buf[boffset]) < 0)
+							rkey = NULL;
 						boffset +=
 						    rep->ruledata->values[i];
 						ptr = strtok(rkey, key_sep);

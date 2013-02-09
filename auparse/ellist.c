@@ -91,7 +91,8 @@ static char *escape(const char *tmp)
 		}
 		p++;
 	}
-	asprintf(&name, "\"%s\"", tmp);
+	if (asprintf(&name, "\"%s\"", tmp) < 0)
+		name = NULL;
 	return name;
 }
 

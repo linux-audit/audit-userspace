@@ -967,7 +967,9 @@ static int add_execve_data(auparse_state_t *au, idmef_alert_t *alert)
 			int len2;
 			len2 = asprintf(&ptr, "%s=%s ", var,
 					auparse_interpret_field(au));
-			if (len2 > 0 && (len2 + len + 1) < sizeof(msg)) {
+			if (len2 < 0) {
+				ptr = NULL;
+			} else if (len2 > 0 && (len2 + len + 1) < sizeof(msg)) {
 				strcat(msg, ptr);
 				len += len2;
 			}
