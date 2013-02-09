@@ -240,7 +240,7 @@ int send_audit_event(int type, const char *str)
 
 static int write_pid_file(void)
 {
-	int pidfd, len, rc;
+	int pidfd, len;
 	char val[16];
 
 	len = snprintf(val, sizeof(val), "%u\n", getpid());
@@ -460,10 +460,9 @@ int main(int argc, char *argv[])
 {
 	struct sigaction sa;
 	struct rlimit limit;
-	int i;
+	int i, c, rc;
 	int opt_foreground = 0, opt_allow_links = 0;
 	enum startup_state opt_startup = startup_enable;
-	int c;
 	extern char *optarg;
 	extern int optind;
 	struct ev_loop *loop;
@@ -473,7 +472,6 @@ int main(int argc, char *argv[])
 	struct ev_signal sigusr1_watcher;
 	struct ev_signal sigusr2_watcher;
 	struct ev_signal sigchld_watcher;
-	int rc;
 
 	/* Get params && set mode */
 	while ((c = getopt(argc, argv, "flns:")) != -1) {

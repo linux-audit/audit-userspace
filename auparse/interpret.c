@@ -537,11 +537,11 @@ static const char *print_mode_short(const char *val)
                 strcat(buf, ",sticky");
 
 	// and the read, write, execute flags in octal
-	if (buf[0] == 0)
+	if (buf[0] == 0) {
 		if (asprintf(&out, "0%03o",
 			     (S_IRWXU|S_IRWXG|S_IRWXO) & ival) < 0)
 			out = NULL;
-	else
+	} else
 		if (asprintf(&out, "%s,%03o", buf,
 			     (S_IRWXU|S_IRWXG|S_IRWXO) & ival) < 0)
 			out = NULL;
@@ -1450,10 +1450,10 @@ static const char *print_protocol(const char *val)
 
 	errno = 0;
         i = strtoul(val, NULL, 10);
-	if (errno) 
+	if (errno) { 
 		if (asprintf(&out, "conversion error(%s)", val) < 0)
 			out = NULL;
-	else {
+	} else {
 		struct protoent *p = getprotobynumber(i);
 		if (p)
 			out = strdup(p->p_name);
@@ -1476,10 +1476,10 @@ static const char *print_list(const char *val)
 
 	errno = 0;
         i = strtoul(val, NULL, 10);
-	if (errno) 
+	if (errno) { 
 		if (asprintf(&out, "conversion error(%s)", val) < 0)
 			out = NULL;
-	else
+	} else
 		out = strdup(audit_flag_to_name(i));
 	return out;
 }
