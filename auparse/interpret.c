@@ -1,6 +1,6 @@
 /*
 * interpret.c - Lookup values to something more readable
-* Copyright (c) 2007-09,2011-12 Red Hat Inc., Durham, North Carolina.
+* Copyright (c) 2007-09,2011-13 Red Hat Inc., Durham, North Carolina.
 * All Rights Reserved. 
 *
 * This software may be freely redistributed and/or modified under the
@@ -88,6 +88,7 @@
 #include "nfprototabs.h"
 #include "icmptypetabs.h"
 #include "seccomptabs.h"
+#include "accesstabs.h"
 
 typedef enum { AVC_UNSET, AVC_DENIED, AVC_GRANTED } avc_t;
 typedef enum { S_UNSET=-1, S_FAILED, S_SUCCESS } success_t;
@@ -1219,6 +1220,56 @@ static const char *print_recv(const char *val)
 	return strdup(buf);
 }
 
+static const char *print_access(const char *val)
+{
+	unsigned long mode;
+	char buf[16];
+	unsigned int i, cnt = 0;
+
+	errno = 0;
+        mode = strtoul(val, NULL, 16);
+	if (errno) {
+		char *out;
+		if (asprintf(&out, "conversion error(%s)", val) < 0)
+			out = NULL;
+		return out;
+	}
+
+	if ((mode & 0xF) == 0)
+		return strdup("F_OK");
+	buf[0] = 0;
+	for (i=0; i<3; i++) {
+		if (access_table[i].value & mode) {
+			if (!cnt) {
+				strcat(buf,
+				access_strings + access_table[i].offset);
+				cnt++;
+			} else {
+				strcat(buf, "|");
+				strcat(buf,
+				access_strings + access_table[i].offset);
+			}
+		}
+	}
+        if (buf[0] == 0)
+                snprintf(buf, sizeof(buf), "%d", (int)mode);
+        return strdup(buf);
+}
+
+static char *print_dirfd(const char *val)
+{
+	char *out;
+
+	if (strcmp(val, "-100") == 0) {
+		if (asprintf(&out, "AT_FDCWD ") < 0)
+			out = NULL;
+	} else {
+		if (asprintf(&out, "%s ", val) < 0)
+			out = NULL;
+	}
+	return out;
+}
+
 static const char *print_a0(const char *val, const rnode *r)
 {
 	int machine = r->machine, syscall = r->syscall;
@@ -1252,6 +1303,32 @@ static const char *print_a0(const char *val, const rnode *r)
 			return print_rlimit(val);
                 else if (strcmp(sys, "socket") == 0)
 			return print_socket_domain(val);
+		else if (strcmp(sys, "openat") == 0)
+			return print_dirfd(val);
+		else if (strcmp(sys, "mkdirat") == 0)
+			return print_dirfd(val);
+		else if (strcmp(sys, "mknodat") == 0)
+			return print_dirfd(val);
+		else if (strcmp(sys, "fchownat") == 0)
+			return print_dirfd(val);
+		else if (strcmp(sys, "futimesat") == 0)
+			return print_dirfd(val);
+		else if (strcmp(sys, "newfstatat") == 0)
+			return print_dirfd(val);
+		else if (strcmp(sys, "unlinkat") == 0)
+			return print_dirfd(val);
+		else if (strcmp(sys, "renameat") == 0)
+			return print_dirfd(val);
+		else if (strcmp(sys, "linkat") == 0)
+			return print_dirfd(val);
+		else if (strcmp(sys, "readlinkat") == 0)
+			return print_dirfd(val);
+		else if (strcmp(sys, "fchmodat") == 0)
+			return print_dirfd(val);
+		else if (strcmp(sys, "faccessat") == 0)
+			return print_dirfd(val);
+		else if (strcmp(sys, "futimensat") == 0)
+			return print_dirfd(val);
 	}
 	return strdup(val);
 }
@@ -1344,6 +1421,8 @@ static const char *print_a2(const char *val, const rnode *r)
 			return print_signals(val, 16);
 		else if (strcmp(sys, "mkdirat") == 0)
 			return print_mode_short(val);
+		else if (strcmp(sys, "mknodat") == 0)
+			return print_mode_short(val);
 		else if (strcmp(sys, "mmap") == 0)
 			return print_prot(val, 1);
 		else if (strcmp(sys, "mprotect") == 0)
@@ -1354,6 +1433,12 @@ static const char *print_a2(const char *val, const rnode *r)
 			return print_clone_flags(val);
                 else if (strcmp(sys, "recvmsg") == 0)
 			return print_recv(val);
+		else if (strcmp(sys, "linkat") == 0)
+			return print_dirfd(val);
+		else if (strcmp(sys, "readlinkat") == 0)
+			return print_dirfd(val);
+		else if (strcmp(sys, "faccessat") == 0)
+			return print_access(val);
 	}
 	return strdup(val);
 }

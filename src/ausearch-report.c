@@ -1648,6 +1648,14 @@ static void print_recv(const char *val)
 		putchar(' ');
 }
 
+static void print_dirfd(const char *val)
+{
+	if (strcmp(val, "-100") == 0)
+		printf("AT_FDCWD ");
+	else
+		printf("%s ", val);
+}
+
 static void print_a0(const char *val)
 {
 	if (sys) {
@@ -1679,6 +1687,32 @@ static void print_a0(const char *val)
 			return print_rlimit(val);
 		else if (strcmp(sys, "socket") == 0)
 			return print_socket_domain(val);
+		else if (strcmp(sys, "openat") == 0)
+			return print_dirfd(val);
+		else if (strcmp(sys, "mkdirat") == 0)
+			return print_dirfd(val);
+		else if (strcmp(sys, "mknodat") == 0)
+			return print_dirfd(val);
+		else if (strcmp(sys, "fchownat") == 0)
+			return print_dirfd(val);
+		else if (strcmp(sys, "futimesat") == 0)
+			return print_dirfd(val);
+		else if (strcmp(sys, "newfstatat") == 0)
+			return print_dirfd(val);
+		else if (strcmp(sys, "unlinkat") == 0)
+			return print_dirfd(val);
+		else if (strcmp(sys, "renameat") == 0)
+			return print_dirfd(val);
+		else if (strcmp(sys, "linkat") == 0)
+			return print_dirfd(val);
+		else if (strcmp(sys, "readlinkat") == 0)
+			return print_dirfd(val);
+		else if (strcmp(sys, "fchmodat") == 0)
+			return print_dirfd(val);
+		else if (strcmp(sys, "faccessat") == 0)
+			return print_dirfd(val);
+		else if (strcmp(sys, "futimensat") == 0)
+			return print_dirfd(val);
 		else goto normal;
 	} else
 normal:
@@ -1745,6 +1779,8 @@ static void print_a2(const char *val)
 			return print_signals(val, 16);
 		else if (strcmp(sys, "mkdirat") == 0)
 			return print_mode_short(val);
+		else if (strcmp(sys, "mknodat") == 0)
+			return print_mode_short(val);
 		else if (strcmp(sys, "mmap") == 0)
 			return print_prot(val, 1);
 		else if (strcmp(sys, "mprotect") == 0)
@@ -1755,6 +1791,12 @@ static void print_a2(const char *val)
 			return print_clone(val);
 		else if (strcmp(sys, "recvmsg") == 0)
 			print_recv(val);
+		else if (strcmp(sys, "linkat") == 0)
+			return print_dirfd(val);
+		else if (strcmp(sys, "readlinkat") == 0)
+			return print_dirfd(val);
+		else if (strcmp(sys, "faccessat") == 0)
+			return print_access(val);
 		else goto normal;
 	} else
 normal:

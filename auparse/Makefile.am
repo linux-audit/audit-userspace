@@ -1,5 +1,5 @@
 # Makefile.am -- 
-# Copyright 2006-08,2011-12 Red Hat Inc., Durham, North Carolina.
+# Copyright 2006-08,2011-13 Red Hat Inc., Durham, North Carolina.
 # All Rights Reserved.
 #
 # This library is free software; you can redistribute it and/or
@@ -42,12 +42,14 @@ libauparse_la_LDFLAGS = -Wl,-z,relro
 message.c:
 	cp ${top_srcdir}/lib/message.c .
 
-BUILT_SOURCES = captabs.h clocktabs.h clone-flagtabs.h epoll_ctls.h famtabs.h \
-	fcntl-cmdtabs.h flagtabs.h icmptypetabs.h ipctabs.h \
+BUILT_SOURCES = accesstabs.h captabs.h clocktabs.h clone-flagtabs.h \
+	epoll_ctls.h famtabs.h fcntl-cmdtabs.h \
+	flagtabs.h icmptypetabs.h ipctabs.h \
 	mmaptabs.h mounttabs.h nfprototabs.h open-flagtabs.h \
 	persontabs.h prottabs.h ptracetabs.h rlimittabs.h recvtabs.h \
 	seccomptabs.h signaltabs.h socktabs.h socktypetabs.h typetabs.h
-noinst_PROGRAMS = gen_captabs_h gen_clock_h gen_clone-flagtabs_h \
+noinst_PROGRAMS = gen_accesstabs_h gen_captabs_h gen_clock_h \
+	gen_clone-flagtabs_h \
 	gen_epoll_ctls_h gen_famtabs_h \
 	gen_fcntl-cmdtabs_h gen_flagtabs_h \
 	gen_icmptypetabs_h gen_ipctabs_h gen_nfprototabs_h \
@@ -56,6 +58,11 @@ noinst_PROGRAMS = gen_captabs_h gen_clock_h gen_clone-flagtabs_h \
 	gen_recvtabs_h gen_rlimit_h gen_ptracetabs_h \
 	gen_seccomptabs_h gen_signals_h gen_socktabs_h \
 	gen_socktypetabs_h gen_typetabs_h
+
+gen_accesstabs_h_SOURCES = ../lib/gen_tables.c ../lib/gen_tables.h accesstab.h
+gen_accesstabs_h_CFLAGS = $(AM_CFLAGS) '-DTABLE_H="accesstab.h"'
+accesstabs.h: gen_accesstabs_h Makefile
+	./gen_accesstabs_h --i2s-transtab access > $@
 
 gen_captabs_h_SOURCES = ../lib/gen_tables.c ../lib/gen_tables.h captab.h
 gen_captabs_h_CFLAGS = $(AM_CFLAGS) '-DTABLE_H="captab.h"'
