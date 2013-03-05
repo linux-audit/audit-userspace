@@ -912,7 +912,7 @@ static const char *print_open_flags(const char *val)
 
 static const char *print_clone_flags(const char *val)
 {
-	unsigned int flags, i;
+	unsigned int flags, i, clone_sig;
 	int cnt = 0;
 	char *out, buf[352];
 
@@ -938,6 +938,16 @@ static const char *print_clone_flags(const char *val)
 			}
                 }
         }
+	clone_sig = flags & 0xFF;
+	if (clone_sig && (clone_sig < 32)) {
+		const char *s = signal_i2s(clone_sig);
+		if (s != NULL) {
+			if (buf[0] != 0) 
+				strcat(buf, "|");
+			strcat(buf, s);
+		}
+	}
+
 	if (buf[0] == 0)
 		snprintf(buf, sizeof(buf), "%d", flags);
 	return strdup(buf);

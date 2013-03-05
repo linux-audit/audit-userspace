@@ -1574,7 +1574,7 @@ static struct nv_pair clonetab[] =
 
 static void print_clone(const char *val)
 {
-	unsigned int clones, i, found = 0;
+	unsigned int clones, i, clone_sig, found = 0;
 
 	errno = 0;
 	clones = strtoul(val, NULL, 16);
@@ -1591,6 +1591,14 @@ static void print_clone(const char *val)
 			} else
 				printf("|%s", clonetab[i].name);
 		}
+	}
+	clone_sig = clones & 0xFF;
+	if (clone_sig && (clone_sig < 32)) {
+			if (found == 0)
+				found = 1;
+			else
+				printf("|");	
+			printf("%s ", signals[clone_sig]);
 	}
 	if (!found)
 		printf("0x%s ", val);
