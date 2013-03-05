@@ -11,6 +11,7 @@
 - Add dirfd interpretation to the *at functions
 - Add termination signal to clone flags interpretation
 - Update stig.rules
+- In auditctl, when listing rules don't print numeric value of dir fields
 
 2.2.2
 - In auditd, tcp_max_per_addr was allowing 1 more connection than specified

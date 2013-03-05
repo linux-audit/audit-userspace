@@ -1,5 +1,5 @@
 /* auditctl.c -- 
- * Copyright 2004-2012 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2004-2013 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -1596,6 +1596,7 @@ static int audit_print_reply(struct audit_reply *rep)
 						(field < AUDIT_SUBJ_USER ||
 						 field > AUDIT_SUBJ_CLR) &&
 						field != AUDIT_WATCH &&
+						field != AUDIT_DIR &&
 						field != AUDIT_FILTERKEY &&
 						field != AUDIT_PERM &&
 						field != AUDIT_FIELD_COMPARE)
