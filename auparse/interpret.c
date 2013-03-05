@@ -1339,6 +1339,8 @@ static const char *print_a0(const char *val, const rnode *r)
 			return print_dirfd(val);
 		else if (strcmp(sys, "futimensat") == 0)
 			return print_dirfd(val);
+		else if (strcmp(sys, "unshare") == 0)
+			return print_clone_flags(val);
 	}
 	return strdup(val);
 }
