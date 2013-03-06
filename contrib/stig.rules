@@ -168,13 +168,13 @@
 #-w /sbin/insmod -p x -k modules
 #-w /sbin/rmmod -p x -k modules
 #-w /sbin/modprobe -p x -k modules
-#-a always,exit -F arch=b32 -S init_module -k module-load
-#-a always,exit -F arch=b64 -S init_module -k module-load
+#-a always,exit -F arch=b32 -S init_module -S finit_module -k module-load
+#-a always,exit -F arch=b64 -S init_module -S finit_module -k module-load
 #-a always,exit -F arch=b32 -S delete_module -k module-unload
 #-a always,exit -F arch=b64 -S delete_module -k module-unload
 
 ## Optional - admin may be abusing power by looking in user's home dir
-#-a always,exit -F dir=/home -C auid!=obj_uid -F key=power-abuse
+#-a always,exit -F dir=/home -F uid=0 -F auid>=500 -C auid!=obj_uid -F key=power-abuse
 
 ## Optional - watch for containers that may change their configuration 
 #-a always,exit -F arch=b32 -S setns -S unshare -k container-config

@@ -1,5 +1,5 @@
 /* ia64_table.h --
- * Copyright 2005-12 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2005-13 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -325,3 +325,4 @@ _S(1331, "sendmmsg")
 _S(1332, "process_vm_readv")
 _S(1333, "process_vm_writev")
 _S(1334, "accept4")
+_S(1334, "finit_module")

@@ -1,5 +1,5 @@
 /* x86_64_table.h --
- * Copyright 2005-12 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2005-13 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -333,3 +333,4 @@ _S(309, "getcpu")
 _S(310, "process_vm_readv")
 _S(311, "process_vm_writev")
 _S(312, "kcmp")
+_S(313, "finit_module")

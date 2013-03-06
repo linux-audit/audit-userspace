@@ -1,5 +1,5 @@
 /* armeb_table.h --
- * Copyright 2009-10,2012 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2009-10,2013 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -361,3 +361,5 @@ _S(374, "sendmmsg")
 _S(375, "setns")
 _S(376, "process_vm_readv")
 _S(377, "process_vm_writev")
+_S(378, "kcmp")
+_S(379, "finit_module")
