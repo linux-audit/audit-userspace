@@ -176,11 +176,13 @@
 ## Optional - admin may be abusing power by looking in user's home dir
 #-a always,exit -F dir=/home -F uid=0 -F auid>=500 -F auid!=4294967295 -C auid!=obj_uid -F key=power-abuse
 
+## Optional - log container creation  
+#-a always,exit -F arch=b32 -S clone -F a2&2080505856 -k container-create
+#-a always,exit -F arch=b64 -S clone -F a2&2080505856 -k container-create
+
 ## Optional - watch for containers that may change their configuration 
 #-a always,exit -F arch=b32 -S setns -S unshare -k container-config
 #-a always,exit -F arch=b64 -S setns -S unshare -k container-config
-#-a always,exit -F arch=b32 -S clone -F a2=2080374784 -k container-create
-#-a always,exit -F arch=b64 -S clone -F a2=2080374784 -k container-create
 
 ## Put your own watches after this point
 # -w /your-file -p rwxa -k mykey

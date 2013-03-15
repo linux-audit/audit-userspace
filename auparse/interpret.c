@@ -914,7 +914,7 @@ static const char *print_clone_flags(const char *val)
 {
 	unsigned int flags, i, clone_sig;
 	int cnt = 0;
-	char *out, buf[352];
+	char *out, buf[362]; // added 10 for signal name
 
 	errno = 0;
 	flags = strtoul(val, NULL, 16);

@@ -108,4 +108,6 @@ _S(AUPARSE_TYPE_ESCAPED,	"requested_mask")
 #endif
 _S(AUPARSE_TYPE_PERSONALITY,	"per"		)
 _S(AUPARSE_TYPE_SECCOMP,	"code"		)
+_S(AUPARSE_TYPE_ESCAPED,	"old-rng"	)
+_S(AUPARSE_TYPE_ESCAPED,	"new-rng"	)
 

@@ -404,6 +404,8 @@ static struct nv_pair typetab[] = {
 	{T_PROTOCOL, "proto"},
 	{T_PERSONALITY, "per"},
 	{T_SECCOMP, "code"},
+	{T_ESCAPED, "old-rng"},
+	{T_ESCAPED, "new-rng"},
 };
 #define TYPE_NAMES (sizeof(typetab)/sizeof(typetab[0]))
 

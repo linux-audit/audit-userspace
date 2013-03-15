@@ -686,7 +686,8 @@ int add_resource(auparse_state_t *au, const char *uuid, uid_t uid, time_t time,
 		if (event->cgroup_class) {
 			const char *detail = NULL;
 			if (strcmp("path", event->cgroup_class) == 0) {
-				detail = auparse_find_field(au, "path");
+				if (auparse_find_field(au, "path"))
+					detail = auparse_interpret_field(au);
 			} else if (strcmp("major", event->cgroup_class) == 0) {
 				detail = auparse_find_field(au, "category");
 			}
@@ -726,7 +727,7 @@ int update_resource(auparse_state_t *au, const char *uuid, uid_t uid,
 	if (it == NULL) {
 		if (debug) {
 			fprintf(stderr, "Couldn't find the correlated resource"
-					" record to update.\n");
+					" record to update for %s.\n", res_type);
 		}
 		return 0;
 	}
@@ -768,6 +769,7 @@ int process_resource_event(auparse_state_t *au)
 	if (strcmp("disk", res_type) == 0 ||
 	    strcmp("vcpu", res_type) == 0 ||
 	    strcmp("mem", res_type) == 0 ||
+	    strcmp("rng", res_type) == 0 ||
 	    strcmp("net", res_type) == 0) {
 		const char *res = NULL;
 		/* Resource removed */
