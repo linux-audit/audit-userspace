@@ -716,23 +716,40 @@ int check_params(int count, char *vars[])
 			break;
 		case S_SESSION:
 			if (!optarg) {
-				fprintf(stderr, 
-					"Argument is required for %s\n",
-					vars[c]);
-				retval = -1;
-				break;
+				if ((c+1 < count) && vars[c+1])
+					optarg = vars[c+1];
+				else {
+					fprintf(stderr,
+						"Argument is required for %s\n",
+						vars[c]);
+					retval = -1;
+					break;
+				}
 			}
+			{ 
+			size_t len = strlen(optarg);
 			if (isdigit(optarg[0])) {
 				errno = 0;
 				event_session_id = strtol(optarg,NULL,10);
 				if (errno)
 					retval = -1;
 				c++;
+                        } else if (len >= 2 && *(optarg)=='-' &&
+                                                (isdigit(optarg[1]))) {
+				errno = 0;
+                                event_session_id = strtol(optarg, NULL, 0);
+				if (errno) {
+					retval = -1;
+					fprintf(stderr, "Error converting %s\n",
+						optarg);
+				}
+				c++;
 			} else {
 				fprintf(stderr, 
 				"Session id must be a numeric value, was %s\n",
 					optarg);
 				retval = -1;
+			}
 			}
 			break;
 		case S_EXIT:
@@ -979,12 +996,18 @@ int check_params(int count, char *vars[])
 			break;
 		case S_LOGINID:
 			if (!optarg) {
-				fprintf(stderr, 
-					"Argument is required for %s\n",
-					vars[c]);
-				retval = -1;
-				break;
+				if ((c+1 < count) && vars[c+1])
+					optarg = vars[c+1];
+				else {
+					fprintf(stderr,
+						"Argument is required for %s\n",
+						vars[c]);
+					retval = -1;
+					break;
+				}
 			}
+			{
+			size_t len = strlen(optarg);
                         if (isdigit(optarg[0])) {
 				errno = 0;
                         	event_loginuid = strtoul(optarg,NULL,10);
@@ -993,6 +1016,15 @@ int check_params(int count, char *vars[])
 			"Numeric user ID conversion error (%s) for %s\n",
 						strerror(errno), optarg);
                                         retval = -1;
+				}
+                        } else if (len >= 2 && *(optarg)=='-' &&
+                                                (isdigit(optarg[1]))) {
+				errno = 0;
+                                event_loginuid = strtol(optarg, NULL, 0);
+				if (errno) {
+					retval = -1;
+					fprintf(stderr, "Error converting %s\n",
+						optarg);
 				}
                         } else {
 				struct passwd *pw ;
@@ -1007,6 +1039,7 @@ int check_params(int count, char *vars[])
 				}
 				event_loginuid = pw->pw_uid;
                         }
+			}
 			c++;
 			break;
 		case S_UUID:
