@@ -320,7 +320,7 @@ static void update_session_login(auparse_state_t *au)
 		n.host = host;
 		n.term = term;
 		n.result = result;
-		n.status = SESSION_START;
+		n.status = LOG_OUT;
 		n.loginuid_proof = auparse_get_serial(au);
 		report_session(&n); 
 	}
