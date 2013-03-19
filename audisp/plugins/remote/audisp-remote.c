@@ -552,7 +552,8 @@ int main(int argc, char *argv[])
 		// See if output fd is also set
 		if (sock > 0 && FD_ISSET(sock, &wfd)) {
 			// If so, try to drain backlog
-			while (q_queue_length(queue)&& !suspend && transport_ok)
+			while (q_queue_length(queue) && !suspend &&
+					!stop && transport_ok)
 				send_one(queue);
 		}
 	}

@@ -15,6 +15,7 @@
 - Add support for rng resource type in auvirt
 - Fix aulast bad login output (#922508)
 - In ausearch, allow negative numbers for session and auid searches
+- In audisp-remote, if disk_full_action is stop then stop sending (#908977)
 
 2.2.2
 - In auditd, tcp_max_per_addr was allowing 1 more connection than specified
