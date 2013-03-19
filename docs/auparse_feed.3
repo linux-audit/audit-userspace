@@ -85,7 +85,7 @@ main(int argc, char **argv)
     auparse_add_callback(au, auparse_callback, event_cnt, free);
 
     if ((fp = fopen(filename, "r")) == NULL) {
-        fprintf(stderr, "could not open '%s', %s\n", filename, strerror(errno));
+        fprintf(stderr, "could not open '%s', %s\\n", filename, strerror(errno));
         return 1;
     }
 

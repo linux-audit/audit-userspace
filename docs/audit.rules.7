@@ -13,8 +13,7 @@ File System rules are sometimes called watches. These rules are used to audit ac
 
 .nf
 .B \-w path-to-file \-p permissions \-k keyname
-
-.if
+.fi
 
 where the permission are any one of the following:
 
@@ -61,7 +60,7 @@ option tells the kernel's rule matching engine that we want to append a rule at 
 .RE
 
 The action and list are separated by a comma but no space in between. Valid lists are:
-.IR task ", " entry ", " exit ", " user ", and " exclude ". There meaning was explained earlier.
+.IR task ", " entry ", " exit ", " user ", and " exclude ". Their meaning was explained earlier.
 
 Next in the rule would normally be the
 .B \-S
@@ -150,10 +149,10 @@ would be rewritten as
 \-always,exit \-F arch=b64 \-S open \-k access
 .fi
 
-If you get a warning that says, "entry rules deprecated, changing to exit rule". This means that you have a rule intended for the entry filter, but that filter is not going to be available at some point in the future. Auditctl moved your rule to the exit filter so that its not lost. But to solve this so that you do not get the warning any more, you need to change the offending rule from entry to exit.
+If you get a warning that says, "entry rules deprecated, changing to exit rule". This means that you have a rule intended for the entry filter, but that filter is not going to be available at some point in the future. Auditctl moved your rule to the exit filter so that it's not lost. But to solve this so that you do not get the warning any more, you need to change the offending rule from entry to exit.
 
 .SH EXAMPLES
-The following rule shows how to audit failed access to files due permission problems. Note that it takes two rules for each arch ABI to audit this since file access can fail with two different failure codes indicating permission problems.
+The following rule shows how to audit failed access to files due to permission problems. Note that it takes two rules for each arch ABI to audit this since file access can fail with two different failure codes indicating permission problems.
 
 .nf
 .B \-a always,exit \-F arch=b32 \-S open \-S openat \-F exit=\-EACCES \-k access
