@@ -1723,6 +1723,8 @@ static void print_a0(const char *val)
 			return print_dirfd(val);
 		else if (strcmp(sys, "futimensat") == 0)
 			return print_dirfd(val);
+		else if (strcmp(sys, "clone") == 0)
+			return print_clone(val);
 		else if (strcmp(sys, "unshare") == 0)
 			return print_clone(val);
 		else goto normal;
@@ -1799,8 +1801,6 @@ static void print_a2(const char *val)
 			return print_prot(val, 0);
 		else if (strcmp(sys, "socket") == 0)
 			return print_socket_proto(val);
-		else if (strcmp(sys, "clone") == 0)
-			return print_clone(val);
 		else if (strcmp(sys, "recvmsg") == 0)
 			print_recv(val);
 		else if (strcmp(sys, "linkat") == 0)

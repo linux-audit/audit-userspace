@@ -1339,6 +1339,8 @@ static const char *print_a0(const char *val, const rnode *r)
 			return print_dirfd(val);
 		else if (strcmp(sys, "futimensat") == 0)
 			return print_dirfd(val);
+		else if (strcmp(sys, "clone") == 0)
+			return print_clone_flags(val);
 		else if (strcmp(sys, "unshare") == 0)
 			return print_clone_flags(val);
 	}
@@ -1441,8 +1443,6 @@ static const char *print_a2(const char *val, const rnode *r)
 			return print_prot(val, 0);
                 else if (strcmp(sys, "socket") == 0)
 			return print_socket_proto(val);
-		else if (strcmp(sys, "clone") == 0)
-			return print_clone_flags(val);
                 else if (strcmp(sys, "recvmsg") == 0)
 			return print_recv(val);
 		else if (strcmp(sys, "linkat") == 0)
