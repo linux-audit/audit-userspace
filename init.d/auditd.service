@@ -8,6 +8,7 @@ Before=sysinit.target shutdown.target
 [Service]
 ExecStart=/sbin/auditd -n
 ExecStartPost=-/sbin/auditctl -R /etc/audit/audit.rules
+ExecReload=/bin/kill -HUP $MAINPID
 
 [Install]
 WantedBy=multi-user.target

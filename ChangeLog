@@ -1,5 +1,6 @@
 2.2.4
 - The clone(2) man page is really clone(3), fix interpretation of clone syscall
+- Add systemd support for reload (#901533)
 
 2.2.3
 - Code cleanups
