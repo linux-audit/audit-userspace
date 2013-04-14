@@ -1196,7 +1196,8 @@ int audit_rule_fieldpair_data(struct audit_rule_data **rulep, const char *pair,
 			}
 			break;
 		case AUDIT_MSGTYPE:
-			if (flags != AUDIT_FILTER_EXCLUDE)
+			if (flags != AUDIT_FILTER_EXCLUDE &&
+					flags != AUDIT_FILTER_USER)
 				return -9;
 
 			if (isdigit((char)*(v)))
