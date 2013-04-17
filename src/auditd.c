@@ -1,5 +1,5 @@
 /* auditd.c -- 
- * Copyright 2004-09,2011 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2004-09,2011,2013 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -66,7 +66,8 @@ static const char *pidfile = "/var/run/auditd.pid";
 static int init_pipe[2];
 static int do_fork = 1;
 static struct auditd_reply_list *rep = NULL;
-static int hup_info_requested = 0, usr1_info_requested = 0;
+static int hup_info_requested = 0;
+static int usr1_info_requested = 0, usr2_info_requested = 0;
 static char subj[SUBJ_LEN];
 
 /* Local function prototypes */
@@ -147,9 +148,15 @@ static void user1_handler(struct ev_loop *loop, struct ev_signal *sig,
  */
 static void user2_handler( struct ev_loop *loop, struct ev_signal *sig, int revents )
 {
-	resume_logging();
-	send_audit_event(AUDIT_DAEMON_RESUME, 
+	int rc;
+
+	rc = audit_request_signal_info(fd);
+	if (rc < 0) {
+		resume_logging();
+		send_audit_event(AUDIT_DAEMON_RESUME, 
 			 "auditd resuming logging, sending auid=? pid=? subj=? res=success");
+	} else
+		usr2_info_requested = 1;
 }
 
 /*
@@ -426,15 +433,13 @@ static void netlink_handler(struct ev_loop *loop, struct ev_io *io,
 				}
 				rep = NULL;
 				hup_info_requested = 0;
-			} else if(usr1_info_requested){
+			} else if (usr1_info_requested) {
 				char usr1[MAX_AUDIT_MESSAGE_LENGTH];
 				if (rep->reply.len == 24) {
-					snprintf(usr1, 
-						 sizeof(usr1),
+					snprintf(usr1, sizeof(usr1),
 					 "auditd sending auid=? pid=? subj=?");
 				} else {
-					snprintf(usr1, 
-						 sizeof(usr1),
+					snprintf(usr1, sizeof(usr1),
 				 "auditd sending auid=%u pid=%d subj=%s",
 						 rep->reply.signal_info->uid, 
 						 rep->reply.signal_info->pid,
@@ -442,6 +447,24 @@ static void netlink_handler(struct ev_loop *loop, struct ev_io *io,
 				}
 				send_audit_event(AUDIT_DAEMON_ROTATE, usr1);
 				usr1_info_requested = 0;
+			} else if (usr2_info_requested) {
+				char usr2[MAX_AUDIT_MESSAGE_LENGTH];
+				if (rep->reply.len == 24) {
+					snprintf(usr2, sizeof(usr2), 
+						"auditd resuming logging, "
+						"sending auid=? pid=? subj=? "
+						"res=success");
+				} else {
+					snprintf(usr2, sizeof(usr2),
+						"auditd resuming logging, "
+				  "sending auid=%u pid=%d subj=%s res=success",
+						 rep->reply.signal_info->uid, 
+						 rep->reply.signal_info->pid,
+						 rep->reply.signal_info->ctx);
+				}
+				resume_logging();
+				send_audit_event(AUDIT_DAEMON_RESUME, usr2); 
+				usr2_info_requested = 0;
 			}
 			break;
 		default:

@@ -4,6 +4,7 @@
 - Allow -F msgtype on the user filter
 - Add legacy support for resuming logging under systemd (#830780)
 - Add legacy support for rotating logs under systemd (#916611)
+- In auditd, collect SIGUSR2 info for DAEMON_RESUME events 
 
 2.2.3
 - Code cleanups
