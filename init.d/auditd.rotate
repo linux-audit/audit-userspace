@@ -13,4 +13,4 @@ echo -n $"Rotating logs: "
 killproc $prog -USR1
 RETVAL=$?
 echo
-return $RETVAL
+exit $RETVAL

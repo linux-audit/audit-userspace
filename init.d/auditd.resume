@@ -13,4 +13,4 @@ echo -n $"Resuming logging: "
 killproc $prog -USR2
 RETVAL=$?
 echo
-return $RETVAL
+exit $RETVAL
