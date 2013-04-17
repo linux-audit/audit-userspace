@@ -235,6 +235,9 @@ fi
 %attr(755,root,root) %{_bindir}/auvirt
 %if %{WITH_SYSTEMD}
 %attr(640,root,root) %{_unitdir}/auditd.service
+%attr(750,root,root) %dir %{_libexecdir}/initscripts/legacy-actions/auditd
+%attr(750,root,root) %{_libexecdir}/initscripts/legacy-actions/auditd/resume
+%attr(750,root,root) %{_libexecdir}/initscripts/legacy-actions/auditd/rotate
 %else
 %attr(755,root,root) /etc/rc.d/init.d/auditd
 %config(noreplace) %attr(640,root,root) /etc/sysconfig/auditd

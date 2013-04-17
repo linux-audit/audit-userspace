@@ -2,6 +2,8 @@
 - The clone(2) man page is really clone(3), fix interpretation of clone syscall
 - Add systemd support for reload (#901533)
 - Allow -F msgtype on the user filter
+- Add legacy support for resuming logging under systemd (#830780)
+- Add legacy support for rotating logs under systemd (#916611)
 
 2.2.3
 - Code cleanups
