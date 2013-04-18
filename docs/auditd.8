@@ -1,4 +1,4 @@
-.TH "AUDITD" "8" "Sept 2007" "Red Hat" "System Administration Utilities"
+.TH "AUDITD" "8" "Apr 2013" "Red Hat" "System Administration Utilities"
 .SH NAME
 auditd \- The Linux Audit daemon
 .SH SYNOPSIS
@@ -11,7 +11,7 @@ or
 .B aureport
 utilities. Configuring the audit rules is done with the
 .B auditctl
-utility. During startup, the rules in \fI/etc/audit/audit.rules\fP are read by \fBauditctl\fP. The audit daemon itself has some configuration options that the admin may wish to customize. They are found in the
+utility. During startup, the rules in \fI/etc/audit/audit.rules\fP are read by \fBauditctl\fP and loaded into the kernel. The audit daemon itself has some configuration options that the admin may wish to customize. They are found in the
 .B auditd.conf
 file.
 .SH OPTIONS
@@ -23,7 +23,7 @@ leave the audit daemon in the foreground for debugging. Messages also go to stde
 allow the audit daemon to follow symlinks for config files.
 .TP
 .B \-n
-no fork. This is useful for running off of inittab
+no fork. This is useful for running off of inittab or systemd.
 .TP
 .B \-s=\fIENABLE_STATE\fR
 specify when starting if auditd should change the current value for the kernel enabled flag. Valid values for ENABLE_STATE are "disable", "enable" or "nochange". The default is to enable (and disable when auditd terminates). The value of the enabled flag may be changed during the lifetime of auditd using 'auditctl \-e'.
@@ -42,7 +42,7 @@ causes auditd to immediately rotate the logs. It will consult the max_log_size_a
 
 .TP
 SIGUSR2
-causes auditd to attemp to resume logging. This is usually used after logging has been suspended.
+causes auditd to attempt to resume logging. This is usually needed after logging has been suspended.
 
 .SH FILES
 .B /etc/audit/auditd.conf
