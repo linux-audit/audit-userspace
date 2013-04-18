@@ -99,6 +99,9 @@ epoll_modify (EV_P_ int fd, int oev, int nev)
   if (expect_true (errno == ENOENT))
     {
       /* if ENOENT then the fd went away, so try to do the right thing */
+      if (!nev)
+        goto dec_egen;
+
       if (!epoll_ctl (backend_fd, EPOLL_CTL_ADD, fd, &ev))
         return;
     }
@@ -235,7 +238,7 @@ epoll_init (EV_P_ int flags)
 #ifdef EPOLL_CLOEXEC
   backend_fd = epoll_create1 (EPOLL_CLOEXEC);
 
-  if (backend_fd < 0)
+  if (backend_fd < 0 && (errno == EINVAL || errno == ENOSYS))
 #endif
     backend_fd = epoll_create (256);
 

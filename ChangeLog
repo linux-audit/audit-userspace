@@ -6,6 +6,7 @@
 - Add legacy support for rotating logs under systemd (#916611)
 - In auditd, collect SIGUSR2 info for DAEMON_RESUME events
 - Updated man pages
+- Update libev to 4.15
 
 2.2.3
 - Code cleanups
