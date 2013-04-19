@@ -1,5 +1,5 @@
 /* famtab.h --
- * Copyright 2007,2012 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2007,2012-13 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -58,4 +58,5 @@ _S(AF_IEEE802154,	"ieee802154"	)
 _S(37,			"caif"		)
 _S(38,			"alg"		)
 _S(39,			"nfc"		)
+_S(40,			"vsock"		)
 

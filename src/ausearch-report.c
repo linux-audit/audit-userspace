@@ -694,7 +694,8 @@ static struct nv_pair famtab[] = {
 	{AF_IEEE802154, "ieee802154"},
 	{37, "caif"},
 	{38, "alg"},
-	{39, "nfc"}
+	{39, "nfc"},
+	{40, "vsock"},
 };
 #define FAM_NAMES (sizeof(famtab)/sizeof(famtab[0]))
 
@@ -1024,14 +1025,16 @@ static const char *oflags[] =
 	"O_TRUNC",
 	"O_APPEND",
 	"O_NONBLOCK",
-	"O_SYNC",
+	"O_DSYNC",
 	"O_ASYNC",
 	"O_DIRECT",
 	"UNKNOWN",
 	"O_DIRECTORY",
 	"O_NOFOLLOW",
 	"O_NOATIME",
-	"O_CLOEXEC"
+	"O_CLOEXEC",
+	"__O_SYNC",
+	"O_PATH"
 };
 #define OPEN_FLAG_NUM_ENTRIES (sizeof(oflags)/sizeof(oflags[0]))
 
@@ -1373,6 +1376,7 @@ static struct nv_pair mount_tab[]=
  {MS_KERNMOUNT, "MS_KERNMOUNT"},
  {MS_I_VERSION, "MS_I_VERSION"},
  {(1<<24), "MS_STRICTATIME"},
+ {(1<<27), "MS_SNAP_STABLE"},
  {(1<<28), "MS_NOSEC"},
  {(1<<29), "MS_BORN"},
  {MS_ACTIVE, "MS_ACTIVE"},
@@ -1627,6 +1631,7 @@ static struct nv_pair recvtab[] =
   {0x00004000,    "MSG_NOSIGNAL"},
   {0x00008000,    "MSG_MORE"},
   {0x00010000,    "MSG_WAITFORONE"},
+  {0x00020000,    "MSG_SENDPAGE_NOTLAST"},
   {0x20000000,    "MSG_FASTOPEN"},
   {0x40000000,    "MSG_CMSG_CLOEXEC"}
 };

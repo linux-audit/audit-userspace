@@ -1,5 +1,5 @@
 /* mmaptab.h --
- * Copyright 2012 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2012-13 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -18,8 +18,8 @@
  *
  * Authors:
  *      Steve Grubb <sgrubb@redhat.com>
- * Location: include/asm-generic/mman.h  >0x100
- *           include/asm-generic/mman-common.h < 0x100
+ * Location: include/uapi/asm-generic/mman.h  >0x100
+ *           include/uapi/asm-generic/mman-common.h < 0x100
  * NOTE: If this is updated, also update interpret.c:print_mmap()
  */
 

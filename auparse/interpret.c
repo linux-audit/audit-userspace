@@ -878,7 +878,7 @@ static const char *print_open_flags(const char *val)
 	size_t i;
 	unsigned int flags;
 	int cnt = 0;
-	char *out, buf[160];
+	char *out, buf[178];
 
 	errno = 0;
 	flags = strtoul(val, NULL, 16);
@@ -1150,7 +1150,7 @@ static const char *print_mount(const char *val)
 {
 	unsigned int mounts, i;
 	int cnt = 0;
-	char buf[318];
+	char buf[334];
 	char *out;
 
 	errno = 0;
@@ -1203,7 +1203,7 @@ static const char *print_recv(const char *val)
 {
 	unsigned int rec, i;
 	int cnt = 0;
-	char buf[212];
+	char buf[234];
 	char *out;
 
 	errno = 0;

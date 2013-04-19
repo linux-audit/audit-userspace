@@ -1,5 +1,5 @@
 /* socktab.h --
- * Copyright 2007,2011-12 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2007,2011-13 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -18,7 +18,7 @@
  *
  * Authors:
  *      Steve Grubb <sgrubb@redhat.com>
- * Location: include/linux/net.h
+ * Location: include/uapi/linux/net.h
  */
 
 _S(SYS_SOCKET,		"socket"	)

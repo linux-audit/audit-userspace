@@ -7,6 +7,7 @@
 - In auditd, collect SIGUSR2 info for DAEMON_RESUME events
 - Updated man pages
 - Update libev to 4.15
+- Update syscall tables for 3.9 kernel
 
 2.2.3
 - Code cleanups

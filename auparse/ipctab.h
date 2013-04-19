@@ -1,5 +1,5 @@
 /* ipctab.h --
- * Copyright 2007,2012 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2007,2012-13 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -18,7 +18,7 @@
  *
  * Authors:
  *      Steve Grubb <sgrubb@redhat.com>
- * Location: include/linux/ipc.h
+ * Location: include/uapi/linux/ipc.h
  */
 
 

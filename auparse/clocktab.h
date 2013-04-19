@@ -18,7 +18,7 @@
  *
  * Authors:
  *      Steve Grubb <sgrubb@redhat.com>
- * Location: include/linux/time.h
+ * Location: include/uapi/linux/time.h
  */
 
 _S(0,	"CLOCK_REALTIME"		)

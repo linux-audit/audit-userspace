@@ -1,5 +1,5 @@
 /* recvtab.h --
- * Copyright 2012 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2012-13 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -39,6 +39,7 @@ _S(0x00002000,    "MSG_ERRQUEUE")
 _S(0x00004000,    "MSG_NOSIGNAL")
 _S(0x00008000,    "MSG_MORE")
 _S(0x00010000,    "MSG_WAITFORONE")
+_S(0x00020000,    "MSG_SENDPAGE_NOTLAST")
 _S(0x20000000,    "MSG_FASTOPEN")
 _S(0x40000000,    "MSG_CMSG_CLOEXEC")
 

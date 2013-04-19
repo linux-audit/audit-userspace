@@ -1,5 +1,5 @@
 /* captab.h --
- * Copyright 2007,2008,2012 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2007,2008,2012-13 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -18,7 +18,7 @@
  *
  * Authors:
  *      Steve Grubb <sgrubb@redhat.com>
- * Location: include/linux/capability.h
+ * Location: include/uapi/linux/capability.h
  */
 
 

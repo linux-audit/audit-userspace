@@ -1,5 +1,5 @@
 /* mounttab.h --
- * Copyright 2012 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2012-13 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -18,7 +18,7 @@
  *
  * Authors:
  *      Steve Grubb <sgrubb@redhat.com>
- * Location: include/linux/fs.h
+ * Location: include/uapi/linux/fs.h
  * NOTE: When updating this table, update interpret.c:print_mount()
  */
 
@@ -45,6 +45,7 @@ _S(MS_RELATIME, "MS_RELATIME")
 _S(MS_KERNMOUNT, "MS_KERNMOUNT")
 _S(MS_I_VERSION, "MS_I_VERSION")
 _S((1<<24), "MS_STRICTATIME")
+_S((1<<27), "MS_SNAP_STABLE")
 _S((1<<28), "MS_NOSEC")
 _S((1<<29), "MS_BORN")
 _S(MS_ACTIVE, "MS_ACTIVE")

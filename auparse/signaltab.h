@@ -1,5 +1,5 @@
 /* signaltab.h --
- * Copyright 2012 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2012-13 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -18,7 +18,7 @@
  *
  * Authors:
  *      Steve Grubb <sgrubb@redhat.com>
- * Location: include/asm-generic/signal.h
+ * Location: include/uapi/asm-generic/signal.h
  */
 
 _S(0,	"SIG0"		)

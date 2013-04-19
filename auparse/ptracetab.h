@@ -1,5 +1,5 @@
 /* ptracetab.h --
- * Copyright 2012 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2012-13 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -18,7 +18,7 @@
  *
  * Authors:
  *      Steve Grubb <sgrubb@redhat.com>
- * Location: include/linux/ptrace.h
+ * Location: include/uapi/linux/ptrace.h
  */
 
 _S(0,		"PTRACE_TRACEME"	)
