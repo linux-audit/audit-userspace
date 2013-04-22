@@ -742,6 +742,7 @@ static const char *print_sockaddr(const char *val)
 	return out;
 }
 
+/* This is only used in the RHEL4 kernel */
 static const char *print_flags(const char *val)
 {
         int flags, cnt = 0;
@@ -1386,6 +1387,8 @@ static const char *print_a1(const char *val, const rnode *r)
 			return print_socket_type(val);
 		else if (strcmp(sys, "setns") == 0)
 			return print_clone_flags(val);
+		else if (strcmp(sys, "mq_open") == 0)
+			return print_open_flags(val);
 	}
 	return strdup(val);
 }
@@ -1451,6 +1454,8 @@ static const char *print_a2(const char *val, const rnode *r)
 			return print_dirfd(val);
 		else if (strcmp(sys, "faccessat") == 0)
 			return print_access(val);
+		else if (strcmp(sys, "mq_open") == 0)
+			return print_mode_short(val);
 	}
 	return strdup(val);
 }
@@ -1863,6 +1868,9 @@ const char *interpret(const rnode *r)
 			break;
 		case AUPARSE_TYPE_SECCOMP:
 			out = print_seccomp_code(val);
+			break;
+		case AUPARSE_TYPE_OFLAG:
+			out = print_open_flags(val);
 			break;
 		case AUPARSE_TYPE_UNCLASSIFIED:
 		default:

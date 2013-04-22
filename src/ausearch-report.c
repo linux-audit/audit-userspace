@@ -61,7 +61,7 @@ struct nv_pair {
 enum { T_UID, T_GID, T_SYSCALL, T_ARCH, T_EXIT, T_ESCAPED, T_PERM, T_MODE, 
 T_SOCKADDR, T_FLAGS, T_PROMISC, T_CAPABILITY, T_A0, T_A1, T_A2, T_A3,
 T_SIGNAL, T_KEY, T_LIST, T_TTY_DATA, T_SESSION, T_CAP_BITMAP, T_NFPROTO,
-T_ICMPTYPE, T_PROTOCOL, T_ADDR, T_PERSONALITY, T_SECCOMP };
+T_ICMPTYPE, T_PROTOCOL, T_ADDR, T_PERSONALITY, T_SECCOMP, T_OFLAG };
 
 /* Function in ausearch-lookup for unescaping filenames */
 extern char *unescape(const char *buf);
@@ -406,6 +406,7 @@ static struct nv_pair typetab[] = {
 	{T_SECCOMP, "code"},
 	{T_ESCAPED, "old-rng"},
 	{T_ESCAPED, "new-rng"},
+	{T_OFLAG, "oflag"},
 };
 #define TYPE_NAMES (sizeof(typetab)/sizeof(typetab[0]))
 
@@ -1775,6 +1776,8 @@ static void print_a1(const char *val)
 			return print_socket_type(val);
 		else if (strcmp(sys, "setns") == 0)
 			return print_clone(val);
+		else if (strcmp(sys, "mq_open") == 0)
+			return print_open_flags(val);
 		else goto normal;
 	} else
 normal:
@@ -1814,6 +1817,8 @@ static void print_a2(const char *val)
 			return print_dirfd(val);
 		else if (strcmp(sys, "faccessat") == 0)
 			return print_access(val);
+		else if (strcmp(sys, "mq_open") == 0)
+			return print_mode_short(val);
 		else goto normal;
 	} else
 normal:
@@ -2143,6 +2148,9 @@ static void interpret(char *name, char *val, int comma, int rtype)
 			break;
 		case T_SECCOMP:
 			print_seccomp_code(val);
+			break;
+		case T_OFLAG:
+			print_open_flags(val);
 			break;
 		default:
 			printf("%s%c", val, comma ? ',' : ' ');
