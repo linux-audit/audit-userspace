@@ -54,5 +54,6 @@ ausearch_clear.3 \
 ausearch_next_event.3 ausearch_set_stop.3 \
 autrace.8 get_auditfail_action.3 set_aumessage_mode.3 \
 audispd.8 audispd.conf.5 audispd-zos-remote.8 libaudit.conf.5 \
+augenrules.8 \
 zos-remote.conf.5 
 

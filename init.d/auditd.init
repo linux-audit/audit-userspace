@@ -71,6 +71,12 @@ start(){
 	echo
 	if test $RETVAL = 0 ; then
 		touch /var/lock/subsys/auditd
+		# Prepare the default rules
+		if test x"$USE_AUGENRULES" != "x" ; then
+			if test "`echo $USE_AUGENRULES | tr 'NO' 'no'`" != "no"
+				test -d /etc/audit/rules.d && /sbin/augenrules
+			fi
+		fi
 		# Load the default rules
 		test -f /etc/audit/audit.rules && /sbin/auditctl -R /etc/audit/audit.rules >/dev/null
 	fi
@@ -102,6 +108,12 @@ stop(){
 reload(){
 	test -f /etc/audit/auditd.conf  || exit 6
 	echo -n $"Reloading configuration: "	
+	# Prepare the default rules
+	if test x"$USE_AUGENRULES" != "x" ; then
+		if test "`echo $USE_AUGENRULES | tr 'NO' 'no'`" != "no"
+			test -d /etc/audit/rules.d && /sbin/augenrules
+		fi
+	fi
 	killproc $prog -HUP
 	RETVAL=$?
 	echo

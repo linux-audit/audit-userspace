@@ -23,7 +23,7 @@
 CONFIG_CLEAN_FILES = *.rej *.orig
 EXTRA_DIST = auditd.init auditd.service auditd.sysconfig auditd.conf \
 	audit.rules auditd.cron libaudit.conf audispd.conf \
-	auditd.resume auditd.rotate
+	auditd.resume auditd.rotate augenrules
 libconfig = libaudit.conf
 dispconfig = audispd.conf
 dispconfigdir = $(sysconfdir)/audisp
@@ -36,7 +36,10 @@ sysconfigdir = $(sysconfdir)/sysconfig
 endif
 
 auditdir = $(sysconfdir)/audit
-dist_audit_DATA = auditd.conf audit.rules
+auditrdir = $(auditdir)/rules.d
+dist_audit_DATA = auditd.conf
+dist_auditr_DATA = audit.rules
+sbin_SCRIPTS = augenrules
 
 install-data-hook:
 	$(INSTALL_DATA) -D -m 640 ${srcdir}/${dispconfig} ${DESTDIR}${dispconfigdir}
@@ -56,6 +59,8 @@ if ENABLE_SYSTEMD
 else
 	$(INSTALL_SCRIPT) -D ${srcdir}/auditd.init ${DESTDIR}${initdir}/auditd
 endif
+	chmod 0750 $(DESTDIR)$(sbindir)/augenrules
+
 
 uninstall-hook:
 	rm ${DESTDIR}${dispconfigdir}/${dispconfig}
