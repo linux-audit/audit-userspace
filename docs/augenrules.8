@@ -3,7 +3,7 @@
 augenrules \- a script that merges component audit rule files
 .SH SYNOPSIS
 .B augenrules
-.RI [ options ]
+.RI [ \-\-check ]\ [ \-\-reload ]
 .SH DESCRIPTION
 \fBaugenrules\fP is a script that merges all component audit rules files,
 found in the audit rules directory, \fI/etc/audit/rules.d\fP, placing the
@@ -26,11 +26,16 @@ emitted as the last line in the resultant file.
 The generated file is only copied to \fI/etc/audit/rules.d\fP, if it differs.
 .SH OPTIONS
 .TP
-.BR none
+.B \-\-check
+test if rules have changed and need updating without overwriting audit.rules.
+.TP
+.B \-\-reload
+after building new rules, also load them into the kernel.
 
 .SH FILES
 /etc/audit/rules.d/
 /etc/audit/audit.rules
 .SH "SEE ALSO"
 .BR audit.rules (8),
+.BR auditctl (8),
 .BR auditd (8).
