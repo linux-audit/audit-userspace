@@ -7,7 +7,9 @@ Before=sysinit.target shutdown.target
 
 [Service]
 ExecStart=/sbin/auditd -n
-#ExecStartPost=/sbin/augenrules
+## If using augenrules, uncomment next line and delete auditctl line
+## after copying to /etc/systemd/system/auditd.service
+#ExecStartPost=-/sbin/augenrules --reload
 ExecStartPost=-/sbin/auditctl -R /etc/audit/audit.rules
 ExecReload=/bin/kill -HUP $MAINPID
 
