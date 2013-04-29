@@ -276,14 +276,14 @@ retry:
 	else if (rc == 0)
 		return -EINVAL; /* This can't happen anymore */
 	else if (rc > 0 && rep.type == NLMSG_ERROR) {
+		int error = rep.error->error;
 		/* Eat the message */
-		struct audit_reply rep2; /* throw away */
-		(void)audit_get_reply(fd, &rep2, GET_REPLY_NONBLOCKING, 0);
+		(void)audit_get_reply(fd, &rep, GET_REPLY_NONBLOCKING, 0);
 
 		/* NLMSG_ERROR can indicate success, only report nonzero */ 
-		if (rep.error->error) {
-			errno = -rep.error->error;
-			return rep.error->error;
+		if (error) {
+			errno = -error;
+			return error;
 		}
 	}
 	return 0;

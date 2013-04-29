@@ -10,6 +10,7 @@
 - Update syscall tables for 3.9 kernel
 - Interpret MQ_OPEN events
 - Add augenrules support (Burn Alting)
+- Consume less stack sending audit events
 
 2.2.3
 - Code cleanups
