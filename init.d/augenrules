@@ -31,23 +31,24 @@ TmpRules=`mktemp /tmp/aurules.XXXXXXXX`
 ASuffix="prev"
 OnlyCheck=0
 LoadRules=0
-usage="Usage: $0 [--check|--reload]"
+RETVAL=0
+usage="Usage: $0 [--check|--load]"
 
 # Delete the interim file on faults
 trap 'rm -f ${TmpRules}; exit 1' 1 2 3 13 15
 
-# Check environment
-if [ ! -d ${SourceRulesDir} ]; then
-	echo "$0: No rules directory - ${SourceRulesDir}"
-	rm -f ${TmpRules}
-	exit 1
-fi
+try_load() {
+	if [ $LoadRules -eq 1 ] ; then
+		auditctl -R ${DestinationFile}
+		RETVAL=$?
+	fi
+}
 
 while [ $# -ge 1 ]
 do
 	if [ "$1" = "--check" ] ; then
 		OnlyCheck=1
-	elif [ "$1" = "--reload" ] ; then
+	elif [ "$1" = "--load" ] ; then
 		LoadRules=1
 	else
 		echo "$usage"
@@ -55,6 +56,14 @@ do
 	fi
 	shift
 done
+
+# Check environment
+if [ ! -d ${SourceRulesDir} ]; then
+	echo "$0: No rules directory - ${SourceRulesDir}"
+	rm -f ${TmpRules}
+	try_load
+	exit 1
+fi
 
 # Create the interim rules file ensuring its access modes protect it
 # from normal users and strip empty lines and comment lines. We also ensure
@@ -93,7 +102,8 @@ END     {
 if [ ! -s ${TmpRules} ]; then
 	echo "$0: No rules"
 	rm -f ${TmpRules}
-	exit 0
+	try_load
+	exit $RETVAL
 fi
 
 # If the same then quit
@@ -101,7 +111,8 @@ cmp -s ${TmpRules} ${DestinationFile} > /dev/null 2>&1
 if [ $? -eq 0 ]; then
 	echo "$0: No change"
 	rm -f ${TmpRules}
-	exit 0
+	try_load
+	exit $RETVAL
 elif [ $OnlyCheck -eq 1 ] ; then
 	echo "$0: Rules have changed and should be updated"
 	exit 0
@@ -115,10 +126,5 @@ fi
 cp ${TmpRules} ${DestinationFile}
 rm -f ${TmpRules}
 
-RETVAL=0
-if [ $LoadRules -eq 1 ] ; then
-	auditctl -R ${DestinationFile}
-	RETVAL=$?
-fi
-
+try_load
 exit $RETVAL
