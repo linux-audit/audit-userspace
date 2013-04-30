@@ -1,21 +1,20 @@
 Things that need to be done:
 ===========================
-2.3
-* Add audit by process name support
+2.3.1
 * Add command report
 * Fix auparse to handle out of order messages
 * If auparse input is a pipe timeout events by wall clock
 
-2.3.1
-* Fix ausearch/report to handle aggregated events
-* When searching, build log time list & only read the ones that are in range
+2.4
+* Add audit by process name support
 * Add rule verify to detect mismatch between in-kernel and on-disk rules
 * Fix SIGHUP for auditd network settings
+
+2.4.1
+* Fix ausearch/report to handle aggregated events
+* When searching, build log time list & only read the ones that are in range
 * Change ausearch-string to be AVL based
 * Performance improvements for auparse
-* Look at pulling audispd into auditd
-* Add gzip format for logs
-* Consider adding node/machine name to records going to rt interface in daemon    as protocol version 2.
 * Add libaudit.m4 to make audit easier to include
 * Look at adding the direction read/write to file report (threat modelling)
 * Changes in uid/gid, failed changes in credentials in aureport
@@ -24,7 +23,10 @@ Things that need to be done:
 * Remove evil getopt cruft in auditctl
 * Group message types in ausearch help.
 
-2.3
+2.5
+* Look at pulling audispd into auditd
+* Add gzip format for logs
+* Consider adding node/machine name to records going to rt interface in daemon    as protocol version 2.
 * Fix retry logic in distribute event, buffer is freed by the logger thread
 * interpret contexts
 * Add keywords for time: month-ago
@@ -37,7 +39,7 @@ Things that need to be done:
 * rework ausearch to use auparse
 * rework aureport to use auparse
 
-2.4
+2.6
 * Consolidate parsing code between libaudit and auditd-conf.c
 * Look at variadic avc logging patch 
 * If relative file in cwd, need to build also (realpath). watch out for (null) and socket
@@ -46,7 +48,7 @@ Things that need to be done:
 * ausearch --op search
 * Fix aureport-scan to properly decide if CONFIG_CHANGE is add or del, need to optionally look for op and use remove/add to decide
 
-2.5
+2.7
 Add scheduling options: strict, relaxed, loose (determines user space queueing)
 Allow users to specify message types to be kept for logging
 Allow users to specify fields to be kept for logging

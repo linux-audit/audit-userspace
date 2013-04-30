@@ -1,4 +1,4 @@
-2.2.4
+2.3
 - The clone(2) man page is really clone(3), fix interpretation of clone syscall
 - Add systemd support for reload (#901533)
 - Allow -F msgtype on the user filter
