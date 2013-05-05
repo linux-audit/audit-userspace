@@ -1,6 +1,6 @@
 /*
 * ausearch-llist.h - Header file for ausearch-llist.c
-* Copyright (c) 2005-2008 Red Hat Inc., Durham, North Carolina.
+* Copyright (c) 2005-2008, 2013 Red Hat Inc., Durham, North Carolina.
 * Copyright (c) 2011 IBM Corp.
 * All Rights Reserved.
 *
@@ -76,6 +76,7 @@ typedef struct _lnode{
   char *message;		// The whole unparsed message
   int type;             	// message type (KERNEL, USER, LOGIN, etc)
   unsigned long long a0;	// argv 0
+  unsigned long long a1;	// argv 1
   unsigned int item;		// Which item of the same event
   struct _lnode* next;		// Next node pointer
 } lnode;

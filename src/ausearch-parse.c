@@ -1,6 +1,6 @@
 /*
 * ausearch-parse.c - Extract interesting fields and check for match
-* Copyright (c) 2005-08, 2011 Red Hat Inc., Durham, North Carolina.
+* Copyright (c) 2005-08,2011,2013 Red Hat Inc., Durham, North Carolina.
 * Copyright (c) 2011 IBM Corp. 
 * All Rights Reserved. 
 *
@@ -244,6 +244,21 @@ static int parse_syscall(lnode *n, search_items *s)
 	errno = 0;
 	// 64 bit dump on 32 bit machine looks bad here - need long long
 	n->a0 = strtoull(ptr, NULL, 16); // Hex
+	if (errno)
+		return 13;
+	*term = ' ';
+	// get a1
+	str = strstr(term, "a1=");
+	if (str == NULL)
+		return 11;
+	ptr = str + 3;
+	term = strchr(ptr, ' ');
+	if (term == NULL)
+		return 12;
+	*term = 0;
+	errno = 0;
+	// 64 bit dump on 32 bit machine looks bad here - need long long
+	n->a1 = strtoull(ptr, NULL, 16); // Hex
 	if (errno)
 		return 13;
 	*term = ' ';

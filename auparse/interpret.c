@@ -27,6 +27,7 @@
 #include "libaudit.h"
 #include "internal.h"
 #include "interpret.h"
+#include "idata.h"
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -338,12 +339,12 @@ static const char *print_arch(const char *val, int machine)
 	}
 }
 
-static const char *print_syscall(const char *val, const rnode *r)
+static const char *print_syscall(const char *val, const idata *id)
 {
         const char *sys;
 	char *out;
-	int machine = r->machine, syscall = r->syscall;
-	unsigned long long a0 = r->a0;
+	int machine = id->machine, syscall = id->syscall;
+	unsigned long long a0 = id->a0;
 
         if (machine < 0)
                 machine = audit_detect_machine();
@@ -1281,9 +1282,9 @@ static char *print_dirfd(const char *val)
 	return out;
 }
 
-static const char *print_a0(const char *val, const rnode *r)
+static const char *print_a0(const char *val, const idata *id)
 {
-	int machine = r->machine, syscall = r->syscall;
+	int machine = id->machine, syscall = id->syscall;
 	const char *sys = audit_syscall_to_name(syscall, machine);
 	if (sys) {
 		if (strcmp(sys, "rt_sigaction") == 0)
@@ -1348,9 +1349,9 @@ static const char *print_a0(const char *val, const rnode *r)
 	return strdup(val);
 }
 
-static const char *print_a1(const char *val, const rnode *r)
+static const char *print_a1(const char *val, const idata *id)
 {
-	int machine = r->machine, syscall = r->syscall;
+	int machine = id->machine, syscall = id->syscall;
 	const char *sys = audit_syscall_to_name(syscall, machine);
 	if (sys) {
 		if (strcmp(sys, "open") == 0)
@@ -1393,9 +1394,9 @@ static const char *print_a1(const char *val, const rnode *r)
 	return strdup(val);
 }
 
-static const char *print_a2(const char *val, const rnode *r)
+static const char *print_a2(const char *val, const idata *id)
 {
-	int machine = r->machine, syscall = r->syscall;
+	int machine = id->machine, syscall = id->syscall;
 	char *out;
 	const char *sys = audit_syscall_to_name(syscall, machine);
 	if (sys) {
@@ -1410,7 +1411,7 @@ static const char *print_a2(const char *val, const rnode *r)
 					out = NULL;
 	                	return out;
 	        	}
-			switch (r->a1)
+			switch (id->a1)
 			{
 				case F_SETOWN:
 					return print_uid(val, 16);
@@ -1460,9 +1461,9 @@ static const char *print_a2(const char *val, const rnode *r)
 	return strdup(val);
 }
 
-static const char *print_a3(const char *val, const rnode *r)
+static const char *print_a3(const char *val, const idata *id)
 {
-	int machine = r->machine, syscall = r->syscall;
+	int machine = id->machine, syscall = id->syscall;
 	const char *sys = audit_syscall_to_name(syscall, machine);
 	if (sys) {
 		if (strcmp(sys, "mmap") == 0)
@@ -1755,24 +1756,44 @@ int lookup_type(const char *name)
 	return AUPARSE_TYPE_UNCLASSIFIED;
 }
 
+int interp_adjust_type(int rtype, const char *name, const char *val);
+const char *do_interpretation(int type, const idata *id);
 const char *interpret(const rnode *r)
 {
 	const nvlist *nv = &r->nv;
 	int type;
+	idata id;
 	nvnode *n;
 	const char *out;
-	const char *name = nvlist_get_cur_name(nv);
-	const char *val = nvlist_get_cur_val(nv);
+
+	id.machine = r->machine;
+	id.syscall = r->syscall;
+	id.a0 = r->a0;
+	id.a1 = r->a1;
+	id.name = nvlist_get_cur_name(nv);
+	id.val = nvlist_get_cur_val(nv);
+	type = interp_adjust_type(r->type, id.name, id.val);
+
+	out = do_interpretation(type, &id);
+	n = nvlist_get_cur(nv);
+	n->interp_val = (char *)out;
+
+	return out;
+}
+
+int interp_adjust_type(int rtype, const char *name, const char *val)
+{
+	int type;
 
 	/* Do some fixups */
-	if (r->type == AUDIT_EXECVE && name[0] == 'a' && strcmp(name, "argc") &&
+	if (type == AUDIT_EXECVE && name[0] == 'a' && strcmp(name, "argc") &&
 			!strstr(name, "_len"))
 		type = AUPARSE_TYPE_ESCAPED;
-	else if (r->type == AUDIT_AVC && strcmp(name, "saddr") == 0)
+	else if (type == AUDIT_AVC && strcmp(name, "saddr") == 0)
 		type = -1;
-	else if (r->type == AUDIT_USER_TTY && strcmp(name, "msg") == 0)
+	else if (type == AUDIT_USER_TTY && strcmp(name, "msg") == 0)
 		type = AUPARSE_TYPE_ESCAPED;
-	else if (r->type == AUDIT_NETFILTER_PKT && strcmp(name, "saddr") == 0)
+	else if (type == AUDIT_NETFILTER_PKT && strcmp(name, "saddr") == 0)
 		type = AUPARSE_TYPE_ADDR;
 	else if (strcmp(name, "acct") == 0) {
 		if (val[0] == '"')
@@ -1784,102 +1805,105 @@ const char *interpret(const rnode *r)
 	} else
 		type = lookup_type(name);
 
+	return type;
+}
+
+const char *do_interpretation(int type, const idata *id)
+{
+	const char *out;
 	switch(type) {
 		case AUPARSE_TYPE_UID:
-			out = print_uid(val, 10);
+			out = print_uid(id->val, 10);
 			break;
 		case AUPARSE_TYPE_GID:
-			out = print_gid(val, 10);
+			out = print_gid(id->val, 10);
 			break;
 		case AUPARSE_TYPE_SYSCALL:
-			out = print_syscall(val, r);
+			out = print_syscall(id->val, id);
 			break;
 		case AUPARSE_TYPE_ARCH:
-			out = print_arch(val, r->machine);
+			out = print_arch(id->val, id->machine);
 			break;
 		case AUPARSE_TYPE_EXIT:
-			out = print_exit(val);
+			out = print_exit(id->val);
 			break;
 		case AUPARSE_TYPE_ESCAPED:
-			out = print_escaped(val);
+			out = print_escaped(id->val);
                         break;
 		case AUPARSE_TYPE_PERM:
-			out = print_perm(val);
+			out = print_perm(id->val);
 			break;
 		case AUPARSE_TYPE_MODE:
-			out = print_mode(val,8);
+			out = print_mode(id->val,8);
 			break;
 		case AUPARSE_TYPE_SOCKADDR:
-			out = print_sockaddr(val);
+			out = print_sockaddr(id->val);
 			break;
 		case AUPARSE_TYPE_FLAGS:
-			out = print_flags(val);
+			out = print_flags(id->val);
 			break;
 		case AUPARSE_TYPE_PROMISC:
-			out = print_promiscuous(val);
+			out = print_promiscuous(id->val);
 			break;
 		case AUPARSE_TYPE_CAPABILITY:
-			out = print_capabilities(val);
+			out = print_capabilities(id->val);
 			break;
 		case AUPARSE_TYPE_SUCCESS:
-			out = print_success(val);
+			out = print_success(id->val);
 			break;
 		case AUPARSE_TYPE_A0:
-			out = print_a0(val, r);
+			out = print_a0(id->val, id);
 			break;
 		case AUPARSE_TYPE_A1:
-			out = print_a1(val, r);
+			out = print_a1(id->val, id);
 			break;
 		case AUPARSE_TYPE_A2:
-			out = print_a2(val, r);
+			out = print_a2(id->val, id);
 			break; 
 		case AUPARSE_TYPE_A3:
-			out = print_a3(val, r);
+			out = print_a3(id->val, id);
 			break; 
 		case AUPARSE_TYPE_SIGNAL:
-			out = print_signals(val, 10);
+			out = print_signals(id->val, 10);
 			break; 
 		case AUPARSE_TYPE_LIST:
-			out = print_list(val);
+			out = print_list(id->val);
 			break;
 		case AUPARSE_TYPE_TTY_DATA:
-			out = print_tty_data(val);
+			out = print_tty_data(id->val);
 			break;
 		case AUPARSE_TYPE_SESSION:
-			out = print_session(val);
+			out = print_session(id->val);
 			break;
 		case AUPARSE_TYPE_CAP_BITMAP:
-			out = print_cap_bitmap(val);
+			out = print_cap_bitmap(id->val);
 			break;
 		case AUPARSE_TYPE_NFPROTO:
-			out = print_nfproto(val);
+			out = print_nfproto(id->val);
 			break; 
 		case AUPARSE_TYPE_ICMPTYPE:
-			out = print_icmptype(val);
+			out = print_icmptype(id->val);
 			break; 
 		case AUPARSE_TYPE_PROTOCOL:
-			out = print_protocol(val);
+			out = print_protocol(id->val);
 			break; 
 		case AUPARSE_TYPE_ADDR:
-			out = print_addr(val);
+			out = print_addr(id->val);
 			break;
 		case AUPARSE_TYPE_PERSONALITY:
-			out = print_personality(val);
+			out = print_personality(id->val);
 			break;
 		case AUPARSE_TYPE_SECCOMP:
-			out = print_seccomp_code(val);
+			out = print_seccomp_code(id->val);
 			break;
 		case AUPARSE_TYPE_OFLAG:
-			out = print_open_flags(val);
+			out = print_open_flags(id->val);
 			break;
 		case AUPARSE_TYPE_UNCLASSIFIED:
 		default:
-			out = strdup(val);
+			out = strdup(id->val);
 			break;
         }
-
-	n = nvlist_get_cur(nv);
-	n->interp_val = (char *)out;
 
 	return out;
 }

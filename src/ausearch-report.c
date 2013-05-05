@@ -50,6 +50,7 @@
 #include "ausearch-options.h"
 #include "ausearch-parse.h"
 #include "ausearch-lookup.h"
+#include "idata.h"
 
 /* This is the name/value pair used by search tables */
 struct nv_pair {
@@ -77,7 +78,7 @@ static void interpret(char *name, char *val, int comma, int rtype);
 static int machine = -1;
 
 /* The first syscall argument */
-static unsigned long long a0;
+static unsigned long long a0, a1;
 static const char *sys = NULL;
 
 /* This function branches to the correct output format */
@@ -261,8 +262,10 @@ no_print:
 		printf(".%03d:%lu) ", milli, serial);
 	}
 
-	if (n->type == AUDIT_SYSCALL) 
+	if (n->type == AUDIT_SYSCALL) { 
 		a0 = n->a0;
+		a1 = n->a1;
+	}
 
 	// for each item.
 	found = 0;
@@ -2033,13 +2036,53 @@ static void print_seccomp_code(const char *val)
 	printf("%s ", aulookup_seccomp_code(code));
 }
 
+int interp_adjust_type(int rtype, const char *name, const char *val);
+static char *do_interpretation(int rtype, const idata *id, int comma);
 static void interpret(char *name, char *val, int comma, int rtype)
 {
 	int type;
+	idata id;
 
 	while (*name == ' '||*name == '(')
 		name++;
 
+	if (strcmp(name, "acct") == 0) {
+		// Remove trailing punctuation
+		int len = strlen(val);
+		if (val[len-1] == ':')
+			val[len-1] = 0;
+	}
+	type = interp_adjust_type(rtype, name, val);
+
+	id.machine = machine;
+	// FIXME: need to cache this once its working
+	if (type == AUDIT_SYSCALL) {
+		if (machine < 0) 
+			machine = audit_detect_machine();
+		if (machine < 0) {
+			printf("%s ", val);
+			return;
+		}
+	
+		id.syscall = audit_name_to_syscall(val, machine);
+	} else
+		id.syscall = 0;
+	id.a0 = a0;
+	id.a1 = a1;
+	id.name = name;
+	id.val = val;
+
+	char *out = do_interpretation(type, &id, comma);
+/*	if (type == -1)
+		printf("%s%c", val, comma ? ',' : ' ');
+	else
+		printf("%s ", out);
+	free(out); */
+}
+
+int interp_adjust_type(int rtype, const char *name, const char *val)
+{
+	int type;
 
 	/* Do some fixups */
 	if (rtype == AUDIT_EXECVE && name[0] == 'a' && strcmp(name, "argc") &&
@@ -2050,11 +2093,6 @@ static void interpret(char *name, char *val, int comma, int rtype)
 	else if (rtype == AUDIT_NETFILTER_PKT && strcmp(name, "saddr") == 0)
 		type = T_ADDR;
 	else if (strcmp(name, "acct") == 0) {
-		// Remove trailing punctuation
-		int len = strlen(val);
-		if (val[len-1] == ':')
-			val[len-1] = 0;
-
 		if (val[0] == '"')
 			type = T_ESCAPED;
 		else if (is_hex_string(val))
@@ -2063,6 +2101,13 @@ static void interpret(char *name, char *val, int comma, int rtype)
 			type = -1;
 	} else
 		type = audit_lookup_type(name);
+
+	return type;
+}
+
+static char *do_interpretation(int type, const idata *id, int comma)
+{
+	const char *val = id->val;
 
 	switch(type) {
 		case T_UID:
@@ -2155,5 +2200,6 @@ static void interpret(char *name, char *val, int comma, int rtype)
 		default:
 			printf("%s%c", val, comma ? ',' : ' ');
 	}
+	return NULL;
 }
 
