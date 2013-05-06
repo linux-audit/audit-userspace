@@ -111,4 +111,5 @@ _S(AUPARSE_TYPE_SECCOMP,	"code"		)
 _S(AUPARSE_TYPE_ESCAPED,	"old-rng"	)
 _S(AUPARSE_TYPE_ESCAPED,	"new-rng"	)
 _S(AUPARSE_TYPE_OFLAG,		"oflag"		)
+_S(AUPARSE_TYPE_ESCAPED,	"ocomm"		)
 
