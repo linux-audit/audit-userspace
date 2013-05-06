@@ -2,6 +2,7 @@
 - Rearrange auditd setting enabled and pid to avoid a race (#910568)
 - Interpret the ocomm field from OBJ_PID records 
 - Fix missing 'then' statement in sysvinit script
+- Switch ausearch/report to use libauparse for interpretting fields
 
 2.3
 - The clone(2) man page is really clone(3), fix interpretation of clone syscall
