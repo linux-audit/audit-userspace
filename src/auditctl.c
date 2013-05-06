@@ -1354,7 +1354,7 @@ int key_match(struct audit_reply *rep)
 			if (asprintf(&keyptr, "%.*s", rep->ruledata->values[i],
 				     &rep->ruledata->buf[boffset]) < 0)
 				keyptr = NULL;
-			if (strstr(keyptr, key)) {
+			else if (strstr(keyptr, key)) {
 				free(keyptr);
 				return 1;
 			}

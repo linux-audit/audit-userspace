@@ -286,8 +286,10 @@ static void avoid_oom_killer(void)
 	} else if ((oomfd = open("/proc/self/oom_adj",
 				O_NOFOLLOW | O_WRONLY)) >= 0) {
 		score = "-17";
-	} else
+	} else {
 		audit_msg(LOG_NOTICE, "Cannot open out of memory adjuster");
+		return;
+	}
 
 	len = strlen(score);
 	rc = write(oomfd, score, len);
