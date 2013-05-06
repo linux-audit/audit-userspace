@@ -103,8 +103,9 @@ int main(int argc, char *argv[])
 	free(event_type);
 	free(user_file);
 	free((char *)event_key);
-	aulookup_destroy_uid_list();
-	aulookup_destroy_gid_list();
+//	aulookup_destroy_uid_list();
+//	aulookup_destroy_gid_list();
+	auparse_destroy(NULL);
 	if (rc)
 		return rc;
 	if (!found) {
