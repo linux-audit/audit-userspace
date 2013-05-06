@@ -1797,14 +1797,14 @@ int interp_adjust_type(int rtype, const char *name, const char *val)
 	int type;
 
 	/* Do some fixups */
-	if (type == AUDIT_EXECVE && name[0] == 'a' && strcmp(name, "argc") &&
+	if (rtype == AUDIT_EXECVE && name[0] == 'a' && strcmp(name, "argc") &&
 			!strstr(name, "_len"))
 		type = AUPARSE_TYPE_ESCAPED;
-	else if (type == AUDIT_AVC && strcmp(name, "saddr") == 0)
+	else if (rtype == AUDIT_AVC && strcmp(name, "saddr") == 0)
 		type = -1;
-	else if (type == AUDIT_USER_TTY && strcmp(name, "msg") == 0)
+	else if (rtype == AUDIT_USER_TTY && strcmp(name, "msg") == 0)
 		type = AUPARSE_TYPE_ESCAPED;
-	else if (type == AUDIT_NETFILTER_PKT && strcmp(name, "saddr") == 0)
+	else if (rtype == AUDIT_NETFILTER_PKT && strcmp(name, "saddr") == 0)
 		type = AUPARSE_TYPE_ADDR;
 	else if (strcmp(name, "acct") == 0) {
 		if (val[0] == '"')
