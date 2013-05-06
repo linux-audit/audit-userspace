@@ -519,6 +519,11 @@ hidden_def(ausearch_clear)
 
 void auparse_destroy(auparse_state_t *au)
 {
+	aulookup_destroy_uid_list();
+	aulookup_destroy_gid_list();
+	if (au == NULL)
+		return;
+
 	if (au->source_list) {
 		int n = 0;
 		while (au->source_list[n]) 
@@ -540,8 +545,6 @@ void auparse_destroy(auparse_state_t *au)
 		(*au->callback_user_data_destroy)(au->callback_user_data);
 		au->callback_user_data = NULL;
 	}
-	aulookup_destroy_uid_list();
-	aulookup_destroy_gid_list();
 	if (au->in) {
 		fclose(au->in);
 		au->in = NULL;
