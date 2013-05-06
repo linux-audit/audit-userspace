@@ -74,6 +74,7 @@ start(){
 		# Prepare the default rules
 		if test x"$USE_AUGENRULES" != "x" ; then
 			if test "`echo $USE_AUGENRULES | tr 'NO' 'no'`" != "no"
+			then
 				test -d /etc/audit/rules.d && /sbin/augenrules
 			fi
 		fi
