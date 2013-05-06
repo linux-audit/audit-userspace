@@ -319,12 +319,23 @@ static const char *print_gid(const char *val, unsigned int base)
         return strdup(aulookup_gid(gid, name, sizeof(name)));
 }
 
-static const char *print_arch(const char *val, int machine)
+static const char *print_arch(const char *val, unsigned int machine)
 {
         const char *ptr;
 	char *out;
 
-        if (machine < 0) {
+	if (machine > MACH_ARMEB) {
+		unsigned int ival;
+
+		errno = 0;
+		ival = strtoul(val, NULL, 16);
+		if (errno) {
+			asprintf(&out, "conversion error(%s) ", val);
+			return out;
+		}
+		machine = audit_elf_to_machine(ival);
+	}
+        if ((int)machine < 0) {
 		if (asprintf(&out, "unknown elf type(%s)", val) < 0)
 			out = NULL;
                 return out;

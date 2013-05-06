@@ -27,7 +27,7 @@
 #include "config.h"
 
 typedef struct _idata {
-	int machine;		// The machine type for the event
+	unsigned int machine;	// The machine type for the event
 	int syscall;		// The syscall for the event
 	unsigned long long a0;	// arg 0 to the syscall
 	unsigned long long a1;	// arg 1 to the syscall

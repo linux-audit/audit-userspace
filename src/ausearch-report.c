@@ -2036,8 +2036,8 @@ static void print_seccomp_code(const char *val)
 	printf("%s ", aulookup_seccomp_code(code));
 }
 
-int interp_adjust_type(int rtype, const char *name, const char *val);
-static char *do_interpretation(int rtype, const idata *id, int comma);
+extern int interp_adjust_type(int rtype, const char *name, const char *val);
+extern char *do_interpretation(int type, const idata *id);
 static void interpret(char *name, char *val, int comma, int rtype)
 {
 	int type;
@@ -2072,19 +2072,35 @@ static void interpret(char *name, char *val, int comma, int rtype)
 	id.name = name;
 	id.val = val;
 
-	char *out = do_interpretation(type, &id, comma);
-/*	if (type == -1)
+	char *out = do_interpretation(type, &id);
+	if (type == -1)
 		printf("%s%c", val, comma ? ',' : ' ');
-	else
+	else if (name[0] == 'k' && strcmp(name, "key") == 0) {
+		char *str, *ptr = out;
+		int count = 0;
+		while ((str = strchr(ptr, AUDIT_KEY_SEPARATOR))) {
+			*str = 0;
+			if (count == 0) {
+				printf("%s", ptr);
+				count++;
+			} else
+				printf(" key=%s", ptr);
+			ptr = str+1;
+		}
+		if (count == 0)
+			printf("%s ", out);
+		else
+			printf("%s ", ptr);
+	} else
 		printf("%s ", out);
-	free(out); */
+	free(out);
 }
 
-int interp_adjust_type(int rtype, const char *name, const char *val)
+/* int interp_adjust_type(int rtype, const char *name, const char *val)
 {
 	int type;
 
-	/* Do some fixups */
+	// Do some fixups
 	if (rtype == AUDIT_EXECVE && name[0] == 'a' && strcmp(name, "argc") &&
 			!strstr(name, "_len"))
 		type = T_ESCAPED;
@@ -2201,5 +2217,5 @@ static char *do_interpretation(int type, const idata *id, int comma)
 			printf("%s%c", val, comma ? ',' : ' ');
 	}
 	return NULL;
-}
+} */
 
