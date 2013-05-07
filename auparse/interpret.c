@@ -1295,6 +1295,7 @@ static char *print_dirfd(const char *val)
 
 static const char *print_a0(const char *val, const idata *id)
 {
+	char *out;
 	int machine = id->machine, syscall = id->syscall;
 	const char *sys = audit_syscall_to_name(syscall, machine);
 	if (sys) {
@@ -1357,11 +1358,14 @@ static const char *print_a0(const char *val, const idata *id)
 		else if (strcmp(sys, "unshare") == 0)
 			return print_clone_flags(val);
 	}
-	return strdup(val);
+	if (asprintf(&out, "0x%s", val) < 0)
+			out = NULL;
+	return out;
 }
 
 static const char *print_a1(const char *val, const idata *id)
 {
+	char *out;
 	int machine = id->machine, syscall = id->syscall;
 	const char *sys = audit_syscall_to_name(syscall, machine);
 	if (sys) {
@@ -1402,13 +1406,15 @@ static const char *print_a1(const char *val, const idata *id)
 		else if (strcmp(sys, "mq_open") == 0)
 			return print_open_flags(val);
 	}
-	return strdup(val);
+	if (asprintf(&out, "0x%s", val) < 0)
+			out = NULL;
+	return out;
 }
 
 static const char *print_a2(const char *val, const idata *id)
 {
-	int machine = id->machine, syscall = id->syscall;
 	char *out;
+	int machine = id->machine, syscall = id->syscall;
 	const char *sys = audit_syscall_to_name(syscall, machine);
 	if (sys) {
 		if (strncmp(sys, "fcntl", 5) == 0) {
@@ -1469,11 +1475,14 @@ static const char *print_a2(const char *val, const idata *id)
 		else if (strcmp(sys, "mq_open") == 0)
 			return print_mode_short(val);
 	}
-	return strdup(val);
+	if (asprintf(&out, "0x%s", val) < 0)
+			out = NULL;
+	return out;
 }
 
 static const char *print_a3(const char *val, const idata *id)
 {
+	char *out;
 	int machine = id->machine, syscall = id->syscall;
 	const char *sys = audit_syscall_to_name(syscall, machine);
 	if (sys) {
@@ -1488,7 +1497,9 @@ static const char *print_a3(const char *val, const idata *id)
                 else if (strcmp(sys, "recvmmsg") == 0)
 			return print_recv(val);
 	}
-	return strdup(val);
+	if (asprintf(&out, "0x%s", val) < 0)
+			out = NULL;
+	return out;
 }
 
 static const char *print_signals(const char *val, unsigned int base)
@@ -1793,6 +1804,7 @@ const char *interpret(const rnode *r)
 }
 
 /* 
+iinary files audit-2.3.1.orig/src/ausearch-report.o and audit-2.3.1/src/ausearch-report.o differ
  * rtype:   the record type
  * name:    the current field name
  * value:   the current field value
@@ -1916,6 +1928,9 @@ const char *do_interpretation(int type, const idata *id)
 			break;
 		case AUPARSE_TYPE_OFLAG:
 			out = print_open_flags(id->val);
+			break;
+		case AUPARSE_TYPE_MMAP:
+			out = print_mmap(id->val);
 			break;
 		case AUPARSE_TYPE_UNCLASSIFIED:
 		default:
