@@ -31,6 +31,7 @@
 #include "ausearch-parse.h"
 #include "ausearch-lookup.h"
 #include "idata.h"
+#include "auparse-defs.h"
 
 /* Local functions */
 static void output_raw(llist *l);
@@ -349,7 +350,7 @@ static void interpret(char *name, char *val, int comma, int rtype)
 	id.val = val;
 
 	char *out = do_interpretation(type, &id);
-	if (type == -1)
+	if (type == AUPARSE_TYPE_UNCLASSIFIED)
 		printf("%s%c", val, comma ? ',' : ' ');
 	else if (name[0] == 'k' && strcmp(name, "key") == 0) {
 		char *str, *ptr = out;

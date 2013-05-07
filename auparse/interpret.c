@@ -1804,7 +1804,6 @@ const char *interpret(const rnode *r)
 }
 
 /* 
-iinary files audit-2.3.1.orig/src/ausearch-report.o and audit-2.3.1/src/ausearch-report.o differ
  * rtype:   the record type
  * name:    the current field name
  * value:   the current field value
@@ -1816,7 +1815,7 @@ int interp_adjust_type(int rtype, const char *name, const char *val)
 
 	/* This set of statements overrides or corrects the detection.
 	 * In almost all cases its a double use of a field. */
-	if (rtype == AUDIT_EXECVE && name[0] == 'a' && strcmp(name, "argc") &&
+	if (rtype == AUDIT_EXECVE && *name == 'a' && strcmp(name, "argc") &&
 			!strstr(name, "_len"))
 		type = AUPARSE_TYPE_ESCAPED;
 	else if (rtype == AUDIT_AVC && strcmp(name, "saddr") == 0)
@@ -1832,7 +1831,10 @@ int interp_adjust_type(int rtype, const char *name, const char *val)
 			type = AUPARSE_TYPE_ESCAPED;
 		else
 			type = -1;
-	} else
+	} else if (rtype == AUDIT_PATH && *name =='f' &&
+			strcmp(name, "flags") == 0)
+		type = AUPARSE_TYPE_FLAGS;
+	 else
 		type = lookup_type(name);
 
 	return type;
