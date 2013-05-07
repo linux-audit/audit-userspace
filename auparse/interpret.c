@@ -1792,11 +1792,18 @@ const char *interpret(const rnode *r)
 	return out;
 }
 
+/* 
+ * rtype:   the record type
+ * name:    the current field name
+ * value:   the current field value
+ * Returns: field's internal type is returned
+ */
 int interp_adjust_type(int rtype, const char *name, const char *val)
 {
 	int type;
 
-	/* Do some fixups */
+	/* This set of statements overrides or corrects the detection.
+	 * In almost all cases its a double use of a field. */
 	if (rtype == AUDIT_EXECVE && name[0] == 'a' && strcmp(name, "argc") &&
 			!strstr(name, "_len"))
 		type = AUPARSE_TYPE_ESCAPED;

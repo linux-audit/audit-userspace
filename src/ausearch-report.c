@@ -40,7 +40,8 @@ static void output_interpreted_node(const lnode *n);
 static void interpret(char *name, char *val, int comma, int rtype);
 
 /* The machine based on elf type */
-static int machine = -1;
+static unsigned long machine = -1;
+static int cur_syscall = -1;
 
 /* The first syscall argument */
 static unsigned long long a0, a1;
@@ -132,13 +133,17 @@ static void output_interpreted(llist *l)
 }
 
 /*
- * This function will cycle through a message and lookup each type that 
- * it finds. 
+ * This function will cycle through a single record and lookup each field's
+ * value that it finds. 
  */
 static void output_interpreted_node(const lnode *n)
 {
 	char *ptr, *str = n->message, *node = NULL;
 	int found;
+
+	// Reset these because each record could be different
+	machine = -1;
+	cur_syscall = -1;
 
 	/* Check and see if we start with a node */
 	if (str[0] == 'n') {
@@ -302,7 +307,7 @@ static void interpret(char *name, char *val, int comma, int rtype)
 	while (*name == ' '||*name == '(')
 		name++;
 
-	if (strcmp(name, "acct") == 0) {
+	if (*name == 'a' && strcmp(name, "acct") == 0) {
 		// Remove trailing punctuation
 		int len = strlen(val);
 		if (val[len-1] == ':')
@@ -310,19 +315,34 @@ static void interpret(char *name, char *val, int comma, int rtype)
 	}
 	type = interp_adjust_type(rtype, name, val);
 
-	id.machine = machine;
-	// FIXME: need to cache this once its working
-	if (type == AUDIT_SYSCALL) {
-		if (machine < 0) 
+	if (rtype == AUDIT_SYSCALL) {
+		if (machine == (unsigned long)-1) 
 			machine = audit_detect_machine();
-		if (machine < 0) {
-			printf("%s ", val);
-			return;
+		if (*name == 'a' && strcmp(name, "arch") == 0) {
+			unsigned long ival;
+			errno = 0;
+			ival = strtoul(val, NULL, 16);
+			if (errno) {
+				printf("arch conversion error(%s) ", val);
+				return;
+			}
+			machine = audit_elf_to_machine(ival);
 		}
-	
-		id.syscall = audit_name_to_syscall(val, machine);
+		if (cur_syscall < 0 && *name == 's' &&
+				strcmp(name, "syscall") == 0) {
+			unsigned long ival;
+			errno = 0;
+			ival = strtoul(val, NULL, 10);
+			if (errno) {
+				printf("syscall conversion error(%s) ", val);
+				return;
+			}
+			cur_syscall = ival;
+		}
+		id.syscall = cur_syscall;
 	} else
 		id.syscall = 0;
+	id.machine = machine;
 	id.a0 = a0;
 	id.a1 = a1;
 	id.name = name;
