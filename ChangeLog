@@ -4,6 +4,7 @@
 - Fix missing 'then' statement in sysvinit script
 - Switch ausearch to use libauparse for interpretting fields
 - Interpret prctl arg0
+- In auparse, check source_list isn't NULL when opening next file (Liequan Che)
 
 2.3
 - The clone(2) man page is really clone(3), fix interpretation of clone syscall

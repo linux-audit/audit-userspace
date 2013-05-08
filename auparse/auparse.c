@@ -1,5 +1,5 @@
 /* auparse.c --
- * Copyright 2006-08,2012 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2006-08,2012-13 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -806,7 +806,8 @@ static int retrieve_next_line(auparse_state_t *au)
 		case AUSOURCE_FILE:
 		case AUSOURCE_FILE_ARRAY:
 			// if the first time through, open file
-			if (au->list_idx == 0 && au->in == NULL) {
+			if (au->list_idx == 0 && au->in == NULL &&
+						au->source_list != NULL) {
 				if (au->source_list[au->list_idx] == NULL) {
 					errno = 0;
 					return -2;
