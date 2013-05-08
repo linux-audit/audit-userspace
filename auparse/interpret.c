@@ -90,6 +90,7 @@
 #include "icmptypetabs.h"
 #include "seccomptabs.h"
 #include "accesstabs.h"
+#include "prctl_opttabs.h"
 
 typedef enum { AVC_UNSET, AVC_DENIED, AVC_GRANTED } avc_t;
 typedef enum { S_UNSET=-1, S_FAILED, S_SUCCESS } success_t;
@@ -1159,6 +1160,28 @@ static const char *print_ptrace(const char *val)
 	return out;
 }
 
+static const char *print_prctl_opt(const char *val)
+{
+        int opt;
+	char *out;
+	const char *s;
+
+        errno = 0;
+        opt = strtoul(val, NULL, 16);
+        if (errno) {
+		if (asprintf(&out, "conversion error(%s)", val) < 0)
+			out = NULL;
+                return out;
+        }
+
+	s = prctl_opt_i2s(opt);
+	if (s != NULL)
+		return strdup(s);
+	if (asprintf(&out, "unknown prctl option (%s)", val) < 0)
+		out = NULL;
+	return out;
+}
+
 static const char *print_mount(const char *val)
 {
 	unsigned int mounts, i;
@@ -1357,6 +1380,8 @@ static const char *print_a0(const char *val, const idata *id)
 			return print_clone_flags(val);
 		else if (strcmp(sys, "unshare") == 0)
 			return print_clone_flags(val);
+		else if (strcmp(sys, "prctl") == 0)
+			return print_prctl_opt(val);
 	}
 	if (asprintf(&out, "0x%s", val) < 0)
 			out = NULL;

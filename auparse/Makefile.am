@@ -46,15 +46,17 @@ BUILT_SOURCES = accesstabs.h captabs.h clocktabs.h clone-flagtabs.h \
 	epoll_ctls.h famtabs.h fcntl-cmdtabs.h \
 	flagtabs.h icmptypetabs.h ipctabs.h \
 	mmaptabs.h mounttabs.h nfprototabs.h open-flagtabs.h \
-	persontabs.h prottabs.h ptracetabs.h rlimittabs.h recvtabs.h \
-	seccomptabs.h signaltabs.h socktabs.h socktypetabs.h typetabs.h
+	persontabs.h prctl_opttabs.h prottabs.h ptracetabs.h \
+	rlimittabs.h recvtabs.h seccomptabs.h signaltabs.h \
+	socktabs.h socktypetabs.h typetabs.h
 noinst_PROGRAMS = gen_accesstabs_h gen_captabs_h gen_clock_h \
 	gen_clone-flagtabs_h \
 	gen_epoll_ctls_h gen_famtabs_h \
 	gen_fcntl-cmdtabs_h gen_flagtabs_h \
 	gen_icmptypetabs_h gen_ipctabs_h gen_nfprototabs_h \
 	gen_mmaptabs_h gen_mounttabs_h \
-	gen_open-flagtabs_h gen_persontabs_h gen_prottabs_h \
+	gen_open-flagtabs_h gen_persontabs_h \
+	gen_prctl_opttabs_h gen_prottabs_h \
 	gen_recvtabs_h gen_rlimit_h gen_ptracetabs_h \
 	gen_seccomptabs_h gen_signals_h gen_socktabs_h \
 	gen_socktypetabs_h gen_typetabs_h
@@ -142,6 +144,11 @@ gen_ptracetabs_h_SOURCES = ../lib/gen_tables.c ../lib/gen_tables.h ptracetab.h
 gen_ptracetabs_h_CFLAGS = $(AM_CFLAGS) '-DTABLE_H="ptracetab.h"'
 ptracetabs.h: gen_ptracetabs_h Makefile
 	./gen_ptracetabs_h --i2s ptrace > $@
+
+gen_prctl_opttabs_h_SOURCES = ../lib/gen_tables.c ../lib/gen_tables.h prctl-opt-tab.h
+gen_prctl_opttabs_h_CFLAGS = $(AM_CFLAGS) '-DTABLE_H="prctl-opt-tab.h"'
+prctl_opttabs.h: gen_prctl_opttabs_h Makefile
+	./gen_prctl_opttabs_h --i2s prctl_opt > $@
 
 gen_prottabs_h_SOURCES = ../lib/gen_tables.c ../lib/gen_tables.h prottab.h
 gen_prottabs_h_CFLAGS = $(AM_CFLAGS) '-DTABLE_H="prottab.h"'
