@@ -1284,10 +1284,10 @@ static char *print_dirfd(const char *val)
 	char *out;
 
 	if (strcmp(val, "-100") == 0) {
-		if (asprintf(&out, "AT_FDCWD ") < 0)
+		if (asprintf(&out, "AT_FDCWD") < 0)
 			out = NULL;
 	} else {
-		if (asprintf(&out, "%s ", val) < 0)
+		if (asprintf(&out, "%s", val) < 0)
 			out = NULL;
 	}
 	return out;
@@ -1395,6 +1395,8 @@ static const char *print_a1(const char *val, const idata *id)
 			return print_mode_short(val);
 		else if (strcmp(sys, "creat") == 0)
 			return print_mode_short(val);
+		else if (strcmp(sys, "access") == 0)
+			return print_access(val);
 		else if (strncmp(sys, "fcntl", 5) == 0)
 			return print_fcntl_cmd(val);
 		else if (strcmp(sys, "mknod") == 0)

@@ -367,8 +367,10 @@ static void interpret(char *name, char *val, int comma, int rtype)
 		if (count == 0)
 			printf("%s ", out);
 		else
-			printf("%s ", ptr);
-	} else
+			printf(" key=%s ", ptr);
+	} else if (type == AUPARSE_TYPE_TTY_DATA)
+		printf("%s", out);
+	else
 		printf("%s ", out);
 	free(out);
 }
