@@ -1493,6 +1493,8 @@ static const char *print_a2(const char *val, const idata *id)
 			return print_socket_proto(val);
                 else if (strcmp(sys, "recvmsg") == 0)
 			return print_recv(val);
+                else if (strcmp(sys, "sendmsg") == 0)
+			return print_recv(val);
 		else if (strcmp(sys, "linkat") == 0)
 			return print_dirfd(val);
 		else if (strcmp(sys, "readlinkat") == 0)
@@ -1522,6 +1524,12 @@ static const char *print_a3(const char *val, const idata *id)
                 else if (strcmp(sys, "recvfrom") == 0)
 			return print_recv(val);
                 else if (strcmp(sys, "recvmmsg") == 0)
+			return print_recv(val);
+                else if (strcmp(sys, "send") == 0)
+			return print_recv(val);
+                else if (strcmp(sys, "sendto") == 0)
+			return print_recv(val);
+                else if (strcmp(sys, "sendmmsg") == 0)
 			return print_recv(val);
 	}
 	if (asprintf(&out, "0x%s", val) < 0)
