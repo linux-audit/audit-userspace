@@ -47,7 +47,8 @@ BUILT_SOURCES = accesstabs.h captabs.h clocktabs.h clone-flagtabs.h \
 	flagtabs.h icmptypetabs.h ipctabs.h \
 	mmaptabs.h mounttabs.h nfprototabs.h open-flagtabs.h \
 	persontabs.h prctl_opttabs.h prottabs.h ptracetabs.h \
-	rlimittabs.h recvtabs.h seccomptabs.h signaltabs.h \
+	rlimittabs.h recvtabs.h schedtabs.h \
+	seccomptabs.h signaltabs.h \
 	socktabs.h socktypetabs.h typetabs.h
 noinst_PROGRAMS = gen_accesstabs_h gen_captabs_h gen_clock_h \
 	gen_clone-flagtabs_h \
@@ -58,6 +59,7 @@ noinst_PROGRAMS = gen_accesstabs_h gen_captabs_h gen_clock_h \
 	gen_open-flagtabs_h gen_persontabs_h \
 	gen_prctl_opttabs_h gen_prottabs_h \
 	gen_recvtabs_h gen_rlimit_h gen_ptracetabs_h \
+	gen_schedtabs_h \
 	gen_seccomptabs_h gen_signals_h gen_socktabs_h \
 	gen_socktypetabs_h gen_typetabs_h
 
@@ -164,6 +166,11 @@ gen_rlimit_h_SOURCES = ../lib/gen_tables.c ../lib/gen_tables.h rlimittab.h
 gen_rlimit_h_CFLAGS = $(AM_CFLAGS) '-DTABLE_H="rlimittab.h"'
 rlimittabs.h: gen_rlimit_h Makefile
 	./gen_rlimit_h --i2s rlimit > $@
+
+gen_schedtabs_h_SOURCES = ../lib/gen_tables.c ../lib/gen_tables.h schedtab.h
+gen_schedtabs_h_CFLAGS = $(AM_CFLAGS) '-DTABLE_H="schedtab.h"'
+schedtabs.h: gen_schedtabs_h Makefile
+	./gen_schedtabs_h --i2s sched > $@
 
 gen_seccomptabs_h_SOURCES = ../lib/gen_tables.c ../lib/gen_tables.h seccomptab.h
 gen_seccomptabs_h_CFLAGS = $(AM_CFLAGS) '-DTABLE_H="seccomptab.h"'

@@ -3,7 +3,7 @@
 - Interpret the ocomm field from OBJ_PID records 
 - Fix missing 'then' statement in sysvinit script
 - Switch ausearch to use libauparse for interpretting fields
-- In libauparse, interpret prctl arg0
+- In libauparse, interpret prctl arg0, sched_setscheduler arg1
 - In auparse, check source_list isn't NULL when opening next file (Liequan Che)
 - In libauparse, interpret send* flags argument
 

@@ -91,6 +91,7 @@
 #include "seccomptabs.h"
 #include "accesstabs.h"
 #include "prctl_opttabs.h"
+#include "schedtabs.h"
 
 typedef enum { AVC_UNSET, AVC_DENIED, AVC_GRANTED } avc_t;
 typedef enum { S_UNSET=-1, S_FAILED, S_SUCCESS } success_t;
@@ -1316,6 +1317,28 @@ static char *print_dirfd(const char *val)
 	return out;
 }
 
+static const char *print_sched(const char *val)
+{
+        int pol;
+        char *out;
+        const char *s;
+
+        errno = 0;
+        pol = strtoul(val, NULL, 16);
+        if (errno) {
+		if (asprintf(&out, "conversion error(%s)", val) < 0)
+			out = NULL;
+                return out;
+        }
+
+	s = sched_i2s(pol);
+	if (s != NULL)
+		return strdup(s);
+	if (asprintf(&out, "unknown scheduler policy (%s)", val) < 0)
+		out = NULL;
+	return out;
+}
+
 static const char *print_a0(const char *val, const idata *id)
 {
 	char *out;
@@ -1432,6 +1455,8 @@ static const char *print_a1(const char *val, const idata *id)
 			return print_clone_flags(val);
 		else if (strcmp(sys, "mq_open") == 0)
 			return print_open_flags(val);
+		else if (strcmp(sys, "sched_setscheduler") == 0)
+			return print_sched(val);
 	}
 	if (asprintf(&out, "0x%s", val) < 0)
 			out = NULL;
