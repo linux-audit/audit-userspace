@@ -92,6 +92,7 @@
 #include "accesstabs.h"
 #include "prctl_opttabs.h"
 #include "schedtabs.h"
+#include "sockoptnametabs.h"
 
 typedef enum { AVC_UNSET, AVC_DENIED, AVC_GRANTED } avc_t;
 typedef enum { S_UNSET=-1, S_FAILED, S_SUCCESS } success_t;
@@ -1339,6 +1340,58 @@ static const char *print_sched(const char *val)
 	return out;
 }
 
+static const char *print_sock_opt_level(const char *val)
+{
+        int lvl;
+	char *out;
+
+	errno = 0;
+	lvl = strtoul(val, NULL, 16);
+	if (errno) {
+		if (asprintf(&out, "conversion error(%s)", val) < 0)
+			out = NULL;
+		return out;
+	}
+	if (lvl == SOL_SOCKET)
+		return strdup("SOL_SOCKET");
+	else {
+		struct protoent *p = getprotobynumber(lvl);
+		if (p == NULL) {
+			if (asprintf(&out, "unknown sockopt level (%s)", val) < 0)
+				out = NULL;
+		} else
+			return strdup(p->p_name);
+	}
+
+	return out;
+}
+
+static const char *print_sock_opt_name(const char *val, int machine)
+{
+        int opt;
+	char *out;
+	const char *s;
+
+        errno = 0;
+        opt = strtoul(val, NULL, 16);
+        if (errno) {
+		if (asprintf(&out, "conversion error(%s)", val) < 0)
+			out = NULL;
+                return out;
+        }
+	// PPC's tables are different
+	if ((machine == MACH_PPC64 || machine == MACH_PPC) &&
+			opt >= 16 && opt <= 21)
+		opt+=100;
+
+	s = sockoptname_i2s(opt);
+	if (s != NULL)
+		return strdup(s);
+	if (asprintf(&out, "unknown socketopt name (%s)", val) < 0)
+		out = NULL;
+	return out;
+}
+
 static const char *print_a0(const char *val, const idata *id)
 {
 	char *out;
@@ -1457,6 +1510,8 @@ static const char *print_a1(const char *val, const idata *id)
 			return print_open_flags(val);
 		else if (strcmp(sys, "sched_setscheduler") == 0)
 			return print_sched(val);
+		else if (strcmp(sys+1, "etsockopt") == 0)
+			return print_sock_opt_level(val);
 	}
 	if (asprintf(&out, "0x%s", val) < 0)
 			out = NULL;
@@ -1494,6 +1549,11 @@ static const char *print_a2(const char *val, const idata *id)
 				case F_NOTIFY:
 					break;
 			}
+		} else if (strcmp(sys+1, "etsockopt") == 0) {
+			if (id->a1 == SOL_SOCKET)
+				return print_sock_opt_name(val, machine);
+			else
+				goto normal;
 		} else if (strcmp(sys, "openat") == 0)
 			return print_open_flags(val);
 		else if (strcmp(sys, "fchmodat") == 0)
@@ -1529,6 +1589,7 @@ static const char *print_a2(const char *val, const idata *id)
 		else if (strcmp(sys, "mq_open") == 0)
 			return print_mode_short(val);
 	}
+normal:
 	if (asprintf(&out, "0x%s", val) < 0)
 			out = NULL;
 	return out;

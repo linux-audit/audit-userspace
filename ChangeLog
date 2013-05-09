@@ -6,6 +6,7 @@
 - In libauparse, interpret prctl arg0, sched_setscheduler arg1
 - In auparse, check source_list isn't NULL when opening next file (Liequan Che)
 - In libauparse, interpret send* flags argument
+- In libauparse, interpret level and sol_socket options for set/getsockopt
 
 2.3
 - The clone(2) man page is really clone(3), fix interpretation of clone syscall
