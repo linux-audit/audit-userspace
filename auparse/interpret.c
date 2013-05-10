@@ -93,6 +93,7 @@
 #include "prctl_opttabs.h"
 #include "schedtabs.h"
 #include "sockoptnametabs.h"
+#include "ipoptnametabs.h"
 
 typedef enum { AVC_UNSET, AVC_DENIED, AVC_GRANTED } avc_t;
 typedef enum { S_UNSET=-1, S_FAILED, S_SUCCESS } success_t;
@@ -1387,7 +1388,29 @@ static const char *print_sock_opt_name(const char *val, int machine)
 	s = sockoptname_i2s(opt);
 	if (s != NULL)
 		return strdup(s);
-	if (asprintf(&out, "unknown socketopt name (%s)", val) < 0)
+	if (asprintf(&out, "unknown sockopt name (%s)", val) < 0)
+		out = NULL;
+	return out;
+}
+
+static const char *print_ip_opt_name(const char *val)
+{
+	int opt;
+	char *out;
+	const char *s;
+
+	errno = 0;
+	opt = strtoul(val, NULL, 16);
+	if (errno) {
+		if (asprintf(&out, "conversion error(%s)", val) < 0)
+			out = NULL;
+                return out;
+        }
+
+	s = ipoptname_i2s(opt);
+	if (s != NULL)
+		return strdup(s);
+	if (asprintf(&out, "unknown ipopt name (%s)", val) < 0)
 		out = NULL;
 	return out;
 }
@@ -1550,7 +1573,9 @@ static const char *print_a2(const char *val, const idata *id)
 					break;
 			}
 		} else if (strcmp(sys+1, "etsockopt") == 0) {
-			if (id->a1 == SOL_SOCKET)
+			if (id->a1 == IPPROTO_IP)
+				return print_ip_opt_name(val);
+			else if (id->a1 == SOL_SOCKET)
 				return print_sock_opt_name(val, machine);
 			else
 				goto normal;
