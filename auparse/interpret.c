@@ -97,6 +97,7 @@
 #include "ipoptnametabs.h"
 #include "ip6optnametabs.h"
 #include "tcpoptnametabs.h"
+#include "pktoptnametabs.h"
 
 typedef enum { AVC_UNSET, AVC_DENIED, AVC_GRANTED } avc_t;
 typedef enum { S_UNSET=-1, S_FAILED, S_SUCCESS } success_t;
@@ -1364,7 +1365,7 @@ static const char *print_sock_opt_level(const char *val)
 			char *s = socklevel_i2s(lvl);
 			if (s != NULL)
 				return strdup(s);
-			if (asprintf(&out, "unknown sockopt level (%s)", val) < 0)
+			if (asprintf(&out, "unknown sockopt level (0x%s)", val) < 0)
 				out = NULL;
 		} else
 			return strdup(p->p_name);
@@ -1394,7 +1395,7 @@ static const char *print_sock_opt_name(const char *val, int machine)
 	s = sockoptname_i2s(opt);
 	if (s != NULL)
 		return strdup(s);
-	if (asprintf(&out, "unknown sockopt name (%s)", val) < 0)
+	if (asprintf(&out, "unknown sockopt name (0x%s)", val) < 0)
 		out = NULL;
 	return out;
 }
@@ -1416,7 +1417,7 @@ static const char *print_ip_opt_name(const char *val)
 	s = ipoptname_i2s(opt);
 	if (s != NULL)
 		return strdup(s);
-	if (asprintf(&out, "unknown ipopt name (%s)", val) < 0)
+	if (asprintf(&out, "unknown ipopt name (0x%s)", val) < 0)
 		out = NULL;
 	return out;
 }
@@ -1438,7 +1439,7 @@ static const char *print_ip6_opt_name(const char *val)
 	s = ip6optname_i2s(opt);
 	if (s != NULL)
 		return strdup(s);
-	if (asprintf(&out, "unknown ip6opt name (%s)", val) < 0)
+	if (asprintf(&out, "unknown ip6opt name (0x%s)", val) < 0)
 		out = NULL;
 	return out;
 }
@@ -1460,7 +1461,29 @@ static const char *print_tcp_opt_name(const char *val)
 	s = tcpoptname_i2s(opt);
 	if (s != NULL)
 		return strdup(s);
-	if (asprintf(&out, "unknown tcpopt name (%s)", val) < 0)
+	if (asprintf(&out, "unknown tcpopt name (0x%s)", val) < 0)
+		out = NULL;
+	return out;
+}
+
+static const char *print_pkt_opt_name(const char *val)
+{
+	int opt;
+	char *out;
+	const char *s;
+
+	errno = 0;
+	opt = strtoul(val, NULL, 16);
+	if (errno) {
+		if (asprintf(&out, "conversion error(%s)", val) < 0)
+			out = NULL;
+                return out;
+	}
+
+	s = pktoptname_i2s(opt);
+	if (s != NULL)
+		return strdup(s);
+	if (asprintf(&out, "unknown pktopt name (0x%s)", val) < 0)
 		out = NULL;
 	return out;
 }
@@ -1631,6 +1654,8 @@ static const char *print_a2(const char *val, const idata *id)
 				return print_tcp_opt_name(val);
 			else if (id->a1 == IPPROTO_IPV6)
 				return print_ip6_opt_name(val);
+			else if (id->a1 == SOL_PACKET)
+				return print_pkt_opt_name(val);
 			else
 				goto normal;
 		} else if (strcmp(sys, "openat") == 0)
