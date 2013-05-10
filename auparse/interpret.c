@@ -1466,6 +1466,28 @@ static const char *print_tcp_opt_name(const char *val)
 	return out;
 }
 
+static const char *print_udp_opt_name(const char *val)
+{
+	int opt;
+	char *out;
+
+	errno = 0;
+	opt = strtoul(val, NULL, 16);
+	if (errno) {
+		if (asprintf(&out, "conversion error(%s)", val) < 0)
+			out = NULL;
+                return out;
+	}
+
+	if (opt == 1)
+		out = strdup("UDP_CORK");
+	else if (opt == 100)
+		out = strdup("UDP_ENCAP");
+	else if (asprintf(&out, "unknown udpopt name (0x%s)", val) < 0)
+		out = NULL;
+	return out;
+}
+
 static const char *print_pkt_opt_name(const char *val)
 {
 	int opt;
@@ -1654,6 +1676,8 @@ static const char *print_a2(const char *val, const idata *id)
 				return print_sock_opt_name(val, machine);
 			else if (id->a1 == IPPROTO_TCP)
 				return print_tcp_opt_name(val);
+			else if (id->a1 == IPPROTO_UDP)
+				return print_udp_opt_name(val);
 			else if (id->a1 == IPPROTO_IPV6)
 				return print_ip6_opt_name(val);
 			else if (id->a1 == SOL_PACKET)
