@@ -94,6 +94,7 @@
 #include "schedtabs.h"
 #include "sockoptnametabs.h"
 #include "ipoptnametabs.h"
+#include "ip6optnametabs.h"
 #include "tcpoptnametabs.h"
 
 typedef enum { AVC_UNSET, AVC_DENIED, AVC_GRANTED } avc_t;
@@ -1406,12 +1407,34 @@ static const char *print_ip_opt_name(const char *val)
 		if (asprintf(&out, "conversion error(%s)", val) < 0)
 			out = NULL;
                 return out;
-        }
+	}
 
 	s = ipoptname_i2s(opt);
 	if (s != NULL)
 		return strdup(s);
 	if (asprintf(&out, "unknown ipopt name (%s)", val) < 0)
+		out = NULL;
+	return out;
+}
+
+static const char *print_ip6_opt_name(const char *val)
+{
+	int opt;
+	char *out;
+	const char *s;
+
+	errno = 0;
+	opt = strtoul(val, NULL, 16);
+	if (errno) {
+		if (asprintf(&out, "conversion error(%s)", val) < 0)
+			out = NULL;
+                return out;
+	}
+
+	s = ip6optname_i2s(opt);
+	if (s != NULL)
+		return strdup(s);
+	if (asprintf(&out, "unknown ip6opt name (%s)", val) < 0)
 		out = NULL;
 	return out;
 }
@@ -1428,7 +1451,7 @@ static const char *print_tcp_opt_name(const char *val)
 		if (asprintf(&out, "conversion error(%s)", val) < 0)
 			out = NULL;
                 return out;
-        }
+	}
 
 	s = tcpoptname_i2s(opt);
 	if (s != NULL)
@@ -1602,6 +1625,8 @@ static const char *print_a2(const char *val, const idata *id)
 				return print_sock_opt_name(val, machine);
 			else if (id->a1 == IPPROTO_TCP)
 				return print_tcp_opt_name(val);
+			else if (id->a1 == IPPROTO_IPV6)
+				return print_ip6_opt_name(val);
 			else
 				goto normal;
 		} else if (strcmp(sys, "openat") == 0)

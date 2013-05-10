@@ -19,6 +19,7 @@
  * Authors:
  *      Steve Grubb <sgrubb@redhat.com>
  * Location: include/uapi/linux/in.h
+ *           include/uapi/linux/netfilter_ipv4/ip_tables.h
  */
 
 
@@ -55,3 +56,7 @@ _S(40, "IP_DROP_SOURCE_MEMBERSHIP")
 _S(41, "IP_MSFILTER")
 _S(49, "IP_MULTICAST_ALL")
 _S(50, "IP_UNICAST_IF")
+_S(64, "IPT_SO_SET_REPLACE")
+_S(65, "IPT_SO_SET_ADD_COUNTERS")
+_S(66, "IPT_SO_GET_REVISION_TARGET")
+
