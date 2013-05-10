@@ -1532,6 +1532,8 @@ static const char *print_a0(const char *val, const idata *id)
 			return print_dirfd(val);
 		else if (strcmp(sys, "futimesat") == 0)
 			return print_dirfd(val);
+		else if (strcmp(sys, "utimensat") == 0)
+			return print_dirfd(val);
 		else if (strcmp(sys, "newfstatat") == 0)
 			return print_dirfd(val);
 		else if (strcmp(sys, "unlinkat") == 0)
