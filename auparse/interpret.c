@@ -584,7 +584,7 @@ static const char *print_socket_domain(const char *val)
 	}
         str = fam_i2s(i);
         if (str == NULL) {
-		if (asprintf(&out, "unknown family(%s)", val) < 0)
+		if (asprintf(&out, "unknown family(0x%s)", val) < 0)
 			out = NULL;
 		return out;
 	} else
@@ -1035,7 +1035,7 @@ static const char *print_clock_id(const char *val)
 		if (s != NULL)
 			return strdup(s);
 	}
-	if (asprintf(&out, "unknown clk_id (%s)", val) < 0)
+	if (asprintf(&out, "unknown clk_id (0x%s)", val) < 0)
 		out = NULL;
 	return out;
 }
@@ -1140,7 +1140,7 @@ static const char *print_personality(const char *val)
 		} else
 			return strdup(s);
 	}
-	if (asprintf(&out, "unknown personality (%s)", val) < 0)
+	if (asprintf(&out, "unknown personality (0x%s)", val) < 0)
 		out = NULL;
 	return out;
 }
@@ -1162,7 +1162,7 @@ static const char *print_ptrace(const char *val)
 	s = ptrace_i2s(trace);
 	if (s != NULL)
 		return strdup(s);
-	if (asprintf(&out, "unknown ptrace (%s)", val) < 0)
+	if (asprintf(&out, "unknown ptrace (0x%s)", val) < 0)
 		out = NULL;
 	return out;
 }
@@ -1184,7 +1184,7 @@ static const char *print_prctl_opt(const char *val)
 	s = prctl_opt_i2s(opt);
 	if (s != NULL)
 		return strdup(s);
-	if (asprintf(&out, "unknown prctl option (%s)", val) < 0)
+	if (asprintf(&out, "unknown prctl option (0x%s)", val) < 0)
 		out = NULL;
 	return out;
 }
@@ -1237,7 +1237,7 @@ static const char *print_rlimit(const char *val)
 		if (s != NULL)
 			return strdup(s);
 	}
-	if (asprintf(&out, "unknown rlimit (%s)", val) < 0)
+	if (asprintf(&out, "unknown rlimit (0x%s)", val) < 0)
 		out = NULL;
 	return out;
 }
@@ -1317,7 +1317,7 @@ static char *print_dirfd(const char *val)
 		if (asprintf(&out, "AT_FDCWD") < 0)
 			out = NULL;
 	} else {
-		if (asprintf(&out, "%s", val) < 0)
+		if (asprintf(&out, "0x%s", val) < 0)
 			out = NULL;
 	}
 	return out;
@@ -1340,7 +1340,7 @@ static const char *print_sched(const char *val)
 	s = sched_i2s(pol);
 	if (s != NULL)
 		return strdup(s);
-	if (asprintf(&out, "unknown scheduler policy (%s)", val) < 0)
+	if (asprintf(&out, "unknown scheduler policy (0x%s)", val) < 0)
 		out = NULL;
 	return out;
 }
