@@ -50,7 +50,8 @@ BUILT_SOURCES = accesstabs.h captabs.h clocktabs.h clone-flagtabs.h \
 	persontabs.h prctl_opttabs.h prottabs.h ptracetabs.h \
 	rlimittabs.h recvtabs.h schedtabs.h \
 	seccomptabs.h signaltabs.h sockoptnametabs.h \
-	socktabs.h socktypetabs.h tcpoptnametabs.h typetabs.h
+	socktabs.h sockleveltabs.h socktypetabs.h \
+	tcpoptnametabs.h typetabs.h
 noinst_PROGRAMS = gen_accesstabs_h gen_captabs_h gen_clock_h \
 	gen_clone-flagtabs_h \
 	gen_epoll_ctls_h gen_famtabs_h \
@@ -63,7 +64,7 @@ noinst_PROGRAMS = gen_accesstabs_h gen_captabs_h gen_clock_h \
 	gen_recvtabs_h gen_rlimit_h gen_ptracetabs_h \
 	gen_schedtabs_h \
 	gen_seccomptabs_h gen_signals_h \
-	gen_sockoptnametabs_h gen_socktabs_h \
+	gen_sockoptnametabs_h gen_socktabs_h gen_sockleveltabs_h \
 	gen_socktypetabs_h gen_tcpoptnametabs_h gen_typetabs_h
 
 gen_accesstabs_h_SOURCES = ../lib/gen_tables.c ../lib/gen_tables.h accesstab.h
@@ -194,6 +195,11 @@ gen_signals_h_SOURCES = ../lib/gen_tables.c ../lib/gen_tables.h signaltab.h
 gen_signals_h_CFLAGS = $(AM_CFLAGS) '-DTABLE_H="signaltab.h"'
 signaltabs.h: gen_signals_h Makefile
 	./gen_signals_h --i2s signal > $@
+
+gen_sockleveltabs_h_SOURCES = ../lib/gen_tables.c ../lib/gen_tables.h sockleveltab.h
+gen_sockleveltabs_h_CFLAGS = $(AM_CFLAGS) '-DTABLE_H="sockleveltab.h"'
+sockleveltabs.h: gen_sockleveltabs_h Makefile
+	./gen_sockleveltabs_h --i2s socklevel > $@
 
 gen_sockoptnametabs_h_SOURCES = ../lib/gen_tables.c ../lib/gen_tables.h sockoptnametab.h
 gen_sockoptnametabs_h_CFLAGS = $(AM_CFLAGS) '-DTABLE_H="sockoptnametab.h"'

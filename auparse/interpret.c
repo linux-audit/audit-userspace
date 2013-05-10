@@ -93,6 +93,7 @@
 #include "prctl_opttabs.h"
 #include "schedtabs.h"
 #include "sockoptnametabs.h"
+#include "sockleveltabs.h"
 #include "ipoptnametabs.h"
 #include "ip6optnametabs.h"
 #include "tcpoptnametabs.h"
@@ -1360,6 +1361,9 @@ static const char *print_sock_opt_level(const char *val)
 	else {
 		struct protoent *p = getprotobynumber(lvl);
 		if (p == NULL) {
+			char *s = socklevel_i2s(lvl);
+			if (s != NULL)
+				return strdup(s);
 			if (asprintf(&out, "unknown sockopt level (%s)", val) < 0)
 				out = NULL;
 		} else
