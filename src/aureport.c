@@ -46,6 +46,7 @@ event very_first_event, very_last_event;
 static FILE *log_fd = NULL;
 static lol lo;
 static int found = 0;
+static int files_to_process = 0; // Logs left when processing multiple
 static int process_logs(void);
 static int process_log_fd(const char *filename);
 static int process_stdin(void);
@@ -145,6 +146,10 @@ static int process_logs(void)
 		snprintf(filename, len, "%s.%d", config.log_file, num);
 	} while (1);
 	num--;
+	/*
+	 * We note how many files we need to process
+	 */
+	files_to_process = num;
 
 	/* Got it, now process logs from last to first */
 	if (num > 0)
@@ -160,6 +165,7 @@ static int process_logs(void)
 		}
 
 		/* Get next log file */
+		files_to_process--;     /* one less file to process */
 		num--;
 		if (num > 0)
 			snprintf(filename, len, "%s.%d", config.log_file, num);
@@ -281,7 +287,11 @@ static int get_record(llist **l)
 		} else {
 			free(buff);
 			if (feof_unlocked(log_fd)) {
-				terminate_all_events(&lo);
+				// Only mark all events complete if this is
+				// the last file.
+				if (files_to_process == 0) {
+					terminate_all_events(&lo);
+				}
 				*l = get_ready_event(&lo);
 				if (*l)
 					return 0;

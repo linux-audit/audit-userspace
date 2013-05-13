@@ -1,6 +1,6 @@
 /*
  * ausearch.c - main file for ausearch utility 
- * Copyright 2005-08,2010 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2005-08,2010,2013 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -47,6 +47,7 @@ static lol lo;
 static int found = 0;
 static int input_is_pipe = 0;
 static int timeout_interval = 3;	/* timeout in seconds */
+static int files_to_process = 0;	/* number of log files yet to process when reading multiple */
 static int process_logs(void);
 static int process_log_fd(void);
 static int process_stdin(void);
@@ -144,6 +145,10 @@ static int process_logs(void)
 		snprintf(filename, len, "%s.%d", config.log_file, num);
 	} while (1);
 	num--;
+	/*
+	 * We note how many files we need to process
+	 */
+	files_to_process = num;
 
 	/* Got it, now process logs from last to first */
 	if (num > 0)
@@ -159,6 +164,7 @@ static int process_logs(void)
 		}
 		if (just_one && found)
 			break;
+		files_to_process--;	/* one less file to process */
 
 		/* Get next log file */
 		num--;
@@ -185,7 +191,7 @@ static int process_log_fd(void)
 		if ((ret != 0)||(entries->cnt == 0)) {
 			break;
 		}
-		// FIXME - what about events that straddle files?
+
 		if (match(entries)) {
 			output_record(entries);
 			found = 1;
@@ -245,6 +251,12 @@ static int get_record(llist **l)
 	char *buff = NULL;
 	int rcount = 0, timer_running = 0;
 
+	/*
+	 * If we have any events ready to print ie have all records that
+	 * make up the event, we just return. If not, we read more lines
+	 * from the files until we get a complete event or finish reading
+	 * input
+	 */
 	*l = get_ready_event(&lo);
 	if (*l)
 		return 0;
@@ -280,16 +292,30 @@ static int get_record(llist **l)
 			}
 		} else {
 			free(buff);
+			/*
+			 * If we get an EINTR error or we are at end of file, we
+			 * check to see if we have any events to print and return
+			 * appropriately.
+			 * If we are the last file being processed, we mark all incomplete
+			 * events as complete so they will be printed.
+			 */
+
 			if ((ferror_unlocked(log_fd) &&
 			     errno == EINTR) || feof_unlocked(log_fd)) {
-				terminate_all_events(&lo);
+				/*
+				 * Only mark all events as L_COMPLETE if we are the
+				 * last file being processed.
+				 */
+				if (files_to_process == 0) {
+					terminate_all_events(&lo);
+				}
 				*l = get_ready_event(&lo);
 				if (*l)
 					return 0;
 				else
 					return 1;
 			} else 
-				return -1;
+				return -1; /* all other errors are terminal */
 		}
 	}
 	free(buff);
