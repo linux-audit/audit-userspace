@@ -795,6 +795,8 @@ static const char *print_flags(const char *val)
 			}
                 }
         }
+	if (buf[0] == 0)
+		snprintf(buf, sizeof(buf), "0x%s", val);
 	return strdup(buf);
 }
 
@@ -928,6 +930,8 @@ static const char *print_open_flags(const char *val)
 			}
                 }
         }
+	if (buf[0] == 0)
+		snprintf(buf, sizeof(buf), "0x%s", val);
 	return strdup(buf);
 }
 
@@ -970,7 +974,7 @@ static const char *print_clone_flags(const char *val)
 	}
 
 	if (buf[0] == 0)
-		snprintf(buf, sizeof(buf), "%d", flags);
+		snprintf(buf, sizeof(buf), "0x%x", flags);
 	return strdup(buf);
 }
 
@@ -1077,6 +1081,8 @@ static const char *print_prot(const char *val, unsigned int is_mmap)
 			}
                 }
         }
+	if (buf[0] == 0)
+		snprintf(buf, sizeof(buf), "0x%s", val);
 	return strdup(buf);
 }
 
@@ -1113,6 +1119,8 @@ static const char *print_mmap(const char *val)
 			}
                 }
         }
+	if (buf[0] == 0)
+		snprintf(buf, sizeof(buf), "0x%s", val);
 	return strdup(buf);
 }
 
@@ -1217,6 +1225,8 @@ static const char *print_mount(const char *val)
 			}
                 }
         }
+	if (buf[0] == 0)
+		snprintf(buf, sizeof(buf), "0x%s", val);
 	return strdup(buf);
 }
 
@@ -1270,6 +1280,8 @@ static const char *print_recv(const char *val)
 			}
                 }
         }
+	if (buf[0] == 0)
+		snprintf(buf, sizeof(buf), "0x%s", val);
 	return strdup(buf);
 }
 
@@ -1305,7 +1317,7 @@ static const char *print_access(const char *val)
 		}
 	}
         if (buf[0] == 0)
-                snprintf(buf, sizeof(buf), "%d", (int)mode);
+                snprintf(buf, sizeof(buf), "0x%s", val);
         return strdup(buf);
 }
 
