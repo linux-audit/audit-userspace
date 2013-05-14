@@ -1374,7 +1374,7 @@ static const char *print_sock_opt_level(const char *val)
 	else {
 		struct protoent *p = getprotobynumber(lvl);
 		if (p == NULL) {
-			char *s = socklevel_i2s(lvl);
+			const char *s = socklevel_i2s(lvl);
 			if (s != NULL)
 				return strdup(s);
 			if (asprintf(&out, "unknown sockopt level (0x%s)", val) < 0)
@@ -2082,7 +2082,7 @@ int interp_adjust_type(int rtype, const char *name, const char *val)
 			!strstr(name, "_len"))
 		type = AUPARSE_TYPE_ESCAPED;
 	else if (rtype == AUDIT_AVC && strcmp(name, "saddr") == 0)
-		type = -1;
+		type = AUPARSE_TYPE_UNCLASSIFIED;
 	else if (rtype == AUDIT_USER_TTY && strcmp(name, "msg") == 0)
 		type = AUPARSE_TYPE_ESCAPED;
 	else if (rtype == AUDIT_NETFILTER_PKT && strcmp(name, "saddr") == 0)
@@ -2093,7 +2093,7 @@ int interp_adjust_type(int rtype, const char *name, const char *val)
 		else if (is_hex_string(val))
 			type = AUPARSE_TYPE_ESCAPED;
 		else
-			type = -1;
+			type = AUPARSE_TYPE_UNCLASSIFIED;
 	} else if (rtype == AUDIT_PATH && *name =='f' &&
 			strcmp(name, "flags") == 0)
 		type = AUPARSE_TYPE_FLAGS;

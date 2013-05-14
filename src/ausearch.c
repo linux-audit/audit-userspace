@@ -40,6 +40,7 @@
 #include "ausearch-options.h"
 #include "ausearch-lol.h"
 #include "ausearch-lookup.h"
+#include "auparse.h"
 
 
 static FILE *log_fd = NULL;
