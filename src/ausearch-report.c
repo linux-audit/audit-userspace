@@ -30,7 +30,7 @@
 #include "ausearch-options.h"
 #include "ausearch-parse.h"
 #include "ausearch-lookup.h"
-#include "idata.h"
+#include "auparse-idata.h"
 #include "auparse-defs.h"
 
 /* Local functions */
@@ -298,8 +298,6 @@ no_print:
 	printf("\n");
 }
 
-extern int interp_adjust_type(int rtype, const char *name, const char *val);
-extern char *do_interpretation(int type, const idata *id);
 static void interpret(char *name, char *val, int comma, int rtype)
 {
 	int type;
@@ -314,7 +312,7 @@ static void interpret(char *name, char *val, int comma, int rtype)
 		if (val[len-1] == ':')
 			val[len-1] = 0;
 	}
-	type = interp_adjust_type(rtype, name, val);
+	type = auparse_interp_adjust_type(rtype, name, val);
 
 	if (rtype == AUDIT_SYSCALL) {
 		if (machine == (unsigned long)-1) 
@@ -349,7 +347,7 @@ static void interpret(char *name, char *val, int comma, int rtype)
 	id.name = name;
 	id.val = val;
 
-	char *out = do_interpretation(type, &id);
+	char *out = auparse_do_interpretation(type, &id);
 	if (type == AUPARSE_TYPE_UNCLASSIFIED)
 		printf("%s%c", val, comma ? ',' : ' ');
 	else if (name[0] == 'k' && strcmp(name, "key") == 0) {

@@ -105,7 +105,7 @@ extern int interp_adjust_type(int rtype, const char *name, const char *val);
 int nvlist_get_cur_type(const rnode *r)
 {
 	const nvlist *l = &r->nv;
-	return interp_adjust_type(r->type, l->cur->name, l->cur->val);
+	return auparse_interp_adjust_type(r->type, l->cur->name, l->cur->val);
 }
 
 const char *nvlist_interp_cur_val(const rnode *r)

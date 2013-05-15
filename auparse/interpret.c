@@ -27,7 +27,7 @@
 #include "libaudit.h"
 #include "internal.h"
 #include "interpret.h"
-#include "idata.h"
+#include "auparse-idata.h"
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -2041,8 +2041,6 @@ int lookup_type(const char *name)
 	return AUPARSE_TYPE_UNCLASSIFIED;
 }
 
-int interp_adjust_type(int rtype, const char *name, const char *val);
-const char *do_interpretation(int type, const idata *id);
 const char *interpret(const rnode *r)
 {
 	const nvlist *nv = &r->nv;
@@ -2057,9 +2055,9 @@ const char *interpret(const rnode *r)
 	id.a1 = r->a1;
 	id.name = nvlist_get_cur_name(nv);
 	id.val = nvlist_get_cur_val(nv);
-	type = interp_adjust_type(r->type, id.name, id.val);
+	type = auparse_interp_adjust_type(r->type, id.name, id.val);
 
-	out = do_interpretation(type, &id);
+	out = auparse_do_interpretation(type, &id);
 	n = nvlist_get_cur(nv);
 	n->interp_val = (char *)out;
 
@@ -2072,7 +2070,7 @@ const char *interpret(const rnode *r)
  * value:   the current field value
  * Returns: field's internal type is returned
  */
-int interp_adjust_type(int rtype, const char *name, const char *val)
+int auparse_interp_adjust_type(int rtype, const char *name, const char *val)
 {
 	int type;
 
@@ -2102,8 +2100,9 @@ int interp_adjust_type(int rtype, const char *name, const char *val)
 
 	return type;
 }
+hidden_def(auparse_interp_adjust_type)
 
-const char *do_interpretation(int type, const idata *id)
+const char *auparse_do_interpretation(int type, const idata *id)
 {
 	const char *out;
 	switch(type) {
@@ -2205,3 +2204,5 @@ const char *do_interpretation(int type, const idata *id)
 
 	return out;
 }
+hidden_def(auparse_do_interpretation)
+

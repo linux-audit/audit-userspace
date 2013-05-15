@@ -25,6 +25,7 @@
 #define IDATA_HEADER
 
 #include "config.h"
+#include "dso.h"
 
 typedef struct _idata {
 	unsigned int machine;	// The machine type for the event
@@ -34,5 +35,12 @@ typedef struct _idata {
 	const char *name;	// name of field being interpretted
 	const char *val;	// value of field being interpretted
 } idata;
+
+int auparse_interp_adjust_type(int rtype, const char *name, const char *val);
+const char *auparse_do_interpretation(int type, const idata *id);
+
+hidden_proto(auparse_interp_adjust_type)
+hidden_proto(auparse_do_interpretation)
+
 #endif
 

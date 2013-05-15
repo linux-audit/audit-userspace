@@ -515,7 +515,6 @@ void ausearch_clear(auparse_state_t *au)
 	}
 	au->search_where = AUSEARCH_STOP_EVENT;
 }
-hidden_def(ausearch_clear)
 
 void auparse_destroy(auparse_state_t *au)
 {
@@ -1032,7 +1031,6 @@ int auparse_next_event(auparse_state_t *au)
 		}
 	}	
 }
-hidden_def(auparse_next_event)
 
 /* Accessors to event data */
 const au_event_t *auparse_get_timestamp(auparse_state_t *au)
@@ -1138,7 +1136,6 @@ int auparse_first_record(auparse_state_t *au)
 	
 	return 1;
 }
-hidden_def(auparse_first_record)
 
 
 int auparse_next_record(auparse_state_t *au)
@@ -1153,7 +1150,6 @@ int auparse_next_record(auparse_state_t *au)
 	else
 		return 0;
 }
-hidden_def(auparse_next_record)
 
 
 int auparse_goto_record_num(auparse_state_t *au, unsigned int num)
@@ -1297,7 +1293,6 @@ const char *auparse_find_field_next(auparse_state_t *au)
 	}
 	return NULL;
 }
-hidden_def(auparse_find_field_next)
 
 
 /* Accessors to field data */
@@ -1321,7 +1316,6 @@ const char *auparse_get_field_str(auparse_state_t *au)
 	}
 	return NULL;
 }
-hidden_def(auparse_get_field_str)
 
 int auparse_get_field_type(auparse_state_t *au)
 {
