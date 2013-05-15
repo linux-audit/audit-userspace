@@ -22,10 +22,6 @@
 #ifndef _DSO_H_
 #define _DSO_H_
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #ifdef PIC
 # define hidden __attribute__ ((visibility ("hidden")))
 # define hidden_proto(fct) __hidden_proto (fct, fct##_internal)
