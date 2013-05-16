@@ -8,6 +8,7 @@
 - In libauparse, interpret send* flags argument
 - In libauparse, interpret level and name options for set/getsockopt
 - In ausearch/report, don't flush events until last file (Burn Alting)
+- Don't use systemctl to stop the audit daemon
 
 2.3
 - The clone(2) man page is really clone(3), fix interpretation of clone syscall
