@@ -1,6 +1,6 @@
 Things that need to be done:
 ===========================
-2.3.1
+2.3.2
 * Add command report
 * Fix auparse to handle out of order messages
 * If auparse input is a pipe timeout events by wall clock
