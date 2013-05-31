@@ -4,6 +4,7 @@ DefaultDependencies=no
 After=local-fs.target
 Conflicts=shutdown.target
 Before=sysinit.target shutdown.target
+RefuseManualStop=yes
 
 [Service]
 ExecStart=/sbin/auditd -n
@@ -14,7 +15,6 @@ ExecStart=/sbin/auditd -n
 #ExecStartPost=-/sbin/augenrules --load
 ExecStartPost=-/sbin/auditctl -R /etc/audit/audit.rules
 ExecReload=/bin/kill -HUP $MAINPID
-RefuseManualStop=yes
 
 [Install]
 WantedBy=multi-user.target
