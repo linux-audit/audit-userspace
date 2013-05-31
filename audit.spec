@@ -163,6 +163,7 @@ fi
 
 %preun
 %if %{WITH_SYSTEMD}
+/sbin/service auditd stop > /dev/null 2>&1
 %systemd_preun auditd.service
 %else
 if [ $1 -eq 0 ]; then
@@ -174,13 +175,9 @@ fi
 %postun libs -p /sbin/ldconfig
 
 %postun
-%if %{WITH_SYSTEMD}
-%systemd_postun_with_restart auditd.service
-%else
 if [ $1 -ge 1 ]; then
    /sbin/service auditd condrestart > /dev/null 2>&1 || :
 fi
-%endif
 
 %files libs
 %defattr(-,root,root,-)
@@ -245,6 +242,8 @@ fi
 %attr(750,root,root) %{_libexecdir}/initscripts/legacy-actions/auditd/resume
 %attr(750,root,root) %{_libexecdir}/initscripts/legacy-actions/auditd/rotate
 %attr(750,root,root) %{_libexecdir}/initscripts/legacy-actions/auditd/stop
+%attr(750,root,root) %{_libexecdir}/initscripts/legacy-actions/auditd/restart
+%attr(750,root,root) %{_libexecdir}/initscripts/legacy-actions/auditd/condrestart
 %else
 %attr(755,root,root) /etc/rc.d/init.d/auditd
 %config(noreplace) %attr(640,root,root) /etc/sysconfig/auditd
