@@ -73,6 +73,7 @@
 #include "fcntl-cmdtabs.h"
 #include "flagtabs.h"
 #include "ipctabs.h"
+#include "ipccmdtabs.h"
 #include "mmaptabs.h"
 #include "mounttabs.h"
 #include "open-flagtabs.h"
@@ -92,6 +93,7 @@
 #include "accesstabs.h"
 #include "prctl_opttabs.h"
 #include "schedtabs.h"
+#include "shm_modetabs.h"
 #include "sockoptnametabs.h"
 #include "sockleveltabs.h"
 #include "ipoptnametabs.h"
@@ -535,18 +537,9 @@ static const char *print_mode(const char *val, unsigned int base)
 	return out;
 }
 
-static const char *print_mode_short(const char *val)
+static const char *print_mode_short_int(unsigned int ival)
 {
-        unsigned int ival;
 	char *out, buf[48];
-
-        errno = 0;
-        ival = strtoul(val, NULL, 16);
-        if (errno) {
-		if (asprintf(&out, "conversion error(%s)", val) < 0)
-			out = NULL;
-                return out;
-        }
 
         // check on special bits
         buf[0] = 0;
@@ -567,6 +560,21 @@ static const char *print_mode_short(const char *val)
 			     (S_IRWXU|S_IRWXG|S_IRWXO) & ival) < 0)
 			out = NULL;
 	return out;
+}
+
+static const char *print_mode_short(const char *val)
+{
+        unsigned int ival;
+	char *out;
+
+        errno = 0;
+        ival = strtoul(val, NULL, 16);
+        if (errno) {
+		if (asprintf(&out, "conversion error(%s)", val) < 0)
+			out = NULL;
+                return out;
+        }
+	return print_mode_short_int(ival);
 }
 
 static const char *print_socket_domain(const char *val)
@@ -1522,6 +1530,65 @@ static const char *print_pkt_opt_name(const char *val)
 	return out;
 }
 
+static const char *print_shmflags(const char *val)
+{
+	unsigned int flags, partial, i;
+	int cnt = 0;
+	char *out, buf[32];
+
+	errno = 0;
+	flags = strtoul(val, NULL, 16);
+        if (errno) {
+		if (asprintf(&out, "conversion error(%s)", val) < 0)
+			out = NULL;
+               	return out;
+       	}
+
+	partial = flags & 00003000;
+	buf[0] = 0;
+        for (i=0; i<IPCCMD_NUM_ENTRIES; i++) {
+                if (ipccmd_table[i].value & partial) {
+                        if (!cnt) {
+                                strcat(buf,
+			ipccmd_strings + ipccmd_table[i].offset);
+                                cnt++;
+                        } else {
+                                strcat(buf, "|");
+                                strcat(buf,
+			ipccmd_strings + ipccmd_table[i].offset);
+			}
+                }
+        }
+
+	partial = flags & 00014000;
+        for (i=0; i<SHM_MODE_NUM_ENTRIES; i++) {
+                if (shm_mode_table[i].value & partial) {
+                        if (!cnt) {
+                                strcat(buf,
+			shm_mode_strings + shm_mode_table[i].offset);
+                                cnt++;
+                        } else {
+                                strcat(buf, "|");
+                                strcat(buf,
+			shm_mode_strings + shm_mode_table[i].offset);
+			}
+                }
+        }
+
+	partial = flags & 000777;
+	const char *tmode = print_mode_short_int(partial);
+	if (tmode) {
+		if (buf[0] != 0)
+			strcat(buf, "|");
+		strcat(buf, tmode);
+		free(tmode);
+	}
+
+	if (buf[0] == 0)
+		snprintf(buf, sizeof(buf), "0x%x", flags);
+	return strdup(buf);
+}
+
 static const char *print_a0(const char *val, const idata *id)
 {
 	char *out;
@@ -1730,6 +1797,8 @@ static const char *print_a2(const char *val, const idata *id)
 			return print_access(val);
 		else if (strcmp(sys, "mq_open") == 0)
 			return print_mode_short(val);
+		else if (strcmp(sys, "shmget") == 0)
+			return print_shmflags(val);
 	}
 normal:
 	if (asprintf(&out, "0x%s", val) < 0)
