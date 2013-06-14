@@ -49,10 +49,10 @@ BUILT_SOURCES = accesstabs.h captabs.h clocktabs.h clone-flagtabs.h \
 	mmaptabs.h mounttabs.h nfprototabs.h open-flagtabs.h \
 	persontabs.h prctl_opttabs.h pktoptnametabs.h \
 	prottabs.h ptracetabs.h \
-	rlimittabs.h recvtabs.h schedtabs.h \
-	seccomptabs.h shm_modetabs.h signaltabs.h sockoptnametabs.h \
+	rlimittabs.h recvtabs.h schedtabs.h seccomptabs.h \
+	seektabs.h shm_modetabs.h signaltabs.h sockoptnametabs.h \
 	socktabs.h sockleveltabs.h socktypetabs.h \
-	tcpoptnametabs.h typetabs.h
+	tcpoptnametabs.h typetabs.h umounttabs.h
 noinst_PROGRAMS = gen_accesstabs_h gen_captabs_h gen_clock_h \
 	gen_clone-flagtabs_h \
 	gen_epoll_ctls_h gen_famtabs_h \
@@ -63,10 +63,11 @@ noinst_PROGRAMS = gen_accesstabs_h gen_captabs_h gen_clock_h \
 	gen_open-flagtabs_h gen_persontabs_h \
 	gen_prctl_opttabs_h gen_pktoptnametabs_h gen_prottabs_h \
 	gen_recvtabs_h gen_rlimit_h gen_ptracetabs_h \
-	gen_schedtabs_h \
-	gen_seccomptabs_h gen_shm_modetabs_h gen_signals_h \
+	gen_schedtabs_h gen_seccomptabs_h \
+	gen_seektabs_h gen_shm_modetabs_h gen_signals_h \
 	gen_sockoptnametabs_h gen_socktabs_h gen_sockleveltabs_h \
-	gen_socktypetabs_h gen_tcpoptnametabs_h gen_typetabs_h
+	gen_socktypetabs_h gen_tcpoptnametabs_h gen_typetabs_h \
+	gen_umounttabs_h
 
 gen_accesstabs_h_SOURCES = ../lib/gen_tables.c ../lib/gen_tables.h accesstab.h
 gen_accesstabs_h_CFLAGS = $(AM_CFLAGS) '-DTABLE_H="accesstab.h"'
@@ -202,6 +203,11 @@ gen_seccomptabs_h_CFLAGS = $(AM_CFLAGS) '-DTABLE_H="seccomptab.h"'
 seccomptabs.h: gen_seccomptabs_h Makefile
 	./gen_seccomptabs_h --i2s seccomp > $@
 
+gen_seektabs_h_SOURCES = ../lib/gen_tables.c ../lib/gen_tables.h seektab.h
+gen_seektabs_h_CFLAGS = $(AM_CFLAGS) '-DTABLE_H="seektab.h"'
+seektabs.h: gen_seektabs_h Makefile
+	./gen_seektabs_h --i2s seek > $@
+
 gen_shm_modetabs_h_SOURCES = ../lib/gen_tables.c ../lib/gen_tables.h shm_modetab.h
 gen_shm_modetabs_h_CFLAGS = $(AM_CFLAGS) '-DTABLE_H="shm_modetab.h"'
 shm_modetabs.h: gen_shm_modetabs_h Makefile
@@ -241,3 +247,9 @@ gen_typetabs_h_SOURCES = ../lib/gen_tables.c ../lib/gen_tables.h typetab.h
 gen_typetabs_h_CFLAGS = $(AM_CFLAGS) '-DTABLE_H="typetab.h"'
 typetabs.h: gen_typetabs_h Makefile
 	./gen_typetabs_h --s2i type > $@
+
+gen_umounttabs_h_SOURCES = ../lib/gen_tables.c ../lib/gen_tables.h umounttab.h
+gen_umounttabs_h_CFLAGS = $(AM_CFLAGS) '-DTABLE_H="umounttab.h"'
+umounttabs.h: gen_umounttabs_h Makefile
+	./gen_umounttabs_h --i2s-transtab umount > $@
+

@@ -82,6 +82,7 @@
 #include "ptracetabs.h"
 #include "recvtabs.h"
 #include "rlimittabs.h"
+#include "seektabs.h"
 #include "socktabs.h"
 #include "socktypetabs.h"
 #include "signaltabs.h"
@@ -100,6 +101,7 @@
 #include "ip6optnametabs.h"
 #include "tcpoptnametabs.h"
 #include "pktoptnametabs.h"
+#include "umounttabs.h"
 
 typedef enum { AVC_UNSET, AVC_DENIED, AVC_GRANTED } avc_t;
 typedef enum { S_UNSET=-1, S_FAILED, S_SUCCESS } success_t;
@@ -1589,6 +1591,61 @@ static const char *print_shmflags(const char *val)
 	return strdup(buf);
 }
 
+static const char *print_seek(const char *val)
+{
+	unsigned int whence;
+	char *out;
+	const char *str;
+
+	errno = 0;
+	whence = 0xFF & strtoul(val, NULL, 16);
+	if (errno) {
+		if (asprintf(&out, "conversion error(%s)", val) < 0)
+			out = NULL;
+		return out;
+	}
+	str = seek_i2s(whence);
+	if (str == NULL) {
+		if (asprintf(&out, "unknown whence(%s)", val) < 0)
+			out = NULL;
+		return out;
+	} else
+		return strdup(str);
+}
+
+static const char *print_umount(const char *val)
+{
+	unsigned int flags, i;
+	int cnt = 0;
+	char buf[64];
+	char *out;
+
+	errno = 0;
+	flags = strtoul(val, NULL, 16);
+	if (errno) {
+		if (asprintf(&out, "conversion error(%s)", val) < 0)
+			out = NULL;
+		return out;
+	}
+	buf[0] = 0;
+	for (i=0; i<UMOUNT_NUM_ENTRIES; i++) {
+                if (umount_table[i].value & flags) {
+                        if (!cnt) {
+				strcat(buf,
+				umount_strings + umount_table[i].offset);
+				cnt++;
+                        } else {
+				strcat(buf, "|");
+				strcat(buf,
+				umount_strings + umount_table[i].offset);
+			}
+                }
+	}
+	if (buf[0] == 0)
+		snprintf(buf, sizeof(buf), "0x%s", val);
+	return strdup(buf);
+}
+
 static const char *print_a0(const char *val, const idata *id)
 {
 	char *out;
@@ -1711,6 +1768,8 @@ static const char *print_a1(const char *val, const idata *id)
 			return print_sched(val);
 		else if (strcmp(sys+1, "etsockopt") == 0)
 			return print_sock_opt_level(val);
+		else if (strcmp(sys, "umount2") == 0)
+			return print_umount(val);
 	}
 	if (asprintf(&out, "0x%s", val) < 0)
 			out = NULL;
@@ -1799,6 +1858,8 @@ static const char *print_a2(const char *val, const idata *id)
 			return print_mode_short(val);
 		else if (strcmp(sys, "shmget") == 0)
 			return print_shmflags(val);
+		else if (strcmp(sys, "lseek") == 0)
+			return print_seek(val);
 	}
 normal:
 	if (asprintf(&out, "0x%s", val) < 0)
