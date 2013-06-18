@@ -48,6 +48,7 @@
 #include <linux/ipx.h>
 #include <linux/capability.h>
 #include <sys/personality.h>
+#include <sys/prctl.h>
 #include "auparse-defs.h"
 #include "gen_tables.h"
 
@@ -829,14 +830,14 @@ static const char *print_promiscuous(const char *val)
                 return strdup("yes");
 }
 
-static const char *print_capabilities(const char *val)
+static const char *print_capabilities(const char *val, int base)
 {
         int cap;
 	char *out;
 	const char *s;
 
         errno = 0;
-        cap = strtoul(val, NULL, 10);
+        cap = strtoul(val, NULL, base);
         if (errno) {
 		if (asprintf(&out, "conversion error(%s)", val) < 0)
 			out = NULL;
@@ -846,7 +847,8 @@ static const char *print_capabilities(const char *val)
 	s = cap_i2s(cap);
 	if (s != NULL)
 		return strdup(s);
-	if (asprintf(&out, "unknown capability(%s)", val) < 0)
+	if (asprintf(&out, "unknown capability(%s%s)",
+				base == 16 ? "0x" : "", val) < 0)
 		out = NULL;
 	return out;
 }
@@ -1770,6 +1772,11 @@ static const char *print_a1(const char *val, const idata *id)
 			return print_sock_opt_level(val);
 		else if (strcmp(sys, "umount2") == 0)
 			return print_umount(val);
+		else if (strcmp(sys, "prctl") == 0) {
+			if (id->a0 == PR_CAPBSET_READ ||
+				id->a0 == PR_CAPBSET_DROP)
+			return print_capabilities(val, 16);
+		}
 	}
 	if (asprintf(&out, "0x%s", val) < 0)
 			out = NULL;
@@ -2270,7 +2277,7 @@ const char *auparse_do_interpretation(int type, const idata *id)
 			out = print_promiscuous(id->val);
 			break;
 		case AUPARSE_TYPE_CAPABILITY:
-			out = print_capabilities(id->val);
+			out = print_capabilities(id->val, 10);
 			break;
 		case AUPARSE_TYPE_SUCCESS:
 			out = print_success(id->val);
