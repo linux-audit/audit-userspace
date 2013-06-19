@@ -1775,7 +1775,9 @@ static const char *print_a1(const char *val, const idata *id)
 		else if (strcmp(sys, "prctl") == 0) {
 			if (id->a0 == PR_CAPBSET_READ ||
 				id->a0 == PR_CAPBSET_DROP)
-			return print_capabilities(val, 16);
+				return print_capabilities(val, 16);
+			else if (id->a0 == PR_SET_PDEATHSIG)
+				return print_signals(val, 16);
 		}
 	}
 	if (asprintf(&out, "0x%s", val) < 0)
@@ -1919,7 +1921,8 @@ static const char *print_signals(const char *val, unsigned int base)
 		if (s != NULL)
 			return strdup(s);
 	}
-	if (asprintf(&out, "unknown signal (%s)", val) < 0)
+	if (asprintf(&out, "unknown signal (%s%s)",
+					base == 16 ? "0x" : "", val) < 0)
 		out = NULL;
 	return out;
 }
