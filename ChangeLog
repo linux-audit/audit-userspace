@@ -2,6 +2,7 @@
 - Put RefuseManualStop in the right systemd section (#969345)
 - Add legacy restart scripts for systemd support
 - Add more syscall argument interpretations
+- Add 'unset' keyword for uid & gid values in auditctl
 
 2.3.1
 - Rearrange auditd setting enabled and pid to avoid a race (#910568)
