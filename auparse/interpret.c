@@ -1654,68 +1654,76 @@ static const char *print_a0(const char *val, const idata *id)
 	int machine = id->machine, syscall = id->syscall;
 	const char *sys = audit_syscall_to_name(syscall, machine);
 	if (sys) {
-		if (strcmp(sys, "rt_sigaction") == 0)
-                        return print_signals(val, 16);
-                else if (strcmp(sys, "setuid") == 0)
-			return print_uid(val, 16);
-                else if (strcmp(sys, "setreuid") == 0)
-			return print_uid(val, 16);
-                else if (strcmp(sys, "setresuid") == 0)
-			return print_uid(val, 16);
-                else if (strcmp(sys, "setfsuid") == 0)
-			return print_uid(val, 16);
-                else if (strcmp(sys, "setgid") == 0)
-			return print_gid(val, 16);
-                else if (strcmp(sys, "setregid") == 0)
-			return print_gid(val, 16);
-                else if (strcmp(sys, "setresgid") == 0)
-			return print_gid(val, 16);
-                else if (strcmp(sys, "setfsgid") == 0)
-			return print_gid(val, 16);
-                else if (strcmp(sys, "clock_settime") == 0)
-			return print_clock_id(val);
-                else if (strcmp(sys, "personality") == 0)
-			return print_personality(val);
-                else if (strcmp(sys, "ptrace") == 0)
-			return print_ptrace(val);
-                else if (strstr(sys, "etrlimit"))
+		if (*sys == 'r') {
+			if (strcmp(sys, "rt_sigaction") == 0)
+        	                return print_signals(val, 16);
+			else if (strcmp(sys, "renameat") == 0)
+				return print_dirfd(val);
+			else if (strcmp(sys, "readlinkat") == 0)
+				return print_dirfd(val);
+		} else if (*sys == 'c') {
+			if (strcmp(sys, "clone") == 0)
+				return print_clone_flags(val);
+	                else if (strcmp(sys, "clock_settime") == 0)
+				return print_clock_id(val);
+		} else if (*sys == 'p') {
+	                if (strcmp(sys, "personality") == 0)
+				return print_personality(val);
+                	else if (strcmp(sys, "ptrace") == 0)
+				return print_ptrace(val);
+			else if (strcmp(sys, "prctl") == 0)
+				return print_prctl_opt(val);
+		} else if (*sys == 'm') {
+			if (strcmp(sys, "mkdirat") == 0)
+				return print_dirfd(val);
+			else if (strcmp(sys, "mknodat") == 0)
+				return print_dirfd(val);
+		} else if (*sys == 'f') {
+			if (strcmp(sys, "fchownat") == 0)
+				return print_dirfd(val);
+			else if (strcmp(sys, "futimesat") == 0)
+				return print_dirfd(val);
+			else if (strcmp(sys, "fchmodat") == 0)
+				return print_dirfd(val);
+			else if (strcmp(sys, "faccessat") == 0)
+				return print_dirfd(val);
+			else if (strcmp(sys, "futimensat") == 0)
+				return print_dirfd(val);
+		} else if (*sys == 'u') {
+			if (strcmp(sys, "unshare") == 0)
+				return print_clone_flags(val);
+			else if (strcmp(sys, "unlinkat") == 0)
+				return print_dirfd(val);
+			else if (strcmp(sys, "utimensat") == 0)
+				return print_dirfd(val);
+		} else if (strcmp(sys+1, "etrlimit") == 0)
 			return print_rlimit(val);
-                else if (strcmp(sys, "socket") == 0)
-			return print_socket_domain(val);
-		else if (strcmp(sys, "openat") == 0)
-			return print_dirfd(val);
-		else if (strcmp(sys, "mkdirat") == 0)
-			return print_dirfd(val);
-		else if (strcmp(sys, "mknodat") == 0)
-			return print_dirfd(val);
-		else if (strcmp(sys, "fchownat") == 0)
-			return print_dirfd(val);
-		else if (strcmp(sys, "futimesat") == 0)
-			return print_dirfd(val);
-		else if (strcmp(sys, "utimensat") == 0)
+		else if (*sys == 's') {
+                	if (strcmp(sys, "setuid") == 0)
+				return print_uid(val, 16);
+        	        else if (strcmp(sys, "setreuid") == 0)
+				return print_uid(val, 16);
+	                else if (strcmp(sys, "setresuid") == 0)
+				return print_uid(val, 16);
+                	else if (strcmp(sys, "setfsuid") == 0)
+				return print_uid(val, 16);
+	                else if (strcmp(sys, "setgid") == 0)
+				return print_gid(val, 16);
+                	else if (strcmp(sys, "setregid") == 0)
+				return print_gid(val, 16);
+	                else if (strcmp(sys, "setresgid") == 0)
+				return print_gid(val, 16);
+                	else if (strcmp(sys, "socket") == 0)
+				return print_socket_domain(val);
+                	else if (strcmp(sys, "setfsgid") == 0)
+				return print_gid(val, 16);
+		}
+		else if (strcmp(sys, "linkat") == 0)
 			return print_dirfd(val);
 		else if (strcmp(sys, "newfstatat") == 0)
 			return print_dirfd(val);
-		else if (strcmp(sys, "unlinkat") == 0)
+		else if (strcmp(sys, "openat") == 0)
 			return print_dirfd(val);
-		else if (strcmp(sys, "renameat") == 0)
-			return print_dirfd(val);
-		else if (strcmp(sys, "linkat") == 0)
-			return print_dirfd(val);
-		else if (strcmp(sys, "readlinkat") == 0)
-			return print_dirfd(val);
-		else if (strcmp(sys, "fchmodat") == 0)
-			return print_dirfd(val);
-		else if (strcmp(sys, "faccessat") == 0)
-			return print_dirfd(val);
-		else if (strcmp(sys, "futimensat") == 0)
-			return print_dirfd(val);
-		else if (strcmp(sys, "clone") == 0)
-			return print_clone_flags(val);
-		else if (strcmp(sys, "unshare") == 0)
-			return print_clone_flags(val);
-		else if (strcmp(sys, "prctl") == 0)
-			return print_prctl_opt(val);
 	}
 	if (asprintf(&out, "0x%s", val) < 0)
 			out = NULL;
@@ -1728,50 +1736,52 @@ static const char *print_a1(const char *val, const idata *id)
 	int machine = id->machine, syscall = id->syscall;
 	const char *sys = audit_syscall_to_name(syscall, machine);
 	if (sys) {
-		if (strcmp(sys, "open") == 0)
+		if (*sys == 'f') {
+			if (strcmp(sys, "fchmod") == 0)
+				return print_mode_short(val);
+			else if (strncmp(sys, "fcntl", 5) == 0)
+				return print_fcntl_cmd(val);
+		} else if (*sys == 'c') {
+			if (strcmp(sys, "chmod") == 0)
+				return print_mode_short(val);
+			else if (strstr(sys, "chown"))
+				return print_uid(val, 16);
+			else if (strcmp(sys, "creat") == 0)
+				return print_mode_short(val);
+		}
+		if (strcmp(sys+1, "etsockopt") == 0)
+			return print_sock_opt_level(val);
+		else if (*sys == 's') {
+	                if (strcmp(sys, "setreuid") == 0)
+				return print_uid(val, 16);
+                	else if (strcmp(sys, "setresuid") == 0)
+				return print_uid(val, 16);
+	                else if (strcmp(sys, "setregid") == 0)
+				return print_gid(val, 16);
+                	else if (strcmp(sys, "setresgid") == 0)
+				return print_gid(val, 16);
+	                else if (strcmp(sys, "socket") == 0)
+				return print_socket_type(val);
+			else if (strcmp(sys, "setns") == 0)
+				return print_clone_flags(val);
+			else if (strcmp(sys, "sched_setscheduler") == 0)
+				return print_sched(val);
+		} else if (*sys == 'm') {
+			if (strcmp(sys, "mkdir") == 0)
+				return print_mode_short(val);
+			else if (strcmp(sys, "mknod") == 0)
+				return print_mode(val, 16);
+			else if (strcmp(sys, "mq_open") == 0)
+				return print_open_flags(val);
+		}
+		else if (strcmp(sys, "open") == 0)
 			return print_open_flags(val);
-		else if (strcmp(sys, "epoll_ctl") == 0)
-			return print_epoll_ctl(val);
-		else if (strcmp(sys, "chmod") == 0)
-			return print_mode_short(val);
-		else if (strcmp(sys, "fchmod") == 0)
-			return print_mode_short(val);
-		else if (strstr(sys, "chown"))
-			return print_uid(val, 16);
-                else if (strcmp(sys, "setreuid") == 0)
-			return print_uid(val, 16);
-                else if (strcmp(sys, "setresuid") == 0)
-			return print_uid(val, 16);
-                else if (strcmp(sys, "setregid") == 0)
-			return print_gid(val, 16);
-                else if (strcmp(sys, "setresgid") == 0)
-			return print_gid(val, 16);
-		else if (strcmp(sys, "kill") == 0)
-			return print_signals(val, 16);
-		else if (strcmp(sys, "tkill") == 0)
-			return print_signals(val, 16);
-		else if (strcmp(sys, "mkdir") == 0)
-			return print_mode_short(val);
-		else if (strcmp(sys, "creat") == 0)
-			return print_mode_short(val);
 		else if (strcmp(sys, "access") == 0)
 			return print_access(val);
-		else if (strncmp(sys, "fcntl", 5) == 0)
-			return print_fcntl_cmd(val);
-		else if (strcmp(sys, "mknod") == 0)
-			return print_mode(val, 16);
-                else if (strcmp(sys, "socket") == 0)
-			return print_socket_type(val);
-		else if (strcmp(sys, "setns") == 0)
-			return print_clone_flags(val);
-		else if (strcmp(sys, "mq_open") == 0)
-			return print_open_flags(val);
-		else if (strcmp(sys, "sched_setscheduler") == 0)
-			return print_sched(val);
-		else if (strcmp(sys+1, "etsockopt") == 0)
-			return print_sock_opt_level(val);
-		else if (strcmp(sys, "umount2") == 0)
-			return print_umount(val);
+		else if (strcmp(sys, "epoll_ctl") == 0)
+			return print_epoll_ctl(val);
+		else if (strcmp(sys, "kill") == 0)
+			return print_signals(val, 16);
 		else if (strcmp(sys, "prctl") == 0) {
 			if (id->a0 == PR_CAPBSET_READ ||
 				id->a0 == PR_CAPBSET_DROP)
@@ -1779,6 +1789,10 @@ static const char *print_a1(const char *val, const idata *id)
 			else if (id->a0 == PR_SET_PDEATHSIG)
 				return print_signals(val, 16);
 		}
+		else if (strcmp(sys, "tkill") == 0)
+			return print_signals(val, 16);
+		else if (strcmp(sys, "umount2") == 0)
+			return print_umount(val);
 	}
 	if (asprintf(&out, "0x%s", val) < 0)
 			out = NULL;
@@ -1833,42 +1847,48 @@ static const char *print_a2(const char *val, const idata *id)
 				goto normal;
 		} else if (strcmp(sys, "openat") == 0)
 			return print_open_flags(val);
-		else if (strcmp(sys, "fchmodat") == 0)
-			return print_mode_short(val);
+		else if (*sys == 'f') {
+			if (strcmp(sys, "fchmodat") == 0)
+				return print_mode_short(val);
+			else if (strcmp(sys, "faccessat") == 0)
+				return print_access(val);
+		} else if (*sys == 's') {
+                	if (strcmp(sys, "setresuid") == 0)
+				return print_uid(val, 16);
+	                else if (strcmp(sys, "setresgid") == 0)
+				return print_gid(val, 16);
+                	else if (strcmp(sys, "socket") == 0)
+				return print_socket_proto(val);
+	                else if (strcmp(sys, "sendmsg") == 0)
+				return print_recv(val);
+			else if (strcmp(sys, "shmget") == 0)
+				return print_shmflags(val);
+		} else if (*sys == 'm') {
+			if (strcmp(sys, "mmap") == 0)
+				return print_prot(val, 1);
+			else if (strcmp(sys, "mkdirat") == 0)
+				return print_mode_short(val);
+			else if (strcmp(sys, "mknodat") == 0)
+				return print_mode_short(val);
+			else if (strcmp(sys, "mprotect") == 0)
+				return print_prot(val, 0);
+			else if (strcmp(sys, "mq_open") == 0)
+				return print_mode_short(val);
+		} else if (*sys == 'r') {
+                	if (strcmp(sys, "recvmsg") == 0)
+				return print_recv(val);
+			else if (strcmp(sys, "readlinkat") == 0)
+				return print_dirfd(val);
+		} else if (*sys == 'l') {
+			if (strcmp(sys, "linkat") == 0)
+				return print_dirfd(val);
+			else if (strcmp(sys, "lseek") == 0)
+				return print_seek(val);
+		}
 		else if (strstr(sys, "chown"))
-			return print_gid(val, 16);
-                else if (strcmp(sys, "setresuid") == 0)
-			return print_uid(val, 16);
-                else if (strcmp(sys, "setresgid") == 0)
 			return print_gid(val, 16);
 		else if (strcmp(sys, "tgkill") == 0)
 			return print_signals(val, 16);
-		else if (strcmp(sys, "mkdirat") == 0)
-			return print_mode_short(val);
-		else if (strcmp(sys, "mknodat") == 0)
-			return print_mode_short(val);
-		else if (strcmp(sys, "mmap") == 0)
-			return print_prot(val, 1);
-		else if (strcmp(sys, "mprotect") == 0)
-			return print_prot(val, 0);
-                else if (strcmp(sys, "socket") == 0)
-			return print_socket_proto(val);
-                else if (strcmp(sys, "recvmsg") == 0)
-			return print_recv(val);
-                else if (strcmp(sys, "sendmsg") == 0)
-			return print_recv(val);
-		else if (strcmp(sys, "linkat") == 0)
-			return print_dirfd(val);
-		else if (strcmp(sys, "readlinkat") == 0)
-			return print_dirfd(val);
-		else if (strcmp(sys, "faccessat") == 0)
-			return print_access(val);
-		else if (strcmp(sys, "mq_open") == 0)
-			return print_mode_short(val);
-		else if (strcmp(sys, "shmget") == 0)
-			return print_shmflags(val);
-		else if (strcmp(sys, "lseek") == 0)
-			return print_seek(val);
 	}
 normal:
 	if (asprintf(&out, "0x%s", val) < 0)
@@ -1882,22 +1902,26 @@ static const char *print_a3(const char *val, const idata *id)
 	int machine = id->machine, syscall = id->syscall;
 	const char *sys = audit_syscall_to_name(syscall, machine);
 	if (sys) {
-		if (strcmp(sys, "mmap") == 0)
-			return print_mmap(val);
-		else if (strcmp(sys, "mount") == 0)
-			return print_mount(val);
-                else if (strcmp(sys, "recv") == 0)
-			return print_recv(val);
-                else if (strcmp(sys, "recvfrom") == 0)
-			return print_recv(val);
-                else if (strcmp(sys, "recvmmsg") == 0)
-			return print_recv(val);
-                else if (strcmp(sys, "send") == 0)
-			return print_recv(val);
-                else if (strcmp(sys, "sendto") == 0)
-			return print_recv(val);
-                else if (strcmp(sys, "sendmmsg") == 0)
-			return print_recv(val);
+		if (*sys == 'm') {
+			if (strcmp(sys, "mmap") == 0)
+				return print_mmap(val);
+			else if (strcmp(sys, "mount") == 0)
+				return print_mount(val);
+		} else if (*sys == 'r') {
+			if (strcmp(sys, "recv") == 0)
+				return print_recv(val);
+			else if (strcmp(sys, "recvfrom") == 0)
+				return print_recv(val);
+			else if (strcmp(sys, "recvmmsg") == 0)
+				return print_recv(val);
+		} else if (*sys == 's') {
+			if (strcmp(sys, "send") == 0)
+				return print_recv(val);
+			else if (strcmp(sys, "sendto") == 0)
+				return print_recv(val);
+			else if (strcmp(sys, "sendmmsg") == 0)
+				return print_recv(val);
+		}
 	}
 	if (asprintf(&out, "0x%s", val) < 0)
 			out = NULL;
