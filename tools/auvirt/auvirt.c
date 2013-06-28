@@ -25,6 +25,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <errno.h>
+#include <ctype.h>
 #include <locale.h>
 #include <string.h>
 #include <regex.h>
