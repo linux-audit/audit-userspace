@@ -343,7 +343,8 @@ static const char *print_arch(const char *val, unsigned int machine)
 		errno = 0;
 		ival = strtoul(val, NULL, 16);
 		if (errno) {
-			asprintf(&out, "conversion error(%s) ", val);
+			if (asprintf(&out, "conversion error(%s) ", val) < 0)
+				out = NULL;
 			return out;
 		}
 		machine = audit_elf_to_machine(ival);
@@ -1585,7 +1586,7 @@ static const char *print_shmflags(const char *val)
 		if (buf[0] != 0)
 			strcat(buf, "|");
 		strcat(buf, tmode);
-		free(tmode);
+		free((void *)tmode);
 	}
 
 	if (buf[0] == 0)

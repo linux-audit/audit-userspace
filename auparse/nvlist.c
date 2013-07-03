@@ -26,6 +26,7 @@
 #include <string.h>
 #include "nvlist.h"
 #include "interpret.h"
+#include "auparse-idata.h"
 
 
 void nvlist_create(nvlist *l)
