@@ -114,4 +114,6 @@ _S(AUPARSE_TYPE_ESCAPED,	"new-rng"	)
 _S(AUPARSE_TYPE_OFLAG,		"oflag"		)
 _S(AUPARSE_TYPE_ESCAPED,	"ocomm"		)
 _S(AUPARSE_TYPE_MMAP,		"flags"		)
+_S(AUPARSE_TYPE_SIGNAL,		"sigev_signo"	)
+
 

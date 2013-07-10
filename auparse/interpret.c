@@ -560,19 +560,19 @@ static const char *print_mode_short_int(unsigned int ival)
 			     (S_IRWXU|S_IRWXG|S_IRWXO) & ival) < 0)
 			out = NULL;
 	} else
-		if (asprintf(&out, "%s,%03o", buf,
+		if (asprintf(&out, "%s,0%03o", buf,
 			     (S_IRWXU|S_IRWXG|S_IRWXO) & ival) < 0)
 			out = NULL;
 	return out;
 }
 
-static const char *print_mode_short(const char *val)
+static const char *print_mode_short(const char *val, int base)
 {
         unsigned int ival;
 	char *out;
 
         errno = 0;
-        ival = strtoul(val, NULL, 16);
+        ival = strtoul(val, NULL, base);
         if (errno) {
 		if (asprintf(&out, "conversion error(%s)", val) < 0)
 			out = NULL;
@@ -1739,16 +1739,16 @@ static const char *print_a1(const char *val, const idata *id)
 	if (sys) {
 		if (*sys == 'f') {
 			if (strcmp(sys, "fchmod") == 0)
-				return print_mode_short(val);
+				return print_mode_short(val, 16);
 			else if (strncmp(sys, "fcntl", 5) == 0)
 				return print_fcntl_cmd(val);
 		} else if (*sys == 'c') {
 			if (strcmp(sys, "chmod") == 0)
-				return print_mode_short(val);
+				return print_mode_short(val, 16);
 			else if (strstr(sys, "chown"))
 				return print_uid(val, 16);
 			else if (strcmp(sys, "creat") == 0)
-				return print_mode_short(val);
+				return print_mode_short(val, 16);
 		}
 		if (strcmp(sys+1, "etsockopt") == 0)
 			return print_sock_opt_level(val);
@@ -1769,7 +1769,7 @@ static const char *print_a1(const char *val, const idata *id)
 				return print_sched(val);
 		} else if (*sys == 'm') {
 			if (strcmp(sys, "mkdir") == 0)
-				return print_mode_short(val);
+				return print_mode_short(val, 16);
 			else if (strcmp(sys, "mknod") == 0)
 				return print_mode(val, 16);
 			else if (strcmp(sys, "mq_open") == 0)
@@ -1850,7 +1850,7 @@ static const char *print_a2(const char *val, const idata *id)
 			return print_open_flags(val);
 		else if (*sys == 'f') {
 			if (strcmp(sys, "fchmodat") == 0)
-				return print_mode_short(val);
+				return print_mode_short(val, 16);
 			else if (strcmp(sys, "faccessat") == 0)
 				return print_access(val);
 		} else if (*sys == 's') {
@@ -1868,13 +1868,13 @@ static const char *print_a2(const char *val, const idata *id)
 			if (strcmp(sys, "mmap") == 0)
 				return print_prot(val, 1);
 			else if (strcmp(sys, "mkdirat") == 0)
-				return print_mode_short(val);
+				return print_mode_short(val, 16);
 			else if (strcmp(sys, "mknodat") == 0)
-				return print_mode_short(val);
+				return print_mode_short(val, 16);
 			else if (strcmp(sys, "mprotect") == 0)
 				return print_prot(val, 0);
 			else if (strcmp(sys, "mq_open") == 0)
-				return print_mode_short(val);
+				return print_mode_short(val, 16);
 		} else if (*sys == 'r') {
                 	if (strcmp(sys, "recvmsg") == 0)
 				return print_recv(val);
@@ -2260,7 +2260,9 @@ int auparse_interp_adjust_type(int rtype, const char *name, const char *val)
 	} else if (rtype == AUDIT_PATH && *name =='f' &&
 			strcmp(name, "flags") == 0)
 		type = AUPARSE_TYPE_FLAGS;
-	 else
+	else if (rtype == AUDIT_MQ_OPEN && strcmp(name, "mode") == 0)
+		type = AUPARSE_TYPE_MODE_SHORT;
+	else
 		type = lookup_type(name);
 
 	return type;
@@ -2294,6 +2296,9 @@ const char *auparse_do_interpretation(int type, const idata *id)
 			break;
 		case AUPARSE_TYPE_MODE:
 			out = print_mode(id->val,8);
+			break;
+		case AUPARSE_TYPE_MODE_SHORT:
+			out = print_mode_short(id->val,8);
 			break;
 		case AUPARSE_TYPE_SOCKADDR:
 			out = print_sockaddr(id->val);

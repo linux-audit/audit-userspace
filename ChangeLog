@@ -5,6 +5,7 @@
 - Add 'unset' keyword for uid & gid values in auditctl
 - In ausearch, parse obj in IPC records
 - In ausearch, parse subj in DAEMON_ROTATE records
+- Fix interpretation of MQ_OPEN and MQ_NOTIFY events
 
 2.3.1
 - Rearrange auditd setting enabled and pid to avoid a race (#910568)
