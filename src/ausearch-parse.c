@@ -109,6 +109,7 @@ int extract_search_items(llist *l)
 			case AUDIT_LOGIN:
 				ret = parse_login(n, s);
 				break;
+			case AUDIT_IPC:
 			case AUDIT_OBJ_PID:
 				ret = parse_obj(n, s);
 				break;
@@ -144,7 +145,6 @@ int extract_search_items(llist *l)
 				ret = parse_integrity(n, s);
 				break;
 			case AUDIT_KERNEL:
-			case AUDIT_IPC:
 			case AUDIT_SELINUX_ERR:
 			case AUDIT_EXECVE:
 			case AUDIT_BPRM_FCAPS:
