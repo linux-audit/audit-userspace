@@ -4,6 +4,7 @@
 - Add more syscall argument interpretations
 - Add 'unset' keyword for uid & gid values in auditctl
 - In ausearch, parse obj in IPC records
+- In ausearch, parse subj in DAEMON_ROTATE records
 
 2.3.1
 - Rearrange auditd setting enabled and pid to avoid a race (#910568)

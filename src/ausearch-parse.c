@@ -1192,18 +1192,18 @@ static int parse_daemon1(const lnode *n, search_items *s)
 		if (str != NULL) {
 			str += 5;
 			term = strchr(str, ' ');
-			if (term == NULL)
-				return 7;
-			*term = 0;
+			if (term)
+				*term = 0;
 			if (audit_avc_init(s) == 0) {
 				anode an;
 
 				anode_init(&an);
 				an.scontext = strdup(str);
 				alist_append(s->avc, &an);
-				*term = ' ';
 			} else
-				return 8;
+				return 7;
+			if (term)
+				*term = ' ';
 		}
 	}
 
