@@ -24,14 +24,15 @@
  * This table is arranged from lowest number to highest number. The
  * items that are commented out are for completeness. The audit 
  * daemon filters these and they never show up in the logs, therefore
- * they are not needed for reporting.
+ * they are not needed for reporting. Or they have been deprecated for
+ * a long time.
  */
 //_S(AUDIT_GET,                      "GET"                           )
 //_S(AUDIT_SET,                      "SET"                           )
 //_S(AUDIT_LIST,                     "LIST"                          )
 //_S(AUDIT_ADD,                      "ADD"                           )
 //_S(AUDIT_DEL,                      "DEL"                           )
-_S(AUDIT_USER,                       "USER"                          )
+//_S(AUDIT_USER,                       "USER"                          )
 _S(AUDIT_LOGIN,                      "LOGIN"                         )
 //_S(AUDIT_SIGNAL_INFO,              "SIGNAL_INFO"                   )
 //_S(AUDIT_ADD_RULE,                 "ADD_RULE"                      )
@@ -110,7 +111,7 @@ _S(AUDIT_NETFILTER_CFG,              "NETFILTER_CFG"                 )
 _S(AUDIT_SECCOMP,                    "SECCOMP"                       )
 _S(AUDIT_AVC,                        "AVC"                           )
 _S(AUDIT_SELINUX_ERR,                "SELINUX_ERR"                   )
-_S(AUDIT_AVC_PATH,                   "AVC_PATH"                      )
+//_S(AUDIT_AVC_PATH,                   "AVC_PATH"                      )
 _S(AUDIT_MAC_POLICY_LOAD,            "MAC_POLICY_LOAD"               )
 _S(AUDIT_MAC_STATUS,                 "MAC_STATUS"                    )
 _S(AUDIT_MAC_CONFIG_CHANGE,          "MAC_CONFIG_CHANGE"             )
