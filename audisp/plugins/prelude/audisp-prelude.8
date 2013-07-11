@@ -44,7 +44,7 @@ The \fItype\fP can be either \fBsys\fP, \fBfile\fP, \fBexec\fP, or \fBmkexe\fP d
 .SH EXAMPLE RULES
 To alert on any use of the personality syscall:
 .br
-.B \-a exit,always \-S personality \-k ids\-sys\-med
+.B \-a always,exit \-S personality \-k ids\-sys\-med
 
 To alert on a user failing to access the shadow file:
 .br
@@ -56,9 +56,9 @@ To alert on the execution of a program:
 
 To alert on users making exe's in their home dir (takes 2 rules):
 .br
-.B \-a exit,always \-S fchmodat \-F dir=/home \-F a2&0111 \-F filetype=file \-k ids\-mkexe\-hi
+.B \-a always,exit \-S fchmodat \-F dir=/home \-F a2&0111 \-F filetype=file \-k ids\-mkexe\-hi
 .br
-.B \-a exit,always \-S fchmod,chmod \-F dir=/home \-F a1&0111 \-F filetype=file \-k ids\-mkexe\-hi
+.B \-a always,exit \-S fchmod,chmod \-F dir=/home \-F a1&0111 \-F filetype=file \-k ids\-mkexe\-hi
 
 .SH FILES
 /etc/audisp/plugins.d/au\-prelude.conf, /etc/audit/auditd.conf, /etc/audisp/audispd.conf, /etc/audisp/audisp\-prelude.conf

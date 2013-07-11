@@ -21,13 +21,13 @@ Examples usage of utilities:
     Window 2 (you don't have to have the daemon running to try this, but
     enabled has to be 1):
         ./auditctl -s
-        ./auditctl -a entry,always -S open
+        ./auditctl -a always,exit -S open
         ls
-        ./auditctl -d entry,always -S open
+        ./auditctl -d always,exit -S open
 
 
   Identity tracking:
-	./auditctl -a exit,always -S all -F loginuid=2000
+	./auditctl -a always,exit -S all -F loginuid=2000
 	./auditctl -L 2000,"test uid" 
 
 SAMPLE CONFIGS

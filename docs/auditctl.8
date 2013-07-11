@@ -234,22 +234,22 @@ Remove a watch for the file system object at \fIpath\fP. The rule must match exa
 Syscall rules get evaluated for each syscall for every program. If you have 10 syscall rules, every program on your system will delay during a syscall while the audit system evaluates each rule. Too many syscall rules will hurt performance. Try to combine as many as you can whenever the filter, action, key, and fields are identical. For example:
 
 .nf
-.B auditctl \-a exit,always \-S open \-F success=0
+.B auditctl \-a always,exit \-S open \-F success=0
 .fi
 .nf
-.B auditctl \-a exit,always \-S truncate \-F success=0
+.B auditctl \-a always,exit \-S truncate \-F success=0
 .fi
 
 could be re-written as one rule:
 
 .nf
-.B auditctl \-a exit,always \-S open \-S truncate \-F success=0
+.B auditctl \-a always,exit \-S open \-S truncate \-F success=0
 .fi
 
 Also, try to use file system auditing wherever practical. This improves performance. For example, if you were wanting to capture all failed opens & truncates like above, but were only concerned about files in /etc and didn't care about /usr or /sbin, its possible to use this rule:
 
 .nf
-.B auditctl \-a exit,always \-S open \-S truncate \-F dir=/etc \-F success=0
+.B auditctl \-a always,exit \-S open \-S truncate \-F dir=/etc \-F success=0
 .fi
 
 This will be higher performance since the kernel will not evaluate it each and every syscall. It will be handled by the filesystem auditing code and only checked on filesystem related syscalls.
@@ -257,39 +257,39 @@ This will be higher performance since the kernel will not evaluate it each and e
 To see all syscalls made by a specific program:
 
 .nf
-.B auditctl \-a exit,always \-S all \-F pid=1005
+.B auditctl \-a always,exit \-S all \-F pid=1005
 .fi
 
 To see files opened by a specific user:
 
 .nf
-.B auditctl \-a exit,always \-S open \-F auid=510
+.B auditctl \-a always,exit \-S open \-F auid=510
 .fi
 
 To see unsuccessful open calls:
 
 .nf
-.B auditctl \-a exit,always \-S open \-F success=0
+.B auditctl \-a always,exit \-S open \-F success=0
 .fi
 
 To watch a file for changes (2 ways to express):
 
 .nf
 .B auditctl \-w /etc/shadow \-p wa
-.B auditctl \-a exit,always \-F path=/etc/shadow \-F perm=wa
+.B auditctl \-a always,exit \-F path=/etc/shadow \-F perm=wa
 .fi
 
 To recursively watch a directory for changes (2 ways to express):
 
 .nf
 .B auditctl \-w /etc/ \-p wa
-.B auditctl \-a exit,always \-F dir=/etc/ \-F perm=wa
+.B auditctl \-a always,exit \-F dir=/etc/ \-F perm=wa
 .fi
 
 To see if an admin is accessing other user's files:
 
 .nf
-.B auditctl \-a exit,always \-F dir=/home/ \-F uid=0 \-C auid!=obj_uid
+.B auditctl \-a always,exit \-F dir=/home/ \-F uid=0 \-C auid!=obj_uid
 .fi
 
 .SH FILES
