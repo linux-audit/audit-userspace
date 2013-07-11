@@ -147,7 +147,15 @@ int extract_search_items(llist *l)
 			case AUDIT_KERNEL:
 			case AUDIT_SELINUX_ERR:
 			case AUDIT_EXECVE:
+			case AUDIT_IPC_SET_PERM:
+			case AUDIT_MQ_OPEN:
+			case AUDIT_MQ_SENDRECV:
+			case AUDIT_MQ_NOTIFY:
+			case AUDIT_MQ_GETSETATTR:
+			case AUDIT_FD_PAIR:
 			case AUDIT_BPRM_FCAPS:
+			case AUDIT_CAPSET:
+			case AUDIT_MMAP:
 			case AUDIT_NETFILTER_CFG:
 				// Nothing to parse
 				break;
