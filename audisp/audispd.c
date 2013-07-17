@@ -262,8 +262,24 @@ static int reconfigure(void)
 			}
 		} else {
 			if (opconf->p->active == tpconf->p->active) {
-				if (opconf->p->type == S_ALWAYS)
-					kill(opconf->p->pid, SIGHUP);
+				if (opconf->p->type == S_ALWAYS) {
+					if (opconf->p->inode==tpconf->p->inode)
+						kill(opconf->p->pid, SIGHUP);
+					else {
+						/* Binary changed, restart */
+						syslog(LOG_INFO,
+					"Restarting %s since binary changed",
+							opconf->p->path);
+						kill(opconf->p->pid, SIGTERM);
+						usleep(50000); // 50 msecs
+						close(opconf->p->plug_pipe[1]);
+						opconf->p->plug_pipe[1] = -1;
+						opconf->p->pid = 0;
+						start_one_plugin(opconf);
+						opconf->p->inode =
+							tpconf->p->inode;
+					}
+				}
 				opconf->p->checked = 1;
 			} else {
 				/* A change in state */
@@ -289,6 +305,8 @@ static int reconfigure(void)
 		syslog(LOG_INFO, "Terminating %s because its now inactive",
 				tpconf->p->path);
 		kill(tpconf->p->pid, SIGTERM);
+		close(tpconf->p->plug_pipe[1]);
+		tpconf->p->plug_pipe[1] = -1;
 		tpconf->p->pid = 0;
 		tpconf->p->checked = 1;
 	}

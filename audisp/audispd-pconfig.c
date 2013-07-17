@@ -127,6 +127,7 @@ void clear_pconfig(plugin_conf_t *config)
 	config->plug_pipe[0] = -1;
 	config->plug_pipe[1] = -1;
 	config->pid = 0;
+	config->inode = 0;
 	config->checked = 0;
 	config->name = NULL;
 	config->restart_cnt = 0;
@@ -410,6 +411,7 @@ static int path_parser(struct nv_pair *nv, int line,
 	}
 	free((void *)config->path);
 	config->path = strdup(nv->value);
+	config->inode = buf.st_ino;
 	if (config->path == NULL)
 		return 1;
 	return 0;

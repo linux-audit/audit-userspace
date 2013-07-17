@@ -1,5 +1,5 @@
 /* audispd-pconfig.h -- 
- * Copyright 2007 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2007,2013 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -24,6 +24,7 @@
 #ifndef AUDISPD_PCONFIG_H
 #define AUDISPD_PCONFIG_H
 
+#include <sys/types.h>
 #include "libaudit.h"
 #define MAX_PLUGIN_ARGS 2
 
@@ -42,6 +43,7 @@ typedef struct plugin_conf
 	format_t format;	/* Event format */
 	int plug_pipe[2];	/* Communication pipe for events */
 	pid_t pid;		/* Used to signal children */
+	ino_t inode;		/* Use to see if new binary was installed */
 	int checked;		/* Used for internal housekeeping on HUP */
 	char *name;		/* Used to distinguish plugins for HUP */
 	unsigned restart_cnt;	/* Number of times its crashed */
