@@ -32,7 +32,7 @@
 //_S(AUDIT_LIST,                     "LIST"                          )
 //_S(AUDIT_ADD,                      "ADD"                           )
 //_S(AUDIT_DEL,                      "DEL"                           )
-//_S(AUDIT_USER,                       "USER"                          )
+_S(AUDIT_USER,                       "USER"                          )
 _S(AUDIT_LOGIN,                      "LOGIN"                         )
 //_S(AUDIT_SIGNAL_INFO,              "SIGNAL_INFO"                   )
 //_S(AUDIT_ADD_RULE,                 "ADD_RULE"                      )

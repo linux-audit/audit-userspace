@@ -6,6 +6,9 @@
 - In ausearch, parse obj in IPC records
 - In ausearch, parse subj in DAEMON_ROTATE records
 - Fix interpretation of MQ_OPEN and MQ_NOTIFY events
+- In auditd, restart dispatcher on SIGHUP if it had previously exited
+- In audispd, exit when no active plugins is detected
+- In audispd, clear signal mask set by libev so that SIGHUP works again
 
 2.3.1
 - Rearrange auditd setting enabled and pid to avoid a race (#910568)

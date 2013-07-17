@@ -1,5 +1,5 @@
 /* queue.c --
- * Copyright 2007 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2007,2013 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -33,6 +33,7 @@ static pthread_cond_t queue_nonempty;
 static unsigned int q_next, q_last, q_depth, processing_suspended;
 static const char *SINGLE = "1";
 static const char *HALT = "0";
+extern volatile int hup;
 
 void reset_suspended(void)
 {
@@ -156,6 +157,10 @@ event_t *dequeue(void)
 
 	// Wait until its got something in it
 	pthread_mutex_lock(&queue_lock);
+	if (hup) {
+		pthread_mutex_unlock(&queue_lock);
+		return NULL;
+	}
 	n = q_last%q_depth;
 	if (q[n] == NULL) {
 		pthread_cond_wait(&queue_nonempty, &queue_lock);

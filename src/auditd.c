@@ -165,8 +165,12 @@ static void user2_handler( struct ev_loop *loop, struct ev_signal *sig, int reve
 static void child_handler(struct ev_loop *loop, struct ev_signal *sig,
 			int revents)
 {
-	while (waitpid(-1, NULL, WNOHANG) > 0)
-		; /* empty */
+	int pid;
+
+	while ((pid = waitpid(-1, NULL, WNOHANG)) > 0) {
+		if (pid == dispatcher_pid)
+			dispatcher_reaped();
+	}
 }
 
 static void distribute_event(struct auditd_reply_list *rep)

@@ -1,5 +1,5 @@
 /* auditd-dispatch.h -- 
- * Copyright 2005,2007 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2005,2007,2013 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -26,9 +26,11 @@
 
 #include "auditd-config.h"
 
+int dispatcher_pid(void);
+void dispatcher_reaped(void);
 int init_dispatcher(const struct daemon_conf *config);
 void shutdown_dispatcher(void);
-void reconfigure_dispatcher(void);
+void reconfigure_dispatcher(const struct daemon_conf *config);
 int dispatch_event(const struct audit_reply *rep, int is_err);
 
 #endif

@@ -1,5 +1,5 @@
 /* auditd-event.c -- 
- * Copyright 2004-08,2011 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2004-08,2011,2013 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -1196,7 +1196,7 @@ static void reconfigure(struct auditd_consumer_data *data)
 		}
 		// they are the same app - just signal it
 		else {
-			reconfigure_dispatcher();
+			reconfigure_dispatcher(oconf);
 			free((char *)nconf->dispatcher);
 			nconf->dispatcher = NULL;
 		}
