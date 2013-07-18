@@ -1,6 +1,6 @@
 /*
 * audispd-builtins.c - some common builtin plugins
-* Copyright (c) 2007,2010 Red Hat Inc., Durham, North Carolina.
+* Copyright (c) 2007,2010,2013 Red Hat Inc., Durham, North Carolina.
 * All Rights Reserved. 
 *
 * This software may be freely redistributed and/or modified under the
@@ -54,6 +54,16 @@ void start_builtin(plugin_conf_t *conf)
 		conf->type = S_SYSLOG;
 		init_syslog(conf);
 	} else
+		syslog(LOG_ERR, "Unknown builtin %s", conf->path);
+}
+
+void stop_builtin(plugin_conf_t *conf)
+{
+	if (conf->type == S_AF_UNIX)
+		destroy_af_unix();
+	else if (conf->type == S_SYSLOG)
+		destroy_syslog();
+	else
 		syslog(LOG_ERR, "Unknown builtin %s", conf->path);
 }
 

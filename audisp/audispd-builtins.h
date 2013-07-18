@@ -1,6 +1,6 @@
 /*
 * audispd-builtins.h - Minimal linked list library
-* Copyright (c) 2007 Red Hat Inc., Durham, North Carolina.
+* Copyright (c) 2007,2013 Red Hat Inc., Durham, North Carolina.
 * All Rights Reserved. 
 *
 * This software may be freely redistributed and/or modified under the
@@ -27,6 +27,7 @@
 #include "queue.h"
 
 void start_builtin(plugin_conf_t *conf);
+void stop_builtin(plugin_conf_t *conf);
 void send_af_unix_string(const char *s, unsigned int len);
 void send_af_unix_binary(event_t *e);
 void destroy_af_unix(void);

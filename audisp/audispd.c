@@ -262,7 +262,9 @@ static int reconfigure(void)
 			}
 		} else {
 			if (opconf->p->active == tpconf->p->active) {
-				if (opconf->p->type == S_ALWAYS) {
+				/* If active and no state change, sighup it */
+				if (opconf->p->type == S_ALWAYS && 
+						opconf->p->active == A_YES) {
 					if (opconf->p->inode==tpconf->p->inode)
 						kill(opconf->p->pid, SIGHUP);
 					else {
@@ -307,7 +309,8 @@ static int reconfigure(void)
 		if (tpconf->p->type == S_ALWAYS) {
 			kill(tpconf->p->pid, SIGTERM);
 			close(tpconf->p->plug_pipe[1]);
-		}
+		} else
+			stop_builtin(tpconf->p);
 		tpconf->p->plug_pipe[1] = -1;
 		tpconf->p->pid = 0;
 		tpconf->p->checked = 1;
