@@ -965,6 +965,7 @@ static void change_runlevel(const char *level)
 {
 	char *argv[3];
 	int pid;
+	struct sigaction sa;
 	static const char *init_pgm = "/sbin/init";
 
 	pid = fork();
@@ -976,6 +977,9 @@ static void change_runlevel(const char *level)
 	if (pid)	/* Parent */
 		return;
 	/* Child */
+	sigfillset (&sa.sa_mask);
+	sigprocmask (SIG_UNBLOCK, &sa.sa_mask, 0);
+
 	argv[0] = (char *)init_pgm;
 	argv[1] = (char *)level;
 	argv[2] = NULL;
@@ -988,6 +992,7 @@ static void safe_exec(const char *exe)
 {
 	char *argv[2];
 	int pid;
+	struct sigaction sa;
 
 	if (exe == NULL) {
 		audit_msg(LOG_ALERT,
@@ -1004,6 +1009,9 @@ static void safe_exec(const char *exe)
 	if (pid)	/* Parent */
 		return;
 	/* Child */
+        sigfillset (&sa.sa_mask);
+        sigprocmask (SIG_UNBLOCK, &sa.sa_mask, 0);
+
 	argv[0] = (char *)exe;
 	argv[1] = NULL;
 	execve(exe, argv, NULL);

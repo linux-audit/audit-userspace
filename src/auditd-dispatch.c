@@ -71,6 +71,8 @@ static int set_flags(int fn, int flags)
 /* This function returns 1 on error & 0 on success */
 int init_dispatcher(const struct daemon_conf *config)
 {
+	struct sigaction sa;
+
 	if (config->dispatcher == NULL) 
 		return 0;
 
@@ -95,6 +97,8 @@ int init_dispatcher(const struct daemon_conf *config)
 			dup2(disp_pipe[0], 0);
 			close(disp_pipe[0]);
 			close(disp_pipe[1]);
+			sigfillset (&sa.sa_mask);
+			sigprocmask (SIG_UNBLOCK, &sa.sa_mask, 0);
 			setsid();
 			execl(config->dispatcher, config->dispatcher, NULL);
 			audit_msg(LOG_ERR, "exec() failed");

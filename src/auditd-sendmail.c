@@ -74,6 +74,7 @@ static int safe_popen(pid_t *pid, const char *mail_acct)
 	char *argv[4];
 	char acct[256];
 	int pipe_fd[2];
+	struct sigaction sa;
 
 	if (pipe(pipe_fd)) {
 		audit_msg(LOG_ALERT,
@@ -94,6 +95,9 @@ static int safe_popen(pid_t *pid, const char *mail_acct)
 		return pipe_fd[1];
 	}
 	/* Child */
+	sigfillset (&sa.sa_mask);
+	sigprocmask (SIG_UNBLOCK, &sa.sa_mask, 0);
+
 	close(pipe_fd[1]);	// adjust pipe
 	dup2(pipe_fd[0], 0);
 

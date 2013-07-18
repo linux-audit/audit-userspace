@@ -7,10 +7,11 @@
 - In ausearch, parse subj in DAEMON_ROTATE records
 - Fix interpretation of MQ_OPEN and MQ_NOTIFY events
 - In auditd, restart dispatcher on SIGHUP if it had previously exited
-- In audispd, exit when no active plugins are detected
+- In audispd, exit when no active plugins are detected on reconfigure
 - In audispd, clear signal mask set by libev so that SIGHUP works again
 - In audispd, track binary plugins and restart if binary was updated
 - In audispd, make sure we send signals to the correct process
+- In auditd, clear signal mask when spawning any child process
 
 2.3.1
 - Rearrange auditd setting enabled and pid to avoid a race (#910568)
