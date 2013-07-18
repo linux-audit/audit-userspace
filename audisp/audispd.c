@@ -304,8 +304,10 @@ static int reconfigure(void)
 		tpconf->p->active = A_NO;
 		syslog(LOG_INFO, "Terminating %s because its now inactive",
 				tpconf->p->path);
-		kill(tpconf->p->pid, SIGTERM);
-		close(tpconf->p->plug_pipe[1]);
+		if (tpconf->p->type == S_ALWAYS) {
+			kill(tpconf->p->pid, SIGTERM);
+			close(tpconf->p->plug_pipe[1]);
+		}
 		tpconf->p->plug_pipe[1] = -1;
 		tpconf->p->pid = 0;
 		tpconf->p->checked = 1;
@@ -510,7 +512,7 @@ static void signal_plugins(int sig)
 	plist_first(&plugin_conf);
 	conf = plist_get_cur(&plugin_conf);
 	while (conf) {
-		if (conf->p && conf->p->pid)
+		if (conf->p && conf->p->pid && conf->p->type == S_ALWAYS)
 			kill(conf->p->pid, sig);
 		conf = plist_next(&plugin_conf);
 	}
