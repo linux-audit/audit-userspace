@@ -1846,9 +1846,12 @@ static const char *print_a2(const char *val, const idata *id)
 				return print_pkt_opt_name(val);
 			else
 				goto normal;
-		} else if (strcmp(sys, "openat") == 0)
-			return print_open_flags(val);
-		else if (*sys == 'f') {
+		} else if (*sys == 'o') {
+			if (strcmp(sys, "openat") == 0)
+				return print_open_flags(val);
+			if ((strcmp(sys, "open") == 0) && (id->a1 & O_CREAT))
+				return print_mode_short(val, 16);
+		} else if (*sys == 'f') {
 			if (strcmp(sys, "fchmodat") == 0)
 				return print_mode_short(val, 16);
 			else if (strcmp(sys, "faccessat") == 0)
@@ -1873,7 +1876,8 @@ static const char *print_a2(const char *val, const idata *id)
 				return print_mode_short(val, 16);
 			else if (strcmp(sys, "mprotect") == 0)
 				return print_prot(val, 0);
-			else if (strcmp(sys, "mq_open") == 0)
+			else if ((strcmp(sys, "mq_open") == 0) &&
+						(id->a1 & O_CREAT))
 				return print_mode_short(val, 16);
 		} else if (*sys == 'r') {
                 	if (strcmp(sys, "recvmsg") == 0)
