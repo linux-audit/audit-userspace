@@ -86,7 +86,6 @@ void set_allow_links(int allow);
 int load_config(struct daemon_conf *config, log_test_t lt);
 const char *audit_lookup_format(int fmt);
 int create_log_file(const char *val);
-int validate_email(const char *acct);
 int resolve_node(struct daemon_conf *config);
 
 void init_config_manager(void);

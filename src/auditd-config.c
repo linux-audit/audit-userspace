@@ -961,25 +961,32 @@ static int space_action_parser(struct nv_pair *nv, int line,
 	return 1;
 }
 
-// returns 1 on error & 0 if OK
-int validate_email(const char *acct)
+// returns 0 if OK, 1 on temp error, 2 on permanent error
+static int validate_email(const char *acct)
 {
 	int i, len;
 	char *ptr1;
 
 	if (acct == NULL)
-		return 1;
+		return 2;
 
 	len = strlen(acct);
-	if (len < 2)
-		return 1;
+	if (len < 2) {
+		audit_msg(LOG_ERR,
+		    "email: %s is too short, expecting at least 2 characters",
+			 acct);
+		return 2;
+	}
 
 	// look for illegal char
 	for (i=0; i<len; i++) {
 		if (! (isalnum(acct[i]) || (acct[i] == '@') ||
 				(acct[i]=='.') || (acct[i]=='-') ||
-				(acct[i] == '_')) )
-			return 1;
+				(acct[i] == '_')) ) {
+			audit_msg(LOG_ERR, "email: %s has illegal character",
+				acct);
+			return 2;
+		}
 	}
 
 	if ((ptr1 = strchr(acct, '@'))) {
@@ -987,16 +994,26 @@ int validate_email(const char *acct)
 		struct hostent *t_addr;
 
 		ptr2 = strrchr(acct, '.');        // get last dot - sb after @
-		if ((ptr2 == NULL) || (ptr1 > ptr2))
-			return 1;
+		if ((ptr2 == NULL) || (ptr1 > ptr2)) {
+			audit_msg(LOG_ERR, "email: %s should have . after @",
+				acct);
+			return 2;
+		}
 
 		t_addr = gethostbyname(ptr1+1);
 		if (t_addr == 0) {
 			if ((h_errno == HOST_NOT_FOUND) ||
-					(h_errno == NO_RECOVERY))
-				return 1;
-			else if (h_errno == TRY_AGAIN)
+					(h_errno == NO_RECOVERY)) {
+					audit_msg(LOG_ERR,
+				"validate_email: failed looking up host for %s",
+					ptr1+1);
 				return 2;
+			}
+			else if (h_errno == TRY_AGAIN)
+				audit_msg(LOG_DEBUG,
+		"validate_email: temporary failure looking up domain for %s",
+					ptr1+1);
+				return 1;
 		}
 	}
 	return 0;
@@ -1013,7 +1030,7 @@ static int action_mail_acct_parser(struct nv_pair *nv, int line,
 	if (tmail == NULL)
 		return 1;
 
-	if (validate_email(tmail)) {
+	if (validate_email(tmail) > 1) {
 		free(tmail);
 		return 1;
 	}
