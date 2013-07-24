@@ -14,6 +14,7 @@
 - In auditd, clear signal mask when spawning any child process
 - In audispd, make builtin plugins respond to SIGHUP
 - In auparse, interpret mode flags of open syscall if O_CREAT is passed
+- In audisp-remote, don't make address lookup always a permanent failure
 
 2.3.1
 - Rearrange auditd setting enabled and pid to avoid a race (#910568)

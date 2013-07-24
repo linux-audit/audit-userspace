@@ -970,13 +970,16 @@ static int init_sock(void)
 	hints.ai_flags = AI_ADDRCONFIG|AI_NUMERICSERV;
 	hints.ai_socktype = SOCK_STREAM;
 	snprintf(remote, BUF_SIZE, "%u", config.port);
-	rc=getaddrinfo(config.remote_server, remote, &hints, &ai);
+	rc = getaddrinfo(config.remote_server, remote, &hints, &ai);
 	if (rc) {
 		if (!quiet)
 			syslog(LOG_ERR,
 				"Error looking up remote host: %s - exiting",
 				gai_strerror(rc));
-		return ET_PERMANENT;
+		if (rc == EAI_NONAME || rc == EAI_NODATA)
+			return ET_PERMANENT;
+		else
+			return ET_TEMPORARY;
 	}
 	sock = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol);
 	if (sock < 0) {
