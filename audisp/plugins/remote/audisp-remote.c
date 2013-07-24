@@ -537,8 +537,21 @@ int main(int argc, char *argv[])
 						quiet = 0;
 					}
 					/* Strip out EOE records */
-					if (strstr(event,"type=EOE msg=audit("))
-						continue;
+					if (*event == 't') {
+						if (strncmp(event,
+							"type=EOE", 8) == 0)
+							continue;
+					} else {
+						char *ptr = strchr(event, ' ');
+						if (ptr) {
+							ptr++;
+							if (strncmp(ptr,
+								"type=EOE",
+									8) == 0)
+								continue;
+						} else
+							continue; //malformed
+					}
 					if (q_append(queue, event) != 0) {
 						if (errno == ENOSPC)
 							do_overflow_action();
