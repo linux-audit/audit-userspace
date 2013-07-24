@@ -124,7 +124,7 @@ remote end signals a disk error.  The default is to log it to syslog.
 Likewise, this parameter tells the system what action to take if the
 remote end signals a disk error. This action has one additional option,
 .I reconnect
-which tells the remote plugin to attempt to reconnect to the server upon receipt of the next audit record. If it is unsuccessful, the audit record could be lost. The default is to suspend logging.
+which tells the remote plugin to attempt to reconnect to the server upon receipt of the next audit record. If it is unsuccessful, the audit record could be lost. The default is to reconnect.
 .TP
 .I generic_error_action
 Likewise, this parameter tells the system what action to take if the

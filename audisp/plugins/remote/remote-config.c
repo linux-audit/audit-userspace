@@ -211,7 +211,7 @@ void clear_config(remote_conf_t *config)
 	IA(disk_low, FA_IGNORE);
 	IA(disk_full, FA_IGNORE);
 	IA(disk_error, FA_SYSLOG);
-	IA(remote_ending, FA_SUSPEND);
+	IA(remote_ending, FA_RECONNECT);
 	IA(generic_error, FA_SYSLOG);
 	IA(generic_warning, FA_SYSLOG);
 	IA(queue_error, FA_STOP);

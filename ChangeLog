@@ -17,6 +17,7 @@
 - In audisp-remote, don't make address lookup always a permanent failure
 - In audisp-remote, remove EOE events more efficiently
 - In auditd, log the reason when email account is not valid
+- In audisp-remote, change default remote_ending action to reconnect
 
 2.3.1
 - Rearrange auditd setting enabled and pid to avoid a race (#910568)
