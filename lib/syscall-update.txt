@@ -7,6 +7,7 @@ arch/powerpc/include/uapi/asm/unistd.h
 arch/s390/include/uapi/asm/unistd.h
 arch/x86/syscalls/syscall_32.tbl
 arch/x86/syscalls/syscall_64.tbl
+include/uapi/asm-generic/unistd.h
 
 For src/ausearch-lookup.c:
 Inspect include/linux/net.h for socketcall updates

@@ -1,5 +1,5 @@
 /* libaudit.h -- 
- * Copyright 2004-2012 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2004-2013 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -327,6 +327,18 @@ extern "C" {
 #define AUDIT_COMPARE_SGID_TO_FSGID    25
 #endif
 
+#ifndef EM_ARM
+#define EM_ARM  40
+#endif
+#ifndef EM_AARCH64
+#define EM_AARCH64 183
+#endif
+
+#ifndef AUDIT_ARCH_AARCH64
+#define AUDIT_ARCH_AARCH64	(EM_AARCH64|__AUDIT_ARCH_64BIT|__AUDIT_ARCH_LE)
+#endif
+
+
 //////////////////////////////////////////////////////
 // This is an external ABI. Any changes in here will
 // likely affect pam_loginuid. There might be other
@@ -404,7 +416,8 @@ typedef enum {
 	MACH_S390X,
 	MACH_S390,
 	MACH_ALPHA,
-	MACH_ARMEB
+	MACH_ARMEB,
+	MACH_AARCH64
 } machine_t;
 
 /* These are the valid audit failure tunable enum values */

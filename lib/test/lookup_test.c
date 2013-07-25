@@ -155,6 +155,24 @@ test_armeb_table(void)
 }
 #endif
 
+#ifdef WITH_AARCH64
+static void
+test_aarch64_table(void)
+{
+	static const struct entry t[] = {
+#include "../aarch64_table.h"
+	};
+
+	printf("Testing aarch64_table...\n");
+#define I2S(I) audit_syscall_to_name((I), MACH_AARCH64)
+#define S2I(S) audit_name_to_syscall((S), MACH_AARCH64)
+	TEST_I2S(0);
+	TEST_S2I(-1);
+#undef I2S
+#undef S2I
+}
+#endif
+
 static void
 test_i386_table(void)
 {
@@ -390,6 +408,9 @@ main(void)
 #endif
 #ifdef WITH_ARMEB
 	test_armeb_table();
+#endif
+#ifdef WITH_AARCH64
+	test_aarch64_table();
 #endif
 	test_i386_table();
 	test_ia64_table();

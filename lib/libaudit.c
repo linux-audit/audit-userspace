@@ -1328,6 +1328,18 @@ int audit_rule_fieldpair_data(struct audit_rule_data **rulep, const char *pair,
 						if (bits == __AUDIT_ARCH_64BIT)
 							return -6;
 						break;
+#ifdef WITH_ARMEB
+					case MACH_ARMEB:
+						if (bits == __AUDIT_ARCH_64BIT)
+							return -6;
+						break;
+#endif
+#ifdef WITH_AARCH64
+					case MACH_AARCH64:
+						if (bits != __AUDIT_ARCH_64BIT)
+							return -6;
+						break;
+#endif
 					case MACH_86_64: /* fallthrough */
 					case MACH_PPC64: /* fallthrough */
 					case MACH_S390X: /* fallthrough */

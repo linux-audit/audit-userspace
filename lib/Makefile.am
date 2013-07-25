@@ -47,6 +47,9 @@ endif
 if USE_ARMEB
 BUILT_SOURCES += armeb_tables.h
 endif
+if USE_AARCH64
+BUILT_SOURCES += aarch64_tables.h
+endif
 noinst_PROGRAMS = gen_actiontabs_h gen_errtabs_h gen_fieldtabs_h \
 	gen_flagtabs_h gen_ftypetabs_h gen_i386_tables_h \
 	gen_ia64_tables_h gen_machinetabs_h gen_msg_typetabs_h \
@@ -57,6 +60,9 @@ noinst_PROGRAMS += gen_alpha_tables_h
 endif
 if USE_ARMEB
 noinst_PROGRAMS += gen_armeb_tables_h
+endif
+if USE_AARCH64
+noinst_PROGRAMS += gen_aarch64_tables_h
 endif
 gen_actiontabs_h_SOURCES = gen_tables.c gen_tables.h actiontab.h
 gen_actiontabs_h_CFLAGS = $(AM_CFLAGS) '-DTABLE_H="actiontab.h"'
@@ -75,6 +81,13 @@ gen_armeb_tables_h_SOURCES = gen_tables.c gen_tables.h armeb_table.h
 gen_armeb_tables_h_CFLAGS = $(AM_CFLAGS) '-DTABLE_H="armeb_table.h"'
 armeb_tables.h: gen_armeb_tables_h Makefile
 	./gen_armeb_tables_h --lowercase --i2s --s2i armeb_syscall > $@
+endif
+
+if USE_AARCH64
+gen_aarch64_tables_h_SOURCES = gen_tables.c gen_tables.h aarch64_table.h
+gen_aarch64_tables_h_CFLAGS = $(AM_CFLAGS) '-DTABLE_H="aarch64_table.h"'
+aarch64_tables.h: gen_aarch64_tables_h Makefile
+	./gen_aarch64_tables_h --lowercase --i2s --s2i aarch64_syscall > $@
 endif
 
 gen_errtabs_h_SOURCES = gen_tables.c gen_tables.h errtab.h

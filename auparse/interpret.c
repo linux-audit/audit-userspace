@@ -337,7 +337,7 @@ static const char *print_arch(const char *val, unsigned int machine)
         const char *ptr;
 	char *out;
 
-	if (machine > MACH_ARMEB) {
+	if (machine > MACH_AARCH64) {
 		unsigned int ival;
 
 		errno = 0;
