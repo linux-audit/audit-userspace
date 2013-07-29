@@ -16,6 +16,8 @@ If you wanted to verify that both 32 and 64 bit programs would be audited, run "
 .B \-a always,exit \-F arch=b32 \-S open \-F exit=\-EPERM \-k fail\-open
 .B \-a always,exit \-F arch=b64 \-S open \-F exit=\-EPERM \-k fail\-open
 .fi
+
+For more information about a specific syscall, use the man program and pass the number 2 as an argument to make sure that you get the syscall information rather than a shell script program or glibc function call of the same name.
 .SH OPTIONS
 .TP
 .B \-\-dump
