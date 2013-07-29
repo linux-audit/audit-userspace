@@ -2,7 +2,7 @@ To build the package, try this: rpmbuild --rebuild audit-1.7.5-1.src.rpm
 substituting the proper version.
 
 If you insist on doing it the hard way:
-./configure --sbindir=/sbin --with-prelude --with-libwrap --enable-gssapi-krb5
+./configure --sbindir=/sbin --with-python=yes --with-libwrap --enable-gssapi-krb5=yes --with-libcap-ng=yes
 make
 make install
 
