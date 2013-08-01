@@ -98,6 +98,7 @@ int extract_search_items(llist *l)
 			case AUDIT_PATH:
 				ret = parse_path(n, s);
 				break;
+			case AUDIT_USER:
 			case AUDIT_FIRST_USER_MSG...AUDIT_LAST_USER_MSG:
 			case AUDIT_FIRST_USER_MSG2...AUDIT_LAST_USER_MSG2:
 				ret = parse_user(n, s);
