@@ -1,4 +1,4 @@
-.TH "AUDITD" "8" "Apr 2013" "Red Hat" "System Administration Utilities"
+.TH "AUDITD" "8" "Sept 2013" "Red Hat" "System Administration Utilities"
 .SH NAME
 auditd \- The Linux Audit daemon
 .SH SYNOPSIS
@@ -11,7 +11,9 @@ or
 .B aureport
 utilities. Configuring the audit rules is done with the
 .B auditctl
-utility. During startup, the rules in \fI/etc/audit/audit.rules\fP are read by \fBauditctl\fP and loaded into the kernel. The audit daemon itself has some configuration options that the admin may wish to customize. They are found in the
+utility. During startup, the rules in \fI/etc/audit/audit.rules\fP are read by \fBauditctl\fP and loaded into the kernel. Alterately, there is also an
+.B augenrules
+program that reads rules located in \fI/etc/audit/rules.d/\fP and compiles them into an audit.rules file. The audit daemon itself has some configuration options that the admin may wish to customize. They are found in the
 .B auditd.conf
 file.
 .SH OPTIONS
@@ -50,6 +52,9 @@ causes auditd to attempt to resume logging. This is usually needed after logging
 .P
 .B /etc/audit/audit.rules
 - audit rules to be loaded at startup
+.P
+.B /etc/audit/rules.d/
+- directory holding individual sets of rules to be compiled into one file by augenrules.
 
 .SH NOTES
 A boot param of audit=1 should be added to ensure that all processes that run before the audit daemon starts is marked as auditable by the kernel. Not doing that will make a few processes impossible to properly audit.
@@ -62,6 +67,7 @@ The audit daemon can receive audit events from other audit daemons via the audis
 .BR ausearch (8),
 .BR aureport (8),
 .BR auditctl (8),
+.BR augenrules (8),
 .BR audit.rules (7).
 
 .SH AUTHOR

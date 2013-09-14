@@ -173,7 +173,7 @@ means that it will send a warning to the email account specified in
 .I action_mail_acct
 as well as sending the message to syslog.
 .I exec
-/path-to-script will execute the script. You cannot pass parameters to the script.
+/path-to-script will execute the script. You cannot pass parameters to the script. The script is also responsible for telling the auditd daemon to resume logging once its completed its action. This can be done by adding service auditd resume to the script.
 .I Suspend
 will cause the audit daemon to stop writing records to the disk. The daemon will still be alive. The
 .I single
@@ -191,7 +191,8 @@ the audit daemon will issue a syslog message but no other action is taken.
 .I Syslog
 means that it will issue a warning to syslog.
 .I exec
-/path-to-script will execute the script. You cannot pass parameters to the script.
+/path-to-script will execute the script. You cannot pass parameters to the script. The script is also responsible for telling the auditd daemon to resume loggin
+g once its completed its action. This can be done by adding service auditd resume to the script.
 .I Suspend
 will cause the audit daemon to stop writing records to the disk. The daemon will still be alive. The
 .I single
