@@ -1,5 +1,5 @@
 /* msg_typetab.h --
- * Copyright 2005-07,2009-12 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2005-07,2009-13 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -190,6 +190,7 @@ _S(AUDIT_DEV_DEALLOC,                "DEV_DEALLOC"                   )
 _S(AUDIT_FS_RELABEL,                 "FS_RELABEL"                    )
 _S(AUDIT_USER_MAC_POLICY_LOAD,       "USER_MAC_POLICY_LOAD"          )
 _S(AUDIT_ROLE_MODIFY,                "ROLE_MODIFY"                   )
+_S(AUDIT_USER_MAC_CONFIG_CHANGE,     "USER_MAC_CONFIG_CHANGE"        )
 _S(AUDIT_CRYPTO_TEST_USER,           "CRYPTO_TEST_USER"              )
 _S(AUDIT_CRYPTO_PARAM_CHANGE_USER,   "CRYPTO_PARAM_CHANGE_USER"      )
 _S(AUDIT_CRYPTO_LOGIN,               "CRYPTO_LOGIN"                  )
