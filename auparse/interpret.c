@@ -49,6 +49,7 @@
 #include <linux/capability.h>
 #include <sys/personality.h>
 #include <sys/prctl.h>
+#include <sched.h>
 #include "auparse-defs.h"
 #include "gen_tables.h"
 
@@ -1348,9 +1349,12 @@ static char *print_dirfd(const char *val)
 	return out;
 }
 
+#ifndef SCHED_RESET_ON_FORK
+#define SCHED_RESET_ON_FORK 0x40000000
+#endif
 static const char *print_sched(const char *val)
 {
-        int pol;
+        unsigned int pol;
         char *out;
         const char *s;
 
@@ -1362,9 +1366,15 @@ static const char *print_sched(const char *val)
                 return out;
         }
 
-	s = sched_i2s(pol);
-	if (s != NULL)
-		return strdup(s);
+	s = sched_i2s(pol & 0x0F);
+	if (s != NULL) {
+		char buf[48];
+
+		strcpy(buf, s);
+		if (pol & SCHED_RESET_ON_FORK )
+			strcat(buf, "|SCHED_RESET_ON_FORK");
+		return strdup(buf);
+	}
 	if (asprintf(&out, "unknown scheduler policy (0x%s)", val) < 0)
 		out = NULL;
 	return out;
