@@ -2,6 +2,7 @@
 - Documentation updates
 - Add AUDIT_USER_MAC_CONFIG_CHANGE event for MAC policy changes
 - Update interpreting scheduler policy names
+- Update automake files to automake-1.13.4
 
 2.3.2
 - Put RefuseManualStop in the right systemd section (#969345)
