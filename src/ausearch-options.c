@@ -213,7 +213,7 @@ static void usage(void)
 	"\t-vm,--vm-name <guest name>\tsearch for events related to the virtual\n"
 	"\t\t\t\t\tmachine with the name.\n"
 	"\t-w,--word\t\t\tstring matches are whole word\n"
-	"\t-x,--executable  <executable name>  search based on excutable name\n"
+	"\t-x,--executable <executable name>  search based on executable name\n"
 	);
 }
 
