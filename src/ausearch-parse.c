@@ -1602,6 +1602,15 @@ static int parse_avc(const lnode *n, search_items *s)
 			if (rc)
 				goto err;
 			term += 7;
+		} else {
+			str = strstr(term, " name=");
+			if (str) {
+				str += 6;
+				rc = common_path_parser(s, str);
+				if (rc)
+					goto err;
+				term += 7;
+			}
 		}
 	}
 	if (event_subject) {
