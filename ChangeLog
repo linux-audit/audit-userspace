@@ -5,6 +5,7 @@
 - Update automake files to automake-1.13.4
 - Remove CAP_COMPROMISE_KERNEL interpretation
 - Parse name field in AVC's (#1049916)
+- Add missing typedef for auparse_type_t enumeration (#1053424)
 
 2.3.2
 - Put RefuseManualStop in the right systemd section (#969345)
