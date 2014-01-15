@@ -588,22 +588,28 @@ static int common_path_parser(search_items *s, char *path)
 			snode sn;
 			sn.key = NULL;
 			sn.hits = 1;
-			if (strcmp(path, "(null)")) {
-				sn.str = strdup(path);
+			if (strncmp(path, "(null)", 6) == 0) {
+				sn.str = strdup("(null)");
 				goto append;
 			}
 			if (!isxdigit(path[0]))
 				return 4;
 			if (path[0] == '0' && path[1] == '0')
 				sn.str = unescape(&path[2]); // Abstract name
-			else
+			else {
+				term = strchr(path, ' ');
+				if (term == NULL)
+					return 5;
+				*term = 0;
 				sn.str = unescape(path);
+				*term = ' ';
+			}
 			// Attempt to rebuild path if relative
 			if ((sn.str[0] == '.') && ((sn.str[1] == '.') ||
 				(sn.str[1] == '/')) && s->cwd) {
 				char *tmp = malloc(PATH_MAX);
 				if (tmp == NULL)
-					return 5;
+					return 6;
 				snprintf(tmp, PATH_MAX, "%s/%s", 
 					s->cwd, sn.str);
 				free(sn.str);
