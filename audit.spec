@@ -162,7 +162,6 @@ fi
 
 %preun
 %if %{WITH_SYSTEMD}
-/sbin/service auditd stop > /dev/null 2>&1
 %systemd_preun auditd.service
 %else
 if [ $1 -eq 0 ]; then
