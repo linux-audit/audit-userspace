@@ -1,6 +1,6 @@
 /*
 * ausearch-parse.c - Extract interesting fields and check for match
-* Copyright (c) 2005-08,2011,2013 Red Hat Inc., Durham, North Carolina.
+* Copyright (c) 2005-08,2011,2013-14 Red Hat Inc., Durham, North Carolina.
 * Copyright (c) 2011 IBM Corp. 
 * All Rights Reserved. 
 *
@@ -127,6 +127,10 @@ int extract_search_items(llist *l)
 				break;
 			case AUDIT_CONFIG_CHANGE:
 				ret = parse_simple_message(n, s);
+				// We use AVC parser because it just looks for
+				// the one field. We don't care about return
+				// code since older events don't have path=
+				avc_parse_path(n, s);
 				break;
 			case AUDIT_AVC:
 				ret = parse_avc(n, s);

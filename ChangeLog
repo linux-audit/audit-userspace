@@ -1,4 +1,5 @@
 2.3.4
+- Parse path in CONFIG_CHANGE events
 
 2.3.3
 - Documentation updates
