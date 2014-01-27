@@ -1,5 +1,6 @@
 2.3.4
 - Parse path in CONFIG_CHANGE events
+- In audisp-remote, fix retry logic for temporary network failures
 
 2.3.3
 - Documentation updates

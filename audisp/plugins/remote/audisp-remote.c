@@ -1063,6 +1063,9 @@ static int init_transport(void)
 	{
 		case T_TCP:
 			rc = init_sock();
+			// We set this so that it will retry the connection
+			if (rc == ET_TEMPORARY)
+				remote_ended = 1;
 			break;
 		default:
 			rc = ET_PERMANENT;
