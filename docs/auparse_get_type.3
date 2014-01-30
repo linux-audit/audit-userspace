@@ -1,18 +1,19 @@
-.TH "AUPARSE_GET_TYPE" "3" "Feb 2007" "Red Hat" "Linux Audit API"
+.TH "AUPARSE_GET_TYPE" "3" "Jan 2014" "Red Hat" "Linux Audit API"
 .SH NAME
 auparse_get_type \- get record's type
 .SH "SYNOPSIS"
 .B #include <auparse.h>
 .sp
 int auparse_get_type(auparse_state_t *au);
+const char *auparse_get_type_name(auparse_state_t *au);
 
 .SH "DESCRIPTION"
 
-auparse_get_type will return the integer value for the current record of the current event.
+auparse_get_type will return the integer value for the current record of the current event. The auparse_get_type_name function will return the text representation of the name of the current record type.
 
 .SH "RETURN VALUE"
 
-Returns 0 if an error occurs; otherwise, the record's type.
+auparse_get_type returns 0 if an error occurs; otherwise, the record's type. The auparse_get_type_name function returns NULL on error; otherwise a pointer to a string.
 
 .SH "SEE ALSO"
 

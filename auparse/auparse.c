@@ -1,5 +1,5 @@
 /* auparse.c --
- * Copyright 2006-08,2012-13 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2006-08,2012-14 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -1173,6 +1173,16 @@ int auparse_get_type(auparse_state_t *au)
 		return r->type;
 	else
 		return 0;
+}
+
+
+const char *auparse_get_type_name(auparse_state_t *au)
+{
+	rnode *r = aup_list_get_cur(&au->le);
+	if (r)
+		return audit_msg_type_to_name(r->type);
+	else
+		return NULL;
 }
 
 
