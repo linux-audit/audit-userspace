@@ -1,6 +1,6 @@
 /*
 * aureport-scan.c - Extract interesting fields and check for match
-* Copyright (c) 2005-06, 2008, 2011 Red Hat Inc., Durham, North Carolina.
+* Copyright (c) 2005-06,2008,2011,2014 Red Hat Inc., Durham, North Carolina.
 * All Rights Reserved. 
 *
 * This software may be freely redistributed and/or modified under the
@@ -118,10 +118,14 @@ int classify_success(const llist *l)
 int classify_conf(const llist *l)
 {
 	int rc = 1;
+	extern int no_config;
 
 	switch (l->head->type)
 	{
 		case AUDIT_CONFIG_CHANGE:
+			if (no_config)
+				rc = 0;
+			break;
 		case AUDIT_USYS_CONFIG:
 			break;
 		case AUDIT_ADD_USER:

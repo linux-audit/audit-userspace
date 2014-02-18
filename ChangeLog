@@ -2,6 +2,7 @@
 - Parse path in CONFIG_CHANGE events
 - In audisp-remote, fix retry logic for temporary network failures
 - In auparse, add get_type_name function
+- Add --no-config command option to aureport
 
 2.3.3
 - Documentation updates

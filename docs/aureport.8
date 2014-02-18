@@ -1,4 +1,4 @@
-.TH AUREPORT: "8" "Sept 2009" "Red Hat" "System Administration Utilities"
+.TH AUREPORT: "8" "Sept 2014" "Red Hat" "System Administration Utilities"
 .SH NAME
 aureport \- a tool that produces summary reports of audit daemon logs
 .SH SYNOPSIS
@@ -62,6 +62,9 @@ Report about anomaly events. These events include NIC going into promiscuous mod
 .TP
 .BR \-\-node \ \fInode-name\fP
 Only select events originating from \fInode name\fP string for processing in the reports. The default is to include all nodes. Multiple nodes are allowed.
+.TP
+.BR \-nc ,\  \-\-no-config
+Do not include the CONFIG_CHANGE event. This is particularly useful for the key report because audit rules have key labels in many cases. Using this option gets rid of these false positives.
 .TP
 .BR \-p ,\  \-\-pid
 Report about processes
