@@ -834,6 +834,44 @@ static int parse_user(const lnode *n, search_items *s)
 			*term = saved;
 		}
 	}
+	if (event_subject) {
+		str = strstr(term, "vm-ctx=");
+		if (str != NULL) {
+			str += 7;
+			term = strchr(str, ' ');
+			if (term == NULL)
+				return 27;
+			*term = 0;
+			if (audit_avc_init(s) == 0) {
+				anode an;
+
+				anode_init(&an);
+				an.scontext = strdup(str);
+				alist_append(s->avc, &an);
+				*term = ' ';
+			} else
+				return 28;
+		}
+	}
+	if (event_object) {
+		str = strstr(term, "img-ctx=");
+		if (str != NULL) {
+			str += 8;
+			term = strchr(str, ' ');
+			if (term == NULL)
+				return 29;
+			*term = 0;
+			if (audit_avc_init(s) == 0) {
+				anode an;
+
+				anode_init(&an);
+				an.tcontext = strdup(str);
+				alist_append(s->avc, &an);
+				*term = ' ';
+			} else
+				return 30;
+		}
+	}
 	// get uid - some records the second uid is what we want.
 	// USER_LOGIN for example.
 	str = strstr(term, "uid=");
