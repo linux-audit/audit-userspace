@@ -4,6 +4,7 @@
 - In auparse, add get_type_name function
 - Add --no-config command option to aureport
 - Fix interpretting MCS seliunx contexts in ausearch (#970675)
+- In auparse, classify selinux contexts as MAC_LABEL field type
 
 2.3.3
 - Documentation updates

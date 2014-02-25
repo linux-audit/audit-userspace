@@ -2380,6 +2380,7 @@ const char *auparse_do_interpretation(int type, const idata *id)
 		case AUPARSE_TYPE_MMAP:
 			out = print_mmap(id->val);
 			break;
+		case AUPARSE_TYPE_MAC_LABEL:
 		case AUPARSE_TYPE_UNCLASSIFIED:
 		default:
 			out = strdup(id->val);

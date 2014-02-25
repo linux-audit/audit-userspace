@@ -1,5 +1,5 @@
 /* typetab.h --
- * Copyright 2007-09,2011-12 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2007-09,2011-12,2014 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -115,5 +115,10 @@ _S(AUPARSE_TYPE_OFLAG,		"oflag"		)
 _S(AUPARSE_TYPE_ESCAPED,	"ocomm"		)
 _S(AUPARSE_TYPE_MMAP,		"flags"		)
 _S(AUPARSE_TYPE_SIGNAL,		"sigev_signo"	)
-
+_S(AUPARSE_TYPE_MAC_LABEL,	"subj"		)
+_S(AUPARSE_TYPE_MAC_LABEL,	"obj"		)
+_S(AUPARSE_TYPE_MAC_LABEL,	"scontext"	)
+_S(AUPARSE_TYPE_MAC_LABEL,	"tcontext"	)
+_S(AUPARSE_TYPE_MAC_LABEL,	"vm-ctx"	)
+_S(AUPARSE_TYPE_MAC_LABEL,	"img-ctx"	)
 
