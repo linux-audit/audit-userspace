@@ -140,7 +140,7 @@ static void output_interpreted(llist *l)
 static void output_interpreted_node(const lnode *n)
 {
 	char *ptr, *str = n->message, *node = NULL;
-	int found;
+	int found, comma = 0;
 
 	// Reset these because each record could be different
 	machine = -1;
@@ -241,7 +241,7 @@ no_print:
 	found = 0;
 	while (str && *str && (ptr = strchr(str, '='))) {
 		char *name, *val;
-		int comma = 0;
+		comma = 0;
 		found = 1;
 
 		// look back to last space - this is name
@@ -276,12 +276,30 @@ no_print:
 			str = strchr(ptr, ',');
 			val = strchr(ptr, ' ');
 			if (str && val && (str < val)) {
-				*str++ = 0;
-				comma = 1;
+			// Value side  has commas and another field exists
+			// Known: LABEL_LEVEL_CHANGE banners=none,none
+			// Known: VIRT_MACHINE_ID vm-ctx=u:r:t:s0:c1,c278
+			// Known: VIRT_MACHINE_ID img-ctx=u:r:t:s0:c1,c278
+			// Known: ROLL_ASSIGN new-role=r,r
+				if (n->type == AUDIT_VIRT_MACHINE_ID ||
+				    n->type == AUDIT_OBJ_PID) {
+					str = val;
+					*str++ = 0;
+				} else {
+					*str++ = 0;
+					comma = 1;
+				}
 			} else if (str && (val == NULL)) {
-				*str++ = 0;
-				comma = 1;
+			// Goes all the way to the end. Done parsing
+			// Known: MCS context in PATH rec obj=u:r:t:s0:c2,c7
+				if (n->type==AUDIT_PATH || n->type==AUDIT_IPC)
+					str = NULL;
+				else {
+					*str++ = 0;
+					comma = 1;
+				}
 			} else if (val) {
+			// There is another field, point to next (normal path)
 				str = val;
 				*str++ = 0;
 			}
@@ -294,6 +312,9 @@ no_print:
 	}
 	// If nothing found, just print out as is
 	if (!found && ptr == NULL && str)
+		printf("%s", str);
+	// If last field had comma, output the rest
+	else if (comma)
 		printf("%s", str);
 	printf("\n");
 }
