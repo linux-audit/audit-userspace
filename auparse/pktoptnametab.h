@@ -1,5 +1,5 @@
 /* pktoptnametab.h --
- * Copyright 2013 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2013-14 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -39,4 +39,5 @@ _S(16, "PACKET_TX_TIMESTAMP")
 _S(17, "PACKET_TIMESTAMP")
 _S(18, "PACKET_FANOUT")
 _S(19, "PACKET_TX_HAS_OFF")
+_S(20, "PACKET_QDISC_BYPASS")
 

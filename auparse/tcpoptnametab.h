@@ -1,5 +1,5 @@
 /* tcpoptnametab.h --
- * Copyright 2013 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2013-14 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -45,4 +45,5 @@ _S(21, "TCP_QUEUE_SEQ")
 _S(22, "TCP_REPAIR_OPTIONS")
 _S(23, "TCP_FASTOPEN")
 _S(24, "TCP_TIMESTAMP")
+_S(25, "TCP_NOTSENT_LOWAT")
 

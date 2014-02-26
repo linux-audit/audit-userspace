@@ -1,5 +1,5 @@
 /* i386_table.h --
- * Copyright 2005-13 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2005-14 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -369,3 +369,5 @@ _S(347, "process_vm_readv")
 _S(348, "process_vm_writev")
 _S(349, "kcmp")
 _S(350, "finit_module")
+_S(351, "sched_setattr")
+_S(352, "sched_getattr")

@@ -1,5 +1,5 @@
 /* ia64_table.h --
- * Copyright 2005-13 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2005-14 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -326,3 +326,5 @@ _S(1332, "process_vm_readv")
 _S(1333, "process_vm_writev")
 _S(1334, "accept4")
 _S(1335, "finit_module")
+_S(1336, "sched_setattr")
+_S(1337, "sched_getattr")

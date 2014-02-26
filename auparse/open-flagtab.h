@@ -1,5 +1,5 @@
 /* open-flagtab.h --
- * Copyright 2007,2012-13 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2007,2012-14 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -40,4 +40,5 @@ _S(01000000,	"O_NOATIME" )
 _S(02000000,	"O_CLOEXEC")
 _S(04000000,	"__O_SYNC")
 _S(010000000,	"O_PATH")
+_S(020000000,	"__O_TMPFILE")
 

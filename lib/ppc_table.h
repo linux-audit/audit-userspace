@@ -1,5 +1,5 @@
 /* ppc_table.h --
- * Copyright 2005-09,2011-13 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2005-09,2011-14 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -368,3 +368,5 @@ _S(351, "process_vm_readv")
 _S(352, "process_vm_writev")
 _S(353, "finit_module")
 _S(354, "kcmp")
+_S(355, "sched_setattr")
+_S(356, "sched_getattr")

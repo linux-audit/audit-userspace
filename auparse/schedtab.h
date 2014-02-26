@@ -1,5 +1,5 @@
 /* schedtab.h --
- * Copyright 2013 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2013-14 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -27,4 +27,5 @@ _S(1,	"SCHED_FIFO"	)
 _S(2,	"SCHED_RR"	)
 _S(3,	"SCHED_BATCH"	)
 _S(5,	"SCHED_IDLE"	)
+_S(6,	"SCHED_DEADLINE")
 

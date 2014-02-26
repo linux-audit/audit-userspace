@@ -1,5 +1,5 @@
 /* clocktab.h --
- * Copyright 2012 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2012,2014 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -31,4 +31,6 @@ _S(6,	"CLOCK_MONOTONIC_COARSE"	)
 _S(7,	"CLOCK_BOOTTIME"		)
 _S(8,	"CLOCK_REALTIME_ALARM"		)
 _S(9,	"CLOCK_BOOTTIME_ALARM"		)
+_S(10,	"CLOCK_SGI_CYCLE"		)
+_S(11,	"CLOCK_TAI"			)
 

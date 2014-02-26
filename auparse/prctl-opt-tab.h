@@ -1,5 +1,5 @@
 /* prctl-opt-tab.h --
- * Copyright 2013 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2013-14 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -18,7 +18,7 @@
  *
  * Authors:
  *      Steve Grubb <sgrubb@redhat.com>
- * Location: include/linux/prctl.h
+ * Location: include/uapi/linux/prctl.h
  */
 
 _S(1,  "PR_SET_PDEATHSIG")
