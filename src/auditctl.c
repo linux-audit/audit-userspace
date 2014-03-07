@@ -1426,12 +1426,22 @@ static int audit_print_reply(struct audit_reply *rep)
                 
 				name = audit_field_to_name(field);
 				if (name) {
-					if (strcmp(name, "arch") == 0) { 
+					if (strcmp(name, "arch") == 0) {
+						unsigned int machine;
 						_audit_elf =
 						    rep->ruledata->values[i];
-						printf(" %s%s%u", name, 
-						  audit_operator_to_symbol(op),
-					    (unsigned)rep->ruledata->values[i]);
+						machine = audit_elf_to_machine(_audit_elf);
+						if (machine < 0)
+							printf(" %s%s%u", name, 
+							  audit_operator_to_symbol(op),
+						    (unsigned)rep->ruledata->values[i]);
+						else {
+							const char *ptr =
+								audit_machine_to_name(machine);
+							printf(" %s%s%s", name, 
+							  audit_operator_to_symbol(op), ptr);
+							continue;
+						}
 					}
 					else if (strcmp(name, "msgtype") == 0) {
 						if (!audit_msg_type_to_name(
@@ -1602,44 +1612,45 @@ static int audit_print_reply(struct audit_reply *rep)
 						field != AUDIT_FIELD_COMPARE)
 					printf(" (0x%x)", rep->ruledata->values[i]);
 			}
-			if (show_syscall &&
-				((rep->ruledata->flags & AUDIT_FILTER_MASK) != 
+			if (	((rep->ruledata->flags & AUDIT_FILTER_MASK) != 
 						AUDIT_FILTER_USER) &&
 				((rep->ruledata->flags & AUDIT_FILTER_MASK) !=
 						AUDIT_FILTER_TASK) &&
 				((rep->ruledata->flags & AUDIT_FILTER_MASK) !=
 						AUDIT_FILTER_EXCLUDE)) {
-				printf(" syscall=");
 				for (sparse = 0, i = 0; 
 					i < (AUDIT_BITMASK_SIZE-1); i++) {
 					if (rep->ruledata->mask[i] != (uint32_t)~0)
 						sparse = 1;
 				}
-				if (!sparse) {
-					printf("all");
-				} else for (first = 1, i = 0;
+				if (show_syscall || (!show_syscall && sparse)){
+					printf(" syscall=");
+					if (!sparse) {
+						printf("all");
+					} else for (first = 1, i = 0;
 					i < AUDIT_BITMASK_SIZE * 32; i++) {
-					int word = AUDIT_WORD(i);
-					int bit  = AUDIT_BIT(i);
+						int word = AUDIT_WORD(i);
+						int bit  = AUDIT_BIT(i);
 					if (rep->ruledata->mask[word] & bit) {
-						const char *ptr;
-						if (_audit_elf)
-							machine = 
+							const char *ptr;
+							if (_audit_elf)
+								machine = 
 							audit_elf_to_machine(
 								_audit_elf);
-						if (machine < 0)
-							ptr = NULL;
-						else
-							ptr = 
+							if (machine < 0)
+								ptr = NULL;
+							else
+								ptr = 
 							audit_syscall_to_name(i, 
-							machine);
-						if (ptr)
-							printf("%s%s", 
+								machine);
+							if (ptr)
+								printf("%s%s", 
 							first ? "" : ",", ptr);
-						else
-							printf("%s%d", 
+							else
+								printf("%s%d", 
 							first ? "" : ",", i);
-						first = 0;
+							first = 0;
+						}
 					}
 				}
 			}
