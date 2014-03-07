@@ -2276,6 +2276,8 @@ int auparse_interp_adjust_type(int rtype, const char *name, const char *val)
 		type = AUPARSE_TYPE_FLAGS;
 	else if (rtype == AUDIT_MQ_OPEN && strcmp(name, "mode") == 0)
 		type = AUPARSE_TYPE_MODE_SHORT;
+	else if (rtype == AUDIT_CRYPTO_KEY_USER && strcmp(name, "fp") == 0)
+		type = AUPARSE_TYPE_UNCLASSIFIED;
 	else
 		type = lookup_type(name);
 

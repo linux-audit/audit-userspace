@@ -1,3 +1,6 @@
+2.3.5
+- In CRYPTO_KEY_USER events, do not interpret the 'fp' field
+
 2.3.4
 - Parse path in CONFIG_CHANGE events
 - In audisp-remote, fix retry logic for temporary network failures
