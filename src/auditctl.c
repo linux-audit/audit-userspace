@@ -1381,6 +1381,10 @@ static int is_watch(const struct audit_reply *rep)
 		int field = rep->ruledata->fields[i] & ~AUDIT_OPERATORS;
 		if (field == AUDIT_PERM)
 			perm = 1;
+		// Watches can have only 4 field types
+		if (field != AUDIT_PERM && field != AUDIT_FILTERKEY &&
+			field != AUDIT_DIR && field != AUDIT_WATCH)
+			return 0;
 	}
 
 	if (((rep->ruledata->flags & AUDIT_FILTER_MASK) != AUDIT_FILTER_USER) &&
@@ -1630,10 +1634,11 @@ static void print_rule(struct audit_reply *rep)
 				boffset += rep->ruledata->values[i];
 			} else if (field == AUDIT_DIR) {
 				if (watch)
-					printf("-a always,exit -F dir=");
+					printf("-w %.*s/",
+						rep->ruledata->values[i],
+						&rep->ruledata->buf[boffset]);
 				else
-					printf(" -F dir=");
-				printf("%.*s",
+					printf(" -F dir=%.*s",
 						rep->ruledata->values[i],
 						&rep->ruledata->buf[boffset]);
 
