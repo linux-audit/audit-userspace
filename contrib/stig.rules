@@ -160,10 +160,6 @@
 #-a always,exit -F arch=b32 -S ptrace -F a0=6 -k register-injection
 #-a always,exit -F arch=b64 -S ptrace -F a0=6 -k register-injection
 
-## Optional - could be an attempt to bypass audit or simply legacy program
-#-a always,exit -F arch=b32 -S personality -F a0!=4294967295 -k bypass
-#-a always,exit -F arch=b64 -S personality -F a0!=4294967295 -k bypass
-
 ## Optional - might want to watch module insertion
 #-w /sbin/insmod -p x -k modules
 #-w /sbin/rmmod -p x -k modules
