@@ -1,5 +1,5 @@
 /* auditctl.c -- 
- * Copyright 2004-2013 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2004-2014 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -1629,7 +1629,13 @@ static void print_rule(struct audit_reply *rep)
 						&rep->ruledata->buf[boffset]);
 				boffset += rep->ruledata->values[i];
 			} else if (field == AUDIT_WATCH) {
-				printf("-w %.*s", rep->ruledata->values[i],
+				if (watch)
+					printf("-w %.*s",
+						rep->ruledata->values[i],
+						&rep->ruledata->buf[boffset]);
+				else
+					printf(" -F path=%.*s",
+						rep->ruledata->values[i],
 						&rep->ruledata->buf[boffset]);
 				boffset += rep->ruledata->values[i];
 			} else if (field == AUDIT_DIR) {
