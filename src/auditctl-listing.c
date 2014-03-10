@@ -461,9 +461,6 @@ int audit_print_reply(struct audit_reply *rep)
 			printed = 1;
 			break;
 		case AUDIT_LIST_RULES:
-			// This could be redesigned where this one appends to
-			// a list. Then when we get nlmsg_done, we loop on
-			// calling print_rule()
 			list_requested = 0;
 			if (key_match(rep->ruledata))
 				 list_append(&l, rep->ruledata,
