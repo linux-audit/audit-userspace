@@ -29,7 +29,7 @@
 
 #include "auditctl-llist.h"
 
-extern int key_match(struct audit_reply *rep);
+extern int key_match(const struct audit_rule_data *r);
 
 /* Returns 0 for success and -1 for failure */
 int delete_all_rules(int fd)
@@ -83,7 +83,7 @@ int delete_all_rules(int fd)
 			if (rep.type != AUDIT_LIST_RULES)
 				continue;
 
-			if (key_match(&rep))
+			if (key_match(&rep.ruledata))
 				list_append(&l, rep.ruledata, 
 					sizeof(struct audit_rule_data) +
 					rep.ruledata->buflen);

@@ -62,7 +62,6 @@ extern int delete_all_rules(int fd);
 int list_requested = 0;
 char key[AUDIT_MAX_KEY_LEN+1];
 const char key_sep[2] = { AUDIT_KEY_SEPARATOR, 0 };
-int printed;
 static int keylen;
 static int fd = -1;
 static int add = AUDIT_FILTER_UNSET, del = AUDIT_FILTER_UNSET, action = -1;
@@ -1309,7 +1308,7 @@ static void get_reply(void)
 	FD_SET(fd, &read_mask);
 
 	// Reset printing counter
-	printed = 0;
+	audit_print_init();
 
 	for (i = 0; i < timeout; i++) {
 		struct timeval t;

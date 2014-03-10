@@ -26,21 +26,20 @@
 #include <string.h>
 #include "auditctl-listing.h"
 #include "private.h"
+#include "auditctl-llist.h"
 
-
-/* Global functions */
-int audit_print_reply(struct audit_reply *rep);
 
 /* Global vars */
+static llist l;
+static int printed;
 extern int list_requested;
 extern char key[AUDIT_MAX_KEY_LEN+1];
-extern int printed;
 extern const char key_sep[2];
 
 /*
  * Returns 1 if rule should be printed & 0 if not
  */
-int key_match(struct audit_reply *rep)
+int key_match(const struct audit_rule_data *r)
 {
 	int i;
 	size_t boffset = 0;
@@ -49,12 +48,12 @@ int key_match(struct audit_reply *rep)
 		return 1;
 
 	// At this point, we have a key
-	for (i = 0; i < rep->ruledata->field_count; i++) {
-		int field = rep->ruledata->fields[i] & ~AUDIT_OPERATORS;
+	for (i = 0; i < r->field_count; i++) {
+		int field = r->fields[i] & ~AUDIT_OPERATORS;
 		if (field == AUDIT_FILTERKEY) {
 			char *keyptr;
-			if (asprintf(&keyptr, "%.*s", rep->ruledata->values[i],
-				     &rep->ruledata->buf[boffset]) < 0)
+			if (asprintf(&keyptr, "%.*s", r->values[i],
+				     &r->buf[boffset]) < 0)
 				keyptr = NULL;
 			else if (strstr(keyptr, key)) {
 				free(keyptr);
@@ -65,7 +64,7 @@ int key_match(struct audit_reply *rep)
 		if (((field >= AUDIT_SUBJ_USER && field <= AUDIT_OBJ_LEV_HIGH)
                      && field != AUDIT_PPID) || field == AUDIT_WATCH ||
 			field == AUDIT_DIR || field == AUDIT_FILTERKEY) {
-				boffset += rep->ruledata->values[i];
+				boffset += r->values[i];
 		}
 	}
 	return 0;
@@ -75,12 +74,12 @@ int key_match(struct audit_reply *rep)
  * This function detects if we have a watch. A watch is detected when we
  * have syscall == all and a perm field.
  */
-static int is_watch(const struct audit_reply *rep)
+static int is_watch(const struct audit_rule_data *r)
 {
 	int i, perm = 0, all = 1;
 
-	for (i = 0; i < rep->ruledata->field_count; i++) {
-		int field = rep->ruledata->fields[i] & ~AUDIT_OPERATORS;
+	for (i = 0; i < r->field_count; i++) {
+		int field = r->fields[i] & ~AUDIT_OPERATORS;
 		if (field == AUDIT_PERM)
 			perm = 1;
 		// Watches can have only 4 field types
@@ -89,13 +88,11 @@ static int is_watch(const struct audit_reply *rep)
 			return 0;
 	}
 
-	if (((rep->ruledata->flags & AUDIT_FILTER_MASK) != AUDIT_FILTER_USER) &&
-		((rep->ruledata->flags & AUDIT_FILTER_MASK) !=
-					 AUDIT_FILTER_TASK) &&
-		((rep->ruledata->flags & AUDIT_FILTER_MASK) !=
-						AUDIT_FILTER_EXCLUDE)) {
+	if (((r->flags & AUDIT_FILTER_MASK) != AUDIT_FILTER_USER) &&
+		((r->flags & AUDIT_FILTER_MASK) != AUDIT_FILTER_TASK) &&
+		((r->flags & AUDIT_FILTER_MASK) != AUDIT_FILTER_EXCLUDE)) {
 		for (i = 0; i < (AUDIT_BITMASK_SIZE-1); i++) {
-			if (rep->ruledata->mask[i] != (uint32_t)~0) {
+			if (r->mask[i] != (uint32_t)~0) {
 				all = 0;
 				break;
 			}
@@ -120,7 +117,7 @@ static void print_arch(unsigned int value, int op)
 	}
 }
 
-static void print_syscall(const struct audit_reply *rep)
+static void print_syscall(const struct audit_rule_data *r)
 {
 	int first = 1;
 	int all = 1;
@@ -128,14 +125,14 @@ static void print_syscall(const struct audit_reply *rep)
 	int machine = audit_detect_machine();
 
 	/* Rules on the following filters do not take a syscall */
-	if (((rep->ruledata->flags & AUDIT_FILTER_MASK) == AUDIT_FILTER_USER) ||
-	    ((rep->ruledata->flags & AUDIT_FILTER_MASK) == AUDIT_FILTER_TASK) ||
-	    ((rep->ruledata->flags &AUDIT_FILTER_MASK) == AUDIT_FILTER_EXCLUDE))
+	if (((r->flags & AUDIT_FILTER_MASK) == AUDIT_FILTER_USER) ||
+	    ((r->flags & AUDIT_FILTER_MASK) == AUDIT_FILTER_TASK) ||
+	    ((r->flags &AUDIT_FILTER_MASK) == AUDIT_FILTER_EXCLUDE))
 		return;
 
 	/* See if its all or specific syscalls */
 	for (i = 0; i < (AUDIT_BITMASK_SIZE-1); i++) {
-		if (rep->ruledata->mask[i] != (uint32_t)~0) {
+		if (r->mask[i] != (uint32_t)~0) {
 			all = 0;
 			break;
 		}
@@ -146,7 +143,7 @@ static void print_syscall(const struct audit_reply *rep)
 	else for (i = 0; i < AUDIT_BITMASK_SIZE * 32; i++) {
 		int word = AUDIT_WORD(i);
 		int bit  = AUDIT_BIT(i);
-		if (rep->ruledata->mask[word] & bit) {
+		if (r->mask[word] & bit) {
 			const char *ptr;
 			if (_audit_elf)
 				machine = audit_elf_to_machine(_audit_elf);
@@ -275,35 +272,34 @@ static void print_field_cmp(int value, int op)
 /*
  *  This function prints 1 rule from the kernel reply
  */
-static void print_rule(struct audit_reply *rep)
+static void print_rule(const struct audit_rule_data *r)
 {
 	unsigned int i;
 	size_t boffset = 0;
-	int watch = is_watch(rep);
+	int watch = is_watch(r);
 
 	if (!watch) { /* This is syscall auditing */
 		printf("-a %s,%s",
-			audit_action_to_name((int)rep->ruledata->action),
-				audit_flag_to_name(rep->ruledata->flags));
+			audit_action_to_name((int)r->action),
+				audit_flag_to_name(r->flags));
 
 		// Now find the arch and print it
-		for (i = 0; i < rep->ruledata->field_count; i++) {
-			int field = rep->ruledata->fields[i] & ~AUDIT_OPERATORS;
+		for (i = 0; i < r->field_count; i++) {
+			int field = r->fields[i] & ~AUDIT_OPERATORS;
 			if (field == AUDIT_ARCH) {
-				int op = rep->ruledata->fieldflags[i] &
-							AUDIT_OPERATORS;
-				print_arch(rep->ruledata->values[i], op);
+				int op = r->fieldflags[i] & AUDIT_OPERATORS;
+				print_arch(r->values[i], op);
 			}
 		}
 		// And last do the syscalls
-		print_syscall(rep);
+		print_syscall(r);
 	}
 
 	// Now iterate over the fields
-	for (i = 0; i < rep->ruledata->field_count; i++) {
+	for (i = 0; i < r->field_count; i++) {
 		const char *name;
-		int op = rep->ruledata->fieldflags[i] & AUDIT_OPERATORS;
-		int field = rep->ruledata->fields[i] & ~AUDIT_OPERATORS;
+		int op = r->fieldflags[i] & AUDIT_OPERATORS;
+		int field = r->fields[i] & ~AUDIT_OPERATORS;
 
 		if (field == AUDIT_ARCH)
 			continue;	// already printed
@@ -313,53 +309,45 @@ static void print_rule(struct audit_reply *rep)
 			// Special cases to print the different field types
 			// in a meaningful way.
 			if (field == AUDIT_MSGTYPE) {
-				if (!audit_msg_type_to_name(
-						rep->ruledata->values[i]))
+				if (!audit_msg_type_to_name(r->values[i]))
 					printf(" -F %s%s%d", name,
 						audit_operator_to_symbol(op),
-						rep->ruledata->values[i]);
+						r->values[i]);
 				else
 					printf(" -F %s%s%s", name,
 						audit_operator_to_symbol(op),
 						audit_msg_type_to_name(
-						rep->ruledata->values[i]));
+						r->values[i]));
 			} else if ((field >= AUDIT_SUBJ_USER &&
 						field <= AUDIT_OBJ_LEV_HIGH)
-						&& field != AUDIT_PPID &&
-						rep->type == AUDIT_LIST_RULES) {
+						&& field != AUDIT_PPID) {
 				printf(" -F %s%s%.*s", name,
 						audit_operator_to_symbol(op),
-						rep->ruledata->values[i],
-						&rep->ruledata->buf[boffset]);
-				boffset += rep->ruledata->values[i];
+						r->values[i], &r->buf[boffset]);
+				boffset += r->values[i];
 			} else if (field == AUDIT_WATCH) {
 				if (watch)
-					printf("-w %.*s",
-						rep->ruledata->values[i],
-						&rep->ruledata->buf[boffset]);
+					printf("-w %.*s", r->values[i],
+						&r->buf[boffset]);
 				else
-					printf(" -F path=%.*s",
-						rep->ruledata->values[i],
-						&rep->ruledata->buf[boffset]);
-				boffset += rep->ruledata->values[i];
+					printf(" -F path=%.*s",	r->values[i],
+						&r->buf[boffset]);
+				boffset += r->values[i];
 			} else if (field == AUDIT_DIR) {
 				if (watch)
-					printf("-w %.*s/",
-						rep->ruledata->values[i],
-						&rep->ruledata->buf[boffset]);
+					printf("-w %.*s/", r->values[i],
+						&r->buf[boffset]);
 				else
-					printf(" -F dir=%.*s",
-						rep->ruledata->values[i],
-						&rep->ruledata->buf[boffset]);
+					printf(" -F dir=%.*s", r->values[i],
+						&r->buf[boffset]);
 
-				boffset += rep->ruledata->values[i];
+				boffset += r->values[i];
 			} else if (field == AUDIT_FILTERKEY) {
 				char *rkey, *ptr;
-				if (asprintf(&rkey, "%.*s",
-					      rep->ruledata->values[i],
-					      &rep->ruledata->buf[boffset]) < 0)
+				if (asprintf(&rkey, "%.*s", r->values[i],
+					      &r->buf[boffset]) < 0)
 					rkey = NULL;
-				boffset += rep->ruledata->values[i];
+				boffset += r->values[i];
 				ptr = strtok(rkey, key_sep);
 				while (ptr) {
 					if (watch)
@@ -371,7 +359,7 @@ static void print_rule(struct audit_reply *rep)
 				free(rkey);
 			} else if (field == AUDIT_PERM) {
 				char perms[5];
-				int val=rep->ruledata->values[i];
+				int val=r->values[i];
 				perms[0] = 0;
 				if (val & AUDIT_PERM_READ)
 					strcat(perms, "r");
@@ -389,40 +377,46 @@ static void print_rule(struct audit_reply *rep)
 				// This is unsigned
 				printf(" -F %s%s%u", name, 
 						audit_operator_to_symbol(op),
-						rep->ruledata->values[i]);
+						r->values[i]);
 			} else if (field == AUDIT_FIELD_COMPARE) {
-				print_field_cmp(rep->ruledata->values[i], op);
+				print_field_cmp(r->values[i], op);
 			} else if (field >= AUDIT_ARG0 && field <= AUDIT_ARG3){
 				// Show these as hex
 				printf(" -F %s%s0x%X", name, 
 						audit_operator_to_symbol(op),
-						rep->ruledata->values[i]);
+						r->values[i]);
 			} else if (field == AUDIT_EXIT) {
-				int e = abs((int)rep->ruledata->values[i]);
+				int e = abs((int)r->values[i]);
 				const char *err = audit_errno_to_name(e);
 
-				if (((int)rep->ruledata->values[i] < 0) && err)
+				if (((int)r->values[i] < 0) && err)
 					printf(" -F %s%s-%s", name,
 						audit_operator_to_symbol(op),
 						err);
 				else
 					printf(" -F %s%s%d", name,
 						audit_operator_to_symbol(op),
-						(int)rep->ruledata->values[i]);
+						(int)r->values[i]);
 			} else {
 				// The default is signed decimal
 				printf(" -F %s%s%d", name, 
 						audit_operator_to_symbol(op),
-						rep->ruledata->values[i]);
+						r->values[i]);
 			}
 		} else {
 			 // The field name is unknown 
-			printf(" f%d%s%d", rep->ruledata->fields[i],
+			printf(" f%d%s%d", r->fields[i],
 						audit_operator_to_symbol(op),
-						rep->ruledata->values[i]);
+						r->values[i]);
 		}
 	}
 	printf("\n");
+}
+
+void audit_print_init(void)
+{
+	printed = 0;
+	list_create(&l);
 }
 
 /*
@@ -433,12 +427,23 @@ static void print_rule(struct audit_reply *rep)
 int audit_print_reply(struct audit_reply *rep)
 {
 	_audit_elf = 0; 
+
 	switch (rep->type) {
 		case NLMSG_NOOP:
 			return 1;
 		case NLMSG_DONE:
 			if (printed == 0)
 				printf("No rules\n");
+			else {
+				lnode *n;
+				list_first(&l);
+				n = l.cur;
+				while (n) {
+					print_rule(n->r);
+					n = list_next(&l);
+				}
+				list_clear(&l);
+			}
 			break;
 		case NLMSG_ERROR: 
 		        printf("NLMSG_ERROR %d (%s)\n",
@@ -460,10 +465,11 @@ int audit_print_reply(struct audit_reply *rep)
 			// a list. Then when we get nlmsg_done, we loop on
 			// calling print_rule()
 			list_requested = 0;
-			if (key_match(rep) == 0)
-				return 1;
+			if (key_match(rep->ruledata))
+				 list_append(&l, rep->ruledata,
+					sizeof(struct audit_rule_data) +
+					rep->ruledata->buflen);
 			printed = 1;
-			print_rule(rep);
 			return 1;
 		default:
 			printf("Unknown: type=%d, len=%d\n", rep->type, 
