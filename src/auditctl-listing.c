@@ -424,7 +424,7 @@ void audit_print_init(void)
  * 0 if no more should be read and 1 to indicate that more messages of this
  * type may need to be read. 
  */
-int audit_print_reply(struct audit_reply *rep)
+int audit_print_reply(struct audit_reply *rep, int fd)
 {
 	_audit_elf = 0; 
 
@@ -432,6 +432,8 @@ int audit_print_reply(struct audit_reply *rep)
 		case NLMSG_NOOP:
 			return 1;
 		case NLMSG_DONE:
+			// Close the socket so kernel can do other things
+			audit_close(fd);
 			if (printed == 0)
 				printf("No rules\n");
 			else {

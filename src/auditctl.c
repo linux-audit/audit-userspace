@@ -1290,7 +1290,8 @@ static int handle_request(int status)
 	} else 
 		status = -1;
 
-	audit_close(fd);
+	if (!list_requested)
+		audit_close(fd);
 	fd = -1;
 	return status;
 }
@@ -1326,7 +1327,7 @@ static void get_reply(void)
 				continue; /* This was an ack */
 			}
 			
-			if ((retval = audit_print_reply(&rep)) == 0) 
+			if ((retval = audit_print_reply(&rep, fd)) == 0) 
 				break;
 			else
 				i = 0; /* If getting more, reset timeout */
