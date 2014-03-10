@@ -154,10 +154,12 @@ static void print_syscall(const struct audit_reply *rep)
 				ptr = NULL;
 			else
 				ptr = audit_syscall_to_name(i, machine);
+			if (first)
+				printf(" -S ");
 			if (ptr)
-				printf(" -S %s%s", first ? "" : ",", ptr);
+				printf("%s%s", first ? "" : ",", ptr);
 			else
-				printf(" -S %s%d", first ? "" : ",", i);
+				printf("%s%d", first ? "" : ",", i);
 			first = 0;
 		}
 	}
@@ -395,6 +397,18 @@ static void print_rule(struct audit_reply *rep)
 				printf(" -F %s%s0x%X", name, 
 						audit_operator_to_symbol(op),
 						rep->ruledata->values[i]);
+			} else if (field == AUDIT_EXIT) {
+				int e = abs((int)rep->ruledata->values[i]);
+				const char *err = audit_errno_to_name(e);
+
+				if (((int)rep->ruledata->values[i] < 0) && err)
+					printf(" -F %s%s-%s", name,
+						audit_operator_to_symbol(op),
+						err);
+				else
+					printf(" -F %s%s%d", name,
+						audit_operator_to_symbol(op),
+						(int)rep->ruledata->values[i]);
 			} else {
 				// The default is signed decimal
 				printf(" -F %s%s%d", name, 
