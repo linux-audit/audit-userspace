@@ -1173,10 +1173,16 @@ static int parse_login(const lnode *n, search_items *s)
 	// get loginuid
 	str = strstr(term, "new auid=");
 	if (str == NULL) {
-		str = strstr(term, "new loginuid=");
-		if (str == NULL)
-			return 7;
-		ptr = str + 13;
+		// 3.14 kernel changed it to the next line
+		str = strstr(term, " auid=");
+		if (str == NULL) {
+			str = strstr(term, "new loginuid=");
+			if (str == NULL)
+				return 7;
+			ptr = str + 13;
+		}
+		else
+			ptr = str + 6;
 	} else
 		ptr = str + 9;
 	term = strchr(ptr, ' ');
@@ -1211,18 +1217,24 @@ static int parse_login(const lnode *n, search_items *s)
 		if (term == NULL)
 			term = n->message;
 		str = strstr(term, "new ses=");
-		if (str) {
-			ptr = str + 8;
-			term = strchr(ptr, ' ');
-			if (term)
-				*term = 0;
-			errno = 0;
-			s->session_id = strtoul(ptr, NULL, 10);
-			if (errno)
-				return 11;
-			if (term)
-				*term = ' ';
+		if (str == NULL) {
+			// The 3.14 kernel changed it to the next line
+			str = strstr(term, " ses=");
+			if (str == NULL)
+				return 14;
+			ptr = str + 5;
 		}
+		else
+			ptr = str + 8;
+		term = strchr(ptr, ' ');
+		if (term)
+			*term = 0;
+		errno = 0;
+		s->session_id = strtoul(ptr, NULL, 10);
+		if (errno)
+			return 11;
+		if (term)
+			*term = ' ';
 	}
 	return 0;
 }
