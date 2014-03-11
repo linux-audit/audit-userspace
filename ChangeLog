@@ -2,6 +2,7 @@
 - In CRYPTO_KEY_USER events, do not interpret the 'fp' field
 - Change formatting of rules listing in auditctl to look like audit.rules
 - Change auditctl to do all netlink comm and then print rules
+- Add a debug option to ausearch to find skipped events
 
 2.3.4
 - Parse path in CONFIG_CHANGE events

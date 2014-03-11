@@ -56,6 +56,7 @@ const char *event_uuid = NULL;
 const char *event_vmname = NULL;
 int event_exit = 0, event_exit_is_set = 0;
 int event_ppid = -1, event_session_id = -2;
+int event_debug = 0;
 
 /* These are used by aureport */
 const char *dummy = "dummy";

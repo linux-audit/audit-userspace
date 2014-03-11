@@ -55,6 +55,7 @@ int just_one = 0;
 int event_session_id = -2;
 int event_exit = 0, event_exit_is_set = 0;
 int line_buffered = 0;
+int event_debug = 0;
 const char *event_key = NULL;
 const char *event_filename = NULL;
 const char *event_exe = NULL;
@@ -81,13 +82,14 @@ S_HOSTNAME, S_INTERP, S_INFILE, S_MESSAGE_TYPE, S_PID, S_SYSCALL, S_OSUCCESS,
 S_TIME_END, S_TIME_START, S_TERMINAL, S_ALL_UID, S_EFF_UID, S_UID, S_LOGINID,
 S_VERSION, S_EXACT_MATCH, S_EXECUTABLE, S_CONTEXT, S_SUBJECT, S_OBJECT,
 S_PPID, S_KEY, S_RAW, S_NODE, S_IN_LOGS, S_JUST_ONE, S_SESSION, S_EXIT,
-S_LINEBUFFERED, S_UUID, S_VMNAME};
+S_LINEBUFFERED, S_UUID, S_VMNAME, S_DEBUG };
 
 static struct nv_pair optiontab[] = {
 	{ S_EVENT, "-a" },
 	{ S_EVENT, "--event" },
 	{ S_COMM, "-c" },
 	{ S_COMM, "--comm" },
+	{ S_DEBUG, "--debug" },
 	{ S_EXIT, "-e" },
 	{ S_EXIT, "--exit" },
 	{ S_FILENAME, "-f" },
@@ -176,6 +178,7 @@ static void usage(void)
 	printf("usage: ausearch [options]\n"
 	"\t-a,--event <Audit event id>\tsearch based on audit event id\n"
 	"\t-c,--comm  <Comm name>\t\tsearch based on command line name\n"
+	"\t --debug\t\t\tWrite malformed events that are skipped to stderr\n"
 	"\t-e,--exit  <Exit code or errno>\tsearch based on syscall exit code\n"
 	"\t-f,--file  <File name>\t\tsearch based on file name\n"
 	"\t-ga,--gid-all <all Group id>\tsearch based on All group ids\n"
@@ -1098,6 +1101,9 @@ int check_params(int count, char *vars[])
 			break;
 		case S_LINEBUFFERED:
 			line_buffered = 1;
+			break;
+		case S_DEBUG:
+			event_debug = 1;
 			break;
 		default:
 			fprintf(stderr, "%s is an unsupported option\n", 

@@ -168,11 +168,17 @@ int extract_search_items(llist *l)
 				ret = parse_tty(n, s);
 				break;
 			default:
-				// printf("unparsed type:%d\n", n->type);
+				if (event_debug)
+					fprintf(stderr,
+						"Unparsed type:%d\n - skipped",
+						n->type);
 				break;
 			}
-			// if (ret) printf("type:%d ret:%d\n", n->type, ret);
-		} while ((n=list_next(l)) && ret==0);
+			if (event_debug && ret)
+				fprintf(stderr,
+					"Malformed event skipped, rc=%d. %s\n",
+					 ret, n->message);
+		} while ((n=list_next(l)) && ret == 0);
 	}
 	return ret;
 }
