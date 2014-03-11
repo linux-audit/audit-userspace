@@ -119,7 +119,9 @@ will cause the audit daemon to stop writing records to the disk. The daemon will
 .IR rotate
 option will cause the audit daemon to rotate the logs. It should be noted that logs with higher numbers are older than logs with lower numbers. This is the same convention used by the logrotate utility. The
 .IR keep_logs
-option is similar to rotate except it does not use the num_logs setting. This prevents audit logs from being overwritten.
+option is similar to rotate except it does not use the num_logs setting. This prevents audit logs from being overwritten. The effect is that logs accumulate and are not deleted \- which will trigger the
+.I space_left_action
+if the volume fills up. This is best used in combination with an external script used to archive logs on a periodic basis.
 .TP
 .I action_mail_acct
 This option should contain a valid email address or alias. The default address is root. If the email address is not local to the machine, you must make sure you have email properly configured on your machine and network. Also, this option requires that /usr/lib/sendmail exists on the machine.
