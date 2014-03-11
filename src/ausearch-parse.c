@@ -1148,8 +1148,29 @@ static int parse_login(const lnode *n, search_items *s)
 	s->uid = strtoul(ptr, NULL, 10);
 	if (errno)
 		return 6;
-	// get loginuid
 	*term = ' ';
+	// optionally get subj
+	if (event_subject) {
+		str = strstr(term, "subj=");
+		if (str) {
+			ptr = str + 5;
+			term = strchr(ptr, ' ');
+			if (term == NULL)
+				return 12;
+			*term = 0;
+			if (audit_avc_init(s) == 0) {
+				anode an;
+
+				anode_init(&an);
+				an.scontext = strdup(str);
+				alist_append(s->avc, &an);
+				*term = ' ';
+			} else
+				return 13;
+			*term = ' ';
+		}
+	}
+	// get loginuid
 	str = strstr(term, "new auid=");
 	if (str == NULL) {
 		str = strstr(term, "new loginuid=");
