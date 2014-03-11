@@ -705,7 +705,8 @@ static void rotate_logs(struct auditd_consumer_data *data,
 	unsigned int len, i;
 	char *oldname, *newname;
 
-	if (data->config->num_logs < 2)
+	if (data->config->max_log_size_action == SZ_ROTATE &&
+				data->config->num_logs < 2)
 		return;
 
 	/* Close audit file. fchmod and fchown errors are not fatal because we

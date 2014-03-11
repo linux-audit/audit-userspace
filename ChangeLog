@@ -3,7 +3,8 @@
 - Change formatting of rules listing in auditctl to look like audit.rules
 - Change auditctl to do all netlink comm and then print rules
 - Add a debug option to ausearch to find skipped events
-- Parse subject, auid, and ses in LOGIN events
+- Parse subject, auid, and ses in LOGIN events (3.14 kernel changed format)
+- In auditd, when shifting logs, ignore the num_logs setting (#950158)
 
 2.3.4
 - Parse path in CONFIG_CHANGE events
