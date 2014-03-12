@@ -234,7 +234,7 @@ void set_allow_links(int allow)
 /*
  * Set everything to its default value
 */
-static void clear_config(struct daemon_conf *config)
+void clear_config(struct daemon_conf *config)
 {
 	config->qos = QOS_NON_BLOCKING;
 	config->sender_uid = 0;

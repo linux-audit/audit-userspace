@@ -33,6 +33,7 @@
 #include <errno.h>
 #include <sys/resource.h>
 #include <sys/stat.h>
+#include <sys/param.h>
 #include <locale.h>
 #include <signal.h>
 #include "libaudit.h"
@@ -60,6 +61,8 @@ extern int force_logs;
 extern int match(llist *l);
 extern void output_record(llist *l);
 
+static int userfile_is_dir = 0;
+
 static int is_pipe(int fd)
 {
 	struct stat st;
@@ -76,6 +79,7 @@ int main(int argc, char *argv[])
 {
 	struct rlimit limit;
 	int rc;
+	struct stat sb;
 
 	/* Check params and build regexpr */
 	setlocale (LC_ALL, "");
@@ -92,9 +96,22 @@ int main(int argc, char *argv[])
 	(void) umask( umask( 077 ) | 027 );
 
 	lol_create(&lo);
-	if (user_file)
-		rc = process_file(user_file);
-	else if (force_logs)
+	if (user_file) {
+		if (stat(user_file, &sb) == -1) {
+               		perror("stat");
+			return 1;
+		}
+		switch (sb.st_mode & S_IFMT) {
+			case S_IFDIR: 
+				userfile_is_dir = 1;
+				rc = process_logs();
+				break;
+			case S_IFREG:
+			default:
+				rc = process_file(user_file);
+				break;
+		}
+	} else if (force_logs)
 		rc = process_logs();
 	else if (is_pipe(0))
 		rc = process_stdin();
@@ -122,11 +139,25 @@ static int process_logs(void)
 	char *filename;
 	int len, num = 0;
 
-	/* Load config so we know where logs are */
-        if (load_config(&config, TEST_SEARCH)) {
-                fprintf(stderr,
-			"NOTE - using built-in logs: %s\n",
-			config.log_file);
+	if (user_file && userfile_is_dir) {
+		char dirname[MAXPATHLEN];
+		clear_config (&config);
+
+		strcpy(dirname, user_file);
+		if (dirname[strlen(dirname)-1] != '/')
+				strcat(dirname, "/");
+		strcat (dirname, "audit.log");
+		free(config.log_file);
+		config.log_file=strdup(dirname);
+		fprintf(stderr, "NOTE - using logs in %s\n", config.log_file);
+	}
+	else {
+		/* Load config so we know where logs are */
+        	if (load_config(&config, TEST_SEARCH)) {
+        	        fprintf(stderr,
+				"NOTE - using built-in logs: %s\n",
+				config.log_file);
+		}
 	}
 
 	/* for each file */

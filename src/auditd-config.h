@@ -84,6 +84,7 @@ struct daemon_conf
 
 void set_allow_links(int allow);
 int load_config(struct daemon_conf *config, log_test_t lt);
+void clear_config(struct daemon_conf *config);
 const char *audit_lookup_format(int fmt);
 int create_log_file(const char *val);
 int resolve_node(struct daemon_conf *config);

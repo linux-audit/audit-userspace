@@ -34,6 +34,7 @@
 #include <sys/resource.h>
 #include <sys/stat.h>
 #include <locale.h>
+#include <sys/param.h>
 #include "libaudit.h"
 #include "auditd-config.h"
 #include "aureport-options.h"
@@ -47,6 +48,7 @@ static FILE *log_fd = NULL;
 static lol lo;
 static int found = 0;
 static int files_to_process = 0; // Logs left when processing multiple
+static int userfile_is_dir = 0;
 static int process_logs(void);
 static int process_log_fd(const char *filename);
 static int process_stdin(void);
@@ -55,6 +57,7 @@ static int get_record(llist **);
 
 extern char *user_file;
 extern int force_logs;
+
 
 static int is_pipe(int fd)
 {
@@ -90,9 +93,24 @@ int main(int argc, char *argv[])
 
 	print_title();
 	lol_create(&lo);
-	if (user_file)
-		rc = process_file(user_file);
-	else if (force_logs)
+	if (user_file) {
+		struct stat sb;
+		if (stat(user_file, &sb) == -1) {
+			perror("stat");
+			return 1;
+		} else {
+			switch (sb.st_mode & S_IFMT) {
+				case S_IFDIR: 
+					userfile_is_dir = 1;
+					rc = process_logs();
+					break;
+				case S_IFREG:
+				default:
+					rc = process_file(user_file);
+					break;
+			}
+		}
+	} else if (force_logs)
 		rc = process_logs();
 	else if (is_pipe(0))
 		rc = process_stdin();
@@ -123,10 +141,23 @@ static int process_logs(void)
 	char *filename;
 	int len, num = 0;
 
-	/* Load config so we know where logs are */
-       	if (load_config(&config, TEST_SEARCH))
-		fprintf(stderr, "NOTE - using built-in logs: %s\n",
-			config.log_file);
+	if (user_file && userfile_is_dir) {
+		char dirname[MAXPATHLEN];
+		clear_config (&config);
+
+		strcpy(dirname, user_file);
+		if (dirname[strlen(dirname)-1] != '/')
+			strcat(dirname, "/");
+		strcat (dirname, "audit.log");
+		free((void *)config.log_file);
+		config.log_file=strdup(dirname);
+		fprintf(stderr, "NOTE - using logs in %s\n", config.log_file);
+	} else {
+		/* Load config so we know where logs are */
+       		if (load_config(&config, TEST_SEARCH))
+			fprintf(stderr, "NOTE - using built-in logs: %s\n",
+				config.log_file);
+	}
 
 	/* for each file */
 	len = strlen(config.log_file) + 16;
