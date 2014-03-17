@@ -335,7 +335,7 @@ static void interpret(char *name, char *val, int comma, int rtype)
 	}
 	type = auparse_interp_adjust_type(rtype, name, val);
 
-	if (rtype == AUDIT_SYSCALL) {
+	if (rtype == AUDIT_SYSCALL || rtype == AUDIT_SECCOMP) {
 		if (machine == (unsigned long)-1) 
 			machine = audit_detect_machine();
 		if (*name == 'a' && strcmp(name, "arch") == 0) {

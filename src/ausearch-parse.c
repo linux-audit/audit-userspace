@@ -1883,6 +1883,37 @@ static int parse_kernel_anom(const lnode *n, search_items *s)
 		} 
 	}
 
+	if (n->type == AUDIT_SECCOMP && event_syscall != -1) {
+		// get arch
+		str = strstr(term, "arch=");
+		if (str == NULL) 
+			return 0;	// A few kernel versions don't have it
+		ptr = str + 5;
+		term = strchr(ptr, ' ');
+		if (term == NULL) 
+			return 12;
+		*term = 0;
+		errno = 0;
+		s->arch = (int)strtoul(ptr, NULL, 16);
+		if (errno) 
+			return 13;
+		*term = ' ';
+		// get syscall
+		str = strstr(term, "syscall=");
+		if (str == NULL)
+			return 14;
+		ptr = str + 8;
+		term = strchr(ptr, ' ');
+		if (term == NULL)
+			return 15;
+		*term = 0;
+		errno = 0;
+		s->syscall = (int)strtoul(ptr, NULL, 10);
+		if (errno)
+			return 16;
+		*term = ' ';
+	}
+
 	return 0;
 }
 

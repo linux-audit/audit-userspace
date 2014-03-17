@@ -1,5 +1,5 @@
 /* ausearch-common.h -- 
- * Copyright 2006-08,2010 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2006-08,2010,2014 Red Hat Inc., Durham, North Carolina.
  * Copyright (c) 2011 IBM Corp.
  * All Rights Reserved.
  *
@@ -41,6 +41,7 @@ extern const char *event_filename;
 extern const char *event_hostname;
 extern const char *event_terminal;
 extern int event_syscall;
+extern int event_machine;
 extern const char *event_exe;
 extern int event_ua, event_ga;
 extern int event_exit, event_exit_is_set;

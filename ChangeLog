@@ -6,6 +6,7 @@
 - Parse subject, auid, and ses in LOGIN events (3.14 kernel changed format)
 - In auditd, when shifting logs, ignore the num_logs setting (#950158)
 - Allow passing a directory as the input file for ausearch/report (LC Bruzenak)
+- Interpret syscall fields in SECCOMP events
 
 2.3.4
 - Parse path in CONFIG_CHANGE events

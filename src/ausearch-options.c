@@ -49,7 +49,7 @@ pid_t event_pid = -1, event_ppid = -1;
 success_t event_success = S_UNSET;
 int event_exact_match = 0;
 uid_t event_uid = -1, event_euid = -1, event_loginuid = -2;
-int event_syscall = -1;
+int event_syscall = -1, event_machine = -1;
 int event_ua = 0, event_ga = 0, event_se = 0;
 int just_one = 0;
 int event_session_id = -2;
@@ -661,6 +661,7 @@ int check_params(int count, char *vars[])
 						optarg);
                                         retval = -1;
 				}
+				event_machine = machine;
                         }
 			c++;
 			break;
