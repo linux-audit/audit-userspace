@@ -7,6 +7,7 @@
 - In auditd, when shifting logs, ignore the num_logs setting (#950158)
 - Allow passing a directory as the input file for ausearch/report (LC Bruzenak)
 - Interpret syscall fields in SECCOMP events
+- Increase a couple buffers to handle longer input
 
 2.3.4
 - Parse path in CONFIG_CHANGE events

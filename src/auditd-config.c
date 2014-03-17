@@ -1,5 +1,5 @@
 /* auditd-config.c -- 
- * Copyright 2004-2011,2013 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2004-2011,2013-14 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -62,7 +62,7 @@ struct nv_list
 	int option;
 };
 
-static char *get_line(FILE *f, char *buf);
+static char *get_line(FILE *f, char *buf, unsigned size);
 static int nv_split(char *buf, struct nv_pair *nv);
 static const struct kw_pair *kw_lookup(const char *val);
 static int log_file_parser(struct nv_pair *nv, int line, 
@@ -281,7 +281,7 @@ int load_config(struct daemon_conf *config, log_test_t lt)
 	int fd, rc, mode, lineno = 1;
 	struct stat st;
 	FILE *f;
-	char buf[128];
+	char buf[160];
 
 	clear_config(config);
 	log_test = lt;
@@ -342,7 +342,7 @@ int load_config(struct daemon_conf *config, log_test_t lt)
 		return 1;
 	}
 
-	while (get_line(f, buf)) {
+	while (get_line(f, buf, sizeof(buf))) {
 		// convert line into name-value pair
 		const struct kw_pair *kw;
 		struct nv_pair nv;
@@ -411,9 +411,9 @@ int load_config(struct daemon_conf *config, log_test_t lt)
 	return 0;
 }
 
-static char *get_line(FILE *f, char *buf)
+static char *get_line(FILE *f, char *buf, unsigned size)
 {
-	if (fgets_unlocked(buf, 128, f)) {
+	if (fgets_unlocked(buf, size, f)) {
 		/* remove newline */
 		char *ptr = strchr(buf, 0x0a);
 		if (ptr)
