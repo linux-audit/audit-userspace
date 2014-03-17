@@ -1,12 +1,12 @@
 Things that need to be done:
 ===========================
-2.3.5
+2.3.6
 * Add arch option to ausearch
 * Add command report
 * Add cross-compile support
 * Update ARM code
 
-2.3.6
+2.3.7
 * Fix auvirt to report AVC's and --proof for --all-events
 * Fix auparse to handle out of order messages
 * If auparse input is a pipe timeout events by wall clock
