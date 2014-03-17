@@ -1,3 +1,5 @@
+2.3.6
+
 2.3.5
 - In CRYPTO_KEY_USER events, do not interpret the 'fp' field
 - Change formatting of rules listing in auditctl to look like audit.rules
