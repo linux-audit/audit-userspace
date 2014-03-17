@@ -1,6 +1,7 @@
 Things that need to be done:
 ===========================
 2.3.5
+* Add arch option to ausearch
 * Add command report
 * Add cross-compile support
 * Update ARM code

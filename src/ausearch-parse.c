@@ -1883,7 +1883,7 @@ static int parse_kernel_anom(const lnode *n, search_items *s)
 		} 
 	}
 
-	if (n->type == AUDIT_SECCOMP && event_syscall != -1) {
+	if (n->type == AUDIT_SECCOMP) {
 		// get arch
 		str = strstr(term, "arch=");
 		if (str == NULL) 
