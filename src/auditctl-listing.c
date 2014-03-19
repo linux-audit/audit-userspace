@@ -27,12 +27,12 @@
 #include "auditctl-listing.h"
 #include "private.h"
 #include "auditctl-llist.h"
-
+#include "auparse-idata.h"
 
 /* Global vars */
 static llist l;
 static int printed;
-extern int list_requested;
+extern int list_requested, interpret;
 extern char key[AUDIT_MAX_KEY_LEN+1];
 extern const char key_sep[2];
 
@@ -103,9 +103,9 @@ static int is_watch(const struct audit_rule_data *r)
 	return 0;
 }
 
-static void print_arch(unsigned int value, int op)
+static int print_arch(unsigned int value, int op)
 {
-	unsigned int machine;
+	int machine;
 	_audit_elf = value;
 	machine = audit_elf_to_machine(_audit_elf);
 	if (machine < 0)
@@ -115,11 +115,12 @@ static void print_arch(unsigned int value, int op)
 		const char *ptr = audit_machine_to_name(machine);
 		printf(" -F arch%s%s", audit_operator_to_symbol(op), ptr);
 	}
+	return machine;
 }
 
-static void print_syscall(const struct audit_rule_data *r)
+static int print_syscall(const struct audit_rule_data *r, unsigned int *sc)
 {
-	int first = 1;
+	int count = 0;
 	int all = 1;
 	unsigned int i;
 	int machine = audit_detect_machine();
@@ -128,7 +129,7 @@ static void print_syscall(const struct audit_rule_data *r)
 	if (((r->flags & AUDIT_FILTER_MASK) == AUDIT_FILTER_USER) ||
 	    ((r->flags & AUDIT_FILTER_MASK) == AUDIT_FILTER_TASK) ||
 	    ((r->flags &AUDIT_FILTER_MASK) == AUDIT_FILTER_EXCLUDE))
-		return;
+		return 0;
 
 	/* See if its all or specific syscalls */
 	for (i = 0; i < (AUDIT_BITMASK_SIZE-1); i++) {
@@ -138,9 +139,10 @@ static void print_syscall(const struct audit_rule_data *r)
 		}
 	}
 
-	if (all)
+	if (all) {
 		printf(" -S all");
-	else for (i = 0; i < AUDIT_BITMASK_SIZE * 32; i++) {
+		count = i;
+	} else for (i = 0; i < AUDIT_BITMASK_SIZE * 32; i++) {
 		int word = AUDIT_WORD(i);
 		int bit  = AUDIT_BIT(i);
 		if (r->mask[word] & bit) {
@@ -151,15 +153,17 @@ static void print_syscall(const struct audit_rule_data *r)
 				ptr = NULL;
 			else
 				ptr = audit_syscall_to_name(i, machine);
-			if (first)
+			if (!count)
 				printf(" -S ");
 			if (ptr)
-				printf("%s%s", first ? "" : ",", ptr);
+				printf("%s%s", !count ? "" : ",", ptr);
 			else
-				printf("%s%d", first ? "" : ",", i);
-			first = 0;
+				printf("%s%d", !count ? "" : ",", i);
+			count++;
+			*sc = i;
 		}
 	}
+	return count;
 }
 
 static void print_field_cmp(int value, int op)
@@ -274,9 +278,10 @@ static void print_field_cmp(int value, int op)
  */
 static void print_rule(const struct audit_rule_data *r)
 {
-	unsigned int i;
+	unsigned int i, count = 0, sc = 0;
 	size_t boffset = 0;
-	int watch = is_watch(r);
+	int mach = -1, watch = is_watch(r);
+	unsigned long long a0 = 0, a1 = 0;
 
 	if (!watch) { /* This is syscall auditing */
 		printf("-a %s,%s",
@@ -288,11 +293,11 @@ static void print_rule(const struct audit_rule_data *r)
 			int field = r->fields[i] & ~AUDIT_OPERATORS;
 			if (field == AUDIT_ARCH) {
 				int op = r->fieldflags[i] & AUDIT_OPERATORS;
-				print_arch(r->values[i], op);
+				mach = print_arch(r->values[i], op);
 			}
 		}
 		// And last do the syscalls
-		print_syscall(r);
+		count = print_syscall(r, &sc);
 	}
 
 	// Now iterate over the fields
@@ -381,10 +386,38 @@ static void print_rule(const struct audit_rule_data *r)
 			} else if (field == AUDIT_FIELD_COMPARE) {
 				print_field_cmp(r->values[i], op);
 			} else if (field >= AUDIT_ARG0 && field <= AUDIT_ARG3){
+				if (field == AUDIT_ARG0)
+					a0 = r->values[i];
+				else if (field == AUDIT_ARG1)
+					a1 = r->values[i];
+
 				// Show these as hex
-				printf(" -F %s%s0x%X", name, 
+				if (count > 1 || interpret == 0)
+					printf(" -F %s%s0x%X", name, 
 						audit_operator_to_symbol(op),
 						r->values[i]);
+				else {	// Use ignore to mean interpret
+					const char *out;
+					idata id;
+					char val[32];
+					int type;
+
+					id.syscall = sc;
+					id.machine = mach;
+					id.a0 = a0;
+					id.a1 = a1;
+					id.name = name;
+					snprintf(val, 32, "%x", r->values[i]);
+					id.val = val;
+					type = auparse_interp_adjust_type(
+						AUDIT_SYSCALL, name, val);
+					out = auparse_do_interpretation(type,
+								 &id);
+					printf(" -F %s%s%s", name,
+						audit_operator_to_symbol(op),
+								out);
+					free((void *)out);
+				}
 			} else if (field == AUDIT_EXIT) {
 				int e = abs((int)r->values[i]);
 				const char *err = audit_errno_to_name(e);

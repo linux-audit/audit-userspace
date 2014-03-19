@@ -40,7 +40,7 @@ auditd_LDADD = @LIBWRAP_LIBS@ -Llibev -lev -Lmt -lauditmt -lpthread -lrt -lm $(g
 auditctl_SOURCES = auditctl.c auditctl-llist.c delete_all.c auditctl-listing.c
 auditctl_CFLAGS = -fPIE -DPIE -g -D_GNU_SOURCE
 auditctl_LDFLAGS = -pie -Wl,-z,relro -Wl,-z,now
-auditctl_LDADD = -L${top_builddir}/lib -laudit
+auditctl_LDADD = -L${top_builddir}/lib -laudit -L${top_builddir}/auparse -lauparse
 
 aureport_SOURCES = aureport.c auditd-config.c ausearch-llist.c aureport-options.c ausearch-string.c ausearch-parse.c aureport-scan.c aureport-output.c ausearch-lookup.c ausearch-int.c ausearch-time.c ausearch-nvpair.c ausearch-avc.c ausearch-lol.c
 aureport_LDADD = -L${top_builddir}/lib -laudit

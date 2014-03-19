@@ -59,7 +59,7 @@ static void get_reply(void);
 extern int delete_all_rules(int fd);
 
 /* Global vars */
-int list_requested = 0;
+int list_requested = 0, interpret = 0;
 char key[AUDIT_MAX_KEY_LEN+1];
 const char key_sep[2] = { AUDIT_KEY_SEPARATOR, 0 };
 static int keylen;
@@ -570,19 +570,28 @@ static int setopt(int count, int lineno, char *vars[])
 		}
 		break;
         case 'l':
-		if (count > 4 || count == 3) {
+		if (count > 4) {
 			fprintf(stderr,
 				"Wrong number of options for list request\n");
 			retval = -1;
 			break;
-		} 
-		if (count == 4) {
+		}
+		if (count == 3) { 
+			if (strcmp(vars[optind], "-i") == 0) {
+				interpret = 1;
+				count -= 1;
+			} else {
+				fprintf(stderr,
+					"Only -k or -i options are allowed\n");
+				retval = -1;
+			}
+		} else if (count == 4) {
 			if (strcmp(vars[optind], "-k") == 0) { 
 				strncat(key, vars[3], keylen);
 				count -= 2;
 			} else {
 				fprintf(stderr,
-					"Only the -k option is allowed\n");
+					"Only -k or -i options are allowed\n");
 				retval = -1;
 				break;
 			}
