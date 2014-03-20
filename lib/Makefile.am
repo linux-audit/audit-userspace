@@ -76,7 +76,7 @@ alpha_tables.h: gen_alpha_tables_h Makefile
 	./gen_alpha_tables_h --lowercase --i2s --s2i alpha_syscall > $@
 endif
 
-if USE_ARMEB
+if USE_ARM
 gen_arm_tables_h_SOURCES = gen_tables.c gen_tables.h arm_table.h
 gen_arm_tables_h_CFLAGS = $(AM_CFLAGS) '-DTABLE_H="arm_table.h"'
 arm_tables.h: gen_arm_tables_h Makefile
