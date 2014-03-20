@@ -189,15 +189,15 @@ AM_CONDITIONAL(USE_ALPHA, test x$use_alpha = xyes)
 AC_MSG_RESULT($use_alpha)
 
 AC_MSG_CHECKING(whether to include arm eabi processor support)
-AC_ARG_WITH(armeb,
-AS_HELP_STRING([--with-armeb],[enable Arm eabi processor support]),
-use_armeb=$withval,
-use_armeb=no)
-if test x$use_armeb != xno ; then
-      AC_DEFINE(WITH_ARMEB,1,[Define if you want to enable Arm eabi processor support.])
+AC_ARG_WITH(arm,
+AS_HELP_STRING([--with-arm],[enable Arm eabi processor support]),
+use_arm=$withval,
+use_arm=no)
+if test x$use_arm != xno ; then
+      AC_DEFINE(WITH_ARM,1,[Define if you want to enable Arm eabi processor support.])
 fi
-AM_CONDITIONAL(USE_ARMEB, test x$use_armeb = xyes)
-AC_MSG_RESULT($use_armeb)
+AM_CONDITIONAL(USE_ARM, test x$use_arm = xyes)
+AC_MSG_RESULT($use_arm)
 
 AC_MSG_CHECKING(whether to include aarch64 processor support)
 AC_ARG_WITH(aarch64,

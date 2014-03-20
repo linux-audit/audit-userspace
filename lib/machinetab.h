@@ -33,12 +33,13 @@ _S(MACH_S390,    "s390"   )
 #ifdef WITH_ALPHA
 _S(MACH_ALPHA,   "alpha"  )
 #endif
-#ifdef WITH_ARMEB
-_S(MACH_ARMEB,   "armeb"  )
-_S(MACH_ARMEB,   "armv5tejl")
-_S(MACH_ARMEB,   "armv5tel")
-_S(MACH_ARMEB,   "armv6l")
-_S(MACH_ARMEB,   "armv7l")
+#ifdef WITH_ARM
+_S(MACH_ARM,   "armeb"  )
+_S(MACH_ARM,   "arm"  )
+_S(MACH_ARM,   "armv5tejl")
+_S(MACH_ARM,   "armv5tel")
+_S(MACH_ARM,   "armv6l")
+_S(MACH_ARM,   "armv7l")
 #endif
 #ifdef WITH_AARCH64
 _S(MACH_AARCH64,   "aarch64"  )

@@ -1306,6 +1306,9 @@ int audit_rule_fieldpair_data(struct audit_rule_data **rulep, const char *pair,
 				else if (bits == ~__AUDIT_ARCH_64BIT &&
 					machine == MACH_S390X)
 						machine = MACH_S390;
+				else if (bits == ~__AUDIT_ARCH_64BIT &&
+					machine == MACH_AARCH64)
+						machine = MACH_ARM;
 
 				/* Check for errors - return -6 
 				 * We don't allow 32 bit machines to specify 
@@ -1328,8 +1331,8 @@ int audit_rule_fieldpair_data(struct audit_rule_data **rulep, const char *pair,
 						if (bits == __AUDIT_ARCH_64BIT)
 							return -6;
 						break;
-#ifdef WITH_ARMEB
-					case MACH_ARMEB:
+#ifdef WITH_ARM
+					case MACH_ARM:
 						if (bits == __AUDIT_ARCH_64BIT)
 							return -6;
 						break;

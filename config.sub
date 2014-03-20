@@ -342,7 +342,7 @@ case $basic_machine in
 		os=-none
 		;;
 	xscaleeb)
-		basic_machine=armeb-unknown
+		basic_machine=arm-unknown
 		;;
 
 	xscaleel)

@@ -38,8 +38,8 @@
 #ifdef WITH_ALPHA
 #include "alpha_tables.h"
 #endif
-#ifdef WITH_ARMEB
-#include "armeb_tables.h"
+#ifdef WITH_ARM
+#include "arm_tables.h"
 #endif
 #ifdef WITH_AARCH64
 #include "aarch64_tables.h"
@@ -76,8 +76,8 @@ static const struct int_transtab elftab[] = {
 #ifdef WITH_ALPHA
     { MACH_ALPHA,   AUDIT_ARCH_ALPHA  },
 #endif
-#ifdef WITH_ARMEB
-    { MACH_ARMEB,   AUDIT_ARCH_ARMEB  },
+#ifdef WITH_ARM
+    { MACH_ARM,   AUDIT_ARCH_ARM  },
 #endif
 #ifdef WITH_AARCH64
     { MACH_AARCH64, AUDIT_ARCH_AARCH64},
@@ -137,9 +137,9 @@ int audit_name_to_syscall(const char *sc, int machine)
 			found = alpha_syscall_s2i(sc, &res);
 			break;
 #endif
-#ifdef WITH_ARMEB
-	        case MACH_ARMEB:
-			found = armeb_syscall_s2i(sc, &res);
+#ifdef WITH_ARM
+	        case MACH_ARM:
+			found = arm_syscall_s2i(sc, &res);
 			break;
 #endif
 #ifdef WITH_AARCH64
@@ -179,9 +179,9 @@ const char *audit_syscall_to_name(int sc, int machine)
 	        case MACH_ALPHA:
 			return alpha_syscall_i2s(sc);
 #endif
-#ifdef WITH_ARMEB
-	        case MACH_ARMEB:
-			return armeb_syscall_i2s(sc);
+#ifdef WITH_ARM
+	        case MACH_ARM:
+			return arm_syscall_i2s(sc);
 #endif
 #ifdef WITH_AARCH64
 	        case MACH_AARCH64:

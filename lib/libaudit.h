@@ -417,7 +417,7 @@ typedef enum {
 	MACH_S390X,
 	MACH_S390,
 	MACH_ALPHA,
-	MACH_ARMEB,
+	MACH_ARM,
 	MACH_AARCH64
 } machine_t;
 

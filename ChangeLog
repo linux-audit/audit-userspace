@@ -1,5 +1,6 @@
 2.3.6
 - Add an option to auditctl to interpret a0 - a3 of syscall rules when listing
+- Improve ARM and AARCH64 support (AKASHI Takahiro)
 
 2.3.5
 - In CRYPTO_KEY_USER events, do not interpret the 'fp' field

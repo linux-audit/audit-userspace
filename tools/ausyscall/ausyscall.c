@@ -71,8 +71,8 @@ int main(int argc, char *argv[])
 					stderr);
 			exit(1);
 #endif
-#ifndef WITH_ARMEB
-		} else if (strcmp("armeb", argv[i]) == 0) {
+#ifndef WITH_ARM
+		} else if (strcmp("arm", argv[i]) == 0) {
 			fputs("Arm eabi processor support is not enabled\n",
 					stderr);
 			exit(1);
