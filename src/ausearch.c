@@ -42,6 +42,7 @@
 #include "ausearch-lol.h"
 #include "ausearch-lookup.h"
 #include "auparse.h"
+#include "ausearch-checkpt.h"
 
 
 static FILE *log_fd = NULL;
@@ -56,6 +57,8 @@ static int process_stdin(void);
 static int process_file(char *filename);
 static int get_record(llist **);
 
+extern const char *checkpt_filename;	/* checkpoint file name */
+static int have_chkpt_data = 0;		/* have checkpt need to compare wit */
 extern char *user_file;
 extern int force_logs;
 extern int match(llist *l);
@@ -95,6 +98,31 @@ int main(int argc, char *argv[])
 	set_aumessage_mode(MSG_STDERR, DBG_NO);
 	(void) umask( umask( 077 ) | 027 );
 
+	/* Load the checkpoint file if requested */
+	if (checkpt_filename) {
+		rc = load_ChkPt(checkpt_filename);
+		/*
+ 		 * If < -1, then some load/parse error
+ 		 * If == -1 then no file present (OK)
+		 * If == 0, then checkpoint has data
+ 		 */
+		if (rc < -1) {
+			(void)free((void *)checkpt_filename);
+			free_ChkPtMemory();
+			return 10;	/* bad checkpoint status file */
+		} else if (rc == -1) {
+			/*
+ 			 * No file, so no checking required. This just means
+ 			 * we have never checkpointed before and this is the
+ 			 * first time.
+ 			 */
+			have_chkpt_data = 0;
+		} else {
+			/* We will need to check */
+			have_chkpt_data++;
+		}
+	}
+	
 	lol_create(&lo);
 	if (user_file) {
 		if (stat(user_file, &sb) == -1) {
@@ -117,6 +145,18 @@ int main(int argc, char *argv[])
 		rc = process_stdin();
 	else
 		rc = process_logs();
+
+	/* Generate a checkpoint if required */
+	if (checkpt_filename) {
+		/* Providing we found something and haven't failed */
+		if (!checkpt_failure && found)
+			save_ChkPt(checkpt_filename);
+		free_ChkPtMemory();
+		free((void *)checkpt_filename);
+		if (checkpt_failure)
+			rc = 11;
+	}
+
 	lol_clear(&lo);
 	ilist_clear(event_type);
 	free(event_type);
@@ -138,6 +178,8 @@ static int process_logs(void)
 	struct daemon_conf config;
 	char *filename;
 	int len, num = 0;
+	int found_chkpt_file = -1;
+	int ret;
 
 	if (user_file && userfile_is_dir) {
 		char dirname[MAXPATHLEN];
@@ -173,13 +215,42 @@ static int process_logs(void)
 	do {
 		if (access(filename, R_OK) != 0)
 			break;
+		
+		/*
+		 * If we have prior checkpoint data, we ignore files till we
+		 * find the file we last checkpointed from
+		 */
+		if (checkpt_filename && have_chkpt_data) {
+			struct stat sbuf;
+
+			if (stat(filename, &sbuf)) {
+				fprintf(stderr, "Error stat'ing %s (%s)\n",
+					filename, strerror(errno));
+				free(filename);
+				return 1;
+			}
+			/*
+			 * Have we accessed the checkpointed file?
+			 * If so, stop checking further files.
+			 */
+			if (	(sbuf.st_dev == chkpt_input_dev) &&
+				(sbuf.st_ino == chkpt_input_ino) ) {
+				found_chkpt_file = num++;
+				break;
+			}
+		}
+
 		num++;
 		snprintf(filename, len, "%s.%d", config.log_file, num);
 	} while (1);
+
+	/* If a checkpoint is loaded but can't find it's file, error */
+	if (checkpt_filename && have_chkpt_data && found_chkpt_file == -1)
+		return 10;
+
 	num--;
-	/*
-	 * We note how many files we need to process
-	 */
+
+	/* We note how many files we need to process */
 	files_to_process = num;
 
 	/* Got it, now process logs from last to first */
@@ -188,7 +259,6 @@ static int process_logs(void)
 	else
 		snprintf(filename, len, "%s", config.log_file);
 	do {
-		int ret;
 		if ((ret = process_file(filename))) {
 			free(filename);
 			free_config(&config);
@@ -207,8 +277,74 @@ static int process_logs(void)
 		else
 			break;
 	} while (1);
+	/*
+ 	 * If performing a checkpoint, set the checkpointed
+	 * file details - ie remember the last file processed
+	 */
+	ret = 0;
+	if (checkpt_filename)
+		ret = set_ChkPtFileDetails(filename);
+
 	free(filename);
 	free_config(&config);
+	return ret;
+}
+
+/*
+ * Decide if we should start outputing events given we loaded a checkpoint.
+ *
+ * The previous checkpoint will have recorded the last event outputted,
+ * if there was one. If nothing is to be output, either the audit.log file
+ * is empty, all the events in it were incomplete, or ???
+ *
+ * We can return
+ * 	0 	no output
+ * 	1	can output
+ * 	2	can output but not this event
+ */
+static int chkpt_output_decision(event * e)
+{
+	static int can_output = 0;
+
+	/* Short cut. Once we made the decision, it's made for good */
+	if (can_output)
+		return 1;
+
+	/* If there was no checkpoint file, we turn on output */
+	if (have_chkpt_data == 0) {
+		can_output = 1;
+		return 1;	/* can output on this event */
+	}
+
+	/*
+	 * If the previous checkpoint had no recorded output, then
+	 * we assume everything was partial so we turn on output
+	 */
+	if (chkpt_input_levent.sec == 0) {
+		can_output = 1;
+		return 1;	/* can output on this event */
+	}
+
+	if ( chkpt_input_levent.sec == e->sec &&
+		chkpt_input_levent.milli == e->milli &&
+		chkpt_input_levent.serial == e->serial &&
+		chkpt_input_levent.type == e->type ) {
+
+		/* So far a match, so now check the nodes */
+		if (chkpt_input_levent.node == NULL && e->node == NULL) {
+			can_output = 1;
+			return 2;	/* output after this event */
+		}
+		if ( chkpt_input_levent.node && e->node &&
+			(strcmp(chkpt_input_levent.node, e->node) == 0) ) {
+			can_output = 1;
+			return 2;	/* output after this event */
+		}
+		/*
+ 		 * The nodes are different. Drop through to a no output return
+ 		 * value
+ 		 */
+	}
 	return 0;
 }
 
@@ -216,6 +352,7 @@ static int process_log_fd(void)
 {
 	llist *entries; // entries in a record
 	int ret;
+	int do_output = 1;
 
 	/* For each record in file */
 	do {
@@ -223,10 +360,34 @@ static int process_log_fd(void)
 		if ((ret != 0)||(entries->cnt == 0)) {
 			break;
 		}
-
+		/* 
+ 		 * We flush all events on the last log file being processed.
+ 		 * Thus incomplete events are 'carried forward' to be
+ 		 * completed from the rest of it's records we expect to find
+ 		 * in the next file we are about to process.
+ 		 */
 		if (match(entries)) {
-			output_record(entries);
-			found = 1;
+			/*
+			 * If we are checkpointing, decide if we output
+			 * this event
+			 */
+			if (checkpt_filename)
+				do_output = chkpt_output_decision(&entries->e);
+
+			if (do_output == 1) {
+				found = 1;
+				output_record(entries);
+
+				/* Remember this event if checkpointing */
+				if (checkpt_filename) {
+					if (set_ChkPtLastEvent(&entries->e)) {
+						list_clear(entries);
+						free(entries);
+						fclose(log_fd);
+						return 4;	/* no memory */
+					}
+				}
+			}
 			if (just_one) {
 				list_clear(entries);
 				free(entries);
@@ -325,20 +486,21 @@ static int get_record(llist **l)
 		} else {
 			free(buff);
 			/*
-			 * If we get an EINTR error or we are at end of file, we
-			 * check to see if we have any events to print and return
-			 * appropriately.
-			 * If we are the last file being processed, we mark all incomplete
-			 * events as complete so they will be printed.
+			 * If we get an EINTR error or we are at EOF, we check
+			 * to see if we have any events to print and return
+			 * appropriately. If we are the last file being
+			 * processed, we mark all incomplete events as
+			 * complete so they will be printed.
 			 */
-
 			if ((ferror_unlocked(log_fd) &&
 			     errno == EINTR) || feof_unlocked(log_fd)) {
 				/*
-				 * Only mark all events as L_COMPLETE if we are the
-				 * last file being processed.
+				 * Only mark all events as L_COMPLETE if we are
+				 * the last file being processed.
+				 * We DO NOT do this if we are checkpointing.
 				 */
 				if (files_to_process == 0) {
+					if (!checkpt_filename)
 					terminate_all_events(&lo);
 				}
 				*l = get_ready_event(&lo);

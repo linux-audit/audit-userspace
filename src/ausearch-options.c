@@ -66,6 +66,7 @@ const char *event_subject = NULL;
 const char *event_object = NULL;
 const char *event_uuid = NULL;
 const char *event_vmname = NULL;
+const char *checkpt_filename = NULL;	/* checkpoint filename if present */
 report_t report_format = RPT_DEFAULT;
 ilist *event_type;
 
@@ -82,13 +83,14 @@ S_HOSTNAME, S_INTERP, S_INFILE, S_MESSAGE_TYPE, S_PID, S_SYSCALL, S_OSUCCESS,
 S_TIME_END, S_TIME_START, S_TERMINAL, S_ALL_UID, S_EFF_UID, S_UID, S_LOGINID,
 S_VERSION, S_EXACT_MATCH, S_EXECUTABLE, S_CONTEXT, S_SUBJECT, S_OBJECT,
 S_PPID, S_KEY, S_RAW, S_NODE, S_IN_LOGS, S_JUST_ONE, S_SESSION, S_EXIT,
-S_LINEBUFFERED, S_UUID, S_VMNAME, S_DEBUG };
+S_LINEBUFFERED, S_UUID, S_VMNAME, S_DEBUG, S_CHECKPOINT };
 
 static struct nv_pair optiontab[] = {
 	{ S_EVENT, "-a" },
 	{ S_EVENT, "--event" },
 	{ S_COMM, "-c" },
 	{ S_COMM, "--comm" },
+	{ S_CHECKPOINT, "--checkpoint" },
 	{ S_DEBUG, "--debug" },
 	{ S_EXIT, "-e" },
 	{ S_EXIT, "--exit" },
@@ -178,6 +180,7 @@ static void usage(void)
 	printf("usage: ausearch [options]\n"
 	"\t-a,--event <Audit event id>\tsearch based on audit event id\n"
 	"\t-c,--comm  <Comm name>\t\tsearch based on command line name\n"
+	"\t--checkpoint <checkpoint file>\tsearch from last complete event\n"
 	"\t --debug\t\t\tWrite malformed events that are skipped to stderr\n"
 	"\t-e,--exit  <Exit code or errno>\tsearch based on syscall exit code\n"
 	"\t-f,--file  <File name>\t\tsearch based on file name\n"
@@ -1105,6 +1108,19 @@ int check_params(int count, char *vars[])
 			break;
 		case S_DEBUG:
 			event_debug = 1;
+			break;
+		case S_CHECKPOINT:
+			if (!optarg) {
+				fprintf(stderr, 
+					"Argument is required for %s\n",
+					vars[c]);
+				retval = -1;
+			} else {
+				checkpt_filename = strdup(optarg);
+        	                if (checkpt_filename == NULL)
+                	                retval = -1;
+				c++;
+			}
 			break;
 		default:
 			fprintf(stderr, "%s is an unsupported option\n", 

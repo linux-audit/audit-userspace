@@ -24,6 +24,25 @@ Search for an event based on the given \fIcomm name\fP. The comm name is the exe
 .BR \-\-debug
 Write malformed events that are skipped to stderr.
 .TP
+.BR \-\-checkpoint \ \fIcheckpoint-file\fP
+Checkpoint the output between successive invocations of ausearch such that only events not
+previously output will print in subsequent invocations.
+
+An auditd event is made up of one or more records. When processing events, ausearch defines
+events as either complete or in-complete.  A complete event is either a single record event or
+one whose event time occurred 2 seconds in the past compared to the event being currently
+processed.
+
+A checkpoint is achieved by recording the last completed event output along with the device
+number and inode of the file the last completed event appeared in \fIcheckpoint-file\fP. On a subsequent invocation,
+ausearch will load this checkpoint data and as it processes the log files, it will discard all
+complete events until it matches the checkpointed one. At this point, it will start
+outputting complete events.
+
+Should the file or checkpointed completed event not be found, an error will result and ausearch
+will terminate.
+
+.TP
 .BR \-e,\  \-\-exit \ \fIexit-code-or-errno\fP
 Search for an event based on the given syscall \fIexit code or errno\fP.
 .TP
@@ -147,6 +166,16 @@ String based matches must match the whole word. This category of matches include
 .BR \-x ,\  \-\-executable \ \fIexecutable\fP
 Search for an event matching the given \fIexecutable\fP name.
 
+.SS "Exit status:"
+.TP
+0
+if OK,
+1
+if nothing found, or argument errors or minor file acces/read errors,
+10
+bad checkpoint data,
+11
+checkpoint processing error
 .SH "SEE ALSO"
 .BR auditd (8),
 .BR pam_loginuid (8).
