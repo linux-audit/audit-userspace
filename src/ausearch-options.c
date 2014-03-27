@@ -1,5 +1,5 @@
 /* ausearch-options.c - parse commandline options and configure ausearch
- * Copyright 2005-08,2010-11 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2005-08,2010-11,2014 Red Hat Inc., Durham, North Carolina.
  * Copyright (c) 2011 IBM Corp.
  * All Rights Reserved.
  *
@@ -83,10 +83,11 @@ S_HOSTNAME, S_INTERP, S_INFILE, S_MESSAGE_TYPE, S_PID, S_SYSCALL, S_OSUCCESS,
 S_TIME_END, S_TIME_START, S_TERMINAL, S_ALL_UID, S_EFF_UID, S_UID, S_LOGINID,
 S_VERSION, S_EXACT_MATCH, S_EXECUTABLE, S_CONTEXT, S_SUBJECT, S_OBJECT,
 S_PPID, S_KEY, S_RAW, S_NODE, S_IN_LOGS, S_JUST_ONE, S_SESSION, S_EXIT,
-S_LINEBUFFERED, S_UUID, S_VMNAME, S_DEBUG, S_CHECKPOINT };
+S_LINEBUFFERED, S_UUID, S_VMNAME, S_DEBUG, S_CHECKPOINT, S_ARCH };
 
 static struct nv_pair optiontab[] = {
 	{ S_EVENT, "-a" },
+	{ S_ARCH, "--arch" },
 	{ S_EVENT, "--event" },
 	{ S_COMM, "-c" },
 	{ S_COMM, "--comm" },
@@ -179,9 +180,10 @@ static void usage(void)
 {
 	printf("usage: ausearch [options]\n"
 	"\t-a,--event <Audit event id>\tsearch based on audit event id\n"
+	"\t--arch <CPU>\t\t\tsearch based on the CPU architecture\n"
 	"\t-c,--comm  <Comm name>\t\tsearch based on command line name\n"
 	"\t--checkpoint <checkpoint file>\tsearch from last complete event\n"
-	"\t --debug\t\t\tWrite malformed events that are skipped to stderr\n"
+	"\t--debug\t\t\tWrite malformed events that are skipped to stderr\n"
 	"\t-e,--exit  <Exit code or errno>\tsearch based on syscall exit code\n"
 	"\t-f,--file  <File name>\t\tsearch based on file name\n"
 	"\t-ga,--gid-all <all Group id>\tsearch based on All group ids\n"
@@ -648,23 +650,25 @@ int check_params(int count, char *vars[])
                                 	retval = -1;
 				}
 			} else {
-                                int machine;
-                                machine = audit_detect_machine();
-                                if (machine < 0) {
-                                        fprintf(stderr,
+				if (event_machine == -1) {
+	                                int machine;
+        	                        machine = audit_detect_machine();
+                	                if (machine < 0) {
+                        	                fprintf(stderr,
                                             "Error detecting machine type");
-                                        retval = -1;
-					break;
-                                }
+                                	        retval = -1;
+						break;
+	                                }
+					event_machine = machine;
+				}
 				event_syscall = audit_name_to_syscall(optarg, 
-					machine);
+					event_machine);
 				if (event_syscall == -1) {
 					fprintf(stderr, 
 						"Syscall %s not found\n",
 						optarg);
                                         retval = -1;
 				}
-				event_machine = machine;
                         }
 			c++;
 			break;
@@ -1121,6 +1125,34 @@ int check_params(int count, char *vars[])
                 	                retval = -1;
 				c++;
 			}
+			break;
+		case S_ARCH:
+			if (!optarg) {
+				fprintf(stderr, 
+					"Argument is required for %s\n",
+					vars[c]);
+				retval = -1;
+				break;
+			}
+			if (event_machine != -1) {
+				if (event_syscall != -1)
+					fprintf(stderr, 
+			"Arch needs to be defined before the syscall\n");
+				else
+					fprintf(stderr, 
+						"Arch is already defined\n");
+				retval = -1;
+				break;
+			} else {
+				int machine = audit_determine_machine(optarg);
+				if (machine < 0) {
+					fprintf(stderr, "Unknown arch %s\n",
+						optarg);
+					retval = -1;
+				}
+				event_machine = machine;
+			}
+			c++;
 			break;
 		default:
 			fprintf(stderr, "%s is an unsupported option\n", 

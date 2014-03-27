@@ -1,10 +1,8 @@
 Things that need to be done:
 ===========================
 2.3.6
-* Add arch option to ausearch
 * Add command report
 * Add cross-compile support
-* Update ARM code
 
 2.3.7
 * Fix auvirt to report AVC's and --proof for --all-events

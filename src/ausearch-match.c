@@ -84,14 +84,13 @@ int match(llist *l)
 				if ((event_pid != -1) && 
 						(event_pid != l->s.pid))
 					return 0;
-				if (event_syscall != -1) {
-					if (event_syscall != l->s.syscall)
-						return 0;
-					if (event_machine != -1 && 
+				if (event_machine != -1 && 
 						(event_machine !=
 					audit_elf_to_machine(l->s.arch)))
+					return 0;
+				if ((event_syscall != -1) && 
+					(event_syscall != l->s.syscall))
 						return 0;
-				}
 				if ((event_session_id != -2) &&
 					(event_session_id != l->s.session_id))
 					return 0;

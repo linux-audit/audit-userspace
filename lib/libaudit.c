@@ -1067,6 +1067,77 @@ int audit_rule_interfield_comp_data(struct audit_rule_data **rulep,
 	return 0;
 }
 
+int audit_determine_machine(const char *arch)
+{	// What do we want? i686, x86_64, ia64 or b64, b32
+	int machine;
+	unsigned int bits = 0;
+
+	if (strcasecmp("b64", arch) == 0) {
+		bits = __AUDIT_ARCH_64BIT;
+		machine = audit_detect_machine();
+	} else if (strcasecmp("b32", arch) == 0) {
+		bits = ~__AUDIT_ARCH_64BIT;
+		machine = audit_detect_machine();
+	} 
+	else 
+		machine = audit_name_to_machine(arch);
+
+	if (machine < 0) 
+		return -4;
+
+	/* Here's where we fixup the machine. For example, they give
+	 * x86_64 & want 32 bits we translate that to i686. */
+	if (bits == ~__AUDIT_ARCH_64BIT && machine == MACH_86_64)
+		machine = MACH_X86;
+	else if (bits == ~__AUDIT_ARCH_64BIT && machine == MACH_PPC64)
+		machine = MACH_PPC;
+	else if (bits == ~__AUDIT_ARCH_64BIT && machine == MACH_S390X)
+		machine = MACH_S390;
+	else if (bits == ~__AUDIT_ARCH_64BIT && machine == MACH_AARCH64)
+		machine = MACH_ARM;
+
+	/* Check for errors - return -6 
+	 * We don't allow 32 bit machines to specify 64 bit. */
+	switch (machine)
+	{
+		case MACH_X86:
+			if (bits == __AUDIT_ARCH_64BIT)
+				return -6;
+			break;
+		case MACH_IA64:
+			if (bits == ~__AUDIT_ARCH_64BIT)
+				return -6;
+			break;
+		case MACH_PPC:
+			if (bits == __AUDIT_ARCH_64BIT)
+				return -6;
+			break;
+		case MACH_S390:
+			if (bits == __AUDIT_ARCH_64BIT)
+				return -6;
+			break;
+#ifdef WITH_ARM
+		case MACH_ARM:
+			if (bits == __AUDIT_ARCH_64BIT)
+				return -6;
+			break;
+#endif
+#ifdef WITH_AARCH64
+		case MACH_AARCH64:
+			if (bits != __AUDIT_ARCH_64BIT)
+				return -6;
+			break;
+#endif
+		case MACH_86_64: /* fallthrough */
+		case MACH_PPC64: /* fallthrough */
+		case MACH_S390X: /* fallthrough */
+			break;
+		default:
+			return -6;
+	}
+	return machine;
+}
+
 int audit_rule_fieldpair_data(struct audit_rule_data **rulep, const char *pair,
                               int flags)
 {
@@ -1276,81 +1347,9 @@ int audit_rule_fieldpair_data(struct audit_rule_data **rulep, const char *pair,
 					return -5;
 			}
 			else {
-				// what do we want? i686, x86_64, ia64
-				// or b64, b32
-				int machine;
-				unsigned int bits=0, elf;
 				const char *arch=v;
-				if (strcasecmp("b64", arch) == 0) {
-					bits = __AUDIT_ARCH_64BIT;
-					machine = audit_detect_machine();
-				} else if (strcasecmp("b32", arch) == 0) {
-					bits = ~__AUDIT_ARCH_64BIT;
-					machine = audit_detect_machine();
-				} 
-				else 
-					machine = audit_name_to_machine(arch);
-
-				if (machine < 0) 
-					return -4;
-
-				/* Here's where we fixup the machine.
-				 * for example, they give x86_64 & want 32 bits.
-				 * we translate that to i686. */
-				if (bits == ~__AUDIT_ARCH_64BIT &&
-					machine == MACH_86_64)
-						machine = MACH_X86;
-				else if (bits == ~__AUDIT_ARCH_64BIT &&
-					machine == MACH_PPC64)
-						machine = MACH_PPC;
-				else if (bits == ~__AUDIT_ARCH_64BIT &&
-					machine == MACH_S390X)
-						machine = MACH_S390;
-				else if (bits == ~__AUDIT_ARCH_64BIT &&
-					machine == MACH_AARCH64)
-						machine = MACH_ARM;
-
-				/* Check for errors - return -6 
-				 * We don't allow 32 bit machines to specify 
-				 * 64 bit. */
-				switch (machine)
-				{
-					case MACH_X86:
-						if (bits == __AUDIT_ARCH_64BIT)
-							return -6;
-						break;
-					case MACH_IA64:
-						if (bits == ~__AUDIT_ARCH_64BIT)
-							return -6;
-						break;
-					case MACH_PPC:
-						if (bits == __AUDIT_ARCH_64BIT)
-							return -6;
-						break;
-					case MACH_S390:
-						if (bits == __AUDIT_ARCH_64BIT)
-							return -6;
-						break;
-#ifdef WITH_ARM
-					case MACH_ARM:
-						if (bits == __AUDIT_ARCH_64BIT)
-							return -6;
-						break;
-#endif
-#ifdef WITH_AARCH64
-					case MACH_AARCH64:
-						if (bits != __AUDIT_ARCH_64BIT)
-							return -6;
-						break;
-#endif
-					case MACH_86_64: /* fallthrough */
-					case MACH_PPC64: /* fallthrough */
-					case MACH_S390X: /* fallthrough */
-						break;
-					default:
-						return -6;
-				}
-
+				unsigned int machine, elf;
+				machine = audit_determine_machine(arch);
 				/* OK, we have the machine type, now convert
 				   to elf. */
 				elf = audit_machine_to_elf(machine);
