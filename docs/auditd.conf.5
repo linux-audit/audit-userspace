@@ -1,24 +1,10 @@
-.TH AUDITD.CONF: "5" "Feb 2014" "Red Hat" "System Administration Utilities"
+.TH AUDITD.CONF: "5" "March 2014" "Red Hat" "System Administration Utilities"
 .SH NAME
 auditd.conf \- audit daemon configuration file
 .SH DESCRIPTION
 The file
 .I /etc/audit/auditd.conf
-contains configuration information specific to the audit daemon.
-It should contain one configuration keyword per line, an equal sign,
-and then followed by appropriate configuration information. The
-keywords recognized are:
-.IR  log_file ", " log_format ", " log_group ", "priority_boost ",
-.IR  flush ", " freq ", " num_logs " , " disp_qos " , " dispatcher ",
-.IR  name_format " , " name ", " max_log_file ",
-.IR  max_log_file_action ", " space_left ",
-.IR  action_mail_acct ", " space_left_action ", " admin_space_left ",
-.IR  admin_space_left_action ", " disk_full_action ",
-.IR  disk_error_action ", " tcp_listen_port ",
-.IR  tcp_listen_queue ", " tcp_max_per_addr ", " use_libwrap ",
-.IR  tcp_client_ports ", " tcp_client_max_idle ", " enable_krb5 ",
-.IR  krb5_principal ", and " krb5_key_file ".
-These keywords are described below. All option names and values are case insensitive.
+contains configuration information specific to the audit daemon. Each line should contain one configuration keyword, an equal sign, and then followed by appropriate configuration information. All option names and values are case insensitive. The keywords recognized are listed and described below. Each line should be limited to 160 characters or the line will be skipped. You may add comments to the file by starting the line with a '#' character.
 
 .TP
 .I log_file

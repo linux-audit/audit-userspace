@@ -1,8 +1,8 @@
-.TH AUDISPD.CONF: "5" "Feb 2014" "Red Hat" "System Administration Utilities"
+.TH AUDISPD.CONF: "5" "March 2014" "Red Hat" "System Administration Utilities"
 .SH NAME
 audispd.conf \- the audit event dispatcher configuration file
 .SH DESCRIPTION
-\fBaudispd.conf\fP is the file that controls the configuration of the audit event dispatcher. All option names and values are case insensitive. The options that are available are as follows:
+\fBaudispd.conf\fP is the file that controls the configuration of the audit event dispatcher. Each line should contain one configuration keyword, an equal sign, and then followed by appropriate configuration information. All option names and values are case insensitive. The keywords recognized are listed and described below. Each line should be limited to 160 characters or the line will be skipped. You may add comments to the file by starting the line with a '#' character.
 
 .TP
 .I q_depth

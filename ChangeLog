@@ -3,7 +3,7 @@
 - Improve ARM and AARCH64 support (AKASHI Takahiro)
 - Add ausearch --checkpoint feature (Burn Alting)
 - Add --arch option to ausearch
-- Improve too long config line in audispd
+- Improve too long config line in audispd & auditd
 
 2.3.5
 - In CRYPTO_KEY_USER events, do not interpret the 'fp' field

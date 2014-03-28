@@ -123,7 +123,7 @@ int load_config(daemon_conf_t *config, const char *file)
 	int fd, rc, mode, lineno = 1;
 	struct stat st;
 	FILE *f;
-	char buf[128];
+	char buf[160];
 
 	clear_config(config);
 
