@@ -4,6 +4,7 @@
 - Add ausearch --checkpoint feature (Burn Alting)
 - Add --arch option to ausearch
 - Improve too long config line in audispd & auditd
+- Fix aulast to accept the new AUDIT_LOGIN record format
 
 2.3.5
 - In CRYPTO_KEY_USER events, do not interpret the 'fp' field

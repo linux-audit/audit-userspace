@@ -160,16 +160,28 @@ static void create_new_session(auparse_state_t *au)
 		pid = auparse_get_field_int(au);
 
 	// Get second auid field
-	auparse_find_field(au, "auid");
-	auparse_next_field(au);
-	tauid = auparse_find_field(au, "auid");
+	tauid = auparse_find_field(au, "old-auid");
+	if (tauid)
+		tauid = auparse_find_field(au, "auid");
+	else {	// kernel 3.13 or older
+		auparse_first_record(au);
+		auparse_find_field(au, "auid");
+		auparse_next_field(au);
+		tauid = auparse_find_field(au, "auid");
+	}
 	if (tauid)
 		auid = auparse_get_field_int(au);
 
 	// Get second ses field
-	auparse_find_field(au, "ses"); 
-	auparse_next_field(au);
-	tses = auparse_find_field(au, "ses");
+	tses = auparse_find_field(au, "old-ses");
+	if (tses)
+		tses = auparse_find_field(au, "ses");
+	else {	// kernel 3.13 or older
+		auparse_first_record(au);
+		auparse_find_field(au, "ses"); 
+		auparse_next_field(au);
+		tses = auparse_find_field(au, "ses");
+	}
 	if (tses)
 		ses = auparse_get_field_int(au);
 
@@ -217,7 +229,7 @@ static void update_session_login(auparse_state_t *au)
 	if (tpid)
 		pid = auparse_get_field_int(au);
 
-	// Get ses field
+	// Get ses field - skipping first uid
 	tses = auparse_find_field(au, "ses");
 	if (tses)
 		ses = auparse_get_field_int(au);
@@ -323,7 +335,8 @@ static void update_session_login(auparse_state_t *au)
 		n.status = LOG_OUT;
 		n.loginuid_proof = auparse_get_serial(au);
 		report_session(&n); 
-	}
+	} else if (debug)
+		printf("Session not found or updated\n");
 }
 
 static void update_session_logout(auparse_state_t *au)
