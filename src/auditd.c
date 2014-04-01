@@ -168,7 +168,7 @@ static void child_handler(struct ev_loop *loop, struct ev_signal *sig,
 	int pid;
 
 	while ((pid = waitpid(-1, NULL, WNOHANG)) > 0) {
-		if (pid == dispatcher_pid)
+		if (pid == dispatcher_pid())
 			dispatcher_reaped();
 	}
 }

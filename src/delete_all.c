@@ -83,7 +83,7 @@ int delete_all_rules(int fd)
 			if (rep.type != AUDIT_LIST_RULES)
 				continue;
 
-			if (key_match(&rep.ruledata))
+			if (key_match(rep.ruledata))
 				list_append(&l, rep.ruledata, 
 					sizeof(struct audit_rule_data) +
 					rep.ruledata->buflen);

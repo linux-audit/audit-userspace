@@ -189,7 +189,7 @@ static int process_logs(void)
 		if (dirname[strlen(dirname)-1] != '/')
 				strcat(dirname, "/");
 		strcat (dirname, "audit.log");
-		free(config.log_file);
+		free((void *)config.log_file);
 		config.log_file=strdup(dirname);
 		fprintf(stderr, "NOTE - using logs in %s\n", config.log_file);
 	}
