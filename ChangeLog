@@ -3,8 +3,9 @@
 - Improve ARM and AARCH64 support (AKASHI Takahiro)
 - Add ausearch --checkpoint feature (Burn Alting)
 - Add --arch option to ausearch
-- Improve too long config line in audispd & auditd
+- Improve too long config line in audispd, auditd, and auparse
 - Fix aulast to accept the new AUDIT_LOGIN record format
+- Remove clear_config symbol in auparse
 
 2.3.5
 - In CRYPTO_KEY_USER events, do not interpret the 'fp' field

@@ -1,5 +1,5 @@
 /* internal.h -- 
- * Copyright 2006-07,2013 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2006-07,2013-14 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -74,6 +74,7 @@ struct opaque
 };
 
 // auditd-config.c
+void clear_config(struct daemon_conf *config) hidden;
 int load_config(struct daemon_conf *config, log_test_t lt) hidden;
 void free_config(struct daemon_conf *config) hidden;
 
