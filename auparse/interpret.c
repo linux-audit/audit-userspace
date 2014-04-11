@@ -671,6 +671,7 @@ static const char *print_sockaddr(const char *val)
         if (str == NULL) {
 		if (asprintf(&out, "unknown family(%d)", saddr->sa_family) < 0)
 			out = NULL;
+		free((char *)host);
 		return out;
 	}
 

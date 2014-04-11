@@ -243,8 +243,10 @@ static int parse_up_record(rnode* r)
 					ptr = strtok_r(NULL, " ", &saved);
 					while (ptr && *ptr != '}') {
 						len = strlen(ptr);
-						if ((len+1) >= (256-total))
+						if ((len+1) >= (256-total)) {
+							free(buf);
 							return -1;
+						}
 						if (tmpctx[0]) {
 							to = stpcpy(to, ",");
 							total++;

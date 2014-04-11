@@ -227,6 +227,7 @@ static int process_logs(void)
 				fprintf(stderr, "Error stat'ing %s (%s)\n",
 					filename, strerror(errno));
 				free(filename);
+				free_config(&config);
 				return 1;
 			}
 			/*
@@ -245,8 +246,11 @@ static int process_logs(void)
 	} while (1);
 
 	/* If a checkpoint is loaded but can't find it's file, error */
-	if (checkpt_filename && have_chkpt_data && found_chkpt_file == -1)
+	if (checkpt_filename && have_chkpt_data && found_chkpt_file == -1) {
+		free(filename);
+		free_config(&config);
 		return 10;
+	}
 
 	num--;
 
