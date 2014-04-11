@@ -273,6 +273,6 @@ fi
 
 
 %changelog
-* Mon Mar 17 2014 Steve Grubb <sgrubb@redhat.com> 2.3.6-1
+* Mon Apr 11 2014 Steve Grubb <sgrubb@redhat.com> 2.3.6-1
 - New upstream release
 
