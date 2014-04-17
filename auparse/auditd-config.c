@@ -227,7 +227,7 @@ static char *get_line(FILE *f, char *buf, unsigned size, int *lineno,
 {
 	int too_long = 0;
 
-	if (fgets_unlocked(buf, 128, f)) {
+	while (fgets_unlocked(buf, size, f)) {
 		/* remove newline */
 		char *ptr = strchr(buf, 0x0a);
 		if (ptr) {

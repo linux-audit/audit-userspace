@@ -74,6 +74,7 @@ static int setup_log_file_array(auparse_state_t *au)
 	if (num == 0) {
 		fprintf(stderr, "No log file\n");
 		free_config(&config);
+		free(filename);
 		return 1;
 	}
 	num--;
