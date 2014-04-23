@@ -1,5 +1,6 @@
 2.3.7
 - Limit number of options in a rule in libaudit
+- Auditctl cannot load rule with lots of syscalls (#1089713)
 
 2.3.6
 - Add an option to auditctl to interpret a0 - a3 of syscall rules when listing

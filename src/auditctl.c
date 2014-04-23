@@ -40,17 +40,10 @@
 #include "auditctl-listing.h"
 #include "private.h"
 
-/* This define controls how many rule options we will allow when
- * reading a rule from a file. 64 fields are allowed by the kernel, so I
- * want to allow that plus a few entries for lists and other such items */
-#define NUM_OPTIONS 72
-
 /* This define controls the size of the line that we will request when
- * reading in rules from a file. We need to allow 64 fields. 25 bytes is 
- * the largest syscall name, so lets allow 1600 per line. 
- * Unrealistic - I know. 
+ * reading in rules from a file.
  */
-#define LINE_SIZE 1600
+#define LINE_SIZE 6144
 
 
 /* Global functions */
@@ -1086,9 +1079,8 @@ static int fileopt(const char *file)
 
 	/* Read until eof, lineno starts as 1 */
 	while (get_line(f, buf)) {
-		char *options[NUM_OPTIONS];
-		char *ptr;
-		int idx=0;
+		char *ptr, **fields;
+		int idx=0, nf = (strlen(buf)/3) + 3;
 
 		/* Weed out blank lines */
 		while (buf[idx] == ' ')
@@ -1109,21 +1101,24 @@ static int fileopt(const char *file)
 			continue;
 		}
 		i = 0;
-		options[i++] = "auditctl";
-		options[i++] = ptr;
-		while( (ptr=strtok(NULL, " ")) && i<NUM_OPTIONS-1 ) {
+		fields = malloc(nf * sizeof(char *));
+		fields[i++] = "auditctl";
+		fields[i++] = ptr;
+		while( (ptr=strtok(NULL, " ")) && (i < nf-1)) {
 		        postprocess(ptr);
-			options[i++] = ptr;
+			fields[i++] = ptr;
 		}
 		
-		options[i] = NULL;
+		fields[i] = NULL;
 
 		/* Parse it */
 		if (reset_vars()) {
+			free(fields);
 			fclose(f);
 			return -1;
 		}
-		rc = setopt(i, lineno, options);
+		rc = setopt(i, lineno, fields);
+		free(fields);
 
 		/* handle reply or send rule */
 		if (rc != -3) {
@@ -1180,9 +1175,11 @@ int main(int argc, char *argv[])
 		} else if (errno == ECONNREFUSED) {
 			fprintf(stderr, "The audit system is disabled\n");
 			return 0;
-		} else if (fileopt(argv[2]))
+		} else if (fileopt(argv[2])) {
+			free(rule_new);
 			return 1;
-		else {
+		} else {
+			free(rule_new);
 			if (continue_error < 0)
 				return 1;
 			return 0;
