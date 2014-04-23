@@ -46,8 +46,7 @@ ausearch will load this checkpoint data and as it processes the log files, it wi
 complete events until it matches the checkpointed one. At this point, it will start
 outputting complete events.
 
-Should the file or checkpointed completed event not be found, an error will result and ausearch
-will terminate.
+Should the file or the last checkpointed event not be found, one of a number of errors will result and ausearch will terminate. See \fBEXIT STATUS\fP for detail.
 
 .TP
 .BR \-e,\  \-\-exit \ \fIexit-code-or-errno\fP
@@ -173,16 +172,22 @@ String based matches must match the whole word. This category of matches include
 .BR \-x ,\  \-\-executable \ \fIexecutable\fP
 Search for an event matching the given \fIexecutable\fP name.
 
-.SS "Exit status:"
-.TP
+.SH "EXIT STATUS"
+.TP 5
 0
 if OK,
+.TP
 1
 if nothing found, or argument errors or minor file acces/read errors,
+.TP
 10
-bad checkpoint data,
+invalid checkpoint data found in checkpoint file,
+.TP
 11
 checkpoint processing error
+.TP
+12
+checkpoint event not found in matching log file
 .SH "SEE ALSO"
 .BR auditd (8),
 .BR pam_loginuid (8).

@@ -28,6 +28,17 @@
 
 #include "ausearch-string.h"
 
+/*
+ * MAX_EVENT_DELTA_SECS is the maximum number of seconds it would take for
+ * auditd and the kernel to emit all of an events' records. Thus, when scanning
+ * a list of audit records without any End of Event marker, we can determine if
+ * all an event's records have been collected if we compare that event's time
+ * with the time of the event we are currently scanning. If
+ * MAX_EVENT_DELTA_SECS have passed, then the event is deamed to be complete
+ * and we have all it's records.
+ */
+#define	MAX_EVENT_DELTA_SECS	2
+
 /* Global variables that describe what search is to be performed */
 extern time_t start_time, end_time;
 extern unsigned int event_id;

@@ -31,6 +31,7 @@ int load_ChkPt(const char *fn);
 #define	CP_STATFAILED	0x0002	/* stat() call on last log file failed */
 #define	CP_STATUSIO	0x0004	/* cannot open/read/write checkpoint file */
 #define	CP_STATUSBAD	0x0008	/* malformed status checkpoint entries */
+#define	CP_CORRUPTED	0x0010	/* corrupted times in checkpoint file */
 
 extern unsigned checkpt_failure;
 

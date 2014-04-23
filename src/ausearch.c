@@ -153,8 +153,16 @@ int main(int argc, char *argv[])
 			save_ChkPt(checkpt_filename);
 		free_ChkPtMemory();
 		free((void *)checkpt_filename);
-		if (checkpt_failure)
-			rc = 11;
+		/*
+ 		 * A checkpoint failure at this point means either 
+ 		 * - we failed in attempting to create the checkpouint file
+ 		 *   and so we will return 11
+ 		 * - we had a corrupted checkpoint file and so we will return 12
+ 		 */
+		if (checkpt_failure) {
+			rc = ((checkpt_failure & CP_CORRUPTED) ==
+						 CP_CORRUPTED) ? 12 : 11;
+		}
 	}
 
 	lol_clear(&lo);
@@ -305,6 +313,11 @@ static int process_logs(void)
  * 	0 	no output
  * 	1	can output
  * 	2	can output but not this event
+ * 	3	we have found an event whose time is > MAX_EVENT_DELTA_SECS secs
+ * 		past our checkpoint time, which means this particulare event is
+ * 		complete. This should not happen, for we should have found our
+ * 		checkpoint event before ANY other completed event.
+ *
  */
 static int chkpt_output_decision(event * e)
 {
@@ -345,10 +358,30 @@ static int chkpt_output_decision(event * e)
 			return 2;	/* output after this event */
 		}
 		/*
- 		 * The nodes are different. Drop through to a no output return
- 		 * value
+ 		 * The nodes are different. Drop through to further checks.
  		 */
 	}
+	/*
+	 * If the event we are looking at is more than MAX_EVENT_DELTA_SECS
+	 * seconds past our checkpoint event, then by definition we should
+	 * have had a complete event (ie a complete event is one where at
+	 * least MAX_EVENT_DELTA_SECS seconds have passed since it's last
+	 * output record).
+	 * This means there is a problem, for the recorded checkpoint event was
+	 * the last complete event in the file when we last processed it.
+	 * Normally we see this if the checkpoint is very old and the system
+	 * has used the same inode again in an audit log file.
+	 */
+	if ( (chkpt_input_levent.sec < e->sec) &&
+		((e->sec - chkpt_input_levent.sec) > MAX_EVENT_DELTA_SECS) ) {
+/*		fprintf(stderr, "%s %lu.%03d:%lu vs %s %lu.%03d:%lu\n",
+			chkpt_input_levent.host ? chkpt_input_levent.host : "-",
+			chkpt_input_levent.sec, chkpt_input_levent.milli,
+			chkpt_input_levent.serial,
+			e->host, e->sec, e->milli, e->serial); */
+		return 3;
+	}
+
 	return 0;
 }
 
@@ -391,6 +424,19 @@ static int process_log_fd(void)
 						return 4;	/* no memory */
 					}
 				}
+			} else if (do_output == 3) {
+				fprintf(stderr,
+			"Corrupted checkpoint file. Inode match, but newer complete event (%lu.%03d:%lu) found before loaded checkpoint %lu.%03d:%lu\n",
+					entries->e.sec, entries->e.milli,
+					entries->e.serial,
+					chkpt_input_levent.sec,
+					chkpt_input_levent.milli,
+					chkpt_input_levent.serial);
+				checkpt_failure |= CP_CORRUPTED;
+				list_clear(entries);
+				free(entries);
+				fclose(log_fd);
+				return 10;
 			}
 			if (just_one) {
 				list_clear(entries);
