@@ -802,6 +802,9 @@ int audit_rule_interfield_comp_data(struct audit_rule_data **rulep,
 	if (f == NULL)
 		return -1;
 
+	if (rule->field_count >= (AUDIT_MAX_FIELDS - 1))
+		return -28;
+
 	/* look for 2-char operators first
 	   then look for 1-char operators afterwards
 	   when found, null out the bytes under the operators to split
@@ -1151,6 +1154,9 @@ int audit_rule_fieldpair_data(struct audit_rule_data **rulep, const char *pair,
 
 	if (f == NULL)
 		return -1;
+
+	if (rule->field_count >= (AUDIT_MAX_FIELDS - 1))
+		return -28;
 
 	/* look for 2-char operators first
 	   then look for 1-char operators afterwards

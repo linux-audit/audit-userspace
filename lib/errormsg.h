@@ -61,5 +61,6 @@ static const struct msg_tab err_msgtab[] = {
     { -25,    2,    "-C missing value after operation for "},
     { -26,    2,    "-C unknown field:" },
     { -27,    2,    "-C unknown right hand value for comparison with:" },
+    { -28,    2,    "Too many fields in rule" },
 };
 #endif
