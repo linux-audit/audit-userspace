@@ -2,6 +2,7 @@
 - Limit number of options in a rule in libaudit
 - Auditctl cannot load rule with lots of syscalls (#1089713)
 - In ausearch, fix checkpointing when inode is reused by new log (Burn Alting)
+- Add PROCTITLE and FEATURE_CHANGE event types
 
 2.3.6
 - Add an option to auditctl to interpret a0 - a3 of syscall rules when listing
