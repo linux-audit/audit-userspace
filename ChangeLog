@@ -1,3 +1,5 @@
+2.3.8
+
 2.3.7
 - Limit number of options in a rule in libaudit
 - Auditctl cannot load rule with lots of syscalls (#1089713)
