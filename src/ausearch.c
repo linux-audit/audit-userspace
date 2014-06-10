@@ -374,7 +374,7 @@ static int chkpt_output_decision(event * e)
 	 */
 	if ( (chkpt_input_levent.sec < e->sec) &&
 		((e->sec - chkpt_input_levent.sec) > MAX_EVENT_DELTA_SECS) ) {
-/*		fprintf(stderr, "%s %lu.%03d:%lu vs %s %lu.%03d:%lu\n",
+/*		fprintf(stderr, "%s %lu.%03u:%lu vs %s %lu.%03u:%lu\n",
 			chkpt_input_levent.host ? chkpt_input_levent.host : "-",
 			chkpt_input_levent.sec, chkpt_input_levent.milli,
 			chkpt_input_levent.serial,
@@ -426,7 +426,7 @@ static int process_log_fd(void)
 				}
 			} else if (do_output == 3) {
 				fprintf(stderr,
-			"Corrupted checkpoint file. Inode match, but newer complete event (%lu.%03d:%lu) found before loaded checkpoint %lu.%03d:%lu\n",
+			"Corrupted checkpoint file. Inode match, but newer complete event (%lu.%03u:%lu) found before loaded checkpoint %lu.%03u:%lu\n",
 					entries->e.sec, entries->e.milli,
 					entries->e.serial,
 					chkpt_input_levent.sec,
