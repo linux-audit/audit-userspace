@@ -1578,41 +1578,47 @@ static int parse_integrity(const lnode *n, search_items *s)
 		}
 	}
 
-	str = strstr(term, "comm=");
-	if (str) {
-		str += 5;
-		if (*str == '"') {
-			str++;
-			term = strchr(str, '"');
-			if (term == NULL)
-				return 7;
-			*term = 0;
-			s->comm = strdup(str);
-			*term = '"';
-		} else
-			s->comm = unescape(str);
+	if (event_comm) {
+		str = strstr(term, "comm=");
+		if (str) {
+			str += 5;
+			if (*str == '"') {
+				str++;
+				term = strchr(str, '"');
+				if (term == NULL)
+					return 7;
+				*term = 0;
+				s->comm = strdup(str);
+				*term = '"';
+			} else
+				s->comm = unescape(str);
+		}
 	}
 
-	str = strstr(term, " name=");
-	if (str) {
-		str += 6;
-		if (common_path_parser(s, str))
-			return 8;
+	if (event_filename) {
+		str = strstr(term, " name=");
+		if (str) {
+			str += 6;
+			if (common_path_parser(s, str))
+				return 8;
+		}
 	}
 
 	// and results (usually last)
-	str = strstr(term, "res=");
-	if (str != NULL) {
-		ptr = str + 4;
-		term = strchr(ptr, ' ');
-		if (term)
-			*term = 0;
-		errno = 0;
-		s->success = strtoul(ptr, NULL, 10);
-		if (errno)
-			return 9;
-		if (term)
-			*term = ' ';
+	if (event_success != S_UNSET) {
+		str = strstr(term, "res=");
+		if (str != NULL) {
+			ptr = str + 4;
+			term = strchr(ptr, ' ');
+			if (term)
+				*term = 0;
+			errno = 0;
+			s->success = strtoul(ptr, NULL, 10);
+			if (errno)
+				return 9;
+			if (term)
+				*term = ' ';
+		}
 	}
 
 	return 0;
@@ -1846,20 +1852,22 @@ static int parse_kernel_anom(const lnode *n, search_items *s)
 		}
 	}
 
-	str = strstr(term, "ses=");
-	if (str) {
-		ptr = str + 4;
-		term = strchr(ptr, ' ');
-		if (term)
-			*term = 0;
-		errno = 0;
-		s->session_id = strtoul(ptr, NULL, 10);
-		if (errno)
-			return 7;
-		if (term)
-			*term = ' ';
-		else
-			term = ptr;
+	if (event_session_id != -2) {
+		str = strstr(term, "ses=");
+		if (str) {
+			ptr = str + 4;
+			term = strchr(ptr, ' ');
+			if (term)
+				*term = 0;
+			errno = 0;
+			s->session_id = strtoul(ptr, NULL, 10);
+			if (errno)
+				return 7;
+			if (term)
+				*term = ' ';
+			else
+				term = ptr;
+		}
 	}
 
 	if (event_subject) {
