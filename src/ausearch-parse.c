@@ -332,20 +332,22 @@ static int parse_syscall(lnode *n, search_items *s)
 		if (errno)
 			return 21;
 	}
-	// uid
-	*term = ' ';
-	str = strstr(term, "uid=");
-	if (str == NULL)
-		return 22;
-	ptr = str + 4;
-	term = strchr(ptr, ' ');
-	if (term == NULL)
-		return 23;
-	*term = 0;
-	errno = 0;
-	s->uid = strtoul(ptr, NULL, 10);
-	if (errno)
-		return 24;
+	// optionally get uid
+	if (event_uid != -1) {
+		*term = ' ';
+		str = strstr(term, "uid=");
+		if (str == NULL)
+			return 22;
+		ptr = str + 4;
+		term = strchr(ptr, ' ');
+		if (term == NULL)
+			return 23;
+		*term = 0;
+		errno = 0;
+		s->uid = strtoul(ptr, NULL, 10);
+		if (errno)
+			return 24;
+	}
 	// gid
 	*term = ' ';
 	str = strstr(term, "gid=");
@@ -742,20 +744,22 @@ static int parse_user(const lnode *n, search_items *s)
 			return 3;
 		*term = ' ';
 	}
-	// get uid
-	str = strstr(term, "uid=");
-	if (str == NULL)
-		return 4;
-	ptr = str + 4;
-	term = strchr(ptr, ' ');
-	if (term == NULL)
-		return 5;
-	*term = 0;
-	errno = 0;
-	s->uid = strtoul(ptr, NULL, 10);
-	if (errno)
-		return 6;
-	*term = ' ';
+	// optionally get uid
+	if (event_uid != -1) {
+		str = strstr(term, "uid=");
+		if (str == NULL)
+			return 4;
+		ptr = str + 4;
+		term = strchr(ptr, ' ');
+		if (term == NULL)
+			return 5;
+		*term = 0;
+		errno = 0;
+		s->uid = strtoul(ptr, NULL, 10);
+		if (errno)
+			return 6;
+		*term = ' ';
+	}
 	// optionally get loginuid
 	if (event_loginuid != -2) {
 		*term = ' ';
@@ -882,28 +886,31 @@ static int parse_user(const lnode *n, search_items *s)
 				return 30;
 		}
 	}
-	// get uid - some records the second uid is what we want.
+	// optionally get uid - some records the second uid is what we want.
 	// USER_LOGIN for example.
-	str = strstr(term, "uid=");
-	if (str) {
-		if (*(str - 1) == 'a' || *(str - 1) == 's' || *(str - 1) == 'u')
-			goto skip;
-		if (!(*(str - 1) == '\'' || *(str - 1) == ' '))
-			return 25;
-		ptr = str + 4;
-		term = ptr;
-		while (isdigit(*term))
-			term++;
-		if (term == ptr)
-			return 14;
+	if (event_uid != -1) {
+		str = strstr(term, "uid=");
+		if (str) {
+			if (*(str - 1) == 'a' || *(str - 1) == 's' ||
+					*(str - 1) == 'u')
+				goto skip;
+			if (!(*(str - 1) == '\'' || *(str - 1) == ' '))
+				return 25;
+			ptr = str + 4;
+			term = ptr;
+			while (isdigit(*term))
+				term++;
+			if (term == ptr)
+				return 14;
 
-		saved = *term;
-		*term = 0;
-		errno = 0;
-		s->uid = strtoul(ptr, NULL, 10);
-		if (errno)
-			return 15;
-		*term = saved;
+			saved = *term;
+			*term = 0;
+			errno = 0;
+			s->uid = strtoul(ptr, NULL, 10);
+			if (errno)
+				return 15;
+			*term = saved;
+		}
 	}
 skip:
 	mptr = term + 1;
@@ -1490,19 +1497,21 @@ static int parse_integrity(const lnode *n, search_items *s)
 		*term = ' ';
 	}
 
-	// get uid
-	str = strstr(term, " uid=");
-	if (str) {
-		ptr = str + 4;
-		term = strchr(ptr, ' ');
-		if (term == NULL)
-			return 3;
-		*term = 0;
-		errno = 0;
-		s->uid = strtoul(ptr, NULL, 10);
-		if (errno)
-			return 4;
-		*term = ' ';
+	// optionally get uid
+	if (event_uid != -1) {
+		str = strstr(term, " uid=");
+		if (str) {
+			ptr = str + 4;
+			term = strchr(ptr, ' ');
+			if (term == NULL)
+				return 3;
+			*term = 0;
+			errno = 0;
+			s->uid = strtoul(ptr, NULL, 10);
+			if (errno)
+				return 4;
+			*term = ' ';
+		}
 	}
 
 	// optionally get loginuid
@@ -1794,19 +1803,21 @@ static int parse_kernel_anom(const lnode *n, search_items *s)
 			term = ptr;
 	}
 
-	// get uid
-	str = strstr(term, "uid="); // if promiscuous, we start over
-	if (str) {
-		ptr = str + 4;
-		term = strchr(ptr, ' ');
-		if (term == NULL)
-			return 3;
-		*term = 0;
-		errno = 0;
-		s->uid = strtoul(ptr, NULL, 10);
-		if (errno)
-			return 4;
-		*term = ' ';
+	// optionally get uid
+	if (event_uid != -1) {
+		str = strstr(term, "uid="); // if promiscuous, we start over
+		if (str) {
+			ptr = str + 4;
+			term = strchr(ptr, ' ');
+			if (term == NULL)
+				return 3;
+			*term = 0;
+			errno = 0;
+			s->uid = strtoul(ptr, NULL, 10);
+			if (errno)
+				return 4;
+			*term = ' ';
+		}
 	}
 
 	// get gid
@@ -2096,19 +2107,21 @@ static int parse_tty(const lnode *n, search_items *s)
 		}
 	}
 
-	// get uid
-	str = strstr(term, " uid="); // if promiscuous, we start over
-	if (str) {
-		ptr = str + 4;
-		term = strchr(ptr, ' ');
-		if (term == NULL)
-			return 3;
-		*term = 0;
-		errno = 0;
-		s->uid = strtoul(ptr, NULL, 10);
-		if (errno)
-			return 4;
-		*term = ' ';
+	// optionally get uid
+	if (event_uid != -1) {
+		str = strstr(term, " uid="); // if promiscuous, we start over
+		if (str) {
+			ptr = str + 4;
+			term = strchr(ptr, ' ');
+			if (term == NULL)
+				return 3;
+			*term = 0;
+			errno = 0;
+			s->uid = strtoul(ptr, NULL, 10);
+			if (errno)
+				return 4;
+			*term = ' ';
+		}
 	}
 
 	// optionally get loginuid
