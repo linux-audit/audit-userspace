@@ -2111,7 +2111,7 @@ static int parse_tty(const lnode *n, search_items *s)
 		*term = ' ';
 	}
 
-	// optionall get loginuid
+	// optionally get loginuid
 	if (event_loginuid != -2) {
 		str = strstr(term, "auid=");
 		if (str == NULL)
