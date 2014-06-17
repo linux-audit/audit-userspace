@@ -1,5 +1,5 @@
 2.3.8
-- Optionally parse loginuids & uids in ausearch/report
+- Optionally parse loginuids, uids, & gids in ausearch/report
 
 2.3.7
 - Limit number of options in a rule in libaudit

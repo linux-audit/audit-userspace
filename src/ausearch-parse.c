@@ -331,10 +331,10 @@ static int parse_syscall(lnode *n, search_items *s)
 		s->loginuid = strtoul(ptr, NULL, 10);
 		if (errno)
 			return 21;
+		*term = ' ';
 	}
 	// optionally get uid
 	if (event_uid != -1) {
-		*term = ' ';
 		str = strstr(term, "uid=");
 		if (str == NULL)
 			return 22;
@@ -347,21 +347,25 @@ static int parse_syscall(lnode *n, search_items *s)
 		s->uid = strtoul(ptr, NULL, 10);
 		if (errno)
 			return 24;
+		*term = ' ';
 	}
-	// gid
-	*term = ' ';
-	str = strstr(term, "gid=");
-	if (str == NULL)
-		return 25;
-	ptr = str + 4;
-	term = strchr(ptr, ' ');
-	if (term == NULL)
-		return 26;
-	*term = 0;
-	errno = 0;
-	s->gid = strtoul(ptr, NULL, 10);
-	if (errno)
-		return 27;
+
+	// optionally get gid
+	if (event_gid != -1) {
+		str = strstr(term, "gid=");
+		if (str == NULL)
+			return 25;
+		ptr = str + 4;
+		term = strchr(ptr, ' ');
+		if (term == NULL)
+			return 26;
+		*term = 0;
+		errno = 0;
+		s->gid = strtoul(ptr, NULL, 10);
+		if (errno)
+			return 27;
+	}
+
 	// euid
 	*term = ' ';
 	str = strstr(term, "euid=");
@@ -1820,19 +1824,21 @@ static int parse_kernel_anom(const lnode *n, search_items *s)
 		}
 	}
 
-	// get gid
-	str = strstr(term, "gid=");
-	if (str) {
-		ptr = str + 4;
-		term = strchr(ptr, ' ');
-		if (term == NULL)
-			return 5;
-		*term = 0;
-		errno = 0;
-		s->gid = strtoul(ptr, NULL, 10);
-		if (errno)
-			return 6;
-		*term = ' ';
+	// optionally get gid
+	if (event_gid != -1) {
+		str = strstr(term, "gid=");
+		if (str) {
+			ptr = str + 4;
+			term = strchr(ptr, ' ');
+			if (term == NULL)
+				return 5;
+			*term = 0;
+			errno = 0;
+			s->gid = strtoul(ptr, NULL, 10);
+			if (errno)
+				return 6;
+			*term = ' ';
+		}
 	}
 
 	str = strstr(term, "ses=");
