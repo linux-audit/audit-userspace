@@ -364,37 +364,42 @@ static int parse_syscall(lnode *n, search_items *s)
 		s->gid = strtoul(ptr, NULL, 10);
 		if (errno)
 			return 27;
+		*term = ' ';
 	}
 
 	// euid
-	*term = ' ';
-	str = strstr(term, "euid=");
-	if (str == NULL)
-		return 28;
-	ptr = str + 5;
-	term = strchr(ptr, ' ');
-	if (term == NULL)
-		return 29;
-	*term = 0;
-	errno = 0;
-	s->euid = strtoul(ptr, NULL, 10);
-	if (errno)
-		return 30;
+	if (event_euid != -1) {
+		str = strstr(term, "euid=");
+		if (str == NULL)
+			return 28;
+		ptr = str + 5;
+		term = strchr(ptr, ' ');
+		if (term == NULL)
+			return 29;
+		*term = 0;
+		errno = 0;
+		s->euid = strtoul(ptr, NULL, 10);
+		if (errno)
+			return 30;
+		*term = ' ';
+	}
+
 	// egid
-	*term = ' ';
-	str = strstr(term, "egid=");
-	if (str == NULL)
-		return 31;
-	ptr = str + 5;
-	term = strchr(ptr, ' ');
-	if (term == NULL)
-		return 32;
-	*term = 0;
-	errno = 0;
-	s->egid = strtoul(ptr, NULL, 10);
-	if (errno)
-		return 33;
-	*term = ' ';
+	if (event_egid != -1) {
+		str = strstr(term, "egid=");
+		if (str == NULL)
+			return 31;
+		ptr = str + 5;
+		term = strchr(ptr, ' ');
+		if (term == NULL)
+			return 32;
+		*term = 0;
+		errno = 0;
+		s->egid = strtoul(ptr, NULL, 10);
+		if (errno)
+			return 33;
+		*term = ' ';
+	}
 
 	if (event_terminal) {
 		// dont do this search unless needed
