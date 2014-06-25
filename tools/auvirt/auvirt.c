@@ -1201,7 +1201,7 @@ int process_anom(auparse_state_t *au)
 
 		for (it = events->tail; it; it = it->next) {
 			struct event *event = it->data;
-			if (event->success &&
+			if (event->success && machine_id->uuid && event->uuid &&
 			    strcmp(machine_id->uuid, event->uuid) == 0) {
 				if (event->type == ET_STOP) {
 					break;
