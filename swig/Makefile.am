@@ -22,8 +22,7 @@
 EXTRA_DIST = auditswig.i
 CONFIG_CLEAN_FILES = *.loT *.rej *.orig
 AM_CFLAGS = -fPIC -DPIC -fno-strict-aliasing
-PYLIBVER ?= python$(PYTHON_VERSION)
-INCLUDES = -I. -I$(top_builddir) -I${top_srcdir}/lib -I/usr/include/$(PYLIBVER)
+INCLUDES = -I. -I$(top_builddir) -I${top_srcdir}/lib -I@PYINCLUDEDIR@
 LIBS = $(top_builddir)/lib/libaudit.la
 pyexec_PYTHON = audit.py
 pyexec_LTLIBRARIES = _audit.la
