@@ -281,8 +281,10 @@ no_print:
 			// Known: VIRT_MACHINE_ID vm-ctx=u:r:t:s0:c1,c278
 			// Known: VIRT_MACHINE_ID img-ctx=u:r:t:s0:c1,c278
 			// Known: ROLL_ASSIGN new-role=r,r
+			// Known: SYSCALL subj=u:r:t:s0:c1,c278
 				if (n->type == AUDIT_VIRT_MACHINE_ID ||
-				    n->type == AUDIT_OBJ_PID) {
+				    n->type == AUDIT_OBJ_PID||
+				    n->type == AUDIT_SYSCALL) {
 					str = val;
 					*str++ = 0;
 				} else {
