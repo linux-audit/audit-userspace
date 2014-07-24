@@ -26,6 +26,7 @@
 
 #include <time.h>
 #include <sys/types.h>
+#include <stdint.h>
 #include "ausearch-common.h"
 #include "ausearch-int.h"
 
@@ -38,7 +39,7 @@ extern int just_one;
 extern int line_buffered;
 extern int event_debug;
 extern pid_t event_ppid;
-extern int event_session_id;
+extern uint32_t event_session_id;
 extern ilist *event_type;
 
 /* Data type to govern output format */

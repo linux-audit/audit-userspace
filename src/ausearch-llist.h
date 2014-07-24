@@ -54,7 +54,7 @@ typedef struct
   success_t success;    // success flag, 1 = yes, 0 = no, -1 = unset
   int arch;             // arch
   int syscall;          // syscall
-  int session_id;       // Login session id
+  uint32_t session_id;  // Login session id
   int exit;             // Syscall exit code
   int exit_is_set;      // Syscall exit code is valid
   char *hostname;       // remote hostname

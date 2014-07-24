@@ -52,7 +52,7 @@ uid_t event_uid = -1, event_euid = -1, event_loginuid = -2;
 int event_syscall = -1, event_machine = -1;
 int event_ua = 0, event_ga = 0, event_se = 0;
 int just_one = 0;
-int event_session_id = -2;
+uint32_t event_session_id = -2;
 int event_exit = 0, event_exit_is_set = 0;
 int line_buffered = 0;
 int event_debug = 0;
@@ -741,14 +741,14 @@ int check_params(int count, char *vars[])
 			size_t len = strlen(optarg);
 			if (isdigit(optarg[0])) {
 				errno = 0;
-				event_session_id = strtol(optarg,NULL,10);
+				event_session_id = strtoul(optarg,NULL,10);
 				if (errno)
 					retval = -1;
 				c++;
                         } else if (len >= 2 && *(optarg)=='-' &&
                                                 (isdigit(optarg[1]))) {
 				errno = 0;
-                                event_session_id = strtol(optarg, NULL, 0);
+                                event_session_id = strtoul(optarg, NULL, 0);
 				if (errno) {
 					retval = -1;
 					fprintf(stderr, "Error converting %s\n",
