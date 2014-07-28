@@ -1,6 +1,6 @@
 /*
 * interpret.c - Lookup values to something more readable
-* Copyright (c) 2007-09,2011-13 Red Hat Inc., Durham, North Carolina.
+* Copyright (c) 2007-09,2011-14 Red Hat Inc., Durham, North Carolina.
 * All Rights Reserved. 
 *
 * This software may be freely redistributed and/or modified under the
@@ -360,6 +360,54 @@ static const char *print_arch(const char *val, unsigned int machine)
 	        return strdup(ptr);
 	else {
 		if (asprintf(&out, "unknown machine type(%d)", machine) < 0)
+			out = NULL;
+                return out;
+	}
+}
+
+static const char *print_ipccall(const char *val, unsigned int base)
+{
+	int a0;
+	char *out;
+	const char *func = NULL;
+
+	errno = 0;
+	a0 = strtol(val, NULL, base);
+	if (errno) {
+		char *out;
+		if (asprintf(&out, "conversion error(%s)", val) < 0)
+			out = NULL;
+		return out;
+	}
+	func = ipc_i2s(a0);
+	if (func)
+		return strdup(func);
+	else {
+		if (asprintf(&out, "unknown ipccall(%d)", val) < 0)
+			out = NULL;
+                return out;
+	}
+}
+
+static const char *print_socketcall(const char *val, unsigned int base)
+{
+	int a0;
+	char *out;
+	const char *func = NULL;
+
+	errno = 0;
+	a0 = strtol(val, NULL, base);
+	if (errno) {
+		char *out;
+		if (asprintf(&out, "conversion error(%s)", val) < 0)
+			out = NULL;
+		return out;
+	}
+	func = sock_i2s(a0);
+	if (func)
+		return strdup(func);
+	else {
+		if (asprintf(&out, "unknown socketcall(%d)", val) < 0)
 			out = NULL;
                 return out;
 	}
@@ -1729,6 +1777,8 @@ static const char *print_a0(const char *val, const idata *id)
 				return print_socket_domain(val);
                 	else if (strcmp(sys, "setfsgid") == 0)
 				return print_gid(val, 16);
+                	else if (strcmp(sys, "socketcall") == 0)
+				return print_socketcall(val, 16);
 		}
 		else if (strcmp(sys, "linkat") == 0)
 			return print_dirfd(val);
@@ -1736,6 +1786,8 @@ static const char *print_a0(const char *val, const idata *id)
 			return print_dirfd(val);
 		else if (strcmp(sys, "openat") == 0)
 			return print_dirfd(val);
+               	else if (strcmp(sys, "ipccall") == 0)
+			return print_ipccall(val, 16);
 	}
 	if (asprintf(&out, "0x%s", val) < 0)
 			out = NULL;
