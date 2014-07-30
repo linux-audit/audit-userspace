@@ -16,7 +16,7 @@ Group: System Environment/Daemons
 URL: http://people.redhat.com/sgrubb/audit/
 Source0: http://people.redhat.com/sgrubb/audit/%{name}-%{version}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
-BuildRequires: swig python-devel
+BuildRequires: swig python-devel golang
 BuildRequires: tcp_wrappers-devel krb5-devel libcap-ng-devel
 BuildRequires: kernel-headers >= 2.6.29
 Requires: %{name}-libs = %{version}-%{release}
@@ -94,7 +94,7 @@ behavior.
 %setup -q
 
 %build
-%configure --sbindir=/sbin --libdir=/%{_lib} --with-python=yes --with-libwrap --enable-gssapi-krb5=yes --with-libcap-ng=yes \
+%configure --sbindir=/sbin --libdir=/%{_lib} --with-python=yes --with-golang --with-libwrap --enable-gssapi-krb5=yes --with-libcap-ng=yes \
 %if %{WITH_SYSTEMD}
 	--enable-systemd
 %endif
@@ -182,8 +182,8 @@ fi
 
 %files libs
 %defattr(-,root,root,-)
-%attr(755,root,root) /%{_lib}/libaudit.so.1*
-%attr(755,root,root) /%{_lib}/libauparse.*
+/%{_lib}/libaudit.so.1*
+/%{_lib}/libauparse.*
 %config(noreplace) %attr(640,root,root) /etc/libaudit.conf
 %{_mandir}/man5/libaudit.conf.5.gz
 
@@ -192,6 +192,8 @@ fi
 %doc contrib/skeleton.c contrib/plugin
 %{_libdir}/libaudit.so
 %{_libdir}/libauparse.so
+%dir %{_prefix}/lib/golang/src/pkg/redhat.com/audit
+%{_prefix}/lib/golang/src/pkg/redhat.com/audit/audit.go
 %{_includedir}/libaudit.h
 %{_includedir}/auparse.h
 %{_includedir}/auparse-defs.h

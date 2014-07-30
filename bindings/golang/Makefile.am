@@ -24,10 +24,10 @@ CONFIG_CLEAN_FILES = *.loT *.rej *.orig
 EXTRA_DIST = audit.go
 
 PREFIX ?= $(DESTDIR)/usr
-GODIR ?= $(PREFIX)/share/gocode/src/audit
+LIBDIR ?= $(PREFIX)/lib
+GODIR ?= $(LIBDIR)/golang/src/pkg/redhat.com/audit
 
-install-script-local:
+install:
 	[ -d $(GODIR) ] || mkdir -p $(GODIR)
-	install -m 644 audit.go
-
+	install -m 644 audit.go $(GODIR)
 
