@@ -1,5 +1,5 @@
 # Makefile.am -- 
-# Copyright 2004-2009,2013 Red Hat Inc., Durham, North Carolina.
+# Copyright 2004-2009,2013-14 Red Hat Inc., Durham, North Carolina.
 # All Rights Reserved.
 #
 # This library is free software; you can redistribute it and/or
@@ -27,6 +27,11 @@ EXTRA_DIST = syscall-update.txt
 VERSION_INFO = 1:0
 AM_CFLAGS = -fPIC -DPIC -D_GNU_SOURCE
 INCLUDES = -I. -I${top_srcdir} -I${top_srcdir}/auparse
+
+pkgconfigdir = $(libdir)/pkgconfig
+pkgconfig_DATA = audit.pc
+DISTCLEANFILES = $(pkgconfig_DATA)
+
 lib_LTLIBRARIES = libaudit.la
 include_HEADERS = libaudit.h
 libaudit_la_SOURCES = libaudit.c message.c netlink.c \

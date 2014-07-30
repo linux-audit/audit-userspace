@@ -137,6 +137,9 @@ rm -f $RPM_BUILD_ROOT/%{_libdir}/python?.?/site-packages/_auparse.la
 rm -f $RPM_BUILD_ROOT/%{_libdir}/python?.?/site-packages/auparse.a
 rm -f $RPM_BUILD_ROOT/%{_libdir}/python?.?/site-packages/auparse.la
 
+# Move the pkgconfig file
+mv $RPM_BUILD_ROOT/%{_lib}/pkgconfig $RPM_BUILD_ROOT%{_libdir}
+
 # On platforms with 32 & 64 bit libs, we need to coordinate the timestamp
 touch -r ./audit.spec $RPM_BUILD_ROOT/etc/libaudit.conf
 touch -r ./audit.spec $RPM_BUILD_ROOT/usr/share/man/man5/libaudit.conf.5.gz
@@ -192,6 +195,7 @@ fi
 %{_includedir}/libaudit.h
 %{_includedir}/auparse.h
 %{_includedir}/auparse-defs.h
+%{_libdir}/pkgconfig/audit.pc
 %{_mandir}/man3/*
 
 %files libs-static

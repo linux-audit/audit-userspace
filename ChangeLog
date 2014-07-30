@@ -6,6 +6,7 @@
 - Fix handling of session id on 32 bit systems
 - Set systemd startup to wait until systemd-tmpfiles-setup.service (#1097314)
 - Interpret a0 of socketcall and ipccall syscalls
+- Add pkgconfig file for libaudit
 
 2.3.7
 - Limit number of options in a rule in libaudit
