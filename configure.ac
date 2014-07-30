@@ -93,7 +93,9 @@ AM_PATH_PYTHON
 PYINCLUDEDIR=`python${am_cv_python_version} -c "import sysconfig; print(sysconfig.get_config_var('INCLUDEPY'))"`
 if test -f ${PYINCLUDEDIR}/Python.h ; then
 	python_found="yes"
+	pybind_dir="python"
 	AC_SUBST(PYINCLUDEDIR)
+	AC_SUBST(pybind_dir)
 	AC_MSG_NOTICE(Python bindings will be built)
 else
 	python_found="no"
@@ -112,17 +114,26 @@ AS_HELP_STRING([--with-golang],[enable building golang bindings]),
 use_golang=$withval,
 use_golang=auto)
 if test x$use_golang = xno ; then
-        golang_found="no"
-        AC_MSG_RESULT(no)
+    golang_found="no"
+    AC_MSG_RESULT(no)
 else
+    AC_MSG_RESULT(testing)
     AC_CHECK_PROG([GOLANG],[go],[go],[no])
     AS_IF([test "x$GOLANG" != "xno"],[
-        AC_MSG_RESULT([yes])
+	AC_MSG_NOTICE(Go bindings will be built)
         golang_found="yes"
 
         # Substitute some golang environment.
         GOROOT=`$GOLANG env GOROOT`
         AC_SUBST([GOROOT])
+        gobind_dir="golang"
+        AC_SUBST([gobind_dir])
+    ], [
+	if test x$use_golang = xyes ; then
+		AC_MSG_ERROR([Go language explicitly requested and program not found])
+	else
+		AC_MSG_WARN("Go not found - go bindings will not be made")
+	fi
     ])
 fi
 AM_CONDITIONAL(HAVE_GOLANG, test ${golang_found} = "yes")

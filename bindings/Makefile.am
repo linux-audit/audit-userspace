@@ -22,10 +22,4 @@
 
 CONFIG_CLEAN_FILES = *.loT *.rej *.orig
 
-SUBDIRS =""
-if HAVE_PYTHON
-SUBDIRS += python
-endif
-if HAVE_GOLANG
-SUBDIRS += golang
-endif
+SUBDIRS = @pybind_dir@ @gobind_dir@
