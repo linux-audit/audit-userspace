@@ -106,6 +106,27 @@ fi
 fi
 AM_CONDITIONAL(HAVE_PYTHON, test ${python_found} = "yes")
 
+AC_MSG_CHECKING(whether to create Go language bindings)
+AC_ARG_WITH(golang,
+AS_HELP_STRING([--with-golang],[enable building golang bindings]),
+use_golang=$withval,
+use_golang=auto)
+if test x$use_golang = xno ; then
+        golang_found="no"
+        AC_MSG_RESULT(no)
+else
+    AC_CHECK_PROG([GOLANG],[go],[go],[no])
+    AS_IF([test "x$GOLANG" != "xno"],[
+        AC_MSG_RESULT([yes])
+        golang_found="yes"
+
+        # Substitute some golang environment.
+        GOROOT=`$GOLANG env GOROOT`
+        AC_SUBST([GOROOT])
+    ])
+fi
+AM_CONDITIONAL(HAVE_GOLANG, test ${golang_found} = "yes")
+
 #auditd listener
 AC_MSG_CHECKING(whether to include auditd network listener support)
 AC_ARG_ENABLE(listener,
@@ -293,7 +314,7 @@ AC_SUBST(LIBWRAP_LIBS)
 AC_SUBST(LIBPRELUDE_CFLAGS)
 AC_SUBST(LIBPRELUDE_LDFLAGS)
 
-AC_OUTPUT(Makefile lib/Makefile lib/audit.pc lib/test/Makefile auparse/Makefile auparse/test/Makefile src/Makefile src/mt/Makefile src/libev/Makefile src/test/Makefile swig/Makefile docs/Makefile init.d/Makefile audisp/Makefile audisp/plugins/Makefile audisp/plugins/builtins/Makefile audisp/plugins/prelude/Makefile audisp/plugins/remote/Makefile audisp/plugins/zos-remote/Makefile bindings/Makefile bindings/python/Makefile tools/Makefile tools/aulast/Makefile tools/aulastlog/Makefile tools/ausyscall/Makefile tools/auvirt/Makefile)
+AC_OUTPUT(Makefile lib/Makefile lib/audit.pc lib/test/Makefile auparse/Makefile auparse/test/Makefile src/Makefile src/mt/Makefile src/libev/Makefile src/test/Makefile swig/Makefile docs/Makefile init.d/Makefile audisp/Makefile audisp/plugins/Makefile audisp/plugins/builtins/Makefile audisp/plugins/prelude/Makefile audisp/plugins/remote/Makefile audisp/plugins/zos-remote/Makefile bindings/Makefile bindings/python/Makefile bindings/golang/Makefile tools/Makefile tools/aulast/Makefile tools/aulastlog/Makefile tools/ausyscall/Makefile tools/auvirt/Makefile)
 
 echo .
 echo "

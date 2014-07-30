@@ -7,6 +7,7 @@
 - Set systemd startup to wait until systemd-tmpfiles-setup.service (#1097314)
 - Interpret a0 of socketcall and ipccall syscalls
 - Add pkgconfig file for libaudit
+- Add go language bindings for limited use of libaudit
 
 2.3.7
 - Limit number of options in a rule in libaudit
