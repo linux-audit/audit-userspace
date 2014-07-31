@@ -23,17 +23,20 @@
 CONFIG_CLEAN_FILES = *.loT *.rej *.orig
 EXTRA_DIST = audit.go
 
-PREFIX ?= $(DESTDIR)/usr
-LIBDIR ?= $(PREFIX)/lib
-GODIR ?= $(LIBDIR)/golang/src/pkg/redhat.com/audit
+LIBDIR = lib
+GODIR = $(LIBDIR)/golang/src/pkg/redhat.com/audit
 dist_check_SCRIPTS = test.go
 
 install:
-	[ -d $(GODIR) ] || mkdir -p $(GODIR)
-	install -m 644 audit.go $(GODIR)
+	[ -d $(DESTDIR)${prefix}/$(GODIR) ] || mkdir -p $(DESTDIR)${prefix}/$(GODIR)
+	install -m 644 ${top_srcdir}/bindings/golang/audit.go $(DESTDIR)${prefix}/$(GODIR)
+
+uninstall:
+	@rm -f $(DESTDIR)${prefix}/$(GODIR)/*
 
 check:
 	@mkdir audit
-	@cp audit.go audit
+	@cp ${top_srcdir}/bindings/golang/audit.go audit
+	[ -f test.go ] || cp ${top_srcdir}/bindings/golang/test.go .
 	GOPATH=$(pwd) $(GOLANG) run test.go
-	@rm -rf audit 
+	@rm -rf audit *.go 
