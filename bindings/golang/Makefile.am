@@ -26,8 +26,14 @@ EXTRA_DIST = audit.go
 PREFIX ?= $(DESTDIR)/usr
 LIBDIR ?= $(PREFIX)/lib
 GODIR ?= $(LIBDIR)/golang/src/pkg/redhat.com/audit
+dist_check_SCRIPTS = test.go
 
 install:
 	[ -d $(GODIR) ] || mkdir -p $(GODIR)
 	install -m 644 audit.go $(GODIR)
 
+check:
+	@mkdir audit
+	@cp audit.go audit
+	GOPATH=$(pwd) $(GOLANG) run test.go
+	@rm -rf audit 

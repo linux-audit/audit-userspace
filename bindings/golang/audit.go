@@ -23,13 +23,16 @@ const (
 	AUDIT_VIRT_MACHINE_ID = 2502
 )
 
-func AuditValueNeedsEncoding(str string) (int) {
+func AuditValueNeedsEncoding(str string) (bool) {
 	cstr := C.CString(str)
 	defer C.free(unsafe.Pointer(cstr))
 	len := C.strlen(cstr)
 
 	res := C.audit_value_needs_encoding(cstr, C.uint(len))
-	return int(res)
+	if res != 0 {
+		return true
+	}
+	return false
 }
 
 func AuditEncodeNVString(name string, value string) (string) {
