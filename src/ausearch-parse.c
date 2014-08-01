@@ -245,7 +245,7 @@ static int parse_syscall(lnode *n, search_items *s)
 			return 9;
 		*term = 0;
 		errno = 0;
-		s->exit = strtoul(ptr, NULL, 0);
+		s->exit = strtoll(ptr, NULL, 0);
 		if (errno)
 			return 10;
 		s->exit_is_set = 1;

@@ -450,11 +450,11 @@ static const char *print_syscall(const char *val, const idata *id)
 
 static const char *print_exit(const char *val)
 {
-        int ival;
-	char *out;
+        long long ival;
+        char *out;
 
         errno = 0;
-        ival = strtol(val, NULL, 10);
+        ival = strtoll(val, NULL, 10);
         if (errno) {
 		if (asprintf(&out, "conversion error(%s)", val) < 0)
 			out = NULL;
@@ -462,12 +462,11 @@ static const char *print_exit(const char *val)
         }
 
         if (ival < 0) {
-		if (asprintf(&out, "%d(%s)", ival, strerror(-ival)) < 0)
+		if (asprintf(&out, "%ld(%s)", ival, strerror(-ival)) < 0)
 			out = NULL;
 		return out;
         }
         return strdup(val);
-
 }
 
 static const char *print_escaped(const char *val)

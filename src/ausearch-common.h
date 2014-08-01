@@ -55,7 +55,8 @@ extern int event_syscall;
 extern int event_machine;
 extern const char *event_exe;
 extern int event_ua, event_ga;
-extern int event_exit, event_exit_is_set;
+extern long long event_exit;
+extern int event_exit_is_set;
 extern const char *event_uuid;
 extern const char *event_vmname;
 

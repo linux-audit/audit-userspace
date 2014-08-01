@@ -3,11 +3,12 @@
 - In auvirt, anomaly events don't have uuid (#1111448)
 - Make python3 support a little easier
 - Fix category handling in SYSCALL records (#1120286)
-- Fix handling of session id on 32 bit systems
+- Fix ausearch handling of session id on 32 bit systems
 - Set systemd startup to wait until systemd-tmpfiles-setup.service (#1097314)
 - Interpret a0 of socketcall and ipccall syscalls
 - Add pkgconfig file for libaudit
 - Add go language bindings for limited use of libaudit
+- Fix ausearch handling of exit code on 32 bit systems
 
 2.3.7
 - Limit number of options in a rule in libaudit
