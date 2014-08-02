@@ -1,5 +1,5 @@
 # Makefile.am -- 
-# Copyright 2006-08 Red Hat Inc., Durham, North Carolina.
+# Copyright 2006-08,2014 Red Hat Inc., Durham, North Carolina.
 # All Rights Reserved.
 #
 # This library is free software; you can redistribute it and/or
@@ -30,8 +30,8 @@ INCLUDES = -I${top_srcdir}/auparse -I${top_srcdir}/lib
 
 auparse_test_SOURCES = auparse_test.c
 auparse_test_LDFLAGS = -static
-auparse_test_LDADD = -L${top_builddir}/auparse/.libs \
-	-L${top_builddir}/lib/.libs -lauparse -laudit
+auparse_test_LDADD = ${top_builddir}/auparse/libauparse.la \
+	${top_builddir}/lib/libaudit.la
 
 drop_srcdir = sed 's,$(srcdir)/test,test,'
 
