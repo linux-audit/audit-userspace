@@ -37,6 +37,7 @@ uninstall:
 check:
 	@mkdir audit
 	@cp ${top_srcdir}/bindings/golang/audit.go audit
+	@cp ${top_srcdir}/lib/libaudit.h audit
 	[ -f test.go ] || cp ${top_srcdir}/bindings/golang/test.go .
 	PKG_CONFIG_PATH=${abs_top_builddir}/lib/:$(PKG_CONFIG_PATH) GOPATH=$(pwd) $(GOLANG) run test.go
 	@rm -rf audit *.go 

@@ -9,7 +9,7 @@ package audit
 */
 
 // #cgo pkg-config: audit
-// #include <libaudit.h>
+// #include "libaudit.h"
 // #include <unistd.h>
 // #include <stdlib.h>
 // #include <string.h>
