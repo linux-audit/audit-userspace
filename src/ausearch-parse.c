@@ -1220,7 +1220,7 @@ static int parse_login(const lnode *n, search_items *s)
 
 	// success
 	if (event_success != S_UNSET) {
-		str = strstr(ptr, "res=");
+		str = strstr(term, "res=");
 		if (str != NULL) {
 			ptr = str + 4;
 			term = strchr(ptr, ' ');
