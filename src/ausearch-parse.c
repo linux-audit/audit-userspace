@@ -1270,6 +1270,7 @@ static int parse_daemon1(const lnode *n, search_items *s)
 	mptr = strchr(n->message, ')');
 	if (mptr == NULL)
 		mptr = n->message;
+	term = mptr;
 
 	// optionally get auid
 	if (event_loginuid != -2 ) {
