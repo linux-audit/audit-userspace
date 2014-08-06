@@ -9,6 +9,7 @@
 - Add pkgconfig file for libaudit
 - Add go language bindings for limited use of libaudit
 - Fix ausearch handling of exit code on 32 bit systems
+- Fix bug in aureport string linked list handling
 
 2.3.7
 - Limit number of options in a rule in libaudit

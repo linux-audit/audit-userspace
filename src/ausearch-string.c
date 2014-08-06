@@ -73,6 +73,9 @@ void slist_append(slist *l, snode *node)
 	newnode->hits = node->hits;
 	newnode->next = NULL;
 
+	// Make sure cursor is at the end
+	slist_last(l);
+
 	// if we are at top, fix this up
 	if (l->head == NULL)
 		l->head = newnode;
@@ -112,6 +115,7 @@ int slist_add_if_uniq(slist *l, const char *str)
 	while (cur) {
 		if (strcmp(str, cur->str) == 0) {
 			cur->hits++;
+			l->cur = cur;
 			return 0;
 		} else 
 			cur = cur->next;
