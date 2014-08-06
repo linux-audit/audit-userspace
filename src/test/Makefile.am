@@ -1,4 +1,4 @@
-# Copyright 2008 Red Hat Inc., Durham, North Carolina.
+# Copyright 2008,2014 Red Hat Inc., Durham, North Carolina.
 # All Rights Reserved.
 #
 # This library is free software; you can redistribute it and/or
@@ -20,6 +20,7 @@
 #
 
 INCLUDES = -I${top_srcdir} -I${top_srcdir}/lib -I${top_srcdir}/src
-check_PROGRAMS = ilist_test
+check_PROGRAMS = ilist_test slist_test
 TESTS = $(check_PROGRAMS)
 ilist_test_LDADD = ${top_builddir}/src/ausearch-int.o
+slist_test_LDADD = ${top_builddir}/src/ausearch-string.o
