@@ -1,5 +1,5 @@
 /* aarch64_table.h --
- * Copyright 2013 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2013,2014 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -278,3 +278,6 @@ _S(270, "process_vm_readv")
 _S(271, "process_vm_writev")
 _S(272, "kcmp")
 _S(273, "finit_module")
+_S(274, "sched_setattr")
+_S(275, "sched_getattr")
+_S(276, "renameat2")

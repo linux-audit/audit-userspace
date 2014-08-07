@@ -1,5 +1,5 @@
 /* alpha_table.h --
- * Copyright 2005-07,2010-12 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2005-07,2010-12,2014 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -446,3 +446,5 @@ _S(502, "accept4")
 _S(503, "sendmmsg")
 _S(504, "process_vm_readv")
 _S(505, "process_vm_writev")
+_S(506, "kcmp")
+_S(507, "finit_module")

@@ -1,5 +1,5 @@
 /* sockoptnametab.h --
- * Copyright 2013 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2013-14 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -66,6 +66,10 @@ _S(41, "SO_WIFI_STATUS")
 _S(42, "SO_PEEK_OFF")
 _S(43, "SO_NOFCS")
 _S(44, "SO_LOCK_FILTER")
+_S(45, "SO_SELECT_ERR_QUEUE")
+_S(46, "SO_BUSY_POLL")
+_S(47, "SO_MAX_PACING_RATE")
+_S(48, "SO_BPF_EXTENSIONS")
 
 // PPC has these different
 _S(116, "SO_RCVLOWAT")

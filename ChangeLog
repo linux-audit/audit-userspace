@@ -11,6 +11,7 @@
 - Fix ausearch handling of exit code on 32 bit systems
 - Fix bug in aureport string linked list handling
 - Document week-ago time setting in ausearch/report
+- Update tables for 3.16 kernel
 
 2.3.7
 - Limit number of options in a rule in libaudit

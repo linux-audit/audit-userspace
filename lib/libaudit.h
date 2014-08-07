@@ -1,5 +1,5 @@
 /* libaudit.h -- 
- * Copyright 2004-2013 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2004-2014 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -214,6 +214,14 @@ extern "C" {
 #endif
 
 /* New kernel event definitions since 2.6.30 */
+#ifndef AUDIT_SET_FEATURE
+#define AUDIT_SET_FEATURE       1018    /* Turn an audit feature on or off */
+#endif
+
+#ifndef AUDIT_GET_FEATURE
+#define AUDIT_GET_FEATURE       1019    /* Get which features are enabled */
+#endif
+
 #ifndef AUDIT_MMAP
 #define AUDIT_MMAP		1323 /* Descriptor and flags in mmap */
 #endif
