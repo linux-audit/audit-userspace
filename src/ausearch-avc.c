@@ -1,6 +1,6 @@
 /*
 * ausearch-avc.c - Minimal linked list library for avcs
-* Copyright (c) 2006,2008 Red Hat Inc., Durham, North Carolina.
+* Copyright (c) 2006,2008,2014 Red Hat Inc., Durham, North Carolina.
 * All Rights Reserved. 
 *
 * This software may be freely redistributed and/or modified under the
@@ -42,6 +42,25 @@ anode *alist_next(alist *l)
 	return l->cur;
 }
 
+static void alist_last(alist *l)
+{
+	register anode* cur;
+
+	if (l->head == NULL)
+		return;
+
+	// Start with cur in hopes that we don't start at beginning
+	if (l->cur)
+		cur = l->cur;
+	else
+		cur = l->head;
+
+	// Loop until no next value
+	while (cur->next)
+		cur = cur->next;
+	l->cur = cur;
+}
+
 void alist_append(alist *l, anode *node)
 {
 	anode* newnode;
@@ -71,6 +90,9 @@ void alist_append(alist *l, anode *node)
 		newnode->avc_class = NULL;
 
 	newnode->next = NULL;
+
+	// Make sure cursor is at the end
+	alist_last(l);
 
 	// if we are at top, fix this up
 	if (l->head == NULL)
