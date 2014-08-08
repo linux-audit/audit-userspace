@@ -2,7 +2,7 @@
 - Optionally parse loginuids, (e)uids, & (e)gids in ausearch/report
 - In auvirt, anomaly events don't have uuid (#1111448)
 - Make python3 support a little easier
-- Fix category handling in SYSCALL records (#1120286)
+- Fix category handling in various records (#1120286)
 - Fix ausearch handling of session id on 32 bit systems
 - Set systemd startup to wait until systemd-tmpfiles-setup.service (#1097314)
 - Interpret a0 of socketcall and ipccall syscalls

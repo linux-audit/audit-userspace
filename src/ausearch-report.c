@@ -278,13 +278,11 @@ no_print:
 			if (str && val && (str < val)) {
 			// Value side  has commas and another field exists
 			// Known: LABEL_LEVEL_CHANGE banners=none,none
-			// Known: VIRT_MACHINE_ID vm-ctx=u:r:t:s0:c1,c278
-			// Known: VIRT_MACHINE_ID img-ctx=u:r:t:s0:c1,c278
 			// Known: ROLL_ASSIGN new-role=r,r
-			// Known: SYSCALL subj=u:r:t:s0:c1,c278
-				if (n->type == AUDIT_VIRT_MACHINE_ID ||
-				    n->type == AUDIT_OBJ_PID||
-				    n->type == AUDIT_SYSCALL) {
+			// Known: any MAC LABEL can potentially have commas
+				int ftype = auparse_interp_adjust_type(n->type,
+								name, val);
+				if (ftype == AUPARSE_TYPE_MAC_LABEL) {
 					str = val;
 					*str++ = 0;
 				} else {
@@ -294,7 +292,9 @@ no_print:
 			} else if (str && (val == NULL)) {
 			// Goes all the way to the end. Done parsing
 			// Known: MCS context in PATH rec obj=u:r:t:s0:c2,c7
-				if (n->type==AUDIT_PATH || n->type==AUDIT_IPC)
+				int ftype = auparse_interp_adjust_type(n->type,
+								name, ptr);
+				if (ftype == AUPARSE_TYPE_MAC_LABEL)
 					str = NULL;
 				else {
 					*str++ = 0;
