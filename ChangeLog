@@ -12,6 +12,7 @@
 - Fix bug in aureport string linked list handling
 - Document week-ago time setting in ausearch/report
 - Update tables for 3.16 kernel
+- In aulast, on bad logins only record user_login proof and use it
 
 2.3.7
 - Limit number of options in a rule in libaudit

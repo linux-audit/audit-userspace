@@ -119,9 +119,13 @@ static void report_session(lnode* cur)
 		char start[32], end[32];
 		struct tm *btm;
 
-		printf("    audit event proof serial numbers: %lu, %lu, %lu\n",
-			cur->loginuid_proof, cur->user_login_proof,
-			cur->user_end_proof);
+		if (cur->loginuid_proof == 0 && cur->result == 1) // Bad login
+			printf("    audit event proof serial number:"
+			       " %lu\n", cur->user_login_proof);
+		else
+			printf("    audit event proof serial numbers:"
+			       " %lu, %lu, %lu\n", cur->loginuid_proof,
+				cur->user_login_proof, cur->user_end_proof);
 		printf("    Session data can be found with this search:\n");
 		btm = localtime(&cur->start);
 		strftime(start, sizeof(start), "%x %T", btm);
@@ -134,9 +138,10 @@ static void report_session(lnode* cur)
 		    printf("    ausearch --start %s", start);
 		}
 		if (cur->name == NULL)
-			printf(" --session %d\n\n", cur->session);
-		else
-			printf("\n\n");
+			printf(" --session %d", cur->session);
+		if (cur->loginuid_proof == 0 && cur->result == 1) // Bad login
+			printf(" -a %lu", cur->user_login_proof);
+		printf("\n\n");
 	}
 }
 
@@ -325,15 +330,17 @@ static void update_session_login(auparse_state_t *au)
 		// create the record and report it.
 		lnode n;
 
-		n.auid = uid;
 		n.start = start;
 		n.end = start;
+		n.auid = uid;
 		n.name = tacct;
-		n.host = host;
 		n.term = term;
+		n.host = host;
 		n.result = result;
 		n.status = LOG_OUT;
-		n.loginuid_proof = auparse_get_serial(au);
+		n.loginuid_proof = 0;
+		n.user_login_proof = auparse_get_serial(au);
+		n.user_end_proof = 0;
 		report_session(&n); 
 	} else if (debug)
 		printf("Session not found or updated\n");
