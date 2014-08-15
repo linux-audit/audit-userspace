@@ -42,4 +42,4 @@ check:
 	## Disable for now. Golang doesn't allow overriding search 
 	## paths from the command line.
 	##PKG_CONFIG_PATH=${abs_top_builddir}/lib/:$(PKG_CONFIG_PATH) GOPATH=$(pwd) $(GOLANG) run test.go
-	@rm -rf audit *.go 
+	@rm -rf audit 
