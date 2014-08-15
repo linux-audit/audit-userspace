@@ -15,27 +15,32 @@ package audit
 // #include <string.h>
 // #include <stdio.h>
 import "C"
-import "unsafe"
+
+import (
+	"unsafe"
+)
 
 const (
-	AUDIT_VIRT_CONTROL = 2500
-	AUDIT_VIRT_RESOURCE = 2501
+	AUDIT_VIRT_CONTROL    = 2500
+	AUDIT_VIRT_RESOURCE   = 2501
 	AUDIT_VIRT_MACHINE_ID = 2502
 )
 
-func AuditValueNeedsEncoding(str string) (bool) {
+// type=VIRT_CONTROL msg=audit(08/05/2014 17:01:05.891:6471) : pid=1265 uid=root auid=unset ses=unset subj=system_u:system_r:virtd_t:s0-s0:c0.c1023 msg='virt=kvm op=start reason=booted vm=vm1 uuid=462dcd6d-fb68-4a26-a96f-56eb024515b9 vm-pid=22527 exe=/usr/sbin/libvirtd hostname=? addr=? terminal=? res=success'
+
+func AuditValueNeedsEncoding(str string) bool {
 	cstr := C.CString(str)
 	defer C.free(unsafe.Pointer(cstr))
 	len := C.strlen(cstr)
 
-	res := C.audit_value_needs_encoding(cstr, C.uint(len))
+	res, _ := C.audit_value_needs_encoding(cstr, C.uint(len))
 	if res != 0 {
 		return true
 	}
 	return false
 }
 
-func AuditEncodeNVString(name string, value string) (string) {
+func AuditEncodeNVString(name string, value string) string {
 	cname := C.CString(name)
 	cval := C.CString(value)
 
@@ -48,15 +53,20 @@ func AuditEncodeNVString(name string, value string) (string) {
 	return C.GoString(cres)
 }
 
-func AuditLogUserEvent(event_type int, message string, result int) (int) {
+func AuditLogUserEvent(event_type int, message string, result bool) error {
+	var r int
 	fd := C.audit_open()
+	if result {
+		r = 1
+	} else {
+		r = 0
+	}
 	if fd > 0 {
 		cmsg := C.CString(message)
-		res := C.audit_log_user_message(fd, C.int(event_type), cmsg, nil, nil, nil, C.int(result))
+		_, err := C.audit_log_user_message(fd, C.int(event_type), cmsg, nil, nil, nil, C.int(r))
 		C.free(unsafe.Pointer(cmsg))
 		C.close(fd)
-		return int(res)
+		return err
 	}
-	return -1
+	return nil
 }
-

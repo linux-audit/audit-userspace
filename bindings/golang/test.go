@@ -1,18 +1,17 @@
-package main 
+package audit
 
 import (
-	"./audit"
 	"fmt"
 )
 
 func main() {
-	if audit.AuditValueNeedsEncoding("test") {
+	if AuditValueNeedsEncoding("test") {
 		fmt.Printf("Failed test 1\n")
 		return
 	}
-	if ! audit.AuditValueNeedsEncoding("test test") {
+	if !AuditValueNeedsEncoding("test test") {
 		fmt.Printf("Failed test 2\n")
 		return
 	}
-	fmt.Printf("Success\n");
+	fmt.Printf("Success\n")
 }
