@@ -396,6 +396,9 @@ struct audit_reply {
 	struct nlmsgerr         *error;
 	struct audit_sig_info   *signal_info;
 	struct daemon_conf      *conf;
+#if HAVE_DECL_AUDIT_FEATURE_VERSION
+	struct audit_features	*features;
+#endif
 	};
 };
 
@@ -487,6 +490,7 @@ extern void audit_number_to_errmsg(int errnumber, const char *opt);
 extern int audit_request_status(int fd);
 extern int audit_is_enabled(int fd);
 extern int get_auditfail_action(auditfail_t *failmode);
+extern int audit_request_feature(int fd,unsigned feature,struct audit_features *f);
 
 /* AUDIT_SET */
 typedef enum { WAIT_NO, WAIT_YES } rep_wait_t;
@@ -495,6 +499,8 @@ extern int  audit_set_enabled(int fd, uint32_t enabled);
 extern int  audit_set_failure(int fd, uint32_t failure);
 extern int  audit_set_rate_limit(int fd, uint32_t limit);
 extern int  audit_set_backlog_limit(int fd, uint32_t limit);
+extern int  audit_set_feature(int fd, unsigned feature, unsigned lock);
+extern int  audit_set_loginuid_immutable(int fd);
 
 /* AUDIT_LIST_RULES */
 extern int  audit_request_rules_list_data(int fd);

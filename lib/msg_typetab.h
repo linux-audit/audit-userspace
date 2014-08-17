@@ -1,5 +1,5 @@
 /* msg_typetab.h --
- * Copyright 2005-07,2009-13 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2005-07,2009-14 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -40,10 +40,10 @@ _S(AUDIT_LOGIN,                      "LOGIN"                         )
 _S(AUDIT_LIST_RULES,                 "LIST_RULES"                    )
 //_S(AUDIT_TRIM,                     "TRIM"                          )
 //_S(AUDIT_MAKE_EQUIV,               "MAKE_EQUIV"                    )
-_S(AUDIT_TTY_GET,                    "TTY_GET"                       )
-_S(AUDIT_TTY_SET,                    "TTY_SET"                       )
-_S(AUDIT_SET_FEATURE,                "SET_FEATURE"                   )
-_S(AUDIT_GET_FEATURE,                "GET_FEATURE"                   )
+//_S(AUDIT_TTY_GET,                    "TTY_GET"                       )
+//_S(AUDIT_TTY_SET,                    "TTY_SET"                       )
+//_S(AUDIT_SET_FEATURE,                "SET_FEATURE"                   )
+//_S(AUDIT_GET_FEATURE,                "GET_FEATURE"                   )
 _S(AUDIT_USER_AUTH,                  "USER_AUTH"                     )
 _S(AUDIT_USER_ACCT,                  "USER_ACCT"                     )
 _S(AUDIT_USER_MGMT,                  "USER_MGMT"                     )

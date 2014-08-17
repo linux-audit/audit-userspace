@@ -1,5 +1,5 @@
 /* libaudit.c -- 
- * Copyright 2004-2009,2012 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2004-2009,2012,2014 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -491,6 +491,53 @@ int audit_set_backlog_limit(int fd, uint32_t limit)
 			"Error sending backlog limit request (%s)", 
 			strerror(-rc));
 	return rc;
+}
+
+int audit_set_feature(int fd, unsigned feature, unsigned lock)
+{
+#if HAVE_DECL_AUDIT_FEATURE_VERSION
+	int rc;
+	struct audit_features f;
+
+	memset(&f, 0, sizeof(f));
+	f.features = feature;
+	f.lock = lock;
+	rc = audit_send(fd, AUDIT_SET_FEATURE, &f, sizeof(f));
+	if (rc < 0)
+		audit_msg(audit_priority(errno),
+			"Error setting feature (%s)", 
+			strerror(-rc));
+	return rc;
+#else
+	errno = EINVAL;
+	return -1;
+#endif
+}
+hidden_def(audit_set_feature)
+
+int audit_request_feature(int fd, unsigned feature, struct audit_features *f)
+{
+#if HAVE_DECL_AUDIT_FEATURE_VERSION
+	int rc;
+
+	memset(f, 0, sizeof(struct audit_features));
+	f->features = feature;
+	rc=audit_send(fd, AUDIT_GET_FEATURE, f, sizeof(struct audit_features));
+	if (rc < 0)
+		audit_msg(audit_priority(errno),
+			"Error getting feature (%s)", 
+			strerror(-rc));
+	return rc;
+#else
+	errno = EINVAL;
+	return -1;
+#endif
+}
+hidden_def(audit_request_feature)
+
+extern int  audit_set_loginuid_immutable(int fd)
+{
+	return audit_set_feature(fd, AUDIT_FEATURE_LOGINUID_IMMUTABLE, 1);
 }
 
 int audit_request_rules_list_data(int fd)

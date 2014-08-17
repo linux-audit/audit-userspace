@@ -1,5 +1,5 @@
 /* private.h -- 
- * Copyright 2005,2006,2009,2013 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2005,2006,2009,2013-14 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -139,6 +139,8 @@ hidden_proto(audit_detect_machine);
 hidden_proto(audit_request_status);
 hidden_proto(audit_rule_syscall_data);
 hidden_proto(audit_rule_syscallbyname_data);
+hidden_proto(audit_set_feature);
+hidden_proto(audit_request_feature);
 
 // lookup_table.c
 hidden_proto(audit_elf_to_machine);
