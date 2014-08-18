@@ -10,10 +10,11 @@
 - Add go language bindings for limited use of libaudit
 - Fix ausearch handling of exit code on 32 bit systems
 - Fix bug in aureport string linked list handling
-- Document week-ago time setting in ausearch/report
+- Document week-ago time setting in ausearch/report man page
 - Update tables for 3.16 kernel
 - In aulast, on bad logins only record user_login proof and use it
 - Add libaudit API for kernel features
+- If audit=0 on kernel cmnd line, skip systemd activation (Cristian Rodríguez)
 
 2.3.7
 - Limit number of options in a rule in libaudit
