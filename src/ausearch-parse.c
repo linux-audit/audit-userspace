@@ -186,9 +186,10 @@ int extract_search_items(llist *l)
 static int parse_syscall(lnode *n, search_items *s)
 {
 	char *ptr, *str, *term;
+	extern int event_machine;
 
 	term = n->message;
-	if (report_format > RPT_DEFAULT) {
+	if (report_format > RPT_DEFAULT || event_machine != -1) {
 		// get arch
 		str = strstr(term, "arch=");
 		if (str == NULL) 

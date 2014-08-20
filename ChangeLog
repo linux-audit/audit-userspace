@@ -16,6 +16,7 @@
 - Add libaudit API for kernel features
 - If audit=0 on kernel cmnd line, skip systemd activation (Cristian Rodríguez)
 - Add checkpoint start option to ausearch (Burn Alting)
+- Fix arch matching in ausearch
 
 2.3.7
 - Limit number of options in a rule in libaudit
