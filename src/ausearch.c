@@ -1,6 +1,6 @@
 /*
  * ausearch.c - main file for ausearch utility 
- * Copyright 2005-08,2010,2013 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2005-08,2010,2013,2014 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -58,6 +58,7 @@ static int process_file(char *filename);
 static int get_record(llist **);
 
 extern const char *checkpt_filename;	/* checkpoint file name */
+extern int checkpt_timeonly;	/* use timestamp from within checkpoint file */
 static int have_chkpt_data = 0;		/* have checkpt need to compare wit */
 extern char *user_file;
 extern int force_logs;
@@ -244,8 +245,16 @@ static int process_logs(void)
 			 */
 			if (	(sbuf.st_dev == chkpt_input_dev) &&
 				(sbuf.st_ino == chkpt_input_ino) ) {
-				found_chkpt_file = num++;
-				break;
+				/*
+				 * If we are ignoing all but time, then we
+				 * don't stop checking more files and just
+				 * let this loop go to completion and hence
+				 * we will find the 'oldest' file.
+				 */
+				if (!checkpt_timeonly) {
+					found_chkpt_file = num++;
+					break;
+				}
 			}
 		}
 
@@ -253,8 +262,11 @@ static int process_logs(void)
 		snprintf(filename, len, "%s.%d", config.log_file, num);
 	} while (1);
 
-	/* If a checkpoint is loaded but can't find it's file, error */
-	if (checkpt_filename && have_chkpt_data && found_chkpt_file == -1) {
+	/* If a checkpoint is loaded but can't find it's file, and we
+	 * are not only just checking the timestamp from the checkpoint file,
+	 * we need to error */
+	if (checkpt_filename && have_chkpt_data && found_chkpt_file == -1
+					&& !checkpt_timeonly) {
 		free(filename);
 		free_config(&config);
 		return 10;
@@ -342,7 +354,21 @@ static int chkpt_output_decision(event * e)
 		return 1;	/* can output on this event */
 	}
 
-	if ( chkpt_input_levent.sec == e->sec &&
+	/*
+	 * If we are ignoring all but event time from within the checkpoint
+	 * file, then we output if the current event's time is greater than
+	 * or equal to the checkpoint time.
+	 */
+	if (checkpt_timeonly) {
+		if ( (chkpt_input_levent.sec < e->sec) ||
+			( (chkpt_input_levent.sec == e->sec) &&
+				(chkpt_input_levent.milli <= e->milli) ) ) {
+			can_output = 1;
+			return 1;   /* can output on this event */
+		}
+	}
+
+	if (chkpt_input_levent.sec == e->sec &&
 		chkpt_input_levent.milli == e->milli &&
 		chkpt_input_levent.serial == e->serial &&
 		chkpt_input_levent.type == e->type ) {
@@ -352,7 +378,7 @@ static int chkpt_output_decision(event * e)
 			can_output = 1;
 			return 2;	/* output after this event */
 		}
-		if ( chkpt_input_levent.node && e->node &&
+		if (chkpt_input_levent.node && e->node &&
 			(strcmp(chkpt_input_levent.node, e->node) == 0) ) {
 			can_output = 1;
 			return 2;	/* output after this event */

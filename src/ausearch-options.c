@@ -57,6 +57,7 @@ long long event_exit = 0;
 int event_exit_is_set = 0;
 int line_buffered = 0;
 int event_debug = 0;
+int checkpt_timeonly = 0;
 const char *event_key = NULL;
 const char *event_filename = NULL;
 const char *event_exe = NULL;
@@ -873,8 +874,12 @@ int check_params(int count, char *vars[])
 						if (ausearch_time_start(optarg,
 							"00:00:00") != 0)
 							retval = -1;
-					}
-					else if ( strchr(optarg, ':') == NULL) {
+					} else if (strcmp(optarg,
+							"checkpoint") == 0) {
+					// Only use the timestamp from within
+					// the checkpoint file
+						checkpt_timeonly++;
+					} else if (strchr(optarg, ':') == NULL){
 						/* Only have date */
 						if (ausearch_time_start(optarg,
 							"00:00:00") != 0)
