@@ -15,8 +15,9 @@
 - In aulast, on bad logins only record user_login proof and use it
 - Add libaudit API for kernel features
 - If audit=0 on kernel cmnd line, skip systemd activation (Cristian Rodríguez)
-- Add checkpoint start option to ausearch (Burn Alting)
+- Add checkpoint --start option to ausearch (Burn Alting)
 - Fix arch matching in ausearch
+- Add --loginuid-immutable option to auditctl
 
 2.3.7
 - Limit number of options in a rule in libaudit
