@@ -172,6 +172,10 @@ void enqueue_event(struct auditd_reply_list *rep)
 		case LF_NOLOG:
 			// We need the rotate event to get enqueued
 			if (rep->reply.type != AUDIT_DAEMON_ROTATE ) {
+				// Internal DAEMON messages should be free'd
+				if (rep->reply.type >= AUDIT_FIRST_DAEMON &&
+				    rep->reply.type <= AUDIT_LAST_DAEMON)
+					free((void *)rep->reply.message);
 				free(rep);
 				return;
 			}
@@ -180,6 +184,10 @@ void enqueue_event(struct auditd_reply_list *rep)
 			audit_msg(LOG_ERR, 
 				  "Illegal log format detected %d", 
 				  consumer_data.config->log_format);
+			// Internal DAEMON messages should be free'd
+			if (rep->reply.type >= AUDIT_FIRST_DAEMON &&
+			    rep->reply.type <= AUDIT_LAST_DAEMON)
+				free((void *)rep->reply.message);
 			free(rep);
 			return;
 		}
