@@ -490,7 +490,7 @@ extern void audit_number_to_errmsg(int errnumber, const char *opt);
 extern int audit_request_status(int fd);
 extern int audit_is_enabled(int fd);
 extern int get_auditfail_action(auditfail_t *failmode);
-extern int audit_request_feature(int fd,unsigned feature,struct audit_features *f);
+extern int audit_request_features(int fd);
 
 /* AUDIT_SET */
 typedef enum { WAIT_NO, WAIT_YES } rep_wait_t;
@@ -499,7 +499,7 @@ extern int  audit_set_enabled(int fd, uint32_t enabled);
 extern int  audit_set_failure(int fd, uint32_t failure);
 extern int  audit_set_rate_limit(int fd, uint32_t limit);
 extern int  audit_set_backlog_limit(int fd, uint32_t limit);
-extern int  audit_set_feature(int fd, unsigned feature, unsigned lock);
+extern int  audit_set_feature(int fd, unsigned feature, unsigned value, unsigned lock);
 extern int  audit_set_loginuid_immutable(int fd);
 
 /* AUDIT_LIST_RULES */

@@ -456,6 +456,28 @@ void check_rule_mismatch(int lineno, const char *option)
 	}
 }
 
+int report_status(int fd)
+{
+	int retval;
+
+	retval = audit_request_status(fd);
+	if (retval == -1) {
+		if (errno == ECONNREFUSED)
+			fprintf(stderr,	"The audit system is disabled\n");
+		return -1;
+	}
+	get_reply();
+	retval = audit_request_features(fd);
+	if (retval == -1) {
+		// errno is EINVAL if the kernel does support features API
+		if (errno == EINVAL)
+			return -2;
+		return -1;
+	}
+	get_reply();
+	return -2;
+}
+
 struct option long_opts[] =
 {
   {"loginuid-immutable", 0, NULL, 1},
@@ -497,11 +519,7 @@ static int setopt(int count, int lineno, char *vars[])
 		retval = -2;
 		break;
         case 's':
-		retval = audit_request_status(fd);
-		if (retval <= 0)
-			retval = -1;
-		else
-			retval = 0; /* success - just get the reply */
+		retval = report_status(fd);
 		break;
         case 'e':
 		if (optarg && ((strcmp(optarg, "0") == 0) ||

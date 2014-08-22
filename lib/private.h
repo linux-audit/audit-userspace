@@ -140,7 +140,7 @@ hidden_proto(audit_request_status);
 hidden_proto(audit_rule_syscall_data);
 hidden_proto(audit_rule_syscallbyname_data);
 hidden_proto(audit_set_feature);
-hidden_proto(audit_request_feature);
+hidden_proto(audit_request_features);
 
 // lookup_table.c
 hidden_proto(audit_elf_to_machine);

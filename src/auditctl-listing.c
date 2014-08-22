@@ -487,12 +487,23 @@ int audit_print_reply(struct audit_reply *rep, int fd)
 			printed = 1;
 			break;
 		case AUDIT_GET:
-			printf("AUDIT_STATUS: enabled=%d flag=%d pid=%d"
-			" rate_limit=%d backlog_limit=%d lost=%d backlog=%u\n",
+			printf("enabled %d\nflag %d\npid %d\nrate_limit %d\n"
+			"backlog_limit %d\nlost %d\nbacklog %u\n",
 			rep->status->enabled, rep->status->failure,
 			rep->status->pid, rep->status->rate_limit,
 			rep->status->backlog_limit, rep->status->lost,
 			rep->status->backlog);
+			printed = 1;
+			break;
+		case AUDIT_GET_FEATURE:
+			{
+			uint32_t mask = AUDIT_FEATURE_TO_MASK(AUDIT_FEATURE_LOGINUID_IMMUTABLE);
+			if (rep->features->mask & mask)
+				printf("loginuid_immutable %u %s\n",
+					rep->features->features & mask,
+					rep->features->lock & mask ? "locked" :
+					"unlocked");
+			}
 			printed = 1;
 			break;
 		case AUDIT_LIST_RULES:

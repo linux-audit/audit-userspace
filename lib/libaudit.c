@@ -493,15 +493,18 @@ int audit_set_backlog_limit(int fd, uint32_t limit)
 	return rc;
 }
 
-int audit_set_feature(int fd, unsigned feature, unsigned lock)
+int audit_set_feature(int fd, unsigned feature, unsigned value, unsigned lock)
 {
 #if HAVE_DECL_AUDIT_FEATURE_VERSION
 	int rc;
 	struct audit_features f;
 
 	memset(&f, 0, sizeof(f));
-	f.features = feature;
-	f.lock = lock;
+	f.mask = AUDIT_FEATURE_TO_MASK(feature);
+	if (value)
+		f.features = AUDIT_FEATURE_TO_MASK(feature);
+	if (lock)
+		f.lock = AUDIT_FEATURE_TO_MASK(feature);
 	rc = audit_send(fd, AUDIT_SET_FEATURE, &f, sizeof(f));
 	if (rc < 0)
 		audit_msg(audit_priority(errno),
@@ -515,14 +518,14 @@ int audit_set_feature(int fd, unsigned feature, unsigned lock)
 }
 hidden_def(audit_set_feature)
 
-int audit_request_feature(int fd, unsigned feature, struct audit_features *f)
+int audit_request_features(int fd)
 {
 #if HAVE_DECL_AUDIT_FEATURE_VERSION
 	int rc;
+	struct audit_features f;
 
-	memset(f, 0, sizeof(struct audit_features));
-	f->features = feature;
-	rc=audit_send(fd, AUDIT_GET_FEATURE, f, sizeof(struct audit_features));
+	memset(&f, 0, sizeof(f));
+	rc = audit_send(fd, AUDIT_GET_FEATURE, &f, sizeof(f));
 	if (rc < 0)
 		audit_msg(audit_priority(errno),
 			"Error getting feature (%s)", 
@@ -533,11 +536,11 @@ int audit_request_feature(int fd, unsigned feature, struct audit_features *f)
 	return -1;
 #endif
 }
-hidden_def(audit_request_feature)
+hidden_def(audit_request_features)
 
 extern int  audit_set_loginuid_immutable(int fd)
 {
-	return audit_set_feature(fd, AUDIT_FEATURE_LOGINUID_IMMUTABLE, 1);
+	return audit_set_feature(fd, AUDIT_FEATURE_LOGINUID_IMMUTABLE, 1, 1);
 }
 
 int audit_request_rules_list_data(int fd)

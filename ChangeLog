@@ -19,6 +19,7 @@
 - Fix arch matching in ausearch
 - Add --loginuid-immutable option to auditctl
 - Fix memory leak in auditd when log_format is set to NOLOG
+- Update auditctl to display features in the status command
 
 2.3.7
 - Limit number of options in a rule in libaudit
