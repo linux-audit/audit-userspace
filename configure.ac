@@ -91,11 +91,9 @@ if test x$use_python = xno ; then
 else
 AC_MSG_RESULT(testing)
 AM_PATH_PYTHON
-PYINCLUDEDIR=`python${am_cv_python_version} -c "import sysconfig; print(sysconfig.get_config_var('INCLUDEPY'))"`
-if test -f ${PYINCLUDEDIR}/Python.h ; then
+if test -f /usr/include/python${am_cv_python_version}/Python.h ; then
 	python_found="yes"
 	pybind_dir="python"
-	AC_SUBST(PYINCLUDEDIR)
 	AC_SUBST(pybind_dir)
 	AC_MSG_NOTICE(Python bindings will be built)
 else

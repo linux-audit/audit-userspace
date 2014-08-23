@@ -495,6 +495,7 @@ int audit_print_reply(struct audit_reply *rep, int fd)
 			rep->status->backlog);
 			printed = 1;
 			break;
+#if HAVE_DECL_AUDIT_FEATURE_VERSION
 		case AUDIT_GET_FEATURE:
 			{
 			uint32_t mask = AUDIT_FEATURE_TO_MASK(AUDIT_FEATURE_LOGINUID_IMMUTABLE);
@@ -506,6 +507,7 @@ int audit_print_reply(struct audit_reply *rep, int fd)
 			}
 			printed = 1;
 			break;
+#endif
 		case AUDIT_LIST_RULES:
 			list_requested = 0;
 			if (key_match(rep->ruledata))

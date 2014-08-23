@@ -540,7 +540,12 @@ hidden_def(audit_request_features)
 
 extern int  audit_set_loginuid_immutable(int fd)
 {
+#if HAVE_DECL_AUDIT_FEATURE_VERSION
 	return audit_set_feature(fd, AUDIT_FEATURE_LOGINUID_IMMUTABLE, 1, 1);
+#else
+	errno = EINVAL;
+	return -1;
+#endif
 }
 
 int audit_request_rules_list_data(int fd)
