@@ -1,5 +1,5 @@
 # Makefile.am --
-# Copyright 2004-09, 2012 Red Hat Inc., Durham, North Carolina.
+# Copyright 2004-09,2012,2014 Red Hat Inc., Durham, North Carolina.
 # All Rights Reserved.
 #
 # This program is free software; you can redistribute it and/or modify
@@ -50,7 +50,7 @@ auparse_node_compare.3 auparse_reset.3 auparse_timestamp_compare.3 \
 ausearch-expression.5 \
 aureport.8 ausearch.8 ausearch_add_item.3 ausearch_add_interpreted_item.3 \
 ausearch_add_expression.3 ausearch_add_timestamp_item.3 ausearch_add_regex.3 \
-ausearch_clear.3 \
+ausearch_add_timestamp_item_ex.3 ausearch_clear.3 \
 ausearch_next_event.3 ausearch_set_stop.3 \
 autrace.8 get_auditfail_action.3 set_aumessage_mode.3 \
 audispd.8 audispd.conf.5 audispd-zos-remote.8 libaudit.conf.5 \
