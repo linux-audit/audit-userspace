@@ -1131,9 +1131,18 @@ int audit_determine_machine(const char *arch)
 	} else if (strcasecmp("b32", arch) == 0) {
 		bits = ~__AUDIT_ARCH_64BIT;
 		machine = audit_detect_machine();
-	} 
-	else 
+	} else { 
 		machine = audit_name_to_machine(arch);
+		if (machine < 0) {
+			// See if its numeric
+			unsigned int ival;
+			errno = 0;
+			ival = strtoul(arch, NULL, 16);
+			if (errno)
+				return -4;
+			machine = audit_elf_to_machine(ival);
+		}
+	}
 
 	if (machine < 0) 
 		return -4;
