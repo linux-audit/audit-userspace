@@ -1,6 +1,6 @@
 /*
 * expression.h - Expression parsing and handling
-* Copyright (C) 2008 Red Hat Inc., Durham, North Carolina.
+* Copyright (C) 2008,2014 Red Hat Inc., Durham, North Carolina.
 * All Rights Reserved.
 *
 * This software may be freely redistributed and/or modified under the
@@ -19,6 +19,7 @@
 *
 * Authors:
 *   Miloslav Trmač <mitr@redhat.com>
+*   Steve Grubb <sgrubb@redhat.com>  extended timestamp
 */
 
 #ifndef EXPRESSION_H__
@@ -43,7 +44,7 @@ enum {
 };
 
 enum field_id {
-	EF_TIMESTAMP, EF_RECORD_TYPE,
+	EF_TIMESTAMP, EF_RECORD_TYPE, EF_TIMESTAMP_EX
 };
 
 struct expr {
@@ -66,6 +67,11 @@ struct expr {
 					time_t sec;
 					unsigned int milli;
 				} timestamp; /* EF_TIMESTAMP */
+				struct {
+					time_t sec;
+					unsigned milli;
+					unsigned serial;
+				} timestamp_ex; /* EF_TIMESTAMP_EX */
 				int int_value; /* EF_RECORD_TYPE */
 			} value;
 		} p;
@@ -88,11 +94,18 @@ struct expr *expr_parse(const char *string, char **error) hidden;
 struct expr *expr_create_comparison(const char *field, unsigned op,
 				    const char *value) hidden;
 
-/* Create a \timestamp comparison-expression for with OP, SEC, MILLI.
+/* Create a timestamp comparison-expression for with OP, SEC, MILLI.
    On success, return the created expression.
    On error, set errno and return NULL. */
 struct expr *expr_create_timestamp_comparison(unsigned op, time_t sec,
 					      unsigned milli) hidden;
+
+/* Create an extended timestamp comparison-expression for with OP, SEC, 
+   MILLI, and SERIAL.
+   On success, return the created expression.
+   On error, set errno and return NULL. */
+struct expr *expr_create_timestamp_comparison_ex(unsigned op, time_t sec,
+				      unsigned milli, unsigned serial) hidden;
 
 /* Create an EO_FIELD_EXISTS-expression for FIELD.
    On success, return the created expression.

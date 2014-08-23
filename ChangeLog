@@ -20,6 +20,7 @@
 - Add --loginuid-immutable option to auditctl
 - Fix memory leak in auditd when log_format is set to NOLOG
 - Update auditctl to display features in the status command
+- Add ausearch_add_timestamp_item_ex() to auparse
 
 2.3.7
 - Limit number of options in a rule in libaudit

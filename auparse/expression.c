@@ -1,6 +1,6 @@
 /*
 * expression.c - Expression parsing and handling
-* Copyright (C) 2008 Red Hat Inc., Durham, North Carolina.
+* Copyright (C) 2008,2014 Red Hat Inc., Durham, North Carolina.
 * All Rights Reserved.
 *
 * This software may be freely redistributed and/or modified under the
@@ -19,6 +19,7 @@
 *
 * Authors:
 *   Miloslav Trmač <mitr@redhat.com>
+*   Steve Grubb <sgrubb@redhat.com>  extended timestamp
 */
 
 #include <assert.h>
@@ -362,6 +363,8 @@ parse_escaped_field_name(enum field_id *dest, const char *name)
 		*dest = EF_TIMESTAMP;
 	else if (strcmp(name, "record_type") == 0)
 		*dest = EF_RECORD_TYPE;
+	else if (strcmp(name, "timestamp_ex") == 0)
+		*dest = EF_TIMESTAMP_EX;
 	else
 		return -1;
 	return 0;
@@ -378,14 +381,16 @@ parse_timestamp_value(struct expr *dest, struct parsing *p)
 
 	assert(p->token == T_STRING);
 	/* FIXME: other formats? */
-	/* FIXME: parse it as a float instead of hard-coding milliseconds? */
-	if (sscanf(p->token_value, "ts:%jd.%u", &sec,
-		   &dest->v.p.value.timestamp.milli)
-	    != 2) {
-		if (asprintf(p->error, "Invalid timestamp value `%.*s'",
-			     p->token_len, p->token_start) < 0)
-			*p->error = NULL;
-		return -1;
+	if (sscanf(p->token_value, "ts:%jd.%u:%u", &sec,
+		   &dest->v.p.value.timestamp_ex.milli,
+		   &dest->v.p.value.timestamp_ex.serial) != 3) {
+		if (sscanf(p->token_value, "ts:%jd.%u", &sec,
+			   &dest->v.p.value.timestamp.milli) != 2) {
+			if (asprintf(p->error, "Invalid timestamp value `%.*s'",
+				     p->token_len, p->token_start) < 0)
+				*p->error = NULL;
+			return -1;
+		}
 	}
 	/* FIXME: validate milli */
 	dest->v.p.value.timestamp.sec = sec;
@@ -434,6 +439,9 @@ parse_virtual_field_value(struct expr *dest, struct parsing *p)
 
 	case EF_RECORD_TYPE:
 		return parse_record_type_value(dest, p);
+
+	case EF_TIMESTAMP_EX:
+		return parse_timestamp_value(dest, p);
 
 	default:
 		abort();
@@ -794,11 +802,13 @@ err:
 	return NULL;
 }
 
-/* Create a \timestamp comparison-expression for with OP, SEC, MILLI.
+/* Create an extended timestamp comparison-expression for with OP, SEC, 
+   MILLI, and SERIAL.
    On success, return the created expression.
    On error, set errno and return NULL. */
 struct expr *
-expr_create_timestamp_comparison(unsigned op, time_t sec, unsigned milli)
+expr_create_timestamp_comparison_ex(unsigned op, time_t sec, unsigned milli,
+	unsigned serial)
 {
 	struct expr *res;
 
@@ -809,12 +819,22 @@ expr_create_timestamp_comparison(unsigned op, time_t sec, unsigned milli)
 	       || op == EO_VALUE_LE || op == EO_VALUE_GT || op == EO_VALUE_GE);
 	res->op = op;
 	res->virtual_field = 1;
-	res->v.p.field.id = EF_TIMESTAMP;
+	res->v.p.field.id = EF_TIMESTAMP_EX;
 	res->precomputed_value = 1;
-	res->v.p.value.timestamp.sec = sec;
+	res->v.p.value.timestamp_ex.sec = sec;
 	assert(milli < 1000);
-	res->v.p.value.timestamp.milli = milli;
+	res->v.p.value.timestamp_ex.milli = milli;
+	res->v.p.value.timestamp_ex.serial = serial;
 	return res;
+}
+
+/* Create a timestamp comparison-expression for with OP, SEC, MILLI.
+   On success, return the created expression.
+   On error, set errno and return NULL. */
+struct expr *
+expr_create_timestamp_comparison(unsigned op, time_t sec, unsigned milli)
+{
+	return expr_create_timestamp_comparison_ex(op, sec, milli, 0);
 }
 
 /* Create an EO_FIELD_EXISTS-expression for FIELD.
@@ -905,7 +925,7 @@ eval_raw_value(auparse_state_t *au, rnode *record, const struct expr *expr,
 		return (char *)nvlist_get_cur_val(&record->nv);
 	}
 	switch (expr->v.p.field.id) {
-	case EF_TIMESTAMP: case EF_RECORD_TYPE:
+	case EF_TIMESTAMP: case EF_RECORD_TYPE: case EF_TIMESTAMP_EX:
 		return NULL;
 
 	default:
@@ -933,7 +953,7 @@ eval_interpreted_value(auparse_state_t *au, rnode *record,
 		return (char *)res;
 	}
 	switch (expr->v.p.field.id) {
-	case EF_TIMESTAMP: case EF_RECORD_TYPE:
+	case EF_TIMESTAMP: case EF_RECORD_TYPE: case EF_TIMESTAMP_EX:
 		return NULL;
 
 	default:
@@ -970,6 +990,23 @@ compare_values(auparse_state_t *au, rnode *record, const struct expr *expr,
 		if (record->type < expr->v.p.value.int_value)
 			res = -1;
 		else if (record->type > expr->v.p.value.int_value)
+			res = 1;
+		else
+			res = 0;
+		break;
+
+	case EF_TIMESTAMP_EX:
+		if (au->le.e.sec < expr->v.p.value.timestamp.sec)
+			res = -1;
+		else if (au->le.e.sec > expr->v.p.value.timestamp.sec)
+			res = 1;
+		else if (au->le.e.milli < expr->v.p.value.timestamp.milli)
+			res = -1;
+		else if (au->le.e.milli > expr->v.p.value.timestamp.milli)
+			res = 1;
+		else if (au->le.e.serial < expr->v.p.value.timestamp_ex.serial)
+			res = -1;
+		else if (au->le.e.serial > expr->v.p.value.timestamp_ex.serial)
 			res = 1;
 		else
 			res = 0;

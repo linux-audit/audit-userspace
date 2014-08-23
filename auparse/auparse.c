@@ -406,8 +406,8 @@ int ausearch_add_interpreted_item(auparse_state_t *au, const char *field,
 					  EO_INTERPRETED_EQ, EO_INTERPRETED_NE);
 }
 
-int ausearch_add_timestamp_item(auparse_state_t *au, const char *op, time_t sec,
-				unsigned milli, ausearch_rule_t how)
+int ausearch_add_timestamp_item_ex(auparse_state_t *au, const char *op,
+	time_t sec, unsigned milli, unsigned serial, ausearch_rule_t how)
 {
 	static const struct {
 		unsigned value;
@@ -440,7 +440,7 @@ found_op:
 		goto err_out;
 
 	// All pre-checks are done, build a rule
-	expr = expr_create_timestamp_comparison(t_op, sec, milli);
+	expr = expr_create_timestamp_comparison_ex(t_op, sec, milli, serial);
 	if (expr == NULL)
 		return -1;
 	if (add_expr(au, expr, how) != 0)
@@ -450,6 +450,12 @@ found_op:
 err_out:
 	errno = EINVAL;
 	return -1;
+}
+
+int ausearch_add_timestamp_item(auparse_state_t *au, const char *op, time_t sec,
+				unsigned milli, ausearch_rule_t how)
+{
+	return ausearch_add_timestamp_item_ex(au, op, sec, milli, 0, how);
 }
 
 int ausearch_add_expression(auparse_state_t *au, const char *expression,
