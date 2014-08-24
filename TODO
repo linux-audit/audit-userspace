@@ -1,6 +1,6 @@
 Things that need to be done:
 ===========================
-2.4
+2.4.1
 * Fix auparse to handle out of order messages
 * Fix auparse to use serial on timestamp search
 * Add command report
