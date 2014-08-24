@@ -1,3 +1,5 @@
+2.4.1
+
 2.4
 - Optionally parse loginuids, (e)uids, & (e)gids in ausearch/report
 - In auvirt, anomaly events don't have uuid (#1111448)
