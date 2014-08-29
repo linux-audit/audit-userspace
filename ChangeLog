@@ -1,4 +1,5 @@
 2.4.1
+- Make python3 support easier
 
 2.4
 - Optionally parse loginuids, (e)uids, & (e)gids in ausearch/report

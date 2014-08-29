@@ -26,6 +26,6 @@ CONFIG_CLEAN_FILES = *.loT *.rej *.orig
 pyexec_LTLIBRARIES = auparse.la
 
 auparse_la_SOURCES = auparse_python.c
-auparse_la_CPPFLAGS = -I$(top_srcdir)/auparse $(AM_CPPFLAGS) -I/usr/include/python$(PYTHON_VERSION) -fno-strict-aliasing
+auparse_la_CPPFLAGS = -I$(top_srcdir)/auparse $(AM_CPPFLAGS) -I@PYINCLUDEDIR@ -fno-strict-aliasing
 auparse_la_LDFLAGS = -module -avoid-version -Wl,-z,relro
 auparse_la_LIBADD = ${top_builddir}/auparse/libauparse.la ${top_builddir}/lib/libaudit.la
