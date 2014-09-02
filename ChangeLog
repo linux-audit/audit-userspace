@@ -1,5 +1,6 @@
 2.4.1
 - Make python3 support easier
+- Add support for ppc64le (Tony Jones)
 
 2.4
 - Optionally parse loginuids, (e)uids, & (e)gids in ausearch/report

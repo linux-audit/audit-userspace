@@ -1195,6 +1195,11 @@ int audit_determine_machine(const char *arch)
 				return -6;
 			break;
 #endif
+		case MACH_PPC64LE:
+			if (bits != __AUDIT_ARCH_64BIT)
+				return -6;
+			break;
+
 		case MACH_86_64: /* fallthrough */
 		case MACH_PPC64: /* fallthrough */
 		case MACH_S390X: /* fallthrough */

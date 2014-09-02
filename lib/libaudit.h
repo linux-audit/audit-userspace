@@ -356,6 +356,9 @@ extern "C" {
 #define AUDIT_ARCH_AARCH64	(EM_AARCH64|__AUDIT_ARCH_64BIT|__AUDIT_ARCH_LE)
 #endif
 
+#ifndef AUDIT_ARCH_PPC64LE
+#define AUDIT_ARCH_PPC64LE	(EM_PPC64|__AUDIT_ARCH_64BIT|__AUDIT_ARCH_LE)
+#endif
 
 //////////////////////////////////////////////////////
 // This is an external ABI. Any changes in here will
@@ -438,7 +441,8 @@ typedef enum {
 	MACH_S390,
 	MACH_ALPHA,
 	MACH_ARM,
-	MACH_AARCH64
+	MACH_AARCH64,
+	MACH_PPC64LE
 } machine_t;
 
 /* These are the valid audit failure tunable enum values */

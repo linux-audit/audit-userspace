@@ -70,6 +70,7 @@ static const struct int_transtab elftab[] = {
     { MACH_86_64,   AUDIT_ARCH_X86_64 },
     { MACH_IA64,    AUDIT_ARCH_IA64   },
     { MACH_PPC64,   AUDIT_ARCH_PPC64  },
+    { MACH_PPC64LE, AUDIT_ARCH_PPC64LE},
     { MACH_PPC,     AUDIT_ARCH_PPC    },
     { MACH_S390X,   AUDIT_ARCH_S390X  },
     { MACH_S390,    AUDIT_ARCH_S390   },
@@ -123,6 +124,7 @@ int audit_name_to_syscall(const char *sc, int machine)
 			found = ia64_syscall_s2i(sc, &res);
 			break;
 		case MACH_PPC64:
+		case MACH_PPC64LE:
 		case MACH_PPC:
 			found = ppc_syscall_s2i(sc, &res);
 			break;
@@ -169,6 +171,7 @@ const char *audit_syscall_to_name(int sc, int machine)
 		case MACH_IA64:
 			return ia64_syscall_i2s(sc);
 		case MACH_PPC64:
+		case MACH_PPC64LE:
 		case MACH_PPC:
 			return ppc_syscall_i2s(sc);
 		case MACH_S390X:
