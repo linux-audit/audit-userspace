@@ -383,7 +383,7 @@ static const char *print_ipccall(const char *val, unsigned int base)
 	if (func)
 		return strdup(func);
 	else {
-		if (asprintf(&out, "unknown ipccall(%d)", val) < 0)
+		if (asprintf(&out, "unknown ipccall(%s)", val) < 0)
 			out = NULL;
                 return out;
 	}
@@ -407,7 +407,7 @@ static const char *print_socketcall(const char *val, unsigned int base)
 	if (func)
 		return strdup(func);
 	else {
-		if (asprintf(&out, "unknown socketcall(%d)", val) < 0)
+		if (asprintf(&out, "unknown socketcall(%s)", val) < 0)
 			out = NULL;
                 return out;
 	}
