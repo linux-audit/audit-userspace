@@ -104,6 +104,7 @@
 #include "tcpoptnametabs.h"
 #include "pktoptnametabs.h"
 #include "umounttabs.h"
+#include "ioctlreqtabs.h"
 
 typedef enum { AVC_UNSET, AVC_DENIED, AVC_GRANTED } avc_t;
 typedef enum { S_UNSET=-1, S_FAILED, S_SUCCESS } success_t;
@@ -1707,6 +1708,28 @@ static const char *print_umount(const char *val)
 	return strdup(buf);
 }
 
+static const char *print_ioctl_req(const char *val)
+{
+	int req;
+	char *out;
+	const char *r;
+
+	errno = 0;
+	req = strtoul(val, NULL, 16);
+	if (errno) {
+		if (asprintf(&out, "conversion error(%s)", val) < 0)
+			out = NULL;
+                return out;
+	}
+
+	r = ioctlreq_i2s(req);
+	if (r != NULL)
+		return strdup(r);
+	if (asprintf(&out, "0x%s", val) < 0)
+		out = NULL;
+	return out;
+}
+
 static const char *print_a0(const char *val, const idata *id)
 {
 	char *out;
@@ -1856,6 +1879,8 @@ static const char *print_a1(const char *val, const idata *id)
 			return print_signals(val, 16);
 		else if (strcmp(sys, "umount2") == 0)
 			return print_umount(val);
+		else if (strcmp(sys, "ioctl") == 0)
+			return print_ioctl_req(val);
 	}
 	if (asprintf(&out, "0x%s", val) < 0)
 			out = NULL;
