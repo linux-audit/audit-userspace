@@ -59,6 +59,7 @@ void reset_counters(void)
 	slist_create(&sd.files);
 	slist_create(&sd.hosts);
 	slist_create(&sd.exes);
+	slist_create(&sd.comms);
 	slist_create(&sd.avc_objs);
 	slist_create(&sd.keys);
 	ilist_create(&sd.pids);
@@ -90,6 +91,7 @@ void destroy_counters(void)
 	slist_clear(&sd.files);
 	slist_clear(&sd.hosts);
 	slist_clear(&sd.exes);
+	slist_clear(&sd.comms);
 	slist_clear(&sd.avc_objs);
 	slist_clear(&sd.keys);
 	ilist_clear(&sd.pids);
@@ -400,6 +402,10 @@ static int per_event_summary(llist *l)
 			if (l->s.exe)
 				slist_add_if_uniq(&sd.exes, l->s.exe);
 			break;
+		case RPT_COMM:
+			if (l->s.comm)
+				slist_add_if_uniq(&sd.comms, l->s.comm);
+			break;
 		case RPT_ANOMALY:
 			if (list_find_msg_range(l, AUDIT_FIRST_ANOM_MSG,
 							AUDIT_LAST_ANOM_MSG)) {
@@ -631,6 +637,17 @@ static int per_event_detailed(llist *l)
 				UNIMPLEMENTED;
 			}
 			break;
+		case RPT_COMM:
+			list_first(l);
+			if (report_detail == D_DETAILED) {
+				if (l->s.comm) {
+					print_per_event_item(l);
+					rc = 1;
+				}
+			} else { //  specific exe report
+				UNIMPLEMENTED;
+			}
+			break;
 		case RPT_ANOMALY:
 			if (report_detail == D_DETAILED) {
 				if (list_find_msg_range(l, 
@@ -788,6 +805,10 @@ static void do_summary_total(llist *l)
 	// add execs
 	if (l->s.exe)
 		slist_add_if_uniq(&sd.exes, l->s.exe);
+
+	// add comms
+	if (l->s.comm)
+		slist_add_if_uniq(&sd.comms, l->s.comm);
 
 	// add files
 	if (l->s.filename) {

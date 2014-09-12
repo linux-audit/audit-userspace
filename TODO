@@ -1,7 +1,6 @@
 Things that need to be done:
 ===========================
 2.4.1
-* Add command report
 * auditctl should ignore invalid arches for rules
 * Add audit by process name support
 

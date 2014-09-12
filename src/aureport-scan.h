@@ -33,6 +33,7 @@ typedef struct sdata {
 	slist files;
 	slist hosts;
 	slist exes;
+	slist comms;
 	slist avc_objs;
 	slist keys;
 	ilist pids;

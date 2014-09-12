@@ -153,6 +153,12 @@ static void print_title_summary(void)
 			printf("total  file\n");
 			printf("=================================\n");
 			break;
+		case RPT_COMM:
+			printf("Command Summary Report\n");
+			printf("=================================\n");
+			printf("total  command\n");
+			printf("=================================\n");
+			break;
 		case RPT_ANOMALY:
 			printf("Anomaly Summary Report\n");
 			printf("======================\n");
@@ -339,6 +345,20 @@ static void print_title_detailed(void)
 			} else {
 				printf("Specific Executable Report\n");
 				printf("==========================\n");
+			}
+			break;
+		case RPT_COMM:
+			if (report_detail == D_DETAILED) {
+				printf("Command Report\n");
+				printf(
+				  "====================================\n");
+				printf(
+				  "# date time comm term host auid event\n");
+				printf(
+				  "=====================================\n");
+			} else {
+				printf("Specific command Report\n");
+				printf("=======================\n");
 			}
 			break;
 		case RPT_ANOMALY:
@@ -571,6 +591,15 @@ void print_per_event_item(llist *l)
 				aulookup_uid(l->s.loginuid, name, sizeof(name)),
 				l->e.serial);
 			break;
+		case RPT_COMM:	// report_detail == D_DETAILED
+			// comm, terminal, host, who, event
+			printf("%s %s %s %s %lu\n",
+				l->s.comm ? l->s.comm : "?", 
+				l->s.terminal ? l->s.terminal : "?",
+				l->s.hostname ? l->s.hostname : "?",
+				aulookup_uid(l->s.loginuid, name, sizeof(name)),
+				l->e.serial);
+			break;
 		case RPT_ANOMALY:	// report_detail == D_DETAILED
 			// type exe term host auid event
 			printf("%s %s %s %s %s %lu\n",
@@ -696,6 +725,10 @@ void print_wrap_up(void)
 			slist_sort_by_hits(&sd.exes);
 			do_file_summary_output(&sd.exes);
 			break;
+		case RPT_COMM:
+			slist_sort_by_hits(&sd.comms);
+			do_file_summary_output(&sd.comms);
+			break;
 		case RPT_ANOMALY:
 			ilist_sort_by_hits(&sd.anom_list);
 			do_type_summary_output(&sd.anom_list);
@@ -770,6 +803,7 @@ static void do_summary_output(void)
 	printf("Number of terminals: %u\n", sd.terms.cnt);
 	printf("Number of host names: %u\n", sd.hosts.cnt);
 	printf("Number of executables: %u\n", sd.exes.cnt);
+	printf("Number of commands: %u\n", sd.comms.cnt);
 	printf("Number of files: %u\n", sd.files.cnt);
 	printf("Number of AVC's: %lu\n", sd.avcs);
 	printf("Number of MAC events: %lu\n", sd.mac);

@@ -1,5 +1,5 @@
 /* aureport-options.h -- 
- * Copyright 2005-06, 2008 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2005-06, 2008,2014 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -35,7 +35,7 @@ typedef enum { RPT_UNSET, RPT_TIME, RPT_SUMMARY, RPT_AVC, RPT_MAC,
 	RPT_CONFIG, RPT_EVENT, RPT_FILE, RPT_HOST, RPT_LOGIN,
 	RPT_ACCT_MOD, RPT_PID, RPT_SYSCALL, RPT_TERM, RPT_USER,
 	RPT_EXE, RPT_ANOMALY, RPT_RESPONSE, RPT_CRYPTO, 
-	RPT_AUTH, RPT_KEY, RPT_TTY } report_type_t;
+	RPT_AUTH, RPT_KEY, RPT_TTY, RPT_COMM } report_type_t;
 
 typedef enum { D_UNSET, D_SUM, D_DETAILED, D_SPECIFIC } report_det_t;
 

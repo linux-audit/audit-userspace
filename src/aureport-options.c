@@ -81,7 +81,7 @@ enum {  R_INFILE, R_TIME_END, R_TIME_START, R_VERSION, R_SUMMARY, R_LOG_TIMES,
 	R_AVCS, R_SYSCALLS, R_PIDS, R_EVENTS, R_ACCT_MODS,  
 	R_INTERPRET, R_HELP, R_ANOMALY, R_RESPONSE, R_SUMMARY_DET, R_CRYPTO,
 	R_MAC, R_FAILED, R_SUCCESS, R_ADD, R_DEL, R_AUTH, R_NODE, R_IN_LOGS,
-	R_KEYS, R_TTY, R_NO_CONFIG };
+	R_KEYS, R_TTY, R_NO_CONFIG, R_COMM };
 
 static struct nv_pair optiontab[] = {
 	{ R_AUTH, "-au" },
@@ -142,7 +142,8 @@ static struct nv_pair optiontab[] = {
 	{ R_VERSION, "-v" },
 	{ R_VERSION, "--version" },
 	{ R_EXES, "-x" },
-	{ R_EXES, "--executable" }
+	{ R_EXES, "--executable" },
+	{ R_COMM, "--comm" }
 };
 #define OPTION_NAMES (sizeof(optiontab)/sizeof(optiontab[0]))
 
@@ -162,6 +163,7 @@ static void usage(void)
 	printf("usage: aureport [options]\n"
 	"\t-a,--avc\t\t\tAvc report\n"
 	"\t-au,--auth\t\t\tAuthentication report\n"
+	"\t--comm\t\t\tCommands run report\n"
 	"\t-c,--config\t\t\tConfig change report\n"
 	"\t-cr,--crypto\t\t\tCrypto report\n"
 	"\t-e,--event\t\t\tEvent report\n"
@@ -464,6 +466,21 @@ int check_params(int count, char *vars[])
 				}
 			}
 			break;
+		case R_COMM:
+			if (set_report(RPT_COMM))
+				retval = -1;
+			else {
+				if (!optarg) {
+					set_detail(D_DETAILED);
+					event_terminal = dummy;
+					event_hostname = dummy;
+					event_comm = dummy;
+					event_loginuid = 1;
+				} else {
+					UNIMPLEMENTED;
+				}
+			}
+			break;
 		case R_ANOMALY:
 			if (set_report(RPT_ANOMALY))
 				retval = -1;
@@ -673,6 +690,7 @@ int check_params(int count, char *vars[])
 				event_hostname = dummy;
 				event_terminal = dummy;
 				event_exe = dummy;
+				event_comm = dummy;
 				event_key = dummy;
 				event_loginuid = 1;
 			}
