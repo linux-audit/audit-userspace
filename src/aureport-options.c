@@ -163,7 +163,7 @@ static void usage(void)
 	printf("usage: aureport [options]\n"
 	"\t-a,--avc\t\t\tAvc report\n"
 	"\t-au,--auth\t\t\tAuthentication report\n"
-	"\t--comm\t\t\tCommands run report\n"
+	"\t--comm\t\t\t\tCommands run report\n"
 	"\t-c,--config\t\t\tConfig change report\n"
 	"\t-cr,--crypto\t\t\tCrypto report\n"
 	"\t-e,--event\t\t\tEvent report\n"
