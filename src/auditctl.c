@@ -128,7 +128,7 @@ static void usage(void)
      "    -v                  Version\n"
      "    -w <path>           Insert watch at <path>\n"
      "    -W <path>           Remove watch at <path>\n"
-     "    --loginuid-immutable   Make loginuids unchangeable once set"
+     "    --loginuid-immutable   Make loginuids unchangeable once set\n"
      );
 }
 
@@ -1192,8 +1192,9 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 #ifndef DEBUG
-	/* Make sure we are root */
-	if (geteuid() != 0) {
+	/* Make sure we are root if we do anything except help */
+	if (!(argc == 2 && (strcmp(argv[1], "--help")==0 ||
+			strcmp(argv[1], "-h") == 0)) && (geteuid() != 0)) {
 		fprintf(stderr, "You must be root to run this program.\n");
 		return 4;
 	}
