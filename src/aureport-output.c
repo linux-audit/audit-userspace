@@ -106,7 +106,10 @@ static void print_title_summary(void)
 			printf("============================\n");
 			break;
 		case RPT_ACCT_MOD:
-			UNIMPLEMENTED;
+			printf("Acct Modification Summary Report\n");
+			printf("================================\n");
+			printf("total  type\n");
+			printf("================================\n");
 			break;
 		case RPT_TIME:
 			UNIMPLEMENTED;
@@ -715,7 +718,9 @@ void print_wrap_up(void)
 			slist_sort_by_hits(&sd.users);
 			do_user_summary_output(&sd.users);
 			break;
-		case RPT_ACCT_MOD:
+		case RPT_ACCT_MOD: /* We will borrow the pid list */
+			ilist_sort_by_hits(&sd.pids);
+			do_type_summary_output(&sd.pids);
 			break;
 		case RPT_EVENT: /* We will borrow the pid list */
 			ilist_sort_by_hits(&sd.pids);

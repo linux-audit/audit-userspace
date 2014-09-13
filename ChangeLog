@@ -4,6 +4,7 @@
 - Add some translatiosn for a1 of ioctl system calls
 - Add command & virtualization reports to aureport
 - Update aureport config report for new events
+- In aureport, add account modification summary report
 
 2.4
 - Optionally parse loginuids, (e)uids, & (e)gids in ausearch/report

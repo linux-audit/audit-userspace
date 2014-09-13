@@ -361,8 +361,16 @@ static int per_event_summary(llist *l)
 				}
 			}
 			break;
-		case RPT_ACCT_MOD:
-			UNIMPLEMENTED;
+		case RPT_ACCT_MOD: /* We will borrow the pid list */
+			if (list_find_msg(l, AUDIT_USER_CHAUTHTOK) || 
+				list_find_msg_range(l,
+					AUDIT_ADD_USER, AUDIT_DEL_GROUP) ||
+				list_find_msg(l, AUDIT_CHGRP_ID) ||
+				list_find_msg_range(l,
+					AUDIT_ROLE_ASSIGN,
+					AUDIT_ROLE_REMOVE)) {
+				ilist_add_if_uniq(&sd.pids, l->head->type, 0);
+			}
 			break;
 		case RPT_EVENT: /* We will borrow the pid list */
 			if (l->head->type != -1) {
