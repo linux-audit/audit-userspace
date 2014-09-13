@@ -530,6 +530,12 @@ static int per_event_detailed(llist *l)
 			} else if (list_find_msg(l, AUDIT_USYS_CONFIG)) {
 				print_per_event_item(l);
 				rc = 1;
+			} else if (list_find_msg(l, AUDIT_NETFILTER_CFG)) {
+				print_per_event_item(l);
+				rc = 1;
+			} else if (list_find_msg(l, AUDIT_FEATURE_CHANGE)) {
+				print_per_event_item(l);
+				rc = 1;
 			} else if (list_find_msg_range(l,
 					AUDIT_MAC_POLICY_LOAD,
 					AUDIT_MAC_UNLBL_STCDEL)) {
@@ -758,6 +764,10 @@ static void do_summary_total(llist *l)
 	if (list_find_msg(l, AUDIT_DAEMON_CONFIG)) 
 		sd.changes++;
 	if (list_find_msg(l, AUDIT_USYS_CONFIG)) 
+		sd.changes++;
+	if (list_find_msg(l, AUDIT_NETFILTER_CFG)) 
+		sd.changes++;
+	if (list_find_msg(l, AUDIT_FEATURE_CHANGE)) 
 		sd.changes++;
 	list_first(l);
 	if (list_find_msg_range(l, AUDIT_MAC_POLICY_LOAD,
