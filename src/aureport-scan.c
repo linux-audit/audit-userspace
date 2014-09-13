@@ -327,7 +327,7 @@ static int per_event_summary(llist *l)
 							sizeof(name))
 						);
 				}
-			} else if (list_find_msg(l, AUDIT_USER_ACCT)) {
+			} else if (list_find_msg(l, AUDIT_USER_MGMT)) {
 				// Only count the failures
 				if (l->s.success == S_FAILED) {
 					if (l->s.loginuid == -2 && 
@@ -555,7 +555,7 @@ static int per_event_detailed(llist *l)
 			if (list_find_msg(l, AUDIT_USER_AUTH)) {
 				print_per_event_item(l);
 				rc = 1;
-			} else if (list_find_msg(l, AUDIT_USER_ACCT)) {
+			} else if (list_find_msg(l, AUDIT_USER_MGMT)) {
 				// Only count the failed acct
 				if (l->s.success == S_FAILED) {
 					print_per_event_item(l);
@@ -580,8 +580,10 @@ static int per_event_detailed(llist *l)
 			} else if (list_find_msg(l, AUDIT_CHGRP_ID)) {
 				print_per_event_item(l);
 				rc = 1;
-			} else if (list_find_msg_range(l,
-					AUDIT_MOD_USER, AUDIT_MOD_GROUP)) {
+			} else if (list_find_msg(l, AUDIT_USER_ACCT)) {
+				print_per_event_item(l);
+				rc = 1;
+			} else if (list_find_msg(l, AUDIT_GRP_ACCT)) {
 				print_per_event_item(l);
 				rc = 1;
 			} else if (list_find_msg_range(l,
@@ -791,7 +793,9 @@ static void do_summary_total(llist *l)
 		sd.acct_changes++;
 	if (list_find_msg_range(l, AUDIT_ADD_USER, AUDIT_DEL_GROUP))
 		sd.acct_changes++;
-	if (list_find_msg_range(l, AUDIT_MOD_USER, AUDIT_MOD_GROUP))
+	if (list_find_msg(l, AUDIT_USER_ACCT))
+		sd.acct_changes++;
+	if (list_find_msg(l, AUDIT_GRP_ACCT))
 		sd.acct_changes++;
 	if (list_find_msg(l, AUDIT_CHGRP_ID))
 		sd.acct_changes++;
@@ -822,7 +826,7 @@ static void do_summary_total(llist *l)
 			sd.good_auth++;
 		else if (l->s.success == S_FAILED)
 			sd.bad_auth++;
-	} else if (list_find_msg(l, AUDIT_USER_ACCT)) {
+	} else if (list_find_msg(l, AUDIT_USER_MGMT)) {
 		// Only count the failures
 		if (l->s.success == S_FAILED)
 			sd.bad_auth++;

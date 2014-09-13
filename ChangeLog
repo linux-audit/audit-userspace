@@ -5,7 +5,7 @@
 - Add command & virtualization reports to aureport
 - Update aureport config report for new events
 - In aureport, add account modification summary report
-- Add MOD_USER and MOD_GROUP event types
+- Add GRP_ACCT event type and correct aureport account change reports
 
 2.4
 - Optionally parse loginuids, (e)uids, & (e)gids in ausearch/report
