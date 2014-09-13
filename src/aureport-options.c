@@ -81,7 +81,7 @@ enum {  R_INFILE, R_TIME_END, R_TIME_START, R_VERSION, R_SUMMARY, R_LOG_TIMES,
 	R_AVCS, R_SYSCALLS, R_PIDS, R_EVENTS, R_ACCT_MODS,  
 	R_INTERPRET, R_HELP, R_ANOMALY, R_RESPONSE, R_SUMMARY_DET, R_CRYPTO,
 	R_MAC, R_FAILED, R_SUCCESS, R_ADD, R_DEL, R_AUTH, R_NODE, R_IN_LOGS,
-	R_KEYS, R_TTY, R_NO_CONFIG, R_COMM };
+	R_KEYS, R_TTY, R_NO_CONFIG, R_COMM, R_VIRT };
 
 static struct nv_pair optiontab[] = {
 	{ R_AUTH, "-au" },
@@ -143,7 +143,8 @@ static struct nv_pair optiontab[] = {
 	{ R_VERSION, "--version" },
 	{ R_EXES, "-x" },
 	{ R_EXES, "--executable" },
-	{ R_COMM, "--comm" }
+	{ R_COMM, "--comm" },
+	{ R_VIRT, "--virt" }
 };
 #define OPTION_NAMES (sizeof(optiontab)/sizeof(optiontab[0]))
 
@@ -193,6 +194,7 @@ static void usage(void)
 	"\t--tty\t\t\t\tReport about tty keystrokes\n"
 	"\t-u,--user\t\t\tUser name report\n"
 	"\t-v,--version\t\t\tVersion\n"
+	"\t--virt\t\t\t\tVirtualization report\n"
 	"\t-x,--executable\t\t\teXecutable name report\n"
 	"\tIf no report is given, the summary report will be displayed\n"
 	);
@@ -289,6 +291,13 @@ int check_params(int count, char *vars[])
 			else { 
 				set_detail(D_DETAILED);
 				event_loginuid = 1;
+			}
+			break;
+		case R_VIRT:
+			if (set_report(RPT_VIRT))
+				retval = -1;
+			else { 
+				set_detail(D_DETAILED);
 			}
 			break;
 		case R_CONFIGS:

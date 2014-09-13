@@ -54,6 +54,7 @@ void reset_counters(void)
 	sd.failed_syscalls = 0UL;
 	sd.anomalies = 0UL;
 	sd.responses = 0UL;
+	sd.virt = 0UL;
 	slist_create(&sd.users);
 	slist_create(&sd.terms);
 	slist_create(&sd.files);
@@ -68,6 +69,7 @@ void reset_counters(void)
 	ilist_create(&sd.mac_list);
 	ilist_create(&sd.resp_list);
 	ilist_create(&sd.crypto_list);
+	ilist_create(&sd.virt_list);
 }
 
 /* This function inits the counters */
@@ -86,6 +88,7 @@ void destroy_counters(void)
 	sd.failed_syscalls = 0UL;
 	sd.anomalies = 0UL;
 	sd.responses = 0UL;
+	sd.virt = 0UL;
 	slist_clear(&sd.users);
 	slist_clear(&sd.terms);
 	slist_clear(&sd.files);
@@ -100,6 +103,7 @@ void destroy_counters(void)
 	ilist_create(&sd.mac_list);
 	ilist_clear(&sd.resp_list);
 	ilist_create(&sd.crypto_list);
+	ilist_create(&sd.virt_list);
 }
 
 /* This function will return 0 on no match and 1 on match */
@@ -299,6 +303,14 @@ static int per_event_summary(llist *l)
 				}
 			}
 			break;
+		case RPT_VIRT:
+			if (list_find_msg_range(l, 
+				AUDIT_FIRST_VIRT_MSG,
+					AUDIT_LAST_VIRT_MSG)) {
+				ilist_add_if_uniq(&sd.virt_list, 
+						l->head->type, 0);
+			}
+			break;
 		case RPT_CONFIG:
 			UNIMPLEMENTED;
 			break;
@@ -495,6 +507,16 @@ static int per_event_detailed(llist *l)
 						print_per_event_item(l);
 						rc = 1;
 					}
+				}
+			}
+			break;
+		case RPT_VIRT:
+			if (report_detail == D_DETAILED) {
+				if (list_find_msg_range(l, 
+					AUDIT_FIRST_VIRT_MSG,
+					AUDIT_LAST_VIRT_MSG)) {
+					print_per_event_item(l);
+					rc = 1;
 				}
 			}
 			break;
@@ -838,6 +860,12 @@ static void do_summary_total(llist *l)
 	if (list_find_msg_range(l, AUDIT_FIRST_USER_LSPP_MSG, 
 					AUDIT_LAST_USER_LSPP_MSG))
 		sd.mac++;
+
+	// Virt
+	list_first(l);
+	if (list_find_msg_range(l, AUDIT_FIRST_VIRT_MSG, 
+					AUDIT_LAST_VIRT_MSG))
+		sd.virt++;
 
 	// add failed syscalls
 	if (l->s.success == S_FAILED && l->s.syscall > 0)

@@ -42,6 +42,7 @@ typedef struct sdata {
 	ilist resp_list;
 	ilist mac_list;
 	ilist crypto_list;
+	ilist virt_list;
 	unsigned long changes;
 	unsigned long crypto;
 	unsigned long acct_changes;
@@ -55,6 +56,7 @@ typedef struct sdata {
 	unsigned long failed_syscalls;
 	unsigned long anomalies;
 	unsigned long responses;
+	unsigned long virt;
 } summary_data;
 
 void reset_counters(void);
