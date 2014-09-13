@@ -91,6 +91,8 @@ extern "C" {
 #define AUDIT_SYSTEM_RUNLEVEL	1129	/* System runlevel change */
 #define AUDIT_SERVICE_START	1130	/* Service (daemon) start */
 #define AUDIT_SERVICE_STOP	1131	/* Service (daemon) stop */
+#define AUDIT_MOD_USER		1132	/* User account was modified */
+#define AUDIT_MOD_GROUP		1133	/* Group was modified */
 
 #define AUDIT_FIRST_DAEMON	1200
 #define AUDIT_LAST_DAEMON	1299

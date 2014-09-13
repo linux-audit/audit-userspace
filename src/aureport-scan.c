@@ -581,6 +581,10 @@ static int per_event_detailed(llist *l)
 				print_per_event_item(l);
 				rc = 1;
 			} else if (list_find_msg_range(l,
+					AUDIT_MOD_USER, AUDIT_MOD_GROUP)) {
+				print_per_event_item(l);
+				rc = 1;
+			} else if (list_find_msg_range(l,
 					AUDIT_ROLE_ASSIGN,
 					AUDIT_ROLE_REMOVE)) {
 				print_per_event_item(l);
@@ -786,6 +790,8 @@ static void do_summary_total(llist *l)
 	if (list_find_msg(l, AUDIT_USER_CHAUTHTOK))
 		sd.acct_changes++;
 	if (list_find_msg_range(l, AUDIT_ADD_USER, AUDIT_DEL_GROUP))
+		sd.acct_changes++;
+	if (list_find_msg_range(l, AUDIT_MOD_USER, AUDIT_MOD_GROUP))
 		sd.acct_changes++;
 	if (list_find_msg(l, AUDIT_CHGRP_ID))
 		sd.acct_changes++;
