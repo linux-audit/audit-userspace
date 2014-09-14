@@ -80,9 +80,9 @@ static void print_title_summary(void)
 			break;
 		case RPT_MAC:
 			printf("MAC Summary Report\n");
-			printf("======================\n");
+			printf("==================\n");
 			printf("total  type\n");
-			printf("======================\n");
+			printf("==================\n");
 			break;
 		case RPT_INTEG:
 			printf("Integrity Summary Report\n");
@@ -97,7 +97,10 @@ static void print_title_summary(void)
 			printf("=============================\n");
 			break;
 		case RPT_CONFIG:
-			UNIMPLEMENTED;
+			printf("Config Change Summary Report\n");
+			printf("============================\n");
+			printf("total  type\n");
+			printf("============================\n");
 			break;
 		case RPT_AUTH:
 			printf("Authentication Summary Report\n");
@@ -188,9 +191,9 @@ static void print_title_summary(void)
 			break;
 		case RPT_CRYPTO:
 			printf("Crypto Summary Report\n");
-			printf("======================\n");
+			printf("=====================\n");
 			printf("total  type\n");
-			printf("======================\n");
+			printf("=====================\n");
 			break;
 		case RPT_KEY:
 			printf("Key Summary Report\n");
@@ -732,7 +735,9 @@ void print_wrap_up(void)
 			slist_sort_by_hits(&sd.avc_objs);
 			do_string_summary_output(&sd.avc_objs);
 			break;
-		case RPT_CONFIG:
+		case RPT_CONFIG: /* We will borrow the pid list */
+			ilist_sort_by_hits(&sd.pids);
+			do_type_summary_output(&sd.pids);
 			break;
 		case RPT_AUTH:
 			slist_sort_by_hits(&sd.users);

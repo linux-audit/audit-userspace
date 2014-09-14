@@ -323,8 +323,18 @@ static int per_event_summary(llist *l)
 						l->head->type, 0);
 			}
 			break;
-		case RPT_CONFIG:
-			UNIMPLEMENTED;
+		case RPT_CONFIG: /* We will borrow the pid list */
+			if (list_find_msg(l, AUDIT_CONFIG_CHANGE) ||
+				list_find_msg(l, AUDIT_DAEMON_CONFIG) ||
+				list_find_msg(l, AUDIT_USYS_CONFIG) ||
+				list_find_msg(l, AUDIT_NETFILTER_CFG) ||
+				list_find_msg(l, AUDIT_FEATURE_CHANGE) ||
+				list_find_msg(l, AUDIT_USER_MAC_CONFIG_CHANGE)||
+				list_find_msg_range(l,
+					AUDIT_MAC_POLICY_LOAD,
+					AUDIT_MAC_UNLBL_STCDEL)) {
+				ilist_add_if_uniq(&sd.pids, l->head->type, 0);
+			}
 			break;
 		case RPT_AUTH:
 			if (list_find_msg(l, AUDIT_USER_AUTH)) {
@@ -567,6 +577,10 @@ static int per_event_detailed(llist *l)
 			} else if (list_find_msg(l, AUDIT_FEATURE_CHANGE)) {
 				print_per_event_item(l);
 				rc = 1;
+			} else if (list_find_msg(l,
+					AUDIT_USER_MAC_CONFIG_CHANGE)) {
+				print_per_event_item(l);
+				rc = 1;
 			} else if (list_find_msg_range(l,
 					AUDIT_MAC_POLICY_LOAD,
 					AUDIT_MAC_UNLBL_STCDEL)) {
@@ -802,6 +816,8 @@ static void do_summary_total(llist *l)
 	if (list_find_msg(l, AUDIT_NETFILTER_CFG)) 
 		sd.changes++;
 	if (list_find_msg(l, AUDIT_FEATURE_CHANGE)) 
+		sd.changes++;
+	if (list_find_msg(l, AUDIT_USER_MAC_CONFIG_CHANGE)) 
 		sd.changes++;
 	list_first(l);
 	if (list_find_msg_range(l, AUDIT_MAC_POLICY_LOAD,
