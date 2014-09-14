@@ -81,7 +81,7 @@ enum {  R_INFILE, R_TIME_END, R_TIME_START, R_VERSION, R_SUMMARY, R_LOG_TIMES,
 	R_AVCS, R_SYSCALLS, R_PIDS, R_EVENTS, R_ACCT_MODS,  
 	R_INTERPRET, R_HELP, R_ANOMALY, R_RESPONSE, R_SUMMARY_DET, R_CRYPTO,
 	R_MAC, R_FAILED, R_SUCCESS, R_ADD, R_DEL, R_AUTH, R_NODE, R_IN_LOGS,
-	R_KEYS, R_TTY, R_NO_CONFIG, R_COMM, R_VIRT };
+	R_KEYS, R_TTY, R_NO_CONFIG, R_COMM, R_VIRT, R_INTEG };
 
 static struct nv_pair optiontab[] = {
 	{ R_AUTH, "-au" },
@@ -90,6 +90,7 @@ static struct nv_pair optiontab[] = {
 	{ R_AVCS, "--avc" },
 	{ R_ADD, "--add" },
 	{ R_CONFIGS, "-c" },
+	{ R_COMM, "--comm" },
 	{ R_CONFIGS, "--config" },
 	{ R_CRYPTO, "-cr" },
 	{ R_CRYPTO, "--crypto" },
@@ -107,6 +108,7 @@ static struct nv_pair optiontab[] = {
 	{ R_INFILE, "-if" },
 	{ R_INFILE, "--input" },
 	{ R_IN_LOGS, "--input-logs" },
+	{ R_INTEG, "--integrity" },
 	{ R_KEYS, "-k" },
 	{ R_KEYS, "--key" },
 	{ R_LOGINS, "-l" },
@@ -143,7 +145,6 @@ static struct nv_pair optiontab[] = {
 	{ R_VERSION, "--version" },
 	{ R_EXES, "-x" },
 	{ R_EXES, "--executable" },
-	{ R_COMM, "--comm" },
 	{ R_VIRT, "--virt" }
 };
 #define OPTION_NAMES (sizeof(optiontab)/sizeof(optiontab[0]))
@@ -175,6 +176,7 @@ static void usage(void)
 	"\t-i,--interpret\t\t\tInterpretive mode\n"
 	"\t-if,--input <Input File name>\tuse this file as input\n"
 	"\t--input-logs\t\t\tUse the logs even if stdin is a pipe\n"
+	"\t--integrity\t\t\tIntegrity event report\n"
 	"\t-l,--login\t\t\tLogin report\n"
 	"\t-k,--key\t\t\tKey report\n"
 	"\t-m,--mods\t\t\tModification to accounts report\n"
@@ -287,6 +289,14 @@ int check_params(int count, char *vars[])
 			break;
 		case R_MAC:
 			if (set_report(RPT_MAC))
+				retval = -1;
+			else { 
+				set_detail(D_DETAILED);
+				event_loginuid = 1;
+			}
+			break;
+		case R_INTEG:
+			if (set_report(RPT_INTEG))
 				retval = -1;
 			else { 
 				set_detail(D_DETAILED);

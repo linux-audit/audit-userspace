@@ -1,6 +1,6 @@
 /*
 * aureport-output.c - Print the report
-* Copyright (c) 2005-06, 2008 Red Hat Inc., Durham, North Carolina.
+* Copyright (c) 2005-06,2008,2014 Red Hat Inc., Durham, North Carolina.
 * All Rights Reserved. 
 *
 * This software may be freely redistributed and/or modified under the
@@ -83,6 +83,12 @@ static void print_title_summary(void)
 			printf("======================\n");
 			printf("total  type\n");
 			printf("======================\n");
+			break;
+		case RPT_INTEG:
+			printf("Integrity Summary Report\n");
+			printf("========================\n");
+			printf("total  type\n");
+			printf("========================\n");
 			break;
 		case RPT_VIRT:
 			printf("Virtualization Summary Report\n");
@@ -406,6 +412,17 @@ static void print_title_detailed(void)
 				printf("===================================\n");
 			}
 			break;
+		case RPT_INTEG:
+			if (report_detail == D_DETAILED) {
+				printf("Integrity Report\n");
+				printf("==============================\n");
+				printf("# date time type success event\n");
+				printf("==============================\n");
+			} else {
+				printf("Specific Integrity Report\n");
+				printf("==============================\n");
+			}
+			break;
 		case RPT_VIRT:
 			if (report_detail == D_DETAILED) {
 				printf("Virtualization Report\n");
@@ -645,6 +662,13 @@ void print_per_event_item(llist *l)
 				aulookup_success(l->s.success),
 				l->e.serial);
 			break;
+		case RPT_INTEG:
+			// type success event
+			printf("%s %s %lu\n",
+				audit_msg_type_to_name(l->head->type),
+				aulookup_success(l->s.success),
+				l->e.serial);
+			break;
 		case RPT_VIRT:
 			// type success event
 			printf("%s %s %lu\n",
@@ -770,6 +794,10 @@ void print_wrap_up(void)
 			ilist_sort_by_hits(&sd.mac_list);
 			do_type_summary_output(&sd.mac_list);
 			break;
+		case RPT_INTEG:
+			ilist_sort_by_hits(&sd.integ_list);
+			do_type_summary_output(&sd.integ_list);
+			break;
 		case RPT_VIRT:
 			ilist_sort_by_hits(&sd.virt_list);
 			do_type_summary_output(&sd.virt_list);
@@ -844,6 +872,7 @@ static void do_summary_output(void)
 	printf("Number of anomaly events: %lu\n", sd.anomalies);
 	printf("Number of responses to anomaly events: %lu\n", sd.responses);
 	printf("Number of crypto events: %lu\n", sd.crypto);
+	printf("Number of integrity events: %lu\n", sd.integ);
 	printf("Number of virt events: %lu\n", sd.virt);
 	printf("Number of keys: %u\n", sd.keys.cnt);
 	printf("Number of process IDs: %u\n", sd.pids.cnt);
