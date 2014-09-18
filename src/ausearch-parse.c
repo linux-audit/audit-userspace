@@ -1221,6 +1221,8 @@ static int parse_login(const lnode *n, search_items *s)
 
 	// success
 	if (event_success != S_UNSET) {
+		if (term == NULL)
+			term = n->message;
 		str = strstr(term, "res=");
 		if (str != NULL) {
 			ptr = str + 4;
