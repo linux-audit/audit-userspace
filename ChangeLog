@@ -4,11 +4,11 @@
 - Add some translations for a1 of ioctl system calls
 - Add command & virtualization reports to aureport
 - Update aureport config report for new events
-- In aureport, add account modification summary report
+- Add account modification summary report to aureport
 - Add GRP_ACCT event type
 - Correct aureport account change reports
 - Add integrity event report to aureport
-- Add config change summary report
+- Add config change summary report to aureport
 
 2.4
 - Optionally parse loginuids, (e)uids, & (e)gids in ausearch/report

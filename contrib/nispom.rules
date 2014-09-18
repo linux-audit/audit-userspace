@@ -108,19 +108,34 @@
 ## Not specifically required by NISPOM; but common sense items
 ## Optional - could indicate someone trying to do something bad or
 ## just debugging
-#-a always,exit -F arch=b32 -S ptrace -k paranoid
-#-a always,exit -F arch=b64 -S ptrace -k paranoid
-
-## Optional - could be an attempt to bypass audit or simply legacy program
-#-a always,exit -F arch=b32 -S personality -F a0!=4294967295 -k paranoid
-#-a always,exit -F arch=b64 -S personality -F a0!=4294967295 -k paranoid
+#-a always,exit -F arch=b32 -S ptrace -k tracing
+#-a always,exit -F arch=b64 -S ptrace -k tracing
+#-a always,exit -F arch=b32 -S ptrace -F a0=4 -k code-injection
+#-a always,exit -F arch=b64 -S ptrace -F a0=4 -k code-injection
+#-a always,exit -F arch=b32 -S ptrace -F a0=5 -k data-injection
+#-a always,exit -F arch=b64 -S ptrace -F a0=5 -k data-injection
+#-a always,exit -F arch=b32 -S ptrace -F a0=6 -k register-injection
+#-a always,exit -F arch=b64 -S ptrace -F a0=6 -k register-injection
 
 ## Optional - might want to watch module insertion
 #-w /sbin/insmod -p x -k modules
 #-w /sbin/rmmod -p x -k modules
 #-w /sbin/modprobe -p x -k modules
-#-a always,exit -F arch=b32 -S init_module -S delete_module -k modules
-#-a always,exit -F arch=b64 -S init_module -S delete_module -k modules
+#-a always,exit -F arch=b32 -S init_module -S finit_module -k module-load
+#-a always,exit -F arch=b64 -S init_module -S finit_module -k module-load
+#-a always,exit -F arch=b32 -S delete_module -k module-unload
+#-a always,exit -F arch=b64 -S delete_module -k module-unload
+
+## Optional - admin may be abusing power by looking in user's home dir
+#-a always,exit -F dir=/home -F uid=0 -F auid>=1000 -F auid!=4294967295 -C auid!=obj_uid -F key=power-abuse
+
+## Optional - log container creation
+#-a always,exit -F arch=b32 -S clone -F a0&2080505856 -k container-create
+#-a always,exit -F arch=b64 -S clone -F a0&2080505856 -k container-create
+
+## Optional - watch for containers that may change their configuration
+#-a always,exit -F arch=b32 -S setns -S unshare -k container-config
+#-a always,exit -F arch=b64 -S setns -S unshare -k container-config
 
 ## Put your own watches after this point
 # -w /your-file -p rwxa -k mykey
