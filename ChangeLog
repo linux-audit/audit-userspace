@@ -9,6 +9,7 @@
 - Correct aureport account change reports
 - Add integrity event report to aureport
 - Add config change summary report to aureport
+- Adjust some syslogging level settings in audispd
 
 2.4
 - Optionally parse loginuids, (e)uids, & (e)gids in ausearch/report

@@ -401,7 +401,7 @@ int main(int argc, char *argv[])
 
 	/* if no plugins - exit */
 	if (plist_count(&plugin_conf) == 0) {
-		syslog(LOG_ERR, "No plugins found, exiting");
+		syslog(LOG_NOTICE, "No plugins found, exiting");
 		return 0;
 	}
 
@@ -423,7 +423,7 @@ int main(int argc, char *argv[])
 
 	/* Let the queue initialize */
 	init_queue(daemon_config.q_depth);
-	syslog(LOG_NOTICE, 
+	syslog(LOG_INFO, 
 		"audispd initialized with q_depth=%d and %d active plugins",
 		daemon_config.q_depth, i);
 
