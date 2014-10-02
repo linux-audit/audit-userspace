@@ -61,33 +61,20 @@ typedef struct Databuf {
 static inline char *databuf_beg(DataBuf *db)
 {return (db->alloc_ptr == NULL) ? NULL : db->alloc_ptr+db->offset;}
 
-static inline char *databuf_end(DataBuf *db)
-{return (db->alloc_ptr == NULL) ? NULL : db->alloc_ptr+db->offset+db->len;}
-
-static inline char *databuf_alloc_end(DataBuf *db)
-{return (db->alloc_ptr == NULL) ? NULL : db->alloc_ptr+db->alloc_size;}
-
-static inline int databuf_tail_size(DataBuf *db)
-{return db->alloc_size - (db->offset+db->len);}
-
-static inline int databuf_tail_available(DataBuf *db, size_t append_len)
-{return append_len <= databuf_tail_size(db);}
-
-static inline size_t databuf_free_size(DataBuf *db)
-{return db->alloc_size-db->len;}
-
 /*****************************************************************************/
 /****************************  Exported Functions  ***************************/
 /*****************************************************************************/
 
-void databuf_print(DataBuf *db, int print_data, char *fmt, ...) hidden;
+void databuf_print(DataBuf *db, int print_data, char *fmt, ...) hidden
+#ifdef __GNUC__
+        __attribute__ ((format (printf, 3, 4)));
+#else
+        ;
+#endif
 int databuf_init(DataBuf *db, size_t size, unsigned flags) hidden;
 void databuf_free(DataBuf *db) hidden;
-char *databuf_export(DataBuf *db) hidden;
 int databuf_append(DataBuf *db, const char *src, size_t src_size) hidden;
-int databuf_strcat(DataBuf *db, const char *str) hidden;
 int databuf_advance(DataBuf *db, size_t advance) hidden;
-int databuf_compress(DataBuf *db) hidden;
 int databuf_reset(DataBuf *db) hidden;
 
 #endif

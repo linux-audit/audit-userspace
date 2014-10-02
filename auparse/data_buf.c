@@ -85,6 +85,7 @@
 /*****************************************************************************/
 
 static int databuf_shift_data_to_beginning(DataBuf *db);
+static int databuf_strcat(DataBuf *db, const char *str);
 
 /*****************************************************************************/
 /*************************  External Global Variables  ***********************/
@@ -94,11 +95,27 @@ static int databuf_shift_data_to_beginning(DataBuf *db);
 /*************************  Internal Global Variables  ***********************/
 /*****************************************************************************/
 
+#ifdef DEBUG
 static int debug = 0;
+#endif
 
 /*****************************************************************************/
 /****************************  Inline Functions  *****************************/
 /*****************************************************************************/
+static inline char *databuf_end(DataBuf *db)
+{return (db->alloc_ptr == NULL) ? NULL : db->alloc_ptr+db->offset+db->len;}
+
+static inline char *databuf_alloc_end(DataBuf *db)
+{return (db->alloc_ptr == NULL) ? NULL : db->alloc_ptr+db->alloc_size;}
+
+static inline int databuf_tail_size(DataBuf *db)
+{return db->alloc_size - (db->offset+db->len);}
+
+static inline int databuf_tail_available(DataBuf *db, size_t append_len)
+{return append_len <= databuf_tail_size(db);}
+
+static inline size_t databuf_free_size(DataBuf *db)
+{return db->alloc_size-db->len;}
 
 /*****************************************************************************/
 /***************************  Internal Functions  ****************************/
@@ -185,14 +202,6 @@ void databuf_free(DataBuf *db)
     DATABUF_VALIDATE(db);
 }
 
-char *databuf_export(DataBuf *db)
-{
-    DATABUF_VALIDATE(db);
-    databuf_shift_data_to_beginning(db);
-    DATABUF_VALIDATE(db);
-    return db->alloc_ptr;
-}
-
 int databuf_append(DataBuf *db, const char *src, size_t src_size)
 {
     size_t new_size;
@@ -203,7 +212,9 @@ int databuf_append(DataBuf *db, const char *src, size_t src_size)
 
     new_size = db->len+src_size;
 
-    if (debug) databuf_print(db, 1, "databuf_append() size=%d", src_size);
+#ifdef DEBUG
+    if (debug) databuf_print(db, 1, "databuf_append() size=%zd", src_size);
+#endif
     if ((new_size > db->alloc_size) ||
         ((db->flags & DATABUF_FLAG_PRESERVE_HEAD) && !databuf_tail_available(db, src_size))) {
         /* not enough room, we must realloc */
@@ -224,17 +235,21 @@ int databuf_append(DataBuf *db, const char *src, size_t src_size)
             databuf_shift_data_to_beginning(db);
         }
     }
+#ifdef DEBUG
     if (debug) databuf_print(db, 1, "databuf_append() about to memmove()");
+#endif
     /* pointers all set up and room availble, move the data and update */
     memmove(databuf_end(db), src, src_size);
     db->len = new_size;
     db->max_len = MAX(db->max_len, new_size);
+#ifdef DEBUG
     if (debug) databuf_print(db, 1, "databuf_append() conclusion");
+#endif
     DATABUF_VALIDATE(db);
     return 1;
 }
 
-int databuf_strcat(DataBuf *db, const char *str)
+static int databuf_strcat(DataBuf *db, const char *str)
 {
     size_t str_len;
 
@@ -266,12 +281,16 @@ int databuf_advance(DataBuf *db, size_t advance)
     size_t actual_advance;
     DATABUF_VALIDATE(db);
 
-    if (debug) databuf_print(db, 1, "databuf_advance() enter, advance=%d", advance);
+#ifdef DEBUG
+    if (debug) databuf_print(db, 1, "databuf_advance() enter, advance=%zd", advance);
+#endif
     actual_advance = MIN(advance, db->len);
     db->offset += actual_advance;
     db->len -= actual_advance;
 
-    if (debug) databuf_print(db, 1, "databuf_advance() leave, actual_advance=%d", actual_advance);
+#ifdef DEBUG
+    if (debug) databuf_print(db, 1, "databuf_advance() leave, actual_advance=%zd", actual_advance);
+#endif
     DATABUF_VALIDATE(db);
     if (advance == actual_advance) {
         return 1;
@@ -281,32 +300,17 @@ int databuf_advance(DataBuf *db, size_t advance)
     }
 }
 
-
-int databuf_compress(DataBuf *db)
-{
-    void *new_alloc;
-
-    DATABUF_VALIDATE(db);
-    if (databuf_beg(db) == NULL || db->len == 0) return 0;
-    databuf_shift_data_to_beginning(db);
-    if ((new_alloc = realloc(db->alloc_ptr, db->len))) {
-        db->alloc_ptr  = new_alloc;
-        db->alloc_size = db->len;
-    } else {
-        return -1;           /* realloc failed */
-    }
-    
-    DATABUF_VALIDATE(db);
-    return 1;
-}
-
 int databuf_reset(DataBuf *db)
 {
+#ifdef DEBUG
     if (debug) databuf_print(db, 1, "databuf_reset() entry");
+#endif
     if (!(db->flags & DATABUF_FLAG_PRESERVE_HEAD)) return -1;
     db->offset = 0;
     db->len = MIN(db->alloc_size, db->max_len);
+#ifdef DEBUG
     if (debug) databuf_print(db, 1, "databuf_reset() exit");
+#endif
     return 1;
 }
 
@@ -355,9 +359,7 @@ int main(int argc, char **argv)
 
 #endif
 
-    data = databuf_export(&buf);
-    printf("concatenation=\"%s\"\n", data);
-    free(data);
+    databuf_free(&buf);
 
 #if 0
     assert(databuf_init(&buf, size, 0));
@@ -373,8 +375,6 @@ int main(int argc, char **argv)
 
     assert(databuf_advance(&buf, 4));
     databuf_print(&buf, 1, "after databuf_advance(%d", 4);
-    assert(databuf_compress(&buf));
-    databuf_print(&buf, 1, "after compress");
 
     size = 5;
     data = make_data(size, "b");
