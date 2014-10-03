@@ -161,6 +161,12 @@ hidden_proto(audit_send)
 // message.c
 hidden_proto(audit_msg)
 
+// strsplit.c
+char *audit_strsplit_r(char *s, char **savedpp);
+char *audit_strsplit(char *s);
+hidden_proto(audit_strsplit_r)
+hidden_proto(audit_strsplit)
+
 #ifdef __cplusplus
 }
 #endif
