@@ -712,15 +712,15 @@ static int extract_timestamp(const char *b, au_event_t *e)
 		tmp = strndupa(b, 340);
 	else
 		tmp = strndupa(b, 80);
-	ptr = strtok(tmp, " ");
+	ptr = audit_strsplit(tmp);
 	if (ptr) {
 		// Optionally grab the node - may or may not be included
 		if (*ptr == 'n') {
 			e->host = strdup(ptr+5);
-			(void)strtok(NULL, " "); // Bump along to the next one
+			(void)audit_strsplit(NULL); // Bump along to the next one
 		}
 		// at this point we have type=
-		ptr = strtok(NULL, " ");
+		ptr = audit_strsplit(NULL);
 		if (ptr) {
 			if (*(ptr+9) == '(')
 				ptr+=9;

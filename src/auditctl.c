@@ -1125,7 +1125,7 @@ static int fileopt(const char *file)
 		}
 		
 		preprocess(buf);
-		ptr = strtok(buf, " ");
+		ptr = audit_strsplit(buf);
 		if (ptr == NULL)
 			break;
 		
@@ -1138,7 +1138,7 @@ static int fileopt(const char *file)
 		fields = malloc(nf * sizeof(char *));
 		fields[i++] = "auditctl";
 		fields[i++] = ptr;
-		while( (ptr=strtok(NULL, " ")) && (i < nf-1)) {
+		while( (ptr=audit_strsplit(NULL)) && (i < nf-1)) {
 		        postprocess(ptr);
 			fields[i++] = ptr;
 		}

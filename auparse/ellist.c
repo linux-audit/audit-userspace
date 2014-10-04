@@ -1,6 +1,6 @@
 /*
 * ellist.c - Minimal linked list library
-* Copyright (c) 2006-08 Red Hat Inc., Durham, North Carolina.
+* Copyright (c) 2006-08,2014 Red Hat Inc., Durham, North Carolina.
 * All Rights Reserved. 
 *
 * This software may be freely redistributed and/or modified under the
@@ -104,7 +104,7 @@ static int parse_up_record(rnode* r)
 	int offset = 0;
 
 	buf = strdup(r->record);
-	ptr = strtok_r(buf, " ", &saved);
+	ptr = audit_strsplit_r(buf, &saved);
 	if (ptr == NULL) {
 		free(buf);
 		return -1;
@@ -240,7 +240,7 @@ static int parse_up_record(rnode* r)
 					char tmpctx[256], *to;
 					tmpctx[0] = 0;
 					to = tmpctx;
-					ptr = strtok_r(NULL, " ", &saved);
+					ptr = audit_strsplit_r(NULL, &saved);
 					while (ptr && *ptr != '}') {
 						len = strlen(ptr);
 						if ((len+1) >= (256-total)) {
@@ -253,7 +253,7 @@ static int parse_up_record(rnode* r)
 						}
 						to = stpcpy(to, ptr);
 						total += len;
-						ptr = strtok_r(NULL, " ",
+						ptr = audit_strsplit_r(NULL,
 								 &saved);
 					}
 					n.name = strdup("seperms");
@@ -267,7 +267,7 @@ static int parse_up_record(rnode* r)
 			nvlist_append(&r->nv, &n);
 		}
 		// FIXME: There should be an else here to catch ancillary data
-	} while((ptr = strtok_r(NULL, " ", &saved)));
+	} while((ptr = audit_strsplit_r(NULL, &saved)));
 
 	free(buf);
 	r->nv.cur = r->nv.head;	// reset to beginning

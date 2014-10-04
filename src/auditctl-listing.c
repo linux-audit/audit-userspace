@@ -348,18 +348,18 @@ static void print_rule(const struct audit_rule_data *r)
 
 				boffset += r->values[i];
 			} else if (field == AUDIT_FILTERKEY) {
-				char *rkey, *ptr;
+				char *rkey, *ptr, *saved=NULL;
 				if (asprintf(&rkey, "%.*s", r->values[i],
 					      &r->buf[boffset]) < 0)
 					rkey = NULL;
 				boffset += r->values[i];
-				ptr = strtok(rkey, key_sep);
+				ptr = strtok_r(rkey, key_sep, &saved);
 				while (ptr) {
 					if (watch)
 						printf(" -k %s", ptr);
 					else
 						printf(" -F key=%s", ptr);
-					ptr = strtok(NULL, key_sep);
+					ptr = strtok_r(NULL, key_sep, &saved);
 				}
 				free(rkey);
 			} else if (field == AUDIT_PERM) {

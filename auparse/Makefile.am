@@ -29,7 +29,7 @@ LIBS =
 lib_LTLIBRARIES = libauparse.la
 include_HEADERS = auparse.h auparse-defs.h
 libauparse_la_SOURCES = nvpair.c interpret.c nvlist.c ellist.c		\
-	auparse.c auditd-config.c message.c data_buf.c			\
+	auparse.c auditd-config.c message.c data_buf.c strsplit.c	\
 	auparse-defs.h	auparse-idata.h data_buf.h 			\
 	nvlist.h auparse.h ellist.h					\
 	internal.h nvpair.h rnode.h interpret.h				\
@@ -42,6 +42,9 @@ libauparse_la_LDFLAGS = -Wl,-z,relro
 
 message.c:
 	cp ${top_srcdir}/lib/message.c .
+
+strsplit.c:
+	cp ${top_srcdir}/lib/strsplit.c .
 
 BUILT_SOURCES = accesstabs.h captabs.h clocktabs.h clone-flagtabs.h \
 	epoll_ctls.h famtabs.h fcntl-cmdtabs.h \

@@ -78,7 +78,6 @@ void clear_config(struct daemon_conf *config) hidden;
 int load_config(struct daemon_conf *config, log_test_t lt) hidden;
 void free_config(struct daemon_conf *config) hidden;
 
-
 #ifdef __cplusplus
 }
 #endif

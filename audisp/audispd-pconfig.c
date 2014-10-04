@@ -279,12 +279,12 @@ static char *get_line(FILE *f, char *buf)
 static int nv_split(char *buf, struct nv_pair *nv)
 {
 	/* Get the name part */
-	char *ptr;
+	char *ptr, *saved = NULL;
 
 	nv->name = NULL;
 	nv->value = NULL;
 	nv->option = NULL;
-	ptr = strtok(buf, " ");
+	ptr = strtok_r(buf, " ", &saved);
 	if (ptr == NULL)
 		return 0; /* If there's nothing, go to next line */
 	if (ptr[0] == '#')
@@ -292,25 +292,25 @@ static int nv_split(char *buf, struct nv_pair *nv)
 	nv->name = ptr;
 
 	/* Check for a '=' */
-	ptr = strtok(NULL, " ");
+	ptr = strtok_r(NULL, " ", &saved);
 	if (ptr == NULL)
 		return 1;
 	if (strcmp(ptr, "=") != 0)
 		return 2;
 
 	/* get the value */
-	ptr = strtok(NULL, " ");
+	ptr = strtok_r(NULL, " ", &saved);
 	if (ptr == NULL)
 		return 1;
 	nv->value = ptr;
 
 	/* See if there's an option */
-	ptr = strtok(NULL, " ");
+	ptr = strtok_r(NULL, " ", &saved);
 	if (ptr) {
 		nv->option = ptr;
 
 		/* Make sure there's nothing else */
-		ptr = strtok(NULL, " ");
+		ptr = strtok_r(NULL, " ", &saved);
 		if (ptr)
 			return 1;
 	}

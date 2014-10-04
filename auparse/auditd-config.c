@@ -258,7 +258,7 @@ static int nv_split(char *buf, struct _pair *nv)
 
 	nv->name = NULL;
 	nv->value = NULL;
-	ptr = strtok(buf, " ");
+	ptr = audit_strsplit(buf);
 	if (ptr == NULL)
 		return 0; /* If there's nothing, go to next line */
 	if (ptr[0] == '#')
@@ -266,23 +266,23 @@ static int nv_split(char *buf, struct _pair *nv)
 	nv->name = ptr;
 
 	/* Check for a '=' */
-	ptr = strtok(NULL, " ");
+	ptr = audit_strsplit(NULL);
 	if (ptr == NULL)
 		return 1;
 	if (strcmp(ptr, "=") != 0)
 		return 2;
 
 	/* get the value */
-	ptr = strtok(NULL, " ");
+	ptr = audit_strsplit(NULL);
 	if (ptr == NULL)
 		return 1;
 	nv->value = ptr;
 
 	/* Make sure there's nothing else */
-	ptr = strtok(NULL, " ");
+	ptr = audit_strsplit(NULL);
 	if (ptr) {
 		/* Allow one option, but check that there's not 2 */
-		ptr = strtok(NULL, " ");
+		ptr = audit_strsplit(NULL);
 		if (ptr)
 			return 1;
 	}

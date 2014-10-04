@@ -144,7 +144,7 @@ static int nv_split(char *buf, struct nv_pair *nv)
 
 	nv->name = NULL;
 	nv->value = NULL;
-	ptr = strtok_r(buf, " ", &saved);
+	ptr = audit_strsplit_r(buf, &saved);
 	if (ptr == NULL)
 		return 0; /* If there's nothing, go to next line */
 	if (ptr[0] == '#')
@@ -152,20 +152,20 @@ static int nv_split(char *buf, struct nv_pair *nv)
 	nv->name = ptr;
 
 	/* Check for a '=' */
-	ptr = strtok_r(NULL, " ", &saved);
+	ptr = audit_strsplit_r(NULL, &saved);
 	if (ptr == NULL)
 		return 1;
 	if (strcmp(ptr, "=") != 0)
 		return 2;
 
 	/* get the value */
-	ptr = strtok_r(NULL, " ", &saved);
+	ptr = audit_strsplit_r(NULL, &saved);
 	if (ptr == NULL)
 		return 1;
 	nv->value = ptr;
 
 	/* Make sure there's nothing else */
-	ptr = strtok_r(NULL, " ", &saved);
+	ptr = audit_strsplit_r(NULL, &saved);
 	if (ptr)
 		return 1;
 

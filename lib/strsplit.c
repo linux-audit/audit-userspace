@@ -69,7 +69,7 @@ char *audit_strsplit(char *s)
 			return NULL;
 		str++;
 	}
-retry:	
+retry:
 	ptr = strchr(str, ' ');
 	if (ptr) {
 		if (ptr == str) {

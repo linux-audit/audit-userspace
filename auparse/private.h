@@ -41,6 +41,11 @@ void auparse_msg(int priority, const char *fmt, ...) hidden
 #endif
 void set_aumessage_mode(message_t mode, debug_message_t debug) hidden;
 
+char *audit_strsplit_r(char *s, char **savedpp);
+char *audit_strsplit(char *s);
+hidden_proto(audit_strsplit_r)
+hidden_proto(audit_strsplit)
+
 #ifdef __cplusplus
 }
 #endif

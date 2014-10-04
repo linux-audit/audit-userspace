@@ -1,6 +1,6 @@
 /*
 * ausearch-lol.c - linked list of linked lists library
-* Copyright (c) 2008,2010 Red Hat Inc., Durham, North Carolina.
+* Copyright (c) 2008,2010,2014 Red Hat Inc., Durham, North Carolina.
 * All Rights Reserved. 
 *
 * This software may be freely redistributed and/or modified under the
@@ -27,6 +27,7 @@
 #include <string.h>
 #include <stdio.h>
 #include "ausearch-common.h"
+#include "private.h"
 
 #define ARRAY_LIMIT 80
 static int ready = 0;
@@ -137,12 +138,12 @@ static int extract_timestamp(const char *b, event *e)
 		tmp = strndupa(b, 340);
 	else
 		tmp = strndupa(b, 80);
-	ptr = strtok(tmp, " ");
+	ptr = audit_strsplit(tmp);
 	if (ptr) {
 		// Check to see if this is the node info
 		if (*ptr == 'n') {
 			tnode = ptr+5;
-			ptr = strtok(NULL, " ");
+			ptr = audit_strsplit(NULL);
 		} else
 			tnode = NULL;
 
@@ -150,7 +151,7 @@ static int extract_timestamp(const char *b, event *e)
 		ttype = ptr+5;
 
 		// Now should be pointing to msg=
-		ptr = strtok(NULL, " ");
+		ptr = audit_strsplit(NULL);
 		if (ptr) {
 			if (*(ptr+9) == '(')
 				ptr+=9;
