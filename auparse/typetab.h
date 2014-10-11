@@ -122,4 +122,6 @@ _S(AUPARSE_TYPE_MAC_LABEL,	"tcontext"	)
 _S(AUPARSE_TYPE_MAC_LABEL,	"vm-ctx"	)
 _S(AUPARSE_TYPE_MAC_LABEL,	"img-ctx"	)
 _S(AUPARSE_TYPE_ESCAPED,	"proctitle"	)
+_S(AUPARSE_TYPE_ESCAPED,	"grp"		)
+_S(AUPARSE_TYPE_ESCAPED,	"new_group"	)
 
