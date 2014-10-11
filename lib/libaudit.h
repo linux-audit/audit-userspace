@@ -59,24 +59,24 @@ extern "C" {
 
 #define AUDIT_FIRST_USER_MSG    1100    /* First user space message */
 #define AUDIT_LAST_USER_MSG     1199    /* Last user space message */
-#define AUDIT_USER_AUTH         1100    /* User space authentication */
-#define AUDIT_USER_ACCT         1101    /* User space acct change */
-#define AUDIT_USER_MGMT         1102    /* User space acct management */
-#define AUDIT_CRED_ACQ          1103    /* User space credential acquired */
-#define AUDIT_CRED_DISP         1104    /* User space credential disposed */
-#define AUDIT_USER_START        1105    /* User space session start */
-#define AUDIT_USER_END          1106    /* User space session end */
+#define AUDIT_USER_AUTH         1100    /* User system access authentication */
+#define AUDIT_USER_ACCT         1101    /* User system access authorization */
+#define AUDIT_USER_MGMT         1102    /* User acct attribute change */
+#define AUDIT_CRED_ACQ          1103    /* User credential acquired */
+#define AUDIT_CRED_DISP         1104    /* User credential disposed */
+#define AUDIT_USER_START        1105    /* User session start */
+#define AUDIT_USER_END          1106    /* User session end */
 #define AUDIT_USER_AVC          1107    /* User space avc message */
-#define AUDIT_USER_CHAUTHTOK	1108	/* User space acct attr changed */
-#define AUDIT_USER_ERR		1109	/* User space acct state err */
-#define AUDIT_CRED_REFR         1110    /* User space credential refreshed */
+#define AUDIT_USER_CHAUTHTOK	1108	/* User acct password or pin changed */
+#define AUDIT_USER_ERR		1109	/* User acct state error */
+#define AUDIT_CRED_REFR         1110    /* User credential refreshed */
 #define AUDIT_USYS_CONFIG       1111    /* User space system config change */
-#define AUDIT_USER_LOGIN	1112    /* User space user has logged in */
-#define AUDIT_USER_LOGOUT	1113    /* User space user has logged out */
-#define AUDIT_ADD_USER		1114    /* User space user account added */
-#define AUDIT_DEL_USER		1115    /* User space user account deleted */
-#define AUDIT_ADD_GROUP		1116    /* User space group added */
-#define AUDIT_DEL_GROUP		1117    /* User space group deleted */
+#define AUDIT_USER_LOGIN	1112    /* User has logged in */
+#define AUDIT_USER_LOGOUT	1113    /* User has logged out */
+#define AUDIT_ADD_USER		1114    /* User account added */
+#define AUDIT_DEL_USER		1115    /* User account deleted */
+#define AUDIT_ADD_GROUP		1116    /* Group account added */
+#define AUDIT_DEL_GROUP		1117    /* Group account deleted */
 #define AUDIT_DAC_CHECK		1118    /* User space DAC check results */
 #define AUDIT_CHGRP_ID		1119    /* User space group ID changed */
 #define AUDIT_TEST		1120	/* Used for test success messages */
@@ -91,7 +91,8 @@ extern "C" {
 #define AUDIT_SYSTEM_RUNLEVEL	1129	/* System runlevel change */
 #define AUDIT_SERVICE_START	1130	/* Service (daemon) start */
 #define AUDIT_SERVICE_STOP	1131	/* Service (daemon) stop */
-#define AUDIT_GRP_ACCT		1132	/* Group account was modified */
+#define AUDIT_GRP_MGMT		1132	/* Group account attr was modified */
+#define AUDIT_GRP_CHAUTHTOK	1133	/* Group acct password or pin changed */
 
 #define AUDIT_FIRST_DAEMON	1200
 #define AUDIT_LAST_DAEMON	1299

@@ -5,7 +5,7 @@
 - Add command & virtualization reports to aureport
 - Update aureport config report for new events
 - Add account modification summary report to aureport
-- Add GRP_ACCT event type
+- Add GRP_MGMT and GRP_CHAUTHTOK event types
 - Correct aureport account change reports
 - Add integrity event report to aureport
 - Add config change summary report to aureport
