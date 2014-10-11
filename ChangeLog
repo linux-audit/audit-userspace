@@ -11,6 +11,7 @@
 - Add config change summary report to aureport
 - Adjust some syslogging level settings in audispd
 - Improve parsing performance in everything
+- When ausearch outputs a line, use the previously parsed values (Burn Alting)
 
 2.4
 - Optionally parse loginuids, (e)uids, & (e)gids in ausearch/report
