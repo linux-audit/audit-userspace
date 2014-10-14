@@ -67,6 +67,7 @@
 #define SHMDT           22
 #define SHMGET          23
 #define SHMCTL          24
+#define DIPC            25
 
 #include "captabs.h"
 #include "clone-flagtabs.h"
@@ -414,9 +415,9 @@ static const char *print_socketcall(const char *val, unsigned int base)
 	}
 }
 
-static const char *print_syscall(const char *val, const idata *id)
+static const char *print_syscall(const idata *id)
 {
-        const char *sys;
+	const char *sys;
 	char *out;
 	int machine = id->machine, syscall = id->syscall;
 	unsigned long long a0 = id->a0;
@@ -424,7 +425,7 @@ static const char *print_syscall(const char *val, const idata *id)
         if (machine < 0)
                 machine = audit_detect_machine();
         if (machine < 0) {
-                out = strdup(val);
+                out = strdup(id->val);
                 return out;
         }
         sys = audit_syscall_to_name(syscall, machine);
@@ -495,12 +496,29 @@ static const char *print_escaped(const char *val)
                 *term = 0;
                 printf("%s ", val); */
         } else if (val[0] == '0' && val[1] == '0')
-                out = au_unescape((char *)&val[2]); // Abstract name
+                out = au_unescape((char *)&val[2]); // Abstract name af_unix
 	else
                 out = au_unescape((char *)val);
 	if (out)
 		return out;
 	return strdup(val); // Something is wrong with string, just send as is
+}
+
+static const char *print_proctitle(const char *val)
+{
+	const char *out = print_escaped(val);
+	if (*val != '"') {
+		size_t len = strlen(val) / 2;
+		const char *end = out + len;
+		char *ptr = out;
+		while ((ptr  = rawmemchr(ptr, '\0'))) {
+			if (ptr >= end)
+				break;
+			*ptr = ' ';
+			ptr++;
+		}
+	}
+	return out;
 }
 
 static const char *print_perm(const char *val)
@@ -2355,6 +2373,10 @@ int auparse_interp_adjust_type(int rtype, const char *name, const char *val)
 		type = AUPARSE_TYPE_MODE_SHORT;
 	else if (rtype == AUDIT_CRYPTO_KEY_USER && strcmp(name, "fp") == 0)
 		type = AUPARSE_TYPE_UNCLASSIFIED;
+	else if ((strcmp(name, "id") == 0) &&
+		(rtype == AUDIT_ADD_GROUP || rtype == AUDIT_GRP_MGMT ||
+			rtype == AUDIT_DEL_GROUP))
+		type = AUPARSE_TYPE_GID;
 	else
 		type = lookup_type(name);
 
@@ -2373,7 +2395,7 @@ const char *auparse_do_interpretation(int type, const idata *id)
 			out = print_gid(id->val, 10);
 			break;
 		case AUPARSE_TYPE_SYSCALL:
-			out = print_syscall(id->val, id);
+			out = print_syscall(id);
 			break;
 		case AUPARSE_TYPE_ARCH:
 			out = print_arch(id->val, id->machine);
@@ -2458,6 +2480,9 @@ const char *auparse_do_interpretation(int type, const idata *id)
 			break;
 		case AUPARSE_TYPE_MMAP:
 			out = print_mmap(id->val);
+			break;
+		case AUPARSE_TYPE_PROCTITLE:
+			out = print_proctitle(id->val);
 			break;
 		case AUPARSE_TYPE_MAC_LABEL:
 		case AUPARSE_TYPE_UNCLASSIFIED:

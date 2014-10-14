@@ -827,6 +827,28 @@ static int parse_user(const lnode *n, search_items *s)
 				return 13;
 		}
 	}
+	// optionally get gid
+	if (event_gid != -1) {
+		if (n->type == AUDIT_ADD_GROUP || n->type == AUDIT_DEL_GROUP ||
+			n->type == AUDIT_GRP_MGMT) {
+			str = strstr(term, " id=");
+			// Take second shot in the case of MGMT events
+			if (str == NULL && n->type == AUDIT_GRP_MGMT)
+				str = strstr(term, "gid=");
+			if (str) {
+				ptr = str + 4;
+				term = strchr(ptr, ' ');
+				if (term == NULL)
+					return 31;
+				*term = 0;
+				errno = 0;
+				s->gid = strtoul(ptr, NULL, 10);
+				if (errno)
+					return 32;
+				*term = ' ';
+			}
+		}
+	}
 	if (event_vmname) {
 		str = strstr(term, "vm=");
 		if (str) {
