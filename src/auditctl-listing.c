@@ -499,9 +499,9 @@ int audit_print_reply(struct audit_reply *rep, int fd)
 		case AUDIT_GET_FEATURE:
 			{
 			uint32_t mask = AUDIT_FEATURE_TO_MASK(AUDIT_FEATURE_LOGINUID_IMMUTABLE);
-			if (rep->features->mask & mask)
+			if (rep->features->features & mask)
 				printf("loginuid_immutable %u %s\n",
-					rep->features->features & mask,
+					!!(rep->features->features & mask),
 					rep->features->lock & mask ? "locked" :
 					"unlocked");
 			}

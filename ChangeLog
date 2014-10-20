@@ -14,6 +14,7 @@
 - When ausearch outputs a line, use the previously parsed values (Burn Alting)
 - Improve searching and interpreting groups in events
 - Fully interpret the proctitle field in auparse
+- Correct libaudit and auditctl support for kernel features
 
 2.4
 - Optionally parse loginuids, (e)uids, & (e)gids in ausearch/report
