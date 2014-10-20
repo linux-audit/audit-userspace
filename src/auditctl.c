@@ -129,6 +129,7 @@ static void usage(void)
      "    -w <path>           Insert watch at <path>\n"
      "    -W <path>           Remove watch at <path>\n"
      "    --loginuid-immutable   Make loginuids unchangeable once set\n"
+     "    --backlog_wait_time    Set the kernel backlog_wait_time\n"
      );
 }
 
@@ -481,6 +482,7 @@ int report_status(int fd)
 struct option long_opts[] =
 {
   {"loginuid-immutable", 0, NULL, 1},
+  {"backlog_wait_time", 1, NULL, 2},
   {NULL, 0, NULL, 0}
 };
 
@@ -938,6 +940,32 @@ static int setopt(int count, int lineno, char *vars[])
 			retval = -1;
 		else
 			return -2;  // success - no reply for this
+		break;
+	case 2:
+#if HAVE_DECL_AUDIT_VERSION_BACKLOG_WAIT_TIME
+		if (optarg && isdigit(optarg[0])) {
+			uint32_t bwt;
+			errno = 0;
+			bwt = strtoul(optarg,NULL,0);
+			if (errno) {
+				fprintf(stderr, "Error converting backlog_wait_time\n");
+				return -1;
+			}
+			if (audit_set_backlog_wait_time(fd, bwt) > 0)
+				audit_request_status(fd);
+			else
+				return -1;
+		} else {
+			fprintf(stderr, 
+				"Backlog_wait_time must be a numeric value was %s\n", 
+				optarg);
+			retval = -1;
+		}
+#else
+		fprintf(stderr,
+			"backlog_wait_time is not supported on your kernel\n");
+		retval = -1;
+#endif
 		break;
         default: 
 		usage();

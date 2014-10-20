@@ -493,6 +493,24 @@ int audit_set_backlog_limit(int fd, uint32_t limit)
 	return rc;
 }
 
+int audit_set_backlog_wait_time(int fd, uint32_t bwt)
+{
+	int rc = -1;
+#if HAVE_DECL_AUDIT_VERSION_BACKLOG_WAIT_TIME
+	struct audit_status s;
+
+	memset(&s, 0, sizeof(s));
+	s.mask          = AUDIT_STATUS_BACKLOG_WAIT_TIME;
+	s.backlog_wait_time = bwt;
+	rc = audit_send(fd, AUDIT_SET, &s, sizeof(s));
+	if (rc < 0)
+		audit_msg(audit_priority(errno),
+			"Error sending backlog limit request (%s)", 
+			strerror(-rc));
+#endif
+	return rc;
+}
+
 int audit_set_feature(int fd, unsigned feature, unsigned value, unsigned lock)
 {
 #if HAVE_DECL_AUDIT_FEATURE_VERSION

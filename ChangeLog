@@ -15,6 +15,7 @@
 - Improve searching and interpreting groups in events
 - Fully interpret the proctitle field in auparse
 - Correct libaudit and auditctl support for kernel features
+- Add support for backlog_time_wait setting via auditctl
 
 2.4
 - Optionally parse loginuids, (e)uids, & (e)gids in ausearch/report

@@ -493,13 +493,17 @@ int audit_print_reply(struct audit_reply *rep, int fd)
 			rep->status->pid, rep->status->rate_limit,
 			rep->status->backlog_limit, rep->status->lost,
 			rep->status->backlog);
+#if HAVE_DECL_AUDIT_VERSION_BACKLOG_WAIT_TIME
+			printf("backlog_wait_time %u\n",
+				rep->status->backlog_wait_time);
+#endif
 			printed = 1;
 			break;
 #if HAVE_DECL_AUDIT_FEATURE_VERSION
 		case AUDIT_GET_FEATURE:
 			{
 			uint32_t mask = AUDIT_FEATURE_TO_MASK(AUDIT_FEATURE_LOGINUID_IMMUTABLE);
-			if (rep->features->features & mask)
+			if (rep->features->mask & mask)
 				printf("loginuid_immutable %u %s\n",
 					!!(rep->features->features & mask),
 					rep->features->lock & mask ? "locked" :
