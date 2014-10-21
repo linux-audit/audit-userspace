@@ -309,3 +309,7 @@ _S(344, "finit_module")
 _S(345, "sched_setattr")
 _S(346, "sched_getattr")
 _S(347, "renameat2")
+_S(348, "seccomp")
+_S(349, "getrandom")
+_S(350, "memfd_create")
+
