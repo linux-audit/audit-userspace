@@ -1028,7 +1028,10 @@ static int validate_email(const char *acct)
 					audit_msg(LOG_ERR,
 				"validate_email: failed looking up host for %s",
 					ptr1+1);
-				return 2;
+				// FIXME: gethostbyname is having trouble
+				// telling when we have a temporary vs permanent
+				// dns failure. So, for now, treat all as temp
+				return 1;
 			}
 			else if (h_errno == TRY_AGAIN)
 				audit_msg(LOG_DEBUG,
