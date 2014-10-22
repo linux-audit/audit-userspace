@@ -180,6 +180,7 @@ static const struct nv_list failure_actions[] =
 {
   {"ignore",  FA_IGNORE },
   {"syslog",  FA_SYSLOG },
+  {"rotate",  FA_ROTATE },
   {"email",   FA_EMAIL },
   {"exec",    FA_EXEC },
   {"suspend", FA_SUSPEND },
@@ -1164,7 +1165,8 @@ static int disk_error_action_parser(struct nv_pair *nv, int line,
 								nv->value);
 	for (i=0; failure_actions[i].name != NULL; i++) {
 		if (strcasecmp(nv->value, failure_actions[i].name) == 0) {
-			if (failure_actions[i].option == FA_EMAIL) {
+			if (failure_actions[i].option == FA_EMAIL ||
+				failure_actions[i].option == FA_ROTATE) {
 				audit_msg(LOG_ERR, 
 			"Illegal option %s for disk_error_action - line %d",
 					nv->value, line);

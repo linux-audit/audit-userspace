@@ -1,5 +1,5 @@
 /* auditd-config.h -- 
- * Copyright 2004-2009 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2004-2009,2014 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -32,7 +32,7 @@
 typedef enum { D_FOREGROUND, D_BACKGROUND } daemon_t;
 typedef enum { LF_RAW, LF_NOLOG } logging_formats;
 typedef enum { FT_NONE, FT_INCREMENTAL, FT_DATA, FT_SYNC } flush_technique;
-typedef enum { FA_IGNORE, FA_SYSLOG, FA_EMAIL, FA_EXEC, FA_SUSPEND,
+typedef enum { FA_IGNORE, FA_SYSLOG, FA_ROTATE, FA_EMAIL, FA_EXEC, FA_SUSPEND,
 		FA_SINGLE, FA_HALT } failure_action_t;
 typedef enum { SZ_IGNORE, SZ_SYSLOG, SZ_SUSPEND, SZ_ROTATE, 
 		SZ_KEEP_LOGS } size_action;

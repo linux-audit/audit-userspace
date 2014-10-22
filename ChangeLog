@@ -18,6 +18,7 @@
 - Add support for backlog_time_wait setting via auditctl
 - Update syscall tables for the 3.18 kernel
 - Ignore DNS failure for email validation in auditd (#1138674)
+- Allow rotate as action for space_left and disk_full in auditd.conf
 
 2.4
 - Optionally parse loginuids, (e)uids, & (e)gids in ausearch/report

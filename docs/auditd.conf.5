@@ -120,12 +120,14 @@ to perform a configurable action because the system is starting to run low on di
 This parameter tells the system what action to take when the system has
 detected that it is starting to get low on disk space.
 Valid values are
-.IR ignore ", " syslog ", " email ", " exec ", " suspend ", " single ", and " halt .
+.IR ignore ", " syslog ", " rotate ", " email ", " exec ", " suspend ", " single ", and " halt .
 If set to
 .IR ignore ,
 the audit daemon does nothing.
 .I syslog
 means that it will issue a warning to syslog.
+.I rotate
+will rotate logs, losing the oldest to free up space.
 .I Email
 means that it will send a warning to the email account specified in
 .I action_mail_acct
@@ -150,12 +152,14 @@ This parameter tells the system what action to take when the system has
 detected that it
 .B is low on disk space.
 Valid values are
-.IR ignore ", " syslog ", " email ", " exec ", " suspend ", " single ", and " halt .
+.IR ignore ", " syslog ", "rotate ", " email ", " exec ", " suspend ", " single ", and " halt .
 If set to
 .IR ignore ,
 the audit daemon does nothing.
 .I Syslog
 means that it will issue a warning to syslog.
+.I rotate
+will rotate logs, losing the oldest to free up space.
 .I Email
 means that it will send a warning to the email account specified in
 .I action_mail_acct
@@ -172,12 +176,14 @@ option will cause the audit daemon to shutdown the computer system.
 .I disk_full_action
 This parameter tells the system what action to take when the system has
 detected that the partition to which log files are written has become full. Valid values are
-.IR ignore ", " syslog ", " exec ", " suspend ", " single ", and " halt .
+.IR ignore ", " syslog ", " rotate ", " exec ", " suspend ", " single ", and " halt .
 If set to
 .IR ignore ,
 the audit daemon will issue a syslog message but no other action is taken.
 .I Syslog
 means that it will issue a warning to syslog.
+.I rotate
+will rotate logs, losing the oldest to free up space.
 .I exec
 /path-to-script will execute the script. You cannot pass parameters to the script. The script is also responsible for telling the auditd daemon to resume loggin
 g once its completed its action. This can be done by adding service auditd resume to the script.
