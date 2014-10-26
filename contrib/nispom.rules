@@ -23,18 +23,18 @@
 ## involved, and the action involved.
 
 ## Things that could affect time
--a always,exit -F arch=b32 -S adjtimex -S settimeofday -S stime -k time-change
--a always,exit -F arch=b64 -S adjtimex -S settimeofday -k time-change
--a always,exit -F arch=b32 -S clock_settime -F a0=0 -k time-change
--a always,exit -F arch=b64 -S clock_settime -F a0=0 -k time-change
+-a always,exit -F arch=b32 -S adjtimex -S settimeofday -S stime -F key=time-change
+-a always,exit -F arch=b64 -S adjtimex -S settimeofday -F key=time-change
+-a always,exit -F arch=b32 -S clock_settime -F a0=0 -F key=time-change
+-a always,exit -F arch=b64 -S clock_settime -F a0=0 -F key=time-change
 # Introduced in 2.6.39, commented out because it can make false positives
-#-a always,exit -F arch=b32 -S clock_adjtime -k time-change
-#-a always,exit -F arch=b64 -S clock_adjtime -k time-change
+#-a always,exit -F arch=b32 -S clock_adjtime -F key=time-change
+#-a always,exit -F arch=b64 -S clock_adjtime -F key=time-change
 -w /etc/localtime -p wa -k time-change
 
 ## Things that could affect system locale
--a always,exit -F arch=b32 -S sethostname -S setdomainname -k system-locale
--a always,exit -F arch=b64 -S sethostname -S setdomainname -k system-locale
+-a always,exit -F arch=b32 -S sethostname -S setdomainname -F key=system-locale
+-a always,exit -F arch=b64 -S sethostname -S setdomainname -F key=system-locale
 -w /etc/issue -p wa -k system-locale
 -w /etc/issue.net -p wa -k system-locale
 -w /etc/hosts -p wa -k system-locale
@@ -54,32 +54,32 @@
 ## creation, open, close, modification, and deletion.
 
 ## unsuccessful creation
--a always,exit -F arch=b32 -S creat -S mkdir -S mknod -S link -S symlink -S mknodat -S linkat -S symlinkat -F exit=-EACCES -k creation
--a always,exit -F arch=b64 -S creat -S mkdir -S mknod -S link -S symlink -S mknodat -S linkat -S symlinkat -F exit=-EACCES -k creation
--a always,exit -F arch=b32 -S mkdir -S mkdirat -S link -S symlink -F exit=-EPERM -k creation
--a always,exit -F arch=b64 -S mkdir -S mkdirat -S link -S symlink -F exit=-EPERM -k creation
+-a always,exit -F arch=b32 -S creat -S mkdir -S mknod -S link -S symlink -S mknodat -S linkat -S symlinkat -F exit=-EACCES -F key=creation
+-a always,exit -F arch=b64 -S creat -S mkdir -S mknod -S link -S symlink -S mknodat -S linkat -S symlinkat -F exit=-EACCES -F key=creation
+-a always,exit -F arch=b32 -S mkdir -S mkdirat -S link -S symlink -F exit=-EPERM -F key=creation
+-a always,exit -F arch=b64 -S mkdir -S mkdirat -S link -S symlink -F exit=-EPERM -F key=creation
 
 ## unsuccessful open
--a always,exit -F arch=b32 -S open -S openat -S open_by_handle_at -F exit=-EACCES -k open
--a always,exit -F arch=b64 -S open -S openat -S open_by_handle_at -F exit=-EACCES -k open
--a always,exit -F arch=b32 -S open -S openat -S open_by_handle_at -F exit=-EPERM -k open
--a always,exit -F arch=b64 -S open -S openat -S open_by_handle_at -F exit=-EPERM -k open
+-a always,exit -F arch=b32 -S open -S openat -S open_by_handle_at -F exit=-EACCES -F key=open
+-a always,exit -F arch=b64 -S open -S openat -S open_by_handle_at -F exit=-EACCES -F key=open
+-a always,exit -F arch=b32 -S open -S openat -S open_by_handle_at -F exit=-EPERM -F key=open
+-a always,exit -F arch=b64 -S open -S openat -S open_by_handle_at -F exit=-EPERM -F key=open
 
 ## unsuccessful close
--a always,exit -F arch=b32 -S close -F exit=-EIO -k close
--a always,exit -F arch=b64 -S close -F exit=-EIO -k close
+-a always,exit -F arch=b32 -S close -F exit=-EIO -F key=close
+-a always,exit -F arch=b64 -S close -F exit=-EIO -F key=close
 
 ## unsuccessful modifications
--a always,exit -F arch=b32 -S rename -S renameat -S truncate -S chmod -S setxattr -S lsetxattr -S removexattr -S lremovexattr -F exit=-EACCES -k mods
--a always,exit -F arch=b64 -S rename -S renameat -S truncate -S chmod -S setxattr -S lsetxattr -S removexattr -S lremovexattr -F exit=-EACCES -k mods
--a always,exit -F arch=b32 -S rename -S renameat -S truncate -S chmod -S setxattr -S lsetxattr -S removexattr -S lremovexattr -F exit=-EPERM -k mods
--a always,exit -F arch=b64 -S rename -S renameat -S truncate -S chmod -S setxattr -S lsetxattr -S removexattr -S lremovexattr -F exit=-EPERM -k mods
+-a always,exit -F arch=b32 -S rename -S renameat -S truncate -S chmod -S setxattr -S lsetxattr -S removexattr -S lremovexattr -F exit=-EACCES -F key=mods
+-a always,exit -F arch=b64 -S rename -S renameat -S truncate -S chmod -S setxattr -S lsetxattr -S removexattr -S lremovexattr -F exit=-EACCES -F key=mods
+-a always,exit -F arch=b32 -S rename -S renameat -S truncate -S chmod -S setxattr -S lsetxattr -S removexattr -S lremovexattr -F exit=-EPERM -F key=mods
+-a always,exit -F arch=b64 -S rename -S renameat -S truncate -S chmod -S setxattr -S lsetxattr -S removexattr -S lremovexattr -F exit=-EPERM -F key=mods
 
 ## unsuccessful deletion
--a always,exit -F arch=b32 -S rmdir -S unlink -S unlinkat -F exit=-EACCES -k delete 
--a always,exit -F arch=b64 -S rmdir -S unlink -S unlinkat -F exit=-EACCES -k delete 
--a always,exit -F arch=b32 -S rmdir -S unlink -S unlinkat -F exit=-EPERM -k delete 
--a always,exit -F arch=b64 -S rmdir -S unlink -S unlinkat -F exit=-EPERM -k delete 
+-a always,exit -F arch=b32 -S rmdir -S unlink -S unlinkat -F exit=-EACCES -F key=delete
+-a always,exit -F arch=b64 -S rmdir -S unlink -S unlinkat -F exit=-EACCES -F key=delete
+-a always,exit -F arch=b32 -S rmdir -S unlink -S unlinkat -F exit=-EPERM -F key=delete
+-a always,exit -F arch=b64 -S rmdir -S unlink -S unlinkat -F exit=-EPERM -F key=delete
 
 ## Audit 1, 1(d) Changes in user authenticators.
 ## Covered by patches to libpam, passwd, and shadow-utils
@@ -108,34 +108,34 @@
 ## Not specifically required by NISPOM; but common sense items
 ## Optional - could indicate someone trying to do something bad or
 ## just debugging
-#-a always,exit -F arch=b32 -S ptrace -k tracing
-#-a always,exit -F arch=b64 -S ptrace -k tracing
-#-a always,exit -F arch=b32 -S ptrace -F a0=4 -k code-injection
-#-a always,exit -F arch=b64 -S ptrace -F a0=4 -k code-injection
-#-a always,exit -F arch=b32 -S ptrace -F a0=5 -k data-injection
-#-a always,exit -F arch=b64 -S ptrace -F a0=5 -k data-injection
-#-a always,exit -F arch=b32 -S ptrace -F a0=6 -k register-injection
-#-a always,exit -F arch=b64 -S ptrace -F a0=6 -k register-injection
+#-a always,exit -F arch=b32 -S ptrace -F key=tracing
+#-a always,exit -F arch=b64 -S ptrace -F key=tracing
+#-a always,exit -F arch=b32 -S ptrace -F a0=0x4 -F key=code-injection
+#-a always,exit -F arch=b64 -S ptrace -F a0=0x4 -F key=code-injection
+#-a always,exit -F arch=b32 -S ptrace -F a0=0x5 -F key=data-injection
+#-a always,exit -F arch=b64 -S ptrace -F a0=0x5 -F key=data-injection
+#-a always,exit -F arch=b32 -S ptrace -F a0=0x6 -F key=register-injection
+#-a always,exit -F arch=b64 -S ptrace -F a0=0x6 -F key=register-injection
 
 ## Optional - might want to watch module insertion
 #-w /sbin/insmod -p x -k modules
 #-w /sbin/rmmod -p x -k modules
 #-w /sbin/modprobe -p x -k modules
-#-a always,exit -F arch=b32 -S init_module -S finit_module -k module-load
-#-a always,exit -F arch=b64 -S init_module -S finit_module -k module-load
-#-a always,exit -F arch=b32 -S delete_module -k module-unload
-#-a always,exit -F arch=b64 -S delete_module -k module-unload
+#-a always,exit -F arch=b32 -S init_module -S finit_module -F key=module-load
+#-a always,exit -F arch=b64 -S init_module -S finit_module -F key=module-load
+#-a always,exit -F arch=b32 -S delete_module -F key=module-unload
+#-a always,exit -F arch=b64 -S delete_module -F key=module-unload
 
 ## Optional - admin may be abusing power by looking in user's home dir
 #-a always,exit -F dir=/home -F uid=0 -F auid>=1000 -F auid!=4294967295 -C auid!=obj_uid -F key=power-abuse
 
 ## Optional - log container creation
-#-a always,exit -F arch=b32 -S clone -F a0&2080505856 -k container-create
-#-a always,exit -F arch=b64 -S clone -F a0&2080505856 -k container-create
+#-a always,exit -F arch=b32 -S clone -F a0&2080505856 -F key=container-create
+#-a always,exit -F arch=b64 -S clone -F a0&2080505856 -F key=container-create
 
 ## Optional - watch for containers that may change their configuration
-#-a always,exit -F arch=b32 -S setns -S unshare -k container-config
-#-a always,exit -F arch=b64 -S setns -S unshare -k container-config
+#-a always,exit -F arch=b32 -S setns -S unshare -F key=container-config
+#-a always,exit -F arch=b64 -S setns -S unshare -F key=container-config
 
 ## Put your own watches after this point
 # -w /your-file -p rwxa -k mykey
