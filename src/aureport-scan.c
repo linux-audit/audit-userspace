@@ -338,7 +338,7 @@ static int per_event_summary(llist *l)
 			break;
 		case RPT_AUTH:
 			if (list_find_msg(l, AUDIT_USER_AUTH)) {
-				if (l->s.loginuid == -2 && l->s.acct != NULL)
+				if (l->s.loginuid == -2 && l->s.acct)
 					slist_add_if_uniq(&sd.users, l->s.acct);
 				else {
 					char name[64];
@@ -370,7 +370,7 @@ static int per_event_summary(llist *l)
 			break;
 		case RPT_LOGIN:
 			if (list_find_msg(l, AUDIT_USER_LOGIN)) {
-				if (l->s.loginuid == -2 && l->s.acct != NULL)
+				if ((int)l->s.loginuid < 0 && l->s.acct)
 					slist_add_if_uniq(&sd.users, l->s.acct);
 				else {
 					char name[64];
