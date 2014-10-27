@@ -45,6 +45,7 @@
 #define SEMOP            1
 #define SEMGET           2
 #define SEMCTL           3
+#define SEMTIMEDOP       4
 #define MSGSND          11
 #define MSGRCV          12
 #define MSGGET          13
