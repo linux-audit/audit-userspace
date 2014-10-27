@@ -112,8 +112,18 @@ static int print_arch(unsigned int value, int op)
 		printf(" -F arch%s0x%X", audit_operator_to_symbol(op),
 				(unsigned)value);
 	else {
-		const char *ptr = audit_machine_to_name(machine);
-		printf(" -F arch%s%s", audit_operator_to_symbol(op), ptr);
+		if (interpret == 0) {
+			if (__AUDIT_ARCH_64BIT & _audit_elf)
+				printf(" -F arch%sb64",
+						audit_operator_to_symbol(op));
+			else
+				printf(" -F arch%sb32",
+						audit_operator_to_symbol(op));
+		} else {	
+			const char *ptr = audit_machine_to_name(machine);
+			printf(" -F arch%s%s", audit_operator_to_symbol(op),
+						ptr);
+		}
 	}
 	return machine;
 }
