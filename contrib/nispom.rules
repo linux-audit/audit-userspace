@@ -17,6 +17,9 @@
 ## Set failure mode to panic
 -f 2
 
+## Make the loginuid immutable. This prevents tampering with the auid.
+--loginuid-immutable
+
 ## Audit 1, 1(a) Enough information to determine the date and time of
 ## action (e.g., common network time), the system locale of the action,
 ## the system entity that initiated or completed the action, the resources
