@@ -479,6 +479,36 @@ int report_status(int fd)
 	return -2;
 }
 
+int parse_syscall(struct audit_rule_data *rule_new, const char *optarg)
+{
+	int retval = 0;
+	char *saved = NULL;
+
+	if (strchr(optarg, ',')) {
+		char *ptr, *tmp = strdup(optarg);
+		if (tmp == NULL)
+			return -1;
+		ptr = strtok_r(tmp, ",", &saved);
+		while (ptr) {
+			retval = audit_rule_syscallbyname_data(rule_new, ptr);
+			if (retval != 0) {
+				if (retval == -1) {
+					fprintf(stderr,
+						"Syscall name unknown: %s\n", 
+						ptr);
+					retval = -3; // error reported
+				}
+				break;
+			}
+			ptr = strtok_r(NULL, ",", &saved);
+		}
+		free(tmp);
+		return retval;
+	}
+
+	return audit_rule_syscallbyname_data(rule_new, optarg);
+}
+
 struct option long_opts[] =
 {
   {"loginuid-immutable", 0, NULL, 1},
@@ -730,7 +760,7 @@ static int setopt(int count, int lineno, char *vars[])
 				_audit_elf = elf;
 			}
 		}
-		rc = audit_rule_syscallbyname_data(rule_new, optarg);
+		rc = parse_syscall(rule_new, optarg);
 		switch (rc)
 		{
 			case 0:
@@ -746,6 +776,9 @@ static int setopt(int count, int lineno, char *vars[])
 			case -2:
 				fprintf(stderr, "Elf type unknown: 0x%x\n", 
 							_audit_elf);
+				retval = -1;
+				break;
+			case -3: // Error reported - do nothing here
 				retval = -1;
 				break;
 		}}

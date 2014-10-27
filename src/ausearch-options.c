@@ -260,17 +260,18 @@ static int convert_str_to_msg(const char *optarg)
 static int parse_msg(const char *optarg)
 {
 	int retval = 0;
+	char *saved = NULL;
 
 	if (strchr(optarg, ',')) {
 		char *ptr, *tmp = strdup(optarg);
 		if (tmp == NULL)
 			return -1;
-		ptr = strtok(tmp, ",");
+		ptr = strtok_r(tmp, ",", &saved);
 		while (ptr) {
 			retval = convert_str_to_msg(ptr);
 			if (retval != 0)
 				break;
-			ptr = strtok(NULL, ",");
+			ptr = strtok_r(NULL, ",", &saved);
 		}
 		free(tmp);
 		return retval;

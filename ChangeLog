@@ -20,6 +20,7 @@
 - Ignore DNS failure for email validation in auditd (#1138674)
 - Allow rotate as action for space_left and disk_full in auditd.conf
 - Correct login summary report of aureport
+- Auditctl syscalls can be comma separated list now
 
 2.4
 - Optionally parse loginuids, (e)uids, & (e)gids in ausearch/report
