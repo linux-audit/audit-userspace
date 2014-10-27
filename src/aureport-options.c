@@ -334,7 +334,7 @@ int check_params(int count, char *vars[])
 				event_exe = dummy;
 				event_hostname = dummy;
 				event_terminal = dummy;
-				event_uid = 1;
+				event_loginuid = 1;
 			}
 			break;
 		case R_ACCT_MODS:
