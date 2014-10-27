@@ -35,10 +35,10 @@
 ##  systems, the object’s security level.
 ##
 ## Things that could affect time
--a always,exit -F arch=b32 -S adjtimex -S settimeofday -S stime -F key=time-change
--a always,exit -F arch=b64 -S adjtimex -S settimeofday -F key=time-change
--a always,exit -F arch=b32 -S clock_settime -F a0=0 -F key=time-change
--a always,exit -F arch=b64 -S clock_settime -F a0=0 -F key=time-change
+-a always,exit -F arch=b32 -S adjtimex,settimeofday,stime -F key=time-change
+-a always,exit -F arch=b64 -S adjtimex,settimeofday -F key=time-change
+-a always,exit -F arch=b32 -S clock_settime -F a0=0x0 -F key=time-change
+-a always,exit -F arch=b64 -S clock_settime -F a0=0x0 -F key=time-change
 # Introduced in 2.6.39, commented out because it can make false positives
 #-a always,exit -F arch=b32 -S clock_adjtime -F key=time-change
 #-a always,exit -F arch=b64 -S clock_adjtime -F key=time-change
@@ -52,8 +52,8 @@
 -w /etc/security/opasswd -p wa -k identity
 
 ## Things that could affect system locale
--a always,exit -F arch=b32 -S sethostname -S setdomainname -F key=system-locale
--a always,exit -F arch=b64 -S sethostname -S setdomainname -F key=system-locale
+-a always,exit -F arch=b32 -S sethostname,setdomainname -F key=system-locale
+-a always,exit -F arch=b64 -S sethostname,setdomainname -F key=system-locale
 -w /etc/issue -p wa -k system-locale
 -w /etc/issue.net -p wa -k system-locale
 -w /etc/hosts -p wa -k system-locale
@@ -102,18 +102,18 @@
 
 ##- Discretionary access control permission modification (unsuccessful
 ## and successful use of chown/chmod)
--a always,exit -F arch=b32 -S chmod -S fchmod -S fchmodat -F auid>=500 -F auid!=4294967295 -F key=perm_mod
--a always,exit -F arch=b64 -S chmod -S fchmod -S fchmodat -F auid>=500 -F auid!=4294967295 -F key=perm_mod
--a always,exit -F arch=b32 -S chown -S fchown -S fchownat -S lchown -F auid>=500 -F auid!=4294967295 -F key=perm_mod
--a always,exit -F arch=b64 -S chown -S fchown -S fchownat -S lchown -F auid>=500 -F auid!=4294967295 -F key=perm_mod
--a always,exit -F arch=b32 -S setxattr -S lsetxattr -S fsetxattr -S removexattr -S lremovexattr -S fremovexattr -F auid>=500 -F auid!=4294967295 -F key=perm_mod
--a always,exit -F arch=b64 -S setxattr -S lsetxattr -S fsetxattr -S removexattr -S lremovexattr -S fremovexattr -F auid>=500 -F auid!=4294967295 -F key=perm_mod
+-a always,exit -F arch=b32 -S chmod,fchmod,fchmodat -F auid>=500 -F auid!=4294967295 -F key=perm_mod
+-a always,exit -F arch=b64 -S chmod,fchmod,fchmodat -F auid>=500 -F auid!=4294967295 -F key=perm_mod
+-a always,exit -F arch=b32 -S lchown,fchown,chown,fchownat -F auid>=500 -F auid!=4294967295 -F key=perm_mod
+-a always,exit -F arch=b64 -S chown,fchown,lchown,fchownat -F auid>=500 -F auid!=4294967295 -F key=perm_mod
+-a always,exit -F arch=b32 -S setxattr,lsetxattr,fsetxattr,removexattr,lremovexattr,fremovexattr -F auid>=500 -F auid!=4294967295 -F key=perm_mod
+-a always,exit -F arch=b64 -S setxattr,lsetxattr,fsetxattr,removexattr,lremovexattr,fremovexattr -F auid>=500 -F auid!=4294967295 -F key=perm_mod
 
 ##- Unauthorized access attempts to files (unsuccessful) 
--a always,exit -F arch=b32 -S creat -S open -S openat -S open_by_handle_at -S truncate -F exit=-EACCES -F auid>=500 -F auid!=4294967295 -F key=access
--a always,exit -F arch=b32 -S creat -S open -S openat -S open_by_handle_at -S truncate -F exit=-EPERM -F auid>=500 -F auid!=4294967295 -F key=access
--a always,exit -F arch=b64 -S creat -S open -S openat -S open_by_handle_at -S truncate -F exit=-EACCES -F auid>=500 -F auid!=4294967295 -F key=access
--a always,exit -F arch=b64 -S creat -S open -S openat -S open_by_handle_at -S truncate -F exit=-EPERM -F auid>=500 -F auid!=4294967295 -F key=access
+-a always,exit -F arch=b32 -S open,creat,truncate,openat,open_by_handle_at -F exit=-EACCES -F auid>=500 -F auid!=4294967295 -F key=access
+-a always,exit -F arch=b32 -S open,creat,truncate,openat,open_by_handle_at -F exit=-EPERM -F auid>=500 -F auid!=4294967295 -F key=access
+-a always,exit -F arch=b64 -S open,truncate,creat,openat,open_by_handle_at -F exit=-EACCES -F auid>=500 -F auid!=4294967295 -F key=access
+-a always,exit -F arch=b64 -S open,truncate,creat,openat,open_by_handle_at -F exit=-EPERM -F auid>=500 -F auid!=4294967295 -F key=access
 
 ##- Use of privileged commands (unsuccessful and successful)
 ## use find /bin -type f -perm -04000 2>/dev/null and put all those files in a rule like this
@@ -131,8 +131,8 @@
 ##- System startup and shutdown (unsuccessful and successful)
 
 ##- Files and programs deleted by the user (successful and unsuccessful)
--a always,exit -F arch=b32 -S unlink -S unlinkat -S rename -S renameat -F auid>=500 -F auid!=4294967295 -F key=delete
--a always,exit -F arch=b64 -S unlink -S unlinkat -S rename -S renameat -F auid>=500 -F auid!=4294967295 -F key=delete
+-a always,exit -F arch=b32 -S unlink,unlinkat,rename,renameat -F auid>=500 -F auid!=4294967295 -F key=delete
+-a always,exit -F arch=b64 -S unlink,unlinkat,rename,renameat -F auid>=500 -F auid!=4294967295 -F key=delete
 
 ##- All system administration actions 
 ##- All security personnel actions
@@ -164,8 +164,8 @@
 #-w /sbin/insmod -p x -k modules
 #-w /sbin/rmmod -p x -k modules
 #-w /sbin/modprobe -p x -k modules
-#-a always,exit -F arch=b32 -S init_module -S finit_module -F key=module-load
-#-a always,exit -F arch=b64 -S init_module -S finit_module -F key=module-load
+#-a always,exit -F arch=b32 -S init_module,finit_module -F key=module-load
+#-a always,exit -F arch=b64 -S init_module,finit_module -F key=module-load
 #-a always,exit -F arch=b32 -S delete_module -F key=module-unload
 #-a always,exit -F arch=b64 -S delete_module -F key=module-unload
 
@@ -173,12 +173,12 @@
 #-a always,exit -F dir=/home -F uid=0 -F auid>=500 -F auid!=4294967295 -C auid!=obj_uid -F key=power-abuse
 
 ## Optional - log container creation  
-#-a always,exit -F arch=b32 -S clone -F a0&2080505856 -F key=container-create
-#-a always,exit -F arch=b64 -S clone -F a0&2080505856 -F key=container-create
+#-a always,exit -F arch=b32 -S clone -F a0&0x2080505856 -F key=container-create
+#-a always,exit -F arch=b64 -S clone -F a0&0x2080505856 -F key=container-create
 
 ## Optional - watch for containers that may change their configuration 
-#-a always,exit -F arch=b32 -S setns -S unshare -F key=container-config
-#-a always,exit -F arch=b64 -S setns -S unshare -F key=container-config
+#-a always,exit -F arch=b32 -S unshare,setns -F key=container-config
+#-a always,exit -F arch=b64 -S unshare,setns -F key=container-config
 
 ## Put your own watches after this point
 # -w /your-file -p rwxa -k mykey
