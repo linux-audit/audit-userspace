@@ -13,6 +13,9 @@
 ## Set failure mode to panic
 -f 2
 
+## Make the loginuid immutable. This prevents tampering with the auid.
+--loginuid-immutable
+
 ## NOTE:
 ## 1) if this is being used on a 32 bit machine, comment out the b64 lines
 ## 2) These rules assume that login under the root account is not allowed.
@@ -58,9 +61,10 @@
 -w /etc/issue.net -p wa -k system-locale
 -w /etc/hosts -p wa -k system-locale
 -w /etc/sysconfig/network -p wa -k system-locale
+-a always,exit -F dir=/etc/NetworkManager/ -F perm=wa -F key=system-locale
 
 ## Things that could affect MAC policy
--w /etc/selinux/ -p wa -k MAC-policy
+-a always,exit -F dir=/etc/selinux/ -F perm=wa -F key=MAC-policy
 
 
 ## (GEN002900: CAT III) The IAO will ensure audit files are retained at
@@ -142,6 +146,7 @@
 ## commands to the audit system. Do not allow unrestricted root shells or
 ## sudo cannot record the action.
 -w /etc/sudoers -p wa -k actions
+-w /etc/sudoers.d/ -p wa -k actions
 
 ## (GEN002860: CAT II) (Previously – G674) The SA and/or IAO will
 ##ensure old audit logs are closed and new audit logs are started daily.
@@ -173,8 +178,8 @@
 #-a always,exit -F dir=/home -F uid=0 -F auid>=500 -F auid!=4294967295 -C auid!=obj_uid -F key=power-abuse
 
 ## Optional - log container creation  
-#-a always,exit -F arch=b32 -S clone -F a0&0x2080505856 -F key=container-create
-#-a always,exit -F arch=b64 -S clone -F a0&0x2080505856 -F key=container-create
+#-a always,exit -F arch=b32 -S clone -F a0&0x7C020000 -F key=container-create
+#-a always,exit -F arch=b64 -S clone -F a0&0x7C020000 -F key=container-create
 
 ## Optional - watch for containers that may change their configuration 
 #-a always,exit -F arch=b32 -S unshare,setns -F key=container-config

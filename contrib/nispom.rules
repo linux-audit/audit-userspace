@@ -39,6 +39,7 @@
 -w /etc/issue.net -p wa -k system-locale
 -w /etc/hosts -p wa -k system-locale
 -w /etc/sysconfig/network -p wa -k system-locale
+-a always,exit -F dir=/etc/NetworkManager/ -F perm=wa -F key=system-locale
 
 ## Audit 1, 1(b) Successful and unsuccessful logons and logoffs.
 ## This is covered by patches to login, gdm, and openssh
