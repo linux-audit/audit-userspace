@@ -506,7 +506,7 @@ static const char *print_escaped(const char *val)
 
 static const char *print_proctitle(const char *val)
 {
-	const char *out = print_escaped(val);
+	char *out = (char *)print_escaped(val);
 	if (*val != '"') {
 		size_t len = strlen(val) / 2;
 		const char *end = out + len;

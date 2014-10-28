@@ -139,7 +139,7 @@ static void output_interpreted(llist *l)
  */
 static void output_interpreted_node(const lnode *n, const event *e)
 {
-	char *ptr, *str = n->message, *node = NULL;
+	char *ptr, *str = n->message;
 	int found, comma = 0;
 	int num = n->type;
 	struct tm *btm;
