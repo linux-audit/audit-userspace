@@ -22,6 +22,7 @@
 - Correct login summary report of aureport
 - Auditctl syscalls can be comma separated list now
 - Update rules for new subsystems and capabilities
+
 2.4
 - Optionally parse loginuids, (e)uids, & (e)gids in ausearch/report
 - In auvirt, anomaly events don't have uuid (#1111448)
