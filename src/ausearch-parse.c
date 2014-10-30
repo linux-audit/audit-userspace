@@ -1953,6 +1953,25 @@ static int parse_kernel_anom(const lnode *n, search_items *s)
 	}
 
 	if (n->type == AUDIT_SECCOMP) {
+		if (event_exe) {
+			// dont do this search unless needed
+			str = strstr(n->message, "exe=");
+			if (str) {
+				str += 4;
+			if (*str == '"') {
+					str++;
+					term = strchr(str, '"');
+					if (term == NULL)
+						return 13;
+					*term = 0;
+					s->exe = strdup(str);
+					*term = '"';
+				} else 
+					s->exe = unescape(str);
+			} else
+				return 14;
+		}
+
 		// get arch
 		str = strstr(term, "arch=");
 		if (str == NULL) 
@@ -1960,26 +1979,26 @@ static int parse_kernel_anom(const lnode *n, search_items *s)
 		ptr = str + 5;
 		term = strchr(ptr, ' ');
 		if (term == NULL) 
-			return 12;
+			return 15;
 		*term = 0;
 		errno = 0;
 		s->arch = (int)strtoul(ptr, NULL, 16);
 		if (errno) 
-			return 13;
+			return 16;
 		*term = ' ';
 		// get syscall
 		str = strstr(term, "syscall=");
 		if (str == NULL)
-			return 14;
+			return 17;
 		ptr = str + 8;
 		term = strchr(ptr, ' ');
 		if (term == NULL)
-			return 15;
+			return 18;
 		*term = 0;
 		errno = 0;
 		s->syscall = (int)strtoul(ptr, NULL, 10);
 		if (errno)
-			return 16;
+			return 19;
 		*term = ' ';
 	}
 
