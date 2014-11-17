@@ -114,10 +114,10 @@
 -a always,exit -F arch=b64 -S setxattr,lsetxattr,fsetxattr,removexattr,lremovexattr,fremovexattr -F auid>=500 -F auid!=4294967295 -F key=perm_mod
 
 ##- Unauthorized access attempts to files (unsuccessful) 
--a always,exit -F arch=b32 -S open,creat,truncate,openat,open_by_handle_at -F exit=-EACCES -F auid>=500 -F auid!=4294967295 -F key=access
--a always,exit -F arch=b32 -S open,creat,truncate,openat,open_by_handle_at -F exit=-EPERM -F auid>=500 -F auid!=4294967295 -F key=access
--a always,exit -F arch=b64 -S open,truncate,creat,openat,open_by_handle_at -F exit=-EACCES -F auid>=500 -F auid!=4294967295 -F key=access
--a always,exit -F arch=b64 -S open,truncate,creat,openat,open_by_handle_at -F exit=-EPERM -F auid>=500 -F auid!=4294967295 -F key=access
+-a always,exit -F arch=b32 -S open,creat,truncate,ftruncate,openat,open_by_handle_at -F exit=-EACCES -F auid>=500 -F auid!=4294967295 -F key=access
+-a always,exit -F arch=b32 -S open,creat,truncate,ftruncate,openat,open_by_handle_at -F exit=-EPERM -F auid>=500 -F auid!=4294967295 -F key=access
+-a always,exit -F arch=b64 -S open,truncate,ftruncate,creat,openat,open_by_handle_at -F exit=-EACCES -F auid>=500 -F auid!=4294967295 -F key=access
+-a always,exit -F arch=b64 -S open,truncate,ftruncate,creat,openat,open_by_handle_at -F exit=-EPERM -F auid>=500 -F auid!=4294967295 -F key=access
 
 ##- Use of privileged commands (unsuccessful and successful)
 ## use find /bin -type f -perm -04000 2>/dev/null and put all those files in a rule like this
