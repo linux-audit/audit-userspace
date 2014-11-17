@@ -1,5 +1,6 @@
 2.4.2
 - Ausearch should parse exe field in SECCOMP events
+- Improve output for short mode interpretations in auparse
 
 2.4.1
 - Make python3 support easier

@@ -615,11 +615,17 @@ static const char *print_mode_short_int(unsigned int ival)
         // check on special bits
         buf[0] = 0;
         if (S_ISUID & ival)
-                strcat(buf, ",suid");
-        if (S_ISGID & ival)
-                strcat(buf, ",sgid");
-        if (S_ISVTX & ival)
-                strcat(buf, ",sticky");
+                strcat(buf, "suid");
+        if (S_ISGID & ival) {
+                if (buf[0])
+			strcat(buf, ",");
+		strcat(buf, "sgid");
+	}
+        if (S_ISVTX & ival) {
+                if (buf[0])
+			strcat(buf, ",");
+                strcat(buf, "sticky");
+	}
 
 	// and the read, write, execute flags in octal
 	if (buf[0] == 0) {
