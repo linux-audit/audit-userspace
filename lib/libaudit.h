@@ -200,6 +200,10 @@ extern "C" {
 #define AUDIT_CRYPTO_REPLAY_USER	2406 /* Crypto replay detected */
 #define AUDIT_CRYPTO_SESSION		2407 /* Record parameters set during
 						TLS session establishment */
+#define AUDIT_CRYPTO_IKE_SA		2408 /* Record parameters related to
+						IKE SA */
+#define AUDIT_CRYPTO_IPSEC_SA		2409 /* Record parameters related to
+						IPSEC SA */
 
 #define AUDIT_LAST_CRYPTO_MSG		2499
 
