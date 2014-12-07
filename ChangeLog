@@ -2,6 +2,7 @@
 - Ausearch should parse exe field in SECCOMP events
 - Improve output for short mode interpretations in auparse
 - Add CRYPTO_IKE_SA and CRYPTO_IPSEC_SA events
+- If auditctl is reading rules from a file, send messages to syslog (#1144252)
 
 2.4.1
 - Make python3 support easier

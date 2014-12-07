@@ -1,5 +1,5 @@
 /* delete_all.c --
- * Copyright 2005-06, 2008-09 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2005-06, 2008-09,2014 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -73,8 +73,8 @@ int delete_all_rules(int fd)
 				break;
 
 			if (rep.type == NLMSG_ERROR && rep.error->error) {
-				fprintf(stderr, 
-					"Error receiving rules list (%s)\n", 
+				audit_msg(LOG_ERR, 
+					"Error receiving rules list (%s)", 
 					strerror(-rep.error->error));
 				return -1;
 			}
@@ -96,7 +96,7 @@ int delete_all_rules(int fd)
 		/* Bounce it right back with delete */
 		rc = audit_send(fd, AUDIT_DEL_RULE, n->r, n->size);
 		if (rc < 0) {
-			fprintf(stderr, "Error deleting rule (%s)\n",
+			audit_msg(LOG_ERR, "Error deleting rule (%s)",
 				strerror(-rc)); 
 			return -1;
 		}

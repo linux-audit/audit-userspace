@@ -85,7 +85,7 @@ static int reset_vars(void)
 	memset(rule_new, 0, sizeof(struct audit_rule_data));
 	if (fd < 0) {
 		if ((fd = audit_open()) < 0) {
-			fprintf(stderr, "Cannot open netlink audit socket\n");
+			audit_msg(LOG_ERR, "Cannot open netlink audit socket");
 			return 1;
 		}
 	}
@@ -210,11 +210,11 @@ static int audit_rule_setup(char *opt, int *filter, int *act, int lineno)
 	/* Consolidate rules on exit filter */
 	if (*filter == AUDIT_FILTER_ENTRY) {
 		*filter = AUDIT_FILTER_EXIT;
-		fprintf(stderr,
-		    "Warning - entry rules deprecated, changing to exit rule");
 		if (lineno)
-			fprintf(stderr, " in line %d", lineno);
-		fprintf(stderr, "\n");
+			audit_msg(LOG_INFO, "Warning - entry rules deprecated, changing to exit rule in line %d", lineno);
+		else
+			audit_msg(LOG_INFO,
+		    "Warning - entry rules deprecated, changing to exit rule");
 	}
 
 	return 0;
@@ -230,11 +230,11 @@ static int check_path(const char *path)
 	size_t nlen;
 	size_t plen = strlen(path);
 	if (plen >= PATH_MAX) {
-		fprintf(stderr, "The path passed for the watch is too big\n");
+		audit_msg(LOG_ERR, "The path passed for the watch is too big");
 		return 1;
 	}
 	if (path[0] != '/') {
-		fprintf(stderr, "The path must start with '/'\n");
+		audit_msg(LOG_ERR, "The path must start with '/'");
 		return 1;
 	}
 	ptr = strdup(path);
@@ -242,17 +242,17 @@ static int check_path(const char *path)
 	nlen = strlen(base);
 	free(ptr);
 	if (nlen > NAME_MAX) {
-		fprintf(stderr, "The base name of the path is too big\n");
+		audit_msg(LOG_ERR, "The base name of the path is too big");
 		return 1;
 	}
 
 	/* These are warnings, not errors */
 	if (strstr(path, ".."))
-		fprintf(stderr, 
-			"Warning - relative path notation is not supported\n");
+		audit_msg(LOG_WARNING, 
+			"Warning - relative path notation is not supported");
 	if (strchr(path, '*') || strchr(path, '?'))
-		fprintf(stderr, 
-			"Warning - wildcard notation is not supported\n");
+		audit_msg(LOG_WARNING, 
+			"Warning - wildcard notation is not supported");
 
 	return 0;
 }
@@ -318,8 +318,8 @@ static int audit_setup_perms(struct audit_rule_data *rule, const char *opt)
 				val |= AUDIT_PERM_ATTR;
 				break;
 			default:
-				fprintf(stderr,
-					"Permission %c isn't supported\n",
+				audit_msg(LOG_ERR,
+					"Permission %c isn't supported",
 					opt[i]);
 				return -1;
 		}
@@ -386,17 +386,17 @@ static int check_ids_key(const char *k)
 		goto fail_exit;
 
 	if (lookup_itype(kindptr)) {
-		fprintf(stderr, "ids key type is bad\n");
+		audit_msg(LOG_ERR, "ids key type is bad");
 		return -1;
 	}
 	if (lookup_iseverity(ratingptr)) {
-		fprintf(stderr, "ids key severity is bad\n");
+		audit_msg(LOG_ERR, "ids key severity is bad");
 		return -1;
 	}
 	return 0;
 
 fail_exit:
-	fprintf(stderr, "ids key is bad\n");
+	audit_msg(LOG_ERR, "ids key is bad");
 	return -1;
 }
 
@@ -450,10 +450,10 @@ void check_rule_mismatch(int lineno, const char *option)
 		rc = 1;
 	_audit_elf = old_audit_elf;
 	if (rc) { 
-		fprintf(stderr, "WARNING - 32/64 bit syscall mismatch");
 		if (lineno)
-			fprintf(stderr, " in line %d", lineno);
-		fprintf(stderr, ", you should specify an arch\n");
+			audit_msg(LOG_WARNING, "WARNING - 32/64 bit syscall mismatch in line %d, you should specify an arch", lineno);
+		else
+			audit_msg(LOG_WARNING, "WARNING - 32/64 bit syscall mismatch, you should specify an arch");
 	}
 }
 
@@ -493,8 +493,8 @@ int parse_syscall(struct audit_rule_data *rule_new, const char *optarg)
 			retval = audit_rule_syscallbyname_data(rule_new, ptr);
 			if (retval != 0) {
 				if (retval == -1) {
-					fprintf(stderr,
-						"Syscall name unknown: %s\n", 
+					audit_msg(LOG_ERR,
+						"Syscall name unknown: %s", 
 						ptr);
 					retval = -3; // error reported
 				}
@@ -562,7 +562,7 @@ static int setopt(int count, int lineno, char *vars[])
 			else
 				retval = -1;
 		} else {
-			fprintf(stderr, "Enable must be 0, 1, or 2 was %s\n", 
+			audit_msg(LOG_ERR, "Enable must be 0, 1, or 2 was %s", 
 				optarg);
 			retval = -1;
 		}
@@ -576,7 +576,7 @@ static int setopt(int count, int lineno, char *vars[])
 			else
 				return -1;
 		} else {
-			fprintf(stderr, "Failure must be 0, 1, or 2 was %s\n", 
+			audit_msg(LOG_ERR, "Failure must be 0, 1, or 2 was %s", 
 				optarg);
 			retval = -1;
 		}
@@ -587,7 +587,7 @@ static int setopt(int count, int lineno, char *vars[])
 			errno = 0;
 			rate = strtoul(optarg,NULL,0);
 			if (errno) {
-				fprintf(stderr, "Error converting rate\n");
+				audit_msg(LOG_ERR, "Error converting rate");
 				return -1;
 			}
 			if (audit_set_rate_limit(fd, rate) > 0)
@@ -595,7 +595,7 @@ static int setopt(int count, int lineno, char *vars[])
 			else
 				return -1;
 		} else {
-			fprintf(stderr, "Rate must be a numeric value was %s\n",
+			audit_msg(LOG_ERR,"Rate must be a numeric value was %s",
 				optarg);
 			retval = -1;
 		}
@@ -606,7 +606,7 @@ static int setopt(int count, int lineno, char *vars[])
 			errno = 0;
 			limit = strtoul(optarg,NULL,0);
 			if (errno) {
-				fprintf(stderr, "Error converting backlog\n");
+				audit_msg(LOG_ERR, "Error converting backlog");
 				return -1;
 			}
 			if (audit_set_backlog_limit(fd, limit) > 0)
@@ -614,16 +614,16 @@ static int setopt(int count, int lineno, char *vars[])
 			else
 				return -1;
 		} else {
-			fprintf(stderr, 
-				"Backlog must be a numeric value was %s\n", 
+			audit_msg(LOG_ERR, 
+				"Backlog must be a numeric value was %s", 
 				optarg);
 			retval = -1;
 		}
 		break;
         case 'l':
 		if (count > 4) {
-			fprintf(stderr,
-				"Wrong number of options for list request\n");
+			audit_msg(LOG_ERR,
+				"Wrong number of options for list request");
 			retval = -1;
 			break;
 		}
@@ -632,8 +632,8 @@ static int setopt(int count, int lineno, char *vars[])
 				interpret = 1;
 				count -= 1;
 			} else {
-				fprintf(stderr,
-					"Only -k or -i options are allowed\n");
+				audit_msg(LOG_ERR,
+					"Only -k or -i options are allowed");
 				retval = -1;
 			}
 		} else if (count == 4) {
@@ -641,8 +641,8 @@ static int setopt(int count, int lineno, char *vars[])
 				strncat(key, vars[3], keylen);
 				count -= 2;
 			} else {
-				fprintf(stderr,
-					"Only -k or -i options are allowed\n");
+				audit_msg(LOG_ERR,
+					"Only -k or -i options are allowed");
 				retval = -1;
 				break;
 			}
@@ -655,23 +655,23 @@ static int setopt(int count, int lineno, char *vars[])
 		break;
         case 'a':
 		if (strstr(optarg, "task") && _audit_syscalladded) {
-			fprintf(stderr, 
-				"Syscall auditing requested for task list\n");
+			audit_msg(LOG_ERR, 
+				"Syscall auditing requested for task list");
 			retval = -1;
 		} else {
 			rc = audit_rule_setup(optarg, &add, &action, lineno);
 			if (rc == 3) {
-				fprintf(stderr,
+				audit_msg(LOG_ERR,
 		"Multiple rule insert/delete operations are not allowed\n");
 				retval = -1;
 			} else if (rc == 2) {
-				fprintf(stderr, 
-					"Append rule - bad keyword %s\n",
+				audit_msg(LOG_ERR, 
+					"Append rule - bad keyword %s",
 					optarg);
 				retval = -1;
 			} else if (rc == 1) {
-				fprintf(stderr, 
-				    "Append rule - possible is deprecated\n");
+				audit_msg(LOG_ERR, 
+				    "Append rule - possible is deprecated");
 				return -3; /* deprecated - eat it */
 			} else
 				retval = 1; /* success - please send */
@@ -679,22 +679,22 @@ static int setopt(int count, int lineno, char *vars[])
 		break;
         case 'A': 
 		if (strstr(optarg, "task") && _audit_syscalladded) {
-			fprintf(stderr, 
-			   "Error: syscall auditing requested for task list\n");
+			audit_msg(LOG_ERR, 
+			   "Error: syscall auditing requested for task list");
 			retval = -1;
 		} else {
 			rc = audit_rule_setup(optarg, &add, &action, lineno);
 			if (rc == 3) {
-				fprintf(stderr,
-		"Multiple rule insert/delete operations are not allowed\n");
+				audit_msg(LOG_ERR,
+		"Multiple rule insert/delete operations are not allowed");
 				retval = -1;
 			} else if (rc == 2) {
-				fprintf(stderr,
-				"Add rule - bad keyword %s\n", optarg);
+				audit_msg(LOG_ERR,
+				"Add rule - bad keyword %s", optarg);
 				retval = -1;
 			} else if (rc == 1) {
-				fprintf(stderr, 
-				    "Append rule - possible is deprecated\n");
+				audit_msg(LOG_WARNING, 
+				    "Append rule - possible is deprecated");
 				return -3; /* deprecated - eat it */
 			} else {
 				add |= AUDIT_FILTER_PREPEND;
@@ -705,16 +705,16 @@ static int setopt(int count, int lineno, char *vars[])
         case 'd': 
 		rc = audit_rule_setup(optarg, &del, &action, lineno);
 		if (rc == 3) {
-			fprintf(stderr,
-		"Multiple rule insert/delete operations are not allowed\n");
+			audit_msg(LOG_ERR,
+		"Multiple rule insert/delete operations are not allowed");
 			retval = -1;
 		} else if (rc == 2) {
-			fprintf(stderr, "Delete rule - bad keyword %s\n", 
+			audit_msg(LOG_ERR, "Delete rule - bad keyword %s", 
 				optarg);
 			retval = -1;
 		} else if (rc == 1) {
-			fprintf(stderr, 
-			    "Delete rule - possible is deprecated\n");
+			audit_msg(LOG_INFO, 
+			    "Delete rule - possible is deprecated");
 			return -3; /* deprecated - eat it */
 		} else
 			retval = 1; /* success - please send */
@@ -727,19 +727,19 @@ static int setopt(int count, int lineno, char *vars[])
 				AUDIT_FILTER_TASK || (del & 
 				(AUDIT_FILTER_MASK|AUDIT_FILTER_UNSET)) == 
 				AUDIT_FILTER_TASK)) {
-			fprintf(stderr, 
-			  "Error: syscall auditing being added to task list\n");
+			audit_msg(LOG_ERR, 
+			  "Error: syscall auditing being added to task list");
 			return -1;
 		} else if (((add & (AUDIT_FILTER_MASK|AUDIT_FILTER_UNSET)) ==
 				AUDIT_FILTER_USER || (del &
 				(AUDIT_FILTER_MASK|AUDIT_FILTER_UNSET)) ==
 				AUDIT_FILTER_USER)) {
-			fprintf(stderr, 
-			  "Error: syscall auditing being added to user list\n");
+			audit_msg(LOG_ERR, 
+			  "Error: syscall auditing being added to user list");
 			return -1;
 		} else if (exclude) {
-			fprintf(stderr, 
-		    "Error: syscall auditing cannot be put on exclude list\n");
+			audit_msg(LOG_ERR, 
+		    "Error: syscall auditing cannot be put on exclude list");
 			return -1;
 		} else {
 			if (unknown_arch) {
@@ -747,14 +747,15 @@ static int setopt(int count, int lineno, char *vars[])
 				unsigned int elf;
 				machine = audit_detect_machine();
 				if (machine < 0) {
-					fprintf(stderr, 
+					audit_msg(LOG_ERR, 
 					    "Error detecting machine type");
 					return -1;
 				}
 				elf = audit_machine_to_elf(machine);
                                 if (elf == 0) {
-					fprintf(stderr, 
-					    "Error looking up elf type");
+					audit_msg(LOG_ERR, 
+					    "Error looking up elf type %d",
+						machine);
 					return -1;
 				}
 				_audit_elf = elf;
@@ -769,12 +770,12 @@ static int setopt(int count, int lineno, char *vars[])
 					check_rule_mismatch(lineno, optarg);
 				break;
 			case -1:
-				fprintf(stderr, "Syscall name unknown: %s\n", 
+				audit_msg(LOG_ERR, "Syscall name unknown: %s", 
 							optarg);
 				retval = -1;
 				break;
 			case -2:
-				fprintf(stderr, "Elf type unknown: 0x%x\n", 
+				audit_msg(LOG_ERR, "Elf type unknown: 0x%x", 
 							_audit_elf);
 				retval = -1;
 				break;
@@ -792,7 +793,7 @@ static int setopt(int count, int lineno, char *vars[])
 		// can allow it
 		else if ((optind >= count) || (strstr(optarg, "arch=") == NULL)
 				 || (strcmp(vars[optind], "-t") != 0)) {
-			fprintf(stderr, "List must be given before field\n");
+			audit_msg(LOG_ERR, "List must be given before field");
 			retval = -1;
 			break;
 		}
@@ -826,8 +827,8 @@ static int setopt(int count, int lineno, char *vars[])
 		break;
         case 'm':
 		if (count > 3) {
-			fprintf(stderr,
-	"The -m option must be only the only option and takes 1 parameter\n");
+			audit_msg(LOG_ERR,
+	  "The -m option must be only the only option and takes 1 parameter");
 			retval = -1;
 		} else if (audit_log_user_message( fd, AUDIT_USER,
 					optarg, NULL, NULL, NULL, 1) <= 0)
@@ -836,13 +837,13 @@ static int setopt(int count, int lineno, char *vars[])
 			return -2;  // success - no reply for this
 		break;
 	case 'R':
-		fprintf(stderr, "Error - nested rule files not supported\n");
+		audit_msg(LOG_ERR, "Error - nested rule files not supported");
 		retval = -1;
 		break;
 	case 'D':
 		if (count > 4 || count == 3) {
-			fprintf(stderr,
-			    "Wrong number of options for Delete all request\n");
+			audit_msg(LOG_ERR,
+			    "Wrong number of options for Delete all request");
 			retval = -1;
 			break;
 		} 
@@ -851,8 +852,8 @@ static int setopt(int count, int lineno, char *vars[])
 				strncat(key, vars[3], keylen);
 				count -= 2;
 			} else {
-				fprintf(stderr, 
-					"Only the -k option is allowed\n");
+				audit_msg(LOG_ERR, 
+					"Only the -k option is allowed");
 				retval = -1;
 				break;
 			}
@@ -867,8 +868,8 @@ static int setopt(int count, int lineno, char *vars[])
 	case 'w':
 		if (add != AUDIT_FILTER_UNSET ||
 			del != AUDIT_FILTER_UNSET) {
-			fprintf(stderr,
-				"watch option can't be given with a syscall\n");
+			audit_msg(LOG_ERR,
+				"watch option can't be given with a syscall");
 			retval = -1;
 		} else if (optarg) { 
 			add = AUDIT_FILTER_EXIT;
@@ -876,7 +877,7 @@ static int setopt(int count, int lineno, char *vars[])
 			_audit_syscalladded = 1;
 			retval = audit_setup_watch_name(&rule_new, optarg);
 		} else {
-			fprintf(stderr, "watch option needs a path\n");	
+			audit_msg(LOG_ERR, "watch option needs a path");
 			retval = -1;
 		}
 		break;
@@ -887,7 +888,7 @@ static int setopt(int count, int lineno, char *vars[])
 			_audit_syscalladded = 1;
 			retval = audit_setup_watch_name(&rule_new, optarg);
 		} else {
-			fprintf(stderr, "watch option needs a path\n");	
+			audit_msg(LOG_ERR, "watch option needs a path");
 			retval = -1;
 		}
 		break;
@@ -895,15 +896,15 @@ static int setopt(int count, int lineno, char *vars[])
 		if (!(_audit_syscalladded || _audit_permadded ) ||
 				(add==AUDIT_FILTER_UNSET &&
 					del==AUDIT_FILTER_UNSET)) {
-			fprintf(stderr,
-			"key option needs a watch or syscall given prior to it\n");
+			audit_msg(LOG_ERR,
+			"key option needs a watch or syscall given prior to it");
 			retval = -1;
 		} else if (!optarg) {
-			fprintf(stderr, "key option needs a value\n");
+			audit_msg(LOG_ERR, "key option needs a value");
 			retval = -1;
 		} else if ((strlen(optarg)+strlen(key)+(!!key[0])) >
 							AUDIT_MAX_KEY_LEN) {
-			fprintf(stderr, "key option exceeds size limit\n");
+			audit_msg(LOG_ERR, "key option exceeds size limit");
 			retval = -1;
 		} else {
 			if (strncmp(optarg, "ids-", 4) == 0) {
@@ -913,8 +914,8 @@ static int setopt(int count, int lineno, char *vars[])
 				}
 			}
 			if (strchr(optarg, AUDIT_KEY_SEPARATOR)) 
-				fprintf(stderr,
-				    "key %s has illegal character\n", optarg);
+				audit_msg(LOG_ERR,
+				    "key %s has illegal character", optarg);
 			if (key[0]) { // Add the separator if we need to
 				strcat(key, key_sep);
 				keylen--;
@@ -925,26 +926,26 @@ static int setopt(int count, int lineno, char *vars[])
 		break;
 	case 'p':
 		if (!add && !del) {
-			fprintf(stderr,
-			"permission option needs a watch given prior to it\n");
+			audit_msg(LOG_ERR,
+			"permission option needs a watch given prior to it");
 			retval = -1;
 		} else if (!optarg) {
-			fprintf(stderr, "permission option needs a filter\n");
+			audit_msg(LOG_ERR, "permission option needs a filter");
 			retval = -1;
 		} else 
 			retval = audit_setup_perms(rule_new, optarg);
 		break;
         case 'q':
 		if (_audit_syscalladded) {
-			fprintf(stderr, 
-			   "Syscall auditing requested for make equivalent\n");
+			audit_msg(LOG_ERR, 
+			   "Syscall auditing requested for make equivalent");
 			retval = -1;
 		} else {
 			char *mp, *sub;
 			retval = equiv_parse(optarg, &mp, &sub);
 			if (retval < 0) {
-				fprintf(stderr, 
-			   "Error parsing equivalent parts\n");
+				audit_msg(LOG_ERR, 
+			   "Error parsing equivalent parts");
 				retval = -1;
 			} else {
 				retval = audit_make_equivalent(fd, mp, sub);
@@ -981,7 +982,8 @@ static int setopt(int count, int lineno, char *vars[])
 			errno = 0;
 			bwt = strtoul(optarg,NULL,0);
 			if (errno) {
-				fprintf(stderr, "Error converting backlog_wait_time\n");
+				audit_msg(LOG_ERR,
+					"Error converting backlog_wait_time");
 				return -1;
 			}
 			if (audit_set_backlog_wait_time(fd, bwt) > 0)
@@ -989,14 +991,14 @@ static int setopt(int count, int lineno, char *vars[])
 			else
 				return -1;
 		} else {
-			fprintf(stderr, 
-				"Backlog_wait_time must be a numeric value was %s\n", 
+			audit_msg(LOG_ERR, 
+			    "Backlog_wait_time must be a numeric value was %s", 
 				optarg);
 			retval = -1;
 		}
 #else
-		fprintf(stderr,
-			"backlog_wait_time is not supported on your kernel\n");
+		audit_msg(LOG_ERR,
+			"backlog_wait_time is not supported on your kernel");
 		retval = -1;
 #endif
 		break;
@@ -1010,7 +1012,7 @@ static int setopt(int count, int lineno, char *vars[])
     if (optind == 1)
 	retval = -1;
     else if ((optind < count) && (retval != -1)) {
-	fprintf(stderr, "parameter passed without an option given\n");	
+	audit_msg(LOG_ERR, "parameter passed without an option given");
 	retval = -1;
     }
 
@@ -1028,7 +1030,7 @@ static int setopt(int count, int lineno, char *vars[])
 	/* Build the command */
 	if (asprintf(&cmd, "key=%s", key) < 0) {
 		cmd = NULL;
-		fprintf(stderr, "Out of memory adding key\n");
+		audit_msg(LOG_ERR, "Out of memory adding key");
 		retval = -1;
 	} else {
 		/* Add this to the rule */
@@ -1039,7 +1041,7 @@ static int setopt(int count, int lineno, char *vars[])
 	}
     }
     if (retval == -1 && errno == ECONNREFUSED)
-		fprintf(stderr,	"The audit system is disabled\n");
+		audit_msg(LOG_ERR, "The audit system is disabled");
     return retval;
 }
 
@@ -1132,45 +1134,45 @@ static int fileopt(const char *file)
 	rc = open(file, O_RDONLY);
 	if (rc < 0) {
 		if (errno != ENOENT) {
-			fprintf(stderr,"Error opening %s (%s)\n", 
+			audit_msg(LOG_ERR,"Error opening %s (%s)", 
 				file, strerror(errno));
                         return 1;
                 }
-                fprintf(stderr, "file %s doesn't exist, skipping\n", file);
+		audit_msg(LOG_INFO, "file %s doesn't exist, skipping", file);
                 return 0;
         }
         tfd = rc;
 
 	/* Is the file permissions sane? */
 	if (fstat(tfd, &st) < 0) {
-		fprintf(stderr, "Error fstat'ing %s (%s)\n",
+		audit_msg(LOG_ERR, "Error fstat'ing %s (%s)",
 			file, strerror(errno));
 		close(tfd);
 		return 1;
 	}
 	if (st.st_uid != 0) {
-		fprintf(stderr, "Error - %s isn't owned by root\n", file);
+		audit_msg(LOG_ERR, "Error - %s isn't owned by root", file);
 		close(tfd);
 		return 1;
 	} 
 	if ((st.st_mode & S_IWOTH) == S_IWOTH) {
-		fprintf(stderr, "Error - %s is world writable\n", file);
+		audit_msg(LOG_ERR, "Error - %s is world writable", file);
 		close(tfd);
 		return 1;
 	}
 	if (!S_ISREG(st.st_mode)) {
-		fprintf(stderr, "Error - %s is not a regular file\n", file);
+		audit_msg(LOG_ERR, "Error - %s is not a regular file", file);
 		close(tfd);
 		return 1;
 	}
 
-        f = fdopen(tfd, "rm");
-        if (f == NULL) {
-                fprintf(stderr, "Error - fdopen failed (%s)\n",
-                        strerror(errno));
+	f = fdopen(tfd, "rm");
+	if (f == NULL) {
+		audit_msg(LOG_ERR, "Error - fdopen failed (%s)",
+			strerror(errno));
 		close(tfd);
-                return 1;
-        }
+		return 1;
+	}
 
 	/* Read until eof, lineno starts as 1 */
 	while (get_line(f, buf)) {
@@ -1219,12 +1221,12 @@ static int fileopt(const char *file)
 		if (rc != -3) {
 			if (handle_request(rc) == -1) {
 				if (errno != ECONNREFUSED)
-					fprintf(stderr,
-					"There was an error in line %d of %s\n",
+					audit_msg(LOG_ERR,
+					"There was an error in line %d of %s",
 					lineno, file);
 				else {
-					fprintf(stderr,
-					"The audit system is disabled\n");
+					audit_msg(LOG_ERR,
+						"The audit system is disabled");
 					fclose(f);
 					return 0;
 				}
@@ -1242,6 +1244,20 @@ static int fileopt(const char *file)
 	return 0;
 }
 
+/* Return 1 if ready, 0 otherwise */
+static int is_ready(int fd)
+{
+	if (audit_is_enabled(fd) == 2) {
+		audit_msg(LOG_ERR, "The audit system is in immutable mode,"
+			" no rule changes allowed");
+		return 0;
+	} else if (errno == ECONNREFUSED) {
+		audit_msg(LOG_ERR, "The audit system is disabled");
+		return 0;
+	}
+	return 1;
+}
+
 int main(int argc, char *argv[])
 {
 	int retval = 1;
@@ -1256,22 +1272,19 @@ int main(int argc, char *argv[])
 	/* Make sure we are root if we do anything except help */
 	if (!(argc == 2 && (strcmp(argv[1], "--help")==0 ||
 			strcmp(argv[1], "-h") == 0)) && (geteuid() != 0)) {
-		fprintf(stderr, "You must be root to run this program.\n");
+		audit_msg(LOG_WARNING, "You must be root to run this program.");
 		return 4;
 	}
 #endif
 	/* Check where the rules are coming from: commandline or file */
 	if ((argc == 3) && (strcmp(argv[1], "-R") == 0)) {
+		// If reading a file, its most likely start up. Send problems
+		// to syslog where they will persist for later review
+		set_aumessage_mode(MSG_SYSLOG, DBG_NO);
 		fd = audit_open();
-		if (audit_is_enabled(fd) == 2) {
-			fprintf(stderr,
-				"The audit system is in immutable "
-				"mode, no rule changes allowed\n");
+		if (is_ready(fd) == 0)
 			return 0;
-		} else if (errno == ECONNREFUSED) {
-			fprintf(stderr, "The audit system is disabled\n");
-			return 0;
-		} else if (fileopt(argv[2])) {
+		else if (fileopt(argv[2])) {
 			free(rule_new);
 			return 1;
 		} else {
@@ -1294,14 +1307,7 @@ int main(int argc, char *argv[])
 
 	if (add != AUDIT_FILTER_UNSET || del != AUDIT_FILTER_UNSET) {
 		fd = audit_open();
-		if (audit_is_enabled(fd) == 2) {
-			fprintf(stderr,
-				"The audit system is in immutable "
-				"mode, no rule changes allowed\n");
-			free(rule_new);
-			return 0;
-		} else if (errno == ECONNREFUSED) {
-			fprintf(stderr, "The audit system is disabled\n");
+		if (is_ready(fd) == 0) {
 			free(rule_new);
 			return 0;
 		}
@@ -1323,7 +1329,7 @@ static int handle_request(int status)
 {
 	if (status == 0) {
 		if (_audit_syscalladded) {
-			fprintf(stderr, "Error - no list specified\n");
+			audit_msg(LOG_ERR, "Error - no list specified");
 			return -1;
 		}
 		get_reply();
@@ -1349,8 +1355,8 @@ static int handle_request(int status)
 					rc = audit_add_rule_data(fd, rule_new,
 							add, action);
 				} else {
-					fprintf(stderr,
-				"Error sending add rule data request (%s)\n",
+					audit_msg(LOG_ERR,
+				"Error sending add rule data request (%s)",
 					errno == EEXIST ?
 					"Rule exists" : strerror(-rc));
 				}
@@ -1374,8 +1380,8 @@ static int handle_request(int status)
 					rc = audit_delete_rule_data(fd,rule_new,
 								del, action);
 				} else {
-					fprintf(stderr,
-			       "Error sending delete rule data request (%s)\n",
+					audit_msg(LOG_ERR,
+			       "Error sending delete rule data request (%s)",
 					errno == EEXIST ?
 					"Rule exists" : strerror(-rc));
 				}
