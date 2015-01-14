@@ -3,6 +3,7 @@
 - Improve output for short mode interpretations in auparse
 - Add CRYPTO_IKE_SA and CRYPTO_IPSEC_SA events
 - If auditctl is reading rules from a file, send messages to syslog (#1144252)
+- Correct lookup of ppc64le when determining machine type
 
 2.4.1
 - Make python3 support easier
