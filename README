@@ -2,9 +2,9 @@ This is some background information about the Linux Auditing Framework.
 
 LICENSE
 =======
-The audit daemon is released as GPL'd code. The audit daemon's library
-libaudit.* is released under LGPL so that it may be linked with 3rd
-party software.
+The audit daemon is released as GPL'd code. The audit daemon's libraries
+libaudit.* and libauparse.* are released under LGPL so that it may be
+linked with 3rd party software.
 
 BUILDING
 ========
@@ -12,41 +12,21 @@ See the README-install File.
 
 USAGE
 =====
-Examples usage of utilities:
-
-  General:
-
-    Window 1:
-        ./auditd
-    Window 2 (you don't have to have the daemon running to try this, but
-    enabled has to be 1):
-        ./auditctl -s
-        ./auditctl -a always,exit -S open
-        ls
-        ./auditctl -d always,exit -S open
-
-
-  Identity tracking:
-	./auditctl -a always,exit -S all -F loginuid=2000
-	./auditctl -L 2000,"test uid" 
-
-SAMPLE CONFIGS
-==============
-There are 2 files sample.config which just shows variuos configuration
-options in use. There is also contrib/capp.rules which can be installed
-to /etc/audit.rules and then customized. This shows what a CAPP style 
-audit environment might look like.
+See the man pages for audit, auditctl, audit.rules, ausearch, and aureport.
 
 DISCUSSION
 ==========
-lkml thread(s): 
+Original lkml thread(s): 
      http://marc.theaimsgroup.com/?t=107815888100001&r=1&w=2
      http://marc.theaimsgroup.com/?t=107901570800002&r=1&w=2
 
+There is a linux audit mail list where any question whether kernel design,
+setup and configuration, or usage can be discussed:
+http://www.redhat.com/mailman/listinfo/linux-audit
 
-DESIGN INFO
-===========
 
+DESIGN INFO (Very old)
+=====================
 The main goals were to provide system call auditing with 1) as low
 overhead as possible, and 2) without duplicating functionality that is
 already provided by SELinux (and/or other security infrastructures).
