@@ -1,5 +1,5 @@
 /* autrace.c -- 
- * Copyright 2005-09,2011 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2005-09,2011,2015 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -61,30 +61,32 @@ static int insert_rule(int audit_fd, const char *field)
 	memset(rule, 0, sizeof(struct audit_rule_data));
 	if (threat) {
 		rc = 0;
-		rc |= audit_rule_syscallbyname_data(rule, "open");
+		if (machine != MACH_AARCH64) {
+			rc |= audit_rule_syscallbyname_data(rule, "open");
+			rc |= audit_rule_syscallbyname_data(rule, "creat");
+			rc |= audit_rule_syscallbyname_data(rule, "rename");
+			rc |= audit_rule_syscallbyname_data(rule, "unlink");
+			rc |= audit_rule_syscallbyname_data(rule, "mknod");
+			rc |= audit_rule_syscallbyname_data(rule, "mkdir");
+			rc |= audit_rule_syscallbyname_data(rule, "rmdir");
+			rc |= audit_rule_syscallbyname_data(rule, "chown");
+			rc |= audit_rule_syscallbyname_data(rule, "lchown");
+			rc |= audit_rule_syscallbyname_data(rule, "chmod");
+			rc |= audit_rule_syscallbyname_data(rule, "link");
+			rc |= audit_rule_syscallbyname_data(rule, "symlink");
+			rc |= audit_rule_syscallbyname_data(rule, "readlink");
+		}
 		rc |= audit_rule_syscallbyname_data(rule, "openat");
-		rc |= audit_rule_syscallbyname_data(rule, "creat");
 		rc |= audit_rule_syscallbyname_data(rule, "truncate");
-		rc |= audit_rule_syscallbyname_data(rule, "rename");
 		rc |= audit_rule_syscallbyname_data(rule, "renameat");
-		rc |= audit_rule_syscallbyname_data(rule, "unlink");
 		rc |= audit_rule_syscallbyname_data(rule, "unlinkat");
-		rc |= audit_rule_syscallbyname_data(rule, "mknod");
 		rc |= audit_rule_syscallbyname_data(rule, "mknodat");
-		rc |= audit_rule_syscallbyname_data(rule, "mkdir");
 		rc |= audit_rule_syscallbyname_data(rule, "mkdirat");
-		rc |= audit_rule_syscallbyname_data(rule, "rmdir");
 		rc |= audit_rule_syscallbyname_data(rule, "chdir");
-		rc |= audit_rule_syscallbyname_data(rule, "chown");
-		rc |= audit_rule_syscallbyname_data(rule, "lchown");
 		rc |= audit_rule_syscallbyname_data(rule, "fchownat");
-		rc |= audit_rule_syscallbyname_data(rule, "chmod");
 		rc |= audit_rule_syscallbyname_data(rule, "fchmodat");
-		rc |= audit_rule_syscallbyname_data(rule, "link");
 		rc |= audit_rule_syscallbyname_data(rule, "linkat");
-		rc |= audit_rule_syscallbyname_data(rule, "symlink");
 		rc |= audit_rule_syscallbyname_data(rule, "symlinkat");
-		rc |= audit_rule_syscallbyname_data(rule, "readlink");
 		rc |= audit_rule_syscallbyname_data(rule, "readlinkat");
 		rc |= audit_rule_syscallbyname_data(rule, "execve");
 		rc |= audit_rule_syscallbyname_data(rule, "name_to_handle_at");
