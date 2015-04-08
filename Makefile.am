@@ -27,6 +27,7 @@ if HAVE_PYTHON
 SUBDIRS += swig
 endif
 EXTRA_DIST = ChangeLog AUTHORS NEWS README INSTALL audit.spec \
+        COPYING COPYING.LIB \
 	contrib/capp.rules contrib/nispom.rules contrib/lspp.rules \
 	contrib/stig.rules contrib/skeleton.c contrib/avc_snap \
 	contrib/plugin/Makefile contrib/plugin/audisp-example.c \

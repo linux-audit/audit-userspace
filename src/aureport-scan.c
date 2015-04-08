@@ -1,6 +1,6 @@
 /*
 * aureport-scan.c - Extract interesting fields and check for match
-* Copyright (c) 2005-06,2008,2011,2014 Red Hat Inc., Durham, North Carolina.
+* Copyright (c) 2005-06,2008,2011,2014-15 Red Hat Inc., Durham, North Carolina.
 * All Rights Reserved. 
 *
 * This software may be freely redistributed and/or modified under the
@@ -790,7 +790,8 @@ static int per_event_detailed(llist *l)
 			}
 			break;
 		case RPT_TTY:
-			if (l->head->type == AUDIT_TTY) {
+			if (l->head->type == AUDIT_TTY ||
+					l->head->type == AUDIT_USER_TTY) {
 				print_per_event_item(l);
 				rc = 1;
 			}
