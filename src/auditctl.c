@@ -637,7 +637,7 @@ static int setopt(int count, int lineno, char *vars[])
 				retval = -1;
 			}
 		} else if (count == 4) {
-			if (strcmp(vars[optind], "-k") == 0) { 
+			if (vars[optind] && strcmp(vars[optind], "-k") == 0) { 
 				strncat(key, vars[3], keylen);
 				count -= 2;
 			} else {

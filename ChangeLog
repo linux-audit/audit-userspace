@@ -4,8 +4,10 @@
 - Add CRYPTO_IKE_SA and CRYPTO_IPSEC_SA events
 - If auditctl is reading rules from a file, send messages to syslog (#1144252)
 - Correct lookup of ppc64le when determining machine type
+- Increase time buffer for wide character numbers in ausearch/report (#1200314)
 - In aureport, add USER_TTY events to tty report
 - In audispd, limit reporting of queue full messages (#1203810)
+- In auditctl, don't segfault when invalid options passed (#1206516)
 
 2.4.1
 - Make python3 support easier
