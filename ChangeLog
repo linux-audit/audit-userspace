@@ -5,7 +5,7 @@
 - If auditctl is reading rules from a file, send messages to syslog (#1144252)
 - Correct lookup of ppc64le when determining machine type
 - In aureport, add USER_TTY events to tty report
-- In audispd, limit reporting of queue full messages
+- In audispd, limit reporting of queue full messages (#1203810)
 
 2.4.1
 - Make python3 support easier
