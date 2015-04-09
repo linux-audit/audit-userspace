@@ -1209,7 +1209,7 @@ int audit_determine_machine(const char *arch)
 #endif
 #ifdef WITH_AARCH64
 		case MACH_AARCH64:
-			if (bits != __AUDIT_ARCH_64BIT)
+			if (bits && bits != __AUDIT_ARCH_64BIT)
 				return -6;
 			break;
 #endif

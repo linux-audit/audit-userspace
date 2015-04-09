@@ -9,6 +9,7 @@
 - In audispd, limit reporting of queue full messages (#1203810)
 - In auditctl, don't segfault when invalid options passed (#1206516)
 - In autrace, remove some older unimplemented syscalls for aarch64 (#1185892)
+- In auditctl, correct lookup of aarch64 in arch field (#1186313)
 
 2.4.1
 - Make python3 support easier
