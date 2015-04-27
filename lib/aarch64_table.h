@@ -1,5 +1,5 @@
 /* aarch64_table.h --
- * Copyright 2013,2014 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2013-15 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -285,3 +285,4 @@ _S(277, "seccomp")
 _S(278, "getrandom")
 _S(279, "memfd_create")
 _S(280, "bpf")
+_S(281, "execveat")

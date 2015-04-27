@@ -1,5 +1,5 @@
 /* ipoptnametab.h --
- * Copyright 2013 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2013,2015 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -44,6 +44,7 @@ _S(19, "IP_TRANSPARENT")
 _S(20, "IP_ORIGDSTADDR")
 _S(21, "IP_MINTTL")
 _S(22, "IP_NODEFRAG")
+_S(23, "IP_CHECKSUM")
 _S(32, "IP_MULTICAST_IF")
 _S(33, "IP_MULTICAST_TTL")
 _S(34, "IP_MULTICAST_LOOP")
@@ -54,6 +55,13 @@ _S(38, "IP_BLOCK_SOURCE")
 _S(39, "IP_ADD_SOURCE_MEMBERSHIP")
 _S(40, "IP_DROP_SOURCE_MEMBERSHIP")
 _S(41, "IP_MSFILTER")
+_S(42, "MCAST_JOIN_GROUP")
+_S(43, "MCAST_BLOCK_SOURCE")
+_S(44, "MCAST_UNBLOCK_SOURCE")
+_S(45, "MCAST_LEAVE_GROUP")
+_S(46, "MCAST_JOIN_SOURCE_GROUP")
+_S(47, "MCAST_LEAVE_SOURCE_GROUP")
+_S(48, "MCAST_MSFILTER")
 _S(49, "IP_MULTICAST_ALL")
 _S(50, "IP_UNICAST_IF")
 _S(64, "IPT_SO_SET_REPLACE")

@@ -1,5 +1,5 @@
 /* s390x_table.h --
- * Copyright 2005-06,2008-14 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2005-06,2008-15 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -312,4 +312,8 @@ _S(347, "renameat2")
 _S(348, "seccomp")
 _S(349, "getrandom")
 _S(350, "memfd_create")
+_S(351, "bpf")
+_S(352, "s390_pci_mmio_write")
+_S(353, "s390_pci_mmio_read")
+_S(354, "execveat")
 

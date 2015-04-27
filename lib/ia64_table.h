@@ -1,5 +1,5 @@
 /* ia64_table.h --
- * Copyright 2005-14 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2005-15 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -332,3 +332,4 @@ _S(1338, "renameat2")
 _S(1339, "getrandom")
 _S(1340, "memfd_create")
 _S(1341, "bpf")
+_S(1342, "execveat")

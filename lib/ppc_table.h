@@ -1,5 +1,5 @@
 /* ppc_table.h --
- * Copyright 2005-09,2011-14 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2005-09,2011-15 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -374,3 +374,6 @@ _S(357, "renameat2")
 _S(358, "seccomp")
 _S(359, "getrandom")
 _S(360, "memfd_create")
+_S(361, "bpf")
+_S(362, "execveat")
+_S(363, "switch_endian")

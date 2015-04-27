@@ -1,5 +1,5 @@
 /* arm_table.h --
- * Copyright 2009-10,2013-14 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2009-10,2013-15 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -369,3 +369,5 @@ _S(382, "renameat2")
 _S(383, "seccomp")
 _S(384, "getrandom")
 _S(385, "memfd_create")
+_S(386, "bpf")
+_S(387, "execveat")

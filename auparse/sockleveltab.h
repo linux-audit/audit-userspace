@@ -1,5 +1,5 @@
 /* sockleveltab.h --
- * Copyright 2013-14 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2013-15 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -22,6 +22,13 @@
  */
 
 
+_S(0, "SOL_IP")
+_S(6, "SOL_TCP")
+_S(17, "SOL_UDP")
+_S(41, "SOL_IPV6")
+_S(58, "SOL_ICMPV6")
+_S(132, "SOL_SCTP")
+_S(136, "SOL_UDPLITE")
 _S(255, "SOL_RAW")
 _S(256, "SOL_IPX")
 _S(257, "SOL_AX25")
