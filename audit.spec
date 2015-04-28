@@ -280,6 +280,6 @@ fi
 
 
 %changelog
-* Tue Oct 28 2014 Steve Grubb <sgrubb@redhat.com> 2.4.2-1
+* Tue Apr 28 2014 Steve Grubb <sgrubb@redhat.com> 2.4.2-1
 - New upstream release
 

@@ -1,6 +1,6 @@
 Things that need to be done:
 ===========================
-2.4.2
+2.4.3
 * Fix auparse to handle out of order messages
 * Add audit by process name support
 * Add metadata in auparse for subj,obj,action,results
