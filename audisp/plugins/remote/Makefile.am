@@ -1,5 +1,5 @@
 # Makefile.am --
-# Copyright 2008-2009,11 Red Hat Inc., Durham, North Carolina.
+# Copyright 2008-2009,2011,2015 Red Hat Inc., Durham, North Carolina.
 # All Rights Reserved.
 #
 # This library is free software; you can redistribute it and/or
@@ -22,7 +22,7 @@
 
 CONFIG_CLEAN_FILES = *.loT *.rej *.orig
 EXTRA_DIST = au-remote.conf audisp-remote.conf notes.txt $(man_MANS)
-INCLUDES = -I${top_srcdir} -I${top_srcdir}/lib 
+AM_CPPFLAGS = -I${top_srcdir} -I${top_srcdir}/lib 
 prog_confdir = $(sysconfdir)/audisp
 prog_conf = audisp-remote.conf
 plugin_confdir=$(prog_confdir)/plugins.d

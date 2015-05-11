@@ -1,6 +1,7 @@
 #
 # Makefile.am --
 # Copyright (c) 2011 IBM Corp.
+# Copyright (C) 2015 Red Hat, Inc.
 # All Rights Reserved.
 #
 # This software may be freely redistributed and/or modified under the
@@ -24,7 +25,7 @@
 CONFIG_CLEAN_FILES = *.loT *.rej *.orig
 AUTOMAKE_OPTIONS = no-dependencies
 EXTRA_DIST = $(man_MANS)
-INCLUDES = -I${top_srcdir} \
+AM_CPPFLAGS = -I${top_srcdir} \
 		   -I${top_srcdir}/lib \
 		   -I${top_srcdir}/auparse \
 		   -I${top_srcdir}/src

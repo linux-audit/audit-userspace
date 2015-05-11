@@ -1,5 +1,6 @@
 2.4.3
 - Add python3 support for libaudit
+- Cleanup automake warnings
 
 2.4.2
 - Ausearch should parse exe field in SECCOMP events

@@ -1,5 +1,5 @@
 # Makefile.am --
-# Copyright 2008,10 Red Hat Inc., Durham, North Carolina.
+# Copyright 2008,2010,2015 Red Hat Inc., Durham, North Carolina.
 # All Rights Reserved.
 #
 # This library is free software; you can redistribute it and/or
@@ -23,7 +23,7 @@
 CONFIG_CLEAN_FILES = *.loT *.rej *.orig
 AUTOMAKE_OPTIONS = no-dependencies
 EXTRA_DIST = $(man_MANS)
-INCLUDES = -I${top_srcdir} -I${top_srcdir}/auparse
+AM_CPPFLAGS = -I${top_srcdir} -I${top_srcdir}/auparse
 LIBS = -L${top_builddir}/auparse -lauparse
 AM_CFLAGS = -D_GNU_SOURCE
 bin_PROGRAMS = aulastlog

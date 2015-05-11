@@ -1,5 +1,5 @@
 # Makefile.am --
-# Copyright 2008 Red Hat Inc., Durham, North Carolina.
+# Copyright 2008,2015 Red Hat Inc., Durham, North Carolina.
 # All Rights Reserved.
 #
 # This library is free software; you can redistribute it and/or
@@ -23,7 +23,7 @@
 CONFIG_CLEAN_FILES = *.loT *.rej *.orig
 AUTOMAKE_OPTIONS = no-dependencies
 EXTRA_DIST = $(man_MANS)
-INCLUDES = -I${top_srcdir} -I${top_srcdir}/lib
+AM_CPPFLAGS = -I${top_srcdir} -I${top_srcdir}/lib
 LIBS = -L${top_builddir}/lib -laudit
 bin_PROGRAMS = ausyscall
 man_MANS = ausyscall.8

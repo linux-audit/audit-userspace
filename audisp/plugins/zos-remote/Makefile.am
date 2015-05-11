@@ -1,5 +1,6 @@
 # Makefile.am--
-# Copyright (C) 2007,2008,2011 International Business Machines  Corp.
+# Copyright (C) 2007,2008 International Business Machines  Corp.
+# Copyright (C) 2011, 2015 Red Hat., Durham, North Carolina.
 # All Rights Reserved.
 #
 # This program is free software; you can redistribute it and/or modify

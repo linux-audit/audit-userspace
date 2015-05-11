@@ -1,5 +1,5 @@
 # Makefile.am -- 
-# Copyright 2006-08,2014 Red Hat Inc., Durham, North Carolina.
+# Copyright 2006-08,2014-15 Red Hat Inc., Durham, North Carolina.
 # All Rights Reserved.
 #
 # This library is free software; you can redistribute it and/or
@@ -26,7 +26,7 @@ check_PROGRAMS = auparse_test
 dist_check_SCRIPTS = auparse_test.py
 EXTRA_DIST = auparse_test.ref auparse_test.ref.py test.log test2.log
 
-INCLUDES = -I${top_srcdir}/auparse -I${top_srcdir}/lib
+AM_CPPFLAGS = -I${top_srcdir}/auparse -I${top_srcdir}/lib
 
 auparse_test_SOURCES = auparse_test.c
 auparse_test_LDFLAGS = -static

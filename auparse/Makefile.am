@@ -1,5 +1,5 @@
 # Makefile.am -- 
-# Copyright 2006-08,2011-14 Red Hat Inc., Durham, North Carolina.
+# Copyright 2006-08,2011-15 Red Hat Inc., Durham, North Carolina.
 # All Rights Reserved.
 #
 # This library is free software; you can redistribute it and/or
@@ -24,7 +24,7 @@ SUBDIRS = test
 CLEANFILES = $(BUILT_SOURCES)
 CONFIG_CLEAN_FILES = *.loT *.rej *.orig
 AM_CFLAGS = -fPIC -DPIC -D_GNU_SOURCE -g ${DEBUG}
-INCLUDES = -I. -I${top_srcdir} -I${top_srcdir}/src -I${top_srcdir}/lib
+AM_CPPFLAGS = -I. -I${top_srcdir} -I${top_srcdir}/src -I${top_srcdir}/lib
 LIBS =
 lib_LTLIBRARIES = libauparse.la
 include_HEADERS = auparse.h auparse-defs.h

@@ -1,4 +1,4 @@
-# Copyright 2008,2014 Red Hat Inc., Durham, North Carolina.
+# Copyright 2008,2014,2015 Red Hat Inc., Durham, North Carolina.
 # All Rights Reserved.
 #
 # This library is free software; you can redistribute it and/or
@@ -19,7 +19,7 @@
 #   Steve Grubb <sgrubb@redhat.com>
 #
 
-INCLUDES = -I${top_srcdir} -I${top_srcdir}/lib -I${top_srcdir}/src
+AM_CPPFLAGS = -I${top_srcdir} -I${top_srcdir}/lib -I${top_srcdir}/src
 check_PROGRAMS = ilist_test slist_test
 TESTS = $(check_PROGRAMS)
 ilist_test_LDADD = ${top_builddir}/src/ausearch-int.o
