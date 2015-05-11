@@ -75,6 +75,17 @@ Requires: %{name}-libs = %{version}-%{release}
 The audit-libs-python package contains the bindings so that libaudit
 and libauparse can be used by python.
 
+%package libs-python3
+Summary: Python3 bindings for libaudit
+License: LGPLv2+
+Group: Development/Libraries
+BuildRequires: python3-devel swig
+Requires: %{name} = %{version}-%{release}
+
+%description libs-python3
+The audit-libs-python3 package contains the bindings so that libaudit
+and libauparse can be used by python3.
+
 %package -n audispd-plugins
 Summary: Plugins for the audit event dispatcher
 License: GPLv2+
@@ -94,7 +105,7 @@ behavior.
 %setup -q
 
 %build
-%configure --sbindir=/sbin --libdir=/%{_lib} --with-python=yes --with-golang --with-libwrap --enable-gssapi-krb5=yes --with-libcap-ng=yes \
+%configure --sbindir=/sbin --libdir=/%{_lib} --with-python=yes --with-python3=yes --with-golang --with-libwrap --enable-gssapi-krb5=yes --with-libcap-ng=yes \
 %if %{WITH_SYSTEMD}
 	--enable-systemd
 %endif
@@ -210,6 +221,11 @@ fi
 %attr(755,root,root) %{python_sitearch}/_audit.so
 %attr(755,root,root) %{python_sitearch}/auparse.so
 %{python_sitearch}/audit.py*
+
+%files libs-python3
+%defattr(-,root,root,-)
+%attr(755,root,root) /%{_libdir}/python3.?/site-packages/*
+%{python3_sitearch}/audit.py*
 
 %files
 %defattr(-,root,root,-)

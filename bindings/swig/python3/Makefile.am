@@ -1,5 +1,5 @@
 # Makefile.am -- 
-# Copyright 2005,2007 Red Hat Inc., Durham, North Carolina.
+# Copyright 2015 Red Hat Inc., Durham, North Carolina.
 # All Rights Reserved.
 #
 # This library is free software; you can redistribute it and/or
@@ -19,20 +19,23 @@
 # Authors:
 #   Steve Grubb <sgrubb@redhat.com>
 #
-EXTRA_DIST = auditswig.i
 CONFIG_CLEAN_FILES = *.loT *.rej *.orig
-AM_CFLAGS = -fPIC -DPIC -fno-strict-aliasing
-INCLUDES = -I. -I$(top_builddir) -I${top_srcdir}/lib -I@PYINCLUDEDIR@
+AM_CFLAGS = -fPIC -DPIC -fno-strict-aliasing $(PYTHON3_CFLAGS)
+AM_CPPFLAGS = -I. -I$(top_builddir) -I${top_srcdir}/lib $(PYTHON3_INCLUDES)
 LIBS = $(top_builddir)/lib/libaudit.la
-pyexec_PYTHON = audit.py
-pyexec_LTLIBRARIES = _audit.la
-pyexec_SOLIBRARIES = _audit.so
+SWIG_FLAGS = -python -py3 -modern
+SWIG_INCLUDES = -I. -I$(top_builddir) -I${top_srcdir}/lib $(PYTHON3_INCLUDES)
+py3exec_PYTHON = audit.py
+py3exec_LTLIBRARIES = _audit.la
+py3exec_SOLIBRARIES = _audit.so
+_audit_la_CFLAGS = -shared
 _audit_la_LDFLAGS = -module -avoid-version -Wl,-z,relro
 _audit_la_HEADERS: $(top_builddir)/config.h 
 _audit_la_DEPENDENCIES =${top_srcdir}/lib/libaudit.h ${top_builddir}/lib/libaudit.la
+_audit_la_LIBADD = ${top_builddir}/lib/libaudit.la
 nodist__audit_la_SOURCES  = audit_wrap.c
-audit.py audit_wrap.c: ${srcdir}/auditswig.i 
-	swig -o audit_wrap.c -python ${INCLUDES} ${srcdir}/auditswig.i 
+audit.py audit_wrap.c: ${srcdir}/../src/auditswig.i 
+	swig -o audit_wrap.c ${SWIG_FLAGS} ${SWIG_INCLUDES} ${srcdir}/../src/auditswig.i 
 
 CLEANFILES = audit.py* audit_wrap.c *~
 

@@ -1,5 +1,5 @@
 # Makefile.am -- 
-# Copyright 2004-08 Red Hat Inc., Durham, North Carolina.
+# Copyright 2004-08,2015 Red Hat Inc., Durham, North Carolina.
 # All Rights Reserved.
 #
 # This program is free software; you can redistribute it and/or modify
@@ -23,9 +23,6 @@
 
 SUBDIRS = lib auparse src/mt src/libev src audisp tools bindings init.d \
 	docs
-if HAVE_PYTHON
-SUBDIRS += swig
-endif
 EXTRA_DIST = ChangeLog AUTHORS NEWS README INSTALL audit.spec \
         COPYING COPYING.LIB \
 	contrib/capp.rules contrib/nispom.rules contrib/lspp.rules \

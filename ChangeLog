@@ -1,4 +1,5 @@
 2.4.3
+- Add python3 support for libaudit
 
 2.4.2
 - Ausearch should parse exe field in SECCOMP events

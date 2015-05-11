@@ -1,5 +1,5 @@
 # Makefile.am --
-# Copyright 2007,2014,2015 Red Hat Inc., Durham, North Carolina.
+# Copyright 2015 Red Hat Inc., Durham, North Carolina.
 # All Rights Reserved.
 #
 # This library is free software; you can redistribute it and/or
@@ -20,6 +20,7 @@
 #   Steve Grubb <sgrubb@redhat.com>
 #
 
+EXTRA_DIST = auditswig.i
+SWIG_SOUIRCES = auditswig.i
 CONFIG_CLEAN_FILES = *.loT *.rej *.orig
 
-SUBDIRS = @pybind_dir@ @gobind_dir@ swig
