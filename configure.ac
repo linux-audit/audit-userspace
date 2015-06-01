@@ -118,11 +118,17 @@ use_python3=auto)
 if test x$use_python3 = xno ; then
 	AC_MSG_RESULT(no)
 else
-	if test ${python_found} = no ; then
-		AC_MSG_RESULT(no)
-		use_python3=no
+	AC_MSG_RESULT(investigating)
+	AC_PATH_PROG([use_python3], [python3-config], [no])
+	if test ${use_python3} = no ; then
+		if test ${withval} = yes ; then
+			echo "Python3 bindings were selected but python3-config was not found."
+			echo "Please ensure that it's installed or pass --without-python3 to ./configure"
+			exit 1
+		fi
+		echo "Python3 bindings will NOT be built"
 	else
-	AC_MSG_RESULT(yes)
+	echo "Python3 bindings WILL be built"
 	use_python3=yes
 	AC_PATH_PROG([PYTHON3], [python3], [no])
 	if test "$PYTHON3" == "no" ; then
