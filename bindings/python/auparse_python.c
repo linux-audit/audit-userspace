@@ -820,6 +820,45 @@ AuParser_search_add_timestamp_item(AuParser *self, PyObject *args)
 }
 
 /********************************
+ * ausearch_add_timestamp_item_ex
+ ********************************/
+PyDoc_STRVAR(search_add_timestamp_item_ex_doc,
+"search_add_timestamp_item_ex(op, sec, milli, serial, how) Build up search rule\n\
+search_add_timestamp_item_ex adds an event time condition to the current audit\n\
+search expression. Its similar to search_add_timestamp_item except it adds\n\
+the event serial number.\n\
+");
+
+static PyObject *
+AuParser_search_add_timestamp_item_ex(AuParser *self, PyObject *args)
+{
+    const char *op;
+    PY_LONG_LONG sec;
+    int milli;
+    int serial;
+    int how;
+    int result;
+
+    /* There's no completely portable way to handle time_t values from Python;
+       note that time_t might even be a floating-point type!  PY_LONG_LONG
+       is at least enough not to worry about year 2038.
+
+       milli is int because Python's 'I' format does no overflow checking.
+       Negative milli values will wrap to values > 1000 and
+       ausearch_add_timestamp_item will reject them. */
+    if (!PyArg_ParseTuple(args, "sLiiii", &op, &sec, &milli, &serial, &how))
+	    return NULL;
+    PARSER_CHECK;
+
+    result = ausearch_add_timestamp_item_ex(self->au, op, sec, (unsigned)milli,
+					 (unsigned)serial, how);
+    if (result == 0)
+	    Py_RETURN_NONE;
+    PyErr_SetFromErrno(PyExc_EnvironmentError);
+    return NULL;
+}
+
+/********************************
  * ausearch_add_regex
  ********************************/
 PyDoc_STRVAR(search_add_regex_doc,
@@ -1114,6 +1153,27 @@ AuParser_get_type(AuParser *self)
         return NULL;
     }
     return Py_BuildValue("i", value);
+}
+
+/********************************
+ * auparse_get_type_name
+ ********************************/
+PyDoc_STRVAR(get_type_name_doc,
+"get_type_name() Get current record’s type name.\n\
+\n\
+get_type_name() allows access to the current record type name in the\n\
+current event.\n\
+\n\
+Returns None if the record type name is unavailable.\n\
+");
+static PyObject *
+AuParser_get_type_name(AuParser *self)
+{
+    const char *name = NULL;
+
+    PARSER_CHECK;
+    name = auparse_get_type_name(self->au);
+    return Py_BuildValue("s", name);
 }
 
 /********************************
