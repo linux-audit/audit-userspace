@@ -54,7 +54,8 @@ struct nv_list
 	int option;
 };
 
-static char *get_line(FILE *f, char *buf);
+static char *get_line(FILE *f, char *buf, unsigned size, int *lineno,
+		const char *file);
 static int nv_split(char *buf, struct nv_pair *nv);
 static const struct kw_pair *kw_lookup(const char *val);
 static int active_parser(struct nv_pair *nv, int line, 
@@ -138,7 +139,7 @@ int load_pconfig(plugin_conf_t *config, char *file)
 	int fd, rc, mode, lineno = 1;
 	struct stat st;
 	FILE *f;
-	char buf[128];
+	char buf[160];
 
 	clear_pconfig(config);
 
@@ -194,7 +195,7 @@ int load_pconfig(plugin_conf_t *config, char *file)
 		return 1;
 	}
 
-	while (get_line(f, buf)) {
+	while (get_line(f, buf, sizeof(buf), &lineno, file)) {
 		// convert line into name-value pair
 		const struct kw_pair *kw;
 		struct nv_pair nv;
@@ -264,14 +265,31 @@ int load_pconfig(plugin_conf_t *config, char *file)
 	return 0;
 }
 
-static char *get_line(FILE *f, char *buf)
+static char *get_line(FILE *f, char *buf, unsigned size, int *lineno,
+	 const char *file)
 {
-	if (fgets_unlocked(buf, 128, f)) {
+	int too_long = 0;
+
+	if (fgets_unlocked(buf, size, f)) {
 		/* remove newline */
 		char *ptr = strchr(buf, 0x0a);
-		if (ptr)
-			*ptr = 0;
-		return buf;
+		if (ptr) {
+			if (!too_long) {
+				*ptr = 0;
+				return buf;
+			}
+			// Reset and start with the next line
+			too_long = 0;
+			*lineno = *lineno + 1;
+		} else {
+			// If a line is too long skip it.
+			// Only output 1 warning
+			if (!too_long)
+				audit_msg(LOG_ERR,
+					"Skipping line %d in %s: too long",
+					*lineno, file);
+			too_long = 1;
+		}
 	}
 	return NULL;
 }
