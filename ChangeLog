@@ -3,6 +3,7 @@
 - Cleanup automake warnings
 - Add AuParser_search_add_timestamp_item_ex to python bindings
 - Add AuParser_get_type_name to python bindings
+- Correct processing of obj_gid in auditctl (Aleksander Zdyb)
 
 2.4.2
 - Ausearch should parse exe field in SECCOMP events

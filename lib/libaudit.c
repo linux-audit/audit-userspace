@@ -1302,7 +1302,6 @@ int audit_rule_fieldpair_data(struct audit_rule_data **rulep, const char *pair,
 		case AUDIT_FSUID:
 		case AUDIT_LOGINUID:
 		case AUDIT_OBJ_UID:
-		case AUDIT_OBJ_GID:
 			// Do positive & negative separate for 32 bit systems
 			vlen = strlen(v);
 			if (isdigit((char)*(v))) 
@@ -1328,6 +1327,7 @@ int audit_rule_fieldpair_data(struct audit_rule_data **rulep, const char *pair,
 		case AUDIT_EGID:
 		case AUDIT_SGID:
 		case AUDIT_FSGID:
+		case AUDIT_OBJ_GID:
 			if (isdigit((char)*(v))) 
 				rule->values[rule->field_count] = 
 					strtol(v, NULL, 0);
