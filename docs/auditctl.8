@@ -55,7 +55,7 @@ List all rules 1 per line. Two more options may be given to this command. You ca
 Send a user space message into the audit system. This can only be done if you have CAP_AUDIT_WRITE capability (normally the root user has this). The resulting event will be the USER type.
 .TP
 .B \-s
-Report the kernel's audit subsystem status. It will tell you the in-kernel values that can be set by \fB-e\fP, \fB-f\fP, \fB-r\fP, and \fB-b\fP options. The pid value is the process number of the audit daemon. Note that a pid of 0 indicates that the audit daemon is not running. The lost entry will tell you how many event records that have been discarded due to the kernel audit queue overflowing. The backlog field tells how many event records are currently queued waiting for auditd to read them.
+Report the kernel's audit subsystem status. It will tell you the in-kernel values that can be set by \fB-e\fP, \fB-f\fP, \fB-r\fP, and \fB-b\fP options. The pid value is the process number of the audit daemon. Note that a pid of 0 indicates that the audit daemon is not running. The lost entry will tell you how many event records that have been discarded due to the kernel audit queue overflowing. The backlog field tells how many event records are currently queued waiting for auditd to read them. This option can be followed by the \fB-i\fP to get a couple fields interpreted.
 .TP
 .BI \-v
 Print the version of auditctl.

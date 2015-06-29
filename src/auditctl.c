@@ -551,6 +551,21 @@ static int setopt(int count, int lineno, char *vars[])
 		retval = -2;
 		break;
         case 's':
+		if (count > 3) {
+			audit_msg(LOG_ERR,
+				"Too many options for status command");
+			retval = -1;
+		} else if (optind == 2 && count == 3) { 
+			if (strcmp(vars[optind], "-i") == 0) {
+				interpret = 1;
+				count -= 1;
+			} else {
+				audit_msg(LOG_ERR,
+					"Only -i option is allowed");
+				retval = -1;
+				break;
+			}
+		}
 		retval = report_status(fd);
 		break;
         case 'e':

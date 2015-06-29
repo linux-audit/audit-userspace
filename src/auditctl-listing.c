@@ -462,6 +462,36 @@ void audit_print_init(void)
 	list_create(&l);
 }
 
+const char *get_enable(unsigned e)
+{
+	switch (e)
+	{
+		case 0:
+			return "disable";
+		case 1:
+			return "enabled";
+		case 2:
+			return "enabl;ed+immutable";
+		default:
+			return "unknown";
+	}
+}
+
+const char *get_failure(unsigned f)
+{
+	switch (f)
+	{
+		case 0:
+			return "silent";
+		case 1:
+			return "printk";
+		case 2:
+			return "panic";
+		default:
+			return "unknown";
+	}
+}
+
 /*
  * This function interprets the reply and prints it to stdout. It returns
  * 0 if no more should be read and 1 to indicate that more messages of this
@@ -497,9 +527,15 @@ int audit_print_reply(struct audit_reply *rep, int fd)
 			printed = 1;
 			break;
 		case AUDIT_GET:
-			printf("enabled %u\nfailure %u\npid %u\nrate_limit %u\n"
-			"backlog_limit %u\nlost %u\nbacklog %u\n",
-			rep->status->enabled, rep->status->failure,
+			if (interpret)
+				printf("enabled %s\nfailure %s\n",
+					get_enable(rep->status->enabled),
+					get_failure(rep->status->failure));
+			else
+				printf("enabled %u\nfailure %u\n",
+				rep->status->enabled, rep->status->failure);
+			printf("pid %u\nrate_limit %u\nbacklog_limit %u\n"
+				"lost %u\nbacklog %u\n",
 			rep->status->pid, rep->status->rate_limit,
 			rep->status->backlog_limit, rep->status->lost,
 			rep->status->backlog);
