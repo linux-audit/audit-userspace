@@ -497,8 +497,8 @@ int audit_print_reply(struct audit_reply *rep, int fd)
 			printed = 1;
 			break;
 		case AUDIT_GET:
-			printf("enabled %d\nflag %d\npid %d\nrate_limit %d\n"
-			"backlog_limit %d\nlost %d\nbacklog %u\n",
+			printf("enabled %u\nfailure %u\npid %u\nrate_limit %u\n"
+			"backlog_limit %u\nlost %u\nbacklog %u\n",
 			rep->status->enabled, rep->status->failure,
 			rep->status->pid, rep->status->rate_limit,
 			rep->status->backlog_limit, rep->status->lost,

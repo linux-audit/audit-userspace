@@ -5,6 +5,7 @@
 - Add AuParser_get_type_name to python bindings
 - Correct processing of obj_gid in auditctl (Aleksander Zdyb)
 - Make plugin config file parsing more robust for long lines (#1235457)
+- Make auditctl status print lost field as unsigned number
 
 2.4.2
 - Ausearch should parse exe field in SECCOMP events
