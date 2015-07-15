@@ -9,6 +9,7 @@
 - Add interpretation mode for auditctl -s
 - Add python3 support to auparse library
 - Make --enable-zos-remote a build time configuration option (Clayton Shotwell)
+- Updates for cross compiling (Clayton Shotwell)
 
 2.4.2
 - Ausearch should parse exe field in SECCOMP events
