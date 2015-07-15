@@ -22,7 +22,7 @@
 
 CONFIG_CLEAN_FILES = *.loT *.rej *.orig
 AM_CFLAGS = -fPIC -DPIC -fno-strict-aliasing $(PYTHON3_CFLAGS)
-AM_CPPFLAGS = -I. -I$(top_builddir) $(PYTHON3_INCLUDES)
+AM_CPPFLAGS = -I$(top_builddir) $(PYTHON3_INCLUDES)
 
 py3exec_LTLIBRARIES = auparse.la
 
