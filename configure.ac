@@ -199,6 +199,16 @@ fi
 AM_CONDITIONAL(ENABLE_LISTENER, test "x$enable_listener" != "xno")
 AC_MSG_RESULT($enable_listener)
 
+#audisp zos-remote plugin
+AC_MSG_CHECKING(whether to include audisp ZOS remote plugin)
+AC_ARG_ENABLE(zos-remote,
+	      [AS_HELP_STRING([--disable-zos-remote],
+			      [Disable audisp ZOS remote plugin])],
+	      enable_zos_remote=$enableval,
+	      enable_zos_remote=yes)
+AM_CONDITIONAL(ENABLE_ZOS_REMOTE, test "x$enable_zos_remote" != "xno")
+AC_MSG_RESULT($enable_zos_remote)
+
 #gssapi
 AC_ARG_ENABLE(gssapi_krb5,
 	[AS_HELP_STRING([--enable-gssapi-krb5],[Enable GSSAPI Kerberos 5 support @<:@default=no@:>@])],

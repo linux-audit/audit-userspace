@@ -105,7 +105,7 @@ behavior.
 %setup -q
 
 %build
-%configure --sbindir=/sbin --libdir=/%{_lib} --with-python=yes --with-python3=yes --with-golang --with-libwrap --enable-gssapi-krb5=yes --with-libcap-ng=yes \
+%configure --sbindir=/sbin --libdir=/%{_lib} --with-python=yes --with-python3=yes --with-golang --with-libwrap --enable-gssapi-krb5=yes --enable-zos-remote --with-libcap-ng=yes \
 %if %{WITH_SYSTEMD}
 	--enable-systemd
 %endif
