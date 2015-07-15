@@ -17,6 +17,35 @@ auparse_timestamp_compare: because AuEvent calls this via the cmp operator
 
 */
 
+#if PY_MAJOR_VERSION > 2
+#define IS_PY3K
+#define MODINITERROR return NULL
+#define PYNUM_FROMLONG PyLong_FromLong
+#define PYSTR_CHECK PyUnicode_Check
+#define PYSTR_FROMSTRING PyUnicode_FromString
+#define PYSTR_ASSTRING PyUnicode_AsUTF8
+#define PYFILE_ASFILE(f) fdopen(PyObject_AsFileDescriptor(f), "r")
+int PyFile_Check(PyObject *f) {
+    PyObject *io, *base;
+    if (!(io = PyImport_ImportModule("io"))) {
+        return 0;
+    } else {
+        if (!(base = PyObject_GetAttrString(io, "TextIOBase"))) {
+            return 0;
+        } else {
+            return PyObject_IsInstance(f, base);
+        }
+    }
+}
+#else
+#define MODINITERROR return
+#define PYNUM_FROMLONG PyInt_FromLong
+#define PYSTR_CHECK PyString_Check
+#define PYSTR_FROMSTRING PyString_FromString
+#define PYSTR_ASSTRING PyString_AsString
+#define PYFILE_ASFILE(f) PyFile_AsFile(f)
+#endif
+
 static int debug = 0;
 static PyObject *NoParserError = NULL;
 
@@ -40,7 +69,7 @@ AuEvent_dealloc(AuEvent* self)
     Py_XDECREF(self->milli);
     Py_XDECREF(self->serial);
     Py_XDECREF(self->host);
-    self->ob_type->tp_free((PyObject*)self);
+    Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
 static int
@@ -56,7 +85,7 @@ static PyObject *
 AuEvent_get_sec(AuEvent *self, void *closure)
 {
     if (self->sec == NULL) {
-        if ((self->sec = PyInt_FromLong(self->event.sec)) == NULL) return NULL;
+        if ((self->sec = PYNUM_FROMLONG(self->event.sec)) == NULL) return NULL;
     }
     Py_INCREF(self->sec);
     return self->sec;
@@ -66,7 +95,7 @@ static PyObject *
 AuEvent_get_milli(AuEvent *self, void *closure)
 {
     if (self->milli == NULL) {
-        if ((self->milli = PyInt_FromLong(self->event.milli)) == NULL) return NULL;
+        if ((self->milli = PYNUM_FROMLONG(self->event.milli)) == NULL) return NULL;
     }
     Py_INCREF(self->milli);
     return self->milli;
@@ -76,7 +105,7 @@ static PyObject *
 AuEvent_get_serial(AuEvent *self, void *closure)
 {
     if (self->serial == NULL) {
-        if ((self->serial = PyInt_FromLong(self->event.serial)) == NULL) return NULL;
+        if ((self->serial = PYNUM_FROMLONG(self->event.serial)) == NULL) return NULL;
     }
     Py_INCREF(self->serial);
     return self->serial;
@@ -89,7 +118,7 @@ AuEvent_get_host(AuEvent *self, void *closure)
         Py_RETURN_NONE;
     } else {
 	if (self->host == NULL) {
-	    if ((self->host = PyString_FromString(self->event.host)) == NULL) return NULL;
+	    if ((self->host = PYSTR_FROMSTRING(self->event.host)) == NULL) return NULL;
 	}
         Py_INCREF(self->host);
         return self->host;
@@ -134,7 +163,7 @@ static PyObject *
 AuEvent_str(PyObject * obj)
 {
     AuEvent *event = (AuEvent *) obj;
-    return PyString_FromString(fmt_event(event->event.sec, event->event.milli, event->event.serial, event->event.host));
+    return PYSTR_FROMSTRING(fmt_event(event->event.sec, event->event.milli, event->event.serial, event->event.host));
 }
 
 
@@ -149,8 +178,7 @@ instantiated from python code, rather it is returned from the\n\
 audit parsing API.");
 
 static PyTypeObject AuEventType = {
-    PyObject_HEAD_INIT(NULL)
-    0,                         /*ob_size*/
+    PyVarObject_HEAD_INIT(NULL, 0)
     "auparse.AuEvent",         /*tp_name*/
     sizeof(AuEvent),           /*tp_basicsize*/
     0,                         /*tp_itemsize*/
@@ -255,7 +283,7 @@ AuParser_dealloc(AuParser* self)
     if (self->au != NULL) {
         auparse_destroy(self->au);
     }
-    self->ob_type->tp_free((PyObject*)self);
+    Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
 static PyObject *
@@ -301,11 +329,11 @@ AuParser_init(AuParser *self, PyObject *args, PyObject *kwds)
     case AUSOURCE_FILE: {
         char *filename = NULL;
 
-        if (!PyString_Check(source)) {
+        if (!PYSTR_CHECK(source)) {
             PyErr_SetString(PyExc_ValueError, "source must be a string when source_type is AUSOURCE_FILE");
             return -1;
         }
-        if ((filename = PyString_AsString(source)) == NULL) return -1;
+        if ((filename = PYSTR_ASSTRING(source)) == NULL) return -1;
         if ((self->au = auparse_init(source_type, filename)) == NULL) {
             PyErr_SetFromErrnoWithFilename(PyExc_IOError, filename);
             return -1;
@@ -324,7 +352,7 @@ AuParser_init(AuParser *self, PyObject *args, PyObject *kwds)
             }
             for (i = 0; i < n; i++) {
                 item = PySequence_GetItem(source, i);
-                if ((files[i] = PyString_AsString(item)) == NULL) {
+                if ((files[i] = PYSTR_ASSTRING(item)) == NULL) {
                     PyErr_SetString(PyExc_ValueError, "members of source sequence must be a string when source_type is AUSOURCE_FILE_ARRAY");
                     Py_DECREF(item);
                     PyMem_Del(files);
@@ -348,7 +376,7 @@ AuParser_init(AuParser *self, PyObject *args, PyObject *kwds)
     } break;
     case AUSOURCE_BUFFER: {
         char *buf;
-        if ((buf = PyString_AsString(source)) == NULL) return -1;
+        if ((buf = PYSTR_ASSTRING(source)) == NULL) return -1;
         if ((self->au = auparse_init(source_type, buf)) == NULL) {
             PyErr_SetFromErrno(PyExc_EnvironmentError);
             return -1;
@@ -367,7 +395,7 @@ AuParser_init(AuParser *self, PyObject *args, PyObject *kwds)
             }
             for (i = 0; i < n; i++) {
                 item = PySequence_GetItem(source, i);
-                if ((buffers[i] = PyString_AsString(item)) == NULL) {
+                if ((buffers[i] = PYSTR_ASSTRING(item)) == NULL) {
                     PyErr_SetString(PyExc_ValueError, "members of source sequence must be a string when source_type is AUSOURCE_BUFFER_ARRAY");
                     Py_DECREF(item);
                     PyMem_Del(buffers);
@@ -404,12 +432,13 @@ AuParser_init(AuParser *self, PyObject *args, PyObject *kwds)
             PyErr_SetString(PyExc_ValueError, "source must be a file object when source_type is AUSOURCE_FILE_POINTER");
             return -1;
         }
-	if ((fp = PyFile_AsFile(source)) == NULL) {
+	if ((fp = PYFILE_ASFILE(source)) == NULL) {
             PyErr_SetString(PyExc_TypeError, "source must be open file when source_type is AUSOURCE_FILE_POINTER");
             return -1;
 	}
         if ((self->au = auparse_init(source_type, fp)) == NULL) {
-            char *filename = PyString_AsString(PyFile_Name(source));
+            //char *filename = PYSTR_ASSTRING(PyFile_Name(source));
+            char *filename = "TODO";
             PyErr_SetFromErrnoWithFilename(PyExc_IOError, filename);
             return -1;
         }
@@ -1539,8 +1568,7 @@ AUSOURCE_FEED:         None (data supplied via feed()\n\
 ");
 
 static PyTypeObject AuParserType = {
-    PyObject_HEAD_INIT(NULL)
-    0,                         /*ob_size*/
+    PyVarObject_HEAD_INIT(NULL, 0)
     "auparse.AuParser",         /*tp_name*/
     sizeof(AuParser),           /*tp_basicsize*/
     0,                         /*tp_itemsize*/
@@ -1598,18 +1626,39 @@ static PyMethodDef module_methods[] = {
     {NULL}  /* Sentinel */
 };
 
+#ifdef IS_PY3K
+static struct PyModuleDef auparse_def = {
+    PyModuleDef_HEAD_INIT,
+    "auparse",
+    NULL,
+    -1,
+    module_methods,
+    NULL,
+    NULL,
+    NULL,
+    NULL
+};
+
+PyMODINIT_FUNC
+PyInit_auparse(void)
+#else
 PyMODINIT_FUNC
 initauparse(void) 
+#endif
 {
     PyObject* m;
 
     if (PyType_Ready(&AuEventType) < 0) return;
     if (PyType_Ready(&AuParserType) < 0) return;
 
+#ifdef IS_PY3K
+    m = PyModule_Create(&auparse_def);
+#else
     m = Py_InitModule3("auparse", module_methods, auparse_doc);
+#endif
 
     if (m == NULL)
-      return;
+      MODINITERROR;
 
     Py_INCREF(&AuParserType);
     PyModule_AddObject(m, "AuParser", (PyObject *)&AuParserType);
@@ -1671,4 +1720,8 @@ initauparse(void)
     PyModule_AddIntConstant(m, "AUPARSE_TYPE_A2",      AUPARSE_TYPE_A2);
     PyModule_AddIntConstant(m, "AUPARSE_TYPE_SIGNAL",  AUPARSE_TYPE_SIGNAL);
     PyModule_AddIntConstant(m, "AUPARSE_TYPE_LIST",    AUPARSE_TYPE_LIST);
+
+#ifdef IS_PY3K
+    return m;
+#endif
 }
