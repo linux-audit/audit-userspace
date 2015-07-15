@@ -66,6 +66,7 @@ AC_CHECK_DECLS([MS_DIRSYNC], [], [], [[#include <sys/mount.h>]])
 AC_CHECK_DECLS([AUDIT_FEATURE_VERSION], [], [], [[#include <linux/audit.h>]])
 AC_CHECK_DECLS([AUDIT_VERSION_BACKLOG_WAIT_TIME], [], [], [[#include <linux/audit.h>]])
 AC_CHECK_DECLS([ADDR_NO_RANDOMIZE],,, [#include <sys/personality.h>])
+AC_CHECK_FUNCS([posix_fallocate])
 
 ALLWARNS=""
 ALLDEBUG="-g"

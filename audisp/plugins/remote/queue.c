@@ -215,9 +215,11 @@ static int q_open_file(struct queue *q, const char *path)
 			return -1;
 		if (q_sync(q) != 0)
 			return -1;
+#ifdef HAVE_POSIX_FALLOCATE
 		if (posix_fallocate(q->fd, 0,
 				    (q->num_entries + 1) * q->entry_size) != 0)
 			return -1;
+#endif
 	} else {
 		uint32_t file_entries;
 		if (full_pread(q->fd, &fh, sizeof(fh), 0) != 0)
