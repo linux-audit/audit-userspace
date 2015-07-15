@@ -53,6 +53,10 @@
 #include "auparse-defs.h"
 #include "gen_tables.h"
 
+#if !HAVE_DECL_ADDR_NO_RANDOMIZE
+# define ADDR_NO_RANDOMIZE       0x0040000
+#endif
+
 /* This is from asm/ipc.h. Copying it for now as some platforms
  * have broken headers. */
 #define SEMOP            1
