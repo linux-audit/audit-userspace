@@ -1,5 +1,5 @@
 /* libaudit.h -- 
- * Copyright 2004-2014 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2004-2015 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -93,6 +93,7 @@ extern "C" {
 #define AUDIT_SERVICE_STOP	1131	/* Service (daemon) stop */
 #define AUDIT_GRP_MGMT		1132	/* Group account attr was modified */
 #define AUDIT_GRP_CHAUTHTOK	1133	/* Group acct password or pin changed */
+#define AUDIT_MAC_CHECK		1134    /* User space MAC decision results */
 
 #define AUDIT_FIRST_DAEMON	1200
 #define AUDIT_LAST_DAEMON	1299

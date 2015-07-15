@@ -1,5 +1,5 @@
 /* msg_typetab.h --
- * Copyright 2005-07,2009-14 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2005-07,2009-15 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -71,6 +71,7 @@ _S(AUDIT_USER_CMD,                   "USER_CMD"                      )
 _S(AUDIT_USER_TTY,                   "USER_TTY"                      )
 _S(AUDIT_CHUSER_ID,                  "CHUSER_ID"                     )
 _S(AUDIT_GRP_AUTH,                   "GRP_AUTH"                      )
+_S(AUDIT_MAC_CHECK,                  "MAC_CHECK"                     )
 _S(AUDIT_SYSTEM_BOOT,                "SYSTEM_BOOT"                   )
 _S(AUDIT_SYSTEM_SHUTDOWN,            "SYSTEM_SHUTDOWN"               )
 _S(AUDIT_SYSTEM_RUNLEVEL,            "SYSTEM_RUNLEVEL"               )
