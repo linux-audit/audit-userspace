@@ -401,7 +401,7 @@ struct audit_reply {
 	struct audit_status     *status;
 	struct audit_rule_data  *ruledata;
 	struct audit_login      *login;
-	const char              *message;
+	char                    *message;
 	struct nlmsgerr         *error;
 	struct audit_sig_info   *signal_info;
 	struct daemon_conf      *conf;
