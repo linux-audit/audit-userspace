@@ -322,26 +322,6 @@ else
 fi
 AM_CONDITIONAL(HAVE_PRELUDE, test x$have_prelude = xyes)
 
-
-AC_MSG_CHECKING(whether to make zos plugin)
-AC_ARG_WITH(zos,
-AS_HELP_STRING([--with-zos],[enable zos plugin support]),
-use_zos=$withval,
-use_zos=no)
-AC_MSG_RESULT($use_zos)
-if test x$use_zos = xno ; then
-	have_zos=no;
-else
-      AC_CHECK_LIB(ldap, ldap_init,
-                 have_zos=yes, have_zos=no)
-      if test x$have_zos = xno ; then
-        AC_MSG_ERROR([Zos support explicitly requested and ldap library not found])
-      else
-        AC_MSG_RESULT(yes)
-      fi
-fi
-AM_CONDITIONAL(HAVE_ZOS, test x$have_zos = xyes)
-
 AC_MSG_CHECKING(whether to use libwrap)
 AC_ARG_WITH(libwrap,
 [  --with-libwrap[=PATH]   Compile in libwrap (tcp_wrappers) support.],
