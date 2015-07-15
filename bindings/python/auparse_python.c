@@ -1650,8 +1650,8 @@ initauparse(void)
 {
     PyObject* m;
 
-    if (PyType_Ready(&AuEventType) < 0) return;
-    if (PyType_Ready(&AuParserType) < 0) return;
+    if (PyType_Ready(&AuEventType) < 0) MODINITERROR;
+    if (PyType_Ready(&AuParserType) < 0) MODINITERROR;
 
 #ifdef IS_PY3K
     m = PyModule_Create(&auparse_def);
