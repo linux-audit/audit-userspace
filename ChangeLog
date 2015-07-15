@@ -8,6 +8,7 @@
 - Make auditctl status print lost field as unsigned number
 - Add interpretation mode for auditctl -s
 - Make --with-zos a build time configuration option
+- Add python3 support to auparse library
 
 2.4.2
 - Ausearch should parse exe field in SECCOMP events
