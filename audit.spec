@@ -296,6 +296,6 @@ fi
 
 
 %changelog
-* Tue Apr 28 2015 Steve Grubb <sgrubb@redhat.com> 2.4.3-1
+* Thu Jul 16 2015 Steve Grubb <sgrubb@redhat.com> 2.4.3-1
 - New upstream release
 
