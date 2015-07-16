@@ -9,9 +9,10 @@ to this project.
 * Sergey Tikhonov for the Alpha Processor support patch
 * Darrel Goeddel of TCS for new audit rule format patch
 * Lisa Smith of HP for the audit failure query function
-* Dan Walsh for Python bindings
-* John Dennis for rewriting the python bindings and auparse updates
-* Miloslav Trmac for numerous patches including store forward remote logging
-* DJ Delorie for the remote logging code
-* Marcelo Cerri fpr the auvirt program
-* Peter Moody for the interfield comparator code
+* Dan Walsh of Red Hat for Python bindings
+* John Dennis of Red Hat for rewriting the python bindings and auparse updates
+* Miloslav Trmac of Red Hat for numerous patches including store forward remote logging
+* DJ Delorie of Red Hat for the remote logging code
+* Marcelo Cerri of IBM for the auvirt program
+* Peter Moody of Google for the interfield comparator code
+* Burn Alting for the augenrules code
