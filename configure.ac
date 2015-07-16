@@ -51,6 +51,7 @@ echo Checking for programs
 AC_PROG_CC
 AC_PROG_INSTALL
 AC_PROG_AWK
+AX_PROG_CC_FOR_BUILD
 
 echo .
 echo Checking for header files
