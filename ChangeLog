@@ -11,6 +11,7 @@
 - Make --enable-zos-remote a build time configuration option (Clayton Shotwell)
 - Updates for cross compiling (Clayton Shotwell)
 - Add MAC_CHECK audit event type
+- Add libauparse pkgconfig file (Aleksander Zdyb)
 
 2.4.2
 - Ausearch should parse exe field in SECCOMP events

@@ -209,6 +209,7 @@ fi
 %{_includedir}/auparse.h
 %{_includedir}/auparse-defs.h
 %{_libdir}/pkgconfig/audit.pc
+%{_libdir}/pkgconfig/auparse.pc
 %{_mandir}/man3/*
 
 %files libs-static
@@ -224,8 +225,7 @@ fi
 
 %files libs-python3
 %defattr(-,root,root,-)
-%attr(755,root,root) /%{_libdir}/python3.?/site-packages/*
-%{python3_sitearch}/audit.py*
+%attr(755,root,root) %{python3_sitearch}/*
 
 %files
 %defattr(-,root,root,-)

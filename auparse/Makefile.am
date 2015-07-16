@@ -26,6 +26,11 @@ CONFIG_CLEAN_FILES = *.loT *.rej *.orig
 AM_CFLAGS = -fPIC -DPIC -D_GNU_SOURCE -g ${DEBUG}
 AM_CPPFLAGS = -I. -I${top_srcdir} -I${top_srcdir}/src -I${top_srcdir}/lib
 LIBS =
+
+pkgconfigdir = $(libdir)/pkgconfig
+pkgconfig_DATA = auparse.pc
+DISTCLEANFILES = $(pkgconfig_DATA)
+
 lib_LTLIBRARIES = libauparse.la
 include_HEADERS = auparse.h auparse-defs.h
 libauparse_la_SOURCES = nvpair.c interpret.c nvlist.c ellist.c		\
