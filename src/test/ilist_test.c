@@ -33,6 +33,7 @@ int main(void)
 	} while ((node = ilist_next(&e)));
 
 	ilist_clear(&e);
+	puts("starting sort test");
 
 	// Now test to see if the sort function works
 	// Fill the list exactly backwards
@@ -62,7 +63,7 @@ int main(void)
 	
 	ilist_clear(&e);
 
-	printf("ilist test passed\n");
+	printf("ilist tests passed\n");
 	return 0;
 }
 

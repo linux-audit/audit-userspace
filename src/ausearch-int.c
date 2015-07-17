@@ -130,7 +130,7 @@ static void swap_nodes(int_node *lprev, int_node *left, int_node *right)
 	left->next = t;
 }
 
-// This will sort the list from biggest to smallest
+// This will sort the list from most hits to least
 void ilist_sort_by_hits(ilist *l)
 {
 	register int_node* cur, *prev;
