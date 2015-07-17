@@ -260,7 +260,7 @@ static int convert_str_to_msg(const char *optarg)
 static int parse_msg(const char *optarg)
 {
 	int retval = 0;
-	char *saved = NULL;
+	char *saved;
 
 	if (strchr(optarg, ',')) {
 		char *ptr, *tmp = strdup(optarg);

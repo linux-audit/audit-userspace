@@ -381,7 +381,7 @@ static char *get_line(FILE *f, char *buf)
 static int nv_split(char *buf, struct nv_pair *nv)
 {
 	/* Get the name part */
-	char *ptr, *saved = NULL;
+	char *ptr, *saved;
 
 	nv->name = NULL;
 	nv->value = NULL;

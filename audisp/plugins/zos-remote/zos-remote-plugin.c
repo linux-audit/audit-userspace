@@ -47,6 +47,8 @@
 #include "zos-remote-config.h"
 #include "zos-remote-queue.h"
 
+#define UNUSED(x) (void)(x)
+
 /*
  * Global vars 
  */
@@ -63,6 +65,7 @@ pid_t mypid = 0;
  */
 static void term_handler(int sig)
 {
+	UNUSED(sig);
         log_info("Got Termination signal - shutting down plugin");
         stop = 1;
         nudge_queue();
@@ -73,6 +76,7 @@ static void term_handler(int sig)
  */
 static void hup_handler(int sig)
 {
+	UNUSED(sig);
         log_info("Got Hangup signal - flushing plugin configuration");
         hup = 1;
         nudge_queue();
@@ -83,6 +87,7 @@ static void hup_handler(int sig)
  */
 static void alarm_handler(int sig)
 {
+	UNUSED(sig);
         log_err("Timeout waiting for submission thread - Aborting (some events may have been dropped)");
         pthread_cancel(submission_thread);
 }
@@ -96,6 +101,7 @@ static void *submission_thread_main(void *arg)
 {
         int rc;
 
+	UNUSED(arg);
         log_debug("Starting event submission thread");
         
         rc = zos_remote_init(&zos_remote_inst, conf.server, 
@@ -154,6 +160,7 @@ push_event(auparse_state_t * au, auparse_cb_event_t cb_event_type,
         char logString[ZOS_REMOTE_LOGSTRING_SIZE];
         unsigned long linkValue_tmp;
 
+	UNUSED(user_data);
         if (cb_event_type != AUPARSE_CB_EVENT_READY)
                 return;
                 
@@ -219,7 +226,7 @@ push_event(auparse_state_t * au, auparse_cb_event_t cb_event_type,
          * 'originating' audit record
          */
         sprintf(logString, "Linux (%s): type: %s", node, orig_type);
-	free(node);
+	free((void *)node);
 
         /* 
          * Start writing to BER element.

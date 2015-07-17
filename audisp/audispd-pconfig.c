@@ -1,5 +1,5 @@
 /* audispd-pconfig.c -- 
- * Copyright 2007,2010 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2007,2010,2015 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -270,7 +270,7 @@ static char *get_line(FILE *f, char *buf, unsigned size, int *lineno,
 {
 	int too_long = 0;
 
-	if (fgets_unlocked(buf, size, f)) {
+	while (fgets_unlocked(buf, size, f)) {
 		/* remove newline */
 		char *ptr = strchr(buf, 0x0a);
 		if (ptr) {
@@ -297,7 +297,7 @@ static char *get_line(FILE *f, char *buf, unsigned size, int *lineno,
 static int nv_split(char *buf, struct nv_pair *nv)
 {
 	/* Get the name part */
-	char *ptr, *saved = NULL;
+	char *ptr, *saved;
 
 	nv->name = NULL;
 	nv->value = NULL;

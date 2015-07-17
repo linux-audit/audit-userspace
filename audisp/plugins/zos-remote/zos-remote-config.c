@@ -64,7 +64,7 @@ static int timeout_parser(struct nv_pair *, int, plugin_conf_t *);
 static int user_parser(struct nv_pair *, int, plugin_conf_t *);
 static int password_parser(struct nv_pair *, int, plugin_conf_t *);
 static int q_depth_parser(struct nv_pair *, int, plugin_conf_t *);
-static int sanity_check(plugin_conf_t *, const char *);
+static int sanity_check(plugin_conf_t *);
 
 static const struct kw_pair keywords[] = {
         {"server", server_parser, 0},
@@ -76,7 +76,7 @@ static const struct kw_pair keywords[] = {
         {NULL, NULL, 0}
 };
 
-
+#define UNUSED(x) (void)(x)
 
 /*
  * Set everything to its default value
@@ -210,7 +210,7 @@ int plugin_load_config(plugin_conf_t * c, const char *file)
         fclose(f);
         c->name = strdup(basename(file));
         if (lineno > 1)
-                return sanity_check(c, file);
+                return sanity_check(c);
         return 0;
 }
 
@@ -230,7 +230,7 @@ static char *get_line(FILE * f, char *buf)
 static int nv_split(char *buf, struct nv_pair *nv)
 {
         /* Get the name part */
-        char *ptr, *saved = NULL;
+        char *ptr, *saved;
 
         nv->name = NULL;
         nv->value = NULL;
@@ -285,7 +285,7 @@ static const struct kw_pair *kw_lookup(const char *val)
 
 static int server_parser(struct nv_pair *nv, int line, plugin_conf_t * c)
 {
-
+	UNUSED(line);
         if (nv->value == NULL)
                 c->server = NULL;
         else
@@ -349,7 +349,7 @@ static int timeout_parser(struct nv_pair *nv, int line, plugin_conf_t * c)
 
 static int user_parser(struct nv_pair *nv, int line, plugin_conf_t * c)
 {
-
+	UNUSED(line);
         if (nv->value == NULL)
                 c->user = NULL;
         else
@@ -360,7 +360,7 @@ static int user_parser(struct nv_pair *nv, int line, plugin_conf_t * c)
 
 static int password_parser(struct nv_pair *nv, int line, plugin_conf_t * c)
 {
-
+	UNUSED(line);
         if (nv->value == NULL)
                 c->password = NULL;
         else
@@ -405,7 +405,7 @@ static int q_depth_parser(struct nv_pair *nv, int line, plugin_conf_t * c)
  * Check configuration.At this point, all fields have been read. 
  * Returns 0 if no problems and 1 if problems detected.
  */
-static int sanity_check(plugin_conf_t * c, const char *file)
+static int sanity_check(plugin_conf_t * c)
 {
         /* Error checking */
         if (!c->server) {

@@ -358,7 +358,7 @@ static void print_rule(const struct audit_rule_data *r)
 
 				boffset += r->values[i];
 			} else if (field == AUDIT_FILTERKEY) {
-				char *rkey, *ptr, *saved=NULL;
+				char *rkey, *ptr, *saved;
 				if (asprintf(&rkey, "%.*s", r->values[i],
 					      &r->buf[boffset]) < 0)
 					rkey = NULL;

@@ -1,5 +1,5 @@
 /* audispd-config.c -- 
- * Copyright 2007-08,2010,2014 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2007-08,2010,2014-15 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -282,7 +282,7 @@ static char *get_line(FILE *f, char *buf, unsigned size, int *lineno,
 static int nv_split(char *buf, struct nv_pair *nv)
 {
 	/* Get the name part */
-	char *ptr, *saved = NULL;
+	char *ptr, *saved;
 
 	nv->name = NULL;
 	nv->value = NULL;

@@ -166,7 +166,7 @@ static int parse_up_record(rnode* r)
 				if (*n.val == '"')
 					nvlist_append(&r->nv, &n);
 				else {
-					char *key, *ptr, *saved2 = NULL;
+					char *key, *ptr, *saved2;
 
 					key = (char *)au_unescape(n.val);
 					if (key == NULL) {

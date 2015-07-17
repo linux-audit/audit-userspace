@@ -1,5 +1,5 @@
 /* remote-config.c -- 
- * Copyright 2008, 2009, 2011 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2008,2009,2011,2015 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -369,7 +369,7 @@ static char *get_line(FILE *f, char *buf)
 static int nv_split(char *buf, struct nv_pair *nv)
 {
 	/* Get the name part */
-	char *ptr, *saved = NULL;
+	char *ptr, *saved;
 
 	nv->name = NULL;
 	nv->value = NULL;

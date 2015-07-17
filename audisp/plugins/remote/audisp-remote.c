@@ -442,6 +442,7 @@ int main(int argc, char *argv[])
 	if (load_config(&config, CONFIG_FILE))
 		return 6;
 
+	(void) umask( umask( 077 ) | 027 );
 	// ifd = open("test.log", O_RDONLY);
 	ifd = 0;
 	fcntl(ifd, F_SETFL, O_NONBLOCK);
@@ -1019,6 +1020,7 @@ static int init_sock(void)
 			       "Cannot bind local socket to port %d",
 					config.local_port);
 			stop_sock();
+			freeaddrinfo(ai);
 			return ET_TEMPORARY;
 		}
 

@@ -518,7 +518,7 @@ static int parse_syscall(lnode *n, search_items *s)
 				*term = '"';
 			} else { 
 				if (s->key) {
-					char *saved=NULL;
+					char *saved;
 					char *keyptr = unescape(str);
 					char *kptr = strtok_r(keyptr,
 							key_sep, &saved);
@@ -2104,7 +2104,7 @@ static int parse_simple_message(const lnode *n, search_items *s)
 					return 6;
 			} else {
 				if (s->key) {
-					char *saved=NULL;
+					char *saved;
 					char *keyptr = unescape(ptr);
 					char *kptr = strtok_r(keyptr,
 						key_sep, &saved);
