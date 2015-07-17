@@ -20,10 +20,13 @@ int print_list(void)
 
 int main(void)
 {
-	snode n;
-	int rc;
+	snode n, *node;
+	int rc, i = 0;
 
 	slist_create(&s);
+
+	// This first test checks to see if list is
+	// created in a numeric order
 	slist_add_if_uniq(&s, "test1");
 	slist_add_if_uniq(&s, "test2");
 	slist_first(&s);
@@ -61,6 +64,35 @@ int main(void)
 		puts("test count is wrong");
 		return 1;
 	}
+	puts("starting sort test");
+
+	// Now test to see if the sort function works
+	// Fill the list exactly backwards
+	slist_add_if_uniq(&s, "test3");
+	slist_add_if_uniq(&s, "test3");
+	slist_add_if_uniq(&s, "test4");
+	slist_add_if_uniq(&s, "test3");
+	slist_add_if_uniq(&s, "test4");
+	slist_add_if_uniq(&s, "test2");
+	slist_add_if_uniq(&s, "test4");
+	slist_add_if_uniq(&s, "test2");
+	slist_add_if_uniq(&s, "test4");
+	slist_add_if_uniq(&s, "test1");
+
+	slist_sort_by_hits(&s);
+	slist_first(&s);
+	do {
+		node = slist_get_cur(&s);
+		if (node->hits != (4-i)) {
+			printf("Sort test failed - i:%d != hits:%d\n", i, node->hits);
+			return 1;
+		}
+		i++;
+	} while ((node = slist_next(&s)));
+	puts("sort test passes");
+
+	slist_clear(&s);
+	
 	return 0;
 }
 
