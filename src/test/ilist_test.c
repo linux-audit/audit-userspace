@@ -9,6 +9,8 @@ int main(void)
 
 	ilist_create(&e);
 
+	// This first test checks to see if list is 
+	// created in a numeric order
 	ilist_add_if_uniq(&e, 6, 0);
 	ilist_add_if_uniq(&e, 5, 0);
 	ilist_add_if_uniq(&e, 7, 0);
@@ -29,8 +31,37 @@ int main(void)
 		}
 		i++;
 	} while ((node = ilist_next(&e)));
+
+	ilist_clear(&e);
+
+	// Now test to see if the sort function works
+	// Fill the list exactly backwards
+	ilist_add_if_uniq(&e, 3, 0);
+	ilist_add_if_uniq(&e, 3, 0);
+	ilist_add_if_uniq(&e, 4, 0);
+	ilist_add_if_uniq(&e, 3, 0);
+	ilist_add_if_uniq(&e, 4, 0);
+	ilist_add_if_uniq(&e, 2, 0);
+	ilist_add_if_uniq(&e, 4, 0);
+	ilist_add_if_uniq(&e, 2, 0);
+	ilist_add_if_uniq(&e, 4, 0); 
+	ilist_add_if_uniq(&e, 1, 0);
+
+	ilist_sort_by_hits(&e);
+
+	i = 0;
+	ilist_first(&e);
+	do {
+		node = ilist_get_cur(&e);
+		if (node->hits != (4-i)) {
+			printf("Sort test failed - i:%d != ihits:%d\n", i, node->hits);
+			return 1;
+		}
+		i++;
+	} while ((node = ilist_next(&e)));
 	
 	ilist_clear(&e);
+
 	printf("ilist test passed\n");
 	return 0;
 }

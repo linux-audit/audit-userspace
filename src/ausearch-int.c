@@ -120,45 +120,43 @@ int ilist_add_if_uniq(ilist *l, int num, int aux)
 	return 1;
 }
 
+// If lprev would be NULL, use l->head
+static void swap_nodes(int_node *lprev, int_node *left, int_node *right)
+{
+	int_node *t = right->next;
+	if (lprev)
+		lprev->next = right;
+	right->next = left;
+	left->next = t;
+}
+
+// This will sort the list from biggest to smallest
 void ilist_sort_by_hits(ilist *l)
 {
-	register int_node* cur, *prev = NULL;
+	register int_node* cur, *prev;
 
 	if (l->cnt <= 1)
 		return;
 
-	cur = l->head;
-
-	/* Make sure l->cur points to end */
-	if (l->cur->next != NULL) {
-		prev = l->cur->next;
-		while (prev->next)
-			prev = prev->next;
-		l->cur = prev;
-	}
-
+	prev = cur = l->head;
 	while (cur && cur->next) {
 		/* If the next node is bigger */
 		if (cur->hits < cur->next->hits) {
-			// detach node
-			if (l->head == cur)
+			if (cur == l->head) {
+				// Update the actual list head
 				l->head = cur->next;
-			if (prev)
-				prev->next = cur->next;
-			else
-				prev = cur->next;
-
-			// append
-			ilist_append(l, cur->num, cur->hits, cur->aux1);
-			free(cur);
+				prev = NULL;
+			}
+			swap_nodes(prev, cur, cur->next);
 
 			// start over
-			cur = l->head;
-			prev = NULL;
+			prev = cur = l->head;
 			continue;
 		}
 		prev = cur;
 		cur = cur->next;
 	}
+	// End with cur pointing at first record
+	l->cur = l->head;
 }
 
