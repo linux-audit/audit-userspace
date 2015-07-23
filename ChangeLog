@@ -1,5 +1,6 @@
 2.4.4
 - Fix linked list correctness in ausearch/report
+- Add more cross compile fixups (Clayton Shotwell)
 
 2.4.3
 - Add python3 support for libaudit
