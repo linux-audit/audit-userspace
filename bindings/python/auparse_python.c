@@ -1688,6 +1688,12 @@ initauparse(void)
     PyModule_AddIntConstant(m, "AUSEARCH_EXISTS",        AUSEARCH_EXISTS);
     PyModule_AddIntConstant(m, "AUSEARCH_EQUAL",         AUSEARCH_EQUAL);
     PyModule_AddIntConstant(m, "AUSEARCH_NOT_EQUAL",     AUSEARCH_NOT_EQUAL);
+    PyModule_AddIntConstant(m, "AUSEARCH_TIME_LT",       AUSEARCH_TIME_LT);
+    PyModule_AddIntConstant(m, "AUSEARCH_TIME_LE",       AUSEARCH_TIME_LE);
+    PyModule_AddIntConstant(m, "AUSEARCH_TIME_GE",       AUSEARCH_TIME_GE);
+    PyModule_AddIntConstant(m, "AUSEARCH_TIME_GT",       AUSEARCH_TIME_GT);
+    PyModule_AddIntConstant(m, "AUSEARCH_TIME_EQ",       AUSEARCH_TIME_EQ);
+    PyModule_AddIntConstant(m, "AUSEARCH_INTERPRETED",   0x40000000);
 
     /* austop_t */
     PyModule_AddIntConstant(m, "AUSEARCH_STOP_EVENT",    AUSEARCH_STOP_EVENT);
@@ -1722,6 +1728,20 @@ initauparse(void)
     PyModule_AddIntConstant(m, "AUPARSE_TYPE_A2",      AUPARSE_TYPE_A2);
     PyModule_AddIntConstant(m, "AUPARSE_TYPE_SIGNAL",  AUPARSE_TYPE_SIGNAL);
     PyModule_AddIntConstant(m, "AUPARSE_TYPE_LIST",    AUPARSE_TYPE_LIST);
+    PyModule_AddIntConstant(m, "AUPARSE_TYPE_TTY_DATA", AUPARSE_TYPE_TTY_DATA);
+    PyModule_AddIntConstant(m, "AUPARSE_TYPE_SESSION", AUPARSE_TYPE_SESSION);
+    PyModule_AddIntConstant(m, "AUPARSE_TYPE_CAP_BITMAP", AUPARSE_TYPE_CAP_BITMAP);
+    PyModule_AddIntConstant(m, "AUPARSE_TYPE_NFPROTO", AUPARSE_TYPE_NFPROTO);
+    PyModule_AddIntConstant(m, "AUPARSE_TYPE_ICMPTYPE", AUPARSE_TYPE_ICMPTYPE);
+    PyModule_AddIntConstant(m, "AUPARSE_TYPE_PROTOCOL", AUPARSE_TYPE_PROTOCOL);
+    PyModule_AddIntConstant(m, "AUPARSE_TYPE_ADDR", AUPARSE_TYPE_ADDR);
+    PyModule_AddIntConstant(m, "AUPARSE_TYPE_PERSONALITY", AUPARSE_TYPE_PERSONALITY);
+    PyModule_AddIntConstant(m, "AUPARSE_TYPE_SECCOMP", AUPARSE_TYPE_SECCOMP);
+    PyModule_AddIntConstant(m, "AUPARSE_TYPE_OFLAG", AUPARSE_TYPE_OFLAG);
+    PyModule_AddIntConstant(m, "AUPARSE_TYPE_MMAP", AUPARSE_TYPE_MMAP);
+    PyModule_AddIntConstant(m, "AUPARSE_TYPE_MODE_SHORT", AUPARSE_TYPE_MODE_SHORT);
+    PyModule_AddIntConstant(m, "AUPARSE_TYPE_MAC_LABEL", AUPARSE_TYPE_MAC_LABEL);
+    PyModule_AddIntConstant(m, "AUPARSE_TYPE_PROCTITLE", AUPARSE_TYPE_PROCTITLE);
 
 #ifdef IS_PY3K
     return m;

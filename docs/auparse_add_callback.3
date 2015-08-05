@@ -10,7 +10,7 @@ auparse_add_callback(auparse_state_t *au, auparse_callback_ptr callback,
                      void *user_data, user_destroy user_destroy_func);
 .fi
 .SH "DESCRIPTION"
-auparse_add_callback adds a callback function to the parse state which is invoked to notify the application of parsing events.
+auparse_add_callback adds a callback function to the parse state which is invoked to notify the application of parsing events. This is part of the event feed API.
 
 The signature of the callback is:
 
