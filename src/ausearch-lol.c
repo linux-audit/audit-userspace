@@ -225,8 +225,11 @@ int lol_add_record(lol *lo, char *buff)
 		return 0;
 
 	ptr = strrchr(buff, 0x0a);
-	if (ptr)
+	if (ptr) {
 		*ptr = 0;
+		n.mlen = ptr - buff;
+	} else
+		n.mlen = MAX_AUDIT_MESSAGE_LENGTH;
 	n.message=strdup(buff);
 	n.type = e.type;
 

@@ -74,6 +74,7 @@ typedef struct
  *  record goes here. */
 typedef struct _lnode{
   char *message;		// The whole unparsed message
+  unsigned mlen;                // Length of the message
   int type;             	// message type (KERNEL, USER, LOGIN, etc)
   unsigned long long a0;	// argv 0
   unsigned long long a1;	// argv 1

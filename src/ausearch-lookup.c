@@ -1,6 +1,6 @@
 /*
 * ausearch-lookup.c - Lookup values to something more readable
-* Copyright (c) 2005-06,2011-12 Red Hat Inc., Durham, North Carolina.
+* Copyright (c) 2005-06,2011-12,2015 Red Hat Inc., Durham, North Carolina.
 * All Rights Reserved. 
 *
 * This software may be freely redistributed and/or modified under the
@@ -354,6 +354,49 @@ char *unescape(const char *buf)
 	}
 	*strptr = 0;
 	return str;
+}
+
+int need_sanitize(const unsigned char *s, unsigned int len)
+{
+	unsigned int i = 0;
+	while (i < len) {
+		if (s[i] < 32)
+			return 1;
+		i++;
+	}
+	return 0;
+}
+
+void sanitize(const char *s, unsigned int len)
+{
+	unsigned int i = 0;
+	while (i < len) {
+		if ((unsigned char)s[i] < 32) {
+			putchar('\\');
+			putchar('0' + ((s[i] & 0300) >> 6));
+			putchar('0' + ((s[i] & 0070) >> 3));
+			putchar('0' + (s[i] & 0007));
+		} else
+			putchar(s[i]);
+		i++;
+	}
+}
+
+void safe_print_string_n(const char *s, unsigned int len, int ret)
+{
+	if (need_sanitize(s, len)) {
+		sanitize(s, len);
+		if (ret)
+			putchar('\n');
+	} else if (ret)
+		puts(s);
+	else
+		printf("%s", s);
+}
+
+void safe_print_string(const char *s, int ret)
+{
+	safe_print_string_n(s, strlen(s), ret);
 }
 
 /* Represent c as a character within a quoted string, and append it to buf. */

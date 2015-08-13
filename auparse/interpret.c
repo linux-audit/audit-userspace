@@ -1,6 +1,6 @@
 /*
 * interpret.c - Lookup values to something more readable
-* Copyright (c) 2007-09,2011-14 Red Hat Inc., Durham, North Carolina.
+* Copyright (c) 2007-09,2011-15 Red Hat Inc., Durham, North Carolina.
 * All Rights Reserved. 
 *
 * This library is free software; you can redistribute it and/or
@@ -115,7 +115,7 @@ typedef enum { AVC_UNSET, AVC_DENIED, AVC_GRANTED } avc_t;
 typedef enum { S_UNSET=-1, S_FAILED, S_SUCCESS } success_t;
 
 static const char *print_signals(const char *val, unsigned int base);
-
+static auparse_esc_t escape_mode = AUPARSE_ESC_TTY;
 
 /*
  * This function will take a pointer to a 2 byte Ascii character buffer and
@@ -136,6 +136,139 @@ static unsigned char x2c(const unsigned char *buf)
 
         return total;
 }
+
+// Check if any characters need tty escaping. Returns how many found.
+static unsigned int need_tty_escape(const unsigned char *s, unsigned int len)
+{
+	unsigned int i = 0, cnt = 0;
+	while (i < len) {
+		if (s[i] < 32)
+			cnt++;
+		i++;
+	}
+	return cnt;
+}
+
+// TTY escaping s string into dest.
+static void tty_escape(const char *s, char *dest, unsigned int len)
+{
+	unsigned int i = 0, j = 0;
+	while (i < len) {
+		if ((unsigned char)s[i] < 32) {
+			dest[j++] = ('\\');
+			dest[j++] = ('0' + ((s[i] & 0300) >> 6));
+			dest[j++] = ('0' + ((s[i] & 0070) >> 3));
+			dest[j++] = ('0' + (s[i] & 0007));
+		} else
+			dest[j++] = s[i];
+		i++;
+	}
+}
+
+static const char sh_set[] = "\"'`$\\";
+static unsigned int need_shell_escape(const char *s, unsigned int len)
+{
+	unsigned int i = 0, cnt = 0;
+	while (i < len) {
+		if (s[i] < 32)
+			cnt++;
+		else if (strchr(sh_set, s[i]))
+			cnt++;
+		i++;
+	}
+	return cnt;
+}
+
+static void shell_escape(const char *s, char *dest, unsigned int len)
+{
+	unsigned int i = 0, j = 0;
+	while (i < len) {
+		if ((unsigned char)s[i] < 32) {
+			dest[j++] = ('\\');
+			dest[j++] = ('0' + ((s[i] & 0300) >> 6));
+			dest[j++] = ('0' + ((s[i] & 0070) >> 3));
+			dest[j++] = ('0' + (s[i] & 0007));
+		} else if (strchr(sh_set, s[i])) {
+			dest[j++] = ('\\');
+			dest[j++] = s[i];
+		} else
+			dest[j++] = s[i];
+		i++;
+	}
+}
+
+static const char quote_set[] = ";'\"`#$&*?[]<>{}\\";
+static unsigned int need_shell_quote_escape(const unsigned char *s, unsigned int len)
+{
+	unsigned int i = 0, cnt = 0;
+	while (i < len) {
+		if (s[i] < 32)
+			cnt++;
+		else if (strchr(quote_set, s[i]))
+			cnt++;
+		i++;
+	}
+	return cnt;
+}
+
+static void shell_quote_escape(const char *s, char *dest, unsigned int len)
+{
+	unsigned int i = 0, j = 0;
+	while (i < len) {
+		if ((unsigned char)s[i] < 32) {
+			dest[j++] = ('\\');
+			dest[j++] = ('0' + ((s[i] & 0300) >> 6));
+			dest[j++] = ('0' + ((s[i] & 0070) >> 3));
+			dest[j++] = ('0' + (s[i] & 0007));
+		} else if (strchr(quote_set, s[i])) {
+			dest[j++] = ('\\');
+			dest[j++] = s[i];
+		} else
+			dest[j++] = s[i];
+		i++;
+	}
+}
+
+/* This should return the count of what needs escaping */
+static unsigned int need_escaping(const char *s, unsigned int len)
+{
+	switch (escape_mode)
+	{
+		case AUPARSE_ESC_RAW:
+			break;
+		case AUPARSE_ESC_TTY:
+			return need_tty_escape(s, len);
+		case AUPARSE_ESC_SHELL:
+			return need_shell_escape(s, len);
+		case AUPARSE_ESC_SHELL_QUOTE:
+			return need_shell_quote_escape(s, len);;
+	}
+	return 0;
+}
+
+static void escape(const char *s, char *dest, unsigned int len)
+{
+	switch (escape_mode)
+	{
+		case AUPARSE_ESC_RAW:
+			return;
+		case AUPARSE_ESC_TTY:
+			return tty_escape(s, dest, len);
+		case AUPARSE_ESC_SHELL:
+			return shell_escape(s, dest, len);
+		case AUPARSE_ESC_SHELL_QUOTE:
+			return shell_quote_escape(s, dest, len);
+	}
+}
+
+int set_escape_mode(auparse_esc_t mode)
+{
+	if (mode < 0 || mode > AUPARSE_ESC_SHELL_QUOTE)
+		return 1;
+	escape_mode = mode;
+	return 0;
+}
+hidden_def(set_escape_mode)
 
 static int is_hex_string(const char *str)
 {
@@ -2501,6 +2634,17 @@ const char *auparse_do_interpretation(int type, const idata *id)
 			break;
         }
 
+	if (escape_mode != AUPARSE_ESC_RAW) {
+		unsigned int len = strlen(out);
+		unsigned int cnt = need_escaping(out, len);
+		if (cnt) {
+			char *dest = malloc(len + 1 + (3*cnt));
+			if (dest)
+				escape(out, dest, len);
+			free((void *)out);
+			out = dest;
+		}
+	}
 	return out;
 }
 hidden_def(auparse_do_interpretation)

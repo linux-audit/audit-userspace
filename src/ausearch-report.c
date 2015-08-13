@@ -80,7 +80,7 @@ static void output_raw(llist *l)
 		return;
 	}
 	do {
-		printf("%s\n", n->message);
+		puts(n->message);
 	} while ((n=list_next(l)));
 }
 
@@ -99,11 +99,11 @@ static void output_default(llist *l)
 		fprintf(stderr, "Error - no elements in record.");
 		return;
 	}
-	if (n->type >= AUDIT_DAEMON_START && n->type < AUDIT_SYSCALL) 
-		printf("%s\n", n->message);
+	if (n->type >= AUDIT_DAEMON_START && n->type < AUDIT_SYSCALL)
+		puts(n->message); // No injection possible
 	else {
 		do {
-			printf("%s\n", n->message);
+			safe_print_string_n(n->message, n->mlen, 1);
 		} while ((n=list_prev(l)));
 	}
 }
@@ -276,10 +276,11 @@ no_print:
 	}
 	// If nothing found, just print out as is
 	if (!found && ptr == NULL && str)
-		printf("%s", str);
+		safe_print_string(str, 1);
+
 	// If last field had comma, output the rest
 	else if (comma)
-		printf("%s", str);
+		safe_print_string(str, 1);
 	printf("\n");
 }
 
@@ -355,6 +356,7 @@ static void interpret(char *name, char *val, int comma, int rtype)
 		printf("%s", out);
 	else
 		printf("%s ", out);
+
 	free(out);
 }
 

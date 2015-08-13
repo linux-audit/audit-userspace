@@ -26,6 +26,7 @@
 
 #include "config.h"
 #include "dso.h"
+#include "auparse-defs.h"
 
 typedef struct _idata {
 	unsigned int machine;	// The machine type for the event
@@ -38,9 +39,11 @@ typedef struct _idata {
 
 int auparse_interp_adjust_type(int rtype, const char *name, const char *val);
 const char *auparse_do_interpretation(int type, const idata *id);
+int set_escape_mode(auparse_esc_t mode);
 
 hidden_proto(auparse_interp_adjust_type)
 hidden_proto(auparse_do_interpretation)
+hidden_proto(set_escape_mode)
 
 #endif
 
