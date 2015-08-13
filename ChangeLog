@@ -2,6 +2,7 @@
 - Fix linked list correctness in ausearch/report
 - Add more cross compile fixups (Clayton Shotwell)
 - Update auparse python bindings
+- Update libev to 4.20
 
 2.4.3
 - Add python3 support for libaudit

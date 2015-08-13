@@ -99,6 +99,9 @@ epoll_modify (EV_P_ int fd, int oev, int nev)
   if (expect_true (errno == ENOENT))
     {
       /* if ENOENT then the fd went away, so try to do the right thing */
+      if (!nev)
+        goto dec_egen;
+
       if (!epoll_ctl (backend_fd, EPOLL_CTL_ADD, fd, &ev))
         return;
     }
@@ -225,7 +228,10 @@ epoll_poll (EV_P_ ev_tstamp timeout)
       if (anfds [fd].emask & EV_EMASK_EPERM && events)
         fd_event (EV_A_ fd, events);
       else
-        epoll_eperms [i] = epoll_eperms [--epoll_epermcnt];
+        {
+          epoll_eperms [i] = epoll_eperms [--epoll_epermcnt];
+          anfds [fd].emask = 0;
+        }
     }
 }
 
