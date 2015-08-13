@@ -1,3 +1,5 @@
+2.4.5
+
 2.4.4
 - Fix linked list correctness in ausearch/report
 - Add more cross compile fixups (Clayton Shotwell)
