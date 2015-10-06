@@ -1,4 +1,5 @@
 2.4.5
+- Fix auditd disk flushing for data and sync modes
 
 2.4.4
 - Fix linked list correctness in ausearch/report

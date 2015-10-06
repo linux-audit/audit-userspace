@@ -1,5 +1,5 @@
 /* auditd-event.c -- 
- * Copyright 2004-08,2011,2013 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2004-08,2011,2013,2015 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -883,10 +883,16 @@ static int open_audit_log(struct auditd_consumer_data *data)
 {
 	int flags, lfd;
 
+	flags = O_WRONLY|O_APPEND|O_NOFOLLOW;
+	if (data->config->flush == FT_DATA)
+		flags |= O_DSYNC;
+	else if (data->config->flush == FT_SYNC)
+		flags |= O_SYNC;
+
 	// Likely errors for open: Almost anything
 	// Likely errors on rotate: ENFILE, ENOMEM, ENOSPC
 retry:
-	lfd = open(data->config->log_file, O_WRONLY|O_APPEND|O_NOFOLLOW);
+	lfd = open(data->config->log_file, flags);
 	if (lfd < 0) {
 		if (errno == ENOENT) {
 			lfd = create_log_file(data->config->log_file);
@@ -898,8 +904,7 @@ retry:
 				return 1;
 			}
 			close(lfd);
-			lfd = open(data->config->log_file, 
-				O_WRONLY|O_APPEND|O_NOFOLLOW);
+			lfd = open(data->config->log_file, flags);
 			log_size = 0;
 		} else if (errno == ENFILE) {
 			// All system descriptors used, try again...
@@ -924,42 +929,10 @@ retry:
 	}
 
 	if (fcntl(lfd, F_SETFD, FD_CLOEXEC) == -1) {
-		close(lfd);
 		audit_msg(LOG_ERR, "Error setting log file CLOEXEC flag (%s)",
 			strerror(errno));
+		close(lfd);
 		return 1;
-	}
-	if (data->config->flush == FT_DATA) {
-		flags = fcntl(lfd, F_GETFL);
-		if (flags < 0) {
-			audit_msg(LOG_ERR, "Couldn't get log file flags (%s)",
-				strerror(errno));
-			close(lfd);
-			return 1;
-		}
-		if (fcntl(lfd, F_SETFL, flags|O_DSYNC) < 0) {
-			audit_msg(LOG_ERR,
-				"Couldn't set data sync mode on log file (%s)",
-				strerror(errno));
-			close(lfd);
-			return 1;
-		}
-	}
-	else if (data->config->flush == FT_SYNC){
-		flags = fcntl(lfd, F_GETFL);
-		if (flags < 0) {
-			audit_msg(LOG_ERR, "Couldn't get log file flags (%s)",
-				strerror(errno));
-			close(lfd);
-			return 1;
-		}
-		if (fcntl(lfd, F_SETFL, flags|O_SYNC) < 0) {
-			audit_msg(LOG_ERR,
-				"Couldn't set sync mode on log file (%s)",
-				strerror(errno));
-			close(lfd);
-			return 1;
-		}
 	}
 	if (fchmod(lfd, data->config->log_group ? S_IRUSR|S_IWUSR|S_IRGRP :
 							S_IRUSR|S_IWUSR) < 0) {
