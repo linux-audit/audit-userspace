@@ -971,7 +971,7 @@ skip:
 		ptr = str + 5;
 		term = ptr + 1;
 		if (*ptr == '"') {
-			while (*term != '"')
+			while (*term != '"' && *term)
 				term++;
 			saved = *term;
 			*term = 0;
@@ -983,7 +983,7 @@ skip:
 			char *end = ptr;
 			int legacy = 0;
 
-			while (*end != ' ') {
+			while (*end != ' ' && *end) {
 				if (!isxdigit(*end))
 					legacy = 1;
 				end++;
