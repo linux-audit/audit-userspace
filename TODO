@@ -1,29 +1,31 @@
 Things that need to be done:
 ===========================
+2.4.5
+* interpret contexts
+* auditctl should ignore invalid arches for rules
+* Add libaudit.m4 to make audit easier to include
+
 2.5
 * Add audit by process name support
-* Add support for enriched data
+* Add support for enriched data: uid/gid, hostname, contexts
 
 2.5.1
 * Fix auparse to handle out of order messages
 * Add metadata in auparse for subj,obj,action,results
 * Performance improvements for auparse
-* auditctl should ignore invalid arches for rules
 * If auparse input is a pipe timeout events by wall clock
-
-2.6
-* Add cross-compile support
-* Add gzip format for logs
-* Add keywords for time: month-ago
 * Add rule verify to detect mismatch between in-kernel and on-disk rules
 * Fix SIGHUP for auditd network settings
+
+2.6
+* Add gzip format for logs
+* Add keywords for time: month-ago
 * Fix auvirt to report AVC's and --proof for --all-events
 
 2.6.1
 * Fix ausearch/report to handle aggregated events
 * When searching, build log time list & only read the ones that are in range
 * Change ausearch-string to be AVL based
-* Add libaudit.m4 to make audit easier to include
 * Look at adding the direction read/write to file report (threat modelling)
 * Changes in uid/gid, failed changes in credentials in aureport
 * aureport get specific reports working
@@ -34,7 +36,6 @@ Things that need to be done:
 * Look at pulling audispd into auditd
 * Consider adding node/machine name to records going to rt interface in daemon    as protocol version 2.
 * Fix retry logic in distribute event, buffer is freed by the logger thread
-* interpret contexts
 * Allow -F path!=/var/my/app
 * Add ignore action for rules
 * Look at openat and why passed dir is not given
