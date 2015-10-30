@@ -128,8 +128,12 @@ static void usage(void)
      "    -v                  Version\n"
      "    -w <path>           Insert watch at <path>\n"
      "    -W <path>           Remove watch at <path>\n"
+#if HAVE_DECL_AUDIT_FEATURE_VERSION
      "    --loginuid-immutable   Make loginuids unchangeable once set\n"
+#endif
+#if HAVE_DECL_AUDIT_VERSION_BACKLOG_WAIT_TIME
      "    --backlog_wait_time    Set the kernel backlog_wait_time\n"
+#endif
      );
 }
 
@@ -511,8 +515,12 @@ int parse_syscall(struct audit_rule_data *rule_new, const char *optarg)
 
 struct option long_opts[] =
 {
+#if HAVE_DECL_AUDIT_FEATURE_VERSION
   {"loginuid-immutable", 0, NULL, 1},
+#endif
+#if HAVE_DECL_AUDIT_VERSION_BACKLOG_WAIT_TIME
   {"backlog_wait_time", 1, NULL, 2},
+#endif
   {NULL, 0, NULL, 0}
 };
 
