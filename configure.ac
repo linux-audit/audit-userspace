@@ -88,7 +88,7 @@ AC_ARG_WITH(python,
 AS_HELP_STRING([--with-python],[enable building python bindings]),
 use_python=$withval,
 use_python=auto)
-if test x$use_python = xno ; then
+if test "x$use_python" = xno ; then
 	python_found="no"
 	AC_MSG_RESULT(no)
 else
@@ -103,7 +103,7 @@ if test -f ${PYINCLUDEDIR}/Python.h ; then
 	AC_MSG_NOTICE(Python bindings will be built)
 else
 	python_found="no"
-	if test x$use_python = xyes ; then
+	if test "x$use_python" = xyes ; then
 		AC_MSG_ERROR([Python explicitly requested and python headers were not found])
 	else
 		AC_MSG_WARN("Python headers not found - python bindings will not be made")
@@ -112,18 +112,19 @@ fi
 fi
 AM_CONDITIONAL(HAVE_PYTHON, test ${python_found} = "yes")
 
+withval=""
 AC_MSG_CHECKING(whether to create python3 bindings)
 AC_ARG_WITH(python3,
 AS_HELP_STRING([--with-python3],[enable building python3 bindings]),
 use_python3=$withval,
 use_python3=auto)
-if test x$use_python3 = xno ; then
+if test "x$use_python3" = xno ; then
 	AC_MSG_RESULT(no)
 else
 	AC_MSG_RESULT(investigating)
 	AC_PATH_PROG([use_python3], [python3-config], [no])
-	if test ${use_python3} = no ; then
-		if test ${withval} = yes ; then
+	if test "x$use_python3" = xno ; then
+		if test "x$withval" = xyes ; then
 			echo "Python3 bindings were selected but python3-config was not found."
 			echo "Please ensure that it's installed or pass --without-python3 to ./configure"
 			exit 1
@@ -133,7 +134,7 @@ else
 	echo "Python3 bindings WILL be built"
 	use_python3=yes
 	AC_PATH_PROG([PYTHON3], [python3], [no])
-	if test "$PYTHON3" == "no" ; then
+	if test "x$PYTHON3" = "xno" ; then
 		echo "The python3 program was not found in the search path. Please ensure"
 		echo "that it is installed and its directory is included in the search path or"
 		echo "pass --without-python3 to ./configure."
@@ -157,12 +158,13 @@ else
 fi
 AM_CONDITIONAL(USE_PYTHON3, test ${use_python3} = "yes")
 
+withval=""
 AC_MSG_CHECKING(whether to create Go language bindings)
 AC_ARG_WITH(golang,
 AS_HELP_STRING([--with-golang],[enable building golang bindings]),
 use_golang=$withval,
 use_golang=auto)
-if test x$use_golang = xno ; then
+if test "x$use_golang" = xno ; then
     golang_found="no"
     AC_MSG_RESULT(no)
 else
@@ -178,7 +180,7 @@ else
         gobind_dir="golang"
         AC_SUBST([gobind_dir])
     ], [
-	if test x$use_golang = xyes ; then
+	if test "x$use_golang" = xyes ; then
 		AC_MSG_ERROR([Go language explicitly requested and program not found])
 	else
 		AC_MSG_WARN("Go not found - go bindings will not be made")
@@ -245,6 +247,7 @@ AC_ARG_ENABLE(systemd,
 )
 AM_CONDITIONAL(ENABLE_SYSTEMD, test x$want_systemd = xyes)
 
+withval=""
 ALLDEBUG="-g"
 AC_ARG_WITH(debug,
 [  --with-debug            turn on debugging [[default=no]]],
@@ -260,6 +263,7 @@ fi
 ],
 [ DEBUG="-DNDEBUG"; AM_CONDITIONAL(DEBUG, false) ])
 
+withval=""
 AC_ARG_WITH(warn,
 [  --with-warn             turn on warnings [[default=yes]]],
 [
@@ -270,6 +274,7 @@ else
 fi
 ],WARNS="$ALLWARNS")
 
+withval=""
 AC_MSG_CHECKING(whether to include alpha processor support)
 AC_ARG_WITH(alpha,
 AS_HELP_STRING([--with-alpha],[enable Alpha processor support]),
@@ -281,6 +286,7 @@ fi
 AM_CONDITIONAL(USE_ALPHA, test x$use_alpha = xyes)
 AC_MSG_RESULT($use_alpha)
 
+withval=""
 AC_MSG_CHECKING(whether to include arm eabi processor support)
 AC_ARG_WITH(arm,
 AS_HELP_STRING([--with-arm],[enable Arm eabi processor support]),
@@ -292,6 +298,7 @@ fi
 AM_CONDITIONAL(USE_ARM, test x$use_arm = xyes)
 AC_MSG_RESULT($use_arm)
 
+withval=""
 AC_MSG_CHECKING(whether to include aarch64 processor support)
 AC_ARG_WITH(aarch64,
 AS_HELP_STRING([--with-aarch64],[enable Aarch64 processor support]),
@@ -303,6 +310,7 @@ fi
 AM_CONDITIONAL(USE_AARCH64, test x$use_aarch64 = xyes)
 AC_MSG_RESULT($use_aarch64)
 
+withval=""
 AC_MSG_CHECKING(whether to use apparmor)
 AC_ARG_WITH(apparmor,
 AS_HELP_STRING([--with-apparmor],[enable AppArmor events]),
@@ -313,6 +321,7 @@ if test x$use_apparmor != xno ; then
 fi
 AC_MSG_RESULT($use_apparmor)
 
+withval=""
 AC_MSG_CHECKING(whether to use prelude)
 AC_ARG_WITH(prelude,
 AS_HELP_STRING([--with-prelude],[enable prelude IDS support]),
@@ -334,6 +343,7 @@ else
 fi
 AM_CONDITIONAL(HAVE_PRELUDE, test x$have_prelude = xyes)
 
+withval=""
 AC_MSG_CHECKING(whether to use libwrap)
 AC_ARG_WITH(libwrap,
 [  --with-libwrap[=PATH]   Compile in libwrap (tcp_wrappers) support.],
