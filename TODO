@@ -3,7 +3,6 @@ Things that need to be done:
 2.4.5
 * interpret contexts
 * auditctl should ignore invalid arches for rules
-* Add libaudit.m4 to make audit easier to include
 
 2.5
 * Add audit by process name support

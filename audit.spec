@@ -208,6 +208,7 @@ fi
 %{_includedir}/libaudit.h
 %{_includedir}/auparse.h
 %{_includedir}/auparse-defs.h
+%{_datadir}/aclocal/audit.m4
 %{_libdir}/pkgconfig/audit.pc
 %{_libdir}/pkgconfig/auparse.pc
 %{_mandir}/man3/*

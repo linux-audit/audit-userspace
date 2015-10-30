@@ -22,7 +22,7 @@
 #
 
 SUBDIRS = lib auparse src/mt src/libev src audisp tools bindings init.d \
-	docs
+	m4 docs
 EXTRA_DIST = ChangeLog AUTHORS NEWS README INSTALL audit.spec \
         COPYING COPYING.LIB \
 	contrib/capp.rules contrib/nispom.rules contrib/lspp.rules \
