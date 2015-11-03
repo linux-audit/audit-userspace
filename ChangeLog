@@ -2,6 +2,7 @@
 - Fix auditd disk flushing for data and sync modes
 - Fix auditctl to not show options not supported on older OS
 - Add audit.m4 file to aid adding support to other projects
+- Fix C99 inline function build issue
 
 2.4.4
 - Fix linked list correctness in ausearch/report
