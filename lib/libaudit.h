@@ -94,6 +94,8 @@ extern "C" {
 #define AUDIT_GRP_MGMT		1132	/* Group account attr was modified */
 #define AUDIT_GRP_CHAUTHTOK	1133	/* Group acct password or pin changed */
 #define AUDIT_MAC_CHECK		1134    /* User space MAC decision results */
+#define AUDIT_ACCT_LOCK		1135    /* User's account locked by admin */
+#define AUDIT_ACCT_UNLOCK	1136    /* User's account unlocked by admin */
 
 #define AUDIT_FIRST_DAEMON	1200
 #define AUDIT_LAST_DAEMON	1299
