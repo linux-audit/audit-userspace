@@ -396,7 +396,7 @@ int audit_is_enabled(int fd)
 		   and disable the audit system get in. ECONNREFUSED is
 		   issued by the kernel when there is "no on listening". */
 		return 0;
-	} else if (rc == -EPERM && getuid() != 0) {
+	} else if (rc == -EPERM && geteuid() != 0) {
 		/* If we get this, then the kernel supports auditing
 		 * but we don't have enough privilege to write to the
 		 * socket. Therefore, we have already been authenticated

@@ -512,7 +512,7 @@ int audit_log_user_avc_message(int audit_fd, int type, const char *message,
 
 	errno = 0;
 	retval = audit_send_user_message( audit_fd, type, REAL_ERR, buf );
-	if (retval == -EPERM && getuid() != 0) {
+	if (retval == -EPERM && geteuid() != 0) {
 		syslog(LOG_ERR, "Can't send to audit system: %s %s",
 			audit_msg_type_to_name(type), buf);
 		return 0;
