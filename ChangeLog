@@ -1,4 +1,5 @@
 2.5
+- Make augenrules the default method to load audit rules
 
 2.4.5
 - Fix auditd disk flushing for data and sync modes
