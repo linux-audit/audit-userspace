@@ -1,12 +1,10 @@
 Things that need to be done:
 ===========================
-2.4.5
-* interpret contexts
-* auditctl should ignore invalid arches for rules
-
 2.5
 * Add audit by process name support
 * Add support for enriched data: uid/gid, hostname, contexts
+* interpret contexts
+* auditctl should ignore invalid arches for rules
 
 2.5.1
 * Fix auparse to handle out of order messages
