@@ -6,6 +6,7 @@
 - Add account lock and unlock event types
 - Change logging loophole check to geteuid()
 - Fix ausearch to not consider AUDIT_PROCTITLE events malformed (Burn Alting)
+- Fix ausearch to parse FEATURE_CHANGE events
 
 2.4.4
 - Fix linked list correctness in ausearch/report

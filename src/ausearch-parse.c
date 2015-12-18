@@ -41,6 +41,7 @@
 #define NAME_OFFSET 36
 static const char key_sep[2] = { AUDIT_KEY_SEPARATOR, 0 };
 
+static int parse_task_info(lnode *n, search_items *s);
 static int parse_syscall(lnode *n, search_items *s);
 static int parse_dir(const lnode *n, search_items *s);
 static int common_path_parser(search_items *s, char *path);
@@ -138,9 +139,14 @@ int extract_search_items(llist *l)
 			case AUDIT_NETFILTER_PKT:
 				ret = parse_pkt(n, s);
 				break;
+			case AUDIT_FEATURE_CHANGE:
+			case AUDIT_ANOM_LINK:
+				ret = parse_task_info(n, s);
+				break;
 			case AUDIT_SECCOMP:
-			case
-			   AUDIT_FIRST_KERN_ANOM_MSG...AUDIT_LAST_KERN_ANOM_MSG:
+			case AUDIT_ANOM_PROMISCUOUS:
+			case AUDIT_ANOM_ABEND:
+		//	   AUDIT_FIRST_KERN_ANOM_MSG...AUDIT_LAST_KERN_ANOM_MSG:
 				ret = parse_kernel_anom(n, s);
 				break;
 			case AUDIT_MAC_POLICY_LOAD...AUDIT_MAC_UNLBL_STCDEL:
@@ -184,105 +190,11 @@ int extract_search_items(llist *l)
 	return ret;
 }
 
-static int parse_syscall(lnode *n, search_items *s)
+static int parse_task_info(lnode *n, search_items *s)
 {
 	char *ptr, *str, *term;
-	extern int event_machine;
-
 	term = n->message;
-	if (report_format > RPT_DEFAULT || event_machine != -1) {
-		// get arch
-		str = strstr(term, "arch=");
-		if (str == NULL) 
-			return 1;
-		ptr = str + 5;
-		term = strchr(ptr, ' ');
-		if (term == NULL) 
-			return 2;
-		*term = 0;
-		errno = 0;
-		s->arch = (int)strtoul(ptr, NULL, 16);
-		if (errno) 
-			return 3;
-		*term = ' ';
-	} 
-	// get syscall
-	str = strstr(term, "syscall=");
-	if (str == NULL)
-		return 4;
-	ptr = str + 8;
-	term = strchr(ptr, ' ');
-	if (term == NULL)
-		return 5;
-	*term = 0;
-	errno = 0;
-	s->syscall = (int)strtoul(ptr, NULL, 10);
-	if (errno)
-		return 6;
-	*term = ' ';
-	// get success
-	if (event_success != S_UNSET) {
-		str = strstr(term, "success=");
-		if (str) { // exit_group does not set success !?!
-			ptr = str + 8;
-			term = strchr(ptr, ' ');
-			if (term == NULL)
-				return 7;
-			*term = 0;
-			if (strcmp(ptr, "yes") == 0)
-				s->success = S_SUCCESS;
-			else
-				s->success = S_FAILED;
-			*term = ' ';
-		}
-	}
-	// get exit
-	if (event_exit_is_set) {
-		str = strstr(term, "exit=");
-		if (str == NULL)
-			return 8;
-		ptr = str + 5;
-		term = strchr(ptr, ' ');
-		if (term == NULL)
-			return 9;
-		*term = 0;
-		errno = 0;
-		s->exit = strtoll(ptr, NULL, 0);
-		if (errno)
-			return 10;
-		s->exit_is_set = 1;
-		*term = ' ';
-	}
-	// get a0
-	str = strstr(term, "a0=");
-	if (str == NULL)
-		return 11;
-	ptr = str + 3;
-	term = strchr(ptr, ' ');
-	if (term == NULL)
-		return 12;
-	*term = 0;
-	errno = 0;
-	// 64 bit dump on 32 bit machine looks bad here - need long long
-	n->a0 = strtoull(ptr, NULL, 16); // Hex
-	if (errno)
-		return 13;
-	*term = ' ';
-	// get a1
-	str = strstr(term, "a1=");
-	if (str == NULL)
-		return 11;
-	ptr = str + 3;
-	term = strchr(ptr, ' ');
-	if (term == NULL)
-		return 12;
-	*term = 0;
-	errno = 0;
-	// 64 bit dump on 32 bit machine looks bad here - need long long
-	n->a1 = strtoull(ptr, NULL, 16); // Hex
-	if (errno)
-		return 13;
-	*term = ' ';
+
 	// ppid
 	if (event_ppid != -1) {
 		str = strstr(term, "ppid=");
@@ -432,6 +344,7 @@ static int parse_syscall(lnode *n, search_items *s)
 			*term = ' ';
 		}
 	}
+
 	if (event_comm) {
 		// dont do this search unless needed
 		str = strstr(term, "comm=");
@@ -491,6 +404,115 @@ static int parse_syscall(lnode *n, search_items *s)
 				return 42;
 		}
 	}
+
+	return 0;
+}
+
+static int parse_syscall(lnode *n, search_items *s)
+{
+	char *ptr, *str, *term;
+	extern int event_machine;
+	int ret;
+
+	term = n->message;
+	if (report_format > RPT_DEFAULT || event_machine != -1) {
+		// get arch
+		str = strstr(term, "arch=");
+		if (str == NULL) 
+			return 1;
+		ptr = str + 5;
+		term = strchr(ptr, ' ');
+		if (term == NULL) 
+			return 2;
+		*term = 0;
+		errno = 0;
+		s->arch = (int)strtoul(ptr, NULL, 16);
+		if (errno) 
+			return 3;
+		*term = ' ';
+	} 
+	// get syscall
+	str = strstr(term, "syscall=");
+	if (str == NULL)
+		return 4;
+	ptr = str + 8;
+	term = strchr(ptr, ' ');
+	if (term == NULL)
+		return 5;
+	*term = 0;
+	errno = 0;
+	s->syscall = (int)strtoul(ptr, NULL, 10);
+	if (errno)
+		return 6;
+	*term = ' ';
+	// get success
+	if (event_success != S_UNSET) {
+		str = strstr(term, "success=");
+		if (str) { // exit_group does not set success !?!
+			ptr = str + 8;
+			term = strchr(ptr, ' ');
+			if (term == NULL)
+				return 7;
+			*term = 0;
+			if (strcmp(ptr, "yes") == 0)
+				s->success = S_SUCCESS;
+			else
+				s->success = S_FAILED;
+			*term = ' ';
+		}
+	}
+	// get exit
+	if (event_exit_is_set) {
+		str = strstr(term, "exit=");
+		if (str == NULL)
+			return 8;
+		ptr = str + 5;
+		term = strchr(ptr, ' ');
+		if (term == NULL)
+			return 9;
+		*term = 0;
+		errno = 0;
+		s->exit = strtoll(ptr, NULL, 0);
+		if (errno)
+			return 10;
+		s->exit_is_set = 1;
+		*term = ' ';
+	}
+	// get a0
+	str = strstr(term, "a0=");
+	if (str == NULL)
+		return 11;
+	ptr = str + 3;
+	term = strchr(ptr, ' ');
+	if (term == NULL)
+		return 12;
+	*term = 0;
+	errno = 0;
+	// 64 bit dump on 32 bit machine looks bad here - need long long
+	n->a0 = strtoull(ptr, NULL, 16); // Hex
+	if (errno)
+		return 13;
+	*term = ' ';
+	// get a1
+	str = strstr(term, "a1=");
+	if (str == NULL)
+		return 11;
+	ptr = str + 3;
+	term = strchr(ptr, ' ');
+	if (term == NULL)
+		return 12;
+	*term = 0;
+	errno = 0;
+	// 64 bit dump on 32 bit machine looks bad here - need long long
+	n->a1 = strtoull(ptr, NULL, 16); // Hex
+	if (errno)
+		return 13;
+	*term = ' ';
+
+	ret = parse_task_info(n, s);
+	if (ret)
+		return ret;
+
 	if (event_key) {
 		str = strstr(term, "key=");
 		if (str) {
