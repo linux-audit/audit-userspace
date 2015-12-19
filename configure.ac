@@ -394,7 +394,7 @@ AC_SUBST(LIBWRAP_LIBS)
 AC_SUBST(LIBPRELUDE_CFLAGS)
 AC_SUBST(LIBPRELUDE_LDFLAGS)
 
-AC_OUTPUT(Makefile lib/Makefile lib/audit.pc lib/test/Makefile auparse/Makefile auparse/test/Makefile auparse/auparse.pc src/Makefile src/mt/Makefile src/libev/Makefile src/test/Makefile docs/Makefile init.d/Makefile audisp/Makefile audisp/plugins/Makefile audisp/plugins/builtins/Makefile audisp/plugins/prelude/Makefile audisp/plugins/remote/Makefile audisp/plugins/zos-remote/Makefile bindings/Makefile bindings/python/Makefile bindings/python/python2/Makefile bindings/python/python3/Makefile bindings/golang/Makefile bindings/swig/Makefile bindings/swig/src/Makefile bindings/swig/python/Makefile bindings/swig/python3/Makefile tools/Makefile tools/aulast/Makefile tools/aulastlog/Makefile tools/ausyscall/Makefile tools/auvirt/Makefile m4/Makefile)
+AC_OUTPUT(Makefile lib/Makefile lib/audit.pc lib/test/Makefile auparse/Makefile auparse/test/Makefile auparse/auparse.pc src/Makefile src/mt/Makefile src/libev/Makefile src/test/Makefile docs/Makefile rules/Makefile init.d/Makefile audisp/Makefile audisp/plugins/Makefile audisp/plugins/builtins/Makefile audisp/plugins/prelude/Makefile audisp/plugins/remote/Makefile audisp/plugins/zos-remote/Makefile bindings/Makefile bindings/python/Makefile bindings/python/python2/Makefile bindings/python/python3/Makefile bindings/golang/Makefile bindings/swig/Makefile bindings/swig/src/Makefile bindings/swig/python/Makefile bindings/swig/python3/Makefile tools/Makefile tools/aulast/Makefile tools/aulastlog/Makefile tools/ausyscall/Makefile tools/auvirt/Makefile m4/Makefile)
 
 echo .
 echo "
