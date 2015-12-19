@@ -25,8 +25,7 @@ SUBDIRS = lib auparse src/mt src/libev src audisp tools bindings init.d \
 	m4 docs
 EXTRA_DIST = ChangeLog AUTHORS NEWS README INSTALL audit.spec \
         COPYING COPYING.LIB \
-	contrib/capp.rules contrib/nispom.rules contrib/lspp.rules \
-	contrib/stig.rules contrib/skeleton.c contrib/avc_snap \
+	rules/* contrib/skeleton.c contrib/avc_snap \
 	contrib/plugin/Makefile contrib/plugin/audisp-example.c \
 	contrib/plugin/audisp-example.conf
 CONFIG_CLEAN_FILES = debug*.list config/*

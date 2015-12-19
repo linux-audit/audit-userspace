@@ -1,0 +1,3 @@
+## This is for don't audit rules
+-a never,user -F subj_type=crond_t
+

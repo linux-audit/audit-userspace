@@ -1,0 +1,21 @@
+The rules in this directory should be copied to /etc/audit/rules.d/
+The file in this directory are  organized into groups with the
+following meanings:
+
+10 - Kernel and auditctl configuration
+20 - Rules that could match general rules but we want a different match
+30 - Main rules
+40 - Optional rules
+50 - System local rules
+90 - Finalize (immutable)
+
+There is one set of rules, 31-privileged.rules, that should be regenerated.
+There is a script in the comments of that file. You can uncomment the commands
+and run the script and then rename the resulting file.
+
+The augenrules program will sort the rules based on the file name. It will
+compile the individual files into a master audit.rules file and place in
+the correct location.
+
+If you wanted to set a system up in the STIG configuration, copy rules
+10, 30-stig, 31, and 99. Add more to suit your preferences.
