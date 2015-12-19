@@ -22,8 +22,10 @@
 
 CONFIG_CLEAN_FILES = *.rej *.orig
 
-EXTRA_DIST = 10-base-config.rules 20-dont-audit.rules 21-no32bit.rules \
-22-power-abuse.rules 30-nispom.rules 30-stig.rules 31-privileged.rules \
+EXTRA_DIST = 10-base-config.rules 10-no-audit.rules 11-loginuid.rules \
+20-dont-audit.rules 21-no32bit.rules 22-power-abuse.rules \
+30-nispom.rules 30-stig.rules 31-privileged.rules \
 40-local.rules 41-containers.rules 42-injection.rules 43-module-load.rules \
-50-einval.rules 51-networking.rules 99-finalize.rules README-rules
+50-einval.rules 51-networking.rules \
+99-finalize.rules README-rules
  
