@@ -1,6 +1,8 @@
 2.5
 - Make augenrules the default method to load audit rules
 - Put rules in its own directory and break out rules into groups
+- Have auditd do a fsync before closing log
+- Make default flush setting larger
 
 2.4.5
 - Fix auditd disk flushing for data and sync modes

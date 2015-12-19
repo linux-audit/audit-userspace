@@ -843,6 +843,7 @@ static void clean_exit(void)
 	audit_msg(LOG_INFO, "The audit daemon is exiting.");
 	if (fd >= 0) {
 		audit_set_pid(fd, 0, WAIT_NO);
+		fsync(fd);
 		audit_close(fd);
 	}
 	if (pidfile)
