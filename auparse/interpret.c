@@ -163,6 +163,7 @@ static void tty_escape(const char *s, char *dest, unsigned int len)
 			dest[j++] = s[i];
 		i++;
 	}
+	dest[j] = '\0';	/* terminate string */
 }
 
 static const char sh_set[] = "\"'`$\\";
@@ -195,6 +196,7 @@ static void shell_escape(const char *s, char *dest, unsigned int len)
 			dest[j++] = s[i];
 		i++;
 	}
+	dest[j] = '\0';	/* terminate string */
 }
 
 static const char quote_set[] = ";'\"`#$&*?[]<>{}\\";
@@ -227,6 +229,7 @@ static void shell_quote_escape(const char *s, char *dest, unsigned int len)
 			dest[j++] = s[i];
 		i++;
 	}
+	dest[j] = '\0';	/* terminate string */
 }
 
 /* This should return the count of what needs escaping */

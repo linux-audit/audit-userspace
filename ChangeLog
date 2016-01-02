@@ -3,6 +3,7 @@
 - Put rules in its own directory and break out rules into groups
 - Have auditd do a fsync before closing log
 - Make default flush setting larger
+- In auparse. terminate the generated strings (Burn Alting)
 
 2.4.5
 - Fix auditd disk flushing for data and sync modes
