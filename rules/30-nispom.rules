@@ -64,7 +64,7 @@
 ## unsuccessful deletion
 -a always,exit -F arch=b32 -S unlink,rmdir,unlinkat -F exit=-EACCES -F key=delete
 -a always,exit -F arch=b64 -S rmdir,unlink,unlinkat -F exit=-EACCES -F key=delete
--a always,exit -F arch=b32 -S unlink,rmdirunlinkat -F exit=-EPERM -F key=delete
+-a always,exit -F arch=b32 -S unlink,rmdir,unlinkat -F exit=-EPERM -F key=delete
 -a always,exit -F arch=b64 -S rmdir,unlink,unlinkat -F exit=-EPERM -F key=delete
 
 ## Audit 1, 1(d) Changes in user authenticators.
