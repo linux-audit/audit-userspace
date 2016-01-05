@@ -27,7 +27,7 @@ This is a non-negative number that tells the audit daemon how much of a priority
 .TP
 .I flush
 Valid values are
-.IR none ", " incremental ", " data ",  and " sync ".
+.IR none ", " incremental ", " incremental_async ", " data ",  and " sync ".
 If set to
 .IR none ,
 no special effort is made to flush the audit records to disk. If set to
@@ -36,6 +36,10 @@ Then the
 .I freq
 parameter is used to determine how often an explicit flush to disk is issued.
 The
+.IR incremental_async
+parameter is very much like
+.IR incremental
+except the flushing is done asynchronously for higher performance. The
 .I data
 parameter tells the audit daemon to keep the data portion of the disk file
 sync'd at all times. The

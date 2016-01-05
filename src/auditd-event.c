@@ -1,5 +1,5 @@
 /* auditd-event.c -- 
- * Copyright 2004-08,2011,2013,2015 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2004-08,2011,2013,2015-16 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -31,6 +31,7 @@
 #include <sys/stat.h>
 #include <errno.h>
 #include <string.h>
+#include <time.h>
 #include <sys/time.h>
 #include <sys/vfs.h>
 #include <limits.h>     /* POSIX_HOST_NAME_MAX */
@@ -45,16 +46,12 @@ extern volatile int stop;
 
 struct auditd_consumer_data {
     struct daemon_conf *config;
-    pthread_mutex_t queue_lock;
-    pthread_cond_t queue_nonempty;
     struct auditd_reply_list *head;
-    struct auditd_reply_list *tail;
     int log_fd;
     FILE *log_file;
 };
 
 /* Local function prototypes */
-static void *event_thread_main(void *arg); 
 static void handle_event(struct auditd_consumer_data *data);
 static void write_to_log(const char *buf, struct auditd_consumer_data *data);
 static void check_log_file_size(struct auditd_consumer_data *data);
@@ -74,11 +71,11 @@ static void safe_exec(const char *exe);
 static char *format_raw(const struct audit_reply *rep, 
 		struct daemon_conf *config);
 static void reconfigure(struct auditd_consumer_data *data);
+static void init_flush_thread(void);
 
 
 /* Local Data */
 static struct auditd_consumer_data consumer_data;
-static pthread_t event_thread;
 static unsigned int disk_err_warning = 0;
 static int fs_space_warning = 0;
 static int fs_admin_space_warning = 0;
@@ -88,13 +85,21 @@ static const char *SINGLE = "1";
 static const char *HALT = "0";
 static char *format_buf = NULL;
 static off_t log_size = 0;
+static pthread_t flush_thread;
+static pthread_mutex_t flush_lock;
+static pthread_cond_t do_flush;
+static volatile int flush;
 
 
 void shutdown_events(void)
 {
 	/* Give it 5 seconds to clear the queue */
 	alarm(5);
-	pthread_join(event_thread, NULL);	
+
+	// Nudge the flush thread
+	pthread_cond_signal(&do_flush);
+	pthread_join(flush_thread, NULL);
+
 	free((void *)format_buf);
 	fclose(consumer_data.log_file);
 }
@@ -105,12 +110,8 @@ int init_event(struct daemon_conf *config)
 	consumer_data.config = config;
 	consumer_data.log_fd = -1;
 
-	/* Setup IPC mechanisms */
-	pthread_mutex_init(&consumer_data.queue_lock, NULL);
-	pthread_cond_init(&consumer_data.queue_nonempty, NULL);
-
 	/* Reset the queue */
-	consumer_data.head = consumer_data.tail = NULL;
+	consumer_data.head = NULL;
 
 	/* Now open the log */
 	if (config->daemonize == D_BACKGROUND) {
@@ -129,14 +130,6 @@ int init_event(struct daemon_conf *config)
 		setlinebuf(consumer_data.log_file);
 	}
 
-	/* Create the worker thread */
-	if (pthread_create(&event_thread, NULL,
-			event_thread_main, &consumer_data) < 0) {
-		audit_msg(LOG_ERR, "Couldn't create event thread, exiting");
-		fclose(consumer_data.log_file);
-		return 1;
-	}
-
 	if (config->daemonize == D_BACKGROUND) {
 		check_log_file_size(&consumer_data);
 		check_excess_logs(&consumer_data);
@@ -149,7 +142,52 @@ int init_event(struct daemon_conf *config)
 		fclose(consumer_data.log_file);
 		return 1;
 	}
+	init_flush_thread();
 	return 0;
+}
+
+/* This tells the OS that pending writes need to get going.
+ * Its only used when freq == incremental. */
+static void *flush_thread_main(void *arg)
+{
+	sigset_t sigs;
+
+	/* This is a worker thread. Don't handle signals. */
+	sigemptyset(&sigs);
+	sigaddset(&sigs, SIGALRM);
+	sigaddset(&sigs, SIGTERM);
+	sigaddset(&sigs, SIGHUP);
+	sigaddset(&sigs, SIGUSR1);
+	sigaddset(&sigs, SIGUSR2);
+	pthread_sigmask(SIG_SETMASK, &sigs, NULL);
+
+	while (!stop) {
+		pthread_mutex_lock(&flush_lock);
+
+		// In the event that the logging thread requests another
+		// flush before the first completes, this simply turns
+		// into a loop of fsyncs.
+		while (flush == 0) {
+			pthread_cond_wait(&do_flush, &flush_lock);
+			if (stop)
+				return NULL;
+		}
+		flush = 0;
+		pthread_mutex_unlock(&flush_lock);
+
+		fsync(consumer_data.log_fd);
+	}
+	return NULL;
+}
+
+/* We setup the flush thread no matter what. This is incase a reconfig
+ * changes from non incremental to incremental or vise versa. */
+static void init_flush_thread(void)
+{
+	pthread_mutex_init(&flush_lock, NULL);
+	pthread_cond_init(&do_flush, NULL);
+	flush = 0;
+	pthread_create(&flush_thread, NULL, flush_thread_main, NULL);
 }
 
 /* This function takes a malloc'd rep and places it on the queue. The 
@@ -159,8 +197,8 @@ void enqueue_event(struct auditd_reply_list *rep)
 	char *buf = NULL;
 	int len;
 
-	rep->ack_func = 0;
-	rep->ack_data = 0;
+	rep->ack_func = NULL;
+	rep->ack_data = NULL;
 	rep->sequence_id = 0;
 
 	if (rep->reply.type != AUDIT_DAEMON_RECONFIG) {
@@ -181,9 +219,6 @@ void enqueue_event(struct auditd_reply_list *rep)
 			}
 			break;
 		default:
-			audit_msg(LOG_ERR, 
-				  "Illegal log format detected %d", 
-				  consumer_data.config->log_format);
 			// Internal DAEMON messages should be free'd
 			if (rep->reply.type >= AUDIT_FIRST_DAEMON &&
 			    rep->reply.type <= AUDIT_LAST_DAEMON)
@@ -200,30 +235,20 @@ void enqueue_event(struct auditd_reply_list *rep)
 				// FIXME: is truncation the right thing to do?
 				memcpy(rep->reply.msg.data, buf,
 						MAX_AUDIT_MESSAGE_LENGTH-1);
-				rep->reply.msg.data[MAX_AUDIT_MESSAGE_LENGTH-1] = 0;
+				rep->reply.msg.data[MAX_AUDIT_MESSAGE_LENGTH-1]
+									= 0;
 			}
 		}
 	}
 
-	rep->next = NULL; /* new packet goes at end - so zero this */
-
-	pthread_mutex_lock(&consumer_data.queue_lock);
-	if (consumer_data.head == NULL) {
-		consumer_data.head = consumer_data.tail = rep;
-		pthread_cond_signal(&consumer_data.queue_nonempty);
-	} else {
-		/* FIXME: wait for room on the queue */
-
-		/* OK there's room...add it in */
-		consumer_data.tail->next = rep; /* link in at end */
-		consumer_data.tail = rep; /* move end to newest */
-	}
-	pthread_mutex_unlock(&consumer_data.queue_lock);
+	consumer_data.head = rep;
+	handle_event(&consumer_data);
 }
 
 /* This function takes a preformatted message and places it on the
    queue. The dequeue'r is responsible for freeing the memory. */
-void enqueue_formatted_event(char *msg, ack_func_type ack_func, void *ack_data, uint32_t sequence_id)
+void enqueue_formatted_event(char *msg, ack_func_type ack_func,
+	 void *ack_data, uint32_t sequence_id)
 {
 	int len;
 	struct auditd_reply_list *rep;
@@ -247,18 +272,8 @@ void enqueue_formatted_event(char *msg, ack_func_type ack_func, void *ack_data, 
 		rep->reply.msg.data[MAX_AUDIT_MESSAGE_LENGTH-1] = 0;
 	}
 
-	pthread_mutex_lock(&consumer_data.queue_lock);
-	if (consumer_data.head == NULL) {
-		consumer_data.head = consumer_data.tail = rep;
-		pthread_cond_signal(&consumer_data.queue_nonempty);
-	} else {
-		/* FIXME: wait for room on the queue */
-
-		/* OK there's room...add it in */
-		consumer_data.tail->next = rep; /* link in at end */
-		consumer_data.tail = rep; /* move end to newest */
-	}
-	pthread_mutex_unlock(&consumer_data.queue_lock);
+	consumer_data.head = rep;
+	handle_event(&consumer_data);
 }
 
 void resume_logging(void)
@@ -271,59 +286,11 @@ void resume_logging(void)
 	audit_msg(LOG_ERR, "Audit daemon is attempting to resume logging.");
 }
 
-static void *event_thread_main(void *arg) 
-{
-	struct auditd_consumer_data *data = arg;
-	sigset_t sigs;
-
-	/* This is a worker thread. Don't handle signals. */
-	sigemptyset(&sigs);
-	sigaddset(&sigs, SIGALRM);
-	sigaddset(&sigs, SIGTERM);
-	sigaddset(&sigs, SIGHUP);
-	sigaddset(&sigs, SIGUSR1);
-	sigaddset(&sigs, SIGUSR2);
-	pthread_sigmask(SIG_SETMASK, &sigs, NULL);
-
-	while (1) {
-		struct auditd_reply_list *cur;
-		int stop_req = 0;
-// FIXME: wait for data 
-		pthread_mutex_lock(&data->queue_lock);
-		while (data->head == NULL) {
-			pthread_cond_wait(&data->queue_nonempty, 
-				&data->queue_lock);
-		}
-// FIXME: at this point we can use data->head unlocked since it won't change.
-		handle_event(data);
-		cur = data->head;
-// FIXME: relock at this point
-		if (data->tail == data->head)
-			data->tail = NULL;
-		data->head = data->head->next;
-		if (data->head == NULL && stop && 
-				( cur->reply.type == AUDIT_DAEMON_END ||
-				cur->reply.type == AUDIT_DAEMON_ABORT) )
-			stop_req = 1;
-		pthread_mutex_unlock(&data->queue_lock);
-
-		/* Internal DAEMON messages should be free'd */
-		if (cur->reply.type >= AUDIT_FIRST_DAEMON &&
-				cur->reply.type <= AUDIT_LAST_DAEMON) {
-			free((void *)cur->reply.message);
-		} 
-		free(cur);
-		if (stop_req)
-			break;
-	}
-	return NULL;
-}
-
-
 /* This function takes the newly dequeued event and handles it. */
 static unsigned int count = 0L;
 static void handle_event(struct auditd_consumer_data *data)
 {
+	struct auditd_reply_list *cur;
 	char *buf = data->head->reply.msg.data;
 
 	if (data->head->reply.type == AUDIT_DAEMON_RECONFIG) {
@@ -336,9 +303,6 @@ static void handle_event(struct auditd_consumer_data *data)
 		case LF_NOLOG:
 			return;
 		default:
-			audit_msg(LOG_ERR, 
-				  "Illegal log format detected %d", 
-				  consumer_data.config->log_format);
 			return;
 		}
 	} else if (data->head->reply.type == AUDIT_DAEMON_ROTATE) {
@@ -347,17 +311,17 @@ static void handle_event(struct auditd_consumer_data *data)
 			return;
 	}
 	if (!logging_suspended) {
-
 		write_to_log(buf, data);
 
 		/* See if we need to flush to disk manually */
-		if (data->config->flush == FT_INCREMENTAL) {
+		if (data->config->flush == FT_INCREMENTAL ||
+			data->config->flush == FT_INCREMENTAL_ASYNC) {
 			count++;
 			if ((count % data->config->freq) == 0) {
 				int rc;
 				errno = 0;
 				do {
-					rc = fflush(data->log_file);
+					rc = fflush_unlocked(data->log_file);
 				} while (rc < 0 && errno == EINTR);
 		                if (errno) {
 		                	if (errno == ENOSPC && 
@@ -370,15 +334,33 @@ static void handle_event(struct auditd_consumer_data *data)
 						data->config, errno);
 				}
 
-				/* EIO is only likely failure mode */
-				if ((data->config->daemonize == D_BACKGROUND)&& 
-						(fsync(data->log_fd) != 0)) {
-				     do_disk_error_action("fsync",
-					data->config, errno);
+				if (data->config->daemonize == D_BACKGROUND) {
+					if (data->config->flush ==
+							FT_INCREMENTAL) {
+						/* EIO is only likely failure */
+						if (fsync(data->log_fd) != 0) {
+						     do_disk_error_action(
+							"fsync",
+							data->config, errno);
+						}
+					} else {
+						pthread_mutex_lock(&flush_lock);
+						flush = 1;
+						pthread_cond_signal(&do_flush);
+						pthread_mutex_unlock(&flush_lock);
+					}
 				}
 			}
 		}
 	}
+	cur = data->head;
+	data->head = NULL;
+	/* Internal DAEMON messages should be free'd */
+	if (cur->reply.type >= AUDIT_FIRST_DAEMON &&
+			cur->reply.type <= AUDIT_LAST_DAEMON) {
+		free((void *)cur->reply.message);
+	} 
+	free(cur);
 }
 
 static void send_ack(struct auditd_consumer_data *data, int ack_type,
@@ -398,13 +380,12 @@ static void send_ack(struct auditd_consumer_data *data, int ack_type,
 static void write_to_log(const char *buf, struct auditd_consumer_data *data)
 {
 	int rc;
-	FILE *f = data->log_file;
 	struct daemon_conf *config = data->config;
 	int ack_type = AUDIT_RMW_TYPE_ACK;
 	const char *msg = "";
 
 	/* write it to disk */
-	rc = fprintf(f, "%s\n", buf);
+	rc = fprintf(data->log_file, "%s\n", buf);
 
 	/* error? Handle it */
 	if (rc < 0) {
@@ -433,7 +414,9 @@ static void write_to_log(const char *buf, struct auditd_consumer_data *data)
 			// occurs on write.
 			log_size += rc;
 			check_log_file_size(data);
-			check_space_left(data->log_fd, data);
+			// Keep loose tabs on the free space
+			if (rc%2 == 0)
+				check_space_left(data->log_fd, data);
 		}
 
 		if (fs_space_warning)

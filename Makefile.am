@@ -1,5 +1,5 @@
 # Makefile.am -- 
-# Copyright 2004-08,2015 Red Hat Inc., Durham, North Carolina.
+# Copyright 2004-08,2015-16 Red Hat Inc., Durham, North Carolina.
 # All Rights Reserved.
 #
 # This program is free software; you can redistribute it and/or modify
@@ -21,7 +21,7 @@
 #   Rickard E. (Rik) Faith <faith@redhat.com>
 #
 
-SUBDIRS = lib auparse src/mt src/libev src audisp tools bindings init.d \
+SUBDIRS = lib auparse src/libev src audisp tools bindings init.d \
 	m4 docs rules
 EXTRA_DIST = ChangeLog AUTHORS NEWS README INSTALL audit.spec \
         COPYING COPYING.LIB \

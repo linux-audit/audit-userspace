@@ -1,5 +1,5 @@
 /* auditd-config.c -- 
- * Copyright 2004-2011,2013-14 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2004-2011,2013-14,2016 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -157,7 +157,7 @@ static const struct kw_pair keywords[] =
   {"enable_krb5",              enable_krb5_parser,              0 },
   {"krb5_principal",           krb5_principal_parser,           0 },
   {"krb5_key_file",            krb5_key_file_parser,            0 },
-  { NULL,                      NULL }
+  { NULL,                      NULL,                            0 }
 };
 
 static const struct nv_list log_formats[] =
@@ -171,6 +171,7 @@ static const struct nv_list flush_techniques[] =
 {
   {"none",        FT_NONE },
   {"incremental", FT_INCREMENTAL },
+  {"incremental_async", FT_INCREMENTAL_ASYNC },
   {"data",        FT_DATA },
   {"sync",        FT_SYNC },
   { NULL,         0 }
@@ -1600,13 +1601,14 @@ static int sanity_check(struct daemon_conf *config)
 		    config->space_left, config->admin_space_left);
 		return 1;
 	}
-	if (config->flush == FT_INCREMENTAL && config->freq == 0) {
+	if ((config->flush == FT_INCREMENTAL || config->flush == FT_INCREMENTAL_ASYNC) &&
+			config->freq == 0) {
 		audit_msg(LOG_ERR, 
 		"Error - incremental flushing chosen, but 0 selected for freq");
 		return 1;
 	}
 	/* Warnings */
-	if (config->flush > FT_INCREMENTAL && config->freq != 0) {
+	if (config->flush > FT_INCREMENTAL_ASYNC && config->freq != 0) {
 		audit_msg(LOG_WARNING, 
            "Warning - freq is non-zero and incremental flushing not selected.");
 	}

@@ -4,6 +4,7 @@
 - Have auditd do a fsync before closing log
 - Make default flush setting larger
 - In auparse. terminate the generated strings (Burn Alting)
+- In auditd, add incremental_asyn flushing mode
 
 2.4.5
 - Fix auditd disk flushing for data and sync modes

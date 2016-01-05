@@ -1,5 +1,5 @@
 # Makefile.am-- 
-# Copyright 2007,2011,2015 Red Hat Inc., Durham, North Carolina.
+# Copyright 2007,2011,2015-16 Red Hat Inc., Durham, North Carolina.
 # All Rights Reserved.
 #
 # This program is free software; you can redistribute it and/or modify
@@ -27,7 +27,7 @@ AM_CPPFLAGS = -I${top_srcdir} -I${top_srcdir}/lib
 sbin_PROGRAMS = audispd
 noinst_HEADERS = audispd-config.h audispd-pconfig.h audispd-llist.h \
 	queue.h audispd-builtins.h
-LIBS = -L${top_builddir}/src/mt -lauditmt 
+LIBS = -laudit 
 LDADD = -lpthread
 AM_CFLAGS = -D_REENTRANT 
 

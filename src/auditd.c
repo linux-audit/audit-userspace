@@ -1,5 +1,5 @@
 /* auditd.c -- 
- * Copyright 2004-09,2011,2013 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2004-09,2011,2013,2016 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -60,12 +60,12 @@
 volatile int stop = 0;
 
 /* Local data */
-static int fd = -1;
+static int fd = -1, pipefds[2] = {-1, -1};
 static struct daemon_conf config;
 static const char *pidfile = "/var/run/auditd.pid";
 static int init_pipe[2];
 static int do_fork = 1;
-static struct auditd_reply_list *rep = NULL;
+static struct auditd_reply_list *rep = NULL, *reconfig_rep = NULL;
 static int hup_info_requested = 0;
 static int usr1_info_requested = 0, usr2_info_requested = 0;
 static char subj[SUBJ_LEN];
@@ -183,23 +183,14 @@ static void distribute_event(struct auditd_reply_list *rep)
 
 	/* End of Event is for realtime interface - skip local logging of it */
 	if (rep->reply.type != AUDIT_EOE) {
-		int yield = rep->reply.type <= AUDIT_LAST_DAEMON &&
-				rep->reply.type >= AUDIT_FIRST_DAEMON ? 1 : 0;
 		/* Write to local disk */
 		enqueue_event(rep);
-		if (yield) {
-			struct timespec ts;
-			ts.tv_sec = 0;
-			ts.tv_nsec = 2 * 1000 * 1000; // 2 milliseconds
-			nanosleep(&ts, NULL); // Let other thread try to log it
-		}
 	} else
 		free(rep);	// This function takes custody of the memory
 
 	// FIXME: This is commented out since it fails to work. The
 	// problem is that the logger thread free's the buffer. Probably
-	// need a way to flag in the buffer if logger thread should free or
-	// move the free to this function.
+	// should move the free to this function.
 
 	/* Last chance to send...maybe the pipe is empty now. */
 //	if (attempt) 
@@ -431,6 +422,7 @@ static void netlink_handler(struct ev_loop *loop, struct ev_io *io,
 			if (hup_info_requested) {
 				audit_msg(LOG_DEBUG,
 				    "HUP detected, starting config manager");
+				reconfig_rep = rep;
 				if (start_config_manager(rep)) {
 					send_audit_event(
 						AUDIT_DAEMON_CONFIG, 
@@ -485,6 +477,29 @@ static void netlink_handler(struct ev_loop *loop, struct ev_io *io,
 	}
 }
 
+static void pipe_handler(struct ev_loop *loop, struct ev_io *io,
+                        int revents)
+{
+	char buf[16];
+
+	// Drain the pipe - won't block because libev sets non-blocking mode
+	read(pipefds[0], buf, sizeof(buf));
+	enqueue_event(reconfig_rep);
+	reconfig_rep = NULL;
+}
+
+void reconfig_ready(void)
+{
+	const char *msg = "ready\n";
+	write(pipefds[1], msg, strlen(msg));
+}
+
+static void close_pipes(void)
+{
+	close(pipefds[0]);
+	close(pipefds[1]);
+}
+
 int main(int argc, char *argv[])
 {
 	struct sigaction sa;
@@ -496,6 +511,7 @@ int main(int argc, char *argv[])
 	extern int optind;
 	struct ev_loop *loop;
 	struct ev_io netlink_watcher;
+	struct ev_io pipe_watcher;
 	struct ev_signal sigterm_watcher;
 	struct ev_signal sighup_watcher;
 	struct ev_signal sigusr1_watcher;
@@ -631,6 +647,16 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
+	/* Setup the reconfig notification pipe */
+	if (socketpair(AF_UNIX, SOCK_STREAM, 0, pipefds)) {
+		if (pidfile)
+			unlink(pidfile);
+		tell_parent(FAILURE);
+		return 1;
+	}
+	fcntl(pipefds[0], F_SETFD, FD_CLOEXEC);
+	fcntl(pipefds[1], F_SETFD, FD_CLOEXEC);
+
 	/* Write message to log that we are alive */
 	{
 		struct utsname ubuf;
@@ -642,6 +668,7 @@ int main(int argc, char *argv[])
 			if (pidfile)
 				unlink(pidfile);
 			tell_parent(FAILURE);
+			close_pipes();
 			return 1;
 		}
 		if (getsubj(subj))
@@ -662,6 +689,7 @@ int main(int argc, char *argv[])
 				unlink(pidfile);
 			shutdown_dispatcher();
 			tell_parent(FAILURE);
+			close_pipes();
 			return 1;
 		}
 	}
@@ -693,6 +721,7 @@ int main(int argc, char *argv[])
 			unlink(pidfile);
 		shutdown_dispatcher();
 		tell_parent(FAILURE);
+		close_pipes();
 		return 1;
 	}
 
@@ -715,6 +744,7 @@ int main(int argc, char *argv[])
 			unlink(pidfile);
 		shutdown_dispatcher();
 		tell_parent(FAILURE);
+		close_pipes();
 		return 1;
 	}
 
@@ -739,7 +769,10 @@ int main(int argc, char *argv[])
 	ev_signal_init (&sigchld_watcher, child_handler, SIGCHLD);
 	ev_signal_start (loop, &sigchld_watcher);
 
-	if (auditd_tcp_listen_init (loop, &config)) {
+	ev_io_init (&pipe_watcher, pipe_handler, pipefds[0], EV_READ);
+	ev_io_start (loop, &pipe_watcher);
+
+	if (auditd_tcp_listen_init(loop, &config)) {
 		char emsg[DEFAULT_BUF_SZ];
 		if (*subj)
 			snprintf(emsg, sizeof(emsg),
@@ -769,6 +802,7 @@ int main(int argc, char *argv[])
 	if (!stop)
 		ev_loop (loop, 0);
 
+	// Event loop finished, clean up everything
 	auditd_tcp_listen_uninit (loop, &config);
 
 	// Tear down IO watchers Part 1
@@ -802,6 +836,8 @@ int main(int argc, char *argv[])
 
 	// Tear down IO watchers Part 2
 	ev_io_stop (loop, &netlink_watcher);
+	ev_io_stop (loop, &pipe_watcher);
+	close_pipes();
 
 	// Give DAEMON_END event a little time to be sent in case
 	// of remote logging
@@ -809,7 +845,7 @@ int main(int argc, char *argv[])
 	shutdown_dispatcher();
 
 	// Tear down IO watchers Part 3
-	ev_signal_stop (loop, &sigchld_watcher);
+	ev_signal_stop(loop, &sigchld_watcher);
 
 	close_down();
 	free_config(&config);
