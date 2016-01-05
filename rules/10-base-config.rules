@@ -5,6 +5,9 @@
 ## Make this bigger for busy systems
 -b 8192
 
-## Set failure mode to panic
--f 2
+## This determine how long to wait in burst of events
+--backlog_wait_time 0
+
+## Set failure mode to syslog
+-f 1
 
