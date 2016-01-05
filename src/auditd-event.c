@@ -147,7 +147,7 @@ int init_event(struct daemon_conf *config)
 }
 
 /* This tells the OS that pending writes need to get going.
- * Its only used when freq == incremental. */
+ * Its only used when flush == incremental_async. */
 static void *flush_thread_main(void *arg)
 {
 	sigset_t sigs;
