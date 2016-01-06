@@ -1,18 +1,22 @@
 Things that need to be done:
 ===========================
-2.5
-* Add audit by process name support
-* Add support for enriched data: uid/gid, hostname, contexts
-* interpret contexts
-* auditctl should ignore invalid arches for rules
-
 2.5.1
-* Fix auparse to handle out of order messages
+* Add support for enriched data: uid/gid, hostname, contexts
+* Fix ausearch/report to handle aggregated events
+* interpret contexts
 * Add metadata in auparse for subj,obj,action,results
-* Performance improvements for auparse
+* Format ausearch output
+* Add ability to suppress types of records
+* Look at pulling audispd into auditd
+* Fix retry logic in distribute event
+* Consider adding node/machine name to records going to rt interface in daemon    as protocol version 2.
+
+2.5.2
 * If auparse input is a pipe timeout events by wall clock
 * Add rule verify to detect mismatch between in-kernel and on-disk rules
+* Performance improvements for auparse
 * Fix SIGHUP for auditd network settings
+* auditctl should ignore invalid arches for rules
 
 2.6
 * Add gzip format for logs
@@ -20,7 +24,6 @@ Things that need to be done:
 * Fix auvirt to report AVC's and --proof for --all-events
 
 2.6.1
-* Fix ausearch/report to handle aggregated events
 * When searching, build log time list & only read the ones that are in range
 * Change ausearch-string to be AVL based
 * Look at adding the direction read/write to file report (threat modelling)
@@ -30,9 +33,6 @@ Things that need to be done:
 * Group message types in ausearch help.
 
 2.7
-* Look at pulling audispd into auditd
-* Consider adding node/machine name to records going to rt interface in daemon    as protocol version 2.
-* Fix retry logic in distribute event, buffer is freed by the logger thread
 * Allow -F path!=/var/my/app
 * Add ignore action for rules
 * Look at openat and why passed dir is not given
