@@ -147,6 +147,11 @@ rm -rf $RPM_BUILD_ROOT
 %post libs -p /sbin/ldconfig
 
 %post
+# Copy default rules into place on new installation
+files=`ls /etc/audit/rules.d/ 2>/dev/null | wc -w`
+if [ "$files" -eq 0 ] ; then
+	cp /usr/share/doc/audit/rules/10-base-config.rules /etc/audit/rules.d/
+fi
 %systemd_post auditd.service
 
 %preun

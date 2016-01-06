@@ -4,7 +4,7 @@
 - Have auditd do a fsync before closing log
 - Make default flush setting larger
 - In auparse. terminate the generated strings (Burn Alting)
-- In auditd, add incremental_asyn flushing mode
+- In auditd, add incremental_async flushing mode
 - Clean up dangling fields in DAEMON events
 - Add audit by process name support to auditctl (Richard Briggs)
 
