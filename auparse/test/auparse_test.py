@@ -169,6 +169,7 @@ print "Test 2 Done\n"
 # Reset, now lets go to beginning and walk the list manually */
 print "Starting Test 3, walk events, records of 1 buffer..."
 au = auparse.AuParser(auparse.AUSOURCE_BUFFER, buf[1])
+au.reset()
 light_test(au);
 print "Test 3 Done\n"
 
@@ -179,7 +180,7 @@ print "Test 4 Done\n"
 
 print "Starting Test 5, walk events, records of 2 files..."
 au = auparse.AuParser(auparse.AUSOURCE_FILE_ARRAY, files);
-walk_test(au); 
+walk_test(au);
 print "Test 5 Done\n"
 
 print "Starting Test 6, search..."

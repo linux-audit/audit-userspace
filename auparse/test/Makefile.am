@@ -22,7 +22,7 @@
 
 CONFIG_CLEAN_FILES = *.loT *.rej *.orig *.cur
 AUTOMAKE_OPTIONS = no-dependencies
-check_PROGRAMS = auparse_test 
+check_PROGRAMS = auparse_test auparselol_test
 dist_check_SCRIPTS = auparse_test.py
 EXTRA_DIST = auparse_test.ref auparse_test.ref.py test.log test2.log
 
@@ -33,14 +33,22 @@ auparse_test_LDFLAGS = -static
 auparse_test_LDADD = ${top_builddir}/auparse/libauparse.la \
 	${top_builddir}/lib/libaudit.la
 
+auparselol_test_SOURCES = auparselol_test.c
+auparselol_test_LDFLAGS = -static
+auparselol_test_LDADD = ${top_builddir}/auparse/libauparse.la \
+	${top_builddir}/lib/libaudit.la
+
 drop_srcdir = sed 's,$(srcdir)/test,test,'
 
-check: auparse_test
+check: auparse_test auparselol_test
 	test "$(top_srcdir)" = "$(top_builddir)" || \
 			cp $(top_srcdir)/auparse/test/test*.log .
 	LC_ALL=C \
 	./auparse_test > auparse_test.cur
 	diff -u $(top_srcdir)/auparse/test/auparse_test.ref auparse_test.cur
+	./auparselol_test -f test3.log --check | sort > auparse_test.cur
+	sed -f ./auditd_raw.sed test3.log | sort > auparse_test.raw
+	diff -u auparse_test.raw auparse_test.cur
 if HAVE_PYTHON
 	cp ${top_builddir}/bindings/swig/python/.libs/_audit.so ${top_builddir}/bindings/swig/python
 	PYTHONPATH=${top_builddir}/bindings/python/python2/.libs/:${top_builddir}/bindings/swig/python:${top_builddir}/bindings/swig/python/.libs \
@@ -51,9 +59,12 @@ if HAVE_PYTHON
 endif
 	echo -e "===================\nAuparse Test Passes\n==================="
 
-diffcheck: auparse_test
+diffcheck: auparse_test auparselol_test
 	./auparse_test > auparse_test.cur
 	diff -u $(srcdir)/auparse_test.ref auparse_test.cur
+	./auparselol_test -f test3.log --check | sort > auparse_test.cur
+	sed -f ./auditd_raw.sed test3.log | sort > auparse_test.raw
+	diff -u auparse_test.raw auparse_test.cur
 
 memcheck: auparse_test
 	valgrind --leak-check=yes --show-reachable=yes ./auparse_test 
@@ -85,6 +96,7 @@ endif
 
 clean-generic:
 	$(RM) *.cur
+	$(RM) auparse_test.raw
 if HAVE_PYTHON
 	$(RM) ${top_builddir}/bindings/swig/python/_audit.so
 endif
