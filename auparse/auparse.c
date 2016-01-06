@@ -1,5 +1,5 @@
 /* auparse.c --
- * Copyright 2006-08,2012-15 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2006-08,2012-16 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -107,6 +107,355 @@ static int setup_log_file_array(auparse_state_t *au)
 	return 0;
 }
 
+#define	LOL_EVENTS_DEBUG01	0	// add debug for list of list event
+					// processing
+
+/*
+ * NOTES:
+ * Auditd events are made up of one or more records. The auditd system cannot
+ * guarantee that the set of records that make up an event will occur
+ * atomically, that is the stream will have interleaved records of different
+ * events. IE
+ *      ...
+ *	event0_record0
+ *	event1_record0
+ *	event1_record1
+ *	event2_record0
+ *	event1_record3
+ *	event2_record1
+ *	event1_record4
+ *	event3_record0
+ *	...
+ *	
+ * The auditd system does guarantee that the records that make up an event will
+ * appear in order. Thus, when processing event streams, we need to maintain
+ * a list of events with their own list of records hence List of List (LOL)
+ * event processing.
+ *
+ * When processing an event stream we define the end of an event via
+ *	record type = AUDIT_EOE	(audit end of event type record), or
+ *	record type = AUDIT_PROCTITLE	(we note the AUDIT_PROCTITLE is always
+ *					the last record), or
+ *	record type < AUDIT_FIRST_EVENT (only single record events appear
+ *					before this type), or
+ *	record type >= AUDIT_FIRST_ANOM_MSG (only single record events appear
+ *					after this type), or
+ * 	for the stream being processed, the time of the event is over 2 seconds
+ * 	old
+ *
+ * So, under LOL_EVENT processing, a event node (au_lolnode) can be either
+ *
+ * EBS_EMPTY: node is scheduled for emptying (freeing)
+ * EBS_BUILDING: node is still building (awaiting more records and/or awaiting
+ * 		 an End of Event action)
+ * EBS_COMPLETE: node is complete and avaiable for use
+ *
+ * The old auparse() library processed events as they appeared and hence failed
+ * to deal with interleaved records. The old library kept a 'current' event
+ * which it would parse. This new LOL_EVENT code maintains the concept of a
+ * 'current' event, but it now points to an event within the list of list 
+ * events structure.
+ */
+typedef enum { EBS_EMPTY, EBS_BUILDING, EBS_COMPLETE } au_lol_t;
+
+/*
+ * Structure to hold an event and it's list of constituent records
+ */
+typedef struct _au_lolnode {
+  event_list_t	* l;    /* the list of this event's records */
+  au_lol_t	status; /* this event's build state */
+} au_lolnode;
+
+/*
+ * List of events being processed at any one time
+ */
+typedef struct {
+  au_lolnode	* array;        /* array of events */
+  int           maxi;           /* largest index in array used */
+  int           limit;          /* number of events in array */
+} au_lol;
+
+/*
+ * Base of list management
+ */
+static au_lol	au_lo;
+
+/*
+ * The list is a dynamically growable list. We initally hold ARRAY_LIMIT
+ * events and grow by ARRAY_LIMIT if we need to maintain more events at
+ * any one time
+ */
+#define	ARRAY_LIMIT	80
+
+/*
+ * For speed, we note how many EBS_COMPLETE events we hold at any point in
+ * time. Thus we don't have to scan the list
+ */
+static int au_ready = 0;
+
+/*
+ * au_lol_create - Create and initialise the base List of List event structure
+ * Args:
+ *   lol  - pointer to memory holding structure (eg the static au_lo variable)
+ * Rtns:
+ *   NULL - no memory
+ *   ptr  - pointer to array of event nodes (au_lolnode)
+ */
+au_lolnode *au_lol_create(au_lol *lol)
+{
+	int sz = ARRAY_LIMIT * sizeof(au_lolnode);
+
+	lol->maxi = -1;
+	lol->limit = ARRAY_LIMIT;
+	if ((lol->array = (au_lolnode *)malloc(sz)) == NULL) {
+		lol->maxi = -1;
+		return NULL;
+	}
+	memset(lol->array, 0x00, sz);
+
+	return lol->array;
+}
+
+/*
+ * au_lol_clear - Free or rest the base List of List event structure
+ *
+ * Args:
+ *  lol	- pointer to memory holding structure (eg the static au_lo variable)
+ *  reset - flag to indicate a reset of the structure, or the complete
+ *          freeing of memory
+ * Rtns:
+ *	void
+ */
+void au_lol_clear(au_lol * lol, int reset)
+{
+	int i;
+
+	if (lol->array) {
+		for (i = 0; i <= lol->maxi; i++) {
+			if (lol->array[i].l) {
+				aup_list_clear(lol->array[i].l);
+				free(lol->array[i].l);
+			}
+		}
+	}
+	if (reset) {
+		/* If resetting, we just zero fields */
+		if (lol->array)
+			memset(lol->array, 0x00,
+					lol->limit * sizeof(au_lolnode));
+		lol->maxi = -1;
+	} else {
+		/* If not resetting, we free everything */
+		if (lol->array) free(lol->array);
+		lol->array = NULL;
+		lol->maxi = -1;
+	}
+}
+
+/*
+ * au_lol_append - Add a new event to our base List of List structure
+ *
+ * Args:
+ *  lol	- pointer to memory holding structure (eg the static au_lo variable)
+ *  l	- event list structure (which contains an event's constituent records)
+ * Rtns:
+ *   ptr  - pointer to au_lolnode which holds the event list structure
+ *   NULL - failed to reallocate memory
+ */
+au_lolnode *au_lol_append(au_lol *lol, event_list_t *l)
+{
+	int i;
+	size_t new_size;
+	au_lolnode *ptr;
+
+	for (i = 0; i < lol->limit; i++) {
+		au_lolnode *cur = &lol->array[i];
+		if (cur->status == EBS_EMPTY) {
+			cur->l = l;
+			cur->status = EBS_BUILDING;
+			if (i > lol->maxi)
+				lol->maxi = i;
+			return cur;
+		}
+	}
+	/* Over ran the array, make it bigger */
+	new_size = sizeof(au_lolnode) * (lol->limit + ARRAY_LIMIT);
+	ptr = realloc(lol->array, new_size);
+	if (ptr) {
+		lol->array = ptr;
+		memset(&lol->array[lol->limit], 0x00,
+				sizeof(au_lolnode) * ARRAY_LIMIT);
+		lol->array[i].l = l;
+		lol->array[i].status = EBS_BUILDING;
+		lol->maxi = i;
+		lol->limit += ARRAY_LIMIT;
+	}
+	return ptr;
+}
+
+/*
+ * au_get_ready_event - Find the next COMPLETE event in our list and mark EMPTY
+ *
+ * Args:
+ *  lol	- pointer to memory holding structure (eg the static au_lo variable)
+ *  is_test - do not mark the node EMPTY
+ * Rtns:
+ *  ptr	- pointer to complete node (possibly just marked empty)
+ *  NULL - no complete nodes exist
+ */
+static event_list_t *au_get_ready_event(au_lol *lol, int is_test)
+{
+        int i;
+
+	if (au_ready == 0)
+		return NULL;
+
+        for (i=0; i<=lol->maxi; i++) {
+                au_lolnode *cur = &(lol->array[i]);
+                if (cur->status == EBS_COMPLETE) {
+			/*
+			 * If we are just testing for a complete event, return
+			 */
+			if (is_test)
+				return cur->l;
+			/*
+			 * Otherwise set it status to empty and accept the
+			 * caller will take custody of the memory
+			 */
+                        cur->status = EBS_EMPTY;
+			au_ready--;
+                        return cur->l;
+                }
+        }
+
+        return NULL;
+}
+
+/*
+ * au_check_events  - Run though all events marking those we can mark COMPLETE
+ *
+ * Args:
+ *  lol	- pointer to memory holding structure (eg the static au_lo variable)
+ *  sec	- time of current event from stream being processed. We use this to see
+ *        how old the events are we have in our list
+ * Rtns:
+ *	void
+ */
+static void au_check_events(au_lol *lol, time_t sec)
+{
+	rnode *r;
+        int i;
+
+        for(i=0; i<=lol->maxi; i++) {
+                au_lolnode *cur = &lol->array[i];
+                if (cur->status == EBS_BUILDING) {
+                        if ((r = aup_list_get_cur(cur->l)) == NULL)
+				continue;
+                        // If 2 seconds have elapsed, we are done
+                        if (cur->l->e.sec + 2 < sec) {
+                                cur->status = EBS_COMPLETE;
+				au_ready++;
+                        } else if ( // FIXME: Check this v remains true
+				r->type == AUDIT_PROCTITLE ||
+				r->type == AUDIT_EOE || 
+				r->type < AUDIT_FIRST_EVENT ||
+				r->type >= AUDIT_FIRST_ANOM_MSG) {
+                                // If known to be 1 record event, we are done
+				cur->status = EBS_COMPLETE;
+				au_ready++;
+                        }
+                }
+        }
+}
+
+/*
+ * au_terminate_all_events - Mark all events in 'BUILD' state to be COMPLETE
+ *
+ * Args:
+ *  lol	- pointer to memory holding structure (eg the static au_lo variable)
+ * Rtns:
+ *  void
+ */
+void au_terminate_all_events(au_lol *lol)
+{
+        int i;
+
+        for (i=0; i<=lol->maxi; i++) {
+                au_lolnode *cur = &lol->array[i];
+                if (cur->status == EBS_BUILDING) {
+                        cur->status = EBS_COMPLETE;
+			au_ready++;
+                }
+        }
+}
+
+#if	LOL_EVENTS_DEBUG01
+/*
+ * print_list_t	- Print summary of event's records
+ * Args:
+ * 	l	- event_list to print
+ * Rtns:
+ *	void
+ */
+void print_list_t(event_list_t *l)
+{
+	rnode *r;
+
+	if (l == NULL) {
+		printf("\n");
+		return;
+	}
+	printf("0x%X: %lu.%3.3lu:%d %s", l, l->e.sec, l->e.milli,
+			l->e.serial, l->e.host ? l->e.host : "");
+	printf(" cnt=%d", l->cnt);
+	for (r = l->head; r != NULL; r = r->next) {
+		printf(" {%d %d %d}", r->type, r->list_idx, r->line_number);
+	}
+	printf("\n");
+}
+
+/*
+ * lol_status - return type of event state as a character
+ * Args:
+ *	s	- event state
+ * Rtns:
+ *	char	- E, B or C for EMPTY, BUILDING or COMPLETE, or '*' for unknown
+ */
+static char lol_status(au_lol_t s)
+{
+	switch(s) {
+	case EBS_EMPTY: return 'E'; break;
+	case EBS_BUILDING: return 'B'; break;
+	case EBS_COMPLETE: return 'C'; break;
+	}
+	return '*';
+}
+
+/*
+ * print_lol - Print a list of list events and their records
+ * Args:
+ *   label - String to act as label when printing
+ *   lol   - pointer to memory holding structure (eg the static au_lo variable)
+ * Rtns:
+ *	void
+ */
+void print_lol(char *label, au_lol *lol)
+{
+	int  i;
+
+	printf("%s 0x%X: a: 0x%X, %d, %d\n", label, lol, lol->array,
+					lol->maxi, lol->limit);
+	if (debug > 1) for (i = 0; i <= lol->maxi; i++) {
+		printf("{%2d 0x%X %c } ", i, (&lol->array[i]),
+					lol_status(lol->array[i].status));
+		print_list_t(lol->array[i].l);
+	}
+	if (lol->maxi >= 0)
+		printf("\n");
+}
+#endif	/* LOL_EVENTS_DEBUG01 */
+
+
 /* General functions that affect operation of the library */
 auparse_state_t *auparse_init(ausource_t source, const void *b)
 {
@@ -121,12 +470,17 @@ auparse_state_t *auparse_init(ausource_t source, const void *b)
 	}
 
 	au->le = NULL;
-	/* Allocate the 'current' event of interest pointer */
-	if ((au->le = (event_list_t *)malloc(sizeof(event_list_t))) == NULL) {
+
+	/*
+	 * Set up the List of List events base structure
+	 */
+	au_lol_clear(&au_lo, 0);// for python that doesn't call auparse_destroy
+	if (au_lol_create(&au_lo) == NULL) {
 		free(au);
 		errno = ENOMEM;
 		return NULL;
 	}
+
 	au->in = NULL;
 	au->source_list = NULL;
 	databuf_init(&au->databuf, 0, 0);
@@ -213,7 +567,6 @@ auparse_state_t *auparse_init(ausource_t source, const void *b)
 	au->off = 0;
 	au->cur_buf = NULL;
 	au->line_pushed = 0;
-	aup_list_create(au->le);	/* Initialise the 'current' event pointer */
 	au->parse_state = EVENT_EMPTY;
 	au->expr = NULL;
 	au->find_field = NULL;
@@ -222,7 +575,8 @@ auparse_state_t *auparse_init(ausource_t source, const void *b)
 	return au;
 bad_exit:
 	databuf_free(&au->databuf);
-	free(au->le);	/* Free the 'current' event of interest event pointer */
+	/* Feee list of events list (au_lo) structure */
+	au_lol_clear(&au_lo, 0);
 	free(au);
 	return NULL;
 }
@@ -257,14 +611,24 @@ static void consume_feed(auparse_state_t *au, int flush)
 	if (flush) {
 		// FIXME: might need a call here to force auparse_next_event()
 		// to consume any partial data not fully consumed.
-		if (au->parse_state == EVENT_ACCUMULATING) {
-			// Emit the event, set event cursors to initial position
-			aup_list_first(au->le);
-			aup_list_first_field(au->le);
-			au->parse_state = EVENT_EMITTED;
+
+		/* Terminate all outstanding events, as we are at end of input
+		 * (ie mark BUILDING events as COMPLETE events) then if we
+		 * have a callback execute the callback on each event
+		 * FIXME: Should we implement a 'checkpoint' concept as per
+		 * ausearch or accept these 'partial' events?
+		 */
+		event_list_t	*l;
+
+		if (debug) printf("terminate all events in flush\n");
+		au_terminate_all_events(&au_lo);
+		while ((l = au_get_ready_event(&au_lo, 0)) != NULL) {
+			au->le = l;  // make this current the event of interest
+			aup_list_first(l);
+			aup_list_first_field(l);
 			if (au->callback) {
-				 (*au->callback)(au, AUPARSE_CB_EVENT_READY,
-						 au->callback_user_data);
+				(*au->callback)(au, AUPARSE_CB_EVENT_READY,
+					au->callback_user_data);
 			}
 		}
 	}
@@ -288,8 +652,9 @@ int auparse_flush_feed(auparse_state_t *au)
 // Otherwise return 0 to indicate its empty
 int auparse_feed_has_data(const auparse_state_t *au)
 {
-	if (au->parse_state == EVENT_ACCUMULATING)
+	if (au_get_ready_event(&au_lo, 1) != NULL)
 		return 1;
+
 	return 0;
 }
 
@@ -305,9 +670,12 @@ int auparse_reset(auparse_state_t *au)
 		return -1;
 	}
 
-	/* Free the 'current' event of interest list and it's content */
-	if (au->le)
-		aup_list_clear(au->le);
+	/* Create or Free list of events list (au_lo) structure */
+	if (au_lo.array == NULL)
+		au_lol_create(&au_lo);
+	else
+		au_lol_clear(&au_lo, 1);
+
 	au->parse_state = EVENT_EMPTY;
 	switch (au->source)
 	{
@@ -543,6 +911,7 @@ void auparse_destroy(auparse_state_t *au)
 {
 	aulookup_destroy_uid_list();
 	aulookup_destroy_gid_list();
+
 	if (au == NULL)
 		return;
 
@@ -557,9 +926,8 @@ void auparse_destroy(auparse_state_t *au)
 	au->next_buf = NULL;
         free(au->cur_buf);
 	au->cur_buf = NULL;
-	/* Reset and clear any data in the 'current' event of interest ptr then free it.  */
-	aup_list_clear(au->le);
-	free(au->le);
+	/* Delete list of events list (au_lo) */
+	au_lol_clear(&au_lo, 0);
 	au->le = NULL;
 	au->parse_state = EVENT_EMPTY;
         free(au->find_field);
@@ -965,97 +1333,172 @@ int ausearch_next_event(auparse_state_t *au)
 	return 0;
 }
 
+/*
+ * au_auparse_next_event - Get the next complete event
+ * Args:
+ * 	au - the parser state machine
+ * Rtns:
+ *	< 0	- error
+ *	== 0	- no data
+ *	> 0	- we have an event and it's set to the 'current event' au->le
+ */
+static int au_auparse_next_event(auparse_state_t *au)
+{
+	int rc, i, built;
+	event_list_t *l;
+	rnode *r;
+	au_event_t e;
+
+	/*
+	 * Deal with Python memory management issues where it issues a
+	 * auparse_destroy() call after an auparse_init() call but then wants
+	 * to still work with auparse data. Bascially, we assume if the user
+	 * wants to parse for events (calling auparse_next_event()) we accept
+	 * that they expect the memory structures to exist. This is a bit
+	 * 'disconcerting' but the au_lol capability is a patch trying to
+	 * redress a singleton approach to event processing.
+	 */
+	if (au_lo.array == NULL && au_lo.maxi == -1) {
+		au_lol_create(&au_lo);
+	}	
+	/*
+	 * First see if we have any empty events but with an allocated event
+	 * list. These would have just been processed, so we can free them
+	 */
+	for (i = 0; i <= au_lo.maxi; i++) {
+		au_lolnode *cur = &au_lo.array[i];
+		if (cur->status == EBS_EMPTY && cur->l) {
+#if	LOL_EVENTS_DEBUG01
+			if (debug) {printf("Freeing at start "); print_list_t(cur->l);}
+#endif	/* LOL_EVENTS_DEBUG01 */
+			aup_list_clear(cur->l);
+			free(cur->l);
+			au->le = NULL;	// this should crash any usage
+					// of au->le until reset
+			cur->l = NULL;
+		}
+	}
+	/*
+	 * Now see if we have completed events queued, and if so grab the
+	 * first one and set it to be the 'current' event of interest
+	 */
+	if ((l = au_get_ready_event(&au_lo, 0)) != NULL) {
+		aup_list_first(l);
+		aup_list_first_field(l);
+		au->le = l;
+#if	LOL_EVENTS_DEBUG01
+		if (debug) print_lol("upfront", &au_lo);
+#endif	/* LOL_EVENTS_DEBUG01 */
+		return 1;
+	}
+	/*
+	 * If no complete events are avaiable, lets ingest
+	 */
+	while (1) {
+		for (i = 0; i <= au_lo.maxi; i++) {
+			au_lolnode *cur = &au_lo.array[i];
+			if (cur->status == EBS_EMPTY && cur->l) {
+#if	LOL_EVENTS_DEBUG01
+				if (debug) {printf("Freeing at loop"); print_list_t(cur->l);}
+#endif	/* LOL_EVENTS_DEBUG01 */
+				aup_list_clear(cur->l);
+				free(cur->l);
+				au->le = NULL;	/* this should crash any usage of au->le until reset */
+				cur->l = NULL;
+			}
+		}
+		rc = retrieve_next_line(au);
+		if (debug) printf("next_line(%d) '%s'\n", rc, au->cur_buf);
+		if (rc == 0) {
+#if	LOL_EVENTS_DEBUG01
+			if (debug) printf("Empty line\n");
+#endif	/* LOL_EVENTS_DEBUG01 */
+			return 0;	/* NO data now */
+		}
+		if (rc == -2) {
+			/*
+			 * We are at EOF, so see if we have any accumulated
+			 * events.
+			 */
+			if (debug) printf("EOF\n");
+			au_terminate_all_events(&au_lo);
+			if ((l = au_get_ready_event(&au_lo, 0)) != NULL) {
+				aup_list_first(l);
+				aup_list_first_field(l);
+				au->le = l;
+#if	LOL_EVENTS_DEBUG01
+				if (debug) print_lol("eof termination", &au_lo);
+#endif	/* LOL_EVENTS_DEBUG01 */
+				return 1;
+			}
+			return 0;
+		} else if (rc < 0) {
+			/* Straight error */
+			if (debug) printf("Error %d\n", rc);
+			return -1;
+		}
+		/* So we got a successful read ie rc > 0 */
+		if (extract_timestamp(au->cur_buf, &e)) {
+			if (debug) printf("Malformed line:%s\n", au->cur_buf);
+			continue;
+		}
+		/*
+		 * Is this an event we have already been building?
+		 */
+		built = 0;
+		for (i = 0; i <= au_lo.maxi; i++) {
+			au_lolnode * cur = &au_lo.array[i];
+			if (cur->status == EBS_BUILDING) {
+				if (events_are_equal(&cur->l->e, &e)) {
+					if (debug) printf("Adding event to building event\n");
+					aup_list_append(cur->l, au->cur_buf,
+						au->list_idx, au->line_number);
+					au->cur_buf = NULL;
+					free((char *)e.host);
+					au_check_events(&au_lo,  e.sec);
+#if	LOL_EVENTS_DEBUG01
+					if (debug) print_lol("building", &au_lo);
+#endif	/* LOL_EVENTS_DEBUG01 */
+					/* we built something, so break out */
+					built++;
+					break;
+				}
+			}
+		}
+		if (built)
+			continue;
+
+		/* So create one */
+		if (debug) printf("First record in new event, initialize event\n");
+		if ((l=(event_list_t *)malloc(sizeof(event_list_t))) == NULL) {
+			return -1;
+		}
+		aup_list_create(l);
+		aup_list_set_event(l, &e);
+		aup_list_append(l, au->cur_buf, au->list_idx, au->line_number);
+		if (au_lol_append(&au_lo, l) == NULL) {
+			return -1;
+		}
+		au->cur_buf = NULL;
+		free((char *)e.host);
+		au_check_events(&au_lo,  e.sec);
+		if ((l = au_get_ready_event(&au_lo, 0)) != NULL) {
+			aup_list_first(l);
+			aup_list_first_field(l);
+			au->le = l;
+#if	LOL_EVENTS_DEBUG01
+			if (debug) print_lol("basic", &au_lo);
+#endif	/* LOL_EVENTS_DEBUG01 */
+			return 1;
+		}
+	}
+
+}
+
 // Brute force go to next event. Returns < 0 on error, 0 no data, > 0 success
 int auparse_next_event(auparse_state_t *au)
 {
-	int rc;
-	au_event_t event;
-
-	if (au->parse_state == EVENT_EMITTED) {
-		// If the last call resulted in emitting event data then
-		// clear previous event data in preparation to accumulate
-		// new event data
-		aup_list_clear(au->le);
-		au->parse_state = EVENT_EMPTY;
-	}
-
-	// accumulate new event data
-	while (1) {
-		rc = retrieve_next_line(au);
-		if (debug) printf("next_line(%d) '%s'\n", rc, au->cur_buf);
-		if (rc ==  0) return 0;	// No data now
-		if (rc == -2) {
-			// We're at EOF, did we read any data previously?
-			// If so return data available, else return no data
-			// available
-			if (au->parse_state == EVENT_ACCUMULATING) {
-				if (debug) printf("EOF, EVENT_EMITTED\n");
-				au->parse_state = EVENT_EMITTED;
-				return 1; // data is available
-			}
-			return 0;
-		}
-		if (rc > 0) {	        // Input available
-			rnode *r;
-			if (extract_timestamp(au->cur_buf, &event)) {
-				if (debug)
-					printf("Malformed line:%s\n",
-							 au->cur_buf);
-				continue;
-			}
-			if (au->parse_state == EVENT_EMPTY) {
-				// First record in new event, initialize event
-				if (debug)
-					printf(
-			"First record in new event, initialize event\n");
-				aup_list_set_event(au->le, &event);
-				aup_list_append(au->le, au->cur_buf,
-						au->list_idx, au->line_number);
-				au->parse_state = EVENT_ACCUMULATING;
-				au->cur_buf = NULL; 
-			} else if (events_are_equal(&au->le->e, &event)) {
-				// Accumulate data into existing event
-				if (debug)
-					printf(
-				    "Accumulate data into existing event\n");
-				aup_list_append(au->le, au->cur_buf,
-						au->list_idx, au->line_number);
-				au->parse_state = EVENT_ACCUMULATING;
-				au->cur_buf = NULL; 
-			} else {
-				// New event, save input for next invocation
-				if (debug)
-					printf(
-	"New event, save current input for next invocation, EVENT_EMITTED\n");
-				push_line(au);
-				// Emit the event, set event cursors to 
-				// initial position
-				aup_list_first(au->le);
-				aup_list_first_field(au->le);
-				au->parse_state = EVENT_EMITTED;
-				free((char *)event.host);
-				return 1; // data is available
-			}
-			free((char *)event.host);
-			// Check to see if the event can be emitted due to EOE
-			// or something we know is a single record event. At
-			// this point, new record should be pointed at 'cur'
-			if ((r = aup_list_get_cur(au->le)) == NULL)
-				continue;
-			if (	r->type == AUDIT_EOE ||
-				r->type < AUDIT_FIRST_EVENT ||
-				r->type >= AUDIT_FIRST_ANOM_MSG) {
-				// Emit the event, set event cursors to 
-				// initial position
-				aup_list_first(au->le);
-				aup_list_first_field(au->le);
-				au->parse_state = EVENT_EMITTED;
-				return 1; // data is available
-			}
-		} else {		// Read error
-			return -1;
-		}
-	}	
+	return au_auparse_next_event(au);
 }
 
 /* Accessors to event data */

@@ -8,6 +8,7 @@
 - Clean up dangling fields in DAEMON events
 - Add audit by process name support to auditctl (Richard Briggs)
 - Relax permissions on systemd files
+- Fix auparse to handle interlaced events (Burn Alting)
 
 2.4.5
 - Fix auditd disk flushing for data and sync modes

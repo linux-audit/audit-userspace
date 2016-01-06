@@ -43,7 +43,7 @@ typedef struct {
 
 void aup_list_create(event_list_t *l) hidden;
 void aup_list_clear(event_list_t* l) hidden;
-static inline unsigned int aup_list_get_cnt(event_list_t *l) { return l->cnt; }
+static inline unsigned int aup_list_get_cnt(event_list_t *l) { return l ? l->cnt : 0; }
 static inline void aup_list_first(event_list_t *l) { l->cur = l->head; }
 static inline rnode *aup_list_get_cur(event_list_t *l) { return l->cur; }
 rnode *aup_list_next(event_list_t *l) hidden;
