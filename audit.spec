@@ -150,7 +150,7 @@ rm -rf $RPM_BUILD_ROOT
 # Copy default rules into place on new installation
 files=`ls /etc/audit/rules.d/ 2>/dev/null | wc -w`
 if [ "$files" -eq 0 ] ; then
-	cp /usr/share/doc/audit/rules/10-base-config.rules /etc/audit/rules.d/
+	cp /usr/share/doc/audit/rules/10-base-config.rules /etc/audit/rules.d/audit.rules
 fi
 %systemd_post auditd.service
 
@@ -230,7 +230,7 @@ fi
 %attr(755,root,root) %{_bindir}/aulastlog
 %attr(755,root,root) %{_bindir}/ausyscall
 %attr(755,root,root) %{_bindir}/auvirt
-%attr(640,root,root) %{_unitdir}/auditd.service
+%attr(644,root,root) %{_unitdir}/auditd.service
 %attr(750,root,root) %dir %{_libexecdir}/initscripts/legacy-actions/auditd
 %attr(750,root,root) %{_libexecdir}/initscripts/legacy-actions/auditd/resume
 %attr(750,root,root) %{_libexecdir}/initscripts/legacy-actions/auditd/rotate
