@@ -120,6 +120,13 @@ auparse_state_t *auparse_init(ausource_t source, const void *b)
 		return NULL;
 	}
 
+	au->le = NULL;
+	/* Allocate the 'current' event of interest pointer */
+	if ((au->le = (event_list_t *)malloc(sizeof(event_list_t))) == NULL) {
+		free(au);
+		errno = ENOMEM;
+		return NULL;
+	}
 	au->in = NULL;
 	au->source_list = NULL;
 	databuf_init(&au->databuf, 0, 0);
@@ -206,7 +213,7 @@ auparse_state_t *auparse_init(ausource_t source, const void *b)
 	au->off = 0;
 	au->cur_buf = NULL;
 	au->line_pushed = 0;
-	aup_list_create(&au->le);
+	aup_list_create(au->le);	/* Initialise the 'current' event pointer */
 	au->parse_state = EVENT_EMPTY;
 	au->expr = NULL;
 	au->find_field = NULL;
@@ -215,6 +222,7 @@ auparse_state_t *auparse_init(ausource_t source, const void *b)
 	return au;
 bad_exit:
 	databuf_free(&au->databuf);
+	free(au->le);	/* Free the 'current' event of interest event pointer */
 	free(au);
 	return NULL;
 }
@@ -251,8 +259,8 @@ static void consume_feed(auparse_state_t *au, int flush)
 		// to consume any partial data not fully consumed.
 		if (au->parse_state == EVENT_ACCUMULATING) {
 			// Emit the event, set event cursors to initial position
-			aup_list_first(&au->le);
-			aup_list_first_field(&au->le);
+			aup_list_first(au->le);
+			aup_list_first_field(au->le);
 			au->parse_state = EVENT_EMITTED;
 			if (au->callback) {
 				 (*au->callback)(au, AUPARSE_CB_EVENT_READY,
@@ -297,7 +305,9 @@ int auparse_reset(auparse_state_t *au)
 		return -1;
 	}
 
-	aup_list_clear(&au->le);
+	/* Free the 'current' event of interest list and it's content */
+	if (au->le)
+		aup_list_clear(au->le);
 	au->parse_state = EVENT_EMPTY;
 	switch (au->source)
 	{
@@ -547,7 +557,10 @@ void auparse_destroy(auparse_state_t *au)
 	au->next_buf = NULL;
         free(au->cur_buf);
 	au->cur_buf = NULL;
-	aup_list_clear(&au->le);
+	/* Reset and clear any data in the 'current' event of interest ptr then free it.  */
+	aup_list_clear(au->le);
+	free(au->le);
+	au->le = NULL;
 	au->parse_state = EVENT_EMPTY;
         free(au->find_field);
 	au->find_field = NULL;
@@ -895,11 +908,11 @@ static int ausearch_reposition_cursors(auparse_state_t *au)
 	switch (au->search_where)
 	{
 		case AUSEARCH_STOP_EVENT:
-			aup_list_first(&au->le);
-			aup_list_first_field(&au->le);
+			aup_list_first(au->le);
+			aup_list_first_field(au->le);
 			break;
 		case AUSEARCH_STOP_RECORD:
-			aup_list_first_field(&au->le);
+			aup_list_first_field(au->le);
 			break;
 		case AUSEARCH_STOP_FIELD:
 			// do nothing - this is the normal stopping point
@@ -917,7 +930,7 @@ static int ausearch_compare(auparse_state_t *au)
 {
 	rnode *r;
 
-	r = aup_list_get_cur(&au->le);
+	r = aup_list_get_cur(au->le);
 	if (r)
 		return expr_eval(au, r, au->expr);
 
@@ -962,7 +975,7 @@ int auparse_next_event(auparse_state_t *au)
 		// If the last call resulted in emitting event data then
 		// clear previous event data in preparation to accumulate
 		// new event data
-		aup_list_clear(&au->le);
+		aup_list_clear(au->le);
 		au->parse_state = EVENT_EMPTY;
 	}
 
@@ -995,17 +1008,17 @@ int auparse_next_event(auparse_state_t *au)
 				if (debug)
 					printf(
 			"First record in new event, initialize event\n");
-				aup_list_set_event(&au->le, &event);
-				aup_list_append(&au->le, au->cur_buf,
+				aup_list_set_event(au->le, &event);
+				aup_list_append(au->le, au->cur_buf,
 						au->list_idx, au->line_number);
 				au->parse_state = EVENT_ACCUMULATING;
 				au->cur_buf = NULL; 
-			} else if (events_are_equal(&au->le.e, &event)) {
+			} else if (events_are_equal(&au->le->e, &event)) {
 				// Accumulate data into existing event
 				if (debug)
 					printf(
 				    "Accumulate data into existing event\n");
-				aup_list_append(&au->le, au->cur_buf,
+				aup_list_append(au->le, au->cur_buf,
 						au->list_idx, au->line_number);
 				au->parse_state = EVENT_ACCUMULATING;
 				au->cur_buf = NULL; 
@@ -1017,8 +1030,8 @@ int auparse_next_event(auparse_state_t *au)
 				push_line(au);
 				// Emit the event, set event cursors to 
 				// initial position
-				aup_list_first(&au->le);
-				aup_list_first_field(&au->le);
+				aup_list_first(au->le);
+				aup_list_first_field(au->le);
 				au->parse_state = EVENT_EMITTED;
 				free((char *)event.host);
 				return 1; // data is available
@@ -1027,15 +1040,15 @@ int auparse_next_event(auparse_state_t *au)
 			// Check to see if the event can be emitted due to EOE
 			// or something we know is a single record event. At
 			// this point, new record should be pointed at 'cur'
-			if ((r = aup_list_get_cur(&au->le)) == NULL)
+			if ((r = aup_list_get_cur(au->le)) == NULL)
 				continue;
 			if (	r->type == AUDIT_EOE ||
 				r->type < AUDIT_FIRST_EVENT ||
 				r->type >= AUDIT_FIRST_ANOM_MSG) {
 				// Emit the event, set event cursors to 
 				// initial position
-				aup_list_first(&au->le);
-				aup_list_first_field(&au->le);
+				aup_list_first(au->le);
+				aup_list_first_field(au->le);
 				au->parse_state = EVENT_EMITTED;
 				return 1; // data is available
 			}
@@ -1048,8 +1061,8 @@ int auparse_next_event(auparse_state_t *au)
 /* Accessors to event data */
 const au_event_t *auparse_get_timestamp(auparse_state_t *au)
 {
-	if (au && au->le.e.sec != 0)
-		return &au->le.e;
+	if (au && au->le->e.sec != 0)
+		return &au->le->e;
 	else
 		return NULL;
 }
@@ -1058,7 +1071,7 @@ const au_event_t *auparse_get_timestamp(auparse_state_t *au)
 time_t auparse_get_time(auparse_state_t *au)
 {
 	if (au)
-		return au->le.e.sec;
+		return au->le->e.sec;
 	else
 		return 0;
 }
@@ -1067,7 +1080,7 @@ time_t auparse_get_time(auparse_state_t *au)
 unsigned int auparse_get_milli(auparse_state_t *au)
 {
 	if (au)
-		return au->le.e.milli;
+		return au->le->e.milli;
 	else
 		return 0;
 }
@@ -1076,7 +1089,7 @@ unsigned int auparse_get_milli(auparse_state_t *au)
 unsigned long auparse_get_serial(auparse_state_t *au)
 {
 	if (au)
-		return au->le.e.serial;
+		return au->le->e.serial;
 	else
 		return 0;
 }
@@ -1085,8 +1098,8 @@ unsigned long auparse_get_serial(auparse_state_t *au)
 // Gets the machine node name
 const char *auparse_get_node(auparse_state_t *au)
 {
-	if (au && au->le.e.host != NULL)
-		return strdup(au->le.e.host);
+	if (au && au->le->e.host != NULL)
+		return strdup(au->le->e.host);
 	else
 		return NULL;
 }
@@ -1130,7 +1143,7 @@ int auparse_timestamp_compare(au_event_t *e1, au_event_t *e2)
 
 unsigned int auparse_get_num_records(auparse_state_t *au)
 {
-	return aup_list_get_cnt(&au->le);
+	return aup_list_get_cnt(au->le);
 }
 
 
@@ -1139,13 +1152,13 @@ int auparse_first_record(auparse_state_t *au)
 {
 	int rc;
 
-	if (aup_list_get_cnt(&au->le) == 0) {
+	if (aup_list_get_cnt(au->le) == 0) {
 		rc = auparse_next_event(au);
 		if (rc <= 0)
 			return rc;
 	}
-	aup_list_first(&au->le);
-	aup_list_first_field(&au->le);
+	aup_list_first(au->le);
+	aup_list_first_field(au->le);
 	
 	return 1;
 }
@@ -1153,12 +1166,12 @@ int auparse_first_record(auparse_state_t *au)
 
 int auparse_next_record(auparse_state_t *au)
 {
-	if (aup_list_get_cnt(&au->le) == 0) { 
+	if (aup_list_get_cnt(au->le) == 0) { 
 		int rc = auparse_first_record(au);
 		if (rc <= 0)
 			return rc;
 	}
-	if (aup_list_next(&au->le))
+	if (aup_list_next(au->le))
 		return 1;
 	else
 		return 0;
@@ -1168,10 +1181,10 @@ int auparse_next_record(auparse_state_t *au)
 int auparse_goto_record_num(auparse_state_t *au, unsigned int num)
 {
 	/* Check if a request is out of range */
-	if (num >= aup_list_get_cnt(&au->le))
+	if (num >= aup_list_get_cnt(au->le))
 		return 0;
 
-	if (aup_list_goto_rec(&au->le, num) != NULL)
+	if (aup_list_goto_rec(au->le, num) != NULL)
 		return 1;
 	else
 		return 0;
@@ -1181,7 +1194,7 @@ int auparse_goto_record_num(auparse_state_t *au, unsigned int num)
 /* Accessors to record data */
 int auparse_get_type(auparse_state_t *au)
 {
-	rnode *r = aup_list_get_cur(&au->le);
+	rnode *r = aup_list_get_cur(au->le);
 	if (r) 
 		return r->type;
 	else
@@ -1191,7 +1204,7 @@ int auparse_get_type(auparse_state_t *au)
 
 const char *auparse_get_type_name(auparse_state_t *au)
 {
-	rnode *r = aup_list_get_cur(&au->le);
+	rnode *r = aup_list_get_cur(au->le);
 	if (r)
 		return audit_msg_type_to_name(r->type);
 	else
@@ -1201,7 +1214,7 @@ const char *auparse_get_type_name(auparse_state_t *au)
 
 unsigned int auparse_get_line_number(auparse_state_t *au)
 {
-	rnode *r = aup_list_get_cur(&au->le);
+	rnode *r = aup_list_get_cur(au->le);
 	if (r) 
 		return r->line_number;
 	else
@@ -1220,7 +1233,7 @@ const char *auparse_get_filename(auparse_state_t *au)
 			return NULL;
 	}
 
-	rnode *r = aup_list_get_cur(&au->le);
+	rnode *r = aup_list_get_cur(au->le);
 	if (r) {
 		if (r->list_idx < 0) return NULL;
 		return au->source_list[r->list_idx];
@@ -1232,13 +1245,13 @@ const char *auparse_get_filename(auparse_state_t *au)
 
 int auparse_first_field(auparse_state_t *au)
 {
-	return aup_list_first_field(&au->le);
+	return aup_list_first_field(au->le);
 }
 
 
 int auparse_next_field(auparse_state_t *au)
 {
-	rnode *r = aup_list_get_cur(&au->le);
+	rnode *r = aup_list_get_cur(au->le);
 	if (r) {
 		if (nvlist_next(&r->nv))
 			return 1;
@@ -1251,7 +1264,7 @@ int auparse_next_field(auparse_state_t *au)
 
 unsigned int auparse_get_num_fields(auparse_state_t *au)
 {
-	rnode *r = aup_list_get_cur(&au->le);
+	rnode *r = aup_list_get_cur(au->le);
 	if (r)
 		return nvlist_get_cnt(&r->nv);
 	else
@@ -1260,7 +1273,7 @@ unsigned int auparse_get_num_fields(auparse_state_t *au)
 
 const char *auparse_get_record_text(auparse_state_t *au)
 {
-	rnode *r = aup_list_get_cur(&au->le);
+	rnode *r = aup_list_get_cur(au->le);
 	if (r) 
 		return r->record;
 	else
@@ -1274,12 +1287,12 @@ const char *auparse_find_field(auparse_state_t *au, const char *name)
 	free(au->find_field);
 	au->find_field = strdup(name);
 
-	if (au->le.e.sec) {
+	if (au->le->e.sec) {
 		const char *cur_name;
 		rnode *r;
 
 		// look at current record before moving
-		r = aup_list_get_cur(&au->le);
+		r = aup_list_get_cur(au->le);
 		if (r == NULL)
 			return NULL;
 		cur_name = nvlist_get_cur_name(&r->nv);
@@ -1298,10 +1311,10 @@ const char *auparse_find_field_next(auparse_state_t *au)
 		errno = EINVAL;
 		return NULL;
 	}
-	if (au->le.e.sec) {
+	if (au->le->e.sec) {
 		int moved = 0;
 
-		rnode *r = aup_list_get_cur(&au->le);
+		rnode *r = aup_list_get_cur(au->le);
 		while (r) {	// For each record in the event...
 			if (!moved) {
 				nvlist_next(&r->nv);
@@ -1309,9 +1322,9 @@ const char *auparse_find_field_next(auparse_state_t *au)
 			}
 			if (nvlist_find_name(&r->nv, au->find_field))
 				return nvlist_get_cur_val(&r->nv);
-			r = aup_list_next(&au->le);
+			r = aup_list_next(au->le);
 			if (r)
-				aup_list_first_field(&au->le);
+				aup_list_first_field(au->le);
 		}
 	}
 	return NULL;
@@ -1321,8 +1334,8 @@ const char *auparse_find_field_next(auparse_state_t *au)
 /* Accessors to field data */
 const char *auparse_get_field_name(auparse_state_t *au)
 {
-	if (au->le.e.sec) {
-		rnode *r = aup_list_get_cur(&au->le);
+	if (au->le->e.sec) {
+		rnode *r = aup_list_get_cur(au->le);
 		if (r) 
 			return nvlist_get_cur_name(&r->nv);
 	}
@@ -1332,8 +1345,8 @@ const char *auparse_get_field_name(auparse_state_t *au)
 
 const char *auparse_get_field_str(auparse_state_t *au)
 {
-	if (au->le.e.sec) {
-		rnode *r = aup_list_get_cur(&au->le);
+	if (au->le->e.sec) {
+		rnode *r = aup_list_get_cur(au->le);
 		if (r) 
 			return nvlist_get_cur_val(&r->nv);
 	}
@@ -1342,8 +1355,8 @@ const char *auparse_get_field_str(auparse_state_t *au)
 
 int auparse_get_field_type(auparse_state_t *au)
 {
-        if (au->le.e.sec) {
-                rnode *r = aup_list_get_cur(&au->le);
+        if (au->le->e.sec) {
+                rnode *r = aup_list_get_cur(au->le);
                 if (r)
                         return nvlist_get_cur_type(r);
         }
@@ -1367,8 +1380,8 @@ int auparse_get_field_int(auparse_state_t *au)
 
 const char *auparse_interpret_field(auparse_state_t *au)
 {
-        if (au->le.e.sec) {
-                rnode *r = aup_list_get_cur(&au->le);
+        if (au->le->e.sec) {
+                rnode *r = aup_list_get_cur(au->le);
                 if (r)
                         return nvlist_interp_cur_val(r);
         }

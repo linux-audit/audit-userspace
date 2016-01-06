@@ -974,13 +974,13 @@ compare_values(auparse_state_t *au, rnode *record, const struct expr *expr,
 	}
 	switch (expr->v.p.field.id) {
 	case EF_TIMESTAMP:
-		if (au->le.e.sec < expr->v.p.value.timestamp.sec)
+		if (au->le->e.sec < expr->v.p.value.timestamp.sec)
 			res = -1;
-		else if (au->le.e.sec > expr->v.p.value.timestamp.sec)
+		else if (au->le->e.sec > expr->v.p.value.timestamp.sec)
 			res = 1;
-		else if (au->le.e.milli < expr->v.p.value.timestamp.milli)
+		else if (au->le->e.milli < expr->v.p.value.timestamp.milli)
 			res = -1;
-		else if (au->le.e.milli > expr->v.p.value.timestamp.milli)
+		else if (au->le->e.milli > expr->v.p.value.timestamp.milli)
 			res = 1;
 		else
 			res = 0;
@@ -996,17 +996,17 @@ compare_values(auparse_state_t *au, rnode *record, const struct expr *expr,
 		break;
 
 	case EF_TIMESTAMP_EX:
-		if (au->le.e.sec < expr->v.p.value.timestamp.sec)
+		if (au->le->e.sec < expr->v.p.value.timestamp.sec)
 			res = -1;
-		else if (au->le.e.sec > expr->v.p.value.timestamp.sec)
+		else if (au->le->e.sec > expr->v.p.value.timestamp.sec)
 			res = 1;
-		else if (au->le.e.milli < expr->v.p.value.timestamp.milli)
+		else if (au->le->e.milli < expr->v.p.value.timestamp.milli)
 			res = -1;
-		else if (au->le.e.milli > expr->v.p.value.timestamp.milli)
+		else if (au->le->e.milli > expr->v.p.value.timestamp.milli)
 			res = 1;
-		else if (au->le.e.serial < expr->v.p.value.timestamp_ex.serial)
+		else if (au->le->e.serial < expr->v.p.value.timestamp_ex.serial)
 			res = -1;
-		else if (au->le.e.serial > expr->v.p.value.timestamp_ex.serial)
+		else if (au->le->e.serial > expr->v.p.value.timestamp_ex.serial)
 			res = 1;
 		else
 			res = 0;

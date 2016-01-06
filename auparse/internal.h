@@ -56,7 +56,7 @@ struct opaque
 	char *cur_buf;			// The current buffer being parsed
 	int line_pushed;		// True if retrieve_next_line() 
 					//	returns same input
-	event_list_t le;		// Linked list of record in same event
+	event_list_t * le;		// Linked list of record in same event
 	struct expr *expr;		// Search expression or NULL
 	char *find_field;		// Used to store field name when
 					//	 searching
