@@ -6,6 +6,7 @@
 - In auparse. terminate the generated strings (Burn Alting)
 - In auditd, add incremental_asyn flushing mode
 - Clean up dangling fields in DAEMON events
+- Add audit by process name support to auditctl (Richard Briggs)
 
 2.4.5
 - Fix auditd disk flushing for data and sync modes

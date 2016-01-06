@@ -52,7 +52,7 @@ static const struct msg_tab err_msgtab[] = {
     { -16,    2,    "-F unknown file type - " },
     { -17,    1,    "can only be used with exit and entry filter list" },
     { -18,    1,    "" }, // Unused
-    { -19,    0,    "Key field needs a watch or syscall given prior to it" },
+    { -19,    0,    "Key field needs a watch, syscall or exe path given prior to it" },
     { -20,    2,    "-F missing value after operation for" },
     { -21,    2,    "-F value should be number for" },
     { -22,    2,    "-F missing field name before operator for" },
@@ -62,5 +62,6 @@ static const struct msg_tab err_msgtab[] = {
     { -26,    2,    "-C unknown field:" },
     { -27,    2,    "-C unknown right hand value for comparison with:" },
     { -28,    2,    "Too many fields in rule" },
+    { -29,    2,    "Only takes = operator" },
 };
 #endif

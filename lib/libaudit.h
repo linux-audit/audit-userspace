@@ -278,6 +278,9 @@ extern "C" {
 #ifndef AUDIT_FIELD_COMPARE
 #define AUDIT_FIELD_COMPARE 111
 #endif
+#ifndef AUDIT_EXE
+#define AUDIT_EXE 112
+#endif
 
 #ifndef AUDIT_COMPARE_UID_TO_OBJ_UID
 #define AUDIT_COMPARE_UID_TO_OBJ_UID   1
@@ -584,4 +587,3 @@ extern void audit_rule_free_data(struct audit_rule_data *rule);
 #endif
 
 #endif
-

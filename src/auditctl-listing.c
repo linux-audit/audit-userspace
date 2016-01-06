@@ -63,7 +63,8 @@ int key_match(const struct audit_rule_data *r)
 		}
 		if (((field >= AUDIT_SUBJ_USER && field <= AUDIT_OBJ_LEV_HIGH)
                      && field != AUDIT_PPID) || field == AUDIT_WATCH ||
-			field == AUDIT_DIR || field == AUDIT_FILTERKEY) {
+			field == AUDIT_DIR || field == AUDIT_FILTERKEY
+		     || field == AUDIT_EXE) {
 				boffset += r->values[i];
 		}
 	}
@@ -356,6 +357,10 @@ static void print_rule(const struct audit_rule_data *r)
 					printf(" -F dir=%.*s", r->values[i],
 						&r->buf[boffset]);
 
+				boffset += r->values[i];
+			} else if (field == AUDIT_EXE) {
+				printf(" -F exe=%.*s",
+					r->values[i], &r->buf[boffset]);
 				boffset += r->values[i];
 			} else if (field == AUDIT_FILTERKEY) {
 				char *rkey, *ptr, *saved;

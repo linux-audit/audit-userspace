@@ -131,6 +131,7 @@ extern int audit_send_user_message(int fd, int type, hide_t hide_err,
 extern int _audit_permadded;
 extern int _audit_archadded;
 extern int _audit_syscalladded;
+extern int _audit_exeadded;
 extern unsigned int _audit_elf;
 
 hidden_proto(audit_send_user_message);

@@ -82,6 +82,7 @@ static const struct nv_list failure_actions[] =
 int _audit_permadded = 0;
 int _audit_archadded = 0;
 int _audit_syscalladded = 0;
+int _audit_exeadded = 0;
 unsigned int _audit_elf = 0U;
 static struct libaudit_conf config;
 
@@ -1395,7 +1396,15 @@ int audit_rule_fieldpair_data(struct audit_rule_data **rulep, const char *pair,
 		case AUDIT_SUBJ_SEN:
 		case AUDIT_SUBJ_CLR:
 		case AUDIT_FILTERKEY:
-			if (field == AUDIT_FILTERKEY && !(_audit_syscalladded || _audit_permadded))
+		case AUDIT_EXE:
+			if (field == AUDIT_EXE) {
+				if (op != AUDIT_EQUAL)
+					return -29;
+				_audit_exeadded = 1;
+			}
+			if (field == AUDIT_FILTERKEY &&
+				!(_audit_syscalladded || _audit_permadded ||
+				_audit_exeadded))
                                 return -19;
 			vlen = strlen(v);
 			if (field == AUDIT_FILTERKEY &&
