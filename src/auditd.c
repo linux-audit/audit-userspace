@@ -122,7 +122,7 @@ static void hup_handler( struct ev_loop *loop, struct ev_signal *sig, int revent
 	rc = audit_request_signal_info(fd);
 	if (rc < 0)
 		send_audit_event(AUDIT_DAEMON_CONFIG, 
-				 "auditd error getting hup info - no change, sending auid=? pid=? subj=? res=failed");
+			 "op=hup-info auid=? pid=? subj=? res=failed");
 	else
 		hup_info_requested = 1;
 }
@@ -138,7 +138,7 @@ static void user1_handler(struct ev_loop *loop, struct ev_signal *sig,
 	rc = audit_request_signal_info(fd);
 	if (rc < 0)
 		send_audit_event(AUDIT_DAEMON_ROTATE, 
-				 "auditd error getting usr1 info - no change, sending auid=? pid=? subj=? res=failed");
+			 "op=usr1-info auid=? pid=? subj=? res=failed");
 	else
 		usr1_info_requested = 1;
 }
@@ -154,7 +154,7 @@ static void user2_handler( struct ev_loop *loop, struct ev_signal *sig, int reve
 	if (rc < 0) {
 		resume_logging();
 		send_audit_event(AUDIT_DAEMON_RESUME, 
-			 "auditd resuming logging, sending auid=? pid=? subj=? res=success");
+			 "op=resume-logging auid=? pid=? subj=? res=success");
 	} else
 		usr2_info_requested = 1;
 }
@@ -390,11 +390,11 @@ static void netlink_handler(struct ev_loop *loop, struct ev_io *io,
 			char emsg[DEFAULT_BUF_SZ];
 			if (*subj)
 				snprintf(emsg, sizeof(emsg),
-			"auditd error halt, auid=%u pid=%d subj=%s res=failed",
+			"op=error-halt auid=%u pid=%d subj=%s res=failed",
 					audit_getloginuid(), getpid(), subj);
 			else
 				snprintf(emsg, sizeof(emsg),
-				 "auditd error halt, auid=%u pid=%d res=failed",
+				 "op=error-halt auid=%u pid=%d res=failed",
 					 audit_getloginuid(), getpid());
 			EV_STOP ();
 			send_audit_event(AUDIT_DAEMON_ABORT, emsg);
@@ -426,8 +426,8 @@ static void netlink_handler(struct ev_loop *loop, struct ev_io *io,
 				if (start_config_manager(rep)) {
 					send_audit_event(
 						AUDIT_DAEMON_CONFIG, 
-				  "auditd error getting hup info - no change,"
-				  " sending auid=? pid=? subj=? res=failed");
+				  "op=reconfigure state=no-change "
+				  "auid=? pid=? subj=? res=failed");
 				}
 				rep = NULL;
 				hup_info_requested = 0;
@@ -435,10 +435,10 @@ static void netlink_handler(struct ev_loop *loop, struct ev_io *io,
 				char usr1[MAX_AUDIT_MESSAGE_LENGTH];
 				if (rep->reply.len == 24) {
 					snprintf(usr1, sizeof(usr1),
-					 "auditd sending auid=? pid=? subj=?");
+					 "op=rotate-logs auid=? pid=? subj=?");
 				} else {
 					snprintf(usr1, sizeof(usr1),
-				 "auditd sending auid=%u pid=%d subj=%s",
+				 "op=rotate-logs auid=%u pid=%d subj=%s",
 						 rep->reply.signal_info->uid, 
 						 rep->reply.signal_info->pid,
 						 rep->reply.signal_info->ctx);
@@ -449,13 +449,12 @@ static void netlink_handler(struct ev_loop *loop, struct ev_io *io,
 				char usr2[MAX_AUDIT_MESSAGE_LENGTH];
 				if (rep->reply.len == 24) {
 					snprintf(usr2, sizeof(usr2), 
-						"auditd resuming logging, "
-						"sending auid=? pid=? subj=? "
-						"res=success");
+						"op=resume-logging auid=? "
+						"pid=? subj=? res=success");
 				} else {
 					snprintf(usr2, sizeof(usr2),
-						"auditd resuming logging, "
-				  "sending auid=%u pid=%d subj=%s res=success",
+						"op=resume-logging "
+					"auid=%u pid=%d subj=%s res=success",
 						 rep->reply.signal_info->uid, 
 						 rep->reply.signal_info->pid,
 						 rep->reply.signal_info->ctx);
@@ -673,13 +672,13 @@ int main(int argc, char *argv[])
 		}
 		if (getsubj(subj))
 			snprintf(start, sizeof(start),
-				"auditd start, ver=%s format=%s "
+				"op=start ver=%s format=%s "
 			    "kernel=%.56s auid=%u pid=%d subj=%s res=success",
 				VERSION, fmt, ubuf.release,
 				audit_getloginuid(), getpid(), subj);
 		else
 			snprintf(start, sizeof(start),
-				"auditd start, ver=%s format=%s "
+				"op=start ver=%s format=%s "
 				"kernel=%.56s auid=%u pid=%d res=success",
 				VERSION, fmt, ubuf.release,
 				audit_getloginuid(), getpid());
@@ -705,11 +704,11 @@ int main(int argc, char *argv[])
 		char emsg[DEFAULT_BUF_SZ];
 		if (*subj)
 			snprintf(emsg, sizeof(emsg),
-			"auditd error halt, auid=%u pid=%d subj=%s res=failed",
+			"op=set-enable auid=%u pid=%d subj=%s res=failed",
 				audit_getloginuid(), getpid(), subj);
 		else
 			snprintf(emsg, sizeof(emsg),
-				"auditd error halt, auid=%u pid=%d res=failed",
+				"op=set-enable auid=%u pid=%d res=failed",
 				audit_getloginuid(), getpid());
 		stop = 1;
 		send_audit_event(AUDIT_DAEMON_ABORT, emsg);
@@ -730,11 +729,11 @@ int main(int argc, char *argv[])
 		char emsg[DEFAULT_BUF_SZ];
 		if (*subj)
 			snprintf(emsg, sizeof(emsg),
-			"auditd error halt, auid=%u pid=%d subj=%s res=failed",
+			"op=set-pid auid=%u pid=%d subj=%s res=failed",
 				audit_getloginuid(), getpid(), subj);
 		else
 			snprintf(emsg, sizeof(emsg),
-				"auditd error halt, auid=%u pid=%d res=failed",
+				"op=set-pid auid=%u pid=%d res=failed",
 				audit_getloginuid(), getpid());
 		stop = 1;
 		send_audit_event(AUDIT_DAEMON_ABORT, emsg);
@@ -776,11 +775,11 @@ int main(int argc, char *argv[])
 		char emsg[DEFAULT_BUF_SZ];
 		if (*subj)
 			snprintf(emsg, sizeof(emsg),
-			"auditd error halt, auid=%u pid=%d subj=%s res=failed",
+			"op=network-init auid=%u pid=%d subj=%s res=failed",
 				audit_getloginuid(), getpid(), subj);
 		else
 			snprintf(emsg, sizeof(emsg),
-				"auditd error halt, auid=%u pid=%d res=failed",
+				"op=network-init auid=%u pid=%d res=failed",
 				audit_getloginuid(), getpid());
 		stop = 1;
 		send_audit_event(AUDIT_DAEMON_ABORT, emsg);
@@ -820,7 +819,7 @@ int main(int argc, char *argv[])
 		if (rc > 0) {
 			char txt[MAX_AUDIT_MESSAGE_LENGTH];
 			snprintf(txt, sizeof(txt),
-				"auditd normal halt, sending auid=%u "
+				"op=terminate auid=%u "
 				"pid=%d subj=%s res=success",
 				 trep.signal_info->uid,
 				 trep.signal_info->pid, 
@@ -830,8 +829,7 @@ int main(int argc, char *argv[])
 	} 
 	if (rc <= 0)
 		send_audit_event(AUDIT_DAEMON_END, 
-				"auditd normal halt, sending auid=? "
-				"pid=? subj=? res=success");
+			"op=terminate auid=? pid=? subj=? res=success");
 	free(rep);
 
 	// Tear down IO watchers Part 2

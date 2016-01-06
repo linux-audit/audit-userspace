@@ -1018,11 +1018,11 @@ static char *format_raw(const struct audit_reply *rep,
 		if (config->node_name_format != N_NONE)
 			snprintf(format_buf, MAX_AUDIT_MESSAGE_LENGTH +
 				_POSIX_HOST_NAME_MAX - 32,
-				"node=%s type=DAEMON msg=NULL reply",
+		"node=%s type=DAEMON_ERR op=format-raw msg=NULL res=failed",
                                 config->node_name);
 		else
 	        	snprintf(format_buf, MAX_AUDIT_MESSAGE_LENGTH,
-				"type=DAEMON msg=NULL reply");
+			  "type=DAEMON_ERR op=format-raw msg=NULL res=failed");
 	} else {
 		int len, nlen;
 		const char *type, *message;
@@ -1348,8 +1348,8 @@ static void reconfigure(struct auditd_consumer_data *data)
         }
 
 	data->head->reply.len = snprintf(txt, sizeof(txt), 
-		"%s config changed, auid=%u pid=%d subj=%s res=success", date, 
-		uid, pid, ctx );
+	"%s op=reconfigure state=changed auid=%u pid=%d subj=%s res=success",
+		date, uid, pid, ctx );
 	audit_msg(LOG_NOTICE, "%s", txt);
 	data->head->reply.type = AUDIT_DAEMON_CONFIG;
 	data->head->reply.message = strdup(txt);

@@ -1,5 +1,5 @@
 /* msg_typetab.h --
- * Copyright 2005-07,2009-15 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2005-07,2009-16 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -90,6 +90,7 @@ _S(AUDIT_DAEMON_ROTATE,              "DAEMON_ROTATE"                 )
 _S(AUDIT_DAEMON_RESUME,              "DAEMON_RESUME"                 )
 _S(AUDIT_DAEMON_ACCEPT,              "DAEMON_ACCEPT"                 )
 _S(AUDIT_DAEMON_CLOSE,               "DAEMON_CLOSE"                  )
+_S(AUDIT_DAEMON_ERR,                 "DAEMON_ERR"                    )
 _S(AUDIT_SYSCALL,                    "SYSCALL"                       )
 //_S(AUDIT_FS_WATCH,                 "FS_WATCH"                      )
 _S(AUDIT_PATH,                       "PATH"                          )

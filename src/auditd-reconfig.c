@@ -116,7 +116,7 @@ static void *config_thread_main(void *arg)
 		// need to send a failed event message
 		char txt[MAX_AUDIT_MESSAGE_LENGTH];
 		snprintf(txt, sizeof(txt),
-	    "reconfig aborted, sending auid=%u pid=%d subj=%s res=failed",
+	    "op=reconfigure state=no-change auid=%u pid=%d subj=%s res=failed",
 			rep->reply.signal_info->uid,
 			rep->reply.signal_info->pid,
 			(rep->reply.len > 24) ? 

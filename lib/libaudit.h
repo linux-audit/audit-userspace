@@ -1,5 +1,5 @@
 /* libaudit.h -- 
- * Copyright 2004-2015 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2004-2016 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -104,6 +104,7 @@ extern "C" {
 #define AUDIT_DAEMON_RESUME	1206	/* Auditd should resume logging */
 #define AUDIT_DAEMON_ACCEPT	1207    /* Auditd accepted remote connection */
 #define AUDIT_DAEMON_CLOSE	1208    /* Auditd closed remote connection */
+#define AUDIT_DAEMON_ERR	1209    /* Auditd internal error */
 
 #define AUDIT_FIRST_EVENT	1300
 #define AUDIT_LAST_EVENT	1399

@@ -5,6 +5,7 @@
 - Make default flush setting larger
 - In auparse. terminate the generated strings (Burn Alting)
 - In auditd, add incremental_asyn flushing mode
+- Clean up dangling fields in DAEMON events
 
 2.4.5
 - Fix auditd disk flushing for data and sync modes
