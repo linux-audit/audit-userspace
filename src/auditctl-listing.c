@@ -476,7 +476,7 @@ const char *get_enable(unsigned e)
 		case 1:
 			return "enabled";
 		case 2:
-			return "enabl;ed+immutable";
+			return "enabled+immutable";
 		default:
 			return "unknown";
 	}

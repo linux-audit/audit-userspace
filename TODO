@@ -1,6 +1,7 @@
 Things that need to be done:
 ===========================
 2.5.1
+* Allow passing config file location as a command line parameter
 * Add support for enriched data: uid/gid, hostname, contexts
 * Fix ausearch/report to handle aggregated events
 * interpret contexts
