@@ -1,5 +1,5 @@
 /* auditctl.c -- 
- * Copyright 2004-2015 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2004-2016 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -932,11 +932,11 @@ static int setopt(int count, int lineno, char *vars[])
 		}
 		break;
 	case 'k':
-		if (!(_audit_syscalladded || _audit_permadded || _audit_exeadded) ||
-				(add==AUDIT_FILTER_UNSET &&
+		if (!(_audit_syscalladded || _audit_permadded ||
+			     _audit_exeadded) || (add==AUDIT_FILTER_UNSET &&
 					del==AUDIT_FILTER_UNSET)) {
 			audit_msg(LOG_ERR,
-			"key option needs a watch or syscall given prior to it");
+		    "key option needs a watch or syscall given prior to it");
 			retval = -1;
 		} else if (!optarg) {
 			audit_msg(LOG_ERR, "key option needs a value");

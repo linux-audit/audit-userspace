@@ -921,19 +921,24 @@ int audit_rule_interfield_comp_data(struct audit_rule_data **rulep,
 		case AUDIT_EUID:
 			switch(field2) {
 			case AUDIT_LOGINUID:
-				rule->values[rule->field_count] = AUDIT_COMPARE_AUID_TO_EUID;
+				rule->values[rule->field_count] =
+						AUDIT_COMPARE_AUID_TO_EUID;
 				break;
 			case AUDIT_FSUID:
-				rule->values[rule->field_count] = AUDIT_COMPARE_EUID_TO_FSUID;
+				rule->values[rule->field_count] =
+						AUDIT_COMPARE_EUID_TO_FSUID;
 				break;
 			case AUDIT_OBJ_UID:
-				rule->values[rule->field_count] = AUDIT_COMPARE_EUID_TO_OBJ_UID;
+				rule->values[rule->field_count] =
+						AUDIT_COMPARE_EUID_TO_OBJ_UID;
 				break;
 			case AUDIT_SUID:
-				rule->values[rule->field_count] = AUDIT_COMPARE_EUID_TO_SUID;
+				rule->values[rule->field_count] =
+						AUDIT_COMPARE_EUID_TO_SUID;
 				break;
 			case AUDIT_UID:
-				rule->values[rule->field_count] = AUDIT_COMPARE_UID_TO_EUID;
+				rule->values[rule->field_count] =
+						AUDIT_COMPARE_UID_TO_EUID;
 				break;
 			default:
 				return -1;
@@ -942,19 +947,24 @@ int audit_rule_interfield_comp_data(struct audit_rule_data **rulep,
 		case AUDIT_FSUID:
 			switch(field2) {
 			case AUDIT_LOGINUID:
-				rule->values[rule->field_count] = AUDIT_COMPARE_AUID_TO_FSUID;
+				rule->values[rule->field_count] =
+						AUDIT_COMPARE_AUID_TO_FSUID;
 				break;
 			case AUDIT_EUID:
-				rule->values[rule->field_count] = AUDIT_COMPARE_EUID_TO_FSUID;
+				rule->values[rule->field_count] =
+						AUDIT_COMPARE_EUID_TO_FSUID;
 				break;
 			case AUDIT_OBJ_UID:
-				rule->values[rule->field_count] = AUDIT_COMPARE_FSUID_TO_OBJ_UID;
+				rule->values[rule->field_count] =
+						AUDIT_COMPARE_FSUID_TO_OBJ_UID;
 				break;
 			case AUDIT_SUID:
-				rule->values[rule->field_count] = AUDIT_COMPARE_SUID_TO_FSUID;
+				rule->values[rule->field_count] =
+						AUDIT_COMPARE_SUID_TO_FSUID;
 				break;
 			case AUDIT_UID:
-				rule->values[rule->field_count] = AUDIT_COMPARE_UID_TO_FSUID;
+				rule->values[rule->field_count] =
+						AUDIT_COMPARE_UID_TO_FSUID;
 				break;
 			default:
 				return -1;
@@ -963,19 +973,24 @@ int audit_rule_interfield_comp_data(struct audit_rule_data **rulep,
 		case AUDIT_LOGINUID:
 			switch(field2) {
 			case AUDIT_EUID:
-				rule->values[rule->field_count] = AUDIT_COMPARE_AUID_TO_EUID;
+				rule->values[rule->field_count] =
+						AUDIT_COMPARE_AUID_TO_EUID;
 				break;
 			case AUDIT_FSUID:
-				rule->values[rule->field_count] = AUDIT_COMPARE_AUID_TO_FSUID;
+				rule->values[rule->field_count] =
+						AUDIT_COMPARE_AUID_TO_FSUID;
 				break;
 			case AUDIT_OBJ_UID:
-				rule->values[rule->field_count] = AUDIT_COMPARE_AUID_TO_OBJ_UID;
+				rule->values[rule->field_count] =
+						AUDIT_COMPARE_AUID_TO_OBJ_UID;
 				break;
 			case AUDIT_SUID:
-				rule->values[rule->field_count] = AUDIT_COMPARE_AUID_TO_SUID;
+				rule->values[rule->field_count] =
+						AUDIT_COMPARE_AUID_TO_SUID;
 				break;
 			case AUDIT_UID:
-				rule->values[rule->field_count] = AUDIT_COMPARE_UID_TO_AUID;
+				rule->values[rule->field_count] =
+						AUDIT_COMPARE_UID_TO_AUID;
 				break;
 			default:
 				return -1;
@@ -984,19 +999,24 @@ int audit_rule_interfield_comp_data(struct audit_rule_data **rulep,
 		case AUDIT_SUID:
 			switch(field2) {
 			case AUDIT_LOGINUID:
-				rule->values[rule->field_count] = AUDIT_COMPARE_AUID_TO_SUID;
+				rule->values[rule->field_count] =
+						AUDIT_COMPARE_AUID_TO_SUID;
 				break;
 			case AUDIT_EUID:
-				rule->values[rule->field_count] = AUDIT_COMPARE_EUID_TO_SUID;
+				rule->values[rule->field_count] =
+						AUDIT_COMPARE_EUID_TO_SUID;
 				break;
 			case AUDIT_FSUID:
-				rule->values[rule->field_count] = AUDIT_COMPARE_SUID_TO_FSUID;
+				rule->values[rule->field_count] =
+						AUDIT_COMPARE_SUID_TO_FSUID;
 				break;
 			case AUDIT_OBJ_UID:
-				rule->values[rule->field_count] = AUDIT_COMPARE_SUID_TO_OBJ_UID;
+				rule->values[rule->field_count] =
+						AUDIT_COMPARE_SUID_TO_OBJ_UID;
 				break;
 			case AUDIT_UID:
-				rule->values[rule->field_count] = AUDIT_COMPARE_UID_TO_SUID;
+				rule->values[rule->field_count] =
+						AUDIT_COMPARE_UID_TO_SUID;
 				break;
 			default:
 				return -1;
@@ -1005,19 +1025,24 @@ int audit_rule_interfield_comp_data(struct audit_rule_data **rulep,
 		case AUDIT_OBJ_UID:
 			switch(field2) {
 			case AUDIT_LOGINUID:
-				rule->values[rule->field_count] = AUDIT_COMPARE_AUID_TO_OBJ_UID;
+				rule->values[rule->field_count] =
+						AUDIT_COMPARE_AUID_TO_OBJ_UID;
 				break;
 			case AUDIT_EUID:
-				rule->values[rule->field_count] = AUDIT_COMPARE_EUID_TO_OBJ_UID;
+				rule->values[rule->field_count] =
+						AUDIT_COMPARE_EUID_TO_OBJ_UID;
 				break;
 			case AUDIT_FSUID:
-				rule->values[rule->field_count] = AUDIT_COMPARE_FSUID_TO_OBJ_UID;
+				rule->values[rule->field_count] =
+						AUDIT_COMPARE_FSUID_TO_OBJ_UID;
 				break;
 			case AUDIT_UID:
-				rule->values[rule->field_count] = AUDIT_COMPARE_UID_TO_OBJ_UID;
+				rule->values[rule->field_count] =
+						AUDIT_COMPARE_UID_TO_OBJ_UID;
 				break;
 			case AUDIT_SUID:
-				rule->values[rule->field_count] = AUDIT_COMPARE_SUID_TO_OBJ_UID;
+				rule->values[rule->field_count] =
+						AUDIT_COMPARE_SUID_TO_OBJ_UID;
 				break;
 			default:
 				return -1;
@@ -1026,19 +1051,24 @@ int audit_rule_interfield_comp_data(struct audit_rule_data **rulep,
 		case AUDIT_UID:
 			switch(field2) {
 			case AUDIT_LOGINUID:
-				rule->values[rule->field_count] = AUDIT_COMPARE_UID_TO_AUID;
+				rule->values[rule->field_count] =
+						AUDIT_COMPARE_UID_TO_AUID;
 				break;
 			case AUDIT_EUID:
-				rule->values[rule->field_count] = AUDIT_COMPARE_UID_TO_EUID;
+				rule->values[rule->field_count] =
+						AUDIT_COMPARE_UID_TO_EUID;
 				break;
 			case AUDIT_FSUID:
-				rule->values[rule->field_count] = AUDIT_COMPARE_UID_TO_FSUID;
+				rule->values[rule->field_count] =
+						AUDIT_COMPARE_UID_TO_FSUID;
 				break;
 			case AUDIT_OBJ_UID:
-				rule->values[rule->field_count] = AUDIT_COMPARE_UID_TO_OBJ_UID;
+				rule->values[rule->field_count] =
+						AUDIT_COMPARE_UID_TO_OBJ_UID;
 				break;
 			case AUDIT_SUID:
-				rule->values[rule->field_count] = AUDIT_COMPARE_UID_TO_SUID;
+				rule->values[rule->field_count] =
+						AUDIT_COMPARE_UID_TO_SUID;
 				break;
 			default:
 				return -1;
@@ -1049,16 +1079,20 @@ int audit_rule_interfield_comp_data(struct audit_rule_data **rulep,
 		case AUDIT_EGID:
 			switch(field2) {
 			case AUDIT_FSGID:
-				rule->values[rule->field_count] = AUDIT_COMPARE_EGID_TO_FSGID;
+				rule->values[rule->field_count] =
+						AUDIT_COMPARE_EGID_TO_FSGID;
 				break;
 			case AUDIT_GID:
-				rule->values[rule->field_count] = AUDIT_COMPARE_GID_TO_EGID;
+				rule->values[rule->field_count] =
+						AUDIT_COMPARE_GID_TO_EGID;
 				break;
 			case AUDIT_OBJ_GID:
-				rule->values[rule->field_count] = AUDIT_COMPARE_EGID_TO_OBJ_GID;
+				rule->values[rule->field_count] =
+						AUDIT_COMPARE_EGID_TO_OBJ_GID;
 				break;
 			case AUDIT_SGID:
-				rule->values[rule->field_count] = AUDIT_COMPARE_EGID_TO_SGID;
+				rule->values[rule->field_count] =
+						AUDIT_COMPARE_EGID_TO_SGID;
 				break;
 			default:
 				return -1;
@@ -1067,16 +1101,20 @@ int audit_rule_interfield_comp_data(struct audit_rule_data **rulep,
 		case AUDIT_FSGID:
 			switch(field2) {
 			case AUDIT_SGID:
-				rule->values[rule->field_count] = AUDIT_COMPARE_SGID_TO_FSGID;
+				rule->values[rule->field_count] =
+						AUDIT_COMPARE_SGID_TO_FSGID;
 				break;
 			case AUDIT_GID:
-				rule->values[rule->field_count] = AUDIT_COMPARE_GID_TO_FSGID;
+				rule->values[rule->field_count] =
+						AUDIT_COMPARE_GID_TO_FSGID;
 				break;
 			case AUDIT_OBJ_GID:
-				rule->values[rule->field_count] = AUDIT_COMPARE_FSGID_TO_OBJ_GID;
+				rule->values[rule->field_count] =
+						AUDIT_COMPARE_FSGID_TO_OBJ_GID;
 				break;
 			case AUDIT_EGID:
-				rule->values[rule->field_count] = AUDIT_COMPARE_EGID_TO_FSGID;
+				rule->values[rule->field_count] =
+						 AUDIT_COMPARE_EGID_TO_FSGID;
 				break;
 			default:
 				return -1;
@@ -1085,16 +1123,20 @@ int audit_rule_interfield_comp_data(struct audit_rule_data **rulep,
 		case AUDIT_GID:
 			switch(field2) {
 			case AUDIT_EGID:
-				rule->values[rule->field_count] = AUDIT_COMPARE_GID_TO_EGID;
+				rule->values[rule->field_count] =
+						AUDIT_COMPARE_GID_TO_EGID;
 				break;
 			case AUDIT_FSGID:
-				rule->values[rule->field_count] = AUDIT_COMPARE_GID_TO_FSGID;
+				rule->values[rule->field_count] =
+						AUDIT_COMPARE_GID_TO_FSGID;
 				break;
 			case AUDIT_OBJ_GID:
-				rule->values[rule->field_count] = AUDIT_COMPARE_GID_TO_OBJ_GID;
+				rule->values[rule->field_count] =
+						AUDIT_COMPARE_GID_TO_OBJ_GID;
 				break;
 			case AUDIT_SGID:
-				rule->values[rule->field_count] = AUDIT_COMPARE_GID_TO_SGID;
+				rule->values[rule->field_count] =
+						AUDIT_COMPARE_GID_TO_SGID;
 				break;
 			default:
 				return -1;
@@ -1103,16 +1145,20 @@ int audit_rule_interfield_comp_data(struct audit_rule_data **rulep,
 		case AUDIT_OBJ_GID:
 			switch(field2) {
 			case AUDIT_EGID:
-				rule->values[rule->field_count] = AUDIT_COMPARE_EGID_TO_OBJ_GID;
+				rule->values[rule->field_count] =
+						AUDIT_COMPARE_EGID_TO_OBJ_GID;
 				break;
 			case AUDIT_FSGID:
-				rule->values[rule->field_count] = AUDIT_COMPARE_FSGID_TO_OBJ_GID;
+				rule->values[rule->field_count] =
+						AUDIT_COMPARE_FSGID_TO_OBJ_GID;
 				break;
 			case AUDIT_GID:
-				rule->values[rule->field_count] = AUDIT_COMPARE_GID_TO_OBJ_GID;
+				rule->values[rule->field_count] =
+						AUDIT_COMPARE_GID_TO_OBJ_GID;
 				break;
 			case AUDIT_SGID:
-				rule->values[rule->field_count] = AUDIT_COMPARE_SGID_TO_OBJ_GID;
+				rule->values[rule->field_count] =
+						AUDIT_COMPARE_SGID_TO_OBJ_GID;
 				break;
 			default:
 				return -1;
@@ -1121,16 +1167,20 @@ int audit_rule_interfield_comp_data(struct audit_rule_data **rulep,
 		case AUDIT_SGID:
 			switch(field2) {
 			case AUDIT_FSGID:
-				rule->values[rule->field_count] = AUDIT_COMPARE_SGID_TO_FSGID;
+				rule->values[rule->field_count] =
+						AUDIT_COMPARE_SGID_TO_FSGID;
 				break;
 			case AUDIT_GID:
-				rule->values[rule->field_count] = AUDIT_COMPARE_GID_TO_SGID;
+				rule->values[rule->field_count] =
+						AUDIT_COMPARE_GID_TO_SGID;
 				break;
 			case AUDIT_OBJ_GID:
-				rule->values[rule->field_count] = AUDIT_COMPARE_SGID_TO_OBJ_GID;
+				rule->values[rule->field_count] =
+						AUDIT_COMPARE_SGID_TO_OBJ_GID;
 				break;
 			case AUDIT_EGID:
-				rule->values[rule->field_count] = AUDIT_COMPARE_EGID_TO_SGID;
+				rule->values[rule->field_count] =
+						AUDIT_COMPARE_EGID_TO_SGID;
 				break;
 			default:
 				return -1;
@@ -1493,7 +1543,8 @@ int audit_rule_fieldpair_data(struct audit_rule_data **rulep, const char *pair,
 			}
 			break;
 		case AUDIT_FILETYPE:
-			if (!(flags == AUDIT_FILTER_EXIT || flags == AUDIT_FILTER_ENTRY))
+			if (!(flags == AUDIT_FILTER_EXIT ||
+						flags == AUDIT_FILTER_ENTRY))
 				return -17;
 			rule->values[rule->field_count] = 
 				audit_name_to_ftype(v);
