@@ -200,7 +200,8 @@ static void check_events(lol *lo, time_t sec)
 			if (cur->l->e.sec + 2 < sec) { 
 				cur->status = L_COMPLETE;
 				ready++;
-			} else if (cur->l->e.type < AUDIT_FIRST_EVENT ||
+			} else if (cur->l->e.type == AUDIT_PROCTITLE ||
+				    cur->l->e.type < AUDIT_FIRST_EVENT ||
 				    cur->l->e.type >= AUDIT_FIRST_ANOM_MSG) {
 				// If known to be 1 record event, we are done
 				cur->status = L_COMPLETE;
