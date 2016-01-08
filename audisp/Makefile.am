@@ -27,7 +27,7 @@ AM_CPPFLAGS = -I${top_srcdir} -I${top_srcdir}/lib
 sbin_PROGRAMS = audispd
 noinst_HEADERS = audispd-config.h audispd-pconfig.h audispd-llist.h \
 	queue.h audispd-builtins.h
-LIBS = -laudit 
+LIBS = -L${top_builddir}/lib -laudit 
 LDADD = -lpthread
 AM_CFLAGS = -D_REENTRANT 
 
