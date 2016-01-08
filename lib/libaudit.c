@@ -1261,7 +1261,7 @@ int audit_determine_machine(const char *arch)
 #ifdef WITH_AARCH64
 		case MACH_AARCH64:
 			if (bits && bits != __AUDIT_ARCH_64BIT)
-				return -6;
+				return -6; // Deadcode - just incase of mistake
 			break;
 #endif
 		case MACH_86_64:   /* fallthrough */
