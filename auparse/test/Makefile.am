@@ -47,7 +47,7 @@ check: auparse_test auparselol_test
 	./auparse_test > auparse_test.cur
 	diff -u $(top_srcdir)/auparse/test/auparse_test.ref auparse_test.cur
 	./auparselol_test -f test3.log --check | sort > auparse_test.cur
-	sed -f ./auditd_raw.sed test3.log | sort > auparse_test.raw
+	sed -f $(top_srcdir)/auparse/test/auditd_raw.sed test3.log | sort > auparse_test.raw
 	diff -u auparse_test.raw auparse_test.cur
 if HAVE_PYTHON
 	cp ${top_builddir}/bindings/swig/python/.libs/_audit.so ${top_builddir}/bindings/swig/python
