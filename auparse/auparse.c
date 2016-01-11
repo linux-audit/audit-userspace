@@ -518,7 +518,6 @@ auparse_state_t *auparse_init(ausource_t source, const void *b)
 			au->source_list = tmp;
 			break;
 		case AUSOURCE_BUFFER:
-			buf = buf;
 			len = strlen(buf);
 			if (databuf_init(&au->databuf, len,
 					 DATABUF_FLAG_PRESERVE_HEAD) < 0)
