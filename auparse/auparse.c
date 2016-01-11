@@ -201,7 +201,7 @@ static int au_ready = 0;
  *   NULL - no memory
  *   ptr  - pointer to array of event nodes (au_lolnode)
  */
-au_lolnode *au_lol_create(au_lol *lol)
+static au_lolnode *au_lol_create(au_lol *lol)
 {
 	int sz = ARRAY_LIMIT * sizeof(au_lolnode);
 
@@ -226,7 +226,7 @@ au_lolnode *au_lol_create(au_lol *lol)
  * Rtns:
  *	void
  */
-void au_lol_clear(au_lol * lol, int reset)
+static void au_lol_clear(au_lol * lol, int reset)
 {
 	int i;
 
@@ -262,7 +262,7 @@ void au_lol_clear(au_lol * lol, int reset)
  *   ptr  - pointer to au_lolnode which holds the event list structure
  *   NULL - failed to reallocate memory
  */
-au_lolnode *au_lol_append(au_lol *lol, event_list_t *l)
+static au_lolnode *au_lol_append(au_lol *lol, event_list_t *l)
 {
 	int i;
 	size_t new_size;
