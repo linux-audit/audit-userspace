@@ -65,5 +65,4 @@ _S(AUDIT_ARG2,         "a2"           )
 _S(AUDIT_ARG3,         "a3"           )
 
 _S(AUDIT_FILTERKEY,    "key"          )
-
 _S(AUDIT_EXE,          "exe"          )

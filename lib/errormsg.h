@@ -1,5 +1,6 @@
 /* errormsg.h --
  * Copyright 2008 FUJITSU Inc.
+ * Copyright 2012-16 Red Hat
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -18,6 +19,7 @@
  *
  * Authors:
  *      Zhang Xiliang <zhangxiliang@cn.fujitsu.com>
+ *      Steve Grubb <sgrubb@redhat.com>
  */
 
 struct msg_tab {
@@ -51,17 +53,18 @@ static const struct msg_tab err_msgtab[] = {
     { -15,    2,    "-F unknown errno -"},
     { -16,    2,    "-F unknown file type - " },
     { -17,    1,    "can only be used with exit and entry filter list" },
-    { -18,    1,    "" }, // Unused
+    { -18,    1,    "" }, // Deprecated don't reuse
     { -19,    0,    "Key field needs a watch, syscall or exe path given prior to it" },
     { -20,    2,    "-F missing value after operation for" },
     { -21,    2,    "-F value should be number for" },
     { -22,    2,    "-F missing field name before operator for" },
-    { -23,    2,    "" }, // Unused
+    { -23,    2,    "" }, // Deprecated don't reuse
     { -24,    2,    "-C missing field name before operator for" },
     { -25,    2,    "-C missing value after operation for "},
     { -26,    2,    "-C unknown field:" },
     { -27,    2,    "-C unknown right hand value for comparison with:" },
-    { -28,    2,    "Too many fields in rule" },
-    { -29,    2,    "Only takes = operator" },
+    { -28,    2,    "Too many fields in rule:" },
+    { -29,    1,    "only takes = operator" },
+    { -30,    2,    "Field option not supported by kernel:" },
 };
 #endif

@@ -567,6 +567,64 @@ extern int  audit_set_loginuid_immutable(int fd)
 #endif
 }
 
+#define AUDIT_FEATURES_UNSET 0xFFFFFFFF
+#define AUDIT_FEATURES_UNSUPPORTED 0xEFFFFFFF
+static uint32_t features_bitmap = AUDIT_FEATURES_UNSET;
+static void load_feature_bitmap(void)
+{
+	int rc, fd;
+
+	fd = audit_open();
+	if (fd < 0) {
+		features_bitmap = AUDIT_FEATURES_UNSUPPORTED;
+		return;
+	}
+
+	if ((rc = audit_request_status(fd)) > 0) {
+		struct audit_reply rep;
+		int i;
+		int timeout = 40; /* tenths of seconds */
+		struct pollfd pfd[1];
+
+		pfd[0].fd = fd;
+		pfd[0].events = POLLIN;
+
+	        for (i = 0; i < timeout; i++) {
+			do {
+				rc = poll(pfd, 1, 100);
+			} while (rc < 0 && errno == EINTR);
+
+			rc = audit_get_reply(fd, &rep, GET_REPLY_NONBLOCKING,0);
+			if (rc > 0) {
+                	        /* If we get done or error, break out */
+                        	if (rep.type == NLMSG_DONE || 
+					rep.type == NLMSG_ERROR)
+	                                break;
+
+        	                /* If its not status, keep looping */
+	                        if (rep.type != AUDIT_GET)
+        	                        continue;
+
+				/* Found it... */
+				features_bitmap = rep.status->feature_bitmap;
+				return;
+			}
+		}
+	}
+	features_bitmap = AUDIT_FEATURES_UNSUPPORTED;
+}
+
+uint32_t audit_get_features(void)
+{
+	if (features_bitmap == AUDIT_FEATURES_UNSET)
+		load_feature_bitmap();
+
+	if (features_bitmap == AUDIT_FEATURES_UNSUPPORTED)
+		return 0;
+
+	return features_bitmap;
+}
+
 int audit_request_rules_list_data(int fd)
 {
 	int rc = audit_send(fd, AUDIT_LIST_RULES, NULL, 0);
@@ -1448,6 +1506,9 @@ int audit_rule_fieldpair_data(struct audit_rule_data **rulep, const char *pair,
 		case AUDIT_FILTERKEY:
 		case AUDIT_EXE:
 			if (field == AUDIT_EXE) {
+				uint32_t features = audit_get_features();
+				if ((features & AUDIT_FEATURE_BITMAP_EXECUTABLE_PATH) == 0)
+					return -30;
 				if (op != AUDIT_EQUAL)
 					return -29;
 				_audit_exeadded = 1;

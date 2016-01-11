@@ -268,6 +268,17 @@ extern "C" {
 #define AUDIT_FILTER_MASK	0x07	/* Mask to get actual filter */
 #define AUDIT_FILTER_UNSET	0x80	/* This value means filter is unset */
 
+/* These defines describe what features are in the kernel */
+#ifndef AUDIT_FEATURE_BITMAP_BACKLOG_LIMIT
+#define AUDIT_FEATURE_BITMAP_BACKLOG_LIMIT      0x00000001
+#endif
+#ifndef AUDIT_FEATURE_BITMAP_BACKLOG_WAIT_TIME
+#define AUDIT_FEATURE_BITMAP_BACKLOG_WAIT_TIME  0x00000002
+#endif
+#ifndef AUDIT_FEATURE_BITMAP_EXECUTABLE_PATH
+#define AUDIT_FEATURE_BITMAP_EXECUTABLE_PATH    0x00000004
+#endif
+
 /* Defines for interfield comparison update */
 #ifndef AUDIT_OBJ_UID
 #define AUDIT_OBJ_UID  109
@@ -508,6 +519,7 @@ extern int audit_request_status(int fd);
 extern int audit_is_enabled(int fd);
 extern int get_auditfail_action(auditfail_t *failmode);
 extern int audit_request_features(int fd);
+extern uint32_t audit_get_features(void);
 
 /* AUDIT_SET */
 typedef enum { WAIT_NO, WAIT_YES } rep_wait_t;
