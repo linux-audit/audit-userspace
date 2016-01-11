@@ -265,6 +265,6 @@ fi
 
 
 %changelog
-* Fri Dec 18 2015 Steve Grubb <sgrubb@redhat.com> 2.5-1
+* Mon Jan 11 2016 Steve Grubb <sgrubb@redhat.com> 2.5-1
 - New upstream release
 
