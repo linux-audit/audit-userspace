@@ -46,6 +46,7 @@
 -w /etc/issue -p wa -k system-locale
 -w /etc/issue.net -p wa -k system-locale
 -w /etc/hosts -p wa -k system-locale
+-w /etc/hostname -p wa -k system-locale
 -a always,exit -F dir=/etc/NetworkManager/ -F perm=wa -F key=system-locale
 
 ## Things that could affect MAC policy

@@ -6,7 +6,8 @@ following meanings:
 20 - Rules that could match general rules but we want a different match
 30 - Main rules
 40 - Optional rules
-50 - System local rules
+50 - Server Specific rules
+70 - System local rules
 90 - Finalize (immutable)
 
 There is one set of rules, 31-privileged.rules, that should be regenerated.
