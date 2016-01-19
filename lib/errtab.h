@@ -1,5 +1,5 @@
 /* errtab.h --
- * Copyright 2007 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2007,2016 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -18,9 +18,11 @@
  *
  * Authors:
  *      Steve Grubb <sgrubb@redhat.com>
+ *      Locations:	/usr/include/asm-generic/errno-base.h
+ *      		 /usr/include/asm-generic/errno.h
  */
 
-_S(EPERM,		"EPERM"			)
+_S(EPERM,		"EPERM"			) // start of errno-base.h
 _S(ENOENT,		"ENOENT"		)
 _S(ESRCH,		"ESRCH"			)
 _S(EINTR,		"EINTR"			)
@@ -54,7 +56,7 @@ _S(EMLINK,		"EMLINK"		)
 _S(EPIPE,		"EPIPE"			)
 _S(EDOM,		"EDOM"			)
 _S(ERANGE,		"ERANGE"		)
-_S(EDEADLK,		"EDEADLK"		)
+_S(EDEADLK,		"EDEADLK"		) // start asm-generic/errno.h
 _S(ENAMETOOLONG,	"ENAMETOOLONG"		)
 _S(ENOLCK,		"ENOLCK"		)
 _S(ENOSYS,		"ENOSYS"		)
@@ -151,4 +153,6 @@ _S(EKEYREVOKED,		"EKEYREVOKED"		)
 _S(EKEYREJECTED,	"EKEYREJECTED"		)
 _S(EOWNERDEAD,		"EOWNERDEAD"		)
 _S(ENOTRECOVERABLE,	"ENOTRECOVERABLE"	)
+_S(ERFKILL,		"ERFKILL"		)
+_S(EHWPOISON,		"EHWPOISON"		)
 
