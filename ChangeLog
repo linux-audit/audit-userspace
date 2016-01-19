@@ -1,6 +1,7 @@
 2.5.1
 - Updated and added audit rules
 - Updated errno table for 4.4 kernel
+- Change interpretation of exit to use errno define rather than a number
 
 2.5
 - Make augenrules the default method to load audit rules

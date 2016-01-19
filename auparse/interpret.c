@@ -604,7 +604,8 @@ static const char *print_exit(const char *val)
         }
 
         if (ival < 0) {
-		if (asprintf(&out, "%lld(%s)", ival, strerror(-ival)) < 0)
+		if (asprintf(&out, "%s(%s)", audit_errno_to_name(-ival),
+					strerror(-ival)) < 0)
 			out = NULL;
 		return out;
         }
