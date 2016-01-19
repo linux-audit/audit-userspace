@@ -91,7 +91,7 @@ int resolve_node(struct daemon_conf *config);
 
 void init_config_manager(void);
 #ifdef AUDITD_EVENT_H
-int start_config_manager(struct auditd_reply_list *rep);
+int start_config_manager(struct auditd_event *e);
 #endif
 void shutdown_config(void);
 void free_config(struct daemon_conf *config);

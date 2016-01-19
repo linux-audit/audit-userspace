@@ -28,9 +28,8 @@
 
 typedef void (*ack_func_type)(void *ack_data, const unsigned char *header, const char *msg);
 
-struct auditd_reply_list {
+struct auditd_event {
 	struct audit_reply reply;
-	struct auditd_reply_list *next;
 	ack_func_type ack_func;
 	void *ack_data;
 	unsigned long sequence_id;
@@ -41,9 +40,9 @@ struct auditd_reply_list {
 void shutdown_events(void);
 int init_event(struct daemon_conf *config);
 void resume_logging(void);
-void enqueue_event(struct auditd_reply_list *rep);
-void enqueue_formatted_event(char *msg, ack_func_type ack_func, void *ack_data, uint32_t sequence_id);
-void *consumer_thread_main(void *arg);
+void enqueue_event(struct auditd_event *e);
+void enqueue_formatted_event(char *msg, ack_func_type ack_func,
+			void *ack_data, uint32_t sequence_id);
 
 #endif
 
