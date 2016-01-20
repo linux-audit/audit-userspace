@@ -36,7 +36,7 @@ applications to use the audit framework.
 Summary: Header files for libaudit
 License: LGPLv2+
 Group: Development/Libraries
-Requires: %{name}-libs = %{version}-%{release}
+Requires: %{name}-libs%{?_isa}  = %{version}-%{release}
 Requires: kernel-headers >= 2.6.29
 
 %description libs-devel
@@ -58,7 +58,7 @@ framework libraries
 Summary: Python bindings for libaudit
 License: LGPLv2+
 Group: Development/Libraries
-Requires: %{name}-libs = %{version}-%{release}
+Requires: %{name}-libs%{?_isa} = %{version}-%{release}
 
 %description libs-python
 The audit-libs-python package contains the bindings so that libaudit
@@ -69,7 +69,7 @@ Summary: Python3 bindings for libaudit
 License: LGPLv2+
 Group: Development/Libraries
 BuildRequires: python3-devel swig
-Requires: %{name} = %{version}-%{release}
+Requires: %{name}-libs%{?_isa} = %{version}-%{release}
 
 %description libs-python3
 The audit-libs-python3 package contains the bindings so that libaudit
@@ -81,7 +81,7 @@ License: GPLv2+
 Group: System Environment/Daemons
 BuildRequires: openldap-devel
 Requires: %{name} = %{version}-%{release}
-Requires: %{name}-libs = %{version}-%{release}
+Requires: %{name}-libs%{?_isa} = %{version}-%{release}
 Requires: openldap
 
 %description -n audispd-plugins
@@ -122,14 +122,8 @@ cd $curdir
 # Remove these items so they don't get picked up.
 rm -f $RPM_BUILD_ROOT/%{_lib}/libaudit.so
 rm -f $RPM_BUILD_ROOT/%{_lib}/libauparse.so
-rm -f $RPM_BUILD_ROOT/%{_lib}/libaudit.la
-rm -f $RPM_BUILD_ROOT/%{_lib}/libauparse.la
-rm -f $RPM_BUILD_ROOT/%{_libdir}/python?.?/site-packages/_audit.a
-rm -f $RPM_BUILD_ROOT/%{_libdir}/python?.?/site-packages/_audit.la
-rm -f $RPM_BUILD_ROOT/%{_libdir}/python?.?/site-packages/_auparse.a
-rm -f $RPM_BUILD_ROOT/%{_libdir}/python?.?/site-packages/_auparse.la
-rm -f $RPM_BUILD_ROOT/%{_libdir}/python?.?/site-packages/auparse.a
-rm -f $RPM_BUILD_ROOT/%{_libdir}/python?.?/site-packages/auparse.la
+find $RPM_BUILD_ROOT -name '*.la' -delete
+find $RPM_BUILD_ROOT/%{_libdir}/python?.?/site-packages -name '*.a' -delete
 
 # Move the pkgconfig file
 mv $RPM_BUILD_ROOT/%{_lib}/pkgconfig $RPM_BUILD_ROOT%{_libdir}
@@ -219,8 +213,8 @@ fi
 %attr(644,root,root) %{_mandir}/man5/auditd.conf.5.gz
 %attr(644,root,root) %{_mandir}/man5/audispd.conf.5.gz
 %attr(644,root,root) %{_mandir}/man5/ausearch-expression.5.gz
-%attr(750,root,root) /sbin/auditctl
-%attr(750,root,root) /sbin/auditd
+%attr(755,root,root) /sbin/auditctl
+%attr(755,root,root) /sbin/auditd
 %attr(755,root,root) /sbin/ausearch
 %attr(755,root,root) /sbin/aureport
 %attr(750,root,root) /sbin/autrace
