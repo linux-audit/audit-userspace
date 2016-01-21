@@ -61,7 +61,7 @@ func AuditLogUserEvent(event_type int, message string, result bool) error {
 	} else {
 		r = 0
 	}
-	if fd > 0 {
+	if fd != -1 {
 		cmsg := C.CString(message)
 		_, err := C.audit_log_user_message(fd, C.int(event_type), cmsg, nil, nil, nil, C.int(r))
 		C.free(unsafe.Pointer(cmsg))
