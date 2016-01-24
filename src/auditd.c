@@ -173,12 +173,40 @@ static void child_handler(struct ev_loop *loop, struct ev_signal *sig,
 	}
 }
 
-static void distribute_event(struct auditd_event *e)
+static int extract_type(const char *str)
 {
-	int attempt = 0;
+	const char *tptr, *ptr2, *ptr = str;
+	if (*str == 'n') {
+		ptr = strchr(str+1, ' ');
+		ptr++;
+	}
+	// ptr should be at 't'
+	ptr2 = strchr(ptr, ' ');
+	// get type=xxx in a buffer
+	tptr = strndupa(ptr, ptr2 - ptr);
+	// find =
+	str = strchr(tptr, '=');
+	// name is 1 past
+	str++;
+	return audit_name_to_msg_type(str);
+}
+
+void distribute_event(struct auditd_event *e)
+{
+	int attempt = 0, route = 1;;
+
+	// If a network event, type is 0
+	if (e->reply.type == 0) {
+		if (!dispatch_network_events())
+			route = 0;
+		else // We only need the type if its being routed
+			e->reply.type = extract_type(e->reply.message);
+	} else {
+		// Do the formatting
+	}
 
 	/* Make first attempt to send to plugins */
-	if (dispatch_event(&e->reply, attempt) == 1)
+	if (route && dispatch_event(&e->reply, attempt) == 1)
 		attempt++; /* Failed sending, retry after writing to disk */
 
 	/* End of Event is for realtime interface - skip local logging of it */
@@ -193,7 +221,7 @@ static void distribute_event(struct auditd_event *e)
 	// should move the free to this function.
 
 	/* Last chance to send...maybe the pipe is empty now. */
-//	if (attempt) 
+//	if (attempt && route) 
 //		dispatch_event(&rep->reply, attempt);
 }
 
@@ -206,8 +234,9 @@ int send_audit_event(int type, const char *str)
 {
 	struct auditd_event *e;
 	struct timeval tv;
-	
-	if ((e = malloc(sizeof(*e))) == NULL) {
+
+	e = create_event(NULL, 0, NULL, 0);
+	if (e == NULL) {
 		audit_msg(LOG_ERR, "Cannot allocate audit reply");
 		return 1;
 	}

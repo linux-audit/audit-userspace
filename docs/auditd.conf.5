@@ -273,6 +273,10 @@ server's host, as returned by a DNS lookup of its IP address.
 Location of the key for this client's principal.
 Note that the key file must be owned by root and mode 0400.
 The default is
+.TP
+.I distribute_network
+If set to "yes", network originating events will be distributed to the audit
+dispatcher for processing. The default is "no".
 .I /etc/audit/audit.key
 
 .SH NOTES

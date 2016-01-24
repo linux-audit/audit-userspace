@@ -66,7 +66,6 @@ static void init_flush_thread(void);
 
 /* Local Data */
 static struct daemon_conf *config;
-static struct auditd_event *cur_event;
 static int log_fd;
 static FILE *log_file;
 static unsigned int disk_err_warning = 0;
@@ -83,6 +82,11 @@ static pthread_mutex_t flush_lock;
 static pthread_cond_t do_flush;
 static volatile int flush;
 
+
+int dispatch_network_events(void)
+{
+	return config->distribute_network_events;
+}
 
 void shutdown_events(void)
 {
@@ -180,6 +184,17 @@ static void init_flush_thread(void)
 	pthread_create(&flush_thread, NULL, flush_thread_main, NULL);
 }
 
+/* This function free's all memory associated with events */
+static void cleanup_event(struct auditd_event *e)
+{
+	/* Internal DAEMON messages should be free'd */
+	if (e->reply.type >= AUDIT_FIRST_DAEMON &&
+			e->reply.type <= AUDIT_LAST_DAEMON) {
+		free((void *)e->reply.message);
+	} 
+	free(e);
+}
+
 /* This function takes a malloc'd rep and places it on the queue. The 
    dequeue'r is responsible for freeing the memory. */
 void enqueue_event(struct auditd_event *e)
@@ -199,21 +214,13 @@ void enqueue_event(struct auditd_event *e)
 			break;
 		case LF_NOLOG:
 			// We need the rotate event to get enqueued
-			if (e->reply.type != AUDIT_DAEMON_ROTATE ) {
-				// Internal DAEMON messages should be free'd
-				if (e->reply.type >= AUDIT_FIRST_DAEMON &&
-				    e->reply.type <= AUDIT_LAST_DAEMON)
-					free((void *)e->reply.message);
-				free(e);
+			if (e->reply.type != AUDIT_DAEMON_ROTATE) {
+				cleanup_event(e);
 				return;
 			}
 			break;
 		default:
-			// Internal DAEMON messages should be free'd
-			if (e->reply.type >= AUDIT_FIRST_DAEMON &&
-			    e->reply.type <= AUDIT_LAST_DAEMON)
-				free((void *)e->reply.message);
-			free(e);
+			cleanup_event(e);
 			return;
 		}
 
@@ -231,38 +238,42 @@ void enqueue_event(struct auditd_event *e)
 		}
 	}
 
-	cur_event = e;
 	handle_event(e);
 }
 
-/* This function takes a preformatted message and places it on the
-   queue. The dequeue'r is responsible for freeing the memory. */
-void enqueue_formatted_event(char *msg, ack_func_type ack_func,
+/* This function allocates memory and fills the event fields with
+   passed arguements. Caller must free memory. */
+struct auditd_event *create_event(char *msg, ack_func_type ack_func,
 	 void *ack_data, uint32_t sequence_id)
 {
-	int len;
 	struct auditd_event *e;
 
-	e = (struct auditd_event *) calloc (1, sizeof (*e));
+	e = (struct auditd_event *)calloc(1, sizeof (*e));
 	if (e == NULL) {
 		audit_msg(LOG_ERR, "Cannot allocate audit reply");
-		return;
+		return NULL;
 	}
 
 	e->ack_func = ack_func;
 	e->ack_data = ack_data;
 	e->sequence_id = sequence_id;
 
-	len = strlen (msg);
-	if (len < MAX_AUDIT_MESSAGE_LENGTH - 1)
-		memcpy (e->reply.msg.data, msg, len+1);
-	else {
-		/* FIXME: is truncation the right thing to do?  */
-		memcpy (e->reply.msg.data, msg, MAX_AUDIT_MESSAGE_LENGTH-1);
-		e->reply.msg.data[MAX_AUDIT_MESSAGE_LENGTH-1] = 0;
+	if (e->ack_func) {
+		/* Network originating events need things moved around to
+		 * pretend its from netlink. */
+		int len = strlen (msg);
+		if (len < MAX_AUDIT_MESSAGE_LENGTH - 1)
+			memcpy (e->reply.msg.data, msg, len+1);
+		else {
+			/* FIXME: is truncation the right thing to do?  */
+			memcpy (e->reply.msg.data, msg,
+						MAX_AUDIT_MESSAGE_LENGTH-1);
+			e->reply.msg.data[MAX_AUDIT_MESSAGE_LENGTH-1] = 0;
+		}
+		e->reply.message = e->reply.msg.data;
 	}
 
-	handle_event(e);
+	return e;
 }
 
 void resume_logging(void)
@@ -340,12 +351,7 @@ static void handle_event(struct auditd_event *e)
 			}
 		}
 	}
-	/* Internal DAEMON messages should be free'd */
-	if (e->reply.type >= AUDIT_FIRST_DAEMON &&
-			e->reply.type <= AUDIT_LAST_DAEMON) {
-		free((void *)e->reply.message);
-	} 
-	free(e);
+	cleanup_event(e);
 }
 
 static void send_ack(const struct auditd_event *e, int ack_type,

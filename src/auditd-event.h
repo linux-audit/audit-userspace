@@ -1,5 +1,5 @@
 /* auditd-event.h -- 
- * Copyright 2004, 2005, 2008 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2004, 2005, 2008, 2016 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -37,11 +37,12 @@ struct auditd_event {
 
 #include "auditd-config.h"
 
+int dispatch_network_events(void);
 void shutdown_events(void);
 int init_event(struct daemon_conf *config);
 void resume_logging(void);
 void enqueue_event(struct auditd_event *e);
-void enqueue_formatted_event(char *msg, ack_func_type ack_func,
+struct auditd_event *create_event(char *msg, ack_func_type ack_func,
 			void *ack_data, uint32_t sequence_id);
 
 #endif

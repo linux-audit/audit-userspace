@@ -124,6 +124,8 @@ static int krb5_principal_parser(struct nv_pair *nv, int line,
 		struct daemon_conf *config);
 static int krb5_key_file_parser(struct nv_pair *nv, int line,
 		struct daemon_conf *config);
+static int distribute_network_parser(struct nv_pair *nv, int line,
+		struct daemon_conf *config);
 static int sanity_check(struct daemon_conf *config);
 
 static const struct kw_pair keywords[] = 
@@ -157,6 +159,7 @@ static const struct kw_pair keywords[] =
   {"enable_krb5",              enable_krb5_parser,              0 },
   {"krb5_principal",           krb5_principal_parser,           0 },
   {"krb5_key_file",            krb5_key_file_parser,            0 },
+  {"distribute_network",       distribute_network_parser,       0 },
   { NULL,                      NULL,                            0 }
 };
 
@@ -276,6 +279,7 @@ void clear_config(struct daemon_conf *config)
 	config->enable_krb5 = 0;
 	config->krb5_principal = NULL;
 	config->krb5_key_file = NULL;
+	config->distribute_network_events = 0;
 }
 
 static log_test_t log_test = TEST_AUDITD;
@@ -1585,6 +1589,25 @@ static int krb5_key_file_parser(struct nv_pair *nv, int line,
 	config->krb5_key_file = strdup(nv->value);
 #endif
 	return 0;
+}
+
+static int distribute_network_parser(struct nv_pair *nv, int line,
+	struct daemon_conf *config)
+{
+	unsigned long i;
+	audit_msg(LOG_DEBUG, "distribute_network_parser called with: %s",
+		  nv->value);
+
+
+	for (i=0; yes_no_values[i].name != NULL; i++) {
+		if (strcasecmp(nv->value, yes_no_values[i].name) == 0) {
+			config->distribute_network_events =
+						yes_no_values[i].option;
+			return 0;
+		}
+	}
+	audit_msg(LOG_ERR, "Option %s not found - line %d", nv->value, line);
+	return 1;
 }
 
 /*

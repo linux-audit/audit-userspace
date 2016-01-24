@@ -80,6 +80,7 @@ struct daemon_conf
 	int enable_krb5;
 	const char *krb5_principal;
 	const char *krb5_key_file;
+	int distribute_network_events;
 };
 
 void set_allow_links(int allow);

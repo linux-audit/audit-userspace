@@ -514,6 +514,7 @@ static void client_ack (void *ack_data, const unsigned char *header,
 		ar_write (io->io.fd, msg, strlen(msg));
 }
 
+extern void distribute_event(struct auditd_event *e);
 static void client_message (struct ev_tcp *io, unsigned int length,
 	unsigned char *header)
 {
@@ -533,15 +534,14 @@ static void client_message (struct ev_tcp *io, unsigned int length,
 			AUDIT_RMW_PACK_HEADER (ack, 0, AUDIT_RMW_TYPE_ACK,
 				0, seq);
 			client_ack (io, ack, "");
-		} else 
-			enqueue_formatted_event(header+AUDIT_RMW_HEADER_SIZE,
-				client_ack, io, seq);
+		} else {
+			struct auditd_event *e = create_event(
+					header+AUDIT_RMW_HEADER_SIZE,
+					client_ack, io, seq);
+			if (e)
+				distribute_event(e);
+		}
 		header[length] = ch;
-	} else {
-		header[length] = 0;
-		if (length > 1 && header[length-1] == '\n')
-			header[length-1] = 0;
-		enqueue_formatted_event (header, NULL, NULL, 0);
 	}
 }
 
