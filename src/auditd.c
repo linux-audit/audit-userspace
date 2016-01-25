@@ -216,13 +216,9 @@ void distribute_event(struct auditd_event *e)
 	} else
 		free(e);	// This function takes custody of the memory
 
-	// FIXME: This is commented out since it fails to work. The
-	// problem is that the logger thread free's the buffer. Probably
-	// should move the free to this function.
-
 	/* Last chance to send...maybe the pipe is empty now. */
-//	if (attempt && route) 
-//		dispatch_event(&rep->reply, attempt);
+	if (attempt && route) 
+		dispatch_event(&rep->reply, attempt);
 }
 
 /*
