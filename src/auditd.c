@@ -218,7 +218,7 @@ void distribute_event(struct auditd_event *e)
 
 	/* Last chance to send...maybe the pipe is empty now. */
 	if (attempt && route) 
-		dispatch_event(&rep->reply, attempt);
+		dispatch_event(&e->reply, attempt);
 }
 
 /*
