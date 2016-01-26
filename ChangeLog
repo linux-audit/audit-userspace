@@ -4,6 +4,7 @@
 - Change interpretation of exit to use errno define rather than a number
 - Add distribute_network configuration option to auditd
 - Re-allow the retry to distribute events in auditd
+- New aggregate only mode for auditd
 
 2.5
 - Make augenrules the default method to load audit rules

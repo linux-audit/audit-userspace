@@ -64,7 +64,7 @@ static int fd = -1, pipefds[2] = {-1, -1};
 static struct daemon_conf config;
 static const char *pidfile = "/var/run/auditd.pid";
 static int init_pipe[2];
-static int do_fork = 1;
+static int do_fork = 1, opt_aggregate_only = 0;
 static struct auditd_event *cur_event = NULL, *reconfig_ev = NULL;
 static int hup_info_requested = 0;
 static int usr1_info_requested = 0, usr2_info_requested = 0;
@@ -86,7 +86,7 @@ static const char *startup_states[] = {"disable", "enable", "nochange"};
  */
 static void usage(void)
 {
-	fprintf(stderr, "Usage: auditd [-f] [-l] [-n] [-s %s|%s|%s]\n",
+	fprintf(stderr, "Usage: auditd [-a] [-f] [-l] [-n] [-s %s|%s|%s]\n",
 		startup_states[startup_disable],
 		startup_states[startup_enable],
 		startup_states[startup_nochange]);
@@ -543,8 +543,11 @@ int main(int argc, char *argv[])
 	struct ev_signal sigchld_watcher;
 
 	/* Get params && set mode */
-	while ((c = getopt(argc, argv, "flns:")) != -1) {
+	while ((c = getopt(argc, argv, "aflns:")) != -1) {
 		switch (c) {
+		case 'a':
+			opt_aggregate_only = 1;
+			break;
 		case 'f':
 			opt_foreground = 1;
 			break;
@@ -724,8 +727,9 @@ int main(int argc, char *argv[])
 	/* let config manager init */
 	init_config_manager();
 
-	if (opt_startup != startup_nochange && (audit_is_enabled(fd) < 2) &&
-	    audit_set_enabled(fd, (int)opt_startup) < 0) {
+	if (opt_startup != startup_nochange && !opt_aggregate_only &&
+			(audit_is_enabled(fd) < 2) &&
+			audit_set_enabled(fd, (int)opt_startup) < 0) {
 		char emsg[DEFAULT_BUF_SZ];
 		if (*subj)
 			snprintf(emsg, sizeof(emsg),
@@ -750,7 +754,7 @@ int main(int argc, char *argv[])
 	}
 
 	/* Tell the kernel we are alive */
-	if (audit_set_pid(fd, getpid(), WAIT_YES) < 0) {
+	if (!opt_aggregate_only && audit_set_pid(fd, getpid(), WAIT_YES) < 0) {
 		char emsg[DEFAULT_BUF_SZ];
 		if (*subj)
 			snprintf(emsg, sizeof(emsg),
@@ -775,8 +779,10 @@ int main(int argc, char *argv[])
 	/* Depending on value of opt_startup (-s) set initial audit state */
 	loop = ev_default_loop (EVFLAG_NOENV);
 
-	ev_io_init (&netlink_watcher, netlink_handler, fd, EV_READ);
-	ev_io_start (loop, &netlink_watcher);
+	if (!opt_aggregate_only) {
+		ev_io_init (&netlink_watcher, netlink_handler, fd, EV_READ);
+		ev_io_start (loop, &netlink_watcher);
+	}
 
 	ev_signal_init (&sigterm_watcher, term_handler, SIGTERM);
 	ev_signal_start (loop, &sigterm_watcher);
@@ -858,7 +864,8 @@ int main(int argc, char *argv[])
 	free(cur_event);
 
 	// Tear down IO watchers Part 2
-	ev_io_stop (loop, &netlink_watcher);
+	if (!opt_aggregate_only)
+		ev_io_stop (loop, &netlink_watcher);
 	ev_io_stop (loop, &pipe_watcher);
 	close_pipes();
 
@@ -901,7 +908,8 @@ static void clean_exit(void)
 {
 	audit_msg(LOG_INFO, "The audit daemon is exiting.");
 	if (fd >= 0) {
-		audit_set_pid(fd, 0, WAIT_NO);
+		if (!opt_aggregate_only)
+			audit_set_pid(fd, 0, WAIT_NO);
 		fsync(fd);
 		audit_close(fd);
 	}
