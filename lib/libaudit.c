@@ -580,6 +580,7 @@ static void load_feature_bitmap(void)
 		return;
 	}
 
+#if HAVE_DECL_AUDIT_FEATURE_VERSION
 	if ((rc = audit_request_status(fd)) > 0) {
 		struct audit_reply rep;
 		int i;
@@ -611,6 +612,7 @@ static void load_feature_bitmap(void)
 			}
 		}
 	}
+#endif
 	features_bitmap = AUDIT_FEATURES_UNSUPPORTED;
 }
 
