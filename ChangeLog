@@ -5,6 +5,7 @@
 - Add distribute_network configuration option to auditd
 - Re-allow the retry to distribute events in auditd
 - New aggregate only mode for auditd
+- Cleanup tmp file left by augenrules --check
 
 2.5
 - Make augenrules the default method to load audit rules

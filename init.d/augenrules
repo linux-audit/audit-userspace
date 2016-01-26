@@ -115,6 +115,7 @@ if [ $? -eq 0 ]; then
 	exit $RETVAL
 elif [ $OnlyCheck -eq 1 ] ; then
 	echo "$0: Rules have changed and should be updated"
+	rm -f ${TmpRules}
 	exit 0
 fi
 
