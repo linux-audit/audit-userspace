@@ -1675,7 +1675,7 @@ static int parse_integrity(const lnode *n, search_items *s)
 
 
 /* FIXME: If they are in permissive mode or hit an auditallow, there can 
- * be more that 1 avc in the same syscall. For now, we pickup just the first.
+ * be more than 1 avc in the same syscall. For now, we pickup just the first.
  */
 static int parse_avc(const lnode *n, search_items *s)
 {
