@@ -12,9 +12,12 @@
 ## 5) You can search for the results on the key fields in the rules
 ##
 
-## 10.1 This requirement is implicitly met 
 
-## 10.2.1 This would require a watch on the database that excludes the daemon's
+## 10.1 Implement audit trails to link all access to individual user.
+##  This requirement is implicitly met 
+
+## 10.2.1 Implement audit trails to detect user accesses to cardholder data
+## This would require a watch on the database that excludes the daemon's
 ## access. This rule is commented out due to needing a path name
 #-a always,exit -F path=path-to-db -F auid>=1000 -F auid!=unset -F uid!=daemon-acct -F perm=r -F key=10.2.1-cardholder-access
 
@@ -24,6 +27,11 @@
 
 ## 10.2.3 Access to all audit trails.
 -a always,exit -F dir=/var/log/audit/ -F perm=r -F auid>=1000 -F auid!=unset -F key=10.2.3-access-audit-trail
+-a always,exit -F path=/usr/sbin/ausearch -F perm=x -F key=10.2.3-access-audit-trail
+-a always,exit -F path=/usr/sbin/aureport -F perm=x -F key=10.2.3-access-audit-trail
+-a always,exit -F path=/usr/sbin/aulast -F perm=x -F key=10.2.3-access-audit-trail
+-a always,exit -F path=/usr/sbin/aulastlogin -F perm=x -F key=10.2.3-access-audit-trail
+-a always,exit -F path=/usr/sbin/auvirt -F perm=x -F key=10.2.3-access-audit-trail
 
 ## 10.2.4 Invalid logical access attempts. This is naturally met by pam. You
 ## can find these events with: ausearch --start today -m user_login -sv no -i
@@ -72,7 +80,6 @@
 #-a always,exit -F arch=b64 -S clock_adjtime -F key=10.4.2b-time-change
 -w /etc/localtime -p wa -k 10.4.2b-time-change
 
-
 ## 10.5 Secure audit trails so they cannot be altered
 ## The audit system protects audit logs by virtue of being the root user.
 ## That means that no normal user can tamper with the audit trail. If for
@@ -101,3 +108,4 @@
 
 ## Feel free to add watches on other critical logs
 # -a always,exit -F path=path-to-log -F perm=wa -F key=10.5.5-modification-log
+
