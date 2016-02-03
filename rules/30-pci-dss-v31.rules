@@ -23,7 +23,7 @@
 ## session   required pam_tty_audit.so disable=* enable=root
 
 ## 10.2.3 Access to all audit trails.
--a always,exit -F dir=/var/log/audit/ -F perm=rw -F auid>=1000 -F auid!=unset -F key=10.2.3-access-audit-trail
+-a always,exit -F dir=/var/log/audit/ -F perm=r -F auid>=1000 -F auid!=unset -F key=10.2.3-access-audit-trail
 
 ## 10.2.4 Invalid logical access attempts. This is naturally met by pam. You
 ## can find these events with: ausearch --start today -m user_login -sv no -i
