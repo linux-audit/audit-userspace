@@ -41,7 +41,14 @@
 -a always,exit -F arch=b32 -S execve -C uid!=euid -F euid=0 -F key=10.2.5.b-elevated-privs-setuid
 
 ## 10.2.5.c All changes, additions, or deletions to any account are logged
-## This is implicitly covered by shadow-utils
+## This is implicitly covered by shadow-utils. We will place some rules
+## in case someone tries to hand edit the trusted databases
+-a always,exit -F path=/etc/group -F perm=wa -F key=10.2.5.c-accounts
+-a always,exit -F path=/etc/passwd -F perm=wa -F key=10.2.5.c-accounts
+-a always,exit -F path=/etc/gshadow -F perm=wa -F key=10.2.5.c-accounts
+-a always,exit -F path=/etc/shadow -F perm=wa -F key=10.2.5.c-accounts
+-a always,exit -F path=/etc/security/opasswd -F perm=wa -F key=10.2.5.c-accounts
+
 
 ## 10.2.6 Verify the following are logged:
 ## Initialization of audit logs
@@ -53,6 +60,18 @@
 
 ## 10.3 Record at least the following audit trail entries
 ## 10.3.1 through 10.3.6 are implicitly met by the audit system.
+
+## 10.4.2b Time data is protected.
+## We will place rules to check time synchronization
+-a always,exit -F arch=b32 -S adjtimex,settimeofday,stime -F key=10.4.2b-time-change
+-a always,exit -F arch=b64 -S adjtimex,settimeofday -F key=10.4.2b-time-change
+-a always,exit -F arch=b32 -S clock_settime -F a0=0x0 -F key=10.4.2b-time-change
+-a always,exit -F arch=b64 -S clock_settime -F a0=0x0 -F key=10.4.2b-time-change
+# Introduced in 2.6.39, commented out because it can make false positives
+#-a always,exit -F arch=b32 -S clock_adjtime -F key=10.4.2b-time-change
+#-a always,exit -F arch=b64 -S clock_adjtime -F key=10.4.2b-time-change
+-w /etc/localtime -p wa -k 10.4.2b-time-change
+
 
 ## 10.5 Secure audit trails so they cannot be altered
 ## The audit system protects audit logs by virtue of being the root user.
