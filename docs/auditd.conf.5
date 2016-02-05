@@ -17,7 +17,7 @@ If set to
 .IR RAW ,
 the audit records will be stored in a format exactly as the kernel sends it. If this option is set to
 .I NOLOG
-then all audit information is discarded instead of writing to disk. This mode does not affect data sent to the audit event dispatcher.
+then all audit information is discarded instead of writing to disk. This mode does not affect data sent to the audit event dispatcher. The default value is RAW.
 .TP
 .I log_group
 This keyword specifies the group that is applied to the log file's permissions. The default is root. The group name can be either numeric or spelled out.
@@ -45,7 +45,7 @@ parameter tells the audit daemon to keep the data portion of the disk file
 sync'd at all times. The
 .I sync
 option tells the audit daemon to keep both the data and meta-data fully
-sync'd with every write to disk.
+sync'd with every write to disk. The default value is incremental_async.
 .TP
 .I freq
 This is a non-negative number that tells the audit daemon how many records to
@@ -53,7 +53,8 @@ write before issuing an explicit flush to disk command. This value is only
 valid when the
 .I flush
 keyword is set to
-.IR incremental .
+.IR incremental
+or incremental_async.
 .TP
 .I num_logs
 This keyword specifies the number of log files to keep if rotate is given
