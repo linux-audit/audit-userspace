@@ -40,7 +40,6 @@
 #define	MAX_EVENT_DELTA_SECS	2
 
 /* Global variables that describe what search is to be performed */
-extern time_t start_time, end_time;
 extern unsigned int event_id;
 extern gid_t event_gid, event_egid;
 extern pid_t event_pid;
