@@ -1038,12 +1038,11 @@ static int validate_email(const char *acct)
 				// telling when we have a temporary vs permanent
 				// dns failure. So, for now, treat all as temp
 				return 1;
-			}
-			else if (h_errno == TRY_AGAIN)
+			} else if (h_errno == TRY_AGAIN)
 				audit_msg(LOG_DEBUG,
 		"validate_email: temporary failure looking up domain for %s",
 					ptr1+1);
-				return 1;
+			return 1;
 		}
 	}
 	return 0;
