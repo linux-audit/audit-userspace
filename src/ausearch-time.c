@@ -1,5 +1,5 @@
 /* ausearch-time.c - time handling utility functions
- * Copyright 2006-08,2011 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2006-08,2011,2016 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -24,7 +24,6 @@
 #include <stdio.h>
 #include <string.h>
 #include "ausearch-time.h"
-
 
 #define SECONDS_IN_DAY 24*60*60
 static void clear_tm(struct tm *t);
