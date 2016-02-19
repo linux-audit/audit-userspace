@@ -6,6 +6,7 @@
 - Re-allow the retry to distribute events in auditd
 - New aggregate only mode for auditd
 - Cleanup tmp file left by augenrules --check
+- Fix initial build from svn without golang support installed
 
 2.5
 - Make augenrules the default method to load audit rules

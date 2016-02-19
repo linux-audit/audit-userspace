@@ -1,5 +1,5 @@
 # Makefile.am --
-# Copyright 2014 Red Hat Inc., Durham, North Carolina.
+# Copyright 2014,16 Red Hat Inc., Durham, North Carolina.
 # All Rights Reserved.
 #
 # This library is free software; you can redistribute it and/or
@@ -22,10 +22,11 @@
 
 CONFIG_CLEAN_FILES = *.loT *.rej *.orig
 EXTRA_DIST = audit.go
+dist_check_SCRIPTS = test.go
 
+if HAVE_GOLANG
 LIBDIR = lib
 GODIR = $(LIBDIR)/golang/src/pkg/redhat.com/audit
-dist_check_SCRIPTS = test.go
 
 install:
 	[ -d $(DESTDIR)${prefix}/$(GODIR) ] || mkdir -p $(DESTDIR)${prefix}/$(GODIR)
@@ -42,4 +43,6 @@ check:
 	## paths from the command line.
 	##[ -f test.go ] || cp ${top_srcdir}/bindings/golang/test.go .
 	##PKG_CONFIG_PATH=${abs_top_builddir}/lib/:$(PKG_CONFIG_PATH) GOPATH=$(pwd) $(GOLANG) run test.go
-	@rm -rf audit 
+	@rm -rf audit
+endif
+

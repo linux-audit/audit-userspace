@@ -180,8 +180,6 @@ else
         # Substitute some golang environment.
         GOROOT=`$GOLANG env GOROOT`
         AC_SUBST([GOROOT])
-        gobind_dir="golang"
-        AC_SUBST([gobind_dir])
     ], [
 	if test "x$use_golang" = xyes ; then
 		AC_MSG_ERROR([Go language explicitly requested and program not found])
