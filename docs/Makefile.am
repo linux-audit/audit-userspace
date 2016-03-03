@@ -44,7 +44,8 @@ auparse_get_line_number.3 auparse_get_milli.3 \
 auparse_get_node.3 auparse_get_num_fields.3 \
 auparse_get_num_records.3 auparse_get_record_text.3 \
 auparse_get_serial.3 auparse_get_time.3 auparse_get_timestamp.3 \
-auparse_get_type.3 auparse_init.3 auparse_interpret_field.3 \
+auparse_get_type.3 auparse_get_type_name.3 auparse_init.3 \
+auparse_interpret_field.3 \
 auparse_next_event.3 auparse_next_field.3 auparse_next_record.3 \
 auparse_node_compare.3 auparse_reset.3 auparse_timestamp_compare.3 \
 ausearch-expression.5 \
