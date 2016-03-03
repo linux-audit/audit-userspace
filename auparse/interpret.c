@@ -111,6 +111,7 @@
 #include "umounttabs.h"
 #include "ioctlreqtabs.h"
 #include "inethooktabs.h"
+#include "netactiontabs.h"
 
 typedef enum { AVC_UNSET, AVC_DENIED, AVC_GRANTED } avc_t;
 typedef enum { S_UNSET=-1, S_FAILED, S_SUCCESS } success_t;
@@ -2296,6 +2297,28 @@ static const char *print_hook(const char *val)
 		return strdup(str);
 }
 
+static const char *print_netaction(const char *val)
+{
+	int action;
+	char *out;
+	const char *str;
+
+	errno = 0;
+	action = strtoul(val, NULL, 16);
+	if (errno) {
+		if (asprintf(&out, "conversion error(%s)", val) < 0)
+			out = NULL;
+		return out;
+	}
+	str = netaction_i2s(action);
+	if (str == NULL) {
+		if (asprintf(&out, "unknown action(%s)", val) < 0)
+			out = NULL;
+		return out;
+	} else
+		return strdup(str);
+}
+
 static const char *print_addr(const char *val)
 {
 	char *out = strdup(val);
@@ -2657,6 +2680,9 @@ const char *auparse_do_interpretation(int type, const idata *id)
 			break;
 		case AUPARSE_TYPE_HOOK:
 			out = print_hook(id->val);
+			break;
+		case AUPARSE_TYPE_NETACTION:
+			out = print_netaction(id->val);
 			break;
 		case AUPARSE_TYPE_MAC_LABEL:
 		case AUPARSE_TYPE_UNCLASSIFIED:

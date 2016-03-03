@@ -61,7 +61,8 @@ BUILT_SOURCES = accesstabs.h captabs.h clocktabs.h clone-flagtabs.h \
 	rlimittabs.h recvtabs.h schedtabs.h seccomptabs.h \
 	seektabs.h shm_modetabs.h signaltabs.h sockoptnametabs.h \
 	socktabs.h sockleveltabs.h socktypetabs.h \
-	tcpoptnametabs.h typetabs.h umounttabs.h inethooktabs.h
+	tcpoptnametabs.h typetabs.h umounttabs.h inethooktabs.h \
+	netactiontabs.h
 noinst_PROGRAMS = gen_accesstabs_h gen_captabs_h gen_clock_h \
 	gen_clone-flagtabs_h \
 	gen_epoll_ctls_h gen_famtabs_h \
@@ -76,7 +77,7 @@ noinst_PROGRAMS = gen_accesstabs_h gen_captabs_h gen_clock_h \
 	gen_seektabs_h gen_shm_modetabs_h gen_signals_h \
 	gen_sockoptnametabs_h gen_socktabs_h gen_sockleveltabs_h \
 	gen_socktypetabs_h gen_tcpoptnametabs_h gen_typetabs_h \
-	gen_umounttabs_h gen_inethooktabs_h
+	gen_umounttabs_h gen_inethooktabs_h gen_netactiontabs_h
 
 gen_accesstabs_h_SOURCES = ../lib/gen_tables.c ../lib/gen_tables.h accesstab.h
 gen_accesstabs_h_CFLAGS = '-DTABLE_H="accesstab.h"'
@@ -499,4 +500,15 @@ gen_inethooktabs_h$(BUILD_EXEEXT): CFLAGS=$(CFLAGS_FOR_BUILD)
 gen_inethooktabs_h$(BUILD_EXEEXT): CPPFLAGS=$(CPPFLAGS_FOR_BUILD)
 inethooktabs.h: gen_inethooktabs_h Makefile
 	./gen_inethooktabs_h --i2s inethook > $@
+
+gen_netactiontabs_h_SOURCES = ../lib/gen_tables.c ../lib/gen_tables.h netactiontab.h
+gen_netactiontabs_h_CFLAGS = '-DTABLE_H="netactiontab.h"'
+$(gen_netactiontabs_h_OBJECTS): CC=$(CC_FOR_BUILD)
+$(gen_netactiontabs_h_OBJECTS): CFLAGS=$(CFLAGS_FOR_BUILD)
+$(gen_netactiontabs_h_OBJECTS): CPPFLAGS=$(CPPFLAGS_FOR_BUILD)
+gen_netactiontabs_h$(BUILD_EXEEXT): CC=$(CC_FOR_BUILD)
+gen_netactiontabs_h$(BUILD_EXEEXT): CFLAGS=$(CFLAGS_FOR_BUILD)
+gen_netactiontabs_h$(BUILD_EXEEXT): CPPFLAGS=$(CPPFLAGS_FOR_BUILD)
+netactiontabs.h: gen_netactiontabs_h Makefile
+	./gen_netactiontabs_h --i2s netaction > $@
 

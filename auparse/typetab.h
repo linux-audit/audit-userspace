@@ -129,4 +129,5 @@ _S(AUPARSE_TYPE_PROCTITLE,	"proctitle"	)
 _S(AUPARSE_TYPE_ESCAPED,	"grp"		)
 _S(AUPARSE_TYPE_ESCAPED,	"new_group"	)
 _S(AUPARSE_TYPE_HOOK,		"hook"		)
+_S(AUPARSE_TYPE_NETACTION,	"action"	)
 
