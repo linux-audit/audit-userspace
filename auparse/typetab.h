@@ -1,5 +1,5 @@
 /* typetab.h --
- * Copyright 2007-09,2011-12,2014 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2007-09,2011-12,2014-16 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -57,10 +57,14 @@ _S(AUPARSE_TYPE_ESCAPED,	"acct"		)
 _S(AUPARSE_TYPE_ESCAPED,	"dir"		)
 _S(AUPARSE_TYPE_ESCAPED,	"key"		)
 _S(AUPARSE_TYPE_ESCAPED,	"vm"		)
+_S(AUPARSE_TYPE_ESCAPED,	"old-chardev"	)
+_S(AUPARSE_TYPE_ESCAPED,	"new-chardev"	)
 _S(AUPARSE_TYPE_ESCAPED,	"old-disk"	)
 _S(AUPARSE_TYPE_ESCAPED,	"new-disk"	)
 _S(AUPARSE_TYPE_ESCAPED,	"old-fs"	)
 _S(AUPARSE_TYPE_ESCAPED,	"new-fs"	)
+_S(AUPARSE_TYPE_ESCAPED,	"old-net"	)
+_S(AUPARSE_TYPE_ESCAPED,	"new-net"	)
 _S(AUPARSE_TYPE_ESCAPED,	"device"	)
 _S(AUPARSE_TYPE_ESCAPED,	"cgroup"	)
 _S(AUPARSE_TYPE_PERM,		"perm"		)
@@ -124,4 +128,5 @@ _S(AUPARSE_TYPE_MAC_LABEL,	"img-ctx"	)
 _S(AUPARSE_TYPE_PROCTITLE,	"proctitle"	)
 _S(AUPARSE_TYPE_ESCAPED,	"grp"		)
 _S(AUPARSE_TYPE_ESCAPED,	"new_group"	)
+_S(AUPARSE_TYPE_HOOK,		"hook"		)
 

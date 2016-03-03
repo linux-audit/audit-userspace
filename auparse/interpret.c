@@ -110,6 +110,7 @@
 #include "pktoptnametabs.h"
 #include "umounttabs.h"
 #include "ioctlreqtabs.h"
+#include "inethooktabs.h"
 
 typedef enum { AVC_UNSET, AVC_DENIED, AVC_GRANTED } avc_t;
 typedef enum { S_UNSET=-1, S_FAILED, S_SUCCESS } success_t;
@@ -2272,6 +2273,29 @@ static const char *print_protocol(const char *val)
 	return out;
 }
 
+/* FIXME - this assumes inet hook. Could also be an arp hook */
+static const char *print_hook(const char *val)
+{
+	int hook;
+	char *out;
+	const char *str;
+
+	errno = 0;
+	hook = strtoul(val, NULL, 16);
+	if (errno) {
+		if (asprintf(&out, "conversion error(%s)", val) < 0)
+			out = NULL;
+		return out;
+	}
+	str = inethook_i2s(hook);
+	if (str == NULL) {
+		if (asprintf(&out, "unknown hook(%s)", val) < 0)
+			out = NULL;
+		return out;
+	} else
+		return strdup(str);
+}
+
 static const char *print_addr(const char *val)
 {
 	char *out = strdup(val);
@@ -2630,6 +2654,9 @@ const char *auparse_do_interpretation(int type, const idata *id)
 			break;
 		case AUPARSE_TYPE_PROCTITLE:
 			out = print_proctitle(id->val);
+			break;
+		case AUPARSE_TYPE_HOOK:
+			out = print_hook(id->val);
 			break;
 		case AUPARSE_TYPE_MAC_LABEL:
 		case AUPARSE_TYPE_UNCLASSIFIED:
