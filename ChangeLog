@@ -7,7 +7,7 @@
 - New aggregate only mode for auditd
 - Cleanup tmp file left by augenrules --check
 - Fix initial build from svn without golang support installed
-- Update auparse interpretations for hook, action, chardev, and net
+- Update auparse interpretations for hook, action, macproto, chardev, and net
 
 2.5
 - Make augenrules the default method to load audit rules

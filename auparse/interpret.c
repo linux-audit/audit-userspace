@@ -2319,6 +2319,27 @@ static const char *print_netaction(const char *val)
 		return strdup(str);
 }
 
+/* Ethernet packet types */
+static const char *print_macproto(const char *val)
+{
+	int type;
+	char *out;
+	const char *str;
+
+	errno = 0;
+	type = strtoul(val, NULL, 16);
+	if (errno) {
+		if (asprintf(&out, "conversion error(%s)", val) < 0)
+			out = NULL;
+		return out;
+	}
+	if (type == 0x0800)
+		return strdup("IP");
+	else if (type == 0x0806)
+		return strdup("ARP");
+	return strdup("UNKNOWN");
+}
+
 static const char *print_addr(const char *val)
 {
 	char *out = strdup(val);
@@ -2683,6 +2704,9 @@ const char *auparse_do_interpretation(int type, const idata *id)
 			break;
 		case AUPARSE_TYPE_NETACTION:
 			out = print_netaction(id->val);
+			break;
+		case AUPARSE_TYPE_MACPROTO:
+			out = print_macproto(id->val);
 			break;
 		case AUPARSE_TYPE_MAC_LABEL:
 		case AUPARSE_TYPE_UNCLASSIFIED:
