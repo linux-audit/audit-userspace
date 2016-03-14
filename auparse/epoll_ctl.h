@@ -24,4 +24,3 @@
 _S(1,		"EPOLL_CTL_ADD" )
 _S(2,		"EPOLL_CTL_DEL" )
 _S(3,		"EPOLL_CTL_MOD" )
-

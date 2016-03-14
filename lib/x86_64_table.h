@@ -1,5 +1,5 @@
 /* x86_64_table.h --
- * Copyright 2005-15 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2005-16 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -343,3 +343,7 @@ _S(319, "memfd_create")
 _S(320, "kexec_file_load")
 _S(321, "bpf")
 _S(322, "execveat")
+_S(323, "userfaultfd")
+_S(324, "membarrier")
+_S(325, "mlock2")
+_S(326, "copy_file_range")

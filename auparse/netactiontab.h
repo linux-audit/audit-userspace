@@ -18,7 +18,7 @@
  *
  * Authors:
  *      Steve Grubb <sgrubb@redhat.com>
- * Location: uapi/linux/netfilter/xt_AUDIT.h
+ * Location: include/uapi/linux/netfilter/xt_AUDIT.h
  */
 
 _S(0, "ACCEPT")

@@ -1,5 +1,5 @@
 /* ptracetab.h --
- * Copyright 2012-14 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2012-14,16 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -52,4 +52,5 @@ _S(0x4208,	"PTRACE_LISTEN"		)
 _S(0x4209,	"PTRACE_PEEKSIGINFO"	)
 _S(0x420a,	"PTRACE_GETSIGMASK"	)
 _S(0x420b,	"PTRACE_SETSIGMASK"	)
+_S(0x420c,	"PTRACE_SECCOMP_GET_FILTER"	)
 

@@ -8,6 +8,7 @@
 - Cleanup tmp file left by augenrules --check
 - Fix initial build from svn without golang support installed
 - Update auparse interpretations for hook, action, macproto, chardev, and net
+- Update interpretations for the 4.5 kernel
 
 2.5
 - Make augenrules the default method to load audit rules

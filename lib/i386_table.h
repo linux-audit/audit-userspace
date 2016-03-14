@@ -1,5 +1,5 @@
 /* i386_table.h --
- * Copyright 2005-15 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2005-16 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -377,3 +377,22 @@ _S(355, "getrandom")
 _S(356, "memfd_create")
 _S(357, "bpf")
 _S(358, "execveat")
+_S(359, "socket")
+_S(360, "socketpair")
+_S(361, "bind")
+_S(362, "connect")
+_S(363, "listen")
+_S(364, "accept4")
+_S(365, "getsockopt")
+_S(366, "setsockopt")
+_S(367, "getsockname")
+_S(368, "getpeername")
+_S(369, "sendto")
+_S(370, "sendmsg")
+_S(371, "recvfrom")
+_S(372, "recvmsg")
+_S(373, "shutdown")
+_S(374, "userfaultfd")
+_S(375, "membarrier")
+_S(376, "mlock2")
+_S(377, "copy_file_range")

@@ -1,5 +1,5 @@
 /* ip6optnametab.h --
- * Copyright 2013-15 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2013-16 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -20,6 +20,7 @@
  *      Steve Grubb <sgrubb@redhat.com>
  * Location: include/uapi/linux/in6.h
  *           include/uapi/linux/netfilter_ipv6/ip6_tables.h
+ *           include/uapi/linux/mroute6.h
  */
 
 _S(1, "IPV6_ADDRFORM")
@@ -50,6 +51,7 @@ _S(32, "IPV6_FLOWLABEL_MGR")
 _S(33, "IPV6_FLOWINFO_SEND")
 _S(34, "IPV6_IPSEC_POLICY")
 _S(35, "IPV6_XFRM_POLICY")
+_S(36, "IPV6_HDRINCL")
 _S(42, "MCAST_JOIN_GROUP")
 _S(43, "MCAST_BLOCK_SOURCE")
 _S(44, "MCAST_UNBLOCK_SOURCE")

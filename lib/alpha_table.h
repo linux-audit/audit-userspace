@@ -1,5 +1,5 @@
 /* alpha_table.h --
- * Copyright 2005-07,2010-12,2014 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2005-07,2010-12,2014,2016 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -451,3 +451,6 @@ _S(507, "finit_module")
 _S(508, "sched_setattr")
 _S(509, "sched_getattr")
 _S(510, "renameat2")
+_S(511, "renameat2")
+_S(512, "memfd_create")
+_S(513, "execveat")

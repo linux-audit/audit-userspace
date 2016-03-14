@@ -1,5 +1,5 @@
 /* s390_table.h --
- * Copyright 2005-15 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2005-16 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -352,3 +352,24 @@ _S(351, "bpf")
 _S(352, "s390_pci_mmio_write")
 _S(353, "s390_pci_mmio_read")
 _S(354, "execveat")
+_S(355, "userfaultfd")
+_S(356, "membarrier")
+_S(357, "recvmmsg")
+_S(358, "sendmmsg")
+_S(359, "socket")
+_S(360, "socketpair")
+_S(361, "bind")
+_S(362, "connect")
+_S(363, "listen")
+_S(364, "accept4")
+_S(365, "getsockopt")
+_S(366, "setsockopt")
+_S(367, "getsockname")
+_S(368, "getpeername")
+_S(369, "sendto")
+_S(370, "sendmsg")
+_S(371, "recvfrom")
+_S(372, "recvmsg")
+_S(373, "shutdown")
+_S(374, "mlock2")
+_S(375, "copy_file_range")

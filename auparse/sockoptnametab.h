@@ -1,5 +1,5 @@
 /* sockoptnametab.h --
- * Copyright 2013-15 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2013-16 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -72,6 +72,8 @@ _S(47, "SO_MAX_PACING_RATE")
 _S(48, "SO_BPF_EXTENSIONS")
 _S(49, "SO_INCOMING_CPU")
 _S(50, "SO_ATTACH_BPF")
+_S(51, "SO_ATTACH_REUSEPORT_CBPF")
+_S(52, "SO_ATTACH_REUSEPORT_EBPF")
 
 // PPC has these different
 _S(116, "SO_RCVLOWAT")

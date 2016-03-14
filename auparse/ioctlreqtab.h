@@ -18,6 +18,10 @@
  *
  * Authors:
  *      Steve Grubb <sgrubb@redhat.com>
+ *      include/uapi/linux/kd.h
+ *	include/uapi/linux/cdrom.h
+ *	include/uapi/asm-generic/ioctls.h
+ *	include/uapi/drm/drm.h
  */
 
 _S(0x4B3A,	"KDSETMODE"	)
