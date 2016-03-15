@@ -74,9 +74,9 @@ option so that auditctl looks at the right lookup table when returning the numbe
 
 After the syscall is specified, you would normally have one or more
 .B \-F
-options that fine tune what to match against. Rather than list all the valid field types here, the reader should look at the auditctl man page which has a full listing of each field and what it means. But its worth mentioning a couple things.
+options that fine tune what to match against. Rather than list all the valid field types here, the reader should look at the auditctl man page which has a full listing of each field and what it means. But it's worth mentioning a couple things.
 
-The audit system considers uids to be unsigned numbers. The audit system uses the number \-1 to indicate that a loginuid is not set. This means that when its printed out, it looks like 4294967295. If you write a rule that you wanted try to get the valid users of the system, you need to look in /etc/login.defs to see where user accounts start. For example, if UID_MIN is  500, then you would also need to take into account that the unsigned representation of \-1 is higher than 500. So you would address this with the following piece of a rule:
+The audit system considers uids to be unsigned numbers. The audit system uses the number \-1 to indicate that a loginuid is not set. This means that when it's printed out, it looks like 4294967295. If you write a rule that you wanted try to get the valid users of the system, you need to look in /etc/login.defs to see where user accounts start. For example, if UID_MIN is  500, then you would also need to take into account that the unsigned representation of \-1 is higher than 500. So you would address this with the following piece of a rule:
 
 .nf
 \-F auid>=500 \-F auid!=4294967295
