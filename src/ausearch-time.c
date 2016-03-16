@@ -156,6 +156,7 @@ static void set_tm_this_year(struct tm *d)
 	replace_date(d, tv);
         d->tm_mday = 1;         /* override day of month */
         d->tm_mon = 0;          /* override month */
+	d->tm_isdst = 0;
 }
 
 /* Combine date & time into 1 struct. Results in date. */
@@ -167,9 +168,12 @@ static void add_tm(struct tm *d, struct tm *t)
 	replace_time(d, t);
 
         /* Now we need to figure out if DST is in effect */
-        dst = time(d);
+        dst = mktime(d);
         lt = localtime(&dst);
-        d->tm_isdst = lt->tm_isdst;
+	if (lt->tm_isdst > 0)
+	        d->tm_isdst = lt->tm_isdst;
+	else
+		d->tm_isdst = 0;
 }
 
 /* The time in t1 is replaced by t2 */
