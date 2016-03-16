@@ -20,6 +20,7 @@
  *     Steve Grubb <sgrubb@redhat.com>
  */
 
+#define _XOPEN_SOURCE
 #include "config.h"
 #include <stdio.h>
 #include <string.h>
@@ -166,7 +167,7 @@ static void add_tm(struct tm *d, struct tm *t)
 	replace_time(d, t);
 
         /* Now we need to figure out if DST is in effect */
-        dst = time(NULL);
+        dst = time(d);
         lt = localtime(&dst);
         d->tm_isdst = lt->tm_isdst;
 }
