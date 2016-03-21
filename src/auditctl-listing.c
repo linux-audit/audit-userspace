@@ -1,5 +1,5 @@
 /* auditctl-listing.c -- 
- * Copyright 2014 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2014,16 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -351,7 +351,7 @@ static void print_rule(const struct audit_rule_data *r)
 				boffset += r->values[i];
 			} else if (field == AUDIT_DIR) {
 				if (watch)
-					printf("-w %.*s/", r->values[i],
+					printf("-w %.*s", r->values[i],
 						&r->buf[boffset]);
 				else
 					printf(" -F dir=%.*s", r->values[i],
