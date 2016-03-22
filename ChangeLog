@@ -10,6 +10,7 @@
 - Update auparse interpretations for hook, action, macproto, chardev, and net
 - Update interpretations for the 4.5 kernel
 - Fix DST bug in ausearch/report time handling
+- Add optional ExecStopPost to auditd.service to clear rules on service exit
 
 2.5
 - Make augenrules the default method to load audit rules
