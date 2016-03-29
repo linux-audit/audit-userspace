@@ -293,7 +293,7 @@ int ausearch_time_start(const char *da, const char *ti)
 	}
 
 	if (ti != NULL) {
-		char tmp_t[36];
+		char tmp_t[64];
 
 		if (strlen(ti) <= 5) {
 			snprintf(tmp_t, sizeof(tmp_t), "%s:00", ti);
@@ -370,7 +370,7 @@ int ausearch_time_end(const char *da, const char *ti)
 	}
 
 	if (ti != NULL) {
-		char tmp_t[36];
+		char tmp_t[64];
 
 		if (strlen(ti) <= 5) {
 			snprintf(tmp_t, sizeof(tmp_t), "%s:00", ti);
