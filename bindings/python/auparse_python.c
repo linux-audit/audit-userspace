@@ -521,6 +521,25 @@ AuParser_flush_feed(AuParser *self)
 }
 
 /********************************
+ * auparse_feed_age_events
+ ********************************/
+PyDoc_STRVAR(feed_age_events_doc,
+"feed_age_events() age events by the clock\n\
+\n\
+feed_age_events() should be called to timeout events by the clock.\n\
+Any newly complete events will be sent to the callback function.\n\
+\n\
+Returns None.\n\
+");
+static PyObject *
+AuParser_feed_age_events(AuParser *self)
+{
+    PARSER_CHECK;
+    auparse_feed_age_events(self->au);
+    Py_RETURN_NONE;
+}
+
+/********************************
  * auparse_add_callback
  ********************************/
 PyDoc_STRVAR(add_callback_doc,
@@ -1537,6 +1556,7 @@ PyMemberDef AuParser_members[] = {
 static PyMethodDef AuParser_methods[] = {
     {"feed",              (PyCFunction)AuParser_feed,              METH_VARARGS, feed_doc},
     {"flush_feed",        (PyCFunction)AuParser_flush_feed,        METH_NOARGS,  flush_feed_doc},
+    {"feed_age_events",   (PyCFunction)AuParser_feed_age_events,   METH_NOARGS,  feed_age_events_doc},
     {"add_callback",      (PyCFunction)AuParser_add_callback,      METH_VARARGS, add_callback_doc},
     {"set_escape_mode",   (PyCFunction)AuParser_set_escape_mode,   METH_VARARGS, set_escape_mode_doc},
     {"reset",             (PyCFunction)AuParser_reset,             METH_NOARGS,  reset_doc},

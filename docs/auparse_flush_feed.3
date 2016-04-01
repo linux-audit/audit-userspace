@@ -1,16 +1,11 @@
-.TH "AUPARSE_FLUSH_FEED" "3" "Sept 2012" "Red Hat" "Linux Audit API"
+.TH "AUPARSE_FLUSH_FEED" "3" "Apr 2016" "Red Hat" "Linux Audit API"
 .SH NAME
 auparse_flush_feed \- flush any unconsumed feed data through parser.
 .SH "SYNOPSIS"
 .B #include <auparse.h>
 .sp
-.nf
-int auparse_feed(auparse_state_t *au);
-.fi
+int auparse_flush_feed(auparse_state_t *au);
 
-.TP
-.I au
-The audit parse state
 .SH "DESCRIPTION"
 
 .I auparse_flush_feed
@@ -23,6 +18,7 @@ Returns \-1 if an error occurs; otherwise, 0 for success.
 .SH "SEE ALSO"
 
 .BR auparse_feed (3),
+.BR auparse_feed_age_events (3),
 .BR auparse_feed_has_data (3)
 
 

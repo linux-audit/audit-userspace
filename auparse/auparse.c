@@ -657,6 +657,13 @@ int auparse_feed_has_data(const auparse_state_t *au)
 	return 0;
 }
 
+void auparse_feed_age_events(const auparse_state_t *au)
+{
+	time_t t = time(NULL);
+	au_check_events(&au_lo, t);
+	consume_feed(au, 0);
+}
+
 void auparse_set_escape_mode(auparse_esc_t mode)
 {
 	set_escape_mode(mode);
