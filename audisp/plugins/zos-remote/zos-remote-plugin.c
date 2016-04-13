@@ -518,10 +518,14 @@ int main(int argc, char *argv[])
                 auparse_add_callback(au, push_event, NULL, NULL);  /* 4 */
 
                 /* main loop */
+		rc = -1;
                 while (hup == 0 && stop == 0) {
                         fd_set rfds;
                         struct timeval tv;
-                         
+
+			if (rc == 0 && auparse_feed_has_data(au))
+				auparse_feed_age_events(au);                         
+
                         FD_ZERO(&rfds);
                         FD_SET(0, &rfds);
                         tv.tv_sec = 5;

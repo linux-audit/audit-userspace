@@ -252,14 +252,16 @@ int main(int argc, char *argv[])
 	do {
 		fd_set read_mask;
 		struct timeval tv;
-		int retval;
+		int retval = -1;
 
 		/* Load configuration */
 		if (hup) {
 			reload_config();
 		}
 		do {
-			tv.tv_sec = 5;
+			if (retval == 0 && auparse_feed_has_data(au))
+				auparse_feed_age_events(au);
+			tv.tv_sec = 4;
 			tv.tv_usec = 0;
 			FD_ZERO(&read_mask);
 			FD_SET(0, &read_mask);

@@ -12,6 +12,7 @@
 - Add optional ExecStopPost to auditd.service to clear rules on service exit
 - Update ausearch/report buffer size for locales with large time formats
 - Add auparse_feed_age_events function to auparse library
+- Use auparse_feed_age_events in zos & prelude plugins
 
 2.5
 - Make augenrules the default method to load audit rules
