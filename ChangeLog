@@ -1,4 +1,5 @@
 2.5.2
+- Fix memory leak caused by unneeded reference in auparse python bindings
 
 2.5.1
 - Updated and added audit rules

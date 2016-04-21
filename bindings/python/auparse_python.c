@@ -1087,7 +1087,6 @@ AuParser_get_timestamp(AuParser *self)
         }
     }
     py_event = AuEvent_new_from_struct(event_ptr);
-    Py_INCREF(py_event);        /* FIXME: should we be bumping the ref count? */
     return py_event;
 }
 
