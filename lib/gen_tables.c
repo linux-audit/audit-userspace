@@ -38,7 +38,7 @@
 #endif
 #include "gen_tables.h"
 #include "libaudit.h"
-#include "interpret.h"
+#include "auparse-defs.h"
 
 /* This is from asm/ipc.h. Copying it for now as some platforms
  *  * have broken headers. */

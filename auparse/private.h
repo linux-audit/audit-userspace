@@ -1,5 +1,5 @@
 /* private.h -- 
- * Copyright 2007,2013 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2007,2013,2016 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -26,29 +26,23 @@
 #include "libaudit.h"
 #include "dso.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+AUDIT_HIDDEN_START
 
 /* Internal syslog messaging */
 #define audit_msg auparse_msg
 #define set_aumessage_mode set_aup_message_mode
-void auparse_msg(int priority, const char *fmt, ...) hidden
+void auparse_msg(int priority, const char *fmt, ...) 
 #ifdef __GNUC__
         __attribute__ ((format (printf, 2, 3)));
 #else
         ;
 #endif
-void set_aumessage_mode(message_t mode, debug_message_t debug) hidden;
 
+void set_aup_message_mode(message_t mode, debug_message_t debug); 
 char *audit_strsplit_r(char *s, char **savedpp);
 char *audit_strsplit(char *s);
-hidden_proto(audit_strsplit_r)
-hidden_proto(audit_strsplit)
 
-#ifdef __cplusplus
-}
-#endif
+AUDIT_HIDDEN_END
 
 #endif
 

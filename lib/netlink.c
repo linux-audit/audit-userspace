@@ -1,5 +1,5 @@
 /* netlink.c --
- * Copyright 2004, 2005, 2009, 2013 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2004,2005,2009,2013,2016 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -130,7 +130,6 @@ retry:
 		len = -errno;
 	return len; 
 }
-hidden_def(audit_get_reply)
 
 
 /* 
@@ -251,7 +250,6 @@ int audit_send(int fd, int type, const void *data, unsigned int size)
 
 	return 0;
 }
-hidden_def(audit_send)
 
 /*
  * This function will take a peek into the next packet and see if there's

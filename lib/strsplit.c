@@ -1,5 +1,5 @@
 /* strsplit.c --
- * Copyright 2014 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2014,2016 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -55,7 +55,6 @@ retry:
 		return s;
 	}
 }
-hidden_def(audit_strsplit_r)
 
 char *audit_strsplit(char *s)
 {
@@ -88,4 +87,3 @@ retry:
 		return s;
 	}
 }
-hidden_def(audit_strsplit)

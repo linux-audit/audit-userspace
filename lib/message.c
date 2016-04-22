@@ -1,5 +1,5 @@
 /* message.c --
- * Copyright 2004, 2005 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2004,2005,2016 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -56,4 +56,3 @@ void audit_msg(int priority, const char *fmt, ...)
 	}
         va_end( ap );
 }
-hidden_def(audit_msg)

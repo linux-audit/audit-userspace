@@ -22,23 +22,18 @@
 #ifndef _DSO_H_
 #define _DSO_H_
 
-#ifdef PIC
-# define hidden __attribute__ ((visibility ("hidden")))
-# define hidden_proto(fct) __hidden_proto (fct, fct##_internal)
-# define __hidden_proto(fct, internal)  \
-     extern __typeof (fct) internal;    \
-     extern __typeof (fct) fct __asm (#internal) hidden;
-# if defined(__alpha__) || defined(__mips__)
-#  define hidden_def(fct) \
-     asm (".globl " #fct "\n" #fct " = " #fct "_internal");
-# else
-#  define hidden_def(fct) \
-     asm (".globl " #fct "\n.set " #fct ", " #fct "_internal");
+/*
+ * This is to mark functions as internal to the API
+ */
+#ifndef AUDIT_HIDDEN_START
+#define AUDIT_HIDDEN_START _Pragma("GCC visibility push(hidden)")
 #endif
-#else
-# define hidden
-# define hidden_proto(fct)
-# define hidden_def(fct)
+
+/*
+ * This ends the section that is internal to the API.
+ */
+#ifndef AUDIT_HIDDEN_END
+#define AUDIT_HIDDEN_END _Pragma("GCC visibility pop")
 #endif
 
 #endif

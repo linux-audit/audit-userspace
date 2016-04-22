@@ -44,13 +44,17 @@ typedef struct {
   unsigned int cnt;	// How many items in this list
 } nvpair;
 
-void nvpair_create(nvpair *l) hidden;
 static inline void nvpair_first(nvpair *l) { l->cur = l->head; }
 static inline nvpnode *nvpair_get_cur(nvpair *l) { return l->cur; }
-void nvpair_append(nvpair *l, nvpnode *node) hidden;
-void nvpair_clear(nvpair *l) hidden;
-int nvpair_find_val(nvpair *l, long val) hidden;
 
+AUDIT_HIDDEN_START
+
+void nvpair_create(nvpair *l);
+void nvpair_append(nvpair *l, nvpnode *node);
+void nvpair_clear(nvpair *l);
+int nvpair_find_val(nvpair *l, long val);
+
+AUDIT_HIDDEN_END
 
 #endif
 

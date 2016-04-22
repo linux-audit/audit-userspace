@@ -1,5 +1,5 @@
 /* lookup_table.c -- 
- * Copyright 2004-2008,2012-13 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2004-2008,2012-13,2016 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -96,7 +96,6 @@ int audit_name_to_field(const char *field)
 #endif
 	return -1;
 }
-hidden_def(audit_name_to_field)
 
 const char *audit_field_to_name(int field)
 {
@@ -157,7 +156,6 @@ int audit_name_to_syscall(const char *sc, int machine)
 		return res;
 	return -1;
 }
-hidden_def(audit_name_to_syscall)
 
 const char *audit_syscall_to_name(int sc, int machine)
 {
@@ -253,13 +251,11 @@ int audit_name_to_msg_type(const char *msg_type)
 
 	return -1;
 }
-hidden_def(audit_name_to_msg_type)
 
 const char *audit_msg_type_to_name(int msg_type)
 {
 	return msg_type_i2s(msg_type);
 }
-hidden_def(audit_msg_type_to_name)
 
 int audit_name_to_machine(const char *machine)
 {
@@ -269,7 +265,6 @@ int audit_name_to_machine(const char *machine)
 		return res;
 	return -1;
 }
-hidden_def(audit_name_to_machine)
 
 const char *audit_machine_to_name(int machine)
 {
@@ -285,7 +280,6 @@ unsigned int audit_machine_to_elf(int machine)
 			return elftab[i].lvalue;
 	return 0;
 }
-hidden_def(audit_machine_to_elf)
 
 int audit_elf_to_machine(unsigned int elf)
 {
@@ -295,13 +289,11 @@ int audit_elf_to_machine(unsigned int elf)
 		if (elftab[i].lvalue == elf) return elftab[i].key;
 	return -1;
 }
-hidden_def(audit_elf_to_machine)
 
 const char *audit_operator_to_symbol(int op)
 {
 	return op_i2s(op);
 }
-hidden_def(audit_operator_to_symbol)
 
 /* This function returns 0 on error, otherwise the converted value */
 int audit_name_to_errno(const char *error)
@@ -321,7 +313,6 @@ int audit_name_to_errno(const char *error)
 	return 0;
 #endif
 }
-hidden_def(audit_name_to_errno)
 
 /* This function does not handle negative numbers yet */
 const char *audit_errno_to_name(int error)
@@ -346,7 +337,6 @@ int audit_name_to_ftype(const char *name)
 #endif
 	return -1;
 }
-hidden_def(audit_name_to_ftype)
 
 const char *audit_ftype_to_name(int ftype)
 {

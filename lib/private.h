@@ -30,14 +30,6 @@ extern "C" {
 
 typedef enum { REAL_ERR, HIDE_IT } hide_t;
 
-/* Internal syslog messaging */
-void audit_msg(int priority, const char *fmt, ...) 
-#ifdef __GNUC__
-	__attribute__ ((format (printf, 2, 3)));
-#else
-	;
-#endif
-
 /* This structure is for protocol reference only.  All fields are
    packed and in network order (LSB first).  */
 struct auditd_remote_message_wrapper {
@@ -120,12 +112,28 @@ struct auditd_remote_message_wrapper {
 	seq = _AUDIT_RMW_GETN32 (header,12);
 
 /* General */
+/* Internal syslog messaging */
+void audit_msg(int priority, const char *fmt, ...) 
+#ifdef __GNUC__
+	__attribute__ ((format (printf, 2, 3)));
+#else
+	;
+#endif
+
 extern int audit_send(int fd, int type, const void *data, unsigned int size);
+
+AUDIT_HIDDEN_START
 
 // This is the main messaging function used internally
 // Don't hide it, it used to be a part of the public API!
 extern int audit_send_user_message(int fd, int type, hide_t hide_err, 
 	const char *message);
+
+AUDIT_HIDDEN_END
+
+// strsplit.c
+char *audit_strsplit_r(char *s, char **savedpp);
+char *audit_strsplit(char *s);
 
 // libaudit.c
 extern int _audit_permadded;
@@ -133,40 +141,6 @@ extern int _audit_archadded;
 extern int _audit_syscalladded;
 extern int _audit_exeadded;
 extern unsigned int _audit_elf;
-
-hidden_proto(audit_send_user_message);
-hidden_proto(audit_add_watch_dir);
-hidden_proto(audit_detect_machine);
-hidden_proto(audit_request_status);
-hidden_proto(audit_rule_syscall_data);
-hidden_proto(audit_rule_syscallbyname_data);
-hidden_proto(audit_set_feature);
-hidden_proto(audit_request_features);
-
-// lookup_table.c
-hidden_proto(audit_elf_to_machine);
-hidden_proto(audit_machine_to_elf);
-hidden_proto(audit_msg_type_to_name);
-hidden_proto(audit_name_to_errno);
-hidden_proto(audit_name_to_field);
-hidden_proto(audit_name_to_machine);
-hidden_proto(audit_name_to_msg_type);
-hidden_proto(audit_name_to_syscall);
-hidden_proto(audit_operator_to_symbol);
-hidden_proto(audit_name_to_ftype);
-
-// netlink.c
-hidden_proto(audit_get_reply);
-hidden_proto(audit_send)
-
-// message.c
-hidden_proto(audit_msg)
-
-// strsplit.c
-char *audit_strsplit_r(char *s, char **savedpp);
-char *audit_strsplit(char *s);
-hidden_proto(audit_strsplit_r)
-hidden_proto(audit_strsplit)
 
 #ifdef __cplusplus
 }

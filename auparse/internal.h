@@ -29,10 +29,6 @@
 #include "dso.h"
 #include <stdio.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* This is what state the parser is in */
 typedef enum { EVENT_EMPTY, EVENT_ACCUMULATING, EVENT_EMITTED } auparser_state_t;
 
@@ -56,7 +52,7 @@ struct opaque
 	char *cur_buf;			// The current buffer being parsed
 	int line_pushed;		// True if retrieve_next_line() 
 					//	returns same input
-	event_list_t * le;		// Linked list of record in same event
+	event_list_t *le;		// Linked list of record in same event
 	struct expr *expr;		// Search expression or NULL
 	char *find_field;		// Used to store field name when
 					//	 searching
@@ -65,7 +61,8 @@ struct opaque
 	DataBuf databuf;		// input data
 
 	// function to call to notify user of parsing changes
-	void (*callback)(struct opaque *au, auparse_cb_event_t cb_event_type, void *user_data);
+	void (*callback)(struct opaque *au, auparse_cb_event_t cb_event_type,
+			void *user_data);
 
 	void *callback_user_data;	// user data supplied to callback
 
@@ -73,14 +70,14 @@ struct opaque
 	void (*callback_user_data_destroy)(void *user_data);
 };
 
-// auditd-config.c
-void clear_config(struct daemon_conf *config) hidden;
-int load_config(struct daemon_conf *config, log_test_t lt) hidden;
-void free_config(struct daemon_conf *config) hidden;
+AUDIT_HIDDEN_START
 
-#ifdef __cplusplus
-}
-#endif
+// auditd-config.c
+void clear_config(struct daemon_conf *config);
+int load_config(struct daemon_conf *config, log_test_t lt);
+void free_config(struct daemon_conf *config);
+
+AUDIT_HIDDEN_END
 
 #endif
 

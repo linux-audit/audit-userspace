@@ -1,5 +1,5 @@
 /* deprecated.c -- This file is the trash heap of things about to leave 
- * Copyright 2006-07,2009 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2006-07,2009,2016 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -73,5 +73,4 @@ retry:
 	}
 	return rc;
 }
-hidden_def(audit_send_user_message)
 

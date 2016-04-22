@@ -65,16 +65,20 @@ static inline char *databuf_beg(DataBuf *db)
 /****************************  Exported Functions  ***************************/
 /*****************************************************************************/
 
-void databuf_print(DataBuf *db, int print_data, char *fmt, ...) hidden
+AUDIT_HIDDEN_START
+
+void databuf_print(DataBuf *db, int print_data, char *fmt, ...)
 #ifdef __GNUC__
         __attribute__ ((format (printf, 3, 4)));
 #else
         ;
 #endif
-int databuf_init(DataBuf *db, size_t size, unsigned flags) hidden;
-void databuf_free(DataBuf *db) hidden;
-int databuf_append(DataBuf *db, const char *src, size_t src_size) hidden;
-int databuf_advance(DataBuf *db, size_t advance) hidden;
-int databuf_reset(DataBuf *db) hidden;
+int databuf_init(DataBuf *db, size_t size, unsigned flags);
+void databuf_free(DataBuf *db);
+int databuf_append(DataBuf *db, const char *src, size_t src_size);
+int databuf_advance(DataBuf *db, size_t advance);
+int databuf_reset(DataBuf *db);
+
+AUDIT_HIDDEN_END
 
 #endif

@@ -273,7 +273,6 @@ int set_escape_mode(auparse_esc_t mode)
 	escape_mode = mode;
 	return 0;
 }
-hidden_def(set_escape_mode)
 
 static int is_hex_string(const char *str)
 {
@@ -2597,7 +2596,6 @@ int auparse_interp_adjust_type(int rtype, const char *name, const char *val)
 
 	return type;
 }
-hidden_def(auparse_interp_adjust_type)
 
 const char *auparse_do_interpretation(int type, const idata *id)
 {
@@ -2728,5 +2726,4 @@ const char *auparse_do_interpretation(int type, const idata *id)
 	}
 	return out;
 }
-hidden_def(auparse_do_interpretation)
 

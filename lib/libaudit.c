@@ -1,5 +1,5 @@
 /* libaudit.c -- 
- * Copyright 2004-2009,2012,2014 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2004-2009,2012,2014,2016 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -115,7 +115,6 @@ int audit_request_status(int fd)
 			"Error sending status request (%s)", strerror(-rc));
 	return rc;
 }
-hidden_def(audit_request_status)
 
 /*
  * Set everything to its default value
@@ -535,7 +534,6 @@ int audit_set_feature(int fd, unsigned feature, unsigned value, unsigned lock)
 	return -1;
 #endif
 }
-hidden_def(audit_set_feature)
 
 int audit_request_features(int fd)
 {
@@ -555,7 +553,6 @@ int audit_request_features(int fd)
 	return -1;
 #endif
 }
-hidden_def(audit_request_features)
 
 extern int  audit_set_loginuid_immutable(int fd)
 {
@@ -729,7 +726,6 @@ int audit_add_watch_dir(int type, struct audit_rule_data **rulep,
 
 	return  0;
 }
-hidden_def(audit_add_watch_dir)
 
 int audit_add_rule_data(int fd, struct audit_rule_data *rule,
                         int flags, int action)
@@ -894,7 +890,6 @@ int audit_rule_syscall_data(struct audit_rule_data *rule, int scall)
 	rule->mask[word] |= bit;
 	return 0;
 }
-hidden_def(audit_rule_syscall_data)
 
 int audit_rule_syscallbyname_data(struct audit_rule_data *rule,
                                   const char *scall)
@@ -922,7 +917,6 @@ int audit_rule_syscallbyname_data(struct audit_rule_data *rule,
 		return audit_rule_syscall_data(rule, nr);
 	return -1;
 }
-hidden_def(audit_rule_syscallbyname_data)
 
 int audit_rule_interfield_comp_data(struct audit_rule_data **rulep,
 					 const char *pair,
@@ -1696,7 +1690,6 @@ int audit_detect_machine(void)
 		return audit_name_to_machine(uts.machine);
 	return -1;
 }
-hidden_def(audit_detect_machine)
 
 #ifndef NO_TABLES
 void audit_number_to_errmsg(int errnumber, const char *opt)

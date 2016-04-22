@@ -31,21 +31,26 @@
 #include "ellist.h"
 
 
-void nvlist_create(nvlist *l) hidden;
-void nvlist_clear(nvlist* l) hidden;
 static inline unsigned int nvlist_get_cnt(nvlist *l) { return l->cnt; }
 static inline void nvlist_first(nvlist *l) { l->cur = l->head; }
 static inline nvnode *nvlist_get_cur(const nvlist *l) { return l->cur; }
-nvnode *nvlist_next(nvlist *l) hidden;
 static inline const char *nvlist_get_cur_name(const nvlist *l) {if (l->cur) return l->cur->name; else return NULL;}
 static inline const char *nvlist_get_cur_val(const nvlist *l) {if (l->cur) return l->cur->val; else return NULL;}
 static inline const char *nvlist_get_cur_val_interp(const nvlist *l) {if (l->cur) return l->cur->interp_val; else return NULL;}
-int nvlist_get_cur_type(const rnode *r) hidden;
-const char *nvlist_interp_cur_val(const rnode *r) hidden;
-void nvlist_append(nvlist *l, nvnode *node) hidden;
+
+AUDIT_HIDDEN_START
+
+void nvlist_create(nvlist *l);
+void nvlist_clear(nvlist* l);
+nvnode *nvlist_next(nvlist *l);
+int nvlist_get_cur_type(const rnode *r);
+const char *nvlist_interp_cur_val(const rnode *r);
+void nvlist_append(nvlist *l, nvnode *node);
 
 /* Given a numeric index, find that record. */
-int nvlist_find_name(nvlist *l, const char *name) hidden;
+int nvlist_find_name(nvlist *l, const char *name);
+
+AUDIT_HIDDEN_END
 
 #endif
 
