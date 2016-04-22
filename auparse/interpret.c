@@ -2323,7 +2323,6 @@ static const char *print_macproto(const char *val)
 {
 	int type;
 	char *out;
-	const char *str;
 
 	errno = 0;
 	type = strtoul(val, NULL, 16);
