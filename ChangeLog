@@ -1,7 +1,7 @@
 2.5.2
 - Fix memory leak caused by unneeded reference in auparse python bindings
 - Revise function hiding technique to better protect audit ABI
-- Interpret old-auid
+- Interpret old-auid, exit syscall parameters
 
 2.5.1
 - Updated and added audit rules

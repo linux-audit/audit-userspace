@@ -1896,6 +1896,19 @@ static const char *print_ioctl_req(const char *val)
 	return out;
 }
 
+static const char *print_exit_syscall(const char *val)
+{
+	char *out;
+
+	if (strcmp(val, "0") == 0)
+		out = strdup("EXIT_SUCCESS");
+	else if (strcmp(val, "1") == 0)
+		out = strdup("EXIT_FAILURE");
+	else
+		out = strdup("UNKNOWN");
+	return out;
+}
+
 static const char *print_a0(const char *val, const idata *id)
 {
 	char *out;
@@ -1976,6 +1989,8 @@ static const char *print_a0(const char *val, const idata *id)
 			return print_dirfd(val);
                	else if (strcmp(sys, "ipccall") == 0)
 			return print_ipccall(val, 16);
+		else if (strncmp(sys, "exit", 4) == 0)
+			return print_exit_syscall(val);
 	}
 	if (asprintf(&out, "0x%s", val) < 0)
 			out = NULL;
