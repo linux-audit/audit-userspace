@@ -43,7 +43,7 @@ typedef enum { N_NONE, N_HOSTNAME, N_FQD, N_NUMERIC, N_USER } node_t;
 struct daemon_conf
 {
 	daemon_t daemonize;
-	unsigned int no_local_events;
+	unsigned int local_events;
 	qos_t qos;		/* use blocking/non-blocking sockets */
 	uid_t sender_uid;	/* the uid for sender of sighup */
 	pid_t sender_pid;	/* the pid for sender of sighup */

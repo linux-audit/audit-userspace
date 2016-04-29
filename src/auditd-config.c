@@ -134,7 +134,7 @@ static int sanity_check(struct daemon_conf *config);
 
 static const struct kw_pair keywords[] = 
 {
-  {"no_local_events",          local_events_parser,		0},
+  {"local_events",             local_events_parser,		0},
   {"write_logs",               write_logs_parser,		0 },
   {"log_file",                 log_file_parser,			0 },
   {"log_format",               log_format_parser,		0 },
@@ -248,7 +248,7 @@ void set_allow_links(int allow)
 */
 void clear_config(struct daemon_conf *config)
 {
-	config->no_local_events = 0;
+	config->local_events = 1;
 	config->qos = QOS_NON_BLOCKING;
 	config->sender_uid = 0;
 	config->sender_pid = 0;
@@ -522,7 +522,7 @@ static int local_events_parser(struct nv_pair *nv, int line,
 
 	for (i=0; yes_no_values[i].name != NULL; i++) {
 		if (strcasecmp(nv->value, yes_no_values[i].name) == 0) {
-			config->no_local_events = yes_no_values[i].option;
+			config->local_events = yes_no_values[i].option;
 			return 0;
 		}
 	}

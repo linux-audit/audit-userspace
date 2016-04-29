@@ -2,7 +2,7 @@
 - Fix memory leak caused by unneeded reference in auparse python bindings
 - Revise function hiding technique to better protect audit ABI
 - Interpret old-auid, exit syscall parameters
-- Create no_local_events config option to auditd
+- Create local_events config option to auditd
 - Create write_logs option for auditd and deprecate NOLOG log_format option
 
 2.5.1

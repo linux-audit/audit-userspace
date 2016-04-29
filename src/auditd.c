@@ -591,7 +591,7 @@ int main(int argc, char *argv[])
 	}
 
 	// This can only be set at start up
-	opt_aggregate_only = config.no_local_events;
+	opt_aggregate_only = !config.local_events;
 
 #ifndef DEBUG
 	/* Make sure we are root */
