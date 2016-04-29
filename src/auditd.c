@@ -590,9 +590,6 @@ int main(int argc, char *argv[])
 		(void) umask( umask( 077 ) | 022 );
 	}
 
-	// This can only be set at start up
-	opt_aggregate_only = !config.local_events;
-
 #ifndef DEBUG
 	/* Make sure we are root */
 	if (getuid() != 0) {
@@ -621,6 +618,9 @@ int main(int argc, char *argv[])
 	/* Load the Configuration File */
 	if (load_config(&config, TEST_AUDITD))
 		return 6;
+
+	// This can only be set at start up
+	opt_aggregate_only = !config.local_events;
 
 	if (config.priority_boost != 0) {
 		errno = 0;
