@@ -11,6 +11,7 @@ Things that need to be done:
 * Add metadata in auparse for subj,obj,action,results
 
 2.5.5
+* look at RFC 3339 time format
 * Format ausearch output
 * Auditd should only send 1 warning to clients when space_left is reached.
 
