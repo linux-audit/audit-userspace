@@ -207,17 +207,15 @@ void enqueue_event(struct auditd_event *e)
 	e->sequence_id = 0;
 
 	if (e->reply.type != AUDIT_DAEMON_RECONFIG) {
+		if (config->write_logs == 0) {
+			cleanup_event(e);
+			return;
+		}
+
 		switch (config->log_format)
 		{
 		case LF_RAW:
 			buf = format_raw(&e->reply);
-			break;
-		case LF_NOLOG:
-			// We need the rotate event to get enqueued
-			if (e->reply.type != AUDIT_DAEMON_ROTATE) {
-				cleanup_event(e);
-				return;
-			}
 			break;
 		default:
 			cleanup_event(e);
@@ -294,19 +292,19 @@ static void handle_event(struct auditd_event *e)
 
 	if (e->reply.type == AUDIT_DAEMON_RECONFIG) {
 		reconfigure(e);
+		if (config->write_logs == 0)
+			return;
 		switch (config->log_format)
 		{
 		case LF_RAW:
 			buf = format_raw(&e->reply);
 			break;
-		case LF_NOLOG:
-			return;
 		default:
 			return;
 		}
 	} else if (e->reply.type == AUDIT_DAEMON_ROTATE) {
 		rotate_logs_now();
-		if (config->log_format == LF_NOLOG)
+		if (config->write_logs == 0)
 			return;
 	}
 	if (!logging_suspended) {

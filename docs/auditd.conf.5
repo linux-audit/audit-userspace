@@ -19,13 +19,19 @@ has no effect.
 This keyword specifies the full path name to the log file where audit records
 will be stored. It must be a regular file.
 .TP
+.I write_logs
+This yes/no keyword determines whether or not to write logs to the disk.
+Normally you want this so the default is yes.
+.TP
 .I log_format
 The log format describes how the information should be stored on disk. There are 2 options: raw and nolog.
 If set to
 .IR RAW ,
-the audit records will be stored in a format exactly as the kernel sends it. If this option is set to
+the audit records will be stored in a format exactly as the kernel sends it. 
+The 
 .I NOLOG
-then all audit information is discarded instead of writing to disk. This mode does not affect data sent to the audit event dispatcher. The default value is RAW.
+option is now deprecated. If you were setting this format, now you should set
+the write_logs option to no.
 .TP
 .I log_group
 This keyword specifies the group that is applied to the log file's permissions. The default is root. The group name can be either numeric or spelled out.

@@ -68,6 +68,8 @@ static int nv_split(char *buf, struct nv_pair *nv);
 static const struct kw_pair *kw_lookup(const char *val);
 static int local_events_parser(struct nv_pair *nv, int line,
 		struct daemon_conf *config);
+static int write_logs_parser(struct nv_pair *nv, int line,
+		struct daemon_conf *config);
 static int log_file_parser(struct nv_pair *nv, int line, 
 		struct daemon_conf *config);
 static int num_logs_parser(struct nv_pair *nv, int line, 
@@ -132,7 +134,8 @@ static int sanity_check(struct daemon_conf *config);
 
 static const struct kw_pair keywords[] = 
 {
-  {"no_local_events",          local_events_parser,              0},
+  {"no_local_events",          local_events_parser,		0},
+  {"write_logs",               write_logs_parser,		0 },
   {"log_file",                 log_file_parser,			0 },
   {"log_format",               log_format_parser,		0 },
   {"log_group",                log_group_parser,		0 },
@@ -250,6 +253,7 @@ void clear_config(struct daemon_conf *config)
 	config->sender_uid = 0;
 	config->sender_pid = 0;
 	config->sender_ctx = NULL;
+	config->write_logs = 1;
 	config->log_file = strdup("/var/log/audit/audit.log");
 	config->log_format = LF_RAW;
 	config->log_group = 0;
@@ -519,6 +523,24 @@ static int local_events_parser(struct nv_pair *nv, int line,
 	for (i=0; yes_no_values[i].name != NULL; i++) {
 		if (strcasecmp(nv->value, yes_no_values[i].name) == 0) {
 			config->no_local_events = yes_no_values[i].option;
+			return 0;
+		}
+	}
+	audit_msg(LOG_ERR, "Option %s not found - line %d", nv->value, line);
+	return 1;
+}
+
+static int write_logs_parser(struct nv_pair *nv, int line,
+	struct daemon_conf *config)
+{
+	unsigned long i;
+
+	audit_msg(LOG_DEBUG, "write_logs_parser called with: %s",
+		  nv->value);
+
+	for (i=0; yes_no_values[i].name != NULL; i++) {
+		if (strcasecmp(nv->value, yes_no_values[i].name) == 0) {
+			config->write_logs = yes_no_values[i].option;
 			return 0;
 		}
 	}
@@ -817,6 +839,15 @@ static int log_format_parser(struct nv_pair *nv, int line,
 	for (i=0; log_formats[i].name != NULL; i++) {
 		if (strcasecmp(nv->value, log_formats[i].name) == 0) {
 			config->log_format = log_formats[i].option;
+			if (config->log_format == LF_NOLOG) {
+				audit_msg(LOG_WARNING,
+				    "The NOLOG option to log_format is deprecated. Please use the write_logs option.");
+				if (config->log_format == LF_NOLOG &&
+					config->write_logs != 0)
+					audit_msg(LOG_WARNING,
+					    "The NOLOG option is overriding the write_logs current setting.");
+				config->write_logs = 0;
+			}
 			return 0;
 		}
 	}
