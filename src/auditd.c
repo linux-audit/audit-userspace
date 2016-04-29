@@ -86,7 +86,7 @@ static const char *startup_states[] = {"disable", "enable", "nochange"};
  */
 static void usage(void)
 {
-	fprintf(stderr, "Usage: auditd [-a] [-f] [-l] [-n] [-s %s|%s|%s]\n",
+	fprintf(stderr, "Usage: auditd [-f] [-l] [-n] [-s %s|%s|%s]\n",
 		startup_states[startup_disable],
 		startup_states[startup_enable],
 		startup_states[startup_nochange]);
@@ -545,14 +545,11 @@ int main(int argc, char *argv[])
 	/* Get params && set mode */
 	while ((c = getopt(argc, argv, "aflns:")) != -1) {
 		switch (c) {
-		case 'a':
-			opt_aggregate_only = 1;
-			break;
 		case 'f':
 			opt_foreground = 1;
 			break;
 		case 'l':
-			opt_allow_links=1;
+			opt_allow_links = 1;
 			break;
 		case 'n':
 			do_fork = 0;
@@ -592,6 +589,9 @@ int main(int argc, char *argv[])
 		set_aumessage_mode(MSG_SYSLOG, DBG_NO);
 		(void) umask( umask( 077 ) | 022 );
 	}
+
+	// This can only be set at start up
+	opt_aggregate_only = config.no_local_events;
 
 #ifndef DEBUG
 	/* Make sure we are root */

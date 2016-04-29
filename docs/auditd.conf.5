@@ -1,4 +1,4 @@
-.TH AUDITD.CONF: "5" "March 2014" "Red Hat" "System Administration Utilities"
+.TH AUDITD.CONF: "5" "April 2016" "Red Hat" "System Administration Utilities"
 .SH NAME
 auditd.conf \- audit daemon configuration file
 .SH DESCRIPTION
@@ -6,6 +6,14 @@ The file
 .I /etc/audit/auditd.conf
 contains configuration information specific to the audit daemon. Each line should contain one configuration keyword, an equal sign, and then followed by appropriate configuration information. All option names and values are case insensitive. The keywords recognized are listed and described below. Each line should be limited to 160 characters or the line will be skipped. You may add comments to the file by starting the line with a '#' character.
 
+.TP
+.I no_local_events
+This yes/no keyword specifies whether or not to include local events. Normally
+you want local events so the default value is no. Cases where you would set
+this to yes is when you want to aggregate events from the network only. At the
+moment, this is useful if the audit daemon is running in a container. This
+option can only be set once at daemon start up. Reloading the config file
+has no effect.
 .TP
 .I log_file
 This keyword specifies the full path name to the log file where audit records

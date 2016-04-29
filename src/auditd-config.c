@@ -66,6 +66,8 @@ static char *get_line(FILE *f, char *buf, unsigned size, int *lineno,
 		const char *file);
 static int nv_split(char *buf, struct nv_pair *nv);
 static const struct kw_pair *kw_lookup(const char *val);
+static int local_events_parser(struct nv_pair *nv, int line,
+		struct daemon_conf *config);
 static int log_file_parser(struct nv_pair *nv, int line, 
 		struct daemon_conf *config);
 static int num_logs_parser(struct nv_pair *nv, int line, 
@@ -130,6 +132,7 @@ static int sanity_check(struct daemon_conf *config);
 
 static const struct kw_pair keywords[] = 
 {
+  {"no_local_events",          local_events_parser,              0},
   {"log_file",                 log_file_parser,			0 },
   {"log_format",               log_format_parser,		0 },
   {"log_group",                log_group_parser,		0 },
@@ -242,6 +245,7 @@ void set_allow_links(int allow)
 */
 void clear_config(struct daemon_conf *config)
 {
+	config->no_local_events = 0;
 	config->qos = QOS_NON_BLOCKING;
 	config->sender_uid = 0;
 	config->sender_pid = 0;
@@ -504,6 +508,24 @@ static const struct kw_pair *kw_lookup(const char *val)
 	return &keywords[i];
 }
  
+static int local_events_parser(struct nv_pair *nv, int line,
+	struct daemon_conf *config)
+{
+	unsigned long i;
+
+	audit_msg(LOG_DEBUG, "local_events_parser called with: %s",
+		  nv->value);
+
+	for (i=0; yes_no_values[i].name != NULL; i++) {
+		if (strcasecmp(nv->value, yes_no_values[i].name) == 0) {
+			config->no_local_events = yes_no_values[i].option;
+			return 0;
+		}
+	}
+	audit_msg(LOG_ERR, "Option %s not found - line %d", nv->value, line);
+	return 1;
+}
+
 static int log_file_parser(struct nv_pair *nv, int line,
 	struct daemon_conf *config)
 {

@@ -3,7 +3,7 @@
 auditd \- The Linux Audit daemon
 .SH SYNOPSIS
 .B auditd
-.RB [ \-a ]\ [ \-f ]\ [ \-l ]\ [ \-n ]\ [ \-s\ disable|enable|nochange ]
+.RB [ \-f ]\ [ \-l ]\ [ \-n ]\ [ \-s\ disable|enable|nochange ]
 .SH DESCRIPTION
 \fBauditd\fP is the userspace component to the Linux Auditing System. It's responsible for writing audit records to the disk. Viewing the logs is done with the
 .B ausearch
@@ -17,9 +17,6 @@ program that reads rules located in \fI/etc/audit/rules.d/\fP and compiles them 
 .B auditd.conf
 file.
 .SH OPTIONS
-.TP
-.B \-a
-aggregate events from the network only. This option will make the audit daemon not enable audit or listen for events on the audit netlink socket. This is useful if the audit daemon is running in a container.
 .TP
 .B \-f
 leave the audit daemon in the foreground for debugging. Messages also go to stderr rather than the audit log.

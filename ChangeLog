@@ -2,6 +2,7 @@
 - Fix memory leak caused by unneeded reference in auparse python bindings
 - Revise function hiding technique to better protect audit ABI
 - Interpret old-auid, exit syscall parameters
+- Create no_local_events config option to auditd
 
 2.5.1
 - Updated and added audit rules
