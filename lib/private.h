@@ -125,7 +125,6 @@ extern int audit_send(int fd, int type, const void *data, unsigned int size);
 AUDIT_HIDDEN_START
 
 // This is the main messaging function used internally
-// Don't hide it, it used to be a part of the public API!
 extern int audit_send_user_message(int fd, int type, hide_t hide_err, 
 	const char *message);
 
