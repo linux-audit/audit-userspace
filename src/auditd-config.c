@@ -173,6 +173,7 @@ static const struct nv_list log_formats[] =
 {
   {"raw",  LF_RAW },
   {"nolog", LF_NOLOG },
+  {"enriched", LF_ENRICHED },
   { NULL,  0 }
 };
 

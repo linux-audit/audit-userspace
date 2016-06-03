@@ -193,32 +193,38 @@ static int extract_type(const char *str)
 
 void distribute_event(struct auditd_event *e)
 {
-	int attempt = 0, route = 1;;
+	int attempt = 0, route = 1;
+	const char *buf = NULL;
 
-	// If a network event, type is 0
+	/* If type is 0, then its a network originating event */
 	if (e->reply.type == 0) {
 		if (!dispatch_network_events())
 			route = 0;
-		else // We only need the type if its being routed
+		else { // We only need the original type if its being routed
 			e->reply.type = extract_type(e->reply.message);
-	} else {
-		// Do the formatting
-	}
+			buf = e->reply.message;
+		}
+	} else if (e->reply.type != AUDIT_DAEMON_RECONFIG)
+		// All other events need formatting
+		buf = format_event(e);
+	else
+		route = 0; // Don't DAEMON_RECONFIG events until after enqueue
+// FIXME: What do we do with buf?
 
 	/* Make first attempt to send to plugins */
 	if (route && dispatch_event(&e->reply, attempt) == 1)
 		attempt++; /* Failed sending, retry after writing to disk */
 
 	/* End of Event is for realtime interface - skip local logging of it */
-	if (e->reply.type != AUDIT_EOE) {
-		/* Write to local disk */
-		enqueue_event(e);
-	} else
-		free(e);	// This function takes custody of the memory
+	if (e->reply.type != AUDIT_EOE)
+		enqueue_event(e); /* Write to local disk */
 
-	/* Last chance to send...maybe the pipe is empty now. *
-	if (attempt && route) 
-		dispatch_event(&e->reply, attempt); */
+	/* Last chance to send...maybe the pipe is empty now. */
+	if ((attempt && route) || (e->reply.type == AUDIT_DAEMON_RECONFIG))
+		dispatch_event(&e->reply, attempt);
+
+	/* Free msg and event memory */
+	cleanup_event(e);
 }
 
 /*
