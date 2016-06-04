@@ -194,22 +194,19 @@ static int extract_type(const char *str)
 void distribute_event(struct auditd_event *e)
 {
 	int attempt = 0, route = 1;
-	const char *buf = NULL;
 
 	/* If type is 0, then its a network originating event */
 	if (e->reply.type == 0) {
+		// See if we are distributing network originating events
 		if (!dispatch_network_events())
 			route = 0;
-		else { // We only need the original type if its being routed
+		else	// We only need the original type if its being routed
 			e->reply.type = extract_type(e->reply.message);
-			buf = e->reply.message;
-		}
 	} else if (e->reply.type != AUDIT_DAEMON_RECONFIG)
 		// All other events need formatting
-		buf = format_event(e);
+		format_event(e);
 	else
 		route = 0; // Don't DAEMON_RECONFIG events until after enqueue
-// FIXME: What do we do with buf?
 
 	/* Make first attempt to send to plugins */
 	if (route && dispatch_event(&e->reply, attempt) == 1)

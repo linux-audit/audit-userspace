@@ -45,7 +45,7 @@
 extern volatile int stop;
 
 /* Local function prototypes */
-static void write_to_log(const struct auditd_event *e, const char *buf);
+static void write_to_log(const struct auditd_event *e);
 static void check_log_file_size(void);
 static void check_space_left(void);
 static void do_space_left_action(int admin);
@@ -59,7 +59,6 @@ static int  open_audit_log(void);
 static void change_runlevel(const char *level);
 static void safe_exec(const char *exe);
 static void handle_event(struct auditd_event *e);
-static void replace_event_msg(struct auditd_event *e, const char *buf);
 static void reconfigure(struct auditd_event *e);
 static void init_flush_thread(void);
 
@@ -184,6 +183,23 @@ static void init_flush_thread(void)
 	pthread_create(&flush_thread, NULL, flush_thread_main, NULL);
 }
 
+static void replace_event_msg(struct auditd_event *e, const char *buf)
+{
+	if (buf) {
+		size_t len = strlen(buf);
+		if (len < MAX_AUDIT_MESSAGE_LENGTH - 1)
+			memcpy(e->reply.msg.data, buf, len+1);
+		else {
+			// If too big, we must truncate the event due to API
+			memcpy(e->reply.msg.data, buf, 
+				MAX_AUDIT_MESSAGE_LENGTH-1);
+			e->reply.msg.data[MAX_AUDIT_MESSAGE_LENGTH-1] = 0;
+			len = MAX_AUDIT_MESSAGE_LENGTH;
+		}
+		e->reply.len = len;
+	}
+}
+
 /*
 * This function will take an audit structure and return a
 * text buffer that's formatted for writing to disk. If there
@@ -305,7 +321,7 @@ static const char *format_enrich(const struct audit_reply *rep)
         return format_buf;
 }
 
-const char *format_event(struct auditd_event *e)
+void format_event(struct auditd_event *e)
 {
 	const char *buf;
 
@@ -324,8 +340,6 @@ const char *format_event(struct auditd_event *e)
 
 	if (e->reply.type != AUDIT_DAEMON_RECONFIG)
 		replace_event_msg(e, buf);
-
-	return buf;
 }
 
 /* This function free's all memory associated with events */
@@ -337,21 +351,6 @@ void cleanup_event(struct auditd_event *e)
 		free((void *)e->reply.message);
 	} 
 	free(e);
-}
-
-static void replace_event_msg(struct auditd_event *e, const char *buf)
-{
-	if (buf) {
-		size_t len = strlen(buf);
-		if (len < MAX_AUDIT_MESSAGE_LENGTH - 1)
-			memcpy(e->reply.msg.data, buf, len+1);
-		else {
-			// If too big, we must truncate the event due to API
-			memcpy(e->reply.msg.data, buf, 
-				MAX_AUDIT_MESSAGE_LENGTH-1);
-			e->reply.msg.data[MAX_AUDIT_MESSAGE_LENGTH-1] = 0;
-		}
-	}
 }
 
 /* This function takes a local event and sends it to the handler */
@@ -394,8 +393,6 @@ struct auditd_event *create_event(char *msg, ack_func_type ack_func,
 static unsigned int count = 0L;
 static void handle_event(struct auditd_event *e)
 {
-	char *buf = e->reply.msg.data;
-
 	if (e->reply.type == AUDIT_DAEMON_RECONFIG && e->ack_func == NULL) {
 		reconfigure(e);
 		if (config->write_logs == 0)
@@ -407,7 +404,7 @@ static void handle_event(struct auditd_event *e)
 			return;
 	}
 	if (!logging_suspended) {
-		write_to_log(e, buf);
+		write_to_log(e);
 
 		/* See if we need to flush to disk manually */
 		if (config->flush == FT_INCREMENTAL ||
@@ -474,14 +471,14 @@ void resume_logging(void)
 }
 
 /* This function writes the given buf to the current log file */
-static void write_to_log(const struct auditd_event *e, const char *buf)
+static void write_to_log(const struct auditd_event *e)
 {
 	int rc;
 	int ack_type = AUDIT_RMW_TYPE_ACK;
 	const char *msg = "";
 
 	/* write it to disk */
-	rc = fprintf(log_file, "%s\n", buf);
+	rc = fprintf(log_file, "%s\n", e->reply.msg.data);
 
 	/* error? Handle it */
 	if (rc < 0) {

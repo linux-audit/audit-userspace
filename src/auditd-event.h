@@ -42,7 +42,7 @@ void shutdown_events(void);
 int init_event(struct daemon_conf *config);
 void resume_logging(void);
 void cleanup_event(struct auditd_event *e);
-const char *format_event(struct auditd_event *e);
+void format_event(struct auditd_event *e);
 void enqueue_event(struct auditd_event *e);
 struct auditd_event *create_event(char *msg, ack_func_type ack_func,
 			void *ack_data, uint32_t sequence_id);

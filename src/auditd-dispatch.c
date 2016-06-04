@@ -175,7 +175,7 @@ int dispatch_event(const struct audit_reply *rep, int is_err)
 
 	vec[0].iov_base = (void*)&hdr;
 	vec[0].iov_len = sizeof(hdr);
-	vec[1].iov_base = (void*)rep->message;
+	vec[1].iov_base = (void*)rep->msg.data;
 	vec[1].iov_len = rep->len;
 
 	do {
