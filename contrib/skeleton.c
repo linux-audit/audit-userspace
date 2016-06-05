@@ -1,8 +1,14 @@
 /* skeleton.c --
  * 
- * This is a sample program that you can customize to create your own audit
- * event handler. It will be started by auditd via the dispatcher option in
- * /etc/audit/auditd.conf. This program can be built as follows:
+ * This is a sample dispatcher program that you can customize to create your
+ * own audit event handler. It will be started by auditd via the dispatcher
+ * option in /etc/audit/auditd.conf. It is much preferred that you create
+ * and audispd plugin for real time analytical needs. But this is here just
+ * in case you really prefer to get things straight from auditd.
+ *
+ * NOTE: The dispatcher interface will be going away at some point.
+ *
+ * This program can be built as follows:
  *
  * gcc skeleton.c -o skeleton -laudit
  */
