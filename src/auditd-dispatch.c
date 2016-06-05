@@ -1,5 +1,5 @@
 /* auditd-dispatch.c -- 
- * Copyright 2005-07,2013 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2005-07,2013,2016 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -168,7 +168,7 @@ int dispatch_event(const struct audit_reply *rep, int is_err)
 					rep->type == AUDIT_DAEMON_ROTATE)
 		return 0;
 
-	hdr.ver = AUDISP_PROTOCOL_VER; /* Hard-coded to current protocol */
+	hdr.ver = AUDISP_PROTOCOL_VER2; /* Hard-coded to current protocol */
 	hdr.hlen = sizeof(struct audit_dispatcher_header);
 	hdr.type = rep->type;
 	hdr.size = rep->len;

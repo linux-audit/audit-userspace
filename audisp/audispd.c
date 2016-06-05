@@ -1,5 +1,5 @@
 /* audispd.c --
- * Copyright 2007-08,2013 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2007-08,2013,2016 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -652,13 +652,19 @@ static int event_loop(void)
 				"UNKNOWN[%d]", e->hdr.type);
 			type = unknown;
 		}
-
-		if (daemon_config.node_name_format != N_NONE) {
-			len = asprintf(&v, "node=%s type=%s msg=%.*s\n", 
-				name, type, e->hdr.size, e->data);
+		// Protocol 1 is not formatted
+		if (e->hdr.ver == AUDISP_PROTOCOL_VER) {
+			if (daemon_config.node_name_format != N_NONE) {
+			    len = asprintf(&v, "node=%s type=%s msg=%.*s", 
+					name, type, e->hdr.size, e->data);
+			} else
+				len = asprintf(&v, "type=%s msg=%.*s", 
+					type, e->hdr.size, e->data);
+		// Protocol 2 events are already formatted
+		} else if (e->hdr.ver == AUDISP_PROTOCOL_VER2) {
+			len = asprintf(&v, "%.*s\n", e->hdr.size, e->data);
 		} else
-			len = asprintf(&v, "type=%s msg=%.*s\n", 
-				type, e->hdr.size, e->data);
+			len = 0;
 		if (len <= 0) {
 			v = NULL;
 			free(e); /* Either corrupted event or no memory */
@@ -826,7 +832,8 @@ static void process_inbound_event(int fd)
 
 	if (rc > 0) {
 		/* Sanity check */
-		if (e->hdr.ver != AUDISP_PROTOCOL_VER ||
+		if (!(e->hdr.ver == AUDISP_PROTOCOL_VER || 
+				e->hdr.ver == AUDISP_PROTOCOL_VER2) ||
 				e->hdr.hlen != sizeof(e->hdr) ||
 				e->hdr.size > MAX_AUDIT_MESSAGE_LENGTH) {
 			free(e);

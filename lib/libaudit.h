@@ -448,7 +448,13 @@ struct audit_dispatcher_header {
 	uint32_t	size;	/* Size of data following the header */
 };
 
-#define AUDISP_PROTOCOL_VER 0
+// Original protocol starts with msg='
+#define AUDISP_PROTOCOL_VER  0
+
+// Starts with node and/or type already in the text before msg=
+// IOW, its preformatted in the audit daemon.
+#define AUDISP_PROTOCOL_VER2 1
+
 
 ///////////////////////////////////////////////////
 // Libaudit API
