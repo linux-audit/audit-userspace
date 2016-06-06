@@ -35,11 +35,13 @@
 #include <sys/time.h>
 #include <sys/vfs.h>
 #include <limits.h>     /* POSIX_HOST_NAME_MAX */
+#include <ctype.h>	/* toupper */
 #include "auditd-event.h"
 #include "auditd-dispatch.h"
 #include "auditd-listen.h"
 #include "libaudit.h"
 #include "private.h"
+#include "auparse.h"
 
 /* This is defined in auditd.c */
 extern volatile int stop;
@@ -81,6 +83,9 @@ static pthread_mutex_t flush_lock;
 static pthread_cond_t do_flush;
 static volatile int flush;
 
+/* Local definitions */
+#define FORMAT_BUF_LEN (MAX_AUDIT_MESSAGE_LENGTH + _POSIX_HOST_NAME_MAX)
+#define MIN_SPACE_LEFT 24
 
 int dispatch_network_events(void)
 {
@@ -128,8 +133,7 @@ int init_event(struct daemon_conf *conf)
 		check_excess_logs();
 		check_space_left();
 	}
-	format_buf = (char *)malloc(MAX_AUDIT_MESSAGE_LENGTH +
-						 _POSIX_HOST_NAME_MAX);
+	format_buf = (char *)malloc(FORMAT_BUF_LEN);
 	if (format_buf == NULL) {
 		audit_msg(LOG_ERR, "No memory for formatting, exiting");
 		fclose(log_file);
@@ -211,8 +215,7 @@ static const char *format_raw(const struct audit_reply *rep)
 
         if (rep == NULL) {
 		if (config->node_name_format != N_NONE)
-			snprintf(format_buf, MAX_AUDIT_MESSAGE_LENGTH +
-				_POSIX_HOST_NAME_MAX - 32,
+			snprintf(format_buf, FORMAT_BUF_LEN - 32,
 		"node=%s type=DAEMON_ERR op=format-raw msg=NULL res=failed",
                                 config->node_name);
 		else
@@ -239,8 +242,7 @@ static const char *format_raw(const struct audit_reply *rep)
 		// Note: This can truncate messages if 
 		// MAX_AUDIT_MESSAGE_LENGTH is too small
 		if (config->node_name_format != N_NONE)
-			nlen = snprintf(format_buf, MAX_AUDIT_MESSAGE_LENGTH +
-				_POSIX_HOST_NAME_MAX - 32,
+			nlen = snprintf(format_buf, FORMAT_BUF_LEN - 32,
 				"node=%s type=%s msg=%.*s\n",
                                 config->node_name, type, len, message);
 		else
@@ -260,6 +262,43 @@ static const char *format_raw(const struct audit_reply *rep)
         return format_buf;
 }
 
+// returns length used, 0 on error
+static int add_simple_field(auparse_state_t *au, size_t len_left)
+{
+	const char *value, *nptr;
+	char *ptr, field_name[64];
+	size_t nlen, vlen, tlen;
+	unsigned int i;
+
+	// prepare field name
+	i = 0;
+	nptr = auparse_get_field_name(au);
+	while (*nptr && i < 64) {
+		field_name[i] = toupper(*nptr);
+		i++;
+		nptr++;
+	}
+	field_name[i] = 0;
+	nlen = i;
+	
+	// get the translated value
+	value = auparse_interpret_field(au);
+	if (value == NULL)
+		value = "?";
+	vlen = strlen(value);
+
+	// calculate length to use
+	tlen = 1 + nlen + 1 + vlen + 1;
+	ptr = &format_buf[FORMAT_BUF_LEN - len_left];
+
+	// If no room, do not truncate - just do nothing
+	if (tlen >= len_left)
+		return 0;
+
+	// Add the field
+	return snprintf(ptr, tlen, " %s=%s", field_name, value);
+}
+
 /*
 * This function will take an audit structure and return a
 * text buffer that's formatted and enriched. If there is an
@@ -267,56 +306,66 @@ static const char *format_raw(const struct audit_reply *rep)
 */
 static const char *format_enrich(const struct audit_reply *rep)
 {
-        char *ptr;
-// FIXME: This is where we are. This is copied from raw. Needs more at the end
-// might even be good to call raw and then strcat the enriched data.
-        if (rep==NULL) {
+        if (rep == NULL) {
 		if (config->node_name_format != N_NONE)
-			snprintf(format_buf, MAX_AUDIT_MESSAGE_LENGTH +
-				_POSIX_HOST_NAME_MAX - 32,
-		"node=%s type=DAEMON_ERR op=format-raw msg=NULL res=failed",
+			snprintf(format_buf, FORMAT_BUF_LEN - 32,
+	    "node=%s type=DAEMON_ERR op=format-enriched msg=NULL res=failed",
                                 config->node_name);
 		else
 	        	snprintf(format_buf, MAX_AUDIT_MESSAGE_LENGTH,
-			  "type=DAEMON_ERR op=format-raw msg=NULL res=failed");
+		    "type=DAEMON_ERR op=format-enriched msg=NULL res=failed");
 	} else {
-		int len, nlen;
-		const char *type, *message;
-		char unknown[32];
-		type = audit_msg_type_to_name(rep->type);
-		if (type == NULL) {
-			snprintf(unknown, sizeof(unknown), 
-				"UNKNOWN[%d]", rep->type);
-			type = unknown;
+		int rc;
+		size_t mlen, len;
+		auparse_state_t *au;
+		char *message;
+		// Do raw format to get event started
+		format_raw(rep);
+
+		// How much room is left?
+		mlen = strlen(format_buf);
+		len = FORMAT_BUF_LEN - mlen;
+		if (len <= MIN_SPACE_LEFT)
+			return format_buf;
+
+		// create copy to parse up
+		format_buf[mlen] = 0x0A;
+		format_buf[mlen+1] = 0;
+		message = strdup(format_buf);
+		format_buf[mlen] = 0;
+
+		// init auparse
+		au = auparse_init(AUSOURCE_BUFFER, message);
+		if (au == NULL) {
+			free(message);
+			return format_buf;
 		}
-		if (rep->message == NULL) {
-			message = "msg lost";
-			len = 8;
-		} else {
-			message = rep->message;
-			len = rep->len;
+
+		// Loop over all fields while possible to add field
+		rc = auparse_first_record(au);
+		while (rc > 0 && len > MIN_SPACE_LEFT) {
+			// See what kind of field we have
+			size_t vlen;
+			int type = auparse_get_field_type(au);
+			switch (type)
+			{
+				case AUPARSE_TYPE_UID:
+				case AUPARSE_TYPE_GID:
+				case AUPARSE_TYPE_SYSCALL:
+				case AUPARSE_TYPE_ARCH:
+					vlen = add_simple_field(au, len);
+					len -= vlen;
+					break;
+				case AUPARSE_TYPE_SOCKADDR:
+					// FIXME: add support
+				default:
+					break;
+			}
+			rc = auparse_next_field(au);
 		}
 
-		// Note: This can truncate messages if 
-		// MAX_AUDIT_MESSAGE_LENGTH is too small
-		if (config->node_name_format != N_NONE)
-			nlen = snprintf(format_buf, MAX_AUDIT_MESSAGE_LENGTH +
-				_POSIX_HOST_NAME_MAX - 32,
-				"node=%s type=%s msg=%.*s\n",
-                                config->node_name, type, len, message);
-		else
-		        nlen = snprintf(format_buf,
-				MAX_AUDIT_MESSAGE_LENGTH - 32,
-				"type=%s msg=%.*s", type, len, message);
-
-	        /* Replace \n with space so it looks nicer. */
-        	ptr = format_buf;
-	        while ((ptr = strchr(ptr, 0x0A)) != NULL)
-        	        *ptr = ' ';
-
-		/* Trim trailing space off since it wastes space */
-		if (format_buf[nlen-1] == ' ')
-			format_buf[nlen-1] = 0;
+		auparse_destroy(au);
+		free(message);
 	}
         return format_buf;
 }

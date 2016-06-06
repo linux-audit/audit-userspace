@@ -35,7 +35,7 @@ endif
 auditd_CFLAGS = -fPIE -DPIE -g -D_REENTRANT -D_GNU_SOURCE -fno-strict-aliasing -pthread
 auditd_LDFLAGS = -pie -Wl,-z,relro -Wl,-z,now
 auditd_DEPENDENCIES = libev/libev.a
-auditd_LDADD = @LIBWRAP_LIBS@ -Llibev -lev -L${top_builddir}/lib -laudit -lpthread -lrt -lm $(gss_libs)
+auditd_LDADD = @LIBWRAP_LIBS@ -Llibev -lev -L${top_builddir}/lib -laudit -L${top_builddir}/auparse -lauparse -lpthread -lrt -lm $(gss_libs)
 
 auditctl_SOURCES = auditctl.c auditctl-llist.c delete_all.c auditctl-listing.c
 auditctl_CFLAGS = -fPIE -DPIE -g -D_GNU_SOURCE
