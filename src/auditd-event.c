@@ -340,6 +340,7 @@ static const char *format_enrich(const struct audit_reply *rep)
 			free(message);
 			return format_buf;
 		}
+		auparse_set_escape_mode(AUPARSE_ESC_RAW);
 
 		// Loop over all fields while possible to add field
 		rc = auparse_first_record(au);
@@ -353,11 +354,10 @@ static const char *format_enrich(const struct audit_reply *rep)
 				case AUPARSE_TYPE_GID:
 				case AUPARSE_TYPE_SYSCALL:
 				case AUPARSE_TYPE_ARCH:
+				case AUPARSE_TYPE_SOCKADDR:
 					vlen = add_simple_field(au, len);
 					len -= vlen;
 					break;
-				case AUPARSE_TYPE_SOCKADDR:
-					// FIXME: add support
 				default:
 					break;
 			}

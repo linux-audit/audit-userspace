@@ -1,5 +1,5 @@
 2.5.3
-- Create enriched events in auditd
+- Auditd support for enriched data: uid/gid, saddr splitting, arch, syscall
 - Change dispatcher protocol to version 2
 - Standardize all saddr interpretations in auparse
 

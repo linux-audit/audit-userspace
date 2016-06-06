@@ -1,7 +1,6 @@
 Things that need to be done:
 ===========================
 2.5.3
-* Add support for enriched data: uid/gid, saddr splitting, arch, syscall
 * Fix retry logic in distribute event
 * Fix ausearch/report to handle aggregated events
 * Add ability to suppress types of records
