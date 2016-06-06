@@ -497,6 +497,8 @@ auparse_state_t *auparse_init(ausource_t source, const void *b)
 			setup_log_file_array(au);
 			break;
 		case AUSOURCE_FILE:
+			if (b == NULL)
+				goto bad_exit;
 			if (access(b, R_OK))
 				goto bad_exit;
 			tmp = malloc(2*sizeof(char *));
@@ -505,6 +507,8 @@ auparse_state_t *auparse_init(ausource_t source, const void *b)
 			au->source_list = tmp;
 			break;
 		case AUSOURCE_FILE_ARRAY:
+			if (bb == NULL)
+				goto bad_exit;
 			n = 0;
 			while (bb[n]) {
 				if (access(bb[n], R_OK))
@@ -518,6 +522,8 @@ auparse_state_t *auparse_init(ausource_t source, const void *b)
 			au->source_list = tmp;
 			break;
 		case AUSOURCE_BUFFER:
+			if (buf == NULL)
+				goto bad_exit;
 			len = strlen(buf);
 			if (databuf_init(&au->databuf, len,
 					 DATABUF_FLAG_PRESERVE_HEAD) < 0)
@@ -526,6 +532,8 @@ auparse_state_t *auparse_init(ausource_t source, const void *b)
 				goto bad_exit;
 			break;
 		case AUSOURCE_BUFFER_ARRAY:
+			if (bb == NULL)
+				goto bad_exit;
 			size = 0;
 			for (n = 0; (buf = bb[n]); n++) {
 				len = strlen(bb[n]);
