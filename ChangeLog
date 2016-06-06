@@ -1,6 +1,7 @@
 2.5.3
 - Create enriched events in auditd
 - Change dispatcher protocol to version 2
+- Standardize all saddr interpretations in auparse
 
 2.5.2
 - Fix memory leak caused by unneeded reference in auparse python bindings

@@ -1,6 +1,6 @@
 /*
 * interpret.c - Lookup values to something more readable
-* Copyright (c) 2007-09,2011-15 Red Hat Inc., Durham, North Carolina.
+* Copyright (c) 2007-09,2011-16 Red Hat Inc., Durham, North Carolina.
 * All Rights Reserved. 
 *
 * This library is free software; you can redistribute it and/or
@@ -896,11 +896,11 @@ static const char *print_sockaddr(const char *val)
                                 const struct sockaddr_un *un =
                                         (struct sockaddr_un *)saddr;
                                 if (un->sun_path[0])
-					rc = asprintf(&out, "%s %s", str,
+					rc = asprintf(&out, "%s path:%s", str,
 						      un->sun_path);
                                 else // abstract name
-					rc = asprintf(&out, "%s %.108s", str,
-						      &un->sun_path[1]);
+					rc = asprintf(&out, "%s path:%.108s",
+							str, &un->sun_path[1]);
                         }
                         break;
                 case AF_INET:
@@ -913,7 +913,7 @@ static const char *print_sockaddr(const char *val)
                         if (getnameinfo(saddr, slen, name, NI_MAXHOST, serv,
                                 NI_MAXSERV, NI_NUMERICHOST |
                                         NI_NUMERICSERV) == 0 ) {
-				rc = asprintf(&out, "%s host:%s serv:%s", str,
+				rc = asprintf(&out, "%s laddr:%s lport:%s", str,
 					      name, serv);
                         } else
 				rc = asprintf(&out, "%s (error resolving addr)",
@@ -938,8 +938,8 @@ static const char *print_sockaddr(const char *val)
                         {
                                 const struct sockaddr_ipx *ip =
                                                 (struct sockaddr_ipx *)saddr;
-				rc = asprintf(&out, "%s port:%d net:%u", str,
-					      ip->sipx_port, ip->sipx_network);
+				rc = asprintf(&out, "%s lport:%d ipx-net:%u",
+					str, ip->sipx_port, ip->sipx_network);
                         }
                         break;
                 case AF_ATMPVC:
@@ -954,7 +954,7 @@ static const char *print_sockaddr(const char *val)
                         {
                                 const struct sockaddr_x25* x =
                                         (struct sockaddr_x25 *)saddr;
-				rc = asprintf(&out, "%s addr:%.15s", str,
+				rc = asprintf(&out, "%s laddr:%.15s", str,
 					      x->sx25_addr.x25_addr);
                         }
                         break;
@@ -969,7 +969,7 @@ static const char *print_sockaddr(const char *val)
                         if (getnameinfo(saddr, slen, name, NI_MAXHOST, serv,
                                 NI_MAXSERV, NI_NUMERICHOST |
                                         NI_NUMERICSERV) == 0 ) {
-				rc = asprintf(&out, "%s host:%s serv:%s", str,
+				rc = asprintf(&out, "%s laddr:%s lport:%s", str,
 					      name, serv);
                         } else
 				rc = asprintf(&out, "%s (error resolving addr)",
@@ -979,8 +979,8 @@ static const char *print_sockaddr(const char *val)
                         {
                                 const struct sockaddr_nl *n =
                                                 (struct sockaddr_nl *)saddr;
-				rc = asprintf(&out, "%s pid:%u", str,
-					      n->nl_pid);
+				rc = asprintf(&out,"%s nlnk-fam:%u nlnk-pid:%u",
+						str, n->nl_family, n->nl_pid);
                         }
                         break;
         }
