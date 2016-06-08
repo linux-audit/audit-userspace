@@ -159,23 +159,6 @@ static void set_tm_this_year(struct tm *d)
 	d->tm_isdst = 0;
 }
 
-/* Combine date & time into 1 struct. Results in date. */
-static void add_tm(struct tm *d, struct tm *t)
-{
-        time_t dst;
-        struct tm *lt;
-
-	replace_time(d, t);
-
-        /* Now we need to figure out if DST is in effect */
-        dst = mktime(d);
-        lt = localtime(&dst);
-	if (lt->tm_isdst > 0)
-	        d->tm_isdst = lt->tm_isdst;
-	else
-		d->tm_isdst = 0;
-}
-
 /* The time in t1 is replaced by t2 */
 static void replace_time(struct tm *t1, struct tm *t2)
 {
@@ -192,29 +175,6 @@ static void replace_date(struct tm *t1, struct tm *t2)
         t1->tm_year = t2->tm_year;	/* year */
         t1->tm_isdst = t2->tm_isdst;	/* daylight savings time */
 }
-
-/* Given 2 char strings, create a time struct *
-void set_time(struct tm *t, int num, const char *t1, const char *t2)
-{
-	switch (num)
-	{
-		case 1:
-			// if keyword, init time
-			// elif time use today and replace time
-			// elif date, set to 00:00:01 and replace date
-			// else error
-			break;
-		case 2:
-			// if keyword
-			//	init time with it
-			//	get other time str and replace
-			// otherwise, figure out which is time
-			//	and set time adding them
-			break;
-		default:
-			break;
-	}
-} */
 
 static int lookup_and_set_time(const char *da, struct tm *d)
 {
