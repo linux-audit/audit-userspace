@@ -384,6 +384,9 @@ extern "C" {
 #define AUDIT_ARCH_PPC64LE	(EM_PPC64|__AUDIT_ARCH_64BIT|__AUDIT_ARCH_LE)
 #endif
 
+/* This is the character that separates event data from enrichment fields */
+#define AUDIT_INTERP_SEPARATOR 0x1D
+
 //////////////////////////////////////////////////////
 // This is an external ABI. Any changes in here will
 // likely affect pam_loginuid. There might be other

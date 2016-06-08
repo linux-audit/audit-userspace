@@ -299,6 +299,17 @@ static int add_simple_field(auparse_state_t *au, size_t len_left)
 	return snprintf(ptr, tlen, " %s=%s", field_name, value);
 }
 
+static int sep_done = 0;
+static int add_separator(unsigned int len_left)
+{
+	if (sep_done == 0) {
+		format_buf[FORMAT_BUF_LEN - len_left] = AUDIT_INTERP_SEPARATOR;
+		sep_done = 1;
+		return 1;
+	}
+	return 0;
+}
+
 /*
 * This function will take an audit structure and return a
 * text buffer that's formatted and enriched. If there is an
@@ -341,6 +352,7 @@ static const char *format_enrich(const struct audit_reply *rep)
 			return format_buf;
 		}
 		auparse_set_escape_mode(AUPARSE_ESC_RAW);
+		sep_done = 0;
 
 		// Loop over all fields while possible to add field
 		rc = auparse_first_record(au);
@@ -355,6 +367,8 @@ static const char *format_enrich(const struct audit_reply *rep)
 				case AUPARSE_TYPE_SYSCALL:
 				case AUPARSE_TYPE_ARCH:
 				case AUPARSE_TYPE_SOCKADDR:
+					if (add_separator(len))
+						len--;
 					vlen = add_simple_field(au, len);
 					len -= vlen;
 					break;
