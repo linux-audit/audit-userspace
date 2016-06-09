@@ -1,6 +1,6 @@
 /*
 * ausearch-report.c - Format and output events
-* Copyright (c) 2005-09,2011-13 Red Hat Inc., Durham, North Carolina.
+* Copyright (c) 2005-09,2011-13,2016 Red Hat Inc., Durham, North Carolina.
 * All Rights Reserved. 
 *
 * This software may be freely redistributed and/or modified under the
@@ -80,6 +80,7 @@ static void output_raw(llist *l)
 		return;
 	}
 	do {
+		n->message[n->mlen] = AUDIT_INTERP_SEPARATOR;
 		puts(n->message);
 	} while ((n=list_next(l)));
 }

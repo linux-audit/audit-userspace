@@ -1,6 +1,6 @@
 /*
 * ausearch-lookup.c - Lookup values to something more readable
-* Copyright (c) 2005-06,2011-12,2015 Red Hat Inc., Durham, North Carolina.
+* Copyright (c) 2005-06,2011-12,2015-16 Red Hat Inc., Durham, North Carolina.
 * All Rights Reserved. 
 *
 * This software may be freely redistributed and/or modified under the
@@ -384,6 +384,9 @@ void sanitize(const char *s, unsigned int len)
 
 void safe_print_string_n(const char *s, unsigned int len, int ret)
 {
+	if (len > MAX_AUDIT_MESSAGE_LENGTH)
+		len = MAX_AUDIT_MESSAGE_LENGTH;
+
 	if (need_sanitize(s, len)) {
 		sanitize(s, len);
 		if (ret)

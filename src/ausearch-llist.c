@@ -1,6 +1,6 @@
 /*
 * ausearch-llist.c - Minimal linked list library
-* Copyright (c) 2005-2008, 2011 Red Hat Inc., Durham, North Carolina.
+* Copyright (c) 2005-2008,2011,2016 Red Hat Inc., Durham, North Carolina.
 * Copyright (c) 2011 IBM Corp.
 * All Rights Reserved. 
 *
@@ -107,6 +107,7 @@ void list_append(llist *l, lnode *node)
 	else
 		newnode->message = NULL;
 
+	newnode->interp = node->interp;
 	newnode->mlen = node->mlen;
 	newnode->type = node->type;
 	newnode->a0 = node->a0;

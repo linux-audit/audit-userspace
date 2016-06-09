@@ -1,6 +1,6 @@
 /*
 * ausearch-lol.c - linked list of linked lists library
-* Copyright (c) 2008,2010,2014 Red Hat Inc., Durham, North Carolina.
+* Copyright (c) 2008,2010,2014,2016 Red Hat Inc., Durham, North Carolina.
 * All Rights Reserved. 
 *
 * This software may be freely redistributed and/or modified under the
@@ -225,14 +225,26 @@ int lol_add_record(lol *lo, char *buff)
 	if (extract_timestamp(buff, &e) == 0)
 		return 0;
 
-	ptr = strrchr(buff, 0x0a);
-	if (ptr) {
-		*ptr = 0;
-		n.mlen = ptr - buff;
-	} else
-		n.mlen = MAX_AUDIT_MESSAGE_LENGTH;
-	n.message=strdup(buff);
 	n.type = e.type;
+	n.message = strdup(buff);
+	ptr = strchr(n.message, AUDIT_INTERP_SEPARATOR);
+	if (ptr) {
+		n.interp = ptr;
+		n.mlen = ptr - n.message;
+		*ptr = 0;
+		n.interp = ptr + 1;
+		// since we are most of the way down the string, scan from there
+		ptr = strrchr(n.interp, 0x0a);
+		if (ptr)
+			*ptr = 0;
+	} else {
+		ptr = strrchr(n.message, 0x0a);
+		if (ptr) {
+			*ptr = 0;
+			n.mlen = ptr - n.message;
+		} else
+			n.mlen = MAX_AUDIT_MESSAGE_LENGTH;
+	}
 
 	// Now see where this belongs
 	for (i=0; i<=lo->maxi; i++) {
