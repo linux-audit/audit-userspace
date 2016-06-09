@@ -1,5 +1,5 @@
 /* autrace.c -- 
- * Copyright 2005-09,2011,2015 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2005-09,2011,2015-16 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -324,6 +324,8 @@ static int count_em(int fd)
 			}
 		}
 	}
+	if (i >= timeout && count == 0)
+		count = -1;
 	return count;
 }
 

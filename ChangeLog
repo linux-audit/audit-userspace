@@ -3,6 +3,7 @@
 - Change dispatcher protocol to version 2
 - Standardize all saddr interpretations in auparse
 - Fix another DST bug in ausearch time conversion (#1334772)
+- In autrace, if rule count loop times out don't assume 0 rules (#1344268)
 
 2.5.2
 - Fix memory leak caused by unneeded reference in auparse python bindings
