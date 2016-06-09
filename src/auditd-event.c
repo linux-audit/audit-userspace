@@ -262,6 +262,18 @@ static const char *format_raw(const struct audit_reply *rep)
         return format_buf;
 }
 
+static int sep_done = 0;
+static int add_separator(unsigned int len_left)
+{
+	if (sep_done == 0) {
+		format_buf[FORMAT_BUF_LEN - len_left] = AUDIT_INTERP_SEPARATOR;
+		sep_done++;
+		return 1;
+	}
+	sep_done++;
+	return 0;
+}
+
 // returns length used, 0 on error
 static int add_simple_field(auparse_state_t *au, size_t len_left, int encode)
 {
@@ -306,26 +318,21 @@ static int add_simple_field(auparse_state_t *au, size_t len_left, int encode)
 
 	// Setup pointer
 	ptr = &format_buf[FORMAT_BUF_LEN - len_left];
+	if (sep_done > 1) {
+		*ptr = ' ';
+		ptr++;
+		num = 1;
+	} else
+		num = 0;
 
 	// Add the field
 	if (encode) {
-		num = snprintf(ptr, tlen, " %s", enc);
+		num += snprintf(ptr, tlen, "%s", enc);
 		free(enc);
 	} else
-		num = snprintf(ptr, tlen, " %s=%s", field_name, value);
+		num += snprintf(ptr, tlen, "%s=%s", field_name, value);
 
 	return num;
-}
-
-static int sep_done = 0;
-static int add_separator(unsigned int len_left)
-{
-	if (sep_done == 0) {
-		format_buf[FORMAT_BUF_LEN - len_left] = AUDIT_INTERP_SEPARATOR;
-		sep_done = 1;
-		return 1;
-	}
-	return 0;
 }
 
 /*
