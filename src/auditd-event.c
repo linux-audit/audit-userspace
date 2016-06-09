@@ -263,12 +263,14 @@ static const char *format_raw(const struct audit_reply *rep)
 }
 
 // returns length used, 0 on error
-static int add_simple_field(auparse_state_t *au, size_t len_left)
+static int add_simple_field(auparse_state_t *au, size_t len_left, int encode)
 {
 	const char *value, *nptr;
+	char *enc = NULL;
 	char *ptr, field_name[64];
 	size_t nlen, vlen, tlen;
 	unsigned int i;
+	int num;
 
 	// prepare field name
 	i = 0;
@@ -287,16 +289,32 @@ static int add_simple_field(auparse_state_t *au, size_t len_left)
 		value = "?";
 	vlen = strlen(value);
 
-	// calculate length to use
-	tlen = 1 + nlen + 1 + vlen + 1;
-	ptr = &format_buf[FORMAT_BUF_LEN - len_left];
+	if (encode) {
+		enc = audit_encode_nv_string(field_name, value, vlen);
+		if (enc == NULL)
+			return 0;
+		tlen = 1 + strlen(enc) + 1;
+	} else
+		// calculate length to use
+		tlen = 1 + nlen + 1 + vlen + 1;
 
 	// If no room, do not truncate - just do nothing
-	if (tlen >= len_left)
+	if (tlen >= len_left) {
+		free(enc);
 		return 0;
+	}
+
+	// Setup pointer
+	ptr = &format_buf[FORMAT_BUF_LEN - len_left];
 
 	// Add the field
-	return snprintf(ptr, tlen, " %s=%s", field_name, value);
+	if (encode) {
+		num = snprintf(ptr, tlen, " %s", enc);
+		free(enc);
+	} else
+		num = snprintf(ptr, tlen, " %s=%s", field_name, value);
+
+	return num;
 }
 
 static int sep_done = 0;
@@ -364,12 +382,17 @@ static const char *format_enrich(const struct audit_reply *rep)
 			{
 				case AUPARSE_TYPE_UID:
 				case AUPARSE_TYPE_GID:
+					if (add_separator(len))
+						len--;
+					vlen = add_simple_field(au, len, 1);
+					len -= vlen;
+					break;
 				case AUPARSE_TYPE_SYSCALL:
 				case AUPARSE_TYPE_ARCH:
 				case AUPARSE_TYPE_SOCKADDR:
 					if (add_separator(len))
 						len--;
-					vlen = add_simple_field(au, len);
+					vlen = add_simple_field(au, len, 0);
 					len -= vlen;
 					break;
 				default:
