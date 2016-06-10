@@ -28,6 +28,7 @@
 #include "internal.h"
 #include "interpret.h"
 #include "auparse-idata.h"
+#include "nvlist.h"
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -118,6 +119,7 @@ typedef enum { S_UNSET=-1, S_FAILED, S_SUCCESS } success_t;
 
 static const char *print_signals(const char *val, unsigned int base);
 static auparse_esc_t escape_mode = AUPARSE_ESC_TTY;
+static nvlist il;  // Interpretations list
 
 /*
  * This function will take a pointer to a 2 byte Ascii character buffer and
@@ -326,6 +328,64 @@ char *au_unescape(char *buf)
         *ptr = 0;
         return str;
 }
+
+void init_interpretation_list(void)
+{
+	nvlist_create(&il);
+}
+
+/*
+ * Returns 1 on error and 0 on success
+ */
+int load_interpretation_list(const char *buffer)
+{
+	char *saved = NULL, *ptr;
+	char *buf = strdup(buffer);
+
+	ptr = audit_strsplit_r(buf, &saved);
+	if (ptr == NULL) {
+		free(buf);
+		return 0;
+	}
+
+	do {
+		nvnode n;
+		char *val;
+
+		if (*ptr == '{') {
+			val = ptr+1;
+			ptr = strchr(val, '}');
+			if (ptr)
+				*ptr = 0;
+			n.name = strdup("saddr");
+		} else {
+			val = strchr(ptr, '=');
+			if (val) {
+				*val = 0;
+				val++;
+			}
+			n.name = strdup(ptr);
+			char *c = n.name;
+			while (*c) {
+				*c = tolower(*c);
+				c++;
+			}
+		}
+		n.val = strdup(val);
+		nvlist_append(&il, &n);
+		nvlist_interp_fixup(&il);
+	} while((ptr = audit_strsplit_r(NULL, &saved)));
+
+	free(buf);
+	return 1;
+}
+
+void free_interpretation_list(void)
+{
+	nvlist_clear(&il);
+}
+
+//////////// Start Field Value Interpretations /////////////
 
 static const char *success[3]= { "unset", "no", "yes" };
 static const char *aulookup_success(int s)
@@ -2553,6 +2613,10 @@ int lookup_type(const char *name)
 	return AUPARSE_TYPE_UNCLASSIFIED;
 }
 
+/*
+ * This is the main entry point for the auparse library. Call chain is:
+ * auparse_interpret_field -> nvlist_interp_cur_val -> interpret
+ */
 const char *interpret(const rnode *r)
 {
 	const nvlist *nv = &r->nv;
@@ -2621,9 +2685,24 @@ int auparse_interp_adjust_type(int rtype, const char *name, const char *val)
 	return type;
 }
 
+/*
+ * This can be called by either interpret() or from ausearch-report or
+ * auditctl-listing.c. Returns a malloc'ed buffer that the caller must free.
+ */
 const char *auparse_do_interpretation(int type, const idata *id)
 {
 	const char *out;
+
+	// Check the interpretations list first
+	if (il.head) {
+		nvlist_first(&il);
+		if (nvlist_find_name(&il, id->name)) {
+			const char *val = il.cur->interp_val;
+			if (val)
+				return strdup(val);
+		}
+	}
+
 	switch(type) {
 		case AUPARSE_TYPE_UID:
 			out = print_uid(id->val, 10);

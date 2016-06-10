@@ -31,6 +31,9 @@
 /* Make these hidden to prevent conflicts */
 AUDIT_HIDDEN_START
 
+void init_interpretation_list(void);
+int load_interpretation_list(const char *buf);
+void free_interpretation_list(void);
 int lookup_type(const char *name);
 const char *interpret(const rnode *r);
 void aulookup_destroy_uid_list(void);

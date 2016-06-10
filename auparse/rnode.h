@@ -44,7 +44,7 @@ typedef struct {
 
 
 /* This is the node of the linked list. Any data elements that are per
- *  * item goes here. */
+ * item goes here. */
 typedef struct _rnode{
 	char *record;           // The whole unparsed record
 	int type;               // record type (KERNEL, USER, LOGIN, etc)

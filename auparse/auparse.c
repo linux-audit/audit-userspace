@@ -487,6 +487,7 @@ auparse_state_t *auparse_init(ausource_t source, const void *b)
 	au->callback = NULL;
 	au->callback_user_data = NULL;
 	au->callback_user_data_destroy = NULL;
+	init_interpretation_list();
 	switch (source)
 	{
 		case AUSOURCE_LOGS:
@@ -677,6 +678,29 @@ void auparse_set_escape_mode(auparse_esc_t mode)
 	set_escape_mode(mode);
 }
 
+/*
+ * Non-public function. Subject to change.
+ * buf is a string of name value pairs to be used for interpreting.
+ * Calling this function automatically releases the previous list.
+ */
+void _auparse_load_interpretations(const char *buf)
+{
+	free_interpretation_list();
+
+	if (buf == NULL)
+		return;
+
+	load_interpretation_list(buf);
+}
+
+/*
+ * Non-public function. Subject to change.
+ */
+void _auparse_free_interpretations(void)
+{
+	free_interpretation_list();
+}
+
 int auparse_reset(auparse_state_t *au)
 {
 	if (au == NULL) {
@@ -716,6 +740,7 @@ int auparse_reset(auparse_state_t *au)
 		default:
 			return -1;
 	}
+	free_interpretation_list();
 	return 0;
 }
 
@@ -956,6 +981,7 @@ void auparse_destroy(auparse_state_t *au)
 		fclose(au->in);
 		au->in = NULL;
 	}
+	free_interpretation_list();
 	free(au);
 }
 

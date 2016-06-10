@@ -244,6 +244,7 @@ int lol_add_record(lol *lo, char *buff)
 			n.mlen = ptr - n.message;
 		} else
 			n.mlen = MAX_AUDIT_MESSAGE_LENGTH;
+		n.interp = NULL;
 	}
 
 	// Now see where this belongs

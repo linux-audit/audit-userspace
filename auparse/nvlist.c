@@ -85,6 +85,17 @@ void nvlist_append(nvlist *l, nvnode *node)
 }
 
 /*
+ * Its less code to make a fixup than a new append.
+ */
+void nvlist_interp_fixup(nvlist *l)
+{
+	if (l->cur) {
+		l->cur->interp_val = l->cur->val;
+		l->cur->val = NULL;
+	}
+}
+
+/*
  * This function will start at current index and scan for a name
  */
 int nvlist_find_name(nvlist *l, const char *name)
@@ -121,6 +132,9 @@ void nvlist_clear(nvlist* l)
 {
 	nvnode* nextnode;
 	register nvnode* current;
+
+	if (l->head == NULL)
+		return;
 
 	current = l->head;
 	while (current) {

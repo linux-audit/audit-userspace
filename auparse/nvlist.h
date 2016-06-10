@@ -46,6 +46,7 @@ nvnode *nvlist_next(nvlist *l);
 int nvlist_get_cur_type(const rnode *r);
 const char *nvlist_interp_cur_val(const rnode *r);
 void nvlist_append(nvlist *l, nvnode *node);
+void nvlist_interp_fixup(nvlist *l);
 
 /* Given a numeric index, find that record. */
 int nvlist_find_name(nvlist *l, const char *name);

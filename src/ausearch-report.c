@@ -201,6 +201,7 @@ no_print:
 	}
 
 	// for each item.
+	_auparse_load_interpretations(n->interp);
 	found = 0;
 	while (str && *str && (ptr = strchr(str, '='))) {
 		char *name, *val;
@@ -275,6 +276,7 @@ no_print:
 		// print interpreted string
 		interpret(name, val, comma, n->type);
 	}
+
 	// If nothing found, just print out as is
 	if (!found && ptr == NULL && str)
 		safe_print_string(str, 1);
