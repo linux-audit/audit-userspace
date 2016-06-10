@@ -2,4 +2,4 @@
 set -x -e
 # --no-recursive is available only in recent autoconf versions
 autoreconf -fv --install
-mv INSTALL.tmp INSTALL
+cp INSTALL.tmp INSTALL
