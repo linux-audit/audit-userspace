@@ -340,8 +340,12 @@ void init_interpretation_list(void)
 int load_interpretation_list(const char *buffer)
 {
 	char *saved = NULL, *ptr;
-	char *buf = strdup(buffer);
+	char *buf;
 
+	if (buffer == NULL)
+		return;
+
+	buf = strdup(buffer);
 	ptr = audit_strsplit_r(buf, &saved);
 	if (ptr == NULL) {
 		free(buf);

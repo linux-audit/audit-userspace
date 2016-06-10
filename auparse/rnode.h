@@ -1,6 +1,6 @@
 
 /* rnode.h --
- * Copyright 2007 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2007,2016 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -47,6 +47,7 @@ typedef struct {
  * item goes here. */
 typedef struct _rnode{
 	char *record;           // The whole unparsed record
+	char *interp;		// The interpretations that go with record
 	int type;               // record type (KERNEL, USER, LOGIN, etc)
 	int machine;            // The machine type for the event
 	int syscall;            // The syscall for the event

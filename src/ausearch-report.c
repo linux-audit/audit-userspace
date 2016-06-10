@@ -276,6 +276,7 @@ no_print:
 		// print interpreted string
 		interpret(name, val, comma, n->type);
 	}
+	_auparse_free_interpretations();
 
 	// If nothing found, just print out as is
 	if (!found && ptr == NULL && str)

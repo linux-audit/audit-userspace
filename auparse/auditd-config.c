@@ -1,5 +1,7 @@
-/* auditd-config.c -- 
- * Copyright 2007,2014 Red Hat Inc., Durham, North Carolina.
+/*
+ *  auditd-config.c - This is a greatly reduced config file parser
+ *
+ * Copyright 2007,2014,2016 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -75,6 +77,7 @@ static const struct nv_list log_formats[] =
 {
   {"raw",  LF_RAW },
   {"nolog", LF_NOLOG },
+  {"enriched", LF_ENRICHED },
   { NULL,  0 }
 };
 
@@ -84,14 +87,16 @@ static const struct nv_list log_formats[] =
 */
 void clear_config(struct daemon_conf *config)
 {
+	config->local_events = 1;
 	config->qos = QOS_NON_BLOCKING;
 	config->sender_uid = 0;
 	config->sender_pid = 0;
 	config->sender_ctx = NULL;
+	config->write_logs = 1;
 	config->log_file = strdup("/var/log/audit/audit.log");
 	config->log_format = LF_RAW;
 	config->log_group = 0;
-	config->priority_boost = 3;
+	config->priority_boost = 4;
 	config->flush =  FT_NONE;
 	config->freq = 0;
 	config->num_logs = 0L;

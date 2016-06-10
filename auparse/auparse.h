@@ -94,6 +94,7 @@ int auparse_first_field(auparse_state_t *au);
 int auparse_next_field(auparse_state_t *au);
 unsigned int auparse_get_num_fields(auparse_state_t *au);
 const char *auparse_get_record_text(auparse_state_t *au);
+const char *auparse_get_record_interpretations(auparse_state_t *au);
 const char *auparse_find_field(auparse_state_t *au, const char *name);
 const char *auparse_find_field_next(auparse_state_t *au);
 

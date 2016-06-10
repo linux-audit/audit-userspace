@@ -226,7 +226,7 @@ static au_lolnode *au_lol_create(au_lol *lol)
  * Rtns:
  *	void
  */
-static void au_lol_clear(au_lol * lol, int reset)
+static void au_lol_clear(au_lol *lol, int reset)
 {
 	int i;
 
@@ -1416,7 +1416,12 @@ static int au_auparse_next_event(auparse_state_t *au)
 	 * first one and set it to be the 'current' event of interest
 	 */
 	if ((l = au_get_ready_event(&au_lo, 0)) != NULL) {
+		rnode *r;
+
 		aup_list_first(l);
+		r = aup_list_get_cur(l);
+		free_interpretation_list();
+		load_interpretation_list(r->interp);
 		aup_list_first_field(l);
 		au->le = l;
 #if	LOL_EVENTS_DEBUG01
@@ -1425,7 +1430,7 @@ static int au_auparse_next_event(auparse_state_t *au)
 		return 1;
 	}
 	/*
-	 * If no complete events are avaiable, lets ingest
+	 * If no complete events are available, lets ingest
 	 */
 	while (1) {
 		for (i = 0; i <= au_lo.maxi; i++) {
@@ -1456,7 +1461,12 @@ static int au_auparse_next_event(auparse_state_t *au)
 			if (debug) printf("EOF\n");
 			au_terminate_all_events(&au_lo);
 			if ((l = au_get_ready_event(&au_lo, 0)) != NULL) {
+				rnode *r;
+
 				aup_list_first(l);
+				r = aup_list_get_cur(l);
+				free_interpretation_list();
+				load_interpretation_list(r->interp);
 				aup_list_first_field(l);
 				au->le = l;
 #if	LOL_EVENTS_DEBUG01
@@ -1475,12 +1485,13 @@ static int au_auparse_next_event(auparse_state_t *au)
 			if (debug) printf("Malformed line:%s\n", au->cur_buf);
 			continue;
 		}
+
 		/*
 		 * Is this an event we have already been building?
 		 */
 		built = 0;
 		for (i = 0; i <= au_lo.maxi; i++) {
-			au_lolnode * cur = &au_lo.array[i];
+			au_lolnode *cur = &au_lo.array[i];
 			if (cur->status == EBS_BUILDING) {
 				if (events_are_equal(&cur->l->e, &e)) {
 					if (debug) printf("Adding event to building event\n");
@@ -1516,7 +1527,12 @@ static int au_auparse_next_event(auparse_state_t *au)
 		free((char *)e.host);
 		au_check_events(&au_lo,  e.sec);
 		if ((l = au_get_ready_event(&au_lo, 0)) != NULL) {
+			rnode *r;
+
 			aup_list_first(l);
+			r = aup_list_get_cur(l);
+			free_interpretation_list();
+			load_interpretation_list(r->interp);
 			aup_list_first_field(l);
 			au->le = l;
 #if	LOL_EVENTS_DEBUG01
@@ -1626,42 +1642,61 @@ unsigned int auparse_get_num_records(auparse_state_t *au)
 int auparse_first_record(auparse_state_t *au)
 {
 	int rc;
+	rnode *r;
 
 	if (aup_list_get_cnt(au->le) == 0) {
+		// This function loads interpretations
 		rc = auparse_next_event(au);
 		if (rc <= 0)
 			return rc;
 	}
 	aup_list_first(au->le);
+	r = aup_list_get_cur(au->le);
+	free_interpretation_list();
+	load_interpretation_list(r->interp);
 	aup_list_first_field(au->le);
 	
 	return 1;
 }
 
-
+/*
+ * Returns:	-1 if an error occurs,
+ * 		0 if no more records in  current  event,
+ *		1 for success.
+ */
 int auparse_next_record(auparse_state_t *au)
 {
+	rnode *r;
+
+	free_interpretation_list();
 	if (aup_list_get_cnt(au->le) == 0) { 
 		int rc = auparse_first_record(au);
 		if (rc <= 0)
 			return rc;
 	}
-	if (aup_list_next(au->le))
+	r = aup_list_next(au->le);
+	if (r) {
+		load_interpretation_list(r->interp);
 		return 1;
-	else
+	} else
 		return 0;
 }
 
 
 int auparse_goto_record_num(auparse_state_t *au, unsigned int num)
 {
+	rnode *r;
+
 	/* Check if a request is out of range */
+	free_interpretation_list();
 	if (num >= aup_list_get_cnt(au->le))
 		return 0;
 
-	if (aup_list_goto_rec(au->le, num) != NULL)
+	r = aup_list_goto_rec(au->le, num);
+	if (r != NULL) {
+		load_interpretation_list(r->interp);
 		return 1;
-	else
+	} else
 		return 0;
 }
 
@@ -1751,6 +1786,15 @@ const char *auparse_get_record_text(auparse_state_t *au)
 	rnode *r = aup_list_get_cur(au->le);
 	if (r) 
 		return r->record;
+	else
+		return NULL;
+}
+
+const char *auparse_get_record_interpretations(auparse_state_t *au)
+{
+	rnode *r = aup_list_get_cur(au->le);
+	if (r) 
+		return r->interp;
 	else
 		return NULL;
 }

@@ -1,6 +1,6 @@
 /*
 * ellist.c - Minimal linked list library
-* Copyright (c) 2006-08,2014 Red Hat Inc., Durham, North Carolina.
+* Copyright (c) 2006-08,2014,2016 Red Hat Inc., Durham, North Carolina.
 * All Rights Reserved. 
 *
 * This library is free software; you can redistribute it and/or
@@ -103,6 +103,13 @@ static int parse_up_record(rnode* r)
 	char *ptr, *buf, *saved=NULL;
 	int offset = 0;
 
+	// Potentially cut the record in two
+	ptr = strchr(r->record, AUDIT_INTERP_SEPARATOR);
+	if (ptr) {
+		*ptr = 0;
+		ptr++;
+	}
+	r->interp = ptr;
 	buf = strdup(r->record);
 	ptr = audit_strsplit_r(buf, &saved);
 	if (ptr == NULL) {
@@ -288,6 +295,7 @@ int aup_list_append(event_list_t *l, char *record, int list_idx,
 		return -1;
 
 	r->record = record;
+	r->interp = NULL;
 	r->type = 0;
 	r->a0 = 0LL;
 	r->a1 = 0LL;
