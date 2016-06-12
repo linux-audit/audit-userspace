@@ -38,6 +38,7 @@
 static int disp_pipe[2] = {-1, -1};
 static pid_t pid = 0;
 static int n_errs = 0;
+static int protocol_ver = AUDISP_PROTOCOL_VER;
 #define REPORT_LIMIT 10
 
 int dispatcher_pid(void)
@@ -80,6 +81,12 @@ int init_dispatcher(const struct daemon_conf *config)
 		audit_msg(LOG_ERR, "Failed creating disp_pipe");
 		return 1;
 	}
+
+	/* If the events have enriched data, we are protocol 2 */
+	if (config->log_format == LF_ENRICHED)
+		protocol_ver = AUDISP_PROTOCOL_VER2;
+	else
+		protocol_ver = AUDISP_PROTOCOL_VER;
 
 	/* Make both disp_pipe non-blocking */
 	if (config->qos == QOS_NON_BLOCKING) {
@@ -168,7 +175,7 @@ int dispatch_event(const struct audit_reply *rep, int is_err)
 					rep->type == AUDIT_DAEMON_ROTATE)
 		return 0;
 
-	hdr.ver = AUDISP_PROTOCOL_VER2; /* Hard-coded to current protocol */
+	hdr.ver = protocol_ver;
 	hdr.hlen = sizeof(struct audit_dispatcher_header);
 	hdr.type = rep->type;
 	hdr.size = rep->len;
