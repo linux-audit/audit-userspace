@@ -31,7 +31,6 @@
 #include <regex.h>
 #include <time.h>
 #include <sys/types.h>
-#include <pwd.h>
 #include <unistd.h>
 #include "auparse.h"
 #include "libaudit.h"
@@ -73,7 +72,7 @@ struct event {
 	enum event_type type;
 	time_t start;
 	time_t end;
-	uid_t uid;
+	char *user;
 	char *uuid;
 	char *name;
 	int success;
@@ -106,12 +105,11 @@ struct event *event_alloc(void)
 	struct event *event = malloc(sizeof(struct event));
 	if (event) {
 		/* The new event is initialized with values that represents
-		 * unset values: -1 for uid and pid and 0 (or NULL) for numbers
+		 * unset values: -1 for user and pid and 0 (or NULL) for numbers
 		 * and pointers. For example, event->end = 0 represents an
 		 * unfinished event.
 		 */
 		memset(event, 0, sizeof(struct event));
-		event->uid = -1;
 		event->pid = -1;
 	}
 	return event;
@@ -120,6 +118,7 @@ struct event *event_alloc(void)
 void event_free(struct event *event)
 {
 	if (event) {
+		free(event->user);
 		free(event->uuid);
 		free(event->name);
 		free(event->reason);
@@ -369,16 +368,20 @@ int create_search_criteria(auparse_state_t *au)
 
 /* Extract the most common fields from virtualization-related records. */
 int extract_virt_fields(auparse_state_t *au, const char **p_uuid,
-		uid_t *p_uid, time_t *p_time, const char **p_name,
+		const char **p_user, time_t *p_time, const char **p_name,
 		int *p_suc)
 {
 	const char *field;
 	auparse_first_record(au);
+	*p_user = NULL;	// so we can free it later
 	/* Order matters */
-	if (p_uid) {
+	if (p_user) {
+		char *t;
 		if (!auparse_find_field(au, field = "uid"))
 			goto error;
-		*p_uid = auparse_get_field_int(au);
+		t = auparse_interpret_field(au);
+		if (t)
+			*p_user = strdup(t);
 	}
 	if (p_name) {
 		if (!auparse_find_field(au, field = "vm"))
@@ -409,6 +412,7 @@ error:
 				auparse_get_milli(au),
 				auparse_get_serial(au));
 	}
+	free(*p_user);
 	return 1;
 }
 
@@ -459,9 +463,8 @@ int add_proof(struct event *event, auparse_state_t *au)
  */
 int process_machine_id_event(auparse_state_t *au)
 {
-	uid_t uid;
 	time_t time;
-	const char *seclevel, *uuid, *name;
+	const char *seclevel, *uuid, *name, *user;
 	struct event *event;
 	int success;
 
@@ -472,7 +475,7 @@ int process_machine_id_event(auparse_state_t *au)
 					"MACHINE_ID event.\n");
 	}
 
-	if (extract_virt_fields(au, &uuid, &uid, &time, &name, &success))
+	if (extract_virt_fields(au, &uuid, &user, &time, &name, &success))
 		return 0;
 
 	event = event_alloc();
@@ -483,7 +486,7 @@ int process_machine_id_event(auparse_state_t *au)
 	event->name = copy_str(name);
 	event->success = success;
 	event->seclevel = copy_str(seclevel);
-	event->uid = uid;
+	event->user = user;
 	event->start = time;
 	add_proof(event, au);
 	if (list_append(events, event) == NULL) {
@@ -496,14 +499,13 @@ int process_machine_id_event(auparse_state_t *au)
 int add_start_guest_event(auparse_state_t *au)
 {
 	struct event *start;
-	uid_t uid;
 	time_t time;
-	const char *uuid, *name;
+	const char *uuid, *name, *user;
 	int success;
 	list_node_t *it;
 
 	/* Just skip this record if it failed to get some of the fields */
-	if (extract_virt_fields(au, &uuid, &uid, &time, &name, &success))
+	if (extract_virt_fields(au, &uuid, &user, &time, &name, &success))
 		return 0;
 
 	/* On failure, loop backwards to update all the resources associated to
@@ -537,7 +539,7 @@ int add_start_guest_event(auparse_state_t *au)
 	start->uuid = copy_str(uuid);
 	start->name = copy_str(name);
 	start->success = success;
-	start->uid = uid;
+	start->user = user;
 	start->start = time;
 	auparse_first_record(au);
 	if (auparse_find_field(au, "vm-pid"))
@@ -554,13 +556,12 @@ int add_stop_guest_event(auparse_state_t *au)
 {
 	list_node_t *it;
 	struct event *stop, *start = NULL, *event = NULL;
-	uid_t uid;
 	time_t time;
-	const char *uuid, *name;
+	const char *uuid, *name, *user;
 	int success;
 
 	/* Just skip this record if it failed to get some of the fields */
-	if (extract_virt_fields(au, &uuid, &uid, &time, &name, &success))
+	if (extract_virt_fields(au, &uuid, &user, &time, &name, &success))
 		return 0;
 
 	/* Loop backwards to find the last start event for the uuid and
@@ -606,7 +607,7 @@ int add_stop_guest_event(auparse_state_t *au)
 	stop->uuid = copy_str(uuid);
 	stop->name = copy_str(name);
 	stop->success = success;
-	stop->uid = uid;
+	stop->user = user;
 	stop->start = time;
 	auparse_first_record(au);
 	if (auparse_find_field(au, "vm-pid"))
@@ -658,12 +659,14 @@ static int is_resource(const char *res)
 	return 1;
 }
 
-int add_resource(auparse_state_t *au, const char *uuid, uid_t uid, time_t time,
-		const char *name, int success, const char *reason,
+int add_resource(auparse_state_t *au, const char *uuid, const char *user,
+		time_t time, const char *name, int success, const char *reason,
 		const char *res_type, const char *res)
 {
-	if (!is_resource(res))
+	if (!is_resource(res)) {
+		free(user);
 		return 0;
+	}
 
 	struct event *event = event_alloc();
 	if (event == NULL)
@@ -675,7 +678,7 @@ int add_resource(auparse_state_t *au, const char *uuid, uid_t uid, time_t time,
 	event->reason = copy_str(reason);
 	event->res_type = copy_str(res_type);
 	event->res = copy_str(res);
-	event->uid = uid;
+	event->user = user;
 	event->start = time;
 	add_proof(event, au);
 
@@ -702,8 +705,8 @@ int add_resource(auparse_state_t *au, const char *uuid, uid_t uid, time_t time,
 	return 0;
 }
 
-int update_resource(auparse_state_t *au, const char *uuid, uid_t uid,
-		time_t time, const char *name, int success, const char *reason,
+int update_resource(auparse_state_t *au, const char *uuid, time_t time,
+		const char *name, int success, const char *reason,
 		const char *res_type, const char *res)
 {
 	if (!is_resource(res) || !success)
@@ -738,15 +741,14 @@ int update_resource(auparse_state_t *au, const char *uuid, uid_t uid,
 
 int process_resource_event(auparse_state_t *au)
 {
-	uid_t uid;
 	time_t time;
-	const char *res_type, *uuid, *name;
+	const char *res_type, *uuid, *name, *user;
 	char field[64];
 	const char *reason;
 	int success;
 
 	/* Just skip this record if it failed to get some of the fields */
-	if (extract_virt_fields(au, &uuid, &uid, &time, &name, &success))
+	if (extract_virt_fields(au, &uuid, &user, &time, &name, &success))
 		return 0;
 
 	/* Get the resource type */
@@ -756,6 +758,7 @@ int process_resource_event(auparse_state_t *au)
 	if (res_type == NULL) {
 		if (debug)
 			fprintf(stderr, "Invalid resrc field.\n");
+		free(user);
 		return 0;
 	}
 
@@ -778,7 +781,7 @@ int process_resource_event(auparse_state_t *au)
 		if (res == NULL && debug) {
 			fprintf(stderr, "Failed to get %s field.\n", field);
 		} else {
-			rc += update_resource(au, uuid, uid, time, name,
+			rc += update_resource(au, uuid, time, name,
 					success, reason, res_type, res);
 		}
 
@@ -789,8 +792,9 @@ int process_resource_event(auparse_state_t *au)
 			res = auparse_interpret_field(au);
 		if (res == NULL && debug) {
 			fprintf(stderr, "Failed to get %s field.\n", field);
+			free(user);
 		} else {
-			rc += add_resource(au, uuid, uid, time, name, success,
+			rc += add_resource(au, uuid, user, time, name, success,
 					reason, res_type, res);
 		}
 	} else if (strcmp("cgroup", res_type) == 0) {
@@ -798,12 +802,14 @@ int process_resource_event(auparse_state_t *au)
 		const char *cgroup = NULL;
 		if (auparse_find_field(au, "cgroup"))
 			cgroup = auparse_interpret_field(au);
-		rc += add_resource(au, uuid, uid, time, name, success, reason,
+		rc += add_resource(au, uuid, user, time, name, success, reason,
 				res_type, cgroup);
 	} else if (debug) {
 		fprintf(stderr, "Found an unknown resource: %s.\n",
 				res_type);
-	}
+		free(user);
+	} else
+		free(user);
 	return rc;
 }
 
@@ -828,9 +834,8 @@ struct event *get_machine_id_by_seclevel(const char *seclevel)
 
 int process_avc_selinux_context(auparse_state_t *au, const char *context)
 {
-	const char *seclevel;
+	const char *seclevel, *user;
 	struct event *machine_id, *avc;
-	uid_t uid;
 	time_t time;
 
 	seclevel = get_seclevel(auparse_find_field(au, context));
@@ -842,7 +847,7 @@ int process_avc_selinux_context(auparse_state_t *au, const char *context)
 		return 0;
 	}
 
-	if (extract_virt_fields(au, NULL, &uid, &time, NULL, NULL))
+	if (extract_virt_fields(au, NULL, &user, &time, NULL, NULL))
 		return 0;
 
 	machine_id = get_machine_id_by_seclevel(seclevel);
@@ -866,7 +871,7 @@ int process_avc_selinux_context(auparse_state_t *au, const char *context)
 
 	/* AVC info */
 	avc->start = time;
-	avc->uid = uid;
+	avc->user = user;
 	avc->seclevel = copy_str(seclevel);
 	auparse_first_record(au);
 	avc->avc_result = copy_str(auparse_find_field(au, "seresult"));
@@ -911,10 +916,9 @@ int process_avc_selinux(auparse_state_t *au)
 #ifdef WITH_APPARMOR
 int process_avc_apparmor_source(auparse_state_t *au)
 {
-	uid_t uid = -1;
 	time_t time = 0;
 	struct event *avc;
-	const char *target;
+	const char *target, *user;
 
 	/* Get the target object. */
 	if (auparse_find_field(au, "name") == NULL) {
@@ -959,7 +963,7 @@ int process_avc_apparmor_source(auparse_state_t *au)
 		return 0;
 	}
 
-	if (extract_virt_fields(au, NULL, &uid, &time, NULL, NULL))
+	if (extract_virt_fields(au, NULL, &user, &time, NULL, NULL))
 		return 0;
 
 	avc = event_alloc();
@@ -974,7 +978,7 @@ int process_avc_apparmor_source(auparse_state_t *au)
 
 	/* AVC info */
 	avc->start = time;
-	avc->uid = uid;
+	avc->user = user;
 	auparse_first_record(au);
 	if (auparse_find_field(au, "apparmor")) {
 		int i;
@@ -999,7 +1003,7 @@ int process_avc_apparmor_source(auparse_state_t *au)
 
 int process_avc_apparmor_target(auparse_state_t *au)
 {
-	uid_t uid;
+	const char *user;
 	time_t time;
 	const char *profile;
 	struct event *avc;
@@ -1068,7 +1072,7 @@ int process_avc_apparmor_target(auparse_state_t *au)
 		return 0;
 	}
 
-	if (extract_virt_fields(au, NULL, &uid, &time, NULL, NULL))
+	if (extract_virt_fields(au, NULL, &user, &time, NULL, NULL))
 		return 0;
 
 	avc = event_alloc();
@@ -1083,7 +1087,7 @@ int process_avc_apparmor_target(auparse_state_t *au)
 
 	/* AVC info */
 	avc->start = time;
-	avc->uid = uid;
+	avc->user = user;
 	auparse_first_record(au);
 	if (auparse_find_field(au, "apparmor")) {
 		int i;
@@ -1140,7 +1144,7 @@ int process_avc(auparse_state_t *au)
  * pid or the selinux context. */
 int process_anom(auparse_state_t *au)
 {
-	uid_t uid;
+	const char *user;
 	time_t time;
 	pid_t pid = -1;
 	list_node_t *it;
@@ -1222,7 +1226,7 @@ int process_anom(auparse_state_t *au)
 		return 0;
 	}
 
-	if (extract_virt_fields(au, NULL, &uid, &time, NULL, NULL))
+	if (extract_virt_fields(au, NULL, &user, &time, NULL, NULL))
 		return 0;
 
 	anom = event_alloc();
@@ -1231,7 +1235,7 @@ int process_anom(auparse_state_t *au)
 	anom->type = ET_ANOM;
 	anom->uuid = copy_str(start->uuid);
 	anom->name = copy_str(start->name);
-	anom->uid = uid;
+	anom->user = user;
 	anom->start = time;
 	anom->pid = pid;
 	memcpy(anom->proof, start->proof, sizeof(anom->proof));
@@ -1245,13 +1249,13 @@ int process_anom(auparse_state_t *au)
 
 int process_shutdown(auparse_state_t *au)
 {
-	uid_t uid = -1;
+	const char *user;
 	time_t time = 0;
 	struct event *down;
 	list_node_t *it;
 	int success = 0;
 
-	if (extract_virt_fields(au, NULL, &uid, &time, NULL, &success))
+	if (extract_virt_fields(au, NULL, &user, &time, NULL, &success))
 		return 0;
 
 	for (it = events->tail; it; it = it->prev) {
@@ -1272,7 +1276,7 @@ int process_shutdown(auparse_state_t *au)
 	if (down == NULL)
 		return 1;
 	down->type = ET_DOWN;
-	down->uid = uid;
+	down->user = user;
 	down->start = time;
 	down->success = success;
 	add_proof(down, au);
@@ -1307,24 +1311,6 @@ const char *get_rec_type(struct event *e)
 
 	snprintf(buf, sizeof(buf), "%d", e->type);
 	return buf;
-}
-
-/* Convert uid to a string */
-const char *get_username(struct event *e)
-{
-	static char s[256];
-	if (!e || (int)e->uid == -1) {
-		s[0] = '?';
-		s[1] = '\0';
-	} else {
-		struct passwd *passwd = getpwuid(e->uid);
-		if (passwd == NULL || passwd->pw_name == NULL) {
-			snprintf(s, sizeof(s), "%d", e->uid);
-		} else {
-			snprintf(s, sizeof(s), "%s", passwd->pw_name);
-		}
-	}
-	return s;
 }
 
 /* Convert a time period to string */
@@ -1377,7 +1363,7 @@ void print_event(struct event *event)
 	printf("%-25.25s", N(event->name));
 	if (uuid_flag)
 		printf("\t%-36.36s", N(event->uuid));
-	printf("\t%-11.11s\t%-35.35s", get_username(event),
+	printf("\t%-11.11s\t%-35.35s", N(event->user),
 			get_time_period(event));
 
 	/* Print type specific fields */
