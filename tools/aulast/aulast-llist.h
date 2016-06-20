@@ -60,10 +60,11 @@ static inline void list_first(llist *l) { l->cur = l->head; }
 lnode *list_next(llist *l);
 static inline lnode *list_get_cur(llist *l) { return l->cur; }
 void list_clear(llist* l);
-int list_create_session(llist* l, uid_t auid, int pid, int session,
-		unsigned long serial);
-int list_update_start(llist* l, time_t start, const char *host,
-		const char *term, int res, unsigned long serial);
+int list_create_session_simple(llist* l, lnode *n);
+int list_create_session(llist *l, uid_t auid, int pid, int session,
+			unsigned long serial);
+int list_update_start(llist* l, const char *host, const char *term,
+			int res, unsigned long serial);
 int list_update_logout(llist* l, time_t t, unsigned long serial);
 lnode *list_delete_cur(llist *l);
 

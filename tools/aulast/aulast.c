@@ -67,13 +67,9 @@ static void report_session(lnode* cur)
 			cur->end = time(NULL);
 			notime = 1;
 		}
-	} else {
-		struct passwd *p = getpwuid(cur->auid);
-		if (p)
-			printf("%-8.8s ", p->pw_name);
-		else
-			printf("%-8.u ", cur->auid);
-	}
+	} else
+		printf("%-8.u ", cur->auid);
+
 	if (strncmp("/dev/", cur->term, 5) == 0)
 		printf("%-12.12s ", cur->term+5);
 	else
@@ -155,9 +151,9 @@ static void extract_record(auparse_state_t *au)
 
 static void create_new_session(auparse_state_t *au)
 {
-	const char *tpid, *tses, *tauid;
+	const char *tpid, *tses, *tauid, *tacct = NULL;
 	int pid = -1, auid = -1, ses = -1;
-	lnode *cur;
+	lnode *n;
 
 	// Get pid
 	tpid = auparse_find_field(au, "pid");
@@ -174,8 +170,10 @@ static void create_new_session(auparse_state_t *au)
 		auparse_next_field(au);
 		tauid = auparse_find_field(au, "auid");
 	}
-	if (tauid)
+	if (tauid) {
 		auid = auparse_get_field_int(au);
+		tacct = auparse_interpret_field(au);
+	}
 
 	// Get second ses field
 	tses = auparse_find_field(au, "old-ses");
@@ -200,12 +198,12 @@ static void create_new_session(auparse_state_t *au)
 
 	// See if this session is already open
 	//cur = list_find_auid(&l, auid, pid, ses);
-	cur = list_find_session(&l, ses);
-	if (cur) {
+	n = list_find_session(&l, ses);
+	if (n) {
 		// This means we have an open session close it out
-		cur->status = GONE;
-		cur->end = auparse_get_time(au);
-		report_session(cur);
+		n->status = GONE;
+		n->end = auparse_get_time(au);
+		report_session(n);
 		list_delete_cur(&l);
 	}
 
@@ -219,7 +217,23 @@ static void create_new_session(auparse_state_t *au)
 		return;
 	}
 
-	list_create_session(&l, auid, pid, ses, auparse_get_serial(au));
+	n = malloc(sizeof(lnode));
+	if (n == NULL)
+		return;
+	n->session = ses;
+	n->start = auparse_get_time(au);
+	n->end = 0;
+	n->auid = auid;
+	n->pid = pid;
+	n->result = -1;
+	n->name = tacct ? strdup(tacct) : NULL;
+	n->term = NULL;
+	n->host = NULL;
+	n->status = LOG_IN;
+	n->loginuid_proof = auparse_get_serial(au);
+	n->user_login_proof = 0;
+	n->user_end_proof = 0;
+	list_create_session_simple(&l, n);
 }
 
 static void update_session_login(auparse_state_t *au)
@@ -316,7 +330,7 @@ static void update_session_login(auparse_state_t *au)
 		}
 
 		// This means we have an open session - update it
-		list_update_start(&l, start, host, term, result,
+		list_update_start(&l, host, term, result,
 				auparse_get_serial(au));
 
 		// If the results were failed, we can close it out

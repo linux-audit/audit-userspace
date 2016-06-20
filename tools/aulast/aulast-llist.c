@@ -76,6 +76,12 @@ void list_clear(llist* l)
 	l->cur = NULL;
 }
 
+int list_create_session_simple(llist *l, lnode *n)
+{
+	list_append(l, n);
+	return 1;
+}
+
 int list_create_session(llist *l, uid_t auid, int pid, int session,
 	unsigned long serial)
 {
@@ -99,15 +105,14 @@ int list_create_session(llist *l, uid_t auid, int pid, int session,
 	return 1;
 }
 
-int list_update_start(llist* l, time_t start, const char *host,
-	const char *term, int res, unsigned long serial)
+int list_update_start(llist* l, const char *host, const char *term,
+	int res, unsigned long serial)
 {
         register lnode* cur;
 	if (l == NULL)
 		return 0;
 
 	cur=list_get_cur(l);
-	cur->start = start;
 	cur->status = SESSION_START;
 	if (term)
 		cur->term = strdup(term);
