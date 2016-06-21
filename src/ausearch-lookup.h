@@ -36,8 +36,6 @@ const char *aulookup_success(int s);
 const char *aulookup_syscall(llist *l, char *buf, size_t size);
 const char *aulookup_uid(uid_t uid, char *buf, size_t size);
 void aulookup_destroy_uid_list(void);
-const char *aulookup_gid(gid_t gid, char *buf, size_t size);
-void aulookup_destroy_gid_list(void);
 char *unescape(const char *buf);
 int is_hex_string(const char *str);
 void print_tty_data(const char *val);

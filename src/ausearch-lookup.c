@@ -30,6 +30,7 @@
 #include "ausearch-lookup.h"
 #include "ausearch-options.h"
 #include "ausearch-nvpair.h"
+#include "auparse-idata.h"
 
 /* This is the name/value pair used by search tables */
 struct nv_pair {
@@ -75,6 +76,13 @@ const char *aulookup_syscall(llist *l, char *buf, size_t size)
 		snprintf(buf, size, "%d", l->s.syscall);
 		return buf;
 	}
+
+	sys = _lookup_interpretation("syscall");
+	if (sys) {
+		snprintf(buf, size, "%s", sys);
+		return buf;
+	}
+
 	machine = audit_elf_to_machine(l->s.arch);
 	if (machine < 0)
 		return Q;
@@ -92,7 +100,8 @@ const char *aulookup_syscall(llist *l, char *buf, size_t size)
 			snprintf(buf, size, "%s(%s)", sys, func);
 			return buf;
 		}
-		return sys;
+		snprintf(buf, size, "%s", sys);
+		return buf;
 	}
 	snprintf(buf, size, "%d", l->s.syscall);
 	return buf;
@@ -183,8 +192,9 @@ static nvlist uid_nvl;
 static int uid_list_created=0;
 const char *aulookup_uid(uid_t uid, char *buf, size_t size)
 {
-	char *name = NULL;
+	const char *name;
 	int rc;
+	idata id;
 
 	if (report_format <= RPT_DEFAULT) {
 		snprintf(buf, size, "%d", uid);
@@ -192,6 +202,12 @@ const char *aulookup_uid(uid_t uid, char *buf, size_t size)
 	}
 	if (uid == -1) {
 		snprintf(buf, size, "unset");
+		return buf;
+	}
+
+	name = _lookup_interpretation("auid");
+	if (name) {
+		snprintf(buf, size, "%s", name);
 		return buf;
 	}
 
@@ -230,59 +246,6 @@ void aulookup_destroy_uid_list(void)
 
 	nvlist_clear(&uid_nvl); 
 	uid_list_created = 0;
-}
-
-static nvlist gid_nvl;
-static int gid_list_created=0;
-const char *aulookup_gid(gid_t gid, char *buf, size_t size)
-{
-	char *name = NULL;
-	int rc;
-
-	if (report_format <= RPT_DEFAULT) {
-		snprintf(buf, size, "%d", gid);
-		return buf;
-	}
-	if (gid == -1) {
-		snprintf(buf, size, "unset");
-		return buf;
-	}
-
-	// Check the cache first
-	if (gid_list_created == 0) {
-		nvlist_create(&gid_nvl);
-		nvlist_clear(&gid_nvl);
-		gid_list_created = 1;
-	}
-	rc = nvlist_find_val(&gid_nvl, gid);
-	if (rc) {
-		name = gid_nvl.cur->name;
-	} else {
-		// Add it to cache
-		struct group *gr;
-		gr = getgrgid(gid);
-		if (gr) {
-			nvnode nv;
-			nv.name = strdup(gr->gr_name);
-			nv.val = gid;
-			nvlist_append(&gid_nvl, &nv);
-			name = gid_nvl.cur->name;
-		}
-	}
-	if (name != NULL)
-		snprintf(buf, size, "%s", name);
-	else
-		snprintf(buf, size, "unknown(%d)", gid);
-	return buf;
-}
-
-void aulookup_destroy_gid_list(void)
-{
-	if (gid_list_created == 0)
-		return;
-
-	nvlist_clear(&gid_nvl); 
-	gid_list_created = 0;
 }
 
 int is_hex_string(const char *str)

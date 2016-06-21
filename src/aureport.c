@@ -41,6 +41,7 @@
 #include "aureport-scan.h"
 #include "ausearch-lol.h"
 #include "ausearch-lookup.h"
+#include "auparse-idata.h"
 
 
 event very_first_event, very_last_event;
@@ -53,7 +54,7 @@ static int process_logs(void);
 static int process_log_fd(const char *filename);
 static int process_stdin(void);
 static int process_file(char *filename);
-static int get_record(llist **);
+static int get_event(llist **);
 
 extern char *user_file;
 extern int force_logs;
@@ -124,13 +125,11 @@ int main(int argc, char *argv[])
 		printf("<no events of interest were found>\n\n");
 		destroy_counters();
 		aulookup_destroy_uid_list();
-		aulookup_destroy_gid_list();
 		return 1;
 	} else 
 		print_wrap_up();
 	destroy_counters();
 	aulookup_destroy_uid_list();
-	aulookup_destroy_gid_list();
 	free(user_file);
 	return 0;
 }
@@ -210,6 +209,20 @@ static int process_logs(void)
 	return 0;
 }
 
+static void process_event(llist *entries)
+{
+	if (scan(entries)) {
+		// If its a single event or SYSCALL load interpretations
+		if ((entries->cnt == 1) || (entries->head &&
+				 entries->head->type == AUDIT_SYSCALL))
+			_auparse_load_interpretations(entries->head->interp);
+		// This is the per entry action item
+		if (per_event_processing(entries))
+			found = 1;
+		_auparse_free_interpretations();
+	}
+}
+
 static int process_log_fd(const char *filename)
 {
 	llist *entries; // entries in a record
@@ -220,9 +233,9 @@ static int process_log_fd(const char *filename)
 	last_event.sec = 0;
 	last_event.milli = 0;
 
-	/* For each record in file */
+	/* For each event in file */
 	do {
-		ret = get_record(&entries);
+		ret = get_event(&entries);
 		if ((ret != 0)||(entries->cnt == 0))
 			break;
 		// If report is RPT_TIME or RPT_SUMMARY, get 
@@ -235,11 +248,12 @@ static int process_log_fd(const char *filename)
 							&very_first_event);
 			}
 			list_get_event(entries, &last_event);
-		} 
-		if (scan(entries)) {
-			// This is the per entry action item
-			if (per_event_processing(entries))
-				found = 1;
+		}
+		// Are we within time range?
+		if (start_time == 0 || entries->e.sec >= start_time) {
+			if (end_time == 0 || entries->e.sec <= end_time) {
+				process_event(entries);
+			}
 		}
 		list_clear(entries);
 		free(entries);
@@ -289,10 +303,10 @@ static int process_file(char *filename)
 }
 
 /*
- * This function returns a malloc'd buffer of the next record in the audit
- * logs. It returns 0 on success, 1 on eof, -1 on error. 
+ * This function returns a linked list of all records in an event.
+ * It returns 0 on success, 1 on eof, -1 on error. 
  */
-static int get_record(llist **l)
+static int get_event(llist **l)
 {
 	char *rc;
 	char *buff = NULL;

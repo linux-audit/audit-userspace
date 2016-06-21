@@ -329,13 +329,14 @@ char *au_unescape(char *buf)
         return str;
 }
 
+/////////// Interpretation list functions ///////////////
 void init_interpretation_list(void)
 {
 	nvlist_create(&il);
 }
 
 /*
- * Returns 1 on error and 0 on success
+ * Returns 0 on error and 1 on success
  */
 int load_interpretation_list(const char *buffer)
 {
@@ -343,7 +344,7 @@ int load_interpretation_list(const char *buffer)
 	char *buf;
 
 	if (buffer == NULL)
-		return;
+		return 0;
 
 	buf = strdup(buffer);
 	ptr = audit_strsplit_r(buf, &saved);
@@ -354,13 +355,15 @@ int load_interpretation_list(const char *buffer)
 
 	do {
 		nvnode n;
-		char *val;
+		char c, *val;
 
 		if (*ptr == '{') {
 			val = ptr+1;
 			ptr = strchr(val, '}');
-			if (ptr)
+			if (ptr) {
 				*ptr = 0;
+				c = '}';
+			}
 			n.name = strdup("saddr");
 		} else {
 			val = strchr(ptr, '=');
@@ -374,14 +377,38 @@ int load_interpretation_list(const char *buffer)
 				*c = tolower(*c);
 				c++;
 			}
+			ptr = strchr(val, ' ');
+			if (ptr) {
+				*ptr = 0;
+				c = ' ';
+			} else
+				c = 0;
 		}
 		n.val = strdup(val);
 		nvlist_append(&il, &n);
 		nvlist_interp_fixup(&il);
+		if (ptr)
+			*ptr = c;
 	} while((ptr = audit_strsplit_r(NULL, &saved)));
 
 	free(buf);
 	return 1;
+}
+
+const char *_lookup_interpretation(const char *name)
+{
+	nvnode *n;
+
+	nvlist_first(&il);
+	n = nvlist_get_cur(&il);
+	if (n == NULL)
+		return NULL;
+	do {
+		if (strcmp(n->name, name) == 0)
+			return n->interp_val;
+		n = nvlist_next(&il);
+	} while(n);
+	return NULL;
 }
 
 void free_interpretation_list(void)

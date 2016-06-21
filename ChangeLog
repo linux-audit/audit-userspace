@@ -1,6 +1,7 @@
 2.5.3
 - Auditd support for enriched data: uid/gid, saddr splitting, arch, syscall
-- Change dispatcher protocol to version 2
+- Make all libraries and utilities support and use enriched events
+- Define dispatcher protocol to version 2
 - Standardize all saddr interpretations in auparse
 - Fix another DST bug in ausearch time conversion (#1334772)
 - In autrace, if rule count loop times out don't assume 0 rules (#1344268)

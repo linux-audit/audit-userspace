@@ -34,6 +34,12 @@
 
 static int debug = 0;
 
+static void init_lib(void) __attribute__ ((constructor));
+static void init_lib(void)
+{
+	init_interpretation_list();
+}
+
 /* like strchr except string is delimited by length, not null byte */
 static char *strnchr(const char *s, int c, size_t n)
 {
@@ -487,7 +493,6 @@ auparse_state_t *auparse_init(ausource_t source, const void *b)
 	au->callback = NULL;
 	au->callback_user_data = NULL;
 	au->callback_user_data_destroy = NULL;
-	init_interpretation_list();
 	switch (source)
 	{
 		case AUSOURCE_LOGS:

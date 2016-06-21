@@ -65,7 +65,7 @@ void reset_counters(void)
 	slist_create(&sd.avc_objs);
 	slist_create(&sd.keys);
 	ilist_create(&sd.pids);
-	ilist_create(&sd.sys_list);
+	slist_create(&sd.sys_list);
 	ilist_create(&sd.anom_list);
 	ilist_create(&sd.mac_list);
 	ilist_create(&sd.resp_list);
@@ -101,7 +101,7 @@ void destroy_counters(void)
 	slist_clear(&sd.avc_objs);
 	slist_clear(&sd.keys);
 	ilist_clear(&sd.pids);
-	ilist_clear(&sd.sys_list);
+	slist_clear(&sd.sys_list);
 	ilist_clear(&sd.anom_list);
 	ilist_create(&sd.mac_list);
 	ilist_clear(&sd.resp_list);
@@ -207,37 +207,31 @@ int classify_conf(const llist *l)
  */
 int scan(llist *l)
 {
-	// Are we within time range?
-	if (start_time == 0 || l->e.sec >= start_time) {
-		if (end_time == 0 || l->e.sec <= end_time) {
-			// OK - do the heavier checking
-			int rc = extract_search_items(l);
-			if (rc == 0) {
-				if (event_node_list) {
-					const snode *sn;
-					int found=0;
-					slist *sptr = event_node_list;
+	int rc = extract_search_items(l);
+	if (rc == 0) {
+		if (event_node_list) {
+			const snode *sn;
+			int found=0;
+			slist *sptr = event_node_list;
 
-					if (l->e.node == NULL)
-						return 0;
-
-					slist_first(sptr);
-					sn=slist_get_cur(sptr);
-					while (sn && !found) {
-						if (sn->str && (!strcmp(sn->str, l->e.node)))
-							found++;
-						else
-							sn=slist_next(sptr);
-					}
-					
-				  	if (!found)
-				  		return 0;
-				}
-				if (classify_success(l) && classify_conf(l))
-					return 1;
+			if (l->e.node == NULL)
 				return 0;
+
+			slist_first(sptr);
+			sn=slist_get_cur(sptr);
+			while (sn && !found) {
+				if (sn->str && (!strcmp(sn->str, l->e.node)))
+					found++;
+				else
+					sn=slist_next(sptr);
 			}
+			
+		  	if (!found)
+		  		return 0;
 		}
+		if (classify_success(l) && classify_conf(l))
+			return 1;
+		return 0;
 	}
 	return 0;
 }
@@ -426,8 +420,9 @@ static int per_event_summary(llist *l)
 			break;
 		case RPT_SYSCALL:
 			if (l->s.syscall > 0) {
-				ilist_add_if_uniq(&sd.sys_list,
-						l->s.syscall, l->s.arch);
+				char tmp[32];
+				aulookup_syscall(l, tmp, 32);
+				slist_add_if_uniq(&sd.sys_list, tmp);
 			}
 			break;
 		case RPT_TERM:
@@ -437,7 +432,7 @@ static int per_event_summary(llist *l)
 		case RPT_USER:
 			if (l->s.loginuid != -2) {
 				char tmp[32];
-				snprintf(tmp, sizeof(tmp), "%d", l->s.loginuid);
+				aulookup_uid(l->s.loginuid, tmp, 32);
 				slist_add_if_uniq(&sd.users, tmp);
 			}
 			break;

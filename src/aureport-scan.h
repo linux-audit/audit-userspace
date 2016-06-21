@@ -37,7 +37,7 @@ typedef struct sdata {
 	slist avc_objs;
 	slist keys;
 	ilist pids;
-	ilist sys_list;
+	slist sys_list;
 	ilist anom_list;
 	ilist resp_list;
 	ilist mac_list;

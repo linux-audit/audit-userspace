@@ -37,7 +37,7 @@ static void do_file_summary_output(slist *sptr);
 static void do_string_summary_output(slist *sptr);
 static void do_user_summary_output(slist *sptr);
 static void do_int_summary_output(ilist *sptr);
-static void do_syscall_summary_output(ilist *sptr);
+static void do_syscall_summary_output(slist *sptr);
 static void do_type_summary_output(ilist *sptr);
 
 /* Local Data */
@@ -785,7 +785,7 @@ void print_wrap_up(void)
 			do_int_summary_output(&sd.pids);
 			break;
 		case RPT_SYSCALL:
-			ilist_sort_by_hits(&sd.sys_list);
+			slist_sort_by_hits(&sd.sys_list);
 			do_syscall_summary_output(&sd.sys_list);
 			break;
 		case RPT_TERM:
@@ -978,26 +978,20 @@ static void do_int_summary_output(ilist *sptr)
 	}
 }
 
-static void do_syscall_summary_output(ilist *sptr)
+static void do_syscall_summary_output(slist *sptr)
 {
-	const int_node *in;
+	const snode *sn;
 
 	if (sptr->cnt == 0) {
 		printf("<no events of interest were found>\n\n");
 		return;
 	}
-	ilist_first(sptr);
-	in=ilist_get_cur(sptr);
-	while (in) {
-		const char *sys = NULL;
-		int machine = audit_elf_to_machine(in->aux1);
-		if (machine >= 0) 
-			sys = audit_syscall_to_name(in->num, machine);
-		if (sys) 
-			printf("%u  %s\n", in->hits, sys);
-		else
-			printf("%u  %d\n", in->hits, in->num);
-		in=ilist_next(sptr);
+	slist_first(sptr);
+	sn=slist_get_cur(sptr);
+	while (sn) {
+		printf("%u  ", sn->hits);
+		safe_print_string(sn->str, 1);
+		sn=slist_next(sptr);
 	}
 }
 
