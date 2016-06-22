@@ -1657,6 +1657,8 @@ void audit_rule_free_data(struct audit_rule_data *rule)
 	free(rule);
 }
 
+// This use is OK because its creating rules for the local
+// machine and is looking up a local user.
 static int audit_name_to_uid(const char *name, uid_t *uid)
 {
 	struct passwd *pw;

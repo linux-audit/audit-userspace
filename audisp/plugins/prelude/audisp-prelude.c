@@ -451,6 +451,8 @@ static int get_loginuid_info(auparse_state_t *au, idmef_user_id_t *user_id)
 			int uid = auparse_get_field_int(au);
 			idmef_user_id_set_number(user_id, uid);
 		} else {
+			// This use is OK because its looking up local
+			// user names to ship externally.
 			struct passwd *pw;
 			pw = getpwnam(auid);
 			if (pw) 

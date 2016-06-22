@@ -263,17 +263,7 @@ static void update_session_login(auparse_state_t *au)
 		tuid = auparse_find_field(au, "id");
 		if (tuid)
 			uid = auparse_get_field_int(au);
-		else {
-			auparse_first_record(au);
-			tuid = auparse_find_field(au, "acct");
-			if (tuid) {
-				const char *tacct = auparse_interpret_field(au);
-				struct passwd *pw = getpwnam (tacct);
-				if (pw != NULL)
-					uid = pw->pw_uid;
-			} else
-				auparse_first_record(au);
-		}
+		auparse_first_record(au);
 	}
 
 	start = auparse_get_time(au);
