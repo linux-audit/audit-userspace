@@ -117,6 +117,7 @@
 typedef enum { AVC_UNSET, AVC_DENIED, AVC_GRANTED } avc_t;
 typedef enum { S_UNSET=-1, S_FAILED, S_SUCCESS } success_t;
 
+static const char *print_escaped(const char *val);
 static const char *print_signals(const char *val, unsigned int base);
 static auparse_esc_t escape_mode = AUPARSE_ESC_TTY;
 static nvlist il;  // Interpretations list
@@ -384,6 +385,7 @@ int load_interpretation_list(const char *buffer)
 			} else
 				c = 0;
 		}
+
 		n.val = strdup(val);
 		nvlist_append(&il, &n);
 		nvlist_interp_fixup(&il);
@@ -395,19 +397,24 @@ int load_interpretation_list(const char *buffer)
 	return 1;
 }
 
+/*
+ * Returns malloc'ed buffer on success and NULL if no match
+ */
 const char *_lookup_interpretation(const char *name)
 {
 	nvnode *n;
 
 	nvlist_first(&il);
-	n = nvlist_get_cur(&il);
-	if (n == NULL)
-		return NULL;
-	do {
-		if (strcmp(n->name, name) == 0)
-			return n->interp_val;
-		n = nvlist_next(&il);
-	} while(n);
+	if (nvlist_find_name(&il, name)) {
+		n = nvlist_get_cur(&il);
+		// This is only called from src/ausearch-lookup.c
+		// it only looks up auid and syscall. One needs
+		// escape, the other does not.
+		if (strstr(name, "id"))
+			return print_escaped(n->interp_val);
+		else
+			return strdup(n->interp_val);
+	}
 	return NULL;
 }
 
@@ -2729,8 +2736,14 @@ const char *auparse_do_interpretation(int type, const idata *id)
 		nvlist_first(&il);
 		if (nvlist_find_name(&il, id->name)) {
 			const char *val = il.cur->interp_val;
-			if (val)
-				return strdup(val);
+
+			if (val) {
+				if (type == AUPARSE_TYPE_UID ||
+						type == AUPARSE_TYPE_GID)
+					return print_escaped(val);
+				else
+					return strdup(val);
+			}
 		}
 	}
 
