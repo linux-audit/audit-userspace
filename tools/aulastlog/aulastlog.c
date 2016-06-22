@@ -63,7 +63,8 @@ int main(int argc, char *argv[])
 
 	list_create(&l);
 
-	// Stuff linked lists with all users 
+	// Stuff linked lists with all users
+	// This use is OK because docs say local machine only 
 	while ((p = getpwent()) != NULL) {
 		lnode n;
 

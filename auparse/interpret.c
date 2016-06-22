@@ -464,6 +464,7 @@ static const char *aulookup_uid(uid_t uid, char *buf, size_t size)
 	if (rc) {
 		name = uid_nvl.cur->name;
 	} else {
+		// This getpw use is OK because its for protocol 1 compatibility
 		// Add it to cache
 		struct passwd *pw;
 		pw = getpwuid(uid);
