@@ -188,6 +188,8 @@ static int extract_type(const char *str)
 	tptr = strndupa(ptr, ptr2 - ptr);
 	// find =
 	str = strchr(tptr, '=');
+	if (str == NULL)
+		return -1; // Malformed - bomb out
 	// name is 1 past
 	str++;
 	return audit_name_to_msg_type(str);
