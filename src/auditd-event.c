@@ -275,11 +275,12 @@ static int add_separator(unsigned int len_left)
 }
 
 // returns length used, 0 on error
+#define NAME_SIZE 64
 static int add_simple_field(auparse_state_t *au, size_t len_left, int encode)
 {
 	const char *value, *nptr;
 	char *enc = NULL;
-	char *ptr, field_name[64];
+	char *ptr, field_name[NAME_SIZE];
 	size_t nlen, vlen, tlen;
 	unsigned int i;
 	int num;
@@ -287,7 +288,7 @@ static int add_simple_field(auparse_state_t *au, size_t len_left, int encode)
 	// prepare field name
 	i = 0;
 	nptr = auparse_get_field_name(au);
-	while (*nptr && i < 64) {
+	while (*nptr && i < (NAME_SIZE - 1)) {
 		field_name[i] = toupper(*nptr);
 		i++;
 		nptr++;
@@ -601,7 +602,7 @@ static void write_to_log(const struct auditd_event *e)
 			log_size += rc;
 			check_log_file_size();
 			// Keep loose tabs on the free space
-			if (log_size%3 > 2)
+			if ((log_size % 3) < 2)
 				check_space_left();
 		}
 

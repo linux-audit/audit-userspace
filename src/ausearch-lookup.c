@@ -195,7 +195,6 @@ const char *aulookup_uid(uid_t uid, char *buf, size_t size)
 {
 	const char *name;
 	int rc;
-	idata id;
 
 	if (report_format <= RPT_DEFAULT) {
 		snprintf(buf, size, "%d", uid);

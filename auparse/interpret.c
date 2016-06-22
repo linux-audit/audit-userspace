@@ -356,22 +356,24 @@ int load_interpretation_list(const char *buffer)
 
 	do {
 		nvnode n;
-		char c, *val;
+		char tmp, *val;
 
 		if (*ptr == '{') {
 			val = ptr+1;
 			ptr = strchr(val, '}');
 			if (ptr) {
+				tmp = *ptr;
 				*ptr = 0;
-				c = '}';
-			}
+			} else
+				continue;	// Malformed - skip
 			n.name = strdup("saddr");
 		} else {
 			val = strchr(ptr, '=');
 			if (val) {
 				*val = 0;
 				val++;
-			}
+			} else	// Malformed - skip
+				continue;
 			n.name = strdup(ptr);
 			char *c = n.name;
 			while (*c) {
@@ -380,17 +382,17 @@ int load_interpretation_list(const char *buffer)
 			}
 			ptr = strchr(val, ' ');
 			if (ptr) {
+				tmp = *ptr;
 				*ptr = 0;
-				c = ' ';
 			} else
-				c = 0;
+				tmp = 0;
 		}
 
 		n.val = strdup(val);
 		nvlist_append(&il, &n);
 		nvlist_interp_fixup(&il);
 		if (ptr)
-			*ptr = c;
+			*ptr = tmp;
 	} while((ptr = audit_strsplit_r(NULL, &saved)));
 
 	free(buf);

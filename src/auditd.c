@@ -178,6 +178,8 @@ static int extract_type(const char *str)
 	const char *tptr, *ptr2, *ptr = str;
 	if (*str == 'n') {
 		ptr = strchr(str+1, ' ');
+		if (ptr == NULL)
+			return -1; // Malformed - bomb out
 		ptr++;
 	}
 	// ptr should be at 't'

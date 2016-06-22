@@ -373,7 +373,7 @@ int extract_virt_fields(auparse_state_t *au, const char **p_uuid,
 {
 	const char *field;
 	auparse_first_record(au);
-	*p_user = NULL;	// so we can free it later
+
 	/* Order matters */
 	if (p_user) {
 		char *t;
@@ -464,7 +464,7 @@ int add_proof(struct event *event, auparse_state_t *au)
 int process_machine_id_event(auparse_state_t *au)
 {
 	time_t time;
-	const char *seclevel, *uuid, *name, *user;
+	const char *seclevel, *uuid, *name, *user = NULL;
 	struct event *event;
 	int success;
 
@@ -475,8 +475,10 @@ int process_machine_id_event(auparse_state_t *au)
 					"MACHINE_ID event.\n");
 	}
 
-	if (extract_virt_fields(au, &uuid, &user, &time, &name, &success))
+	if (extract_virt_fields(au, &uuid, &user, &time, &name, &success)) {
+		free(user);
 		return 0;
+	}
 
 	event = event_alloc();
 	if (event == NULL)
@@ -500,7 +502,7 @@ int add_start_guest_event(auparse_state_t *au)
 {
 	struct event *start;
 	time_t time;
-	const char *uuid, *name, *user;
+	const char *uuid, *name, *user = NULL;
 	int success;
 	list_node_t *it;
 
@@ -533,8 +535,10 @@ int add_start_guest_event(auparse_state_t *au)
 	}
 
 	start = event_alloc();
-	if (start == NULL)
+	if (start == NULL) {
+		free(user);
 		return 1;
+	}
 	start->type = ET_START;
 	start->uuid = copy_str(uuid);
 	start->name = copy_str(name);
@@ -557,7 +561,7 @@ int add_stop_guest_event(auparse_state_t *au)
 	list_node_t *it;
 	struct event *stop, *start = NULL, *event = NULL;
 	time_t time;
-	const char *uuid, *name, *user;
+	const char *uuid, *name, *user = NULL;
 	int success;
 
 	/* Just skip this record if it failed to get some of the fields */
@@ -596,13 +600,16 @@ int add_stop_guest_event(auparse_state_t *au)
 			fprintf(stderr, "Couldn't find the correlated start "
 					"record to the stop event.\n");
 		}
+		free(user);
 		return 0;
 	}
 
 	/* Create a new stop event */
 	stop = event_alloc();
-	if (stop == NULL)
+	if (stop == NULL) {
+		free(user);
 		return 1;
+	}
 	stop->type = ET_STOP;
 	stop->uuid = copy_str(uuid);
 	stop->name = copy_str(name);
@@ -614,6 +621,7 @@ int add_stop_guest_event(auparse_state_t *au)
 		stop->pid = auparse_get_field_int(au);
 	add_proof(stop, au);
 	if (list_append(events, stop) == NULL) {
+		free(user);
 		event_free(stop);
 		return 1;
 	}
@@ -742,7 +750,7 @@ int update_resource(auparse_state_t *au, const char *uuid, time_t time,
 int process_resource_event(auparse_state_t *au)
 {
 	time_t time;
-	const char *res_type, *uuid, *name, *user;
+	const char *res_type, *uuid, *name, *user = NULL;
 	char field[64];
 	const char *reason;
 	int success;
@@ -918,7 +926,7 @@ int process_avc_apparmor_source(auparse_state_t *au)
 {
 	time_t time = 0;
 	struct event *avc;
-	const char *target, *user;
+	const char *target, *user = NULL;
 
 	/* Get the target object. */
 	if (auparse_find_field(au, "name") == NULL) {
@@ -967,8 +975,10 @@ int process_avc_apparmor_source(auparse_state_t *au)
 		return 0;
 
 	avc = event_alloc();
-	if (avc == NULL)
+	if (avc == NULL) {
+		free(user);
 		return 1;
+	}
 	avc->type = ET_AVC;
 
 	/* Guest info */
@@ -1003,7 +1013,7 @@ int process_avc_apparmor_source(auparse_state_t *au)
 
 int process_avc_apparmor_target(auparse_state_t *au)
 {
-	const char *user;
+	const char *user = NULL;
 	time_t time;
 	const char *profile;
 	struct event *avc;
@@ -1076,8 +1086,10 @@ int process_avc_apparmor_target(auparse_state_t *au)
 		return 0;
 
 	avc = event_alloc();
-	if (avc == NULL)
+	if (avc == NULL) {
+		free(user);
 		return 1;
+	}
 	avc->type = ET_AVC;
 
 	/* Guest info */
@@ -1144,7 +1156,7 @@ int process_avc(auparse_state_t *au)
  * pid or the selinux context. */
 int process_anom(auparse_state_t *au)
 {
-	const char *user;
+	const char *user = NULL;
 	time_t time;
 	pid_t pid = -1;
 	list_node_t *it;
@@ -1230,8 +1242,10 @@ int process_anom(auparse_state_t *au)
 		return 0;
 
 	anom = event_alloc();
-	if (anom == NULL)
+	if (anom == NULL) {
+		free(user);
 		return 1;
+	}
 	anom->type = ET_ANOM;
 	anom->uuid = copy_str(start->uuid);
 	anom->name = copy_str(start->name);
@@ -1249,7 +1263,7 @@ int process_anom(auparse_state_t *au)
 
 int process_shutdown(auparse_state_t *au)
 {
-	const char *user;
+	const char *user = NULL;
 	time_t time = 0;
 	struct event *down;
 	list_node_t *it;
@@ -1273,8 +1287,10 @@ int process_shutdown(auparse_state_t *au)
 	}
 
 	down = event_alloc();
-	if (down == NULL)
+	if (down == NULL) {
+		free(user);
 		return 1;
+	}
 	down->type = ET_DOWN;
 	down->user = user;
 	down->start = time;
@@ -1290,7 +1306,7 @@ int process_shutdown(auparse_state_t *au)
 /* Convert record type to a string */
 const char *get_rec_type(struct event *e)
 {
-	static char buf[64];
+	static char buf[16];
 	if (e == NULL)
 		return "";
 
