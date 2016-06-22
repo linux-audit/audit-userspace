@@ -1,4 +1,4 @@
-2.5.3
+2.6
 - Auditd support for enriched data: uid/gid, saddr splitting, arch, syscall
 - Make all libraries and utilities support and use enriched events
 - Define dispatcher protocol to version 2
