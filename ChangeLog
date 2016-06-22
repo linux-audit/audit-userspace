@@ -1,3 +1,5 @@
+2.6.1
+
 2.6
 - Auditd support for enriched data: uid/gid, saddr splitting, arch, syscall
 - Make all libraries and utilities support and use enriched events
