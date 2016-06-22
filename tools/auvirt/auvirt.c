@@ -475,10 +475,8 @@ int process_machine_id_event(auparse_state_t *au)
 					"MACHINE_ID event.\n");
 	}
 
-	if (extract_virt_fields(au, &uuid, &user, &time, &name, &success)) {
-		free(user);
+	if (extract_virt_fields(au, &uuid, &user, &time, &name, &success))
 		return 0;
-	}
 
 	event = event_alloc();
 	if (event == NULL)
@@ -842,7 +840,7 @@ struct event *get_machine_id_by_seclevel(const char *seclevel)
 
 int process_avc_selinux_context(auparse_state_t *au, const char *context)
 {
-	const char *seclevel, *user;
+	const char *seclevel, *user = NULL;
 	struct event *machine_id, *avc;
 	time_t time;
 
