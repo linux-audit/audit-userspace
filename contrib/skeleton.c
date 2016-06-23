@@ -52,14 +52,6 @@ int main(int argc, char *argv[])
 	openlog(pgm, LOG_PID, LOG_DAEMON);
 	syslog(LOG_NOTICE, "starting...");
 
-#ifndef DEBUG
-	// Make sure we are root
-	if (getuid() != 0) {
-		syslog(LOG_ERR, "You must be root to run this program.");
-		return 4;
-	}
-#endif
-
 	// register sighandlers
 	sa.sa_flags = 0 ;
 	sa.sa_handler = term_handler;

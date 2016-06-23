@@ -1,4 +1,5 @@
 2.6.1
+- Do capabilities check rather than uid
 
 2.6
 - Auditd support for enriched data: uid/gid, saddr splitting, arch, syscall

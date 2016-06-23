@@ -598,9 +598,10 @@ int main(int argc, char *argv[])
 	}
 
 #ifndef DEBUG
-	/* Make sure we are root */
-	if (getuid() != 0) {
-		fprintf(stderr, "You must be root to run this program.\n");
+	/* Make sure we can do our job */
+	if (!audit_can_control() || !audit_can_read()) {
+		fprintf(stderr,
+		"You must be root or have capabilities to run this program.\n");
 		return 4;
 	}
 #endif

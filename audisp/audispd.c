@@ -333,13 +333,6 @@ int main(int argc, char *argv[])
 	struct sigaction sa;
 	int i;
 
-#ifndef DEBUG
-	/* Make sure we are root */
-	if (getuid() != 0) {
-		fprintf(stderr, "You must be root to run this program.\n");
-		return 4;
-	}
-#endif
 	set_aumessage_mode(MSG_SYSLOG, DBG_YES);
 
 	/* Clear any procmask set by libev */

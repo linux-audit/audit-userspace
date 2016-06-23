@@ -39,7 +39,9 @@
 #include <limits.h>	/* for PATH_MAX */
 #include <sys/stat.h>
 #include <sys/types.h>
-
+#ifdef HAVE_LIBCAP_NG
+#include <cap-ng.h>
+#endif
 #include "libaudit.h"
 #include "private.h"
 #include "errormsg.h"
@@ -396,7 +398,7 @@ int audit_is_enabled(int fd)
 		   and disable the audit system get in. ECONNREFUSED is
 		   issued by the kernel when there is "no on listening". */
 		return 0;
-	} else if (rc == -EPERM && geteuid() != 0) {
+	} else if (rc == -EPERM && !audit_can_control()) {
 		/* If we get this, then the kernel supports auditing
 		 * but we don't have enough privilege to write to the
 		 * socket. Therefore, we have already been authenticated
@@ -1722,3 +1724,31 @@ void audit_number_to_errmsg(int errnumber, const char *opt)
 	}
 }
 #endif
+
+int audit_can_control(void)
+{
+#ifdef HAVE_LIBCAP_NG
+	return capng_have_capability(CAPNG_EFFECTIVE, CAP_AUDIT_CONTROL);
+#else
+	return (geteuid() == 0);
+#endif
+}
+
+int audit_can_write(void)
+{
+#ifdef HAVE_LIBCAP_NG
+	return capng_have_capability(CAPNG_EFFECTIVE, CAP_AUDIT_WRITE);
+#else
+	return (geteuid() == 0);
+#endif
+}
+
+int audit_can_read(void)
+{
+#if defined ( HAVE_LIBCAP_NG ) && ( CAP_AUDIT_READ )
+	return capng_have_capability(CAPNG_EFFECTIVE, CAP_AUDIT_READ);
+#else
+	return (geteuid() == 0);
+#endif
+}
+

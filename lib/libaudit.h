@@ -603,6 +603,11 @@ extern int audit_rule_interfield_comp_data(struct audit_rule_data **rulep,
 					 const char *pair, int flags);
 extern void audit_rule_free_data(struct audit_rule_data *rule);
 
+/* Capability testing functions */
+int audit_can_control(void);
+int audit_can_write(void);
+int audit_can_read(void);
+
 #ifdef __cplusplus
 }
 #endif

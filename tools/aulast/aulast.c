@@ -538,7 +538,8 @@ int main(int argc, char *argv[])
 		au = auparse_init(AUSOURCE_FILE_POINTER, stdin);
 	else {
 		if (getuid()) {
-			fprintf(stderr, "You probably need to be root for this to work\n");
+			fprintf(stderr,
+			  "You probably need to be root for this to work\n");
 		}
 		au = auparse_init(AUSOURCE_LOGS, NULL);
 	}

@@ -174,8 +174,9 @@ int main(int argc, char *argv[])
 		threat = 1;
 		cmd++;
 	}
-	if (getuid() != 0) {
-		fprintf(stderr, "You must be root to run this program.\n");
+	if (!audit_can_control()) {
+		fprintf(stderr,
+		"You must be root or have capabilities to run this program.\n");
 		return 1;
 	}
 	if (access(argv[cmd], X_OK)) {

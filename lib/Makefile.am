@@ -1,5 +1,5 @@
 # Makefile.am -- 
-# Copyright 2004-2009,2013-15 Red Hat Inc., Durham, North Carolina.
+# Copyright 2004-2009,2013-16 Red Hat Inc., Durham, North Carolina.
 # All Rights Reserved.
 #
 # This library is free software; you can redistribute it and/or
@@ -37,7 +37,7 @@ include_HEADERS = libaudit.h
 libaudit_la_SOURCES = libaudit.c message.c netlink.c \
 	lookup_table.c audit_logging.c deprecated.c \
 	strsplit.c dso.h private.h errormsg.h
-libaudit_la_LIBADD =
+libaudit_la_LIBADD = $(CAPNG_LDADD)
 libaudit_la_DEPENDENCIES = $(libaudit_la_SOURCES) ../config.h
 libaudit_la_LDFLAGS = -Wl,-z,relro -version-info $(VERSION_INFO)
 nodist_libaudit_la_SOURCES = $(BUILT_SOURCES)
