@@ -2,13 +2,13 @@ Things that need to be done:
 ===========================
 2.6.1
 * Auditd should only send 1 warning to clients when space_left is reached.
-* ausearch needs to search on user name as a string
 * aulast needs to be able to search on user name as a string
-* Add ability to suppress types of records (drop_records)
+* ausearch needs to search on user name as a string
 
 2.7
 * Add metadata in auparse for subj,obj,action,results
 * Formats for ausearch output
+* Add ability to suppress types of records (drop_records)
 
 2.7.1
 * Look at pulling audispd into auditd
