@@ -1,6 +1,7 @@
 2.6.1
 - Do capabilities check rather than uid
 - Auditd fixup directory and file permissions on startup
+- Add some missing config items to auditd reconfigure
 
 2.6
 - Auditd support for enriched data: uid/gid, saddr splitting, arch, syscall

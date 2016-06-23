@@ -1239,7 +1239,7 @@ static void reconfigure(struct auditd_event *e)
 	oconf->disk_error_exe = nconf->disk_error_exe;
 	disk_err_warning = 0;
 
-	// numlogs is next
+	// number of logs
 	oconf->num_logs = nconf->num_logs;
 
 	// flush freq
@@ -1259,6 +1259,17 @@ static void reconfigure(struct auditd_event *e)
 
 	// log format
 	oconf->log_format = nconf->log_format;
+
+	if (oconf->write_logs != nconf->write_logs) {
+		oconf->write_logs = nconf->write_logs;
+		need_reopen = 1;
+	}
+
+	// log_group
+	if (oconf->log_group != nconf->log_group) {
+		oconf->log_group = nconf->log_group;
+		need_reopen = 1;
+	}
 
 	// action_mail_acct
 	if (strcmp(oconf->action_mail_acct, nconf->action_mail_acct)) {
@@ -1339,7 +1350,10 @@ static void reconfigure(struct auditd_event *e)
 
 	// network listener
 	auditd_tcp_listen_reconfigure(nconf, oconf);
-	
+
+	// distribute network events	
+	oconf->distribute_network_events = nconf->distribute_network_events;
+
 	/* At this point we will work on the items that are related to 
 	 * a single log file. */
 
