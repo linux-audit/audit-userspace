@@ -1,11 +1,10 @@
 Things that need to be done:
 ===========================
 2.6.1
+* Auditd should only send 1 warning to clients when space_left is reached.
 * ausearch needs to search on user name as a string
 * aulast needs to be able to search on user name as a string
-* Auditd should only send 1 warning to clients when space_left is reached.
 * Add ability to suppress types of records (drop_records)
-* Auditd set group ownership on dirs and files if not root
 
 2.7
 * Add metadata in auparse for subj,obj,action,results

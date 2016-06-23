@@ -46,6 +46,7 @@ void format_event(struct auditd_event *e);
 void enqueue_event(struct auditd_event *e);
 struct auditd_event *create_event(char *msg, ack_func_type ack_func,
 			void *ack_data, uint32_t sequence_id);
+void fix_disk_permissions(void);
 
 #endif
 

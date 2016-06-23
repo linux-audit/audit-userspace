@@ -617,13 +617,11 @@ static int log_file_parser(struct nv_pair *nv, int line,
 		return 1;
 	}
 	if ( (buf.st_mode & (S_IXUSR|S_IWGRP|S_IXGRP|S_IRWXO)) ) {
-		audit_msg(LOG_ERR, "%s permissions should be 0600 or 0640",
+		audit_msg(LOG_WARNING, "%s permissions should be 0600 or 0640",
 				nv->value);
-		return 1;
 	}
 	if ( !(buf.st_mode & S_IWUSR) ) {
-		audit_msg(LOG_ERR, "audit log is not writable by owner");
-		return 1;
+		audit_msg(LOG_WARNING, "audit log is not writable by owner");
 	}
 
 	free((void *)config->log_file);

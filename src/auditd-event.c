@@ -36,6 +36,7 @@
 #include <sys/vfs.h>
 #include <limits.h>     /* POSIX_HOST_NAME_MAX */
 #include <ctype.h>	/* toupper */
+#include <libgen.h>	/* dirname */
 #include "auditd-event.h"
 #include "auditd-dispatch.h"
 #include "auditd-listen.h"
@@ -886,6 +887,38 @@ static void check_excess_logs(void)
 	}
 	free(name);
 }
+
+void fix_disk_permissions(void)
+{
+	char *path, *dir;
+	unsigned int i, len = strlen(config->log_file) + 16;
+
+	path = malloc(len);
+	if (path == NULL)
+		return;
+
+	// Start with the directory
+	strcpy(path, config->log_file);
+	dir = dirname(path);
+	chmod(dir, config->log_group ? S_IRWXU|S_IRWXG : S_IRWXU);
+	chown(dir, 0, config->log_group ? config->log_group : 0);
+
+	// Now, for each file...
+	for (i = 1; i < config->num_logs; i++) {
+		int rc;
+		snprintf(path, len, "%s.%d", config->log_file, i);
+		rc = chmod(path, config->log_group ? S_IWUSR|S_IRUSR|S_IRGRP :
+			S_IWUSR|S_IRUSR);
+		if (rc && errno == ENOENT)
+			break;
+	}
+
+	// Now the current file
+	chmod(config->log_file, config->log_group ? S_IWUSR|S_IRUSR|S_IRGRP :
+			S_IWUSR|S_IRUSR);
+
+	free(path);
+}
  
 static void rotate_logs(unsigned int num_logs)
 {
@@ -1344,6 +1377,7 @@ static void reconfigure(struct auditd_event *e)
 
 	if (need_reopen) {
 		fclose(log_file);
+		fix_disk_permissions();
 		if (open_audit_log()) {
 			int saved_errno = errno;
 			audit_msg(LOG_NOTICE, 
