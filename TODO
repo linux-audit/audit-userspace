@@ -1,7 +1,6 @@
 Things that need to be done:
 ===========================
 2.6.1
-* Auditd should only send 1 warning to clients when space_left is reached.
 * aulast needs to be able to search on user name as a string
 * ausearch needs to search on user name as a string
 
@@ -12,6 +11,7 @@ Things that need to be done:
 
 2.7.1
 * Look at pulling audispd into auditd
+* Consolidate linked lists and other functions
 
 3.0
 * Basic HIDS

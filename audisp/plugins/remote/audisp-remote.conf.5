@@ -1,4 +1,4 @@
-.TH AUDISP-REMOTE.CONF: "5" "Mar 2011" "Red Hat" "System Administration Utilities"
+.TH AUDISP-REMOTE.CONF: "5" "June 2016" "Red Hat" "System Administration Utilities"
 .SH NAME
 audisp-remote.conf \- the audisp-remote configuration file
 .SH DESCRIPTION
@@ -91,40 +91,44 @@ setting. The default value is 0 which disables sending a heartbeat.
 .I network_failure_action
 This parameter tells the system what action to take whenever there is an error
 detected when sending audit events to the remote system. Valid values are
-.IR ignore ", " syslog ", " exec ", " suspend ", " single ", " halt ", and " stop .
+.IR ignore ", " syslog ", " exec ", " warn_once ", " suspend ", " single ", " halt ", and " stop .
 If set to
 .IR ignore ,
-the remote logging app does nothing.
+the remote logging app does nothing. If an event was sent, its dequeued.
 .I Syslog
-means that it will issue a warning to syslog.  This is the default.
+means that it will issue a warning to syslog. If an event was sent, its dequeued. This is the default.
 .I exec
-/path-to-script will execute the script. You cannot pass parameters to the script.
+/path-to-script will execute the script. You cannot pass parameters to the script. If an event was sent, its dequeued.
+.I warn_once_continue
+is like syslog execept that only one message is put in syslog until an event is successfully transferred.
+.I warn_once
+is like warn_once_continue execept that the event is not dequeued.
 .I Suspend
-will cause the remote logging app to stop sending records to the remote system. The logging app will still be alive. The
+will cause the remote logging app to stop sending records to the remote system. The logging app will still be alive. If an event was sent, it is not dequeued. The
 .I single
-option will cause the remote logging app to put the computer system in single user mode. The
+option will cause the remote logging app to put the computer system in single user mode. If an event was sent, it is not dequeued. The
 .I stop
-option will cause the remote logging app to exit, but leave other plugins running. The
+option will cause the remote logging app to exit, but leave other plugins running. If an event was sent, it is not dequeued. The
 .I halt
-option will cause the remote logging app to shutdown the computer system.
+option will cause the remote logging app to shutdown the computer system. If an event was sent, it is not dequeued. The default is to stop.
 .TP
 .I disk_low_action
 Likewise, this parameter tells the system what action to take if the
-remote end signals a disk low error.  The default is to ignore it.
+remote end signals a disk low error.  The default is ignore.
 .TP
 .I disk_full_action
 Likewise, this parameter tells the system what action to take if the
-remote end signals a disk full error.  The default is to ignore it.
+remote end signals a disk full error.  The default is warn_once.
 .TP
 .I disk_error_action
 Likewise, this parameter tells the system what action to take if the
-remote end signals a disk error.  The default is to log it to syslog.
+remote end signals a disk error.  The default is warn_once.
 .TP
 .I remote_ending_action
 Likewise, this parameter tells the system what action to take if the
 remote end signals a disk error. This action has one additional option,
 .I reconnect
-which tells the remote plugin to attempt to reconnect to the server upon receipt of the next audit record. If it is unsuccessful, the audit record could be lost. The default is to reconnect.
+which tells the remote plugin to attempt to reconnect to the server upon receipt of the next audit record. If an event was being sent when something triggered this action, it is not dequeued. If it is unsuccessful in reconnecting, the audit record could be lost. The default is to reconnect.
 .TP
 .I generic_error_action
 Likewise, this parameter tells the system what action to take if the
@@ -138,7 +142,7 @@ log it to syslog.
 .TP
 .I queue_error_action
 Likewise, this parameter tells the system what action to take if there
-is a problem working with a local record queue.  The default is to exit.
+is a problem working with a local record queue.  The default is stop.
 .TP
 .I overflow_action
 This parameter tells the system what action to take if the

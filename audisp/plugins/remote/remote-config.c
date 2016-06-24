@@ -1,5 +1,5 @@
 /* remote-config.c -- 
- * Copyright 2008,2009,2011,2015 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2008,2009,2011,2015-16 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -151,13 +151,15 @@ static const struct nv_list mode_words[] =
 
 static const struct nv_list fail_action_words[] =
 {
-  {"ignore",   FA_IGNORE },
-  {"syslog",   FA_SYSLOG },
-  {"exec",     FA_EXEC },
-  {"suspend",  FA_SUSPEND },
-  {"single",   FA_SINGLE },
-  {"halt",     FA_HALT },
-  {"stop",     FA_STOP },
+  {"ignore",    FA_IGNORE },
+  {"syslog",    FA_SYSLOG },
+  {"exec",      FA_EXEC },
+  {"warn_once_continue", FA_WARN_ONCE_CONT },
+  {"warn_once", FA_WARN_ONCE },
+  {"suspend",   FA_SUSPEND },
+  {"single",    FA_SINGLE },
+  {"halt",      FA_HALT },
+  {"stop",      FA_STOP },
   { NULL,  0 }
 };
 
@@ -209,8 +211,8 @@ void clear_config(remote_conf_t *config)
 #define IA(x,f) config->x##_action = f; config->x##_exe = NULL
 	IA(network_failure, FA_STOP);
 	IA(disk_low, FA_IGNORE);
-	IA(disk_full, FA_IGNORE);
-	IA(disk_error, FA_SYSLOG);
+	IA(disk_full, FA_WARN_ONCE);
+	IA(disk_error, FA_WARN_ONCE);
 	IA(remote_ending, FA_RECONNECT);
 	IA(generic_error, FA_SYSLOG);
 	IA(generic_warning, FA_SYSLOG);
