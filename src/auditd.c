@@ -651,9 +651,6 @@ int main(int argc, char *argv[])
 		openlog("auditd", LOG_PID, LOG_DAEMON);
 	}
 
-	/* Just in case there was an update that reset the group */
-	fix_disk_permissions();
-
 	/* Init netlink */
 	if ((fd = audit_open()) < 0) {
         	audit_msg(LOG_ERR, "Cannot open netlink audit socket");

@@ -54,6 +54,7 @@ static void check_space_left(void);
 static void do_space_left_action(int admin);
 static void do_disk_full_action(void);
 static void do_disk_error_action(const char *func, int err);
+static void fix_disk_permissions(void);
 static void check_excess_logs(void); 
 static void rotate_logs_now(void);
 static void rotate_logs(unsigned int num_logs);
@@ -114,6 +115,7 @@ int init_event(struct daemon_conf *conf)
 
 	/* Now open the log */
 	if (config->daemonize == D_BACKGROUND) {
+		fix_disk_permissions();
 		if (open_audit_log())
 			return 1;
 	} else {
@@ -888,10 +890,15 @@ static void check_excess_logs(void)
 	free(name);
 }
 
-void fix_disk_permissions(void)
+static void fix_disk_permissions(void)
 {
 	char *path, *dir;
-	unsigned int i, len = strlen(config->log_file) + 16;
+	unsigned int i, len;
+
+	if (config == NULL || config->log_file == NULL)
+		return;
+
+	len = strlen(config->log_file) + 16;
 
 	path = malloc(len);
 	if (path == NULL)
