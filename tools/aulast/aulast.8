@@ -1,11 +1,11 @@
-.TH AULAST: "8" "Nov 2008" "Red Hat" "System Administration Utilities"
+.TH AULAST: "8" "June 2016" "Red Hat" "System Administration Utilities"
 .SH NAME
 aulast \- a program similar to last
 .SH SYNOPSIS
-.B aulast [ options ] [ user ] [ tty ]
+.B aulast [ options ] 
 
 .SH DESCRIPTION
-\fBaulast\fP is a program that prints out a listing of the last logged in users similarly to the program \fBlast\fP and \fBlastb\fP. Aulast searches back through the audit logs or the given audit log file and displays a list of all users logged in (and out) based on the range of time in the audit logs. Names of users and tty’s can be given, in which case aulast will show only those entries matching the arguments. Names of ttys can be abbreviated, thus aulast 0 is the same as last tty0.
+\fBaulast\fP is a program that prints out a listing of the last logged in users similarly to the program \fBlast\fP and \fBlastb\fP. Aulast searches back through the audit logs or the given audit log file and displays a list of all users logged in (and out) based on the range of time in the audit logs. Names of users and tty’s can be given, in which case aulast will show only those entries matching the arguments.
 
 The pseudo user reboot logs in each time the system is rebooted. Thus last reboot will show a log of all reboots since the log file was created.
 
@@ -31,6 +31,14 @@ Print out the audit event serial numbers used to determine the preceding line of
 .TP
 .B \-\-stdin
 Take audit records from stdin.
+
+.TP
+.BI \-\-tty
+Limit the report to a specific tty's activity. The names of ttys can be abbreviated. For example, 0 is the same as tty0.
+
+.TP
+.BI \-\-user name
+Limit the report to a specific user.
 
 .SH "EXAMPLES"
 .nf

@@ -1,6 +1,6 @@
 /*
  * aulast.c - A last program based on audit logs 
- * Copyright (c) 2008-2009,2011 Red Hat Inc., Durham, North Carolina.
+ * Copyright (c) 2008-2009,2011,2016 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This software may be freely redistributed and/or modified under the
@@ -27,7 +27,6 @@
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
-#include <pwd.h>
 #include <stdlib.h>
 #include "libaudit.h"
 #include "auparse.h"
@@ -39,13 +38,13 @@ static FILE *f = NULL;
 static char *kernel = NULL;
 
 /* command line params */
-static int cuid = -1, bad = 0, proof = 0, debug = 0;
-static char *cterm = NULL;
+static int bad = 0, proof = 0, debug = 0;
+static char *cterm = NULL, *user = NULL;
 
 void usage(void)
 {
 	fprintf(stderr,
- "usage: aulast [--stdin] [--proof] [--extract] [-f file] [user name] [tty]\n");
+ "usage: aulast [--stdin] [--proof] [--extract] [-f file] [--user name] [--tty tty]\n");
 }
 
 /* This outputs a line of text reporting the login/out times */
@@ -209,12 +208,14 @@ static void create_new_session(auparse_state_t *au)
 
 	// If this is supposed to be limited to a specific
 	// uid and we don't have that record, skip creating it
-	if (cuid != -1 && cuid != auid) {
-		if (debug)
-			fprintf(stderr,
-			    "login reporting limited to %d for event: %lu\n",
-				cuid, auparse_get_serial(au));
-		return;
+	if (user) {
+		if ((tacct && strcmp(user, tacct)) || tacct == NULL) {
+			if (debug)
+				fprintf(stderr,
+			    "login reporting limited to %s for event: %lu\n",
+					user, auparse_get_serial(au));
+			return;
+		}
 	}
 
 	n = malloc(sizeof(lnode));
@@ -476,57 +477,53 @@ static void process_shutdown(auparse_state_t *au)
 int main(int argc, char *argv[])
 {
 	int i, use_stdin = 0;
-	char *user = NULL, *file = NULL;
-	struct passwd *p;
+	char *file = NULL;
         auparse_state_t *au;
 
 	setlocale (LC_ALL, "");
 	for (i=1; i<argc; i++) {
-		if (argv[i][0] != '-') {
-			//take input and lookup as if it were a user name
-			//if that fails assume its a tty
-			if (user == NULL) {
-				p = getpwnam(argv[i]);
-				if (p) {
-					cuid = p->pw_uid;
-					user = argv[i];
-					continue;
-				}
+		if (strcmp(argv[i], "-f") == 0) {
+			if (use_stdin == 0) {
+				i++;
+				file = argv[i];
+			} else {
+				fprintf(stderr,"stdin already given\n");
+				return 1;
 			}
+		} else if (strcmp(argv[i], "--bad") == 0) {
+			bad = 1;
+		} else if (strcmp(argv[i], "--proof") == 0) {
+			proof = 1;
+		} else if (strcmp(argv[i], "--extract") == 0) {
+			f = fopen("aulast.log", "wt");
+		} else if (strcmp(argv[i], "--stdin") == 0) {
+			if (file == NULL)
+				use_stdin = 1;
+			else {
+				fprintf(stderr, "file already given\n");
+				return 1;
+			}
+		} else if (strcmp(argv[i], "--user") == 0) {
+			if (user == NULL) {
+				i++;
+				user = argv[i];
+			} else {
+				usage();
+				return 1;
+			}
+		} else if (strcmp(argv[i], "--tty") == 0) {
 			if (cterm == NULL) {
+				i++;
 				cterm = argv[i];
 			} else {
 				usage();
 				return 1;
 			}
+		} else if (strcmp(argv[i], "--debug") == 0) {
+			debug = 1;
 		} else {
-			if (strcmp(argv[i], "-f") == 0) {
-				if (use_stdin == 0) {
-					i++;
-					file = argv[i];
-				} else {
-					fprintf(stderr,"stdin already given\n");
-					return 1;
-				}
-			} else if (strcmp(argv[i], "--bad") == 0) {
-				bad = 1;
-			} else if (strcmp(argv[i], "--proof") == 0) {
-				proof = 1;
-			} else if (strcmp(argv[i], "--extract") == 0) {
-				f = fopen("aulast.log", "wt");
-			} else if (strcmp(argv[i], "--stdin") == 0) {
-				if (file == NULL)
-					use_stdin = 1;
-				else {
-					fprintf(stderr, "file already given\n");
-					return 1;
-				}
-			} else if (strcmp(argv[i], "--debug") == 0) {
-				debug = 1;
-			} else {
-				usage();
-				return 1;
-			}
+			usage();
+			return 1;
 		}
 	}
 	list_create(&l);

@@ -4,6 +4,7 @@
 - Add some missing config items to auditd reconfigure
 - In audisp-remote add warn_once and warn_once_continue action handlers
 - In audisp-remote only emit 1 warning when disk_full or error is reached.
+- Fix aulast to be able to search on user name as a string
 
 2.6
 - Auditd support for enriched data: uid/gid, saddr splitting, arch, syscall
