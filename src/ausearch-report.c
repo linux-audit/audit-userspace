@@ -47,6 +47,25 @@ static int cur_syscall = -1;
 /* The first syscall argument */
 static unsigned long long a0, a1;
 
+/* tracks state of interpretations */
+static int loaded = 0;
+
+void ausearch_load_interpretations(const lnode *n)
+{
+	if (loaded == 0) {
+		_auparse_load_interpretations(n->interp);
+		loaded = 1;
+	}
+}
+
+void ausearch_free_interpretations(void)
+{
+	if (loaded) {
+		_auparse_free_interpretations();
+		loaded = 0;
+	}
+}
+
 /* This function branches to the correct output format */
 void output_record(llist *l)
 {
@@ -201,7 +220,7 @@ no_print:
 	}
 
 	// for each item.
-	_auparse_load_interpretations(n->interp);
+	ausearch_load_interpretations(n);
 	found = 0;
 	while (str && *str && (ptr = strchr(str, '='))) {
 		char *name, *val;
@@ -276,7 +295,7 @@ no_print:
 		// print interpreted string
 		interpret(name, val, comma, n->type);
 	}
-	_auparse_free_interpretations();
+	ausearch_free_interpretations();
 
 	// If nothing found, just print out as is
 	if (!found && ptr == NULL && str)

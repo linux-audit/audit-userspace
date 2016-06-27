@@ -44,6 +44,7 @@ int no_config = 0;
 /* These are for compatibility with parser */
 unsigned int event_id = -1;
 uid_t event_uid = -1, event_loginuid = -2, event_euid = -1;
+char *event_tuid = NULL, *event_teuid = NULL, *event_tauid = NULL;
 gid_t event_gid = -1, event_egid = -1;
 slist *event_node_list = NULL;
 const char *event_key = NULL;
@@ -293,6 +294,7 @@ int check_params(int count, char *vars[])
 			else { 
 				set_detail(D_DETAILED);
 				event_loginuid = 1;
+				event_tauid = dummy;
 			}
 			break;
 		case R_INTEG:
@@ -301,6 +303,7 @@ int check_params(int count, char *vars[])
 			else { 
 				set_detail(D_DETAILED);
 				event_loginuid = 1;
+				event_tauid = dummy;
 			}
 			break;
 		case R_VIRT:
@@ -316,6 +319,7 @@ int check_params(int count, char *vars[])
 			else { 
 				set_detail(D_DETAILED);
 				event_loginuid = 1;
+				event_tauid = dummy;
 			}
 			break;
 		case R_CRYPTO:
@@ -324,6 +328,7 @@ int check_params(int count, char *vars[])
 			else { 
 				set_detail(D_DETAILED);
 				event_loginuid = 1;
+				event_tauid = dummy;
 			}
 			break;
 		case R_LOGINS:
@@ -335,6 +340,7 @@ int check_params(int count, char *vars[])
 				event_hostname = dummy;
 				event_terminal = dummy;
 				event_loginuid = 1;
+				event_tauid = dummy;
 			}
 			break;
 		case R_ACCT_MODS:
@@ -346,6 +352,7 @@ int check_params(int count, char *vars[])
 				event_hostname = dummy;
 				event_terminal = dummy;
 				event_loginuid = 1;
+				event_tauid = dummy;
 			}
 			break;
 		case R_EVENTS:
@@ -355,6 +362,7 @@ int check_params(int count, char *vars[])
 //				if (!optarg) {
 					set_detail(D_DETAILED);
 					event_loginuid = 1;
+					event_tauid = dummy;
 //				} else {
 //					UNIMPLEMENTED;
 //					set_detail(D_SPECIFIC);
@@ -386,6 +394,7 @@ int check_params(int count, char *vars[])
 					event_filename = dummy;
 					event_exe = dummy;
 					event_loginuid = 1;
+					event_tauid = dummy;
 				} else {
 					UNIMPLEMENTED;
 				}
@@ -399,6 +408,7 @@ int check_params(int count, char *vars[])
 					set_detail(D_DETAILED);
 					event_hostname = dummy;
 					event_loginuid = 1;
+					event_tauid = dummy;
 				} else {
 					UNIMPLEMENTED;
 				}
@@ -421,6 +431,7 @@ int check_params(int count, char *vars[])
 					set_detail(D_DETAILED);
 					event_exe = dummy;
 					event_loginuid = 1;
+					event_tauid = dummy;
 				} else {
 					UNIMPLEMENTED;
 				}
@@ -434,6 +445,7 @@ int check_params(int count, char *vars[])
 					set_detail(D_DETAILED);
 					event_comm = dummy;
 					event_loginuid = 1;
+					event_tauid = dummy;
 				} else {
 					UNIMPLEMENTED;
 				}
@@ -449,6 +461,7 @@ int check_params(int count, char *vars[])
 					event_hostname = dummy;
 					event_exe = dummy;
 					event_loginuid = 1;
+					event_tauid = dummy;
 				} else {
 					UNIMPLEMENTED;
 				}
@@ -465,6 +478,7 @@ int check_params(int count, char *vars[])
 					event_exe = dummy;
 					event_uid = 1;
 					event_loginuid = 1;
+					event_tauid = dummy;
 				} else {
 					UNIMPLEMENTED;
 				}
@@ -480,6 +494,7 @@ int check_params(int count, char *vars[])
 					event_hostname = dummy;
 					event_exe = dummy;
 					event_loginuid = 1;
+					event_tauid = dummy;
 				} else {
 					UNIMPLEMENTED;
 				}
@@ -495,6 +510,7 @@ int check_params(int count, char *vars[])
 					event_hostname = dummy;
 					event_comm = dummy;
 					event_loginuid = 1;
+					event_tauid = dummy;
 				} else {
 					UNIMPLEMENTED;
 				}
@@ -511,6 +527,7 @@ int check_params(int count, char *vars[])
 					event_exe = dummy;
 					event_comm = dummy;
 					event_loginuid = 1;
+					event_tauid = dummy;
 				} else {
 					UNIMPLEMENTED;
 				}
@@ -536,6 +553,7 @@ int check_params(int count, char *vars[])
 					event_exe = dummy;
 					event_key = dummy;
 					event_loginuid = 1;
+					event_tauid = dummy;
 				} else {
 					UNIMPLEMENTED;
 				}
@@ -548,6 +566,7 @@ int check_params(int count, char *vars[])
 				set_detail(D_DETAILED);
 				event_session_id = 1;
 				event_loginuid = 1;
+				event_tauid = dummy;
 				event_terminal = dummy;
 				event_comm = dummy;
 			}
@@ -712,6 +731,7 @@ int check_params(int count, char *vars[])
 				event_comm = dummy;
 				event_key = dummy;
 				event_loginuid = 1;
+				event_tauid = dummy;
 			}
 		}
 	} else

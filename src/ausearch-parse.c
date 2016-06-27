@@ -37,6 +37,7 @@
 #include "ausearch-options.h"
 #include "ausearch-lookup.h"
 #include "ausearch-parse.h"
+#include "auparse-idata.h"
 
 #define NAME_OFFSET 36
 static const char key_sep[2] = { AUDIT_KEY_SEPARATOR, 0 };
@@ -190,6 +191,27 @@ int extract_search_items(llist *l)
 	return ret;
 }
 
+/*
+ * returns malloc'ed buffer on success and NULL on failure
+ */
+static const char *lookup_uid(const char *field, uid_t uid)
+{
+	const char *value;
+	value = _auparse_lookup_interpretation(field);
+	if (value)
+		return value;
+	if (uid == 0)
+		return strdup("root");
+	else if (uid == -1)
+		return strdup("unset");
+	else {
+		struct passwd *pw;
+		pw = getpwuid(uid);
+			return strdup(pw->pw_name);
+	}
+	return NULL;
+}
+
 static int parse_task_info(lnode *n, search_items *s)
 {
 	char *ptr, *str, *term;
@@ -228,7 +250,7 @@ static int parse_task_info(lnode *n, search_items *s)
 		*term = ' ';
 	}
 	// optionally get loginuid
-	if (event_loginuid != -2) {
+	if (event_loginuid != -2 || event_tauid) {
 		str = strstr(term, "auid=");
 		if (str == NULL) {
 			str = strstr(term, "loginuid=");
@@ -246,9 +268,11 @@ static int parse_task_info(lnode *n, search_items *s)
 		if (errno)
 			return 21;
 		*term = ' ';
+		if (s->tauid) free(s->tauid);
+		s->tauid = lookup_uid("auid", s->loginuid);
 	}
 	// optionally get uid
-	if (event_uid != -1) {
+	if (event_uid != -1 || event_tuid) {
 		str = strstr(term, "uid=");
 		if (str == NULL)
 			return 22;
@@ -262,6 +286,8 @@ static int parse_task_info(lnode *n, search_items *s)
 		if (errno)
 			return 24;
 		*term = ' ';
+		if (s->tuid) free(s->tuid);
+		s->tuid = lookup_uid("uid", s->uid);
 	}
 
 	// optionally get gid
@@ -282,7 +308,7 @@ static int parse_task_info(lnode *n, search_items *s)
 	}
 
 	// euid
-	if (event_euid != -1) {
+	if (event_euid != -1 || event_teuid) {
 		str = strstr(term, "euid=");
 		if (str == NULL)
 			return 28;
@@ -296,6 +322,7 @@ static int parse_task_info(lnode *n, search_items *s)
 		if (errno)
 			return 30;
 		*term = ' ';
+		s->teuid = lookup_uid("euid", s->euid);
 	}
 
 	// egid
@@ -778,7 +805,7 @@ static int parse_user(const lnode *n, search_items *s)
 		*term = ' ';
 	}
 	// optionally get uid
-	if (event_uid != -1) {
+	if (event_uid != -1 || event_tuid) {
 		str = strstr(term, "uid=");
 		if (str == NULL)
 			return 4;
@@ -792,9 +819,10 @@ static int parse_user(const lnode *n, search_items *s)
 		if (errno)
 			return 6;
 		*term = ' ';
+		s->tuid = lookup_uid("uid", s->uid);
 	}
 	// optionally get loginuid
-	if (event_loginuid != -2) {
+	if (event_loginuid != -2 || event_tauid) {
 		*term = ' ';
 		str = strstr(term, "auid=");
 		if (str == NULL) { // Try the older one
@@ -813,6 +841,7 @@ static int parse_user(const lnode *n, search_items *s)
 		if (errno)
 			return 9;
 		*term = ' ';
+		s->tauid = lookup_uid("auid", s->loginuid);
 	}
 	// ses
 	if (event_session_id != -2 ) {
@@ -943,7 +972,7 @@ static int parse_user(const lnode *n, search_items *s)
 	}
 	// optionally get uid - some records the second uid is what we want.
 	// USER_LOGIN for example.
-	if (event_uid != -1) {
+	if (event_uid != -1 || event_tuid) {
 		str = strstr(term, "uid=");
 		if (str) {
 			if (*(str - 1) == 'a' || *(str - 1) == 's' ||
@@ -965,6 +994,7 @@ static int parse_user(const lnode *n, search_items *s)
 			if (errno)
 				return 15;
 			*term = saved;
+			s->tuid = lookup_uid("uid", s->uid);
 		}
 	}
 skip:
@@ -1202,7 +1232,7 @@ static int parse_login(const lnode *n, search_items *s)
 		*term = ' ';
 	}
 	// optionally get uid
-	if (event_uid != -1) {
+	if (event_uid != -1 || event_tuid) {
 		str = strstr(term, "uid=");
 		if (str == NULL)
 			return 4;
@@ -1216,6 +1246,7 @@ static int parse_login(const lnode *n, search_items *s)
 		if (errno)
 			return 6;
 		*term = ' ';
+		s->tuid = lookup_uid("uid", s->uid);
 	}
 	// optionally get subj
 	if (event_subject) {
@@ -1239,7 +1270,7 @@ static int parse_login(const lnode *n, search_items *s)
 		}
 	}
 	// optionally get loginuid
-	if (event_loginuid != -2) {
+	if (event_loginuid != -2 || event_tauid) {
 		str = strstr(term, "new auid=");
 		if (str == NULL) {
 			// 3.14 kernel changed it to the next line
@@ -1262,6 +1293,7 @@ static int parse_login(const lnode *n, search_items *s)
 			return 8;
 		if (term)
 			*term = ' ';
+		s->tauid = lookup_uid("auid", s->loginuid);
 	}
 
 	// success
@@ -1321,7 +1353,7 @@ static int parse_daemon1(const lnode *n, search_items *s)
 	term = mptr;
 
 	// optionally get auid
-	if (event_loginuid != -2 ) {
+	if (event_loginuid != -2 || event_tauid) {
 		str = strstr(mptr, "auid=");
 		if (str == NULL)
 			return 1;
@@ -1336,6 +1368,7 @@ static int parse_daemon1(const lnode *n, search_items *s)
 		if (errno)
 			return 3;
 		*term = saved;
+		s->tauid = lookup_uid("auid", s->loginuid);
 	}
 
 	// pid
@@ -1556,7 +1589,7 @@ static int parse_integrity(const lnode *n, search_items *s)
 	}
 
 	// optionally get uid
-	if (event_uid != -1) {
+	if (event_uid != -1 || event_tuid) {
 		str = strstr(term, " uid=");
 		if (str) {
 			ptr = str + 4;
@@ -1569,11 +1602,12 @@ static int parse_integrity(const lnode *n, search_items *s)
 			if (errno)
 				return 4;
 			*term = ' ';
+			s->tuid = lookup_uid("uid", s->uid);
 		}
 	}
 
 	// optionally get loginuid
-	if (event_loginuid != -2) {
+	if (event_loginuid != -2 || event_tauid) {
 		str = strstr(n->message, "auid=");
 		if (str) {
 			ptr = str + 5;
@@ -1586,6 +1620,7 @@ static int parse_integrity(const lnode *n, search_items *s)
 			if (errno)
 				return 6;
 			*term = ' ';
+			s->tauid = lookup_uid("auid", s->loginuid);
 		}
 	}
 
@@ -1849,7 +1884,7 @@ static int parse_kernel_anom(const lnode *n, search_items *s)
 	char *str, *ptr, *term = n->message;
 
 	// optionally get loginuid
-	if (event_loginuid != -2) {
+	if (event_loginuid != -2 || event_tauid) {
 		str = strstr(term, "auid=");
 		if (str == NULL)
 			return 1;
@@ -1865,10 +1900,11 @@ static int parse_kernel_anom(const lnode *n, search_items *s)
 			*term = ' ';
 		else
 			term = ptr;
+		s->tauid = lookup_uid("auid", s->loginuid);
 	}
 
 	// optionally get uid
-	if (event_uid != -1) {
+	if (event_uid != -1 || event_tuid) {
 		str = strstr(term, "uid="); // if promiscuous, we start over
 		if (str) {
 			ptr = str + 4;
@@ -1881,6 +1917,7 @@ static int parse_kernel_anom(const lnode *n, search_items *s)
 			if (errno)
 				return 4;
 			*term = ' ';
+			s->tuid = lookup_uid("uid", s->uid);
 		}
 	}
 
@@ -2035,7 +2072,7 @@ static int parse_simple_message(const lnode *n, search_items *s)
 	char *str, *ptr, *term = n->message;
 
 	// optionally get loginuid - old kernels skip auid for CONFIG_CHANGE
-	if (event_loginuid != -2) {
+	if (event_loginuid != -2 || event_tauid) {
 		str = strstr(term, "auid=");
 		if (str == NULL && n->type != AUDIT_CONFIG_CHANGE)
 			return 1;
@@ -2052,6 +2089,7 @@ static int parse_simple_message(const lnode *n, search_items *s)
 				*term = ' ';
 			else
 				term = ptr;
+			s->tauid = lookup_uid("auid", s->loginuid);
 		}
 	}
 
@@ -2195,7 +2233,7 @@ static int parse_tty(const lnode *n, search_items *s)
 	}
 
 	// optionally get uid
-	if (event_uid != -1) {
+	if (event_uid != -1 || event_tuid) {
 		str = strstr(term, " uid="); // if promiscuous, we start over
 		if (str) {
 			ptr = str + 4;
@@ -2208,11 +2246,12 @@ static int parse_tty(const lnode *n, search_items *s)
 			if (errno)
 				return 4;
 			*term = ' ';
+			s->tuid = lookup_uid("uid", s->uid);
 		}
 	}
 
 	// optionally get loginuid
-	if (event_loginuid != -2) {
+	if (event_loginuid != -2 || event_tauid) {
 		str = strstr(term, "auid=");
 		if (str == NULL)
 			return 5;
@@ -2228,6 +2267,7 @@ static int parse_tty(const lnode *n, search_items *s)
 			*term = ' ';
 		else
 			term = ptr;
+		s->tauid = lookup_uid("auid", s->loginuid);
 	}
 
 	// ses

@@ -1,8 +1,5 @@
 Things that need to be done:
 ===========================
-2.6.1
-* ausearch needs to search on user name as a string
-
 2.7
 * Add metadata in auparse for subj,obj,action,results
 * Formats for ausearch output

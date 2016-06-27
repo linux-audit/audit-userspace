@@ -29,10 +29,24 @@
 #include "ausearch-options.h"
 #include "ausearch-parse.h"
 
+extern void ausearch_load_interpretations(const lnode *n);
+
+/* local functions */
 static int strmatch(const char *needle, const char *haystack);
 static int user_match(llist *l);
 static int group_match(llist *l);
 static int context_match(llist *l);
+
+static void load_interpretations(const llist *l)
+{
+	// See if there is any reason to load interpretations
+	if (event_tuid == NULL && event_teuid == NULL && event_tauid == NULL)
+		return;
+
+	// If there is only 1 record load it, or load just the syscall one
+	if ((l->cnt == 1) || (l->head && l->head->type == AUDIT_SYSCALL))
+		ausearch_load_interpretations(l->head);
+}
 
 /*
  * This function performs that matching of search params with the record.
@@ -49,6 +63,9 @@ int match(llist *l)
 	if (start_time == 0 || l->e.sec >= start_time) {
 		if (end_time == 0 || l->e.sec <= end_time) {
 			if (event_id == -1 || event_id == l->e.serial) {
+				// Load interpretations if needed
+				load_interpretations(l);
+
 				// OK - do the heavier checking
 				if (extract_search_items(l)) {
 					return 0;
@@ -66,7 +83,8 @@ int match(llist *l)
 					slist_first(sptr);
 					sn=slist_get_cur(sptr);
 					while (sn && !found) {
-						if (sn->str &&  (!strcmp(sn->str, l->e.node)))
+						if (sn->str &&
+						  (!strcmp(sn->str, l->e.node)))
 							found++;
 						else
 							sn=slist_next(sptr);
@@ -254,12 +272,23 @@ static int strmatch(const char *needle, const char *haystack)
 }
 
 /*
- * This function compares user id's. It returns a 0 if no match and a 1 if
- * there is a match 
+ * This function compares user id's.
+ * It returns a 0 if no match and a 1 if there is a match 
  */
 static int user_match(llist *l)
 {
-	if (event_ua) {
+	// Match by string if set (assume all event vars are set)
+	if (event_ua && event_tuid) {
+		// This will "or" the user tests
+		if (l->s.tuid && strcmp(event_tuid, l->s.tuid) == 0)
+			return 1;
+		if (l->s.teuid && strcmp(event_teuid, l->s.teuid) == 0)
+			return 1;
+		if (l->s.tauid && strcmp(event_tauid, l->s.tauid) == 0)
+			return 1;
+		return 0;
+	// OK, try a pure numeric match
+	} else if (event_ua) {
 		// This will "or" the user tests
 		if (event_uid == l->s.uid)
 			return 1;
@@ -270,13 +299,35 @@ static int user_match(llist *l)
 		return 0;
 	} else {
 		// This will "and" the user tests
-		if ((event_uid != -1) && (event_uid != l->s.uid))
-			return 0;
-		if ((event_euid != -1) &&(event_euid != l->s.euid))
-			return 0;
-		if ((event_loginuid != -2) &&
-				(event_loginuid != l->s.loginuid))
-			return 0;
+		if (event_tuid || event_teuid || event_tauid) {
+			if (event_tuid) {
+				if (l->s.tuid == NULL)
+					return 0;
+				if (strcmp(event_tuid, l->s.tuid))
+					return 0;
+			}
+			if (event_teuid) {
+				if (l->s.teuid == NULL)
+					return 0;
+				if (strcmp(event_teuid, l->s.teuid))
+					return 0;
+			}
+			if (event_tauid) {
+				if (l->s.tauid == NULL)
+					return 0;
+				if (strcmp(event_tauid, l->s.tauid))
+					return 0;
+			}
+		} else {
+			// Numeric only match
+			if ((event_uid != -1) && (event_uid != l->s.uid))
+				return 0;
+			if ((event_euid != -1) &&(event_euid != l->s.euid))
+				return 0;
+			if ((event_loginuid != -2) &&
+					(event_loginuid != l->s.loginuid))
+				return 0;
+		}
 	}
 	return 1;
 }

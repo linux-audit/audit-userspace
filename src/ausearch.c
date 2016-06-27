@@ -62,10 +62,10 @@ extern int checkpt_timeonly;	/* use timestamp from within checkpoint file */
 static int have_chkpt_data = 0;		/* have checkpt need to compare wit */
 extern char *user_file;
 extern int force_logs;
+static int userfile_is_dir = 0;
 extern int match(llist *l);
 extern void output_record(llist *l);
-
-static int userfile_is_dir = 0;
+extern void ausearch_free_interpretations(void);
 
 static int is_pipe(int fd)
 {
@@ -171,6 +171,9 @@ int main(int argc, char *argv[])
 	free(event_type);
 	free(user_file);
 	free((char *)event_key);
+	free(event_tuid);
+	free(event_teuid);
+	free(event_tauid);
 	auparse_destroy(NULL);
 	if (rc)
 		return rc;
@@ -472,6 +475,7 @@ static int process_log_fd(void)
 			if (line_buffered)
 				fflush(stdout);
 		}
+		ausearch_free_interpretations();
 		list_clear(entries);
 		free(entries);
 	} while (ret == 0);
