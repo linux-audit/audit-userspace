@@ -402,7 +402,7 @@ int load_interpretation_list(const char *buffer)
 /*
  * Returns malloc'ed buffer on success and NULL if no match
  */
-const char *_lookup_interpretation(const char *name)
+const char *_auparse_lookup_interpretation(const char *name)
 {
 	nvnode *n;
 
