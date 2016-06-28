@@ -218,7 +218,7 @@ void distribute_event(struct auditd_event *e)
 
 	/* End of Event is for realtime interface - skip local logging of it */
 	if (e->reply.type != AUDIT_EOE)
-		enqueue_event(e); /* Write to local disk */
+		handle_event(e); /* Write to local disk */
 
 	/* Last chance to send...maybe the pipe is empty now. */
 	if ((attempt && route) || (e->reply.type == AUDIT_DAEMON_RECONFIG))

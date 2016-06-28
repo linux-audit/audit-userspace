@@ -1274,9 +1274,15 @@ static int recv_msg_tcp (unsigned char *header, char *msg, uint32_t *mlen)
 	int hver, mver, rc;
 	uint32_t type, rlen, seq;
 
+	errno = 0;
 	rc = ar_read (sock, header, AUDIT_RMW_HEADER_SIZE);
 	if (rc < 16) {
-		syslog(LOG_ERR, "read from %s failed", config.remote_server);
+		if (rc == -1 && errno == 0)
+			syslog(LOG_ERR, "ack from %s timed out",
+						config.remote_server);
+		else
+			syslog(LOG_ERR, "read from %s failed",
+						config.remote_server);
 		return -1;
 	}
 

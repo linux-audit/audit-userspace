@@ -62,7 +62,6 @@ static void shift_logs(void);
 static int  open_audit_log(void);
 static void change_runlevel(const char *level);
 static void safe_exec(const char *exe);
-static void handle_event(struct auditd_event *e);
 static void reconfigure(struct auditd_event *e);
 static void init_flush_thread(void);
 
@@ -457,7 +456,7 @@ void enqueue_event(struct auditd_event *e)
 	e->ack_data = NULL;
 	e->sequence_id = 0;
 
-	handle_event(e);
+        handle_event(e);
 }
 
 /* This function allocates memory and fills the event fields with
@@ -486,9 +485,9 @@ struct auditd_event *create_event(char *msg, ack_func_type ack_func,
 	return e;
 }
 
-/* This function takes the newly dequeued event and handles it. */
+/* This function takes the event and handles it. */
 static unsigned int count = 0L;
-static void handle_event(struct auditd_event *e)
+void handle_event(struct auditd_event *e)
 {
 	if (e->reply.type == AUDIT_DAEMON_RECONFIG && e->ack_func == NULL) {
 		reconfigure(e);
