@@ -6,6 +6,7 @@
 - In audisp-remote only emit 1 warning when disk_full or error is reached.
 - Aulast now searches on user name as a string for enriched events
 - Ausearch now searches on user name as a string for enriched events
+- Create audit-stop.rules to clean up audit subsystem on stop
 
 2.6
 - Auditd support for enriched data: uid/gid, saddr splitting, arch, syscall

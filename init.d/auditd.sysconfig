@@ -7,13 +7,10 @@ EXTRAOPTIONS=""
 AUDITD_LANG="en_US"
 #
 # This option is used to determine if rules & watches should be deleted on
-# shutdown. This is beneficial in most cases so that a watch doesn't linger
-# on a drive that is being unmounted. If set to no, it will NOT be cleaned up.
+# shutdown by loading the audit-stop file. This is beneficial in most cases
+# so that a watch doesn't linger on a drive that is being unmounted. If
+# set to no, it will NOT be cleaned up.
 AUDITD_CLEAN_STOP="yes"
-#
-# This option determines whether the audit system should be disabled when
-# the audit daemon is shutdown
-AUDITD_STOP_DISABLE="yes"
 #
 # This option determines whether or not to call augenrules to compile the
 # audit.rule file from /etc/audit/rules.d. The default is "no" so that nothing

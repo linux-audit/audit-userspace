@@ -94,13 +94,7 @@ stop(){
 	if test x"$AUDITD_CLEAN_STOP" != "x" ; then
 		if test "`echo $AUDITD_CLEAN_STOP | tr 'NO' 'no'`" != "no"
 		then
-			/sbin/auditctl -D >/dev/null
-		fi
-	fi
-	if test x"$AUDITD_STOP_DISABLE" != "x" ; then
-		if test "`echo $AUDITD_STOP_DISABLE | tr 'NO' 'no'`" != "no"
-		then
-			/sbin/auditctl -e 0 >/dev/null
+			/sbin/auditctl -R /etc/audit/audit-stop.rules >/dev/null
 		fi
 	fi
 	return $RETVAL
