@@ -8,6 +8,7 @@
 - Ausearch now searches on user name as a string for enriched events
 - Create audit-stop.rules to clean up audit subsystem on stop
 - Adjust LDFLAGS for cross compiled helper utilities (Laurent Bigonville)
+- Fix event formatting issue in audispd
 
 2.6
 - Auditd support for enriched data: uid/gid, saddr splitting, arch, syscall

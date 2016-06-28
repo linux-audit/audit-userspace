@@ -648,10 +648,10 @@ static int event_loop(void)
 		// Protocol 1 is not formatted
 		if (e->hdr.ver == AUDISP_PROTOCOL_VER) {
 			if (daemon_config.node_name_format != N_NONE) {
-			    len = asprintf(&v, "node=%s type=%s msg=%.*s", 
+			    len = asprintf(&v, "node=%s type=%s msg=%.*s\n", 
 					name, type, e->hdr.size, e->data);
 			} else
-				len = asprintf(&v, "type=%s msg=%.*s", 
+				len = asprintf(&v, "type=%s msg=%.*s\n", 
 					type, e->hdr.size, e->data);
 		// Protocol 2 events are already formatted
 		} else if (e->hdr.ver == AUDISP_PROTOCOL_VER2) {
