@@ -207,6 +207,7 @@ static const char *lookup_uid(const char *field, uid_t uid)
 	else {
 		struct passwd *pw;
 		pw = getpwuid(uid);
+		if (pw)
 			return strdup(pw->pw_name);
 	}
 	return NULL;

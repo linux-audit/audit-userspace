@@ -427,7 +427,7 @@ rnode *aup_list_find_rec_range(event_list_t *l, int low, int high)
 
 int aup_list_first_field(event_list_t *l)
 {
-	if (l->cur) {
+	if (l && l->cur) {
 		nvlist_first(&l->cur->nv);
 		return 1;
 	} else
