@@ -1760,7 +1760,10 @@ const char *auparse_get_filename(auparse_state_t *au)
 
 int auparse_first_field(auparse_state_t *au)
 {
-	return aup_list_first_field(au->le);
+	if (au)
+		return aup_list_first_field(au->le);
+	else
+		return 0;
 }
 
 
