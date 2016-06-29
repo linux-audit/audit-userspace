@@ -1,3 +1,5 @@
+2.6.2
+
 2.6.1
 - Do capabilities check rather than uid
 - Auditd fixup directory and file permissions on startup
