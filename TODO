@@ -1,8 +1,5 @@
 Things that need to be done:
 ===========================
-2.6.2
-* In auparse move static au_lol au_lo into au data structure
-
 2.7
 * Add metadata in auparse for subj,obj,action,results
 * Formats for ausearch output
