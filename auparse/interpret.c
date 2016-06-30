@@ -2730,7 +2730,7 @@ int auparse_interp_adjust_type(int rtype, const char *name, const char *val)
  * This can be called by either interpret() or from ausearch-report or
  * auditctl-listing.c. Returns a malloc'ed buffer that the caller must free.
  */
-const char *auparse_do_interpretation(int type, const idata *id)
+char *auparse_do_interpretation(int type, const idata *id)
 {
 	const char *out;
 

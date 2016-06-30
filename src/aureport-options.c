@@ -44,7 +44,7 @@ int no_config = 0;
 /* These are for compatibility with parser */
 unsigned int event_id = -1;
 uid_t event_uid = -1, event_loginuid = -2, event_euid = -1;
-char *event_tuid = NULL, *event_teuid = NULL, *event_tauid = NULL;
+const char *event_tuid = NULL, *event_teuid = NULL, *event_tauid = NULL;
 gid_t event_gid = -1, event_egid = -1;
 slist *event_node_list = NULL;
 const char *event_key = NULL;

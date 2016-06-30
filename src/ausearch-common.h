@@ -48,7 +48,7 @@ extern gid_t event_gid, event_egid;
 extern pid_t event_pid;
 extern int event_exact_match;
 extern uid_t event_uid, event_euid, event_loginuid;
-extern char *event_tuid, *event_teuid, *event_tauid;
+extern const char *event_tuid, *event_teuid, *event_tauid;
 slist *event_node_list;
 extern const char *event_comm;
 extern const char *event_filename;
