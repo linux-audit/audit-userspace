@@ -407,8 +407,8 @@ auparse_state_t *auparse_init(ausource_t source, const void *b)
 
 	au_lol_clear(au->au_lo, 0);	// python doesn't call auparse_destroy
 	if (au_lol_create(au->au_lo) == NULL) {
-		free(au);
 		free(au->au_lo);
+		free(au);
 		errno = ENOMEM;
 		return NULL;
 	}
