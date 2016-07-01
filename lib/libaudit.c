@@ -1728,7 +1728,11 @@ void audit_number_to_errmsg(int errnumber, const char *opt)
 int audit_can_control(void)
 {
 #ifdef HAVE_LIBCAP_NG
-	return capng_have_capability(CAPNG_EFFECTIVE, CAP_AUDIT_CONTROL);
+	void *state = capng_save_state();
+	int rc = capng_have_capability(CAPNG_EFFECTIVE, CAP_AUDIT_CONTROL);
+	capng_restore_state(&state);
+
+	return rc;
 #else
 	return (geteuid() == 0);
 #endif
@@ -1737,7 +1741,11 @@ int audit_can_control(void)
 int audit_can_write(void)
 {
 #ifdef HAVE_LIBCAP_NG
-	return capng_have_capability(CAPNG_EFFECTIVE, CAP_AUDIT_WRITE);
+	void *state = capng_save_state();
+	int rc = capng_have_capability(CAPNG_EFFECTIVE, CAP_AUDIT_WRITE);
+	capng_restore_state(&state);
+
+	return rc;
 #else
 	return (geteuid() == 0);
 #endif
@@ -1746,7 +1754,11 @@ int audit_can_write(void)
 int audit_can_read(void)
 {
 #if defined ( HAVE_LIBCAP_NG ) && ( CAP_AUDIT_READ )
-	return capng_have_capability(CAPNG_EFFECTIVE, CAP_AUDIT_READ);
+	void *state = capng_save_state();
+	int rc = capng_have_capability(CAPNG_EFFECTIVE, CAP_AUDIT_READ);
+	capng_restore_state(&state);
+
+	return rc;
 #else
 	return (geteuid() == 0);
 #endif

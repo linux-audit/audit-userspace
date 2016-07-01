@@ -1,6 +1,7 @@
 2.6.2
 - Fix ausearch segfault when using numeric uids
 - In auparse move aulol structure into auparse_state_t
+- Save and restore libcap-ng state when doing a capability check
 
 2.6.1
 - Do capabilities check rather than uid
