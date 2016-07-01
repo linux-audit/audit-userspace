@@ -134,6 +134,8 @@ touch -r ./audit.spec $RPM_BUILD_ROOT/usr/share/man/man5/libaudit.conf.5.gz
 
 %check
 make check
+# Get rid of make files that they don't get packaged.
+rm -f rules/Makefile*
 
 %clean
 rm -rf $RPM_BUILD_ROOT
