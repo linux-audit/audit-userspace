@@ -261,6 +261,6 @@ fi
 
 
 %changelog
-* Wed Jun 28 2016 Steve Grubb <sgrubb@redhat.com> 2.6.2-1
+* Fri July 01 2016 Steve Grubb <sgrubb@redhat.com> 2.6.2-1
 - New upstream release
 
