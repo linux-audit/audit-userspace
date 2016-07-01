@@ -117,7 +117,7 @@
 typedef enum { AVC_UNSET, AVC_DENIED, AVC_GRANTED } avc_t;
 typedef enum { S_UNSET=-1, S_FAILED, S_SUCCESS } success_t;
 
-static const char *print_escaped(const char *val);
+static char *print_escaped(const char *val);
 static const char *print_signals(const char *val, unsigned int base);
 static auparse_esc_t escape_mode = AUPARSE_ESC_TTY;
 static nvlist il;  // Interpretations list
@@ -714,7 +714,7 @@ static const char *print_exit(const char *val)
         return strdup(val);
 }
 
-static const char *print_escaped(const char *val)
+static char *print_escaped(const char *val)
 {
 	const char *out;
 
