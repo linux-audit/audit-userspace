@@ -1,3 +1,5 @@
+2.6.3
+
 2.6.2
 - Fix ausearch segfault when using numeric uids
 - In auparse move aulol structure into auparse_state_t
