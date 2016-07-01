@@ -602,18 +602,18 @@ AuParser_add_callback(AuParser *self, PyObject *args)
  * auparse_set_escape_mode
  ********************************/
 PyDoc_STRVAR(set_escape_mode_doc,
-"set_escape_mode() Set audit parser escaping\n\
+"set_escape_mode(mode) Set audit parser escaping\n\
 \n\
 This function sets the character escaping applied to value fields in the audit record.\n\
 Returns None.\n\
 ");
 static PyObject *
-AuParser_set_escape_mode(PyObject *args)
+AuParser_set_escape_mode(AuParser *self, PyObject *args)
 {
     int mode;
 
     if (!PyArg_ParseTuple(args, "i", &mode)) return NULL;
-    auparse_set_escape_mode(mode);
+    auparse_set_escape_mode(self->au, mode);
 
     return NULL;
 }

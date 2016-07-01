@@ -149,6 +149,7 @@ struct opaque
 	int au_ready;		// For speed, we note how many EBS_COMPLETE
 				// events we hold at any point in time. Thus
 				// we don't have to scan the list
+	auparse_esc_t escape_mode;
 };
 
 AUDIT_HIDDEN_START

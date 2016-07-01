@@ -511,6 +511,7 @@ auparse_state_t *auparse_init(ausource_t source, const void *b)
 	au->expr = NULL;
 	au->find_field = NULL;
 	au->search_where = AUSEARCH_STOP_EVENT;
+	au->escape_mode = AUPARSE_ESC_TTY;
 
 	return au;
 bad_exit:
@@ -606,8 +607,9 @@ void auparse_feed_age_events(auparse_state_t *au)
 	consume_feed(au, 0);
 }
 
-void auparse_set_escape_mode(auparse_esc_t mode)
+void auparse_set_escape_mode(auparse_state_t *au, auparse_esc_t mode)
 {
+	au->escape_mode = mode;
 	set_escape_mode(mode);
 }
 

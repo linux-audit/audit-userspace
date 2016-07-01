@@ -47,7 +47,7 @@ int auparse_flush_feed(auparse_state_t *au);
 int auparse_feed_has_data(auparse_state_t *au);
 void auparse_add_callback(auparse_state_t *au, auparse_callback_ptr callback,
 			void *user_data, user_destroy user_destroy_func);
-void auparse_set_escape_mode(auparse_esc_t mode);
+void auparse_set_escape_mode(auparse_state_t *au, auparse_esc_t mode);
 int auparse_reset(auparse_state_t *au);
 void auparse_destroy(auparse_state_t *au);
 

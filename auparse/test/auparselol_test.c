@@ -180,7 +180,7 @@ int main(int argc, char **argv)
                 usage();
                 return 1;
             }
-            auparse_set_escape_mode(em);
+            auparse_set_escape_mode(NULL, em);
             break;
         case 'c':              /* check */
             flags |= F_CHECK;

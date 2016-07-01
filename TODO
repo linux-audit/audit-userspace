@@ -1,6 +1,6 @@
 Things that need to be done:
 ===========================
-2.6.2
+2.6.3
 * Look for more static variables in auparse and move to auparse_state_t
 
 2.7
