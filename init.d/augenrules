@@ -121,7 +121,7 @@ fi
 
 # Otherwise we install the new file
 if [ -f ${DestinationFile} ]; then
-	cp ${DestinationFile} ${DestinationFile}.prev
+	cp ${DestinationFile} ${DestinationFile}.${ASuffix}
 fi
 # We copy the file so that it gets the right selinux lable
 cp ${TmpRules} ${DestinationFile}
