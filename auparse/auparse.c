@@ -609,8 +609,10 @@ void auparse_feed_age_events(auparse_state_t *au)
 
 void auparse_set_escape_mode(auparse_state_t *au, auparse_esc_t mode)
 {
-	au->escape_mode = mode;
 	set_escape_mode(mode);
+	if (au == NULL)
+		return;
+	au->escape_mode = mode;
 }
 
 /*
