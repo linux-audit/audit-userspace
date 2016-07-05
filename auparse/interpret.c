@@ -342,32 +342,42 @@ void init_interpretation_list(void)
 int load_interpretation_list(const char *buffer)
 {
 	char *saved = NULL, *ptr;
-	char *buf;
+	char *buf, *val;
+	nvnode n;
 
 	if (buffer == NULL)
 		return 0;
 
 	buf = strdup(buffer);
-	ptr = audit_strsplit_r(buf, &saved);
-	if (ptr == NULL) {
-		free(buf);
-		return 0;
-	}
-
-	do {
-		nvnode n;
-		char tmp, *val;
-
-		if (*ptr == '{') {
-			val = ptr+1;
+	if (strncmp(buf, "SADDR=", 6) == 0) {
+		// We have SOCKADDR record. It has no other values.
+		// Handle it by itself.
+		ptr = strchr(buf+6, '{');
+		if (ptr) {
+			val = ptr;
 			ptr = strchr(val, '}');
 			if (ptr) {
-				tmp = *ptr;
-				*ptr = 0;
-			} else
-				continue;	// Malformed - skip
-			n.name = strdup("saddr");
-		} else {
+				n.name = strdup("saddr");
+				n.val = strdup(val);
+				nvlist_append(&il, &n);
+				nvlist_interp_fixup(&il);
+				free(buf);
+				return 1;
+			}
+		}
+		free(buf);
+		return 0;
+	} else {
+		// We handle everything else in this branch
+		ptr = audit_strsplit_r(buf, &saved);
+		if (ptr == NULL) {
+			free(buf);
+			return 0;
+		}
+
+		do {
+			char tmp;
+
 			val = strchr(ptr, '=');
 			if (val) {
 				*val = 0;
@@ -386,15 +396,14 @@ int load_interpretation_list(const char *buffer)
 				*ptr = 0;
 			} else
 				tmp = 0;
-		}
 
-		n.val = strdup(val);
-		nvlist_append(&il, &n);
-		nvlist_interp_fixup(&il);
-		if (ptr)
-			*ptr = tmp;
-	} while((ptr = audit_strsplit_r(NULL, &saved)));
-
+			n.val = strdup(val);
+			nvlist_append(&il, &n);
+			nvlist_interp_fixup(&il);
+			if (ptr)
+				*ptr = tmp;
+		} while((ptr = audit_strsplit_r(NULL, &saved)));
+	}
 	free(buf);
 	return 1;
 }
