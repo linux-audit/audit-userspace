@@ -412,7 +412,8 @@ error:
 				auparse_get_milli(au),
 				auparse_get_serial(au));
 	}
-	free(*p_user);
+	if (p_user)
+		free(*p_user);
 	return 1;
 }
 

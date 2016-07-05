@@ -264,7 +264,7 @@ static int databuf_strcat(DataBuf *db, const char *str)
     // data append produces a proper string concatenation
     if (db->len > 0) {
         char *last_char = databuf_end(db) - 1;
-        if (*last_char == 0) {
+        if (last_char && *last_char == 0) {
             db->len--;          // backup over NULL terminator
         }
     }
