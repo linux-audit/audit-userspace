@@ -1,7 +1,8 @@
 Things that need to be done:
 ===========================
-2.6.3
+2.6.4
 * Look for more static variables in auparse and move to auparse_state_t
+* Raise the number of files auditd allows
 
 2.7
 * Add metadata in auparse for subj,obj,action,results
