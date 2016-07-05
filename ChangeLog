@@ -1,3 +1,5 @@
+2.6.4
+
 2.6.3
 - Fix NULL poiinter deref in auparse
 - Optionally add dependency to libcap-ng in audit.pc
