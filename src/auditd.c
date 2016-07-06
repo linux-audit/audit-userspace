@@ -438,6 +438,7 @@ static void netlink_handler(struct ev_loop *loop, struct ev_io *io,
 			shutdown_dispatcher();
 			return;
 		}
+		cur_event->ack_func = NULL;
 	}
 	if (audit_get_reply(fd, &cur_event->reply, 
 			    GET_REPLY_NONBLOCKING, 0) > 0) {
