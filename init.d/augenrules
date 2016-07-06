@@ -39,7 +39,7 @@ trap 'rm -f ${TmpRules}; exit 1' 1 2 3 13 15
 
 try_load() {
 	if [ $LoadRules -eq 1 ] ; then
-		auditctl -R ${DestinationFile}
+		/sbin/auditctl -R ${DestinationFile}
 		RETVAL=$?
 	fi
 }

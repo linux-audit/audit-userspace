@@ -1,6 +1,7 @@
 2.6.4
 - Fix interpretation of saddr fields when using enriched events
 - In netlink_handler of auditd, ensure ack_func is initialized to NULL
+- Use full path to auditctl in augenrules
 
 2.6.3
 - Fix NULL poiinter deref in auparse
