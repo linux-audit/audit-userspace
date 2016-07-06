@@ -625,8 +625,10 @@ int main(int argc, char *argv[])
 	setrlimit(RLIMIT_CPU, &limit);
 
 	/* Load the Configuration File */
-	if (load_config(&config, TEST_AUDITD))
+	if (load_config(&config, TEST_AUDITD)) {
+		free_config(&config);
 		return 6;
+	}
 
 	// This can only be set at start up
 	opt_aggregate_only = !config.local_events;
@@ -637,6 +639,7 @@ int main(int argc, char *argv[])
 		if (rc == -1 && errno) {
 			audit_msg(LOG_ERR, "Cannot change priority (%s)", 
 					strerror(errno));
+			free_config(&config);
 			return 1;
 		}
 	} 
@@ -647,6 +650,7 @@ int main(int argc, char *argv[])
 			audit_msg(LOG_ERR, "Cannot daemonize (%s)",
 				strerror(errno));
 			tell_parent(FAILURE);
+			free_config(&config);
 			return 1;
 		} 
 		openlog("auditd", LOG_PID, LOG_DAEMON);
@@ -656,6 +660,7 @@ int main(int argc, char *argv[])
 	if ((fd = audit_open()) < 0) {
         	audit_msg(LOG_ERR, "Cannot open netlink audit socket");
 		tell_parent(FAILURE);
+		free_config(&config);
 		return 1;
 	}
 
@@ -665,6 +670,7 @@ int main(int argc, char *argv[])
 		if (pidfile)
 			unlink(pidfile);
 		tell_parent(FAILURE);
+		free_config(&config);
 		return 1;
 	}
 
@@ -672,6 +678,7 @@ int main(int argc, char *argv[])
 		if (pidfile)
 			unlink(pidfile);
 		tell_parent(FAILURE);
+		free_config(&config);
 		return 1;
 	}
 
@@ -680,6 +687,7 @@ int main(int argc, char *argv[])
 		if (pidfile)
 			unlink(pidfile);
 		tell_parent(FAILURE);
+		free_config(&config);
 		return 1;
 	}
 
@@ -688,6 +696,7 @@ int main(int argc, char *argv[])
 		if (pidfile)
 			unlink(pidfile);
 		tell_parent(FAILURE);
+		free_config(&config);
 		return 1;
 	}
 	fcntl(pipefds[0], F_SETFD, FD_CLOEXEC);
@@ -705,6 +714,7 @@ int main(int argc, char *argv[])
 				unlink(pidfile);
 			tell_parent(FAILURE);
 			close_pipes();
+			free_config(&config);
 			return 1;
 		}
 		if (getsubj(subj))
@@ -726,6 +736,7 @@ int main(int argc, char *argv[])
 			shutdown_dispatcher();
 			tell_parent(FAILURE);
 			close_pipes();
+			free_config(&config);
 			return 1;
 		}
 	}
@@ -759,6 +770,7 @@ int main(int argc, char *argv[])
 		shutdown_dispatcher();
 		tell_parent(FAILURE);
 		close_pipes();
+		free_config(&config);
 		return 1;
 	}
 
@@ -782,6 +794,7 @@ int main(int argc, char *argv[])
 		shutdown_dispatcher();
 		tell_parent(FAILURE);
 		close_pipes();
+		free_config(&config);
 		return 1;
 	}
 
