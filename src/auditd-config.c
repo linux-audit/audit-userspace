@@ -658,8 +658,8 @@ static int num_logs_parser(struct nv_pair *nv, int line,
 			strerror(errno), line);
 		return 1;
 	}
-	if (i > 99) {
-		audit_msg(LOG_ERR, "num_logs must be 99 or less");
+	if (i > 999) {
+		audit_msg(LOG_ERR, "num_logs must be 999 or less");
 		return 1;
 	}
 	config->num_logs = i;

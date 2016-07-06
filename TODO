@@ -1,7 +1,6 @@
 Things that need to be done:
 ===========================
 2.6.4
-* Raise the number of files auditd allows
 * Reconfig simple network options (user_wrappers)
 * When interpretting sockaddr, use syscall to determine remote vs local
 * Look for more static variables in auparse and move to auparse_state_t
