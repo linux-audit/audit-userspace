@@ -55,6 +55,14 @@
 #define SHMGET          23
 #define SHMCTL          24
 
+/*
+ * Defines EHWPOISON to the value found in uapi/asm-generic/errno.h,
+ * which is correct for most (but not all architectures).
+ */
+#ifndef EHWPOISON
+#define EHWPOISON      133
+#endif
+
 
 /* The ratio of table size to number of non-empty elements allowed for a
    "direct" s2i table; if the ratio would be bigger, bsearch tables are used

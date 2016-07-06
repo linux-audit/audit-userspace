@@ -1066,5 +1066,7 @@ void auditd_tcp_listen_reconfigure ( struct daemon_conf *nconf,
 		// FIXME: need to restart the network stuff
 	}
 	free(oconf->krb5_principal);
+	// Copying the config for now. Should compare if the same
+	// and recredential if needed.
 	oconf->krb5_principal = nconf->krb5_principal;
 }
