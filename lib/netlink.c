@@ -147,7 +147,8 @@ static int adjust_reply(struct audit_reply *rep, int len)
 	rep->error    = NULL;
 	rep->signal_info = NULL;
 	rep->conf     = NULL;
-#if HAVE_DECL_AUDIT_FEATURE_VERSION
+#if defined(HAVE_DECL_AUDIT_FEATURE_VERSION) && \
+    defined(HAVE_STRUCT_AUDIT_STATUS_FEATURE_BITMAP)
 	rep->features = NULL;
 #endif
 	if (!NLMSG_OK(rep->nlh, (unsigned int)len)) {
@@ -172,7 +173,8 @@ static int adjust_reply(struct audit_reply *rep, int len)
 		case AUDIT_GET:   
 			rep->status  = NLMSG_DATA(rep->nlh); 
 			break;
-#if HAVE_DECL_AUDIT_FEATURE_VERSION
+#if defined(HAVE_DECL_AUDIT_FEATURE_VERSION) && \
+    defined(HAVE_STRUCT_AUDIT_STATUS_FEATURE_BITMAP)
 		case AUDIT_GET_FEATURE:
 			rep->features =  NLMSG_DATA(rep->nlh);
 			break;

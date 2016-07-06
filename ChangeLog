@@ -5,7 +5,8 @@
 - Raise the number of log files auditd allows to 999
 - In auditd reconfig, update use_libwrap setting
 - Fix memory leak in reconfigure
-- Add definition for EHWPOISON if missing for errno lookup table
+- Add EHWPOISON definition for errno lookup table if missing (Thomas Petazzoni)
+- Better detect struct audit_status existence (Thomas Petazzoni)
 
 2.6.3
 - Fix NULL poiinter deref in auparse

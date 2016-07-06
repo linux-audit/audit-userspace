@@ -515,7 +515,8 @@ int audit_set_backlog_wait_time(int fd, uint32_t bwt)
 
 int audit_set_feature(int fd, unsigned feature, unsigned value, unsigned lock)
 {
-#if HAVE_DECL_AUDIT_FEATURE_VERSION
+#if defined(HAVE_DECL_AUDIT_FEATURE_VERSION) && \
+    defined(HAVE_STRUCT_AUDIT_STATUS_FEATURE_BITMAP)
 	int rc;
 	struct audit_features f;
 
@@ -539,7 +540,8 @@ int audit_set_feature(int fd, unsigned feature, unsigned value, unsigned lock)
 
 int audit_request_features(int fd)
 {
-#if HAVE_DECL_AUDIT_FEATURE_VERSION
+#if defined(HAVE_DECL_AUDIT_FEATURE_VERSION) && \
+    defined(HAVE_STRUCT_AUDIT_STATUS_FEATURE_BITMAP)
 	int rc;
 	struct audit_features f;
 
@@ -558,7 +560,8 @@ int audit_request_features(int fd)
 
 extern int  audit_set_loginuid_immutable(int fd)
 {
-#if HAVE_DECL_AUDIT_FEATURE_VERSION
+#if defined(HAVE_DECL_AUDIT_FEATURE_VERSION) && \
+    defined(HAVE_STRUCT_AUDIT_STATUS_FEATURE_BITMAP)
 	return audit_set_feature(fd, AUDIT_FEATURE_LOGINUID_IMMUTABLE, 1, 1);
 #else
 	errno = EINVAL;
@@ -579,7 +582,8 @@ static void load_feature_bitmap(void)
 		return;
 	}
 
-#if HAVE_DECL_AUDIT_FEATURE_VERSION
+#if defined(HAVE_DECL_AUDIT_FEATURE_VERSION) && \
+    defined(HAVE_STRUCT_AUDIT_STATUS_FEATURE_BITMAP)
 	if ((rc = audit_request_status(fd)) > 0) {
 		struct audit_reply rep;
 		int i;
