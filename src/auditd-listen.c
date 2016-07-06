@@ -1065,4 +1065,6 @@ void auditd_tcp_listen_reconfigure ( struct daemon_conf *nconf,
 		oconf->tcp_listen_queue = nconf->tcp_listen_queue;
 		// FIXME: need to restart the network stuff
 	}
+	free(oconf->krb5_principal);
+	oconf->krb5_principal = nconf->krb5_principal;
 }

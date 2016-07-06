@@ -4,6 +4,7 @@
 - Use full path to auditctl in augenrules
 - Raise the number of log files auditd allows to 999
 - In auditd reconfig, update use_libwrap setting
+- Fix memory leak in reconfigure
 
 2.6.3
 - Fix NULL poiinter deref in auparse
