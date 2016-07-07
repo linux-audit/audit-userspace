@@ -16,7 +16,7 @@ auparse_set_escape_mode is used to set the escaping method that will be used to 
 No escaping of any kind is done.
 .TP
 .B AUPARSE_ESC_TTY
-Escape TTY control characters so that they are harmless to display on a terminal. When any control character is found, they are displayed as octal numbers.
+Escape TTY control characters so that they are harmless to display on a terminal. When any control character is found, they are displayed as octal numbers. This is the default mode that the auparse library is initialized with.
 .TP
 .B AUPARSE_ESC_SHELL
 Besides escaping control characters, this will escape some characters that can cause problems when used with shell scripting. Any escaped control characters are displayed as octal numbers. Other escaped characters are proceeded with a backslash. The additional characters it escapes are: " ' ` $ \\
