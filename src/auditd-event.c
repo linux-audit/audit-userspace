@@ -449,7 +449,7 @@ void cleanup_event(struct auditd_event *e)
 	free(e);
 }
 
-/* This function takes a local event and sends it to the handler */
+/* This function takes a  reconfig event and sends it to the handler */
 void enqueue_event(struct auditd_event *e)
 {
 	e->ack_func = NULL;
@@ -457,6 +457,7 @@ void enqueue_event(struct auditd_event *e)
 	e->sequence_id = 0;
 
         handle_event(e);
+	cleanup_event(e);
 }
 
 /* This function allocates memory and fills the event fields with
