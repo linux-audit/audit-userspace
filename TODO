@@ -1,6 +1,6 @@
 Things that need to be done:
 ===========================
-2.6.4
+2.6.5
 * When interpretting sockaddr, use syscall to determine remote vs local
 * Look for more static variables in auparse and move to auparse_state_t
 
@@ -8,10 +8,14 @@ Things that need to be done:
 * Add metadata in auparse for subj,obj,action,results
 * Formats for ausearch output
 * Add ability to suppress types of records (drop_records)
+* Change ausearch to output name="" unless its a real null. (mount) ausearch-report.c, 523. FIXME
+* Support mutiple time streams when searching
 
 2.7.1
 * Look at pulling audispd into auditd
 * Consolidate linked lists and other functions
+* Consolidate parsing code between libaudit and auditd-conf.c
+* If relative file in cwd, need to build also (realpath). watch out for (null) and socket
 
 3.0
 * Basic HIDS
@@ -20,6 +24,7 @@ Things that need to be done:
 * Performance improvements for auparse
 * If auparse input is a pipe timeout events by wall clock
 * Add rule verify to detect mismatch between in-kernel and on-disk rules
+* ausearch --op search
 
 3.0.1
 * Fix auvirt to report AVC's and --proof for --all-events
@@ -30,35 +35,21 @@ Things that need to be done:
 
 3.0.2
 * When searching, build log time list & only read the ones that are in range
-* Change ausearch-string to be AVL based
 * Look at adding the direction read/write to file report (threat modelling)
 * Changes in uid/gid, failed changes in credentials in aureport
-* aureport get specific reports working
-* Remove evil getopt cruft in auditctl
-* Group message types in ausearch help.
+* Group event types in ausearch help.
 
 3.1
 * Allow -F path!=/var/my/app
 * Add ignore action for rules
 * Look at openat and why passed dir is not given
 * Add SYSLOG data source for auparse. This allows leading text before audit       messages, missing type, any line with no = gets thrown away. iow, must have     time and 1 field to be valid.
-* Update auditctl so that if syscall is not found, it checks for socket call      and suggests using it instead. Same for IPCcall.
 * Fix aureport accounting for avc in permissive mode
 * rework ausearch to use auparse
 * rework aureport to use auparse
 
-2.8
-* Consolidate parsing code between libaudit and auditd-conf.c
+3.1.1
 * Look at variadic avc logging patch 
-* If relative file in cwd, need to build also (realpath). watch out for (null) and socket
-* Change ausearch to output name="" unless its a real null. (mount) ausearch-report.c, 523. FIXME
 * add more libaudit man pages
-* ausearch --op search
 * Fix aureport-scan to properly decide if CONFIG_CHANGE is add or del, need to optionally look for op and use remove/add to decide
-
-2.9
-Add scheduling options: strict, relaxed, loose (determines user space queueing)
-Allow users to specify message types to be kept for logging
 Allow users to specify fields to be kept for logging
-Pretty Print ausearch messages (strace style?)
-Look at modifying kernel rule matcher to do: first match & match all 
