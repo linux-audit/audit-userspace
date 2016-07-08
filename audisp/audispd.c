@@ -825,13 +825,25 @@ static void process_inbound_event(int fd)
 
 	if (rc > 0) {
 		/* Sanity check */
-		if (!(e->hdr.ver == AUDISP_PROTOCOL_VER || 
-				e->hdr.ver == AUDISP_PROTOCOL_VER2) ||
-				e->hdr.hlen != sizeof(e->hdr) ||
-				e->hdr.size > MAX_AUDIT_MESSAGE_LENGTH) {
-			free(e);
+		if ((e->hdr.ver != AUDISP_PROTOCOL_VER &&
+				e->hdr.ver != AUDISP_PROTOCOL_VER2)) {
 			syslog(LOG_ERR,
-				"Dispatcher protocol mismatch, exiting");
+				"Unknown dispatcher protocol %u, exiting",
+					e->hdr.ver);
+			free(e);
+			exit(1);
+		}
+		if (e->hdr.hlen != sizeof(e->hdr)) {
+			syslog(LOG_ERR,
+				    "Header length mismatch %u %lu, exiting",
+					e->hdr.hlen, sizeof(e->hdr));
+			free(e);
+			exit(1);
+		}
+		if (e->hdr.size > MAX_AUDIT_MESSAGE_LENGTH) {
+			syslog(LOG_ERR,	"Header size mismatch %d, exiting",
+					e->hdr.size);
+			free(e);
 			exit(1);
 		}
 

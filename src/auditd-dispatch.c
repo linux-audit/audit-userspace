@@ -183,17 +183,19 @@ int dispatch_event(const struct audit_reply *rep, int is_err)
 	hdr.ver = protocol_ver;
 	hdr.hlen = sizeof(struct audit_dispatcher_header);
 	hdr.type = rep->type;
-	hdr.size = rep->len;
 
 	vec[0].iov_base = (void*)&hdr;
 	vec[0].iov_len = sizeof(hdr);
 	if (protocol_ver == AUDISP_PROTOCOL_VER) {
+		hdr.size = rep->msg.nlh.nlmsg_len;
 		vec[1].iov_base = (void*)rep->message;
 		vec[1].iov_len = rep->msg.nlh.nlmsg_len;
-	} else {
+	} else if (protocol_ver == AUDISP_PROTOCOL_VER2) {
+		hdr.size = rep->len;
 		vec[1].iov_base = (void*)rep->msg.data;
 		vec[1].iov_len = rep->len;
-	}
+	} else
+		return 0;
 
 	do {
 		rc = writev(disp_pipe[1], vec, 2);
