@@ -371,7 +371,7 @@ int extract_virt_fields(auparse_state_t *au, const char **p_uuid,
 		const char **p_user, time_t *p_time, const char **p_name,
 		int *p_suc)
 {
-	const char *field;
+	const char *field = NULL;
 	auparse_first_record(au);
 
 	/* Order matters */

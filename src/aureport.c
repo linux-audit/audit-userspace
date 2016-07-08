@@ -213,8 +213,8 @@ static void process_event(llist *entries)
 {
 	if (scan(entries)) {
 		// If its a single event or SYSCALL load interpretations
-		if ((entries->cnt == 1) || (entries->head &&
-				 entries->head->type == AUDIT_SYSCALL))
+		if ((entries->cnt == 1) || 
+				(entries->head->type == AUDIT_SYSCALL))
 			_auparse_load_interpretations(entries->head->interp);
 		// This is the per entry action item
 		if (per_event_processing(entries))
@@ -236,7 +236,7 @@ static int process_log_fd(const char *filename)
 	/* For each event in file */
 	do {
 		ret = get_event(&entries);
-		if ((ret != 0)||(entries->cnt == 0))
+		if ((ret != 0)||(entries->cnt == 0)||(entries->head == NULL))
 			break;
 		// If report is RPT_TIME or RPT_SUMMARY, get 
 		if (report_type <= RPT_SUMMARY) {
