@@ -1,3 +1,5 @@
+2.6.5
+
 2.6.4
 - Fix interpretation of saddr fields when using enriched events
 - In netlink_handler of auditd, ensure ack_func is initialized to NULL
