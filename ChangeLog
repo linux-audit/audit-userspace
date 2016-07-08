@@ -7,6 +7,7 @@
 - Fix memory leak in reconfigure
 - Add EHWPOISON definition for errno lookup table if missing (Thomas Petazzoni)
 - Better detect struct audit_status existence (Thomas Petazzoni)
+- Rework dispatcher protocol 1 to be what it used to be
 
 2.6.3
 - Fix NULL poiinter deref in auparse

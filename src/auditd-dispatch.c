@@ -158,6 +158,11 @@ void reconfigure_dispatcher(const struct daemon_conf *config)
 		kill(pid, SIGHUP);
 	else
 		init_dispatcher(config);
+
+	if (config->log_format == LF_ENRICHED)
+		protocol_ver = AUDISP_PROTOCOL_VER2;
+	else
+		protocol_ver = AUDISP_PROTOCOL_VER;
 }
 
 /* Returns -1 on err, 0 on success, and 1 if eagain occurred and not an err */
@@ -182,8 +187,13 @@ int dispatch_event(const struct audit_reply *rep, int is_err)
 
 	vec[0].iov_base = (void*)&hdr;
 	vec[0].iov_len = sizeof(hdr);
-	vec[1].iov_base = (void*)rep->msg.data;
-	vec[1].iov_len = rep->len;
+	if (protocol_ver == AUDISP_PROTOCOL_VER) {
+		vec[1].iov_base = (void*)rep->message;
+		vec[1].iov_len = rep->msg.nlh.nlmsg_len;
+	} else {
+		vec[1].iov_base = (void*)rep->msg.data;
+		vec[1].iov_len = rep->len;
+	}
 
 	do {
 		rc = writev(disp_pipe[1], vec, 2);
