@@ -6,6 +6,6 @@ includedir=@includedir@
 Name: libaudit
 Description: Libraries needed for apps that use the kernel audit framework
 Version: @VERSION@
-Libs.private: @CAPNG_LDADD@
 Libs: -L${libdir} -laudit
+Libs.private: @CAPNG_LDADD@
 Cflags: -I${includedir}

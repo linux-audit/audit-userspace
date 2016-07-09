@@ -7,6 +7,7 @@ Things that need to be done:
 2.7
 * Add metadata in auparse for subj,obj,action,results
 * Formats for ausearch output
+* Selectable escaping for ausearch/report output
 * Add ability to suppress types of records (drop_records)
 * Change ausearch to output name="" unless its a real null. (mount) ausearch-report.c, 523. FIXME
 * Support mutiple time streams when searching
