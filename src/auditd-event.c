@@ -193,13 +193,12 @@ static void replace_event_msg(struct auditd_event *e, const char *buf)
 {
 	if (buf) {
 		size_t len = strlen(buf);
+
 		if (len < MAX_AUDIT_MESSAGE_LENGTH - 1)
-			memcpy(e->reply.msg.data, buf, len+1);
+			e->reply.message = strdup(buf);
 		else {
 			// If too big, we must truncate the event due to API
-			memcpy(e->reply.msg.data, buf, 
-				MAX_AUDIT_MESSAGE_LENGTH-1);
-			e->reply.msg.data[MAX_AUDIT_MESSAGE_LENGTH-1] = 0;
+			e->reply.message = strndup(buf, MAX_AUDIT_MESSAGE_LENGTH-1);
 			len = MAX_AUDIT_MESSAGE_LENGTH;
 		}
 		e->reply.msg.nlh.nlmsg_len = e->reply.len;
@@ -435,18 +434,13 @@ void format_event(struct auditd_event *e)
 			break;
 	}
 
-	if (e->reply.type != AUDIT_DAEMON_RECONFIG)
-		replace_event_msg(e, buf);
+	replace_event_msg(e, buf);
 }
 
 /* This function free's all memory associated with events */
 void cleanup_event(struct auditd_event *e)
 {
-	/* Internal DAEMON messages should be free'd */
-	if (e->reply.type >= AUDIT_FIRST_DAEMON &&
-			e->reply.type <= AUDIT_LAST_DAEMON) {
-		free((void *)e->reply.message);
-	} 
+	free((void *)e->reply.message);
 	free(e);
 }
 
@@ -479,10 +473,8 @@ struct auditd_event *create_event(char *msg, ack_func_type ack_func,
 	e->sequence_id = sequence_id;
 
 	/* Network originating events need things adjusted to mimic netlink. */
-	if (e->ack_func) {
+	if (e->ack_func)
 		replace_event_msg(e, msg);
-		e->reply.message = e->reply.msg.data;
-	}
 
 	return e;
 }
@@ -576,7 +568,7 @@ static void write_to_log(const struct auditd_event *e)
 	const char *msg = "";
 
 	/* write it to disk */
-	rc = fprintf(log_file, "%s\n", e->reply.msg.data);
+	rc = fprintf(log_file, "%s\n", e->reply.message);
 
 	/* error? Handle it */
 	if (rc < 0) {
@@ -1511,17 +1503,12 @@ static void reconfigure(struct auditd_event *e)
 			 0, seq_num);
         }
 
-	e->reply.len = snprintf(txt, sizeof(txt), 
+	e->reply.type = AUDIT_DAEMON_CONFIG;
+	e->reply.len = snprintf(e->reply.msg.data, MAX_AUDIT_MESSAGE_LENGTH-2, 
 	"%s op=reconfigure state=changed auid=%u pid=%d subj=%s res=success",
 		date, uid, pid, ctx );
-	audit_msg(LOG_NOTICE, "%s", txt);
-	e->reply.type = AUDIT_DAEMON_CONFIG;
-	e->reply.message = strdup(txt);
-	if (!e->reply.message) {
-		e->reply.len = 0;
-		audit_msg(LOG_ERR, "Cannot allocate config message");
-		// FIXME: Should call some error handler
-	}
+	e->reply.message = e->reply.msg.data;
+	audit_msg(LOG_NOTICE, "%s", e->reply.message);
 	free((char *)ctx);
 }
 

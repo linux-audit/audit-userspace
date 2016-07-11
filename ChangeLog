@@ -1,5 +1,6 @@
 2.6.5
 - Correct the header length for dispatched events
+- Revise buffer handling in auditd to fix dispatched events
 
 2.6.4
 - Fix interpretation of saddr fields when using enriched events
@@ -13,7 +14,7 @@
 - Rework dispatcher protocol 1 to be what it used to be
 
 2.6.3
-- Fix NULL poiinter deref in auparse
+- Fix NULL pointer deref in auparse
 - Optionally add dependency to libcap-ng in audit.pc
 
 2.6.2

@@ -245,26 +245,23 @@ int send_audit_event(int type, const char *str)
 	}
 
 	e->reply.type = type;
-	e->reply.message = (char *)malloc(DMSG_SIZE);
-	if (e->reply.message == NULL) {
-		free(e);
-		audit_msg(LOG_ERR, "Cannot allocate local event message");
-		return 1;
-	}
 	if (seq_num == 0) {
 		srand(time(NULL));
 		seq_num = rand()%10000;
 	} else
 		seq_num++;
+	// Write event into netlink area like normal events
 	if (gettimeofday(&tv, NULL) == 0) {
-		e->reply.len = snprintf((char *)e->reply.message,
+		e->reply.len = snprintf((char *)e->reply.msg.data,
 			DMSG_SIZE, "audit(%lu.%03u:%u): %s", 
 			tv.tv_sec, (unsigned)(tv.tv_usec/1000), seq_num, str);
 	} else {
-		e->reply.len = snprintf((char *)e->reply.message,
+		e->reply.len = snprintf((char *)e->reply.msg.data,
 			DMSG_SIZE, "audit(%lu.%03u:%u): %s", 
 			(unsigned long)time(NULL), 0, seq_num, str);
 	}
+	// Point message at the netlink buffer like normal events
+	e->reply.message = e->reply.msg.data;
 	if (e->reply.len > DMSG_SIZE)
 		e->reply.len = DMSG_SIZE;
 
