@@ -1,8 +1,9 @@
 Things that need to be done:
 ===========================
-2.6.5
-* When interpretting sockaddr, use syscall to determine remote vs local
+2.6.6
+* Change netlink path to use create_event
 * Look for more static variables in auparse and move to auparse_state_t
+* When interpretting sockaddr, use syscall to determine remote vs local
 
 2.7
 * Add metadata in auparse for subj,obj,action,results
