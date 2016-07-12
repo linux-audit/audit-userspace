@@ -3,6 +3,7 @@
 - Revise buffer handling in auditd to fix dispatched events
 - Fix spelling in man pages
 - Add documentation link to systemd unit file
+- Correct af_unix pathname detection in ausearch/report
 
 2.6.4
 - Fix interpretation of saddr fields when using enriched events

@@ -1531,7 +1531,12 @@ static int parse_sockaddr(const lnode *n, search_items *s)
 					if (s->filename) {
 						// append
 						snode sn;
-						sn.str = strdup(un->sun_path);
+						if (un->sun_path[0])
+						    sn.str =
+							strdup(un->sun_path);
+						else
+						    sn.str =
+							strdup(un->sun_path+1);
 						sn.key = NULL;
 						sn.hits = 1;
 						slist_append(s->filename, &sn);
