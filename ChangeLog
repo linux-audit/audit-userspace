@@ -2,6 +2,7 @@
 - Correct the header length for dispatched events
 - Revise buffer handling in auditd to fix dispatched events
 - Fix spelling in man pages
+- Add documentation link to systemd unit file
 
 2.6.4
 - Fix interpretation of saddr fields when using enriched events

@@ -6,6 +6,7 @@ Conflicts=shutdown.target
 Before=sysinit.target shutdown.target
 RefuseManualStop=yes
 ConditionKernelCommandLine=!audit=0
+Documentation=man:auditd(8) https://people.redhat.com/sgrubb/audit/
 
 [Service]
 ExecStart=/sbin/auditd -n
