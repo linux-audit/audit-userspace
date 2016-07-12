@@ -1,6 +1,7 @@
 2.6.5
 - Correct the header length for dispatched events
 - Revise buffer handling in auditd to fix dispatched events
+- Fix spelling in man pages
 
 2.6.4
 - Fix interpretation of saddr fields when using enriched events

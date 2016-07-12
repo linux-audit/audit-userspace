@@ -1383,7 +1383,7 @@ PyDoc_STRVAR(find_field_doc,
 "find_field(name) Search for field name.\n\
 \n\
 find_field() will scan all records in an event to find the first\n\
-occurance of the field name passed to it. Searching begins from the\n\
+occurence of the field name passed to it. Searching begins from the\n\
 cursor’s current position. The field name is stored for subsequent\n\
 searching.\n\
 \n\
@@ -1413,9 +1413,9 @@ const char *auparse_find_field_next(auparse_state_t *au);
  * auparse_find_field_next
  ********************************/
 PyDoc_STRVAR(find_field_next_doc,
-"find_field_next() Get next occurrance of field name\n\
+"find_field_next() Get next occurrence of field name\n\
 \n\
-find_field_next() returns the value associated next occurrance of field name.\n\
+find_field_next() returns the value associated next occurrence of field name.\n\
 Returns value associated with field or None if there is no next field.\n\
 Raises exception (EnvironmentError) on error.\n\
 ");
