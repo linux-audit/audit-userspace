@@ -4,6 +4,7 @@
 - Fix spelling in man pages
 - Add documentation link to systemd unit file
 - Correct af_unix pathname detection in ausearch/report
+- Add remote_ended info to audisp-remote stat dump
 
 2.6.4
 - Fix interpretation of saddr fields when using enriched events

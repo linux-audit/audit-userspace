@@ -139,8 +139,10 @@ static void user1_handler( int sig )
 
 static void dump_stats(struct queue *queue)
 {
-	syslog(LOG_INFO, "suspend=%s, transport_ok=%s, queue_size=%zu",
+	syslog(LOG_INFO,
+		"suspend=%s, remote_ended=%s, transport_ok=%s, queue_size=%zu",
 		suspend ? "yes" : "no",
+		remote_ended ? "yes" : "no",
 		transport_ok ? "yes" : "no",
 		q_queue_length(queue));
 	dump = 0;
