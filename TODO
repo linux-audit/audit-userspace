@@ -2,6 +2,7 @@ Things that need to be done:
 ===========================
 2.6.6
 * Change netlink path to use create_event
+* Fix audit.pc.in to use Requires.private
 * Look for more static variables in auparse and move to auparse_state_t
 * Update auparse_set_escape_mode to use the auparse_state_t pointer
 * When interpretting sockaddr, use syscall to determine remote vs local
