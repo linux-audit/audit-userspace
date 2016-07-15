@@ -1,4 +1,5 @@
 2.6.6
+- Interpret ioctlcmd fields
 
 2.6.5
 - Correct the header length for dispatched events

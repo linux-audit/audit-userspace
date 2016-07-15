@@ -11,6 +11,7 @@ Things that need to be done:
 2.7
 * Update libev to 4.22
 * Add sockaddr accessor functions in auparse
+* Add a realpath variant accessor that resolves whole path
 * Add metadata in auparse for subj,obj,action,results
 * Formats for ausearch output
 * Selectable escaping for ausearch/report output

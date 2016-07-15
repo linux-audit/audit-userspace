@@ -2865,6 +2865,9 @@ char *auparse_do_interpretation(int type, const idata *id)
 		case AUPARSE_TYPE_MACPROTO:
 			out = print_macproto(id->val);
 			break;
+		case AUPARSE_TYPE_IOCTL_REQ:
+			out = print_ioctl_req(id->val);
+			break;
 		case AUPARSE_TYPE_MAC_LABEL:
 		case AUPARSE_TYPE_UNCLASSIFIED:
 		default:
