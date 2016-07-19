@@ -717,7 +717,7 @@ static int avc_parse_path(const lnode *n, search_items *s)
 
 static int parse_path(const lnode *n, search_items *s)
 {
-	// We add 32 to message because we do not nee to look at
+	// We add 32 to message because we do not need to look at
 	// anything before that. Its only time and type.
 	char *str, *term = n->message+NAME_OFFSET;
 
