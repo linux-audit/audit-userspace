@@ -298,18 +298,19 @@ static int count_em(int fd)
 	FD_SET(fd, &read_mask);
 
 	for (i = 0; i < timeout; i++) {
+		struct timeval t;
+
+		t.tv_sec  = 0;
+		t.tv_usec = 100000; /* .1 second */
 		retval = audit_get_reply(fd, &rep, GET_REPLY_NONBLOCKING, 0);
 		if (retval > 0) {
-			struct timeval t;
-
 			if (rep.type == NLMSG_ERROR && 
 					rep.error->error == 0)
 				continue;
-			t.tv_sec  = 0;
-			t.tv_usec = 100000; /* .1 second */
 			do {
 				retval=select(fd+1, &read_mask, NULL, NULL, &t);
 			} while (retval < 0 && errno == EINTR);
+
 			switch (rep.type)
 			{
 				case NLMSG_DONE:
@@ -323,7 +324,8 @@ static int count_em(int fd)
 				default:
 					break;
 			}
-		}
+		} else if (errno == EAGAIN)  // Take short delay
+			retval = select(fd+1, &read_mask, NULL, NULL, &t);
 	}
 	if (i >= timeout && count == 0)
 		count = -1;
