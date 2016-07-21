@@ -2,6 +2,7 @@
 - Interpret ioctlcmd fields
 - Fix the permission of the audit logging directory
 - Fix timeout in autrace better
+- Add gitignore file to ignore generated files if using git (Richard Guy Briggs)
 
 2.6.5
 - Correct the header length for dispatched events
