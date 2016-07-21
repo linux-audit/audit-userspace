@@ -1,5 +1,6 @@
 2.6.6
 - Interpret ioctlcmd fields
+- Fix the permission of the audit logging directory
 
 2.6.5
 - Correct the header length for dispatched events

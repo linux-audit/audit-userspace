@@ -900,7 +900,7 @@ static void fix_disk_permissions(void)
 	// Start with the directory
 	strcpy(path, config->log_file);
 	dir = dirname(path);
-	chmod(dir, config->log_group ? S_IRWXU|S_IRWXG : S_IRWXU);
+	chmod(dir, config->log_group ? S_IRWXU|S_IRGRP|S_IXGRP : S_IRWXU);
 	chown(dir, 0, config->log_group ? config->log_group : 0);
 
 	// Now, for each file...

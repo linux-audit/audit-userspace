@@ -234,7 +234,7 @@ fi
 %attr(750,root,root) %{_libexecdir}/initscripts/legacy-actions/auditd/stop
 %attr(750,root,root) %{_libexecdir}/initscripts/legacy-actions/auditd/restart
 %attr(750,root,root) %{_libexecdir}/initscripts/legacy-actions/auditd/condrestart
-%attr(750,root,root) %dir %{_var}/log/audit
+%attr(-,root,-) %dir %{_var}/log/audit
 %attr(750,root,root) %dir /etc/audit
 %attr(750,root,root) %dir /etc/audit/rules.d
 %attr(750,root,root) %dir /etc/audisp
