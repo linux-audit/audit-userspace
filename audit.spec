@@ -104,7 +104,7 @@ mkdir -p $RPM_BUILD_ROOT/{sbin,etc/audispd/plugins.d,etc/audit/rules.d}
 mkdir -p $RPM_BUILD_ROOT/%{_mandir}/{man5,man8}
 mkdir -p $RPM_BUILD_ROOT/%{_lib}
 mkdir -p $RPM_BUILD_ROOT/%{_libdir}/audit
-mkdir -p $RPM_BUILD_ROOT/%{_var}/log/audit
+mkdir --mode=0700 -p $RPM_BUILD_ROOT/%{_var}/log/audit
 mkdir -p $RPM_BUILD_ROOT/%{_var}/spool/audit
 make DESTDIR=$RPM_BUILD_ROOT install
 
