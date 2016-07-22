@@ -1,4 +1,4 @@
-.TH "AUDIT_LOG_USER_MESSAGE" "3" "Oct 2006" "Red Hat" "Linux Audit API"
+.TH "AUDIT_LOG_USER_MESSAGE" "3" "July 2016" "Red Hat" "Linux Audit API"
 .SH NAME
 audit_log_user_message \- log a general user message
 .SH SYNOPSIS
@@ -9,9 +9,9 @@ const char *hostname, const char *addr, const char *tty,
 int result)
 
 .SH DESCRIPTION
-This function will log a message to the audit system using a predefined
-message format. This function should be used by all console apps that do
-not manipulate accounts or groups. The function parameters are as follows:
+This function will log a message to the audit system using a predefined message format. This function should be used by all ELF console apps that do not manipulate accounts or groups. If the application is written in Python or another interpreter, then use the
+.I audit_log_user_comm_message
+function instead. The function parameters are as follows:
 
 .nf
 audit_fd - The fd returned by audit_open
