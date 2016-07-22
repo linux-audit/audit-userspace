@@ -4,7 +4,7 @@ audit_log_user_comm_message \- log a user message from a console app
 .SH SYNOPSIS
 .B #include <libaudit.h>
 .sp
-.B int audit_log_user_comm_message(int audit_fd, int type, const char *message,
+int audit_log_user_comm_message(int audit_fd, int type, const char *message,
 const char *comm, const char *hostname, const char *addr, const char *tty,
 int result)
 
