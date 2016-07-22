@@ -32,6 +32,7 @@
 #include <arpa/inet.h>	// inet_ntop
 #include <utmp.h>
 #include <limits.h>	// PATH_MAX
+#include <fcntl.h>
 
 #include "libaudit.h"
 #include "private.h"
@@ -172,10 +173,20 @@ static char *_get_exename(char *exename, int size)
 static char *_get_commname(const char *comm, char *commname, unsigned int size)
 {
 	unsigned int len;
+	char tmp_comm[20];
 	
 	if (comm == NULL) {
-		strcpy(commname, "\"?\"");
-		return commname;
+		char *ptr;
+		int len;
+		int fd = open("/proc/self/comm", O_RDONLY);
+		if (fd < 0) {
+			strcpy(commname, "\"?\"");
+			return commname;
+		}
+		len = read(fd, tmp_comm, sizeof(tmp_comm));
+		if (len > 0)
+			tmp_comm[len-1] = 0;
+		comm = tmp_comm;
 	}
 
 	len = strlen(comm);

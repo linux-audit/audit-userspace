@@ -3,6 +3,7 @@
 - Fix the permission of the audit logging directory
 - Fix timeout in autrace better
 - Add gitignore file to ignore generated files if using git (Richard Guy Briggs)
+- audit_log_user_comm_message now resolves comm if NULL is passed
 
 2.6.5
 - Correct the header length for dispatched events
