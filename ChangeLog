@@ -5,6 +5,7 @@
 - Add gitignore file to ignore generated files if using git (Richard Guy Briggs)
 - audit_log_user_comm_message now resolves comm if NULL is passed
 - Update syscall table
+- Fix multi-key support which was broke in tty escape bug fix
 
 2.6.5
 - Correct the header length for dispatched events

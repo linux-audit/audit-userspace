@@ -269,6 +269,40 @@ static void escape(const char *s, char *dest, unsigned int len)
 	}
 }
 
+static void key_escape(char *orig, char *dest)
+{
+	const char *optr = orig;
+	char *str, *dptr = dest, tmp;
+	while (*optr) {
+		unsigned int klen, cnt;
+		// Find the separator or the end
+		str = strchr(optr, AUDIT_KEY_SEPARATOR);
+		if (str == NULL)
+			str = strchr(optr, 0);
+		klen = str - optr;
+		tmp = *str;
+		*str = 0;
+		cnt = need_escaping(optr, klen);
+		if (cnt == 0)
+			dptr = stpcpy(dptr, optr);
+		else {
+			escape(optr, dptr, klen);
+			dptr = strchr(dest, 0);
+			if (dptr == NULL)
+				return; // Something is really messed up
+		}
+		// Put the separator back
+		*str = tmp;
+		*dptr = tmp;
+		optr = str;
+		// If we are not at the end...
+		if (tmp) {
+			optr++;
+			dptr++;
+		}
+	}
+}
+
 int set_escape_mode(auparse_esc_t mode)
 {
 	if (mode < 0 || mode > AUPARSE_ESC_SHELL_QUOTE)
@@ -2776,6 +2810,7 @@ char *auparse_do_interpretation(int type, const idata *id)
 			out = print_exit(id->val);
 			break;
 		case AUPARSE_TYPE_ESCAPED:
+		case AUPARSE_TYPE_ESCAPED_KEY:
 			out = print_escaped(id->val);
                         break;
 		case AUPARSE_TYPE_PERM:
@@ -2876,16 +2911,56 @@ char *auparse_do_interpretation(int type, const idata *id)
         }
 
 	if (escape_mode != AUPARSE_ESC_RAW) {
+		char *str = NULL;
 		unsigned int len = strlen(out);
-		unsigned int cnt = need_escaping(out, len);
-		if (cnt) {
-			char *dest = malloc(len + 1 + (3*cnt));
-			if (dest)
-				escape(out, dest, len);
-			free((void *)out);
-			out = dest;
+		if (type == AUPARSE_TYPE_ESCAPED_KEY) {
+			// The audit key separator causes a false
+			// positive in deciding to escape.
+			str = strchr(out, AUDIT_KEY_SEPARATOR);
+		}
+		if (str == NULL) {
+			// This is the normal path
+			unsigned int cnt = need_escaping(out, len);
+			if (cnt) {
+				char *dest = malloc(len + 1 + (3*cnt));
+				if (dest)
+					escape(out, dest, len);
+				free((void *)out);
+				out = dest;
+			}
+		} else {
+			// We have multiple keys. Need to look at each one.
+			unsigned int cnt = 0;
+			char *ptr = out;
+
+ 			while (*ptr) {
+				unsigned int klen = str - ptr;
+				char tmp = *str;
+				*str = 0;
+				cnt += need_escaping(ptr, klen);
+				*str = tmp;
+				ptr = str;
+				// If we are not at the end...
+				if (tmp) {
+					ptr++;
+					str = strchr(ptr, AUDIT_KEY_SEPARATOR);
+					// If we don't have anymore, just
+					// point to the end
+					if (str == NULL)
+						str = strchr(ptr, 0);
+				}
+			}
+			if (cnt) {
+				// I expect this code to never get used.
+				// Its here just in the off chance someone
+				// actually put a control character in a key.
+				char *dest = malloc(len + 1 + (3*cnt));
+				if (dest)
+					key_escape(out, dest);
+				free((void *)out);
+				out = dest;
+			}
 		}
 	}
 	return out;
 }
-
