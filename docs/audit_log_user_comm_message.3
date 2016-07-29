@@ -15,7 +15,7 @@ This function will log a message to the audit system using a predefined message 
 audit_fd - The fd returned by audit_open
 type - type of message, ex: AUDIT_USYS_CONFIG, AUDIT_USER_LOGIN
 message - the message text being sent
-comm - the program command line name
+comm - the program command line name, NULL if unknown
 hostname - the hostname if known, NULL if unknown
 addr - The network address of the user, NULL if unknown
 tty - The tty of the user, if NULL will attempt to figure out
