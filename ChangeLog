@@ -1,3 +1,5 @@
+2.6.7
+
 2.6.6
 - Interpret ioctlcmd fields
 - Fix the permission of the audit logging directory
