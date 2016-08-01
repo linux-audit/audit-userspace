@@ -825,6 +825,10 @@ static int setopt(int count, int lineno, char *vars[])
 			break;
 		}
 
+		// Keys need to get handled differently
+		if (strncmp(optarg, "key=", 4) == 0) {
+			goto process_keys;
+		}
 		rc = audit_rule_fieldpair_data(&rule_new,optarg,flags);
 		if (rc != 0) {
 			audit_number_to_errmsg(rc, optarg);
@@ -940,10 +944,14 @@ static int setopt(int count, int lineno, char *vars[])
 			audit_msg(LOG_ERR,
 		    "key option needs a watch or syscall given prior to it");
 			retval = -1;
+			break;
 		} else if (!optarg) {
 			audit_msg(LOG_ERR, "key option needs a value");
 			retval = -1;
-		} else if ((strlen(optarg)+strlen(key)+(!!key[0])) >
+			break;
+		}
+process_keys:
+		if ((strlen(optarg)+strlen(key)+(!!key[0])) >
 							AUDIT_MAX_KEY_LEN) {
 			audit_msg(LOG_ERR, "key option exceeds size limit");
 			retval = -1;
