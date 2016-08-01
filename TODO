@@ -1,6 +1,6 @@
 Things that need to be done:
 ===========================
-2.6.6
+2.6.7
 * Change netlink path to use create_event
 * Fix audit.pc.in to use Requires.private
 * Look for more static variables in auparse and move to auparse_state_t
