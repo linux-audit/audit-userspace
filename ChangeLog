@@ -1,5 +1,6 @@
 2.6.7
 - Non-active log files should be read only
+- In augenrules, restore the selinux context if restorecon is installed
 
 2.6.6
 - Interpret ioctlcmd fields

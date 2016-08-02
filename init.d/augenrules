@@ -125,6 +125,11 @@ if [ -f ${DestinationFile} ]; then
 fi
 # We copy the file so that it gets the right selinux lable
 cp ${TmpRules} ${DestinationFile}
+chmod 0640 ${DestinationFile}
+# Restore context on MLS system. /tmp is SystemLow & audit.rules is SystemHigh
+if [ -x /usr/sbin/restorecon ] ; then
+	/usr/sbin/restorecon ${DestinationFile}
+fi
 rm -f ${TmpRules}
 
 try_load
