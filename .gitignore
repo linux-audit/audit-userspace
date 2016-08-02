@@ -7,7 +7,9 @@ gen_*_h
 INSTALL
 Makefile
 Makefile.in
+tags
 TAGS
+cscope.*
 /aclocal.m4
 /autom4te.cache
 /audit*.tar.gz
@@ -39,6 +41,7 @@ bindings/swig/python3/audit.py
 bindings/swig/python3/audit_wrap.c
 lib/*tabs.h
 lib/*tables.h
+ltmain.sh
 m4/libtool.m4
 m4/lt*.m4
 src/auditctl
