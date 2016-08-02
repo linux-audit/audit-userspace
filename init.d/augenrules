@@ -128,7 +128,7 @@ cp ${TmpRules} ${DestinationFile}
 chmod 0640 ${DestinationFile}
 # Restore context on MLS system. /tmp is SystemLow & audit.rules is SystemHigh
 if [ -x /usr/sbin/restorecon ] ; then
-	/usr/sbin/restorecon ${DestinationFile}
+	/usr/sbin/restorecon -F ${DestinationFile}
 fi
 rm -f ${TmpRules}
 
