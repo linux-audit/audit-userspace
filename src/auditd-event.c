@@ -907,8 +907,7 @@ static void fix_disk_permissions(void)
 	for (i = 1; i < config->num_logs; i++) {
 		int rc;
 		snprintf(path, len, "%s.%d", config->log_file, i);
-		rc = chmod(path, config->log_group ? S_IWUSR|S_IRUSR|S_IRGRP :
-			S_IWUSR|S_IRUSR);
+		rc = chmod(path, config->log_group ? S_IRUSR|S_IRGRP : S_IRUSR);
 		if (rc && errno == ENOENT)
 			break;
 	}
