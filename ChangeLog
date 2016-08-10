@@ -2,6 +2,7 @@
 - Non-active log files should be read only
 - In augenrules, restore the selinux context if restorecon is installed
 - Update gitignore file and remove ltmain.sh (Richard Guy Briggs)
+- Replace Group Separator with whitespace in syslog audispd plugin
 
 2.6.6
 - Interpret ioctlcmd fields

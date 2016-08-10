@@ -684,7 +684,7 @@ static int event_loop(void)
 
 			/* Now send the event to the right child */
 			if (conf->p->type == S_SYSLOG) 
-				send_syslog(v);
+				send_syslog(v, e->hdr.ver);
 			else if (conf->p->type == S_AF_UNIX) {
 				if (conf->p->format == F_STRING)
 					send_af_unix_string(v, len);
