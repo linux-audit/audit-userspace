@@ -1114,7 +1114,7 @@ static int extract_timestamp(const char *b, au_event_t *e)
 	return rc;
 }
 
-static int inline events_are_equal(au_event_t *e1, au_event_t *e2)
+static int events_are_equal(au_event_t *e1, au_event_t *e2)
 {
 	// Check time & serial first since its most likely way
 	// to spot 2 different events
