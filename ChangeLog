@@ -4,6 +4,7 @@
 - Update gitignore file and remove ltmain.sh (Richard Guy Briggs)
 - Replace Group Separator with whitespace in syslog audispd plugin
 - In auditd, check for euid rather than capabilities when local_events = no
+- If events are piped from ausearch to audisp-remote, flush queue when done
 
 2.6.6
 - Interpret ioctlcmd fields

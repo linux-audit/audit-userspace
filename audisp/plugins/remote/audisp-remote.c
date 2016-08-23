@@ -181,6 +181,17 @@ static int sync_error_handler (const char *why)
 	return 0;
 }
 
+static int is_pipe(int fd)
+{
+	struct stat st;
+
+	if (fstat(fd, &st) == 0) {
+		if (S_ISFIFO(st.st_mode))
+			return 1;
+	}
+	return 0;
+}
+
 static void change_runlevel(const char *level)
 {
 	char *argv[3];
@@ -588,6 +599,13 @@ int main(int argc, char *argv[])
 				send_one(queue);
 		}
 	}
+
+	// If stdin is a pipe, then flush the queue
+	if (is_pipe(0)) {
+		while (q_queue_length(queue) && !suspend && transport_ok)
+			send_one(queue);
+	}
+
 	if (sock >= 0) {
 		shutdown(sock, SHUT_RDWR);
 		close(sock);
