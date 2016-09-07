@@ -934,7 +934,6 @@ static void clean_exit(void)
 	if (fd >= 0) {
 		if (!opt_aggregate_only)
 			audit_set_pid(fd, 0, WAIT_NO);
-		fsync(fd);
 		audit_close(fd);
 	}
 	if (pidfile)
