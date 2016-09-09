@@ -2,9 +2,10 @@ Things that need to be done:
 ===========================
 2.6.7
 * Change netlink path to use create_event
-* Fix audit.pc.in to use Requires.private
 * Look for more static variables in auparse and move to auparse_state_t
+* In audispd, look into non-blocking handling of write to plugins
 * Update auparse_set_escape_mode to use the auparse_state_t pointer
+* Fix audit.pc.in to use Requires.private
 * When interpretting sockaddr, use syscall to determine remote vs local
 * Look into restarting network connections in audisp-remote after idle timeout
 
