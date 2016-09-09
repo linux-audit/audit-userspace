@@ -827,6 +827,7 @@ static int setopt(int count, int lineno, char *vars[])
 
 		// Keys need to get handled differently
 		if (strncmp(optarg, "key=", 4) == 0) {
+			optarg += 4;
 			goto process_keys;
 		}
 		rc = audit_rule_fieldpair_data(&rule_new,optarg,flags);
