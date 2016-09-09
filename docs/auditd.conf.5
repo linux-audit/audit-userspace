@@ -289,11 +289,11 @@ server's host, as returned by a DNS lookup of its IP address.
 Location of the key for this client's principal.
 Note that the key file must be owned by root and mode 0400.
 The default is
+.I /etc/audit/audit.key
 .TP
 .I distribute_network
 If set to "yes", network originating events will be distributed to the audit
 dispatcher for processing. The default is "no".
-.I /etc/audit/audit.key
 
 .SH NOTES
 In a CAPP environment, the audit trail is considered so important that access to system resources must be denied if an audit trail cannot be created. In this environment, it would be suggested that /var/log/audit be on its own partition. This is to ensure that space detection is accurate and that no other process comes along and consumes part of it.
