@@ -6,6 +6,7 @@
 - In auditd, check for euid rather than capabilities when local_events = no
 - If events are piped from ausearch to audisp-remote, flush queue when done
 - In auditctl, correct handling of -F key so that key is not part of value
+- In auparse, move static variables to auparse_state_t
 
 2.6.6
 - Interpret ioctlcmd fields

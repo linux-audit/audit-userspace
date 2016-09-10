@@ -45,7 +45,7 @@ struct _pair
 struct kw_pair 
 {
 	const char *name;
-	int (*parser)(const char *, int, struct daemon_conf *);
+	int (*parser)(auparse_state_t *, const char *, int, struct daemon_conf *);
 };
 
 struct nv_list
@@ -54,33 +54,18 @@ struct nv_list
 	int option;
 };
 
-static char *get_line(FILE *f, char *buf, unsigned size, int *lineno,
+static char *get_line(auparse_state_t *au, FILE *f, char *buf, unsigned size, int *lineno,
 	const char *file);
 static int nv_split(char *buf, struct _pair *nv);
 static const struct kw_pair *kw_lookup(const char *val);
-static int log_file_parser(const char *val, int line, 
-		struct daemon_conf *config);
-static int num_logs_parser(const char *val, int line, 
-		struct daemon_conf *config);
-static int log_format_parser(const char *val, int line, 
+static int log_file_parser(auparse_state_t *au, const char *val, int line, 
 		struct daemon_conf *config);
 
 static const struct kw_pair keywords[] = 
 {
   {"log_file",                 log_file_parser },
-  {"log_format",               log_format_parser },
-  {"num_logs",                 num_logs_parser },
   { NULL,                      NULL }
 };
-
-static const struct nv_list log_formats[] =
-{
-  {"raw",  LF_RAW },
-  {"nolog", LF_NOLOG },
-  {"enriched", LF_ENRICHED },
-  { NULL,  0 }
-};
-
 
 /*
  * Set everything to its default value
@@ -118,7 +103,7 @@ void clear_config(struct daemon_conf *config)
 	config->disk_error_exe = NULL;
 }
 
-int load_config(struct daemon_conf *config, log_test_t lt)
+int aup_load_config(auparse_state_t *au, struct daemon_conf *config, log_test_t lt)
 {
 	int fd, rc, lineno = 1;
 	struct stat st;
@@ -132,11 +117,11 @@ int load_config(struct daemon_conf *config, log_test_t lt)
 	rc = open(CONFIG_FILE, O_RDONLY|O_NOFOLLOW);
 	if (rc < 0) {
 		if (errno != ENOENT) {
-			audit_msg(LOG_ERR, "Error opening config file (%s)", 
+			audit_msg(au, LOG_ERR, "Error opening config file (%s)", 
 				strerror(errno));
 			return 1;
 		}
-		audit_msg(LOG_WARNING,
+		audit_msg(au, LOG_WARNING,
 			"Config file %s doesn't exist, skipping", CONFIG_FILE);
 		return 0;
 	}
@@ -146,19 +131,19 @@ int load_config(struct daemon_conf *config, log_test_t lt)
 	 * not symlink.
 	 */
 	if (fstat(fd, &st) < 0) {
-		audit_msg(LOG_ERR, "Error fstat'ing config file (%s)", 
+		audit_msg(au, LOG_ERR, "Error fstat'ing config file (%s)", 
 			strerror(errno));
 		close(fd);
 		return 1;
 	}
 	if (st.st_uid != 0) {
-		audit_msg(LOG_ERR, "Error - %s isn't owned by root", 
+		audit_msg(au, LOG_ERR, "Error - %s isn't owned by root", 
 			CONFIG_FILE);
 		close(fd);
 		return 1;
 	}
 	if (!S_ISREG(st.st_mode)) {
-		audit_msg(LOG_ERR, "Error - %s is not a regular file", 
+		audit_msg(au, LOG_ERR, "Error - %s is not a regular file", 
 			CONFIG_FILE);
 		close(fd);
 		return 1;
@@ -167,13 +152,13 @@ int load_config(struct daemon_conf *config, log_test_t lt)
 	/* it's ok, read line by line */
 	f = fdopen(fd, "rm");
 	if (f == NULL) {
-		audit_msg(LOG_ERR, "Error - fdopen failed (%s)", 
+		audit_msg(au, LOG_ERR, "Error - fdopen failed (%s)", 
 			strerror(errno));
 		close(fd);
 		return 1;
 	}
 
-	while (get_line(f,  buf, sizeof(buf), &lineno, CONFIG_FILE)) {
+	while (get_line(au, f,  buf, sizeof(buf), &lineno, CONFIG_FILE)) {
 		// convert line into name-value pair
 		const struct kw_pair *kw;
 		struct _pair nv;
@@ -182,17 +167,17 @@ int load_config(struct daemon_conf *config, log_test_t lt)
 			case 0: // fine
 				break;
 			case 1: // not the right number of tokens.
-				audit_msg(LOG_ERR, 
+				audit_msg(au, LOG_ERR, 
 				"Wrong number of arguments for line %d in %s", 
 					lineno, CONFIG_FILE);
 				break;
 			case 2: // no '=' sign
-				audit_msg(LOG_ERR, 
+				audit_msg(au, LOG_ERR, 
 					"Missing equal sign for line %d in %s", 
 					lineno, CONFIG_FILE);
 				break;
 			default: // something else went wrong... 
-				audit_msg(LOG_ERR, 
+				audit_msg(au, LOG_ERR, 
 					"Unknown error for line %d in %s", 
 					lineno, CONFIG_FILE);
 				break;
@@ -203,7 +188,7 @@ int load_config(struct daemon_conf *config, log_test_t lt)
 		}
 		if (nv.value == NULL) {
 			fclose(f);
-			audit_msg(LOG_ERR,
+			audit_msg(au, LOG_ERR,
 				"Not processing any more lines in %s",
 				CONFIG_FILE);
 			return 1;
@@ -213,7 +198,7 @@ int load_config(struct daemon_conf *config, log_test_t lt)
 		kw = kw_lookup(nv.name);
 		if (kw->name) {
 			/* dispatch to keyword's local parser */
-			rc = kw->parser(nv.value, lineno, config);
+			rc = kw->parser(au, nv.value, lineno, config);
 			if (rc != 0) {
 				fclose(f);
 				return 1; // local parser puts message out
@@ -227,7 +212,7 @@ int load_config(struct daemon_conf *config, log_test_t lt)
 	return 0;
 }
 
-static char *get_line(FILE *f, char *buf, unsigned size, int *lineno,
+static char *get_line(auparse_state_t *au, FILE *f, char *buf, unsigned size, int *lineno,
 	const char *file)
 {
 	int too_long = 0;
@@ -247,7 +232,7 @@ static char *get_line(FILE *f, char *buf, unsigned size, int *lineno,
 		// If a line is too long skip it.
 		// Only output 1 warning
 		if (!too_long)
-			audit_msg(LOG_ERR,
+			audit_msg(au, LOG_ERR,
 					"Skipping line %d in %s: too long",
 					*lineno, file);
 			too_long = 1;
@@ -307,7 +292,8 @@ static const struct kw_pair *kw_lookup(const char *val)
 	return &keywords[i];
 }
  
-static int log_file_parser(const char *val, int line,struct daemon_conf *config)
+static int log_file_parser(auparse_state_t *au, const char *val, int line,
+		struct daemon_conf *config)
 {
 	char *dir = NULL, *tdir, *base;
 	DIR *d;
@@ -319,7 +305,7 @@ static int log_file_parser(const char *val, int line,struct daemon_conf *config)
 	if (tdir)
 		dir = dirname(tdir);
 	if (dir == NULL || strlen(dir) < 4) { //  '/var' is shortest dirname
-		audit_msg(LOG_ERR, 
+		audit_msg(au, LOG_ERR, 
 			"The directory name: %s is too short - line %d", 
 			dir, line);
 		free((void *)tdir);
@@ -328,7 +314,7 @@ static int log_file_parser(const char *val, int line,struct daemon_conf *config)
 
 	base = basename((char *)val);
 	if (base == 0 || strlen(base) == 0) {
-		audit_msg(LOG_ERR, "The file name: %s is too short - line %d", 
+		audit_msg(au, LOG_ERR, "The file name: %s is too short - line %d", 
 			base, line);
 		free((void *)tdir);
 		return 1;
@@ -337,7 +323,7 @@ static int log_file_parser(const char *val, int line,struct daemon_conf *config)
 	/* verify the directory path exists */
 	d = opendir(dir);
 	if (d == NULL) {
-		audit_msg(LOG_ERR, "Could not open dir %s (%s)", dir, 
+		audit_msg(au, LOG_ERR, "Could not open dir %s (%s)", dir, 
 			strerror(errno));
 		free((void *)tdir);
 		return 1;
@@ -351,32 +337,32 @@ static int log_file_parser(const char *val, int line,struct daemon_conf *config)
 
 	fd = open(val, mode);
 	if (fd < 0) {
-		audit_msg(LOG_ERR, "Unable to open %s (%s)", val, 
+		audit_msg(au, LOG_ERR, "Unable to open %s (%s)", val, 
 					strerror(errno));
 		return 1;
 	}
 	if (fstat(fd, &buf) < 0) {
-		audit_msg(LOG_ERR, "Unable to stat %s (%s)", 
+		audit_msg(au, LOG_ERR, "Unable to stat %s (%s)", 
 					val, strerror(errno));
 		close(fd);
 		return 1;
 	}
 	close(fd);
 	if (!S_ISREG(buf.st_mode)) {
-		audit_msg(LOG_ERR, "%s is not a regular file", val);
+		audit_msg(au, LOG_ERR, "%s is not a regular file", val);
 		return 1;
 	}
 	if (buf.st_uid != 0) {
-		audit_msg(LOG_ERR, "%s is not owned by root", val);
+		audit_msg(au, LOG_ERR, "%s is not owned by root", val);
 		return 1;
 	}
 	if ( (buf.st_mode & (S_IXUSR|S_IWGRP|S_IXGRP|S_IRWXO)) ) {
-		audit_msg(LOG_ERR, "%s permissions should be 0600 or 0640",
+		audit_msg(au, LOG_ERR, "%s permissions should be 0600 or 0640",
 				val);
 		return 1;
 	}
 	if ( !(buf.st_mode & S_IWUSR) ) {
-		audit_msg(LOG_ERR, "audit log is not writable by owner");
+		audit_msg(au, LOG_ERR, "audit log is not writable by owner");
 		return 1;
 	}
 
@@ -385,54 +371,6 @@ static int log_file_parser(const char *val, int line,struct daemon_conf *config)
 	if (config->log_file == NULL)
 		return 1;
 	return 0;
-}
-
-static int num_logs_parser(const char *val, int line, 
-		struct daemon_conf *config)
-{
-	const char *ptr = val;
-	unsigned long i;
-
-	/* check that all chars are numbers */
-	for (i=0; ptr[i]; i++) {
-		if (!isdigit(ptr[i])) {
-			audit_msg(LOG_ERR, 
-				"Value %s should only be numbers - line %d",
-				val, line);
-			return 1;
-		}
-	}
-
-	/* convert to unsigned long */
-	errno = 0;
-	i = strtoul(val, NULL, 10);
-	if (errno) {
-		audit_msg(LOG_ERR, 
-			"Error converting string to a number (%s) - line %d",
-			strerror(errno), line);
-		return 1;
-	}
-	if (i > 99) {
-		audit_msg(LOG_ERR, "num_logs must be 99 or less");
-		return 1;
-	}
-	config->num_logs = i;
-	return 0;
-}
-
-static int log_format_parser(const char *val, int line, 
-		struct daemon_conf *config)
-{
-	int i;
-
-	for (i=0; log_formats[i].name != NULL; i++) {
-		if (strcasecmp(val, log_formats[i].name) == 0) {
-			config->log_format = log_formats[i].option;
-			return 0;
-		}
-	}
-	audit_msg(LOG_ERR, "Option %s not found - line %d", val, line);
-	return 1;
 }
 
 void free_config(struct daemon_conf *config)

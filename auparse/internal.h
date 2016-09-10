@@ -1,5 +1,5 @@
 /* internal.h -- 
- * Copyright 2006-07,2013-14 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2006-07,2013-16 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -150,13 +150,15 @@ struct opaque
 				// events we hold at any point in time. Thus
 				// we don't have to scan the list
 	auparse_esc_t escape_mode;
+	message_t message_mode;		// Where to send error messages
+	debug_message_t debug_message;	// Whether or not messages are debug or not
 };
 
 AUDIT_HIDDEN_START
 
 // auditd-config.c
 void clear_config(struct daemon_conf *config);
-int load_config(struct daemon_conf *config, log_test_t lt);
+int aup_load_config(auparse_state_t *au, struct daemon_conf *config, log_test_t lt);
 void free_config(struct daemon_conf *config);
 
 AUDIT_HIDDEN_END

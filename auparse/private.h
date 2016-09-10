@@ -31,14 +31,15 @@ AUDIT_HIDDEN_START
 /* Internal syslog messaging */
 #define audit_msg auparse_msg
 #define set_aumessage_mode set_aup_message_mode
-void auparse_msg(int priority, const char *fmt, ...) 
+void auparse_msg(auparse_state_t *au, int priority, const char *fmt, ...) 
 #ifdef __GNUC__
-        __attribute__ ((format (printf, 2, 3)));
+        __attribute__ ((format (printf, 3, 4)));
 #else
         ;
 #endif
 
-void set_aup_message_mode(message_t mode, debug_message_t debug); 
+void set_aup_message_mode(auparse_state_t *au, message_t mode,
+		debug_message_t debug); 
 char *audit_strsplit_r(char *s, char **savedpp);
 char *audit_strsplit(char *s);
 

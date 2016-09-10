@@ -139,7 +139,6 @@ int main(int argc, char **argv)
     int i;
     /* Argument parsing */
     while (1) {
-        int this_option_optind = optind ? optind : 1;
         int option_index = 0;
         int c;
         static struct option long_options[] = {

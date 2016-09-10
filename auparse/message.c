@@ -25,30 +25,29 @@
 #include <stdarg.h>
 #include "libaudit.h"
 #include "private.h"
+#include "internal.h"
 
 /* The message mode refers to where informational messages go
    0 - stderr, 1 - syslog, 2 - quiet. The default is quiet. */
-static message_t message_mode = MSG_QUIET;
-static debug_message_t debug_message = DBG_NO;
-
-void set_aumessage_mode(message_t mode, debug_message_t debug)
+void set_aumessage_mode(auparse_state_t *au, message_t mode,
+	debug_message_t debug)
 {
-        message_mode = mode;
-	debug_message = debug;
+        au->message_mode = mode;
+	au->debug_message = debug;
 }
 
-void audit_msg(int priority, const char *fmt, ...)
+void audit_msg(auparse_state_t *au, int priority, const char *fmt, ...)
 {
         va_list   ap;
 
-	if (message_mode == MSG_QUIET)
+	if (au->message_mode == MSG_QUIET)
 		return;
 
-	if (priority == LOG_DEBUG && debug_message == DBG_NO)
+	if (priority == LOG_DEBUG && au->debug_message == DBG_NO)
 		return;
 
         va_start(ap, fmt);
-        if (message_mode == MSG_SYSLOG)
+        if (au->message_mode == MSG_SYSLOG)
                 vsyslog(priority, fmt, ap);
         else {
                 vfprintf(stderr, fmt, ap);

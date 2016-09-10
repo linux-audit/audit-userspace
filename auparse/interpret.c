@@ -119,6 +119,8 @@ typedef enum { S_UNSET=-1, S_FAILED, S_SUCCESS } success_t;
 
 static char *print_escaped(const char *val);
 static const char *print_signals(const char *val, unsigned int base);
+
+// FIXME: move next two declarations to auparse_state_t
 static auparse_esc_t escape_mode = AUPARSE_ESC_TTY;
 static nvlist il;  // Interpretations list
 

@@ -26,6 +26,7 @@
 #include "auparse.h"
 #include "interpret.h"
 #include "auparse-idata.h"
+#include "libaudit.h"
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
@@ -58,8 +59,8 @@ static int setup_log_file_array(auparse_state_t *au)
         int len, num = 0, i = 0;
 
         /* Load config so we know where logs are */
-	set_aumessage_mode(MSG_STDERR, DBG_NO);
-	load_config(&config, TEST_SEARCH);
+	set_aumessage_mode(au, MSG_STDERR, DBG_NO);
+	aup_load_config(au, &config, TEST_SEARCH);
 
 	/* for each file */
 	len = strlen(config.log_file) + 16;
@@ -512,6 +513,8 @@ auparse_state_t *auparse_init(ausource_t source, const void *b)
 	au->find_field = NULL;
 	au->search_where = AUSEARCH_STOP_EVENT;
 	au->escape_mode = AUPARSE_ESC_TTY;
+	au->message_mode = MSG_QUIET;
+	au->debug_message = DBG_NO;
 
 	return au;
 bad_exit:
