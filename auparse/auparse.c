@@ -299,7 +299,7 @@ static void au_check_events(auparse_state_t *au, time_t sec)
  * Rtns:
  *  void
  */
-void au_terminate_all_events(auparse_state_t *au)
+static void au_terminate_all_events(auparse_state_t *au)
 {
         int i;
 	au_lol *lol = au->au_lo;
