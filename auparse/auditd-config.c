@@ -28,7 +28,6 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/stat.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <libgen.h>
@@ -45,7 +44,8 @@ struct _pair
 struct kw_pair 
 {
 	const char *name;
-	int (*parser)(auparse_state_t *, const char *, int, struct daemon_conf *);
+	int (*parser)(auparse_state_t *, const char *, int,
+						struct daemon_conf *);
 };
 
 struct nv_list
@@ -54,8 +54,8 @@ struct nv_list
 	int option;
 };
 
-static char *get_line(auparse_state_t *au, FILE *f, char *buf, unsigned size, int *lineno,
-	const char *file);
+static char *get_line(auparse_state_t *au, FILE *f, char *buf, unsigned size,
+	int *lineno, const char *file);
 static int nv_split(char *buf, struct _pair *nv);
 static const struct kw_pair *kw_lookup(const char *val);
 static int log_file_parser(auparse_state_t *au, const char *val, int line, 
@@ -63,8 +63,8 @@ static int log_file_parser(auparse_state_t *au, const char *val, int line,
 
 static const struct kw_pair keywords[] = 
 {
-  {"log_file",                 log_file_parser },
-  { NULL,                      NULL }
+  {"log_file",		log_file_parser },
+  { NULL,		NULL }
 };
 
 /*
@@ -93,7 +93,7 @@ void clear_config(struct daemon_conf *config)
 	config->space_left = 0L;
 	config->space_left_action = FA_IGNORE;
 	config->space_left_exe = NULL;
-	config->action_mail_acct = strdup("root");
+	config->action_mail_acct = NULL;
 	config->admin_space_left= 0L;
 	config->admin_space_left_action = FA_IGNORE;
 	config->admin_space_left_exe = NULL;
@@ -103,10 +103,10 @@ void clear_config(struct daemon_conf *config)
 	config->disk_error_exe = NULL;
 }
 
-int aup_load_config(auparse_state_t *au, struct daemon_conf *config, log_test_t lt)
+int aup_load_config(auparse_state_t *au, struct daemon_conf *config,
+		log_test_t lt)
 {
-	int fd, rc, lineno = 1;
-	struct stat st;
+	int fd, lineno = 1;
 	FILE *f;
 	char buf[160];
 
@@ -114,8 +114,8 @@ int aup_load_config(auparse_state_t *au, struct daemon_conf *config, log_test_t 
 	lt = lt;
 
 	/* open the file */
-	rc = open(CONFIG_FILE, O_RDONLY|O_NOFOLLOW);
-	if (rc < 0) {
+	fd = open(CONFIG_FILE, O_RDONLY|O_NOFOLLOW);
+	if (fd < 0) {
 		if (errno != ENOENT) {
 			audit_msg(au, LOG_ERR, "Error opening config file (%s)", 
 				strerror(errno));
@@ -125,31 +125,8 @@ int aup_load_config(auparse_state_t *au, struct daemon_conf *config, log_test_t 
 			"Config file %s doesn't exist, skipping", CONFIG_FILE);
 		return 0;
 	}
-	fd = rc;
 
-	/* check the file's permissions: owned by root, not world writable,
-	 * not symlink.
-	 */
-	if (fstat(fd, &st) < 0) {
-		audit_msg(au, LOG_ERR, "Error fstat'ing config file (%s)", 
-			strerror(errno));
-		close(fd);
-		return 1;
-	}
-	if (st.st_uid != 0) {
-		audit_msg(au, LOG_ERR, "Error - %s isn't owned by root", 
-			CONFIG_FILE);
-		close(fd);
-		return 1;
-	}
-	if (!S_ISREG(st.st_mode)) {
-		audit_msg(au, LOG_ERR, "Error - %s is not a regular file", 
-			CONFIG_FILE);
-		close(fd);
-		return 1;
-	}
-
-	/* it's ok, read line by line */
+	/* Make into FILE struct and read line by line */
 	f = fdopen(fd, "rm");
 	if (f == NULL) {
 		audit_msg(au, LOG_ERR, "Error - fdopen failed (%s)", 
@@ -162,7 +139,7 @@ int aup_load_config(auparse_state_t *au, struct daemon_conf *config, log_test_t 
 		// convert line into name-value pair
 		const struct kw_pair *kw;
 		struct _pair nv;
-		rc = nv_split(buf, &nv);
+		int rc = nv_split(buf, &nv);
 		switch (rc) {
 			case 0: // fine
 				break;
@@ -212,8 +189,8 @@ int aup_load_config(auparse_state_t *au, struct daemon_conf *config, log_test_t 
 	return 0;
 }
 
-static char *get_line(auparse_state_t *au, FILE *f, char *buf, unsigned size, int *lineno,
-	const char *file)
+static char *get_line(auparse_state_t *au, FILE *f, char *buf, unsigned size,
+		int *lineno, const char *file)
 {
 	int too_long = 0;
 
@@ -298,7 +275,6 @@ static int log_file_parser(auparse_state_t *au, const char *val, int line,
 	char *dir = NULL, *tdir, *base;
 	DIR *d;
 	int fd, mode;
-	struct stat buf;
 
 	/* split name into dir and basename. */
 	tdir = strdup(val);
@@ -314,8 +290,8 @@ static int log_file_parser(auparse_state_t *au, const char *val, int line,
 
 	base = basename((char *)val);
 	if (base == 0 || strlen(base) == 0) {
-		audit_msg(au, LOG_ERR, "The file name: %s is too short - line %d", 
-			base, line);
+		audit_msg(au, LOG_ERR,
+			"The file name: %s is too short - line %d", base, line);
 		free((void *)tdir);
 		return 1;
 	}
@@ -331,40 +307,15 @@ static int log_file_parser(auparse_state_t *au, const char *val, int line,
 	free((void *)tdir);
 	closedir(d);
 
-	/* if the file exists, see that its regular, owned by root, 
-	 * and not world anything */
+	/* Verify the log file can be opened. */
 	mode = O_RDONLY;
-
 	fd = open(val, mode);
 	if (fd < 0) {
 		audit_msg(au, LOG_ERR, "Unable to open %s (%s)", val, 
 					strerror(errno));
 		return 1;
 	}
-	if (fstat(fd, &buf) < 0) {
-		audit_msg(au, LOG_ERR, "Unable to stat %s (%s)", 
-					val, strerror(errno));
-		close(fd);
-		return 1;
-	}
 	close(fd);
-	if (!S_ISREG(buf.st_mode)) {
-		audit_msg(au, LOG_ERR, "%s is not a regular file", val);
-		return 1;
-	}
-	if (buf.st_uid != 0) {
-		audit_msg(au, LOG_ERR, "%s is not owned by root", val);
-		return 1;
-	}
-	if ( (buf.st_mode & (S_IXUSR|S_IWGRP|S_IXGRP|S_IRWXO)) ) {
-		audit_msg(au, LOG_ERR, "%s permissions should be 0600 or 0640",
-				val);
-		return 1;
-	}
-	if ( !(buf.st_mode & S_IWUSR) ) {
-		audit_msg(au, LOG_ERR, "audit log is not writable by owner");
-		return 1;
-	}
 
 	free((void *)config->log_file);
 	config->log_file = strdup(val);
@@ -375,14 +326,6 @@ static int log_file_parser(auparse_state_t *au, const char *val, int line,
 
 void free_config(struct daemon_conf *config)
 {
-	free((void*)config->sender_ctx);
 	free((void*)config->log_file);
-	free((void*)config->dispatcher);
-	free((void *)config->node_name);
-	free((void *)config->action_mail_acct);
-	free((void *)config->space_left_exe);
-	free((void *)config->admin_space_left_exe);
-	free((void *)config->disk_full_exe);
-	free((void *)config->disk_error_exe);
 }
 

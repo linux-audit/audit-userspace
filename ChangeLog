@@ -1,4 +1,5 @@
 2.7
+- Remove config file permission checks in auparse
 
 2.6.7
 - Non-active log files should be read only
