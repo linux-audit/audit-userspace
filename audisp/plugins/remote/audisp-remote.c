@@ -1132,28 +1132,37 @@ static int ar_write (int sk, const void *buf, int len)
 	return rc;
 }
 
+// Returns positive number on success, -1 on failure
 static int ar_read (int sk, void *buf, int len)
 {
 	int rc = 0, r, timeout = config.max_time_per_record * 1000;
 	struct pollfd pfd;
 
-	pfd.fd=sk;
-	pfd.events=POLLIN | POLLPRI | POLLHUP | POLLERR | POLLNVAL;
+	errno = 0;
+	pfd.fd = sk;
+	pfd.events = POLLIN | POLLPRI | POLLHUP | POLLERR | POLLNVAL;
 	while (len > 0) {
 		do {
-			// reads can hang if cable is disconnected
+			// Reads can hang if cable is disconnected
 			int prc = poll(&pfd, (nfds_t) 1, timeout);
 			if (prc <= 0)
 				return -1;
 			r = read(sk, buf, len);
 		} while (r < 0 && errno == EINTR);
 		if (r < 0) {
+			// This means real network problem happened
 			if (errno == EPIPE)
 				stop_sock();
 			return r;
 		}
-		if (r == 0)
+		if (r == 0) {
+			// If errno == 0, remote end closed socket normally
+			if (errno == 0) {
+				stop_sock();
+				remote_ended = 1;
+			}
 			break;
+		}
 		rc += r;
 		buf = (void *)((char *)buf + r);
 		len -= r;
@@ -1289,6 +1298,7 @@ static int send_msg_tcp (unsigned char *header, const char *msg, uint32_t mlen)
 	return 0;
 }
 
+// Returns 0 on success and -1 on failure
 static int recv_msg_tcp (unsigned char *header, char *msg, uint32_t *mlen)
 {
 	int hver, mver, rc;
