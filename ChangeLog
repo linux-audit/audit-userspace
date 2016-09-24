@@ -1,6 +1,7 @@
 2.7
 - Remove config file permission checks in auparse
 - Audisp-remote should detect normal socket close and mark remote_ended
+- Allow auditctl to list rules if no capabilities but root euid
 
 2.6.7
 - Non-active log files should be read only

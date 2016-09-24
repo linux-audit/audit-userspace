@@ -1321,7 +1321,9 @@ int main(int argc, char *argv[])
 #ifndef DEBUG
 	/* Make sure we are root if we do anything except help */
 	if (!(argc == 2 && (strcmp(argv[1], "--help")==0 ||
-			strcmp(argv[1], "-h") == 0)) && !audit_can_control()) {
+			strcmp(argv[1], "-h") == 0 ||
+			(strcmp(argv[1], "-l") == 0 && geteuid() == 0))) &&
+			!audit_can_control()) {
 		audit_msg(LOG_WARNING, "You must be root to run this program.");
 		return 4;
 	}
