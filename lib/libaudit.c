@@ -891,7 +891,7 @@ int audit_rule_syscall_data(struct audit_rule_data *rule, int scall)
 	int word = AUDIT_WORD(scall);
 	int bit  = AUDIT_BIT(scall);
 
-	if (word >= (AUDIT_BITMASK_SIZE-1)) 
+	if (word > (AUDIT_BITMASK_SIZE-1)) 
 		return -1;
 	rule->mask[word] |= bit;
 	return 0;
@@ -904,7 +904,7 @@ int audit_rule_syscallbyname_data(struct audit_rule_data *rule,
 	int machine;
 
 	if (!strcmp(scall, "all")) {
-		for (i = 0; i < (AUDIT_BITMASK_SIZE-1); i++) 
+		for (i = 0; i < AUDIT_BITMASK_SIZE; i++) 
 			rule->mask[i] = ~0;
 		return 0;
 	}
