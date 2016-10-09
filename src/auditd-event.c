@@ -48,6 +48,8 @@
 extern volatile int stop;
 
 /* Local function prototypes */
+static void send_ack(const struct auditd_event *e, int ack_type,
+			const char *msg);
 static void write_to_log(const struct auditd_event *e);
 static void check_log_file_size(void);
 static void check_space_left(void);
@@ -535,7 +537,7 @@ void handle_event(struct auditd_event *e)
 			}
 		}
 	} else  // FIXME: When logging is suspended, what should remote do?
-		send_ack(e, AUDIT_RMW_TYPE_ACK, msg);
+		send_ack(e, AUDIT_RMW_TYPE_ACK, "");
 }
 
 static void send_ack(const struct auditd_event *e, int ack_type,
