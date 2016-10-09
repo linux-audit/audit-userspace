@@ -841,8 +841,7 @@ static int log_format_parser(struct nv_pair *nv, int line,
 			if (config->log_format == LF_NOLOG) {
 				audit_msg(LOG_WARNING,
 				    "The NOLOG option to log_format is deprecated. Please use the write_logs option.");
-				if (config->log_format == LF_NOLOG &&
-					config->write_logs != 0)
+				if (config->write_logs != 0)
 					audit_msg(LOG_WARNING,
 					    "The NOLOG option is overriding the write_logs current setting.");
 				config->write_logs = 0;

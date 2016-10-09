@@ -493,7 +493,7 @@ void handle_event(struct auditd_event *e)
 		if (config->write_logs == 0)
 			return;
 	}
-	if (!logging_suspended) {
+	if (!logging_suspended && config->write_logs) {
 		write_to_log(e);
 
 		/* See if we need to flush to disk manually */
@@ -534,7 +534,8 @@ void handle_event(struct auditd_event *e)
 				}
 			}
 		}
-	}
+	} else  // FIXME: When logging is suspended, what should remote do?
+		send_ack(e, AUDIT_RMW_TYPE_ACK, msg);
 }
 
 static void send_ack(const struct auditd_event *e, int ack_type,
