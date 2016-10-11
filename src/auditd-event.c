@@ -536,8 +536,10 @@ void handle_event(struct auditd_event *e)
 				}
 			}
 		}
-	} else  // FIXME: When logging is suspended, what should remote do?
+	} else if (!config->write_logs)
 		send_ack(e, AUDIT_RMW_TYPE_ACK, "");
+	// FIXME: When logging is suspended, what should remote do?
+	// Should probably be new response type
 }
 
 static void send_ack(const struct auditd_event *e, int ack_type,
