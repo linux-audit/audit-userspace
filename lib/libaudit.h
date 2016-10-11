@@ -278,6 +278,9 @@ extern "C" {
 #ifndef AUDIT_FEATURE_BITMAP_EXECUTABLE_PATH
 #define AUDIT_FEATURE_BITMAP_EXECUTABLE_PATH    0x00000004
 #endif
+#ifndef AUDIT_FEATURE_BITMAP_EXCLUDE_EXTEND
+#define AUDIT_FEATURE_BITMAP_EXCLUDE_EXTEND     0x00000008
+#endif
 
 /* Defines for interfield comparison update */
 #ifndef AUDIT_OBJ_UID

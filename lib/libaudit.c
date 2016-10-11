@@ -1399,9 +1399,30 @@ int audit_rule_fieldpair_data(struct audit_rule_data **rulep, const char *pair,
 	if ((field = audit_name_to_field(f)) < 0) 
 		return -2;
 
-	/* Exclude filter can be used only with MSGTYPE field */
-	if (flags == AUDIT_FILTER_EXCLUDE && field != AUDIT_MSGTYPE)
-		return -12; 
+	/* Exclude filter can be used only with MSGTYPE and cred fields */
+	if (flags == AUDIT_FILTER_EXCLUDE) {
+		uint32_t features = audit_get_features();
+		if ((features & AUDIT_FEATURE_BITMAP_EXCLUDE_EXTEND) == 0) {
+			if (field != AUDIT_MSGTYPE)
+				return -30;
+		} else {
+			switch(field) {
+				case AUDIT_PID:
+				case AUDIT_UID:
+				case AUDIT_GID:
+				case AUDIT_LOGINUID:
+				case AUDIT_MSGTYPE:
+				case AUDIT_SUBJ_USER:
+				case AUDIT_SUBJ_ROLE:
+				case AUDIT_SUBJ_TYPE:
+				case AUDIT_SUBJ_SEN:
+				case AUDIT_SUBJ_CLR:
+					break;
+				default:
+					return -12;
+			}
+		}
+	}
 
 	rule->fields[rule->field_count] = field;
 	rule->fieldflags[rule->field_count] = op;

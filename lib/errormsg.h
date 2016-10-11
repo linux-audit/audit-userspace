@@ -47,7 +47,7 @@ static const struct msg_tab err_msgtab[] = {
     { -9,    0,    "msgtype field can only be used with exclude filter list" },
     { -10,    0,    "Failed upgrading rule" },
     { -11,    0,    "String value too long" },
-    { -12,    0,    "Only msgtype field can be used with exclude filter" },
+    { -12,    0,    "Only msgtype, *uid, *gid, pid, and subj* fields can be used with exclude filter" },
     { -13,    1,    "only takes = or != operators" },
     { -14,    0,    "Permission can only contain  \'rwxa\'" },
     { -15,    2,    "-F unknown errno -"},

@@ -4,6 +4,7 @@
 - Allow auditctl to list rules if no capabilities but root euid
 - In libaudit, use the last word of the syscall bit mask
 - In auditd, write_logs option was not correctly handled (#1382397)
+- In libaudit, allow filtering on new exclude filter fields (Richard Guy Briggs)
 
 2.6.7
 - Non-active log files should be read only
