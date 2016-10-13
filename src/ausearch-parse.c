@@ -352,6 +352,8 @@ static int parse_task_info(lnode *n, search_items *s)
 			if (term == NULL)
 				return 34;
 			*term = 0;
+			if (s->terminal) // ANOM_NETLINK has one
+				free(s->terminal);
 			s->terminal = strdup(str);
 			*term = ' ';
 		}
@@ -405,6 +407,8 @@ static int parse_task_info(lnode *n, search_items *s)
 				if (term == NULL)
 					return 39;
 				*term = 0;
+				if (s->exe) // ANOM_NETLINK has one
+					free(s->exe);
 				s->exe = strdup(str);
 				*term = '"';
 			} else 
