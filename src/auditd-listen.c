@@ -886,6 +886,7 @@ static void periodic_handler(struct ev_loop *loop, struct ev_periodic *per,
 		return;
 
 	for (ev = client_chain; ev; ev = next) {
+		next = ev->next;
 		active = ev->client_active;
 		ev->client_active = 0;
 		if (active)
@@ -896,7 +897,6 @@ static void periodic_handler(struct ev_loop *loop, struct ev_periodic *per,
 			sockaddr_to_addr4(&(ev->addr)));
 		ev_io_stop (loop, &ev->io);
 		release_client(ev);
-		next = ev->next;
 		free(ev);
 	}
 }
