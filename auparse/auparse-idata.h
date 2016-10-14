@@ -39,14 +39,11 @@ typedef struct _idata {
 
 
 int auparse_interp_adjust_type(int rtype, const char *name, const char *val);
-char *auparse_do_interpretation(int type, const idata *id);
+char *auparse_do_interpretation(int type, const idata *id,
+	auparse_esc_t escape_mode);
 void _auparse_load_interpretations(const char *buf);
 void _auparse_free_interpretations(void);
 const char *_auparse_lookup_interpretation(const char *name);
-
-AUDIT_HIDDEN_START
-int set_escape_mode(auparse_esc_t mode);
-AUDIT_HIDDEN_END
 
 #endif
 

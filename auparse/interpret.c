@@ -120,8 +120,7 @@ typedef enum { S_UNSET=-1, S_FAILED, S_SUCCESS } success_t;
 static char *print_escaped(const char *val);
 static const char *print_signals(const char *val, unsigned int base);
 
-// FIXME: move next two declarations to auparse_state_t
-static auparse_esc_t escape_mode = AUPARSE_ESC_TTY;
+// FIXME: move next declaration to auparse_state_t
 static nvlist il;  // Interpretations list
 
 /*
@@ -240,7 +239,8 @@ static void shell_quote_escape(const char *s, char *dest, unsigned int len)
 }
 
 /* This should return the count of what needs escaping */
-static unsigned int need_escaping(const char *s, unsigned int len)
+static unsigned int need_escaping(const char *s, unsigned int len,
+	auparse_esc_t escape_mode)
 {
 	switch (escape_mode)
 	{
@@ -256,7 +256,8 @@ static unsigned int need_escaping(const char *s, unsigned int len)
 	return 0;
 }
 
-static void escape(const char *s, char *dest, unsigned int len)
+static void escape(const char *s, char *dest, unsigned int len,
+	auparse_esc_t escape_mode)
 {
 	switch (escape_mode)
 	{
@@ -271,7 +272,7 @@ static void escape(const char *s, char *dest, unsigned int len)
 	}
 }
 
-static void key_escape(char *orig, char *dest)
+static void key_escape(char *orig, char *dest, auparse_esc_t escape_mode)
 {
 	const char *optr = orig;
 	char *str, *dptr = dest, tmp;
@@ -284,11 +285,11 @@ static void key_escape(char *orig, char *dest)
 		klen = str - optr;
 		tmp = *str;
 		*str = 0;
-		cnt = need_escaping(optr, klen);
+		cnt = need_escaping(optr, klen, escape_mode);
 		if (cnt == 0)
 			dptr = stpcpy(dptr, optr);
 		else {
-			escape(optr, dptr, klen);
+			escape(optr, dptr, klen, escape_mode);
 			dptr = strchr(dest, 0);
 			if (dptr == NULL)
 				return; // Something is really messed up
@@ -303,14 +304,6 @@ static void key_escape(char *orig, char *dest)
 			dptr++;
 		}
 	}
-}
-
-int set_escape_mode(auparse_esc_t mode)
-{
-	if (mode < 0 || mode > AUPARSE_ESC_SHELL_QUOTE)
-		return 1;
-	escape_mode = mode;
-	return 0;
 }
 
 static int is_hex_string(const char *str)
@@ -2703,7 +2696,7 @@ int lookup_type(const char *name)
  * This is the main entry point for the auparse library. Call chain is:
  * auparse_interpret_field -> nvlist_interp_cur_val -> interpret
  */
-const char *interpret(const rnode *r)
+const char *interpret(const rnode *r, auparse_esc_t escape_mode)
 {
 	const nvlist *nv = &r->nv;
 	int type;
@@ -2719,7 +2712,7 @@ const char *interpret(const rnode *r)
 	id.val = nvlist_get_cur_val(nv);
 	type = auparse_interp_adjust_type(r->type, id.name, id.val);
 
-	out = auparse_do_interpretation(type, &id);
+	out = auparse_do_interpretation(type, &id, escape_mode);
 	n = nvlist_get_cur(nv);
 	n->interp_val = (char *)out;
 
@@ -2775,7 +2768,8 @@ int auparse_interp_adjust_type(int rtype, const char *name, const char *val)
  * This can be called by either interpret() or from ausearch-report or
  * auditctl-listing.c. Returns a malloc'ed buffer that the caller must free.
  */
-char *auparse_do_interpretation(int type, const idata *id)
+char *auparse_do_interpretation(int type, const idata *id,
+	auparse_esc_t escape_mode)
 {
 	const char *out;
 
@@ -2922,11 +2916,11 @@ char *auparse_do_interpretation(int type, const idata *id)
 		}
 		if (str == NULL) {
 			// This is the normal path
-			unsigned int cnt = need_escaping(out, len);
+			unsigned int cnt = need_escaping(out, len, escape_mode);
 			if (cnt) {
 				char *dest = malloc(len + 1 + (3*cnt));
 				if (dest)
-					escape(out, dest, len);
+					escape(out, dest, len, escape_mode);
 				free((void *)out);
 				out = dest;
 			}
@@ -2939,7 +2933,7 @@ char *auparse_do_interpretation(int type, const idata *id)
 				unsigned int klen = str - ptr;
 				char tmp = *str;
 				*str = 0;
-				cnt += need_escaping(ptr, klen);
+				cnt += need_escaping(ptr, klen, escape_mode);
 				*str = tmp;
 				ptr = str;
 				// If we are not at the end...
@@ -2958,7 +2952,7 @@ char *auparse_do_interpretation(int type, const idata *id)
 				// actually put a control character in a key.
 				char *dest = malloc(len + 1 + (3*cnt));
 				if (dest)
-					key_escape(out, dest);
+					key_escape(out, dest, escape_mode);
 				free((void *)out);
 				out = dest;
 			}

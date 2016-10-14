@@ -612,7 +612,6 @@ void auparse_feed_age_events(auparse_state_t *au)
 
 void auparse_set_escape_mode(auparse_state_t *au, auparse_esc_t mode)
 {
-	set_escape_mode(mode);
 	if (au == NULL)
 		return;
 	au->escape_mode = mode;
@@ -1842,7 +1841,7 @@ const char *auparse_interpret_field(auparse_state_t *au)
         if (au->le->e.sec) {
                 rnode *r = aup_list_get_cur(au->le);
                 if (r)
-                        return nvlist_interp_cur_val(r);
+                        return nvlist_interp_cur_val(r, au->escape_mode);
         }
 	return NULL;
 }

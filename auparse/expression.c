@@ -1,6 +1,6 @@
 /*
 * expression.c - Expression parsing and handling
-* Copyright (C) 2008,2014 Red Hat Inc., Durham, North Carolina.
+* Copyright (C) 2008,2014,2016 Red Hat Inc., Durham, North Carolina.
 * All Rights Reserved.
 *
 * This library is free software; you can redistribute it and/or
@@ -947,7 +947,7 @@ eval_interpreted_value(auparse_state_t *au, rnode *record,
 		if (nvlist_find_name(&record->nv, expr->v.p.field.name) == 0)
 			return NULL;
 		*free_it = 0;
-		res = nvlist_interp_cur_val(record);
+		res = nvlist_interp_cur_val(record, au->escape_mode);
 		if (res == NULL)
 			res = nvlist_get_cur_val(&record->nv);
 		return (char *)res;

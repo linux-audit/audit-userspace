@@ -35,7 +35,7 @@ void init_interpretation_list(void);
 int load_interpretation_list(const char *buf);
 void free_interpretation_list(void);
 int lookup_type(const char *name);
-const char *interpret(const rnode *r);
+const char *interpret(const rnode *r, auparse_esc_t escape_mode);
 void aulookup_destroy_uid_list(void);
 void aulookup_destroy_gid_list(void);
 char *au_unescape(char *buf);

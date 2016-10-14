@@ -1,6 +1,6 @@
 /*
 * nvlist.c - Minimal linked list library for name-value pairs
-* Copyright (c) 2006-07 Red Hat Inc., Durham, North Carolina.
+* Copyright (c) 2006-07,2016 Red Hat Inc., Durham, North Carolina.
 * All Rights Reserved. 
 *
 * This library is free software; you can redistribute it and/or
@@ -120,12 +120,12 @@ int nvlist_get_cur_type(const rnode *r)
 	return auparse_interp_adjust_type(r->type, l->cur->name, l->cur->val);
 }
 
-const char *nvlist_interp_cur_val(const rnode *r)
+const char *nvlist_interp_cur_val(const rnode *r, auparse_esc_t escape_mode)
 {
 	const nvlist *l = &r->nv;
 	if (l->cur->interp_val)
 		return l->cur->interp_val;
-	return interpret(r);
+	return interpret(r, escape_mode);
 }
 
 void nvlist_clear(nvlist* l)

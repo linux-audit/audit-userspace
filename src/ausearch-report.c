@@ -356,7 +356,7 @@ static void interpret(char *name, char *val, int comma, int rtype)
 	id.name = name;
 	id.val = val;
 
-	char *out = auparse_do_interpretation(type, &id);
+	char *out = auparse_do_interpretation(type, &id, AUPARSE_ESC_TTY);
 	if (type == AUPARSE_TYPE_UNCLASSIFIED)
 		printf("%s%c", val, comma ? ',' : ' ');
 	else if (name[0] == 'k' && strcmp(name, "key") == 0) {

@@ -427,7 +427,8 @@ static void print_rule(const struct audit_rule_data *r)
 					type = auparse_interp_adjust_type(
 						AUDIT_SYSCALL, name, val);
 					out = auparse_do_interpretation(type,
-								 &id);
+							&id,
+							AUPARSE_ESC_TTY);
 					printf(" -F %s%s%s", name,
 						audit_operator_to_symbol(op),
 								out);

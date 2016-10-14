@@ -1,8 +1,6 @@
 Things that need to be done:
 ===========================
 2.7
-* Update libev to 4.22
-* Update auparse_set_escape_mode to use the auparse_state_t pointer
 * Fix audit.pc.in to use Requires.private
 * Add sockaddr accessor functions in auparse
 * Add a realpath variant accessor that resolves whole path

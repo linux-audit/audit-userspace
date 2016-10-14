@@ -6,6 +6,7 @@
 - In auditd, write_logs option was not correctly handled (#1382397)
 - In libaudit, allow filtering on new exclude filter fields (Richard Guy Briggs)
 - In auditd, fix looping when checking active connections
+- In auparse, the auparse_state_t pointer to keep escape_mode information
 
 2.6.7
 - Non-active log files should be read only
