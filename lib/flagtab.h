@@ -1,5 +1,5 @@
 /* flagtab.h --
- * Copyright 2005,2006 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2005,2006, 2016 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -20,7 +20,6 @@
  *      Steve Grubb <sgrubb@redhat.com>
  */
 _S(AUDIT_FILTER_TASK,    "task"     )
-_S(AUDIT_FILTER_ENTRY,   "entry"    )
 _S(AUDIT_FILTER_EXIT,    "exit"     )
 _S(AUDIT_FILTER_USER,    "user"     )
 _S(AUDIT_FILTER_EXCLUDE, "exclude"  )

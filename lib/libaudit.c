@@ -738,10 +738,6 @@ int audit_add_rule_data(int fd, struct audit_rule_data *rule,
 {
 	int rc;
 
-	if (flags == AUDIT_FILTER_ENTRY) {
-		audit_msg(LOG_WARNING, "Use of entry filter is deprecated");
-		return -2;
-	}
 	rule->flags  = flags;
 	rule->action = action;
 	rc = audit_send(fd, AUDIT_ADD_RULE, rule, 
@@ -759,10 +755,6 @@ int audit_delete_rule_data(int fd, struct audit_rule_data *rule,
 {
 	int rc;
 
-	if (flags == AUDIT_FILTER_ENTRY) {
-		audit_msg(LOG_WARNING, "Use of entry filter is deprecated");
-		return -2;
-	}
 	rule->flags  = flags;
 	rule->action = action;
 	rc = audit_send(fd, AUDIT_DEL_RULE, rule, 
@@ -1627,8 +1619,7 @@ int audit_rule_fieldpair_data(struct audit_rule_data **rulep, const char *pair,
 			}
 			break;
 		case AUDIT_FILETYPE:
-			if (!(flags == AUDIT_FILTER_EXIT ||
-						flags == AUDIT_FILTER_ENTRY))
+			if (!(flags == AUDIT_FILTER_EXIT))
 				return -17;
 			rule->values[rule->field_count] = 
 				audit_name_to_ftype(v);
@@ -1680,8 +1671,7 @@ int audit_rule_fieldpair_data(struct audit_rule_data **rulep, const char *pair,
 					return -13;
 			}
 
-			if (field == AUDIT_PPID && !(flags == AUDIT_FILTER_EXIT
-				|| flags == AUDIT_FILTER_ENTRY))
+			if (field == AUDIT_PPID && !(flags==AUDIT_FILTER_EXIT))
 				return -17;
 			
 			if (!isdigit((char)*(v)))

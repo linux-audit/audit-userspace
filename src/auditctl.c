@@ -143,8 +143,6 @@ static int lookup_filter(const char *str, int *filter)
 {
 	if (strcmp(str, "task") == 0) 
 		*filter = AUDIT_FILTER_TASK;
-	else if (strcmp(str, "entry") == 0)
-		*filter = AUDIT_FILTER_ENTRY;
 	else if (strcmp(str, "exit") == 0)
 		*filter = AUDIT_FILTER_EXIT;
 	else if (strcmp(str, "user") == 0)
@@ -212,16 +210,6 @@ static int audit_rule_setup(char *opt, int *filter, int *act, int lineno)
 	/* Make sure we set both */
 	if (*filter == AUDIT_FILTER_UNSET || *act == -1)
 		return 2;
-
-	/* Consolidate rules on exit filter */
-	if (*filter == AUDIT_FILTER_ENTRY) {
-		*filter = AUDIT_FILTER_EXIT;
-		if (lineno)
-			audit_msg(LOG_INFO, "Warning - entry rules deprecated, changing to exit rule in line %d", lineno);
-		else
-			audit_msg(LOG_INFO,
-		    "Warning - entry rules deprecated, changing to exit rule");
-	}
 
 	return 0;
 }
