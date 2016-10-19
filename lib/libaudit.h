@@ -281,6 +281,9 @@ extern "C" {
 #ifndef AUDIT_FEATURE_BITMAP_EXCLUDE_EXTEND
 #define AUDIT_FEATURE_BITMAP_EXCLUDE_EXTEND     0x00000008
 #endif
+#ifndef AUDIT_FEATURE_BITMAP_SESSIONID_FILTER
+#define AUDIT_FEATURE_BITMAP_SESSIONID_FILTER   0x00000010
+#endif
 
 /* Defines for interfield comparison update */
 #ifndef AUDIT_OBJ_UID
@@ -294,6 +297,10 @@ extern "C" {
 #endif
 #ifndef AUDIT_EXE
 #define AUDIT_EXE 112
+#endif
+
+#ifndef AUDIT_SESSIONID
+#define AUDIT_SESSIONID 25
 #endif
 
 #ifndef AUDIT_COMPARE_UID_TO_OBJ_UID

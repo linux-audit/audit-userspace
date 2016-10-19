@@ -1648,6 +1648,26 @@ int audit_rule_fieldpair_data(struct audit_rule_data **rulep, const char *pair,
 			else 
 				return -21;
 			break;
+		case AUDIT_SESSIONID:
+			if ((audit_get_features() &
+				AUDIT_FEATURE_BITMAP_SESSIONID_FILTER) == 0)
+				return -30;
+			if (flags != AUDIT_FILTER_EXCLUDE &&
+			    flags != AUDIT_FILTER_USER &&
+			    flags != AUDIT_FILTER_EXIT)
+				return -31;
+			// Do positive & negative separate for 32 bit systems
+			vlen = strlen(v);
+			if (isdigit((char)*(v))) 
+				rule->values[rule->field_count] = 
+					strtoul(v, NULL, 0);
+			else if (vlen >= 2 && *(v)=='-' &&
+						(isdigit((char)*(v+1))))
+				rule->values[rule->field_count] =
+					strtol(v, NULL, 0);
+			else if (strcmp(v, "unset") == 0)
+				rule->values[rule->field_count] = 4294967295;
+			break;
 		case AUDIT_DEVMAJOR...AUDIT_INODE:
 		case AUDIT_SUCCESS:
 			if (flags != AUDIT_FILTER_EXIT)

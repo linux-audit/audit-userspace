@@ -1,13 +1,13 @@
 Things that need to be done:
 ===========================
 2.7
-* Fix audit.pc.in to use Requires.private
 * Add sockaddr accessor functions in auparse
-* Add a realpath variant accessor that resolves whole path
+* Add ability to suppress types of records (drop_records)
 * Add metadata in auparse for subj,obj,action,results
 * Formats for ausearch output
 * Selectable escaping for ausearch/report output
-* Add ability to suppress types of records (drop_records)
+* Fix audit.pc.in to use Requires.private
+* Add a realpath variant accessor that resolves whole path
 
 2.7.1
 * Look at pulling audispd into auditd

@@ -66,5 +66,6 @@ static const struct msg_tab err_msgtab[] = {
     { -28,    2,    "Too many fields in rule:" },
     { -29,    1,    "only takes = operator" },
     { -30,    2,    "Field option not supported by kernel:" },
+    { -31,    1,    "must be used with exclude, user, or exit filter" },
 };
 #endif
