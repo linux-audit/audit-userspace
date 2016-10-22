@@ -545,6 +545,9 @@ static const char *aulookup_gid(gid_t gid, char *buf, size_t size)
 	if (gid == -1) {
 		snprintf(buf, size, "unset");
 		return buf;
+	} else if (gid == 0) {
+		snprintf(buf, size, "root");
+		return buf;
 	}
 
 	// Check the cache first
