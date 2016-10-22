@@ -106,6 +106,7 @@ void shutdown_events(void)
 
 	free((void *)format_buf);
 	fclose(log_file);
+	auparse_destroy_ext(NULL, AUPARSE_DESTROY_ALL);
 }
 
 int init_event(struct daemon_conf *conf)
@@ -413,7 +414,7 @@ static const char *format_enrich(const struct audit_reply *rep)
 			rc = auparse_next_field(au);
 		}
 
-		auparse_destroy(au);
+		auparse_destroy_ext(au, AUPARSE_DESTROY_COMMON);
 		free(message);
 	}
         return format_buf;

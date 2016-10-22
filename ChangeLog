@@ -9,6 +9,8 @@
 - In auparse, the auparse_state_t pointer to keep escape_mode information
 - In libaudit, add support for rules using sessionid (Richard Guy Briggs)
 - Remove entry filter support
+- Add auparse_destroy_ext function
+- Improve ENRICHED logging format performance in auditd
 
 2.6.7
 - Non-active log files should be read only

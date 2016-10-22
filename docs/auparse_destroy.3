@@ -4,11 +4,17 @@ auparse_destroy \- release instance of parser
 .SH "SYNOPSIS"
 .B #include <auparse.h>
 .sp
-void auparse_destroy (auparse_state_t *au);
+.B void auparse_destroy (auparse_state_t *au);
+
+.B void auparse_destroy_ext (auparse_state_t *au, auparse_destroy_what_t what);
 
 .SH "DESCRIPTION"
 
-auparse_destroy frees all data structures and closes file descriptors.
+.B auparse_destroy
+frees all data structures and closes file descriptors.
+
+.B auparse_destroy_ext
+frees data structures based on what. What can be AUPARSE_DESTROY_ALL to release everything or AUPARSE_DESTROY_COMMON to release everything but the uid and gid lookup cache.
 
 .SH "RETURN VALUE"
 

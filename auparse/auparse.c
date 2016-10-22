@@ -885,11 +885,8 @@ void ausearch_clear(auparse_state_t *au)
 	au->search_where = AUSEARCH_STOP_EVENT;
 }
 
-void auparse_destroy(auparse_state_t *au)
+static void auparse_destroy_common(auparse_state_t *au)
 {
-	aulookup_destroy_uid_list();
-	aulookup_destroy_gid_list();
-
 	if (au == NULL)
 		return;
 
@@ -922,6 +919,23 @@ void auparse_destroy(auparse_state_t *au)
 	au_lol_clear(au->au_lo, 0);
 	free(au->au_lo);
 	free(au);
+}
+
+void auparse_destroy(auparse_state_t *au)
+{
+	aulookup_destroy_uid_list();
+	aulookup_destroy_gid_list();
+
+	auparse_destroy_common(au);
+}
+
+void auparse_destroy_ext(auparse_state_t *au, auparse_destroy_what_t what)
+{
+	if (what == AUPARSE_DESTROY_COMMON)
+		auparse_destroy_common(au);
+	else if (what == AUPARSE_DESTROY_ALL)
+		auparse_destroy(au);
+	return;
 }
 
 /* alloc a new buffer, cur_buf which contains a null terminated line

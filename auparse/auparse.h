@@ -50,6 +50,7 @@ void auparse_add_callback(auparse_state_t *au, auparse_callback_ptr callback,
 void auparse_set_escape_mode(auparse_state_t *au, auparse_esc_t mode);
 int auparse_reset(auparse_state_t *au);
 void auparse_destroy(auparse_state_t *au);
+void auparse_destroy_ext(auparse_state_t *au, auparse_destroy_what_t what);
 
 /* Functions that are part of the search interface */
 int ausearch_add_expression(auparse_state_t *au, const char *expression,

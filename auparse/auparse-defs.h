@@ -92,6 +92,10 @@ typedef enum {  AUPARSE_TYPE_UNCLASSIFIED,  AUPARSE_TYPE_UID, AUPARSE_TYPE_GID,
 typedef enum { AUPARSE_ESC_RAW, AUPARSE_ESC_TTY, AUPARSE_ESC_SHELL,
 	AUPARSE_ESC_SHELL_QUOTE } auparse_esc_t;
 
+/* This type determines what to destroy with the extended destroy function */
+typedef enum { AUPARSE_DESTROY_ALL,
+	AUPARSE_DESTROY_COMMON } auparse_destroy_what_t;
+
 #ifdef __cplusplus
 }
 #endif
