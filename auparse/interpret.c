@@ -492,6 +492,9 @@ static const char *aulookup_uid(uid_t uid, char *buf, size_t size)
 	if (uid == -1) {
 		snprintf(buf, size, "unset");
 		return buf;
+	} else if (uid == 0) {
+		snprintf(buf, size, "root");
+		return buf;
 	}
 
 	// Check the cache first

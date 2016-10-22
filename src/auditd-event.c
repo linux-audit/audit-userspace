@@ -381,7 +381,7 @@ static const char *format_enrich(const struct audit_reply *rep)
 			free(message);
 			return format_buf;
 		}
-		auparse_set_escape_mode(NULL, AUPARSE_ESC_RAW);
+		auparse_set_escape_mode(au, AUPARSE_ESC_RAW);
 		sep_done = 0;
 
 		// Loop over all fields while possible to add field
