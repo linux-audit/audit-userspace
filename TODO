@@ -1,6 +1,7 @@
 Things that need to be done:
 ===========================
 2.7
+* Look at making uid/gid lookup persist in auditd enriched mode
 * Add sockaddr accessor functions in auparse
 * Add ability to suppress types of records (drop_records)
 * Add metadata in auparse for subj,obj,action,results
