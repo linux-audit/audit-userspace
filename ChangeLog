@@ -11,6 +11,7 @@
 - Remove entry filter support
 - Add auparse_destroy_ext function
 - Improve ENRICHED logging format performance in auditd
+- Fix regex rule file matching in augenrules (#1396792)
 
 2.6.7
 - Non-active log files should be read only
