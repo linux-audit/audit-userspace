@@ -44,7 +44,7 @@
 -a always,exit -F arch=b64 -S setuid -Fa0=0 -F exe=/usr/bin/su -F key=10.2.5.b-elevated-privs-session
 -a always,exit -F arch=b32 -S setuid -Fa0=0 -F exe=/usr/bin/su -F key=10.2.5.b-elevated-privs-session
 -a always,exit -F arch=b64 -S setresuid -F a0=0 -F exe=/usr/bin/sudo -F key=10.2.5.b-elevated-privs-session
--a always,exit -F arch=b64 -S setresuid -F a0=0 -F exe=/usr/bin/sudo -F key=10.2.5.b-elevated-privs-session
+-a always,exit -F arch=b32 -S setresuid -F a0=0 -F exe=/usr/bin/sudo -F key=10.2.5.b-elevated-privs-session
 -a always,exit -F arch=b64 -S execve -C uid!=euid -F euid=0 -F key=10.2.5.b-elevated-privs-setuid
 -a always,exit -F arch=b32 -S execve -C uid!=euid -F euid=0 -F key=10.2.5.b-elevated-privs-setuid
 
