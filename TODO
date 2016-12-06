@@ -1,16 +1,17 @@
 Things that need to be done:
 ===========================
 2.7
-* Look at making uid/gid lookup persist in auditd enriched mode
-* Add sockaddr accessor functions in auparse
-* Add ability to suppress types of records (drop_records)
 * Add metadata in auparse for subj,obj,action,results
-* Formats for ausearch output
+* uid/gid LRU cache for auditd enriched mode
+* Add ability to suppress types of records (drop_records)
 * Selectable escaping for ausearch/report output
-* Fix audit.pc.in to use Requires.private
+* Add sockaddr accessor functions in auparse
 * Add a realpath variant accessor that resolves whole path
+* non-equality comparisons for values other than \timestamp, \timestamp_ex and \record_type in ausearch-expression
 
 2.7.1
+* Formats for ausearch output
+* Fix audit.pc.in to use Requires.private
 * Look at pulling audispd into auditd
 * In audispd, look into non-blocking handling of write to plugins
 * Consolidate linked lists and other functions
