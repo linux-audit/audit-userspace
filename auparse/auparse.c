@@ -1590,6 +1590,15 @@ unsigned int auparse_get_num_records(auparse_state_t *au)
 	return aup_list_get_cnt(au->le);
 }
 
+unsigned int auparse_get_record_num(auparse_state_t *au)
+{
+	rnode *r = aup_list_get_cur(au->le);
+	if (r) 
+		return r->item;
+
+	return 0;
+}
+
 
 /* Functions that traverse records in the same event */
 int auparse_first_record(auparse_state_t *au)
@@ -1804,6 +1813,28 @@ const char *auparse_find_field_next(auparse_state_t *au)
 
 
 /* Accessors to field data */
+unsigned int auparse_get_field_num(auparse_state_t *au)
+{
+	rnode *r = aup_list_get_cur(au->le);
+	if (r) {
+		nvnode *n = nvlist_get_cur(&r->nv);
+		if (n)
+			return n->item;
+	}
+	return 0;
+}
+
+int auparse_goto_field_num(auparse_state_t *au, unsigned int num)
+{
+	rnode *r = aup_list_get_cur(au->le);
+	if (r) {
+		nvnode *n = nvlist_goto_rec(&r->nv, num);
+		if (n)
+			return 1;
+	}
+	return 0;
+}
+
 const char *auparse_get_field_name(auparse_state_t *au)
 {
 	if (au->le->e.sec) {

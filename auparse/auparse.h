@@ -84,6 +84,7 @@ unsigned int auparse_get_num_records(auparse_state_t *au);
 /* Functions that traverse records in the same event */
 int auparse_first_record(auparse_state_t *au);
 int auparse_next_record(auparse_state_t *au);
+unsigned int auparse_get_record_num(auparse_state_t *au);
 int auparse_goto_record_num(auparse_state_t *au, unsigned int num);
 
 /* Accessors to record data */
@@ -98,6 +99,8 @@ const char *auparse_get_record_text(auparse_state_t *au);
 const char *auparse_get_record_interpretations(auparse_state_t *au);
 const char *auparse_find_field(auparse_state_t *au, const char *name);
 const char *auparse_find_field_next(auparse_state_t *au);
+unsigned int auparse_get_field_num(auparse_state_t *au);
+int auparse_goto_field_num(auparse_state_t *au, unsigned int num);
 
 /* Accessors to field data */
 const char *auparse_get_field_name(auparse_state_t *au);

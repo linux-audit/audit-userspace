@@ -95,6 +95,21 @@ void nvlist_interp_fixup(nvlist *l)
 	}
 }
 
+nvnode *nvlist_goto_rec(nvlist *l, int i)
+{
+	register nvnode* window;
+
+	window = l->head;       /* start at the beginning */
+	while (window) {
+		if (window->item == i) {
+			l->cur = window;
+			return window;
+		} else
+			window = window->next;
+	}
+	return NULL;
+}
+
 /*
  * This function will start at current index and scan for a name
  */
