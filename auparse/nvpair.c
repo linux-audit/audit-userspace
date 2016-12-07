@@ -57,15 +57,15 @@ void nvpair_append(nvpair *l, nvpnode *node)
 
 int nvpair_find_val(nvpair *l, long val)
 {
-        register nvpnode* window = l->head;
+        register nvpnode* node = l->head;
 
-	while (window) {
-		if (window->val == val) {
-			l->cur = window;
+	while (node) {
+		if (node->val == val) {
+			l->cur = node;
 			return 1;
 		}
 		else
-			window = window->next;
+			node = node->next;
 	}
 	return 0;
 }

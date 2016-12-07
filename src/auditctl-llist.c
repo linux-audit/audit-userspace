@@ -39,15 +39,15 @@ void list_first(llist *l)
 
 void list_last(llist *l)
 {
-        register lnode* window;
+        register lnode* node;
 	
 	if (l->head == NULL)
 		return;
 
-        window = l->head;
-	while (window->next)
-		window = window->next;
-	l->cur = window;
+        node = l->head;
+	while (node->next)
+		node = node->next;
+	l->cur = node;
 }
 
 lnode *list_next(llist *l)

@@ -38,15 +38,15 @@ void nvlist_create(nvlist *l)
 
 static void nvlist_last(nvlist *l)
 {
-        register nvnode* window;
-	
+        register nvnode* node;
+
 	if (l->head == NULL)
 		return;
 
-        window = l->head;
-	while (window->next)
-		window = window->next;
-	l->cur = window;
+	node = l->head;
+	while (node->next)
+		node = node->next;
+	l->cur = node;
 }
 
 nvnode *nvlist_next(nvlist *l)
@@ -97,15 +97,15 @@ void nvlist_interp_fixup(nvlist *l)
 
 nvnode *nvlist_goto_rec(nvlist *l, int i)
 {
-	register nvnode* window;
+	register nvnode* node;
 
-	window = l->head;       /* start at the beginning */
-	while (window) {
-		if (window->item == i) {
-			l->cur = window;
-			return window;
+	node = l->head;       /* start at the beginning */
+	while (node) {
+		if (node->item == i) {
+			l->cur = node;
+			return node;
 		} else
-			window = window->next;
+			node = node->next;
 	}
 	return NULL;
 }
@@ -115,15 +115,15 @@ nvnode *nvlist_goto_rec(nvlist *l, int i)
  */
 int nvlist_find_name(nvlist *l, const char *name)
 {
-        register nvnode* window = l->cur;
+        register nvnode* node = l->cur;
 
-	while (window) {
-		if (strcmp(window->name, name) == 0) {
-			l->cur = window;
+	while (node) {
+		if (strcmp(node->name, name) == 0) {
+			l->cur = node;
 			return 1;
 		}
 		else
-			window = window->next;
+			node = node->next;
 	}
 	return 0;
 }

@@ -44,15 +44,15 @@ void aup_list_create(event_list_t *l)
 
 static void aup_list_last(event_list_t *l)
 {
-        register rnode* window;
+        register rnode* node;
 	
 	if (l->head == NULL)
 		return;
 
-        window = l->head;
-	while (window->next)
-		window = window->next;
-	l->cur = window;
+        node = l->head;
+	while (node->next)
+		node = node->next;
+	l->cur = node;
 }
 
 rnode *aup_list_next(event_list_t *l)
@@ -379,48 +379,48 @@ int aup_list_set_event(event_list_t* l, au_event_t *e)
 
 rnode *aup_list_find_rec(event_list_t *l, int i)
 {
-        register rnode* window;
+        register rnode* node;
                                                                                 
-       	window = l->head;	/* start at the beginning */
-	while (window) {
-		if (window->type == i) {
-			l->cur = window;
-			return window;
+       	node = l->head;	/* start at the beginning */
+	while (node) {
+		if (node->type == i) {
+			l->cur = node;
+			return node;
 		} else
-			window = window->next;
+			node = node->next;
 	}
 	return NULL;
 }
 
 rnode *aup_list_goto_rec(event_list_t *l, int i)
 {
-        register rnode* window;
+        register rnode* node;
                                                                                 
-       	window = l->head;	/* start at the beginning */
-	while (window) {
-		if (window->item == i) {
-			l->cur = window;
-			return window;
+       	node = l->head;	/* start at the beginning */
+	while (node) {
+		if (node->item == i) {
+			l->cur = node;
+			return node;
 		} else
-			window = window->next;
+			node = node->next;
 	}
 	return NULL;
 }
 
 rnode *aup_list_find_rec_range(event_list_t *l, int low, int high)
 {
-        register rnode* window;
+        register rnode* node;
 
 	if (high <= low)
 		return NULL;
 
-       	window = l->head;	/* Start at the beginning */
-	while (window) {
-		if (window->type >= low && window->type <= high) {
-			l->cur = window;
-			return window;
+       	node = l->head;	/* Start at the beginning */
+	while (node) {
+		if (node->type >= low && node->type <= high) {
+			l->cur = node;
+			return node;
 		} else
-			window = window->next;
+			node = node->next;
 	}
 	return NULL;
 }

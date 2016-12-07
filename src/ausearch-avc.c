@@ -107,15 +107,15 @@ void alist_append(alist *l, anode *node)
 
 int alist_find_subj(alist *l)
 {
-        register anode* window = l->head;
+        register anode* node = l->head;
 
-	while (window) {
-		if (window->scontext) {
-			l->cur = window;
+	while (node) {
+		if (node->scontext) {
+			l->cur = node;
 			return 1;
 		}
 		else
-			window = window->next;
+			node = node->next;
 	}
 	return 0;
 }
@@ -134,15 +134,15 @@ anode *alist_next_subj(alist *l)
 
 int alist_find_obj(alist *l)
 {
-        register anode* window = l->head;
+        register anode* node = l->head;
 
-	while (window) {
-		if (window->tcontext) {
-			l->cur = window;
+	while (node) {
+		if (node->tcontext) {
+			l->cur = node;
 			return 1;
 		}
 		else
-			window = window->next;
+			node = node->next;
 	}
 	return 0;
 }
@@ -161,15 +161,15 @@ anode *alist_next_obj(alist *l)
 
 int alist_find_avc(alist *l)
 {
-        register anode* window = l->head;
+        register anode* node = l->head;
 
-	while (window) {
-		if (window->avc_result != AVC_UNSET) {
-			l->cur = window;
+	while (node) {
+		if (node->avc_result != AVC_UNSET) {
+			l->cur = node;
 			return 1;
 		}
 		else
-			window = window->next;
+			node = node->next;
 	}
 	return 0;
 }

@@ -63,15 +63,15 @@ void ilist_append(ilist *l, int num)
 
 int ilist_find_num(ilist *l, unsigned int num)
 {
-        register int_node* window = l->head;
+        register int_node* node = l->head;
 
-	while (window) {
-		if (window->num == num) {
-			l->cur = window;
+	while (node) {
+		if (node->num == num) {
+			l->cur = node;
 			return 1;
 		}
 		else
-			window = window->next;
+			node = node->next;
 	}
 	return 0;
 }

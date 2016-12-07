@@ -35,15 +35,15 @@ void plist_create(conf_llist *l)
 
 void plist_last(conf_llist *l)
 {
-        register lnode* window;
+        register lnode* node;
 	
 	if (l->head == NULL)
 		return;
 
-        window = l->head;
-	while (window->next)
-		window = window->next;
-	l->cur = window;
+        node = l->head;
+	while (node->next)
+		node = node->next;
+	l->cur = node;
 }
 
 lnode *plist_next(conf_llist *l)

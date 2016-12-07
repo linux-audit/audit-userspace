@@ -68,15 +68,15 @@ void list_create(llist *l)
 
 void list_last(llist *l)
 {
-        register lnode* window;
+        register lnode* node;
 	
 	if (l->head == NULL)
 		return;
 
-        window = l->head;
-	while (window->next)
-		window = window->next;
-	l->cur = window;
+        node = l->head;
+	while (node->next)
+		node = node->next;
+	l->cur = node;
 }
 
 lnode *list_next(llist *l)
@@ -131,19 +131,19 @@ void list_append(llist *l, lnode *node)
 
 int list_find_item(llist *l, unsigned int i)
 {
-        register lnode* window;
+        register lnode* node;
                                                                                 
 	if (l->cur && (l->cur->item <= i))
-		window = l->cur;	/* Try to use where we are */
+		node = l->cur;	/* Try to use where we are */
 	else
-        	window = l->head;	/* Can't, start over */
+        	node = l->head;	/* Can't, start over */
 
-	while (window) {
-		if (window->item == i) {
-			l->cur = window;
+	while (node) {
+		if (node->item == i) {
+			l->cur = node;
 			return 1;
 		} else
-			window = window->next;
+			node = node->next;
 	}
 	return 0;
 }
@@ -234,33 +234,33 @@ int list_get_event(llist* l, event *e)
 
 lnode *list_find_msg(llist *l, int i)
 {
-        register lnode* window;
+        register lnode* node;
                                                                                 
-       	window = l->head;	/* start at the beginning */
-	while (window) {
-		if (window->type == i) {
-			l->cur = window;
-			return window;
+       	node = l->head;	/* start at the beginning */
+	while (node) {
+		if (node->type == i) {
+			l->cur = node;
+			return node;
 		} else
-			window = window->next;
+			node = node->next;
 	}
 	return NULL;
 }
 
 lnode *list_find_msg_range(llist *l, int low, int high)
 {
-        register lnode* window;
+        register lnode* node;
 
 	if (high <= low)
 		return NULL;
 
-       	window = l->head;	/* Start at the beginning */
-	while (window) {
-		if (window->type >= low && window->type <= high) {
-			l->cur = window;
-			return window;
+       	node = l->head;	/* Start at the beginning */
+	while (node) {
+		if (node->type >= low && node->type <= high) {
+			l->cur = node;
+			return node;
 		} else
-			window = window->next;
+			node = node->next;
 	}
 	return NULL;
 }

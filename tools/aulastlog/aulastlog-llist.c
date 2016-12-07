@@ -133,15 +133,15 @@ int list_update_term(llist* l, const char *t)
 
 lnode *list_find_uid(llist *l, uid_t uid)
 {
-        register lnode* window;
+        register lnode* node;
                                                                                 
-       	window = l->head;	/* start at the beginning */
-	while (window) {
-		if (window->uid == uid) {
-			l->cur = window;
-			return window;
+       	node = l->head;	/* start at the beginning */
+	while (node) {
+		if (node->uid == uid) {
+			l->cur = node;
+			return node;
 		} else
-			window = window->next;
+			node = node->next;
 	}
 	return NULL;
 }
