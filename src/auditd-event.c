@@ -443,7 +443,10 @@ void format_event(struct auditd_event *e)
 /* This function free's all memory associated with events */
 void cleanup_event(struct auditd_event *e)
 {
-	free((void *)e->reply.message);
+	// Over in send_audit_event we sometimes have message pointing
+	// into the middle of the reply allocation. Check for it.
+	if (e->reply.message != e->reply.msg.data)
+		free((void *)e->reply.message);
 	free(e);
 }
 
