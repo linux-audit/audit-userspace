@@ -122,7 +122,7 @@ parser_malloc(struct parsing *p, size_t size)
 	void *res;
 
 	res = malloc(size);
-	if (res != NULL || size == 0)
+	if (res)
 		return res;
 	*p->error = strdup("Out of memory");
 	return NULL;
