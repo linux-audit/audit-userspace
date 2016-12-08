@@ -5,31 +5,34 @@ Things that need to be done:
 * Document new auparse functions with man pages
 * uid/gid LRU cache for auditd enriched mode
 * Add ability to suppress types of records (drop_records)
+
+2.7.1
+* Document new auparse classify functions with man pages
 * Selectable escaping for ausearch/report output
+* Look into TLS support
 * Add sockaddr accessor functions in auparse
 * Add a realpath variant accessor that resolves whole path
 * non-equality comparisons for values other than \timestamp, \timestamp_ex and \record_type in ausearch-expression
-
-2.7.1
 * Formats for ausearch output
+
+2.7.2
 * Fix audit.pc.in to use Requires.private
 * Look at pulling audispd into auditd
 * In audispd, look into non-blocking handling of write to plugins
-* Consolidate linked lists and other functions
-* Consolidate parsing code between libaudit and auditd-conf.c
 * If relative file in cwd, need to build also (realpath). watch out for (null) and socket
 * Change ausearch to output name="" unless its a real null. (mount) ausearch-report.c, 523. FIXME
 * Support mutiple time streams when searching
-* When interpretting sockaddr, use syscall to determine remote vs local
+* ausearch --op search
 
 3.0
 * Basic HIDS
 * Support ipv6 remote logging
-* Look into TLS support
+* Consolidate linked lists and other functions
+* Consolidate parsing code between libaudit and auditd-conf.c
 * Performance improvements for auparse
+* When interpretting sockaddr, use syscall to determine remote vs local
 * If auparse input is a pipe timeout events by wall clock
 * Add rule verify to detect mismatch between in-kernel and on-disk rules
-* ausearch --op search
 
 3.0.1
 * Fix auvirt to report AVC's and --proof for --all-events
