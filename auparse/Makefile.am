@@ -33,11 +33,11 @@ DISTCLEANFILES = $(pkgconfig_DATA)
 
 lib_LTLIBRARIES = libauparse.la
 include_HEADERS = auparse.h auparse-defs.h
-libauparse_la_SOURCES = nvpair.c interpret.c nvlist.c ellist.c		\
+libauparse_la_SOURCES = lru.c interpret.c nvlist.c ellist.c		\
 	auparse.c auditd-config.c message.c data_buf.c strsplit.c	\
 	auparse-defs.h	auparse-idata.h data_buf.h 			\
 	nvlist.h auparse.h ellist.h					\
-	internal.h nvpair.h rnode.h interpret.h				\
+	internal.h lru.h rnode.h interpret.h				\
 	private.h expression.c expression.h tty_named_keys.h
 nodist_libauparse_la_SOURCES = $(BUILT_SOURCES)
 

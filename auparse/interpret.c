@@ -22,8 +22,7 @@
 */
 
 #include "config.h"
-#include "nvlist.h"
-#include "nvpair.h"
+#include "lru.h"
 #include "libaudit.h"
 #include "internal.h"
 #include "interpret.h"
@@ -482,12 +481,13 @@ static const char *aulookup_success(int s)
 	}
 }
 
-static nvpair uid_nvl;
-static int uid_list_created=0;
+static Queue *uid_cache = NULL;
+static int uid_cache_created = 0;
 static const char *aulookup_uid(uid_t uid, char *buf, size_t size)
 {
 	char *name = NULL;
-	int rc;
+	unsigned int key;
+	QNode *q_node;
 
 	if (uid == -1) {
 		snprintf(buf, size, "unset");
@@ -498,25 +498,27 @@ static const char *aulookup_uid(uid_t uid, char *buf, size_t size)
 	}
 
 	// Check the cache first
-	if (uid_list_created == 0) {
-		nvpair_create(&uid_nvl);
-		nvpair_clear(&uid_nvl);
-		uid_list_created = 1;
+	if (uid_cache_created == 0) {
+		uid_cache = init_lru(19, NULL, "uid");
+		uid_cache_created = 1;
 	}
-	rc = nvpair_find_val(&uid_nvl, uid);
-	if (rc) {
-		name = uid_nvl.cur->name;
-	} else {
-		// This getpw use is OK because its for protocol 1 compatibility
-		// Add it to cache
-		struct passwd *pw;
-		pw = getpwuid(uid);
-		if (pw) {
-			nvpnode nv;
-			nv.name = strdup(pw->pw_name);
-			nv.val = uid;
-			nvpair_append(&uid_nvl, &nv);
-			name = uid_nvl.cur->name;
+	key = compute_subject_key(uid_cache, uid);
+	q_node = check_lru_cache(uid_cache, key);
+	if (q_node) {
+		if (q_node->id == uid)
+			name = q_node->str;
+		else {
+			// This getpw use is OK because its for protocol 1
+			// compatibility.  Add it to cache.
+			struct passwd *pw;
+			lru_evict(uid_cache, key);
+			q_node = check_lru_cache(uid_cache, key);
+			pw = getpwuid(uid);
+			if (pw) {
+				q_node->str = strdup(pw->pw_name);
+				q_node->id = uid;
+				name = q_node->str;
+			}
 		}
 	}
 	if (name != NULL)
@@ -528,19 +530,20 @@ static const char *aulookup_uid(uid_t uid, char *buf, size_t size)
 
 void aulookup_destroy_uid_list(void)
 {
-	if (uid_list_created == 0)
+	if (uid_cache_created == 0)
 		return;
 
-	nvpair_clear(&uid_nvl); 
-	uid_list_created = 0;
+	destroy_lru(uid_cache); 
+	uid_cache_created = 0;
 }
 
-static nvpair gid_nvl;
-static int gid_list_created=0;
+static Queue *gid_cache = NULL;
+static int gid_cache_created = 0;
 static const char *aulookup_gid(gid_t gid, char *buf, size_t size)
 {
 	char *name = NULL;
-	int rc;
+	unsigned int key;
+	QNode *q_node;
 
 	if (gid == -1) {
 		snprintf(buf, size, "unset");
@@ -551,24 +554,26 @@ static const char *aulookup_gid(gid_t gid, char *buf, size_t size)
 	}
 
 	// Check the cache first
-	if (gid_list_created == 0) {
-		nvpair_create(&gid_nvl);
-		nvpair_clear(&gid_nvl);
-		gid_list_created = 1;
+	if (gid_cache_created == 0) {
+		gid_cache = init_lru(19, NULL, "gid");
+		gid_cache_created = 1;
 	}
-	rc = nvpair_find_val(&gid_nvl, gid);
-	if (rc) {
-		name = gid_nvl.cur->name;
-	} else {
-		// Add it to cache
-		struct group *gr;
-		gr = getgrgid(gid);
-		if (gr) {
-			nvpnode nv;
-			nv.name = strdup(gr->gr_name);
-			nv.val = gid;
-			nvpair_append(&gid_nvl, &nv);
-			name = gid_nvl.cur->name;
+	key = compute_subject_key(gid_cache, gid);
+	q_node = check_lru_cache(gid_cache, key);
+	if (q_node) {
+		if (q_node->id == gid)
+			name = q_node->str;
+		else {
+			// Add it to cache
+			struct group *gr;
+			lru_evict(gid_cache, key);
+			q_node = check_lru_cache(gid_cache, key);
+			gr = getgrgid(gid);
+			if (gr) {
+				q_node->str = strdup(gr->gr_name);
+				q_node->id = gid;
+				name = q_node->str;
+			}
 		}
 	}
 	if (name != NULL)
@@ -580,11 +585,11 @@ static const char *aulookup_gid(gid_t gid, char *buf, size_t size)
 
 void aulookup_destroy_gid_list(void)
 {
-	if (gid_list_created == 0)
+	if (gid_cache_created == 0)
 		return;
 
-	nvpair_clear(&gid_nvl); 
-	gid_list_created = 0;
+	destroy_lru(gid_cache); 
+	gid_cache_created = 0;
 }
 
 static const char *print_uid(const char *val, unsigned int base)

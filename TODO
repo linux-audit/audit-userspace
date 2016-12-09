@@ -3,7 +3,6 @@ Things that need to be done:
 2.7
 * Add metadata in auparse for subj,obj,action,results
 * Document new auparse functions with man pages
-* uid/gid LRU cache for auditd enriched mode
 * Add ability to suppress types of records (drop_records)
 
 2.7.1
