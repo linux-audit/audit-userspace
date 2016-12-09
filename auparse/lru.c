@@ -75,16 +75,16 @@ static void destroy_hash(Hash *hash)
 	free(hash);
 }
  
+#ifdef DEBUG
 static void dump_queue_stats(const Queue *q)
 {
-#ifdef DEBUG
 	syslog(LOG_DEBUG, "%s queue size: %u", q->name, q->total);
 	syslog(LOG_DEBUG, "%s slots in use: %u", q->name, q->count);
 	syslog(LOG_DEBUG, "%s hits: %lu", q->name, q->hits);
 	syslog(LOG_DEBUG, "%s misses: %lu", q->name, q->misses);
 	syslog(LOG_DEBUG, "%s evictions: %lu", q->name, q->evictions);
-#endif
 }
+#endif
 
 static Queue *create_queue(unsigned int qsize, const char *name)
 {
@@ -109,7 +109,9 @@ static Queue *create_queue(unsigned int qsize, const char *name)
 
 static void destroy_queue(Queue *queue)
 {
+#ifdef DEBUG
 	dump_queue_stats(queue);
+#endif
 
 	while (queue->count)
 		dequeue(queue);
@@ -265,8 +267,8 @@ void lru_evict(Queue *queue, unsigned int key)
 	hash->array[key] = NULL;
 	remove_node(queue, queue->front);
 
-	if (queue->cleanup)
-		queue->cleanup(temp->str);
+//	if (queue->cleanup)
+//		queue->cleanup(temp->str);
 	free(temp->str);
 	free(temp);
 
