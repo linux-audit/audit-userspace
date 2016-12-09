@@ -2,8 +2,6 @@ Things that need to be done:
 ===========================
 2.7
 * Add metadata in auparse for subj,obj,action,results
-* Document new auparse functions with man pages
-* Add ability to suppress types of records (drop_records)
 
 2.7.1
 * Document new auparse classify functions with man pages
@@ -56,7 +54,5 @@ Things that need to be done:
 * rework aureport to use auparse
 
 3.1.1
-* Look at variadic avc logging patch 
 * add more libaudit man pages
 * Fix aureport-scan to properly decide if CONFIG_CHANGE is add or del, need to optionally look for op and use remove/add to decide
-Allow users to specify fields to be kept for logging
