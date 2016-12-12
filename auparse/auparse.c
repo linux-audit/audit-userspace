@@ -1826,10 +1826,15 @@ unsigned int auparse_get_field_num(auparse_state_t *au)
 
 int auparse_goto_field_num(auparse_state_t *au, unsigned int num)
 {
+	if (au->le == NULL)
+		return 0;
+
 	rnode *r = aup_list_get_cur(au->le);
 	if (r) {
-		nvnode *n = nvlist_goto_rec(&r->nv, num);
-		if (n)
+		if (num >= r->nv.cnt)
+			return 0;
+
+		if ((nvlist_goto_rec(&r->nv, num)))
 			return 1;
 	}
 	return 0;
