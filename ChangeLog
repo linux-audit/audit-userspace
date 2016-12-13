@@ -15,6 +15,7 @@
 - Add numeric field/record accessors to auparse
 - Fix auditd freeing in middle of reply buffer when nolog is used
 - Switch auparse uid/gid cache to lru to limit growth
+- Prevent ausearch from clobbering type field on loginuid search
 
 2.6.7
 - Non-active log files should be read only

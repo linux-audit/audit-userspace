@@ -828,7 +828,6 @@ static int parse_user(const lnode *n, search_items *s)
 	}
 	// optionally get loginuid
 	if (event_loginuid != -2 || event_tauid) {
-		*term = ' ';
 		str = strstr(term, "auid=");
 		if (str == NULL) { // Try the older one
 			str = strstr(term, "loginuid=");
