@@ -1396,18 +1396,18 @@ static int parse_daemon1(const lnode *n, search_items *s)
 	// uid - optional
 	if (event_uid != -1) {
 		ptr = term;
-		str = strstr(term, "uid=");
+		str = strstr(term, " uid=");
 		if (str) {
-			ptr = str + 4;
+			ptr = str + 5;
 			term = strchr(ptr, ' ');
 			if (term == NULL) 
-				return 5;
+				return 7;
 			saved = *term;
 			*term = 0;
 			errno = 0;
 			s->uid = strtoul(ptr, NULL, 10);
 			if (errno)
-				return 6;
+				return 8;
 			*term = saved;
 		} else
 			term = ptr;
@@ -1421,13 +1421,13 @@ static int parse_daemon1(const lnode *n, search_items *s)
 			ptr = str + 4;
 			term = strchr(ptr, ' ');
 			if (term == NULL) 
-				return 5;
+				return 9;
 			saved = *term;
 			*term = 0;
 			errno = 0;
 			s->session_id = strtoul(ptr, NULL, 10);
 			if (errno)
-				return 6;
+				return 10;
 			*term = saved;
 		} else
 			term = ptr;
@@ -1448,7 +1448,7 @@ static int parse_daemon1(const lnode *n, search_items *s)
 				an.scontext = strdup(str);
 				alist_append(s->avc, &an);
 			} else
-				return 7;
+				return 11;
 			if (term)
 				*term = ' ';
 		}
@@ -1462,7 +1462,7 @@ static int parse_daemon1(const lnode *n, search_items *s)
 			while (isalpha(*term))
 				term++;
 			if (term == ptr)
-				return 9;
+				return 12;
 			saved = *term;
 			*term = 0;
 			if (strncmp(ptr, "failed", 6) == 0)
