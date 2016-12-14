@@ -18,6 +18,7 @@
 - Prevent ausearch from clobbering type field on loginuid search
 - Add audit_get_session function to libaudit
 - Add session and uid to most audit events
+- Add auparse_classify code interface for subj, obj, action, results
 
 2.6.7
 - Non-active log files should be read only

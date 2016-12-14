@@ -1,8 +1,5 @@
 Things that need to be done:
 ===========================
-2.7
-* Add metadata in auparse for subj,obj,action,results
-
 2.7.1
 * Document new auparse classify functions with man pages
 * Selectable escaping for ausearch/report output

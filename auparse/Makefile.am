@@ -38,7 +38,10 @@ libauparse_la_SOURCES = lru.c interpret.c nvlist.c ellist.c		\
 	auparse-defs.h	auparse-idata.h data_buf.h 			\
 	nvlist.h auparse.h ellist.h					\
 	internal.h lru.h rnode.h interpret.h				\
-	private.h expression.c expression.h tty_named_keys.h
+	private.h expression.c expression.h tty_named_keys.h		\
+	classify.c classify-llist.c classify-llist.h 			\
+	classify-internal.h classify_obj_type_map.h			\
+	classify_record_map.h classify_syscall_map.h
 nodist_libauparse_la_SOURCES = $(BUILT_SOURCES)
 
 libauparse_la_LIBADD = ${top_builddir}/lib/libaudit.la
@@ -62,7 +65,9 @@ BUILT_SOURCES = accesstabs.h captabs.h clocktabs.h clone-flagtabs.h \
 	seektabs.h shm_modetabs.h signaltabs.h sockoptnametabs.h \
 	socktabs.h sockleveltabs.h socktypetabs.h \
 	tcpoptnametabs.h typetabs.h umounttabs.h inethooktabs.h \
-	netactiontabs.h
+	netactiontabs.h \
+	classify_obj_type_maps.h classify_record_maps.h \
+	classify_syscall_maps.h
 noinst_PROGRAMS = gen_accesstabs_h gen_captabs_h gen_clock_h \
 	gen_clone-flagtabs_h \
 	gen_epoll_ctls_h gen_famtabs_h \
@@ -77,7 +82,9 @@ noinst_PROGRAMS = gen_accesstabs_h gen_captabs_h gen_clock_h \
 	gen_seektabs_h gen_shm_modetabs_h gen_signals_h \
 	gen_sockoptnametabs_h gen_socktabs_h gen_sockleveltabs_h \
 	gen_socktypetabs_h gen_tcpoptnametabs_h gen_typetabs_h \
-	gen_umounttabs_h gen_inethooktabs_h gen_netactiontabs_h
+	gen_umounttabs_h gen_inethooktabs_h gen_netactiontabs_h \
+	gen_classify_record_map gen_classify_syscall_map \
+	gen_classify_obj_type_map
 
 gen_accesstabs_h_SOURCES = ../lib/gen_tables.c ../lib/gen_tables.h accesstab.h
 gen_accesstabs_h_CFLAGS = '-DTABLE_H="accesstab.h"'
@@ -589,4 +596,43 @@ gen_netactiontabs_h$(BUILD_EXEEXT): CPPFLAGS=$(CPPFLAGS_FOR_BUILD)
 gen_netactiontabs_h$(BUILD_EXEEXT): LDFLAGS=$(LDFLAGS_FOR_BUILD)
 netactiontabs.h: gen_netactiontabs_h Makefile
 	./gen_netactiontabs_h --i2s netaction > $@
+
+gen_classify_record_map_SOURCES = ../lib/gen_tables.c ../lib/gen_tables.h classify_record_map.h
+gen_classify_record_map_CFLAGS = '-DTABLE_H="classify_record_map.h"'
+$(gen_classify_record_map_OBJECTS): CC=$(CC_FOR_BUILD)
+$(gen_classify_record_map_OBJECTS): CFLAGS=$(CFLAGS_FOR_BUILD)
+$(gen_classify_record_map_OBJECTS): CPPFLAGS=$(CPPFLAGS_FOR_BUILD)
+$(gen_classify_record_map_OBJECTS): LDFLAGS=$(LDFLAGS_FOR_BUILD)
+gen_classify_record_map$(BUILD_EXEEXT): CC=$(CC_FOR_BUILD)
+gen_classify_record_map$(BUILD_EXEEXT): CFLAGS=$(CFLAGS_FOR_BUILD)
+gen_classify_record_map$(BUILD_EXEEXT): CPPFLAGS=$(CPPFLAGS_FOR_BUILD)
+gen_classify_record_map$(BUILD_EXEEXT): LDFLAGS=$(LDFLAGS_FOR_BUILD)
+classify_record_maps.h: gen_classify_record_map Makefile
+	./gen_classify_record_map --lowercase --i2s classify_record_map > $@
+
+gen_classify_syscall_map_SOURCES = ../lib/gen_tables.c ../lib/gen_tables.h classify_syscall_map.h
+gen_classify_syscall_map_CFLAGS = '-DTABLE_H="classify_syscall_map.h"'
+$(gen_classify_syscall_map_OBJECTS): CC=$(CC_FOR_BUILD)
+$(gen_classify_syscall_map_OBJECTS): CFLAGS=$(CFLAGS_FOR_BUILD)
+$(gen_classify_syscall_map_OBJECTS): CPPFLAGS=$(CPPFLAGS_FOR_BUILD)
+$(gen_classify_syscall_map_OBJECTS): LDFLAGS=$(LDFLAGS_FOR_BUILD)
+gen_classify_syscall_map$(BUILD_EXEEXT): CC=$(CC_FOR_BUILD)
+gen_classify_syscall_map$(BUILD_EXEEXT): CFLAGS=$(CFLAGS_FOR_BUILD)
+gen_classify_syscall_map$(BUILD_EXEEXT): CPPFLAGS=$(CPPFLAGS_FOR_BUILD)
+gen_classify_syscall_map$(BUILD_EXEEXT): LDFLAGS=$(LDFLAGS_FOR_BUILD)
+classify_syscall_maps.h: gen_classify_syscall_map Makefile
+	./gen_classify_syscall_map --lowercase --s2i classify_syscall_map > $@
+
+gen_classify_obj_type_map_SOURCES = ../lib/gen_tables.c ../lib/gen_tables.h classify_obj_type_map.h
+gen_classify_obj_type_map_CFLAGS = '-DTABLE_H="classify_obj_type_map.h"'
+$(gen_classify_obj_type_map_OBJECTS): CC=$(CC_FOR_BUILD)
+$(gen_classify_obj_type_map_OBJECTS): CFLAGS=$(CFLAGS_FOR_BUILD)
+$(gen_classify_obj_type_map_OBJECTS): CPPFLAGS=$(CPPFLAGS_FOR_BUILD)
+$(gen_classify_obj_type_map_OBJECTS): LDFLAGS=$(LDFLAGS_FOR_BUILD)
+gen_classify_obj_type_map$(BUILD_EXEEXT): CC=$(CC_FOR_BUILD)
+gen_classify_obj_type_map$(BUILD_EXEEXT): CFLAGS=$(CFLAGS_FOR_BUILD)
+gen_classify_obj_type_map$(BUILD_EXEEXT): CPPFLAGS=$(CPPFLAGS_FOR_BUILD)
+gen_classify_obj_type_map$(BUILD_EXEEXT): LDFLAGS=$(LDFLAGS_FOR_BUILD)
+classify_obj_type_maps.h: gen_classify_obj_type_map Makefile
+	./gen_classify_obj_type_map --lowercase --i2s classify_obj_type_map > $@
 

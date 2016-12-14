@@ -26,6 +26,7 @@
 #include "ellist.h"
 #include "auditd-config.h"
 #include "data_buf.h"
+#include "classify-llist.h"
 #include "dso.h"
 #include <stdio.h>
 
@@ -114,6 +115,34 @@ struct nv_pair {
 	const char *name;
 };
 
+typedef uint32_t value_t;
+
+typedef struct subj
+{
+	value_t primary;        // typically auid
+	value_t secondary;      // typically uid
+	cllist attr;            // List of attributes
+}subject;
+
+typedef struct obj
+{
+	value_t primary;
+	value_t secondary;
+	cllist attr;            // List of attributes
+	unsigned int what;      // What the primary object is
+} object;
+
+typedef struct data
+{
+	value_t session;
+	subject actor;
+	const char *action;
+	object thing;
+	value_t results;
+	const char *how;
+	classify_option_t opt;
+} classify_data;
+
 struct opaque
 {
 	ausource_t source;		// Source type
@@ -152,6 +181,7 @@ struct opaque
 	auparse_esc_t escape_mode;
 	message_t message_mode;		// Where to send error messages
 	debug_message_t debug_message;	// Whether or not messages are debug or not
+	classify_data cl_data;
 };
 
 AUDIT_HIDDEN_START
@@ -160,6 +190,10 @@ AUDIT_HIDDEN_START
 void clear_config(struct daemon_conf *config);
 int aup_load_config(auparse_state_t *au, struct daemon_conf *config, log_test_t lt);
 void free_config(struct daemon_conf *config);
+
+// classify.c
+void init_classify(classify_data *d);
+void clear_classify(classify_data *d);
 
 AUDIT_HIDDEN_END
 

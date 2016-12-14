@@ -515,6 +515,7 @@ auparse_state_t *auparse_init(ausource_t source, const void *b)
 	au->escape_mode = AUPARSE_ESC_TTY;
 	au->message_mode = MSG_QUIET;
 	au->debug_message = DBG_NO;
+	init_classify(&au->cl_data);
 
 	return au;
 bad_exit:
@@ -916,6 +917,7 @@ static void auparse_destroy_common(auparse_state_t *au)
 		au->in = NULL;
 	}
 	free_interpretation_list();
+	clear_classify(&au->cl_data);
 	au_lol_clear(au->au_lo, 0);
 	free(au->au_lo);
 	free(au);

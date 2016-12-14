@@ -96,6 +96,10 @@ typedef enum { AUPARSE_ESC_RAW, AUPARSE_ESC_TTY, AUPARSE_ESC_SHELL,
 typedef enum { AUPARSE_DESTROY_ALL,
 	AUPARSE_DESTROY_COMMON } auparse_destroy_what_t;
 
+/* auparse_classify options */
+typedef enum { CLOPT_ALL, CLOPT_NO_ATTRS} classify_option_t;
+
+
 #ifdef __cplusplus
 }
 #endif

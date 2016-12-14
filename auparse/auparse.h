@@ -67,6 +67,37 @@ int ausearch_add_regex(auparse_state_t *au, const char *expr);
 int ausearch_set_stop(auparse_state_t *au, austop_t where);
 void ausearch_clear(auparse_state_t *au);
 
+/* Functions that are part of the auparse_classify interface */
+
+// This causes the current event to become classified.
+int auparse_classify(auparse_state_t *au, classify_option_t opt);
+
+// session accessor
+int auparse_classify_session(auparse_state_t *au);
+
+// Subject accessing functions
+int auparse_classify_subject_primary(auparse_state_t *au);
+int auparse_classify_subject_secondary(auparse_state_t *au);
+int auparse_classify_subject_first_attribute(auparse_state_t *au);
+int auparse_classify_subject_next_attribute(auparse_state_t *au);
+
+// Action string accessor
+const char *auparse_classify_get_action(auparse_state_t *au);
+
+// Object accessing functions
+int auparse_classify_object_primary(auparse_state_t *au);
+int auparse_classify_object_secondary(auparse_state_t *au);
+int auparse_classify_object_first_attribute(auparse_state_t *au);
+int auparse_classify_object_next_attribute(auparse_state_t *au);
+const char *auparse_classify_object_type(auparse_state_t *au);
+
+// Results accessor
+int auparse_classify_get_results(auparse_state_t *au);
+
+// How accessor
+const char *auparse_classify_how(auparse_state_t *au);
+
+
 /* Functions that traverse events */
 int ausearch_next_event(auparse_state_t *au);
 int auparse_next_event(auparse_state_t *au);
