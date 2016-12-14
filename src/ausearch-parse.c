@@ -1393,6 +1393,46 @@ static int parse_daemon1(const lnode *n, search_items *s)
 		*term = saved;
 	}
 
+	// uid - optional
+	if (event_uid != -1) {
+		ptr = term;
+		str = strstr(term, "uid=");
+		if (str) {
+			ptr = str + 4;
+			term = strchr(ptr, ' ');
+			if (term == NULL) 
+				return 5;
+			saved = *term;
+			*term = 0;
+			errno = 0;
+			s->uid = strtoul(ptr, NULL, 10);
+			if (errno)
+				return 6;
+			*term = saved;
+		} else
+			term = ptr;
+	}
+
+	// ses - optional
+	if (event_session_id != -2) {
+		ptr = term;
+		str = strstr(term, "ses=");
+		if (str) {
+			ptr = str + 4;
+			term = strchr(ptr, ' ');
+			if (term == NULL) 
+				return 5;
+			saved = *term;
+			*term = 0;
+			errno = 0;
+			s->session_id = strtoul(ptr, NULL, 10);
+			if (errno)
+				return 6;
+			*term = saved;
+		} else
+			term = ptr;
+	}
+
 	if (event_subject) {
 		// scontext
 		str = strstr(term, "subj=");

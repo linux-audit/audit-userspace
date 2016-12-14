@@ -17,6 +17,7 @@
 - Switch auparse uid/gid cache to lru to limit growth
 - Prevent ausearch from clobbering type field on loginuid search
 - Add audit_get_session function to libaudit
+- Add session and uid to most audit events
 
 2.6.7
 - Non-active log files should be read only
