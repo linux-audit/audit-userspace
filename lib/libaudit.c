@@ -878,6 +878,35 @@ int audit_setloginuid(uid_t uid)
 	return rc;
 }
 
+/*
+ * This function will retreive the login session or -2 if there
+ * is an error.
+ */
+uint32_t audit_get_session(void)
+{
+	uint32_t ses;
+	int len, in;
+	char buf[16];
+
+	errno = 0;
+	in = open("/proc/self/sessionid", O_NOFOLLOW|O_RDONLY);
+	if (in < 0)
+		return -2;
+	do {
+		len = read(in, buf, sizeof(buf));
+	} while (len < 0 && errno == EINTR);
+	close(in);
+	if (len < 0 || len >= sizeof(buf))
+		return -2;
+	buf[len] = 0;
+	errno = 0;
+	ses = strtoul(buf, 0, 10);
+	if (errno)
+		return -2;
+	else
+		return ses;
+}
+
 int audit_rule_syscall_data(struct audit_rule_data *rule, int scall)
 {
 	int word = AUDIT_WORD(scall);

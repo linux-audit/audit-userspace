@@ -508,6 +508,7 @@ extern int  audit_get_reply(int fd, struct audit_reply *rep, reply_t block,
 		int peek);
 extern uid_t audit_getloginuid(void);
 extern int  audit_setloginuid(uid_t uid);
+extern uint32_t audit_get_session(void);
 extern int  audit_detect_machine(void);
 extern int audit_determine_machine(const char *arch);
 
