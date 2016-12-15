@@ -552,7 +552,7 @@ static int classify_syscall(auparse_state_t *au, const char *syscall, int type)
 				rc = auparse_first_record(au);
 				k = auparse_find_field(au, "key");
 				if (k && strcmp(k, "(null)")) {
-					act = strdup("triggered-audit-rule");
+					act = "triggered-audit-rule";
 					D.thing.primary = set_record(0,
 						auparse_get_record_num(au));
 					D.thing.primary = set_field(
@@ -1108,7 +1108,7 @@ map:
 	D.thing.secondary = find_simple_obj_secondary(au, type);
 
 	// how
-	if (type == AUDIT_SYSTEM_BOOT || type == AUDIT_SYSTEM_SHUTDOWN) {
+	if (type == AUDIT_SYSTEM_BOOT) {
 		D.thing.what = CLASS_WHAT_SYSTEM;
 		return 0;
 	} else if (type == AUDIT_SYSTEM_SHUTDOWN) {

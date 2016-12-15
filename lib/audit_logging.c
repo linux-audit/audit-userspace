@@ -176,7 +176,6 @@ static char *_get_commname(const char *comm, char *commname, unsigned int size)
 	char tmp_comm[20];
 	
 	if (comm == NULL) {
-		char *ptr;
 		int len;
 		int fd = open("/proc/self/comm", O_RDONLY);
 		if (fd < 0) {
@@ -184,6 +183,7 @@ static char *_get_commname(const char *comm, char *commname, unsigned int size)
 			return commname;
 		}
 		len = read(fd, tmp_comm, sizeof(tmp_comm));
+		close(fd);
 		if (len > 0)
 			tmp_comm[len-1] = 0;
 		comm = tmp_comm;
