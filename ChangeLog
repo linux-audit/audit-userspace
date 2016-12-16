@@ -1,3 +1,5 @@
+2.7.1
+
 2.7
 - Remove config file permission checks in auparse
 - Audisp-remote should detect normal socket close and mark remote_ended
