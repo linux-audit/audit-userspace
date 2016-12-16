@@ -1,6 +1,6 @@
 /* classify.c --
  * Copyright 2016 Red Hat Inc., Durham, North Carolina.
- * All Rights ReserveD.
+ * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -34,13 +34,13 @@
 #include "classify_syscall_maps.h"
 #include "classify_obj_type_maps.h"
 
+
 /*
  * Field accessors. x is the new value, y is the variable
  * Layout is: 0xFFFF FFFF  where first is record and second is field
- * Both record and field are 0 baseD. Simple records are always 0. Compound
+ * Both record and field are 0 based. Simple records are always 0. Compound
  * records start at 0 and go up.
  */
-// x is new value, y is current field value
 #define UNSET 0xFFFF
 #define get_record(y) ((y >> 16) & 0x0000FFFF)
 #define set_record(y, x) (((x & 0x0000FFFF) << 16) | (y & 0x0000FFFF))
@@ -48,6 +48,7 @@
 #define set_field(y, x) ((y & 0xFFFF0000) | (x & 0x0000FFFF))
 #define is_unset(y) (get_record(y) == UNSET)
 #define D au->cl_data
+
 
 void init_classify(classify_data *d)
 {
@@ -82,75 +83,113 @@ void clear_classify(classify_data *d)
 	d->opt = CLOPT_ALL;
 }
 
+static unsigned int set_prime_subject(auparse_state_t *au, const char *str,
+	unsigned int rnum)
+{
+	if (auparse_find_field(au, str)) {
+		D.actor.primary = set_record(0, rnum);
+		D.actor.primary = set_field(D.actor.primary,
+				auparse_get_field_num(au));
+		return 0;
+	}
+	return 1;
+}
+
+static unsigned int set_secondary_subject(auparse_state_t *au, const char *str,
+	unsigned int rnum)
+{
+	if (auparse_find_field(au, str)) {
+		D.actor.secondary = set_record(0, rnum);
+		D.actor.secondary = set_field(D.actor.secondary,
+				auparse_get_field_num(au));
+		return 0;
+	}
+	return 1;
+}
+
+static void add_subj_attr(auparse_state_t *au, const char *str,
+	unsigned int rnum)
+{
+	value_t attr;
+
+	if ((auparse_find_field(au, str))) {
+		attr = set_record(0, rnum);
+		attr = set_field(attr, auparse_get_field_num(au));
+		cllist_append(&D.actor.attr, attr, NULL);
+	} else
+		auparse_goto_record_num(au, rnum);
+}
+
+static unsigned int set_prime_object(auparse_state_t *au, const char *str,
+	unsigned int rnum)
+{
+	if (auparse_find_field(au, str)) {
+		D.thing.primary = set_record(0, rnum);
+		D.thing.primary = set_field(D.thing.primary,
+			auparse_get_field_num(au));
+		return 0;
+	}
+	return 1;
+}
+
+static unsigned int add_obj_attr(auparse_state_t *au, const char *str,
+	unsigned int rnum)
+{
+	value_t attr;
+
+	if ((auparse_find_field(au, str))) {
+		attr = set_record(0, rnum);
+		attr = set_field(attr, auparse_get_field_num(au));
+		cllist_append(&D.thing.attr, attr, NULL);
+		return 0;
+	} else
+		auparse_goto_record_num(au, rnum);
+	return 1;
+}
+
+static unsigned int add_session(auparse_state_t *au, unsigned int rnum)
+{
+	if (auparse_find_field(au, "ses")) {
+		D.session = set_record(0, rnum);
+		D.session = set_field(D.session,
+				auparse_get_field_num(au));
+		return 0;
+	} else
+		auparse_first_record(au);
+	return 1;
+}
+
+static unsigned int set_results(auparse_state_t *au, unsigned int rnum)
+{
+	if (auparse_find_field(au, "res")) {
+		D.results = set_record(0, rnum);
+		D.results = set_field(D.results, auparse_get_field_num(au));
+		return 0;
+	}
+	return 1;
+}
+
 static void syscall_subj_attr(auparse_state_t *au)
 {
-	int type;
-	value_t attr;
+	unsigned int rnum;
 
 	auparse_first_record(au);
 	do {
-		type = auparse_get_type(au);
-		if (type == AUDIT_SYSCALL) {
-		if ((auparse_find_field(au, "ppid"))) {
-			attr = set_record(0, auparse_get_record_num(au));
-			attr = set_field(attr, auparse_get_field_num(au));
-			cllist_append(&D.actor.attr, attr, NULL);
-		}
-		if ((auparse_find_field(au, "pid"))) {
-			attr = set_record(0, auparse_get_record_num(au));
-			attr = set_field(attr, auparse_get_field_num(au));
-			cllist_append(&D.actor.attr, attr, NULL);
-		}
-		if ((auparse_find_field(au, "gid"))) {
-			attr = set_record(0, auparse_get_record_num(au));
-			attr = set_field(attr, auparse_get_field_num(au));
-			cllist_append(&D.actor.attr, attr, NULL);
-		}
-		if ((auparse_find_field(au, "euid"))) {
-			attr = set_record(0, auparse_get_record_num(au));
-			attr = set_field(attr, auparse_get_field_num(au));
-			cllist_append(&D.actor.attr, attr, NULL);
-		}
-		if ((auparse_find_field(au, "suid"))) {
-			attr = set_record(0, auparse_get_record_num(au));
-			attr = set_field(attr, auparse_get_field_num(au));
-			cllist_append(&D.actor.attr, attr, NULL);
-		}
-		if ((auparse_find_field(au, "fsuid"))) {
-			attr = set_record(0, auparse_get_record_num(au));
-			attr = set_field(attr, auparse_get_field_num(au));
-			cllist_append(&D.actor.attr, attr, NULL);
-		}
-		if ((auparse_find_field(au, "egid"))) {
-			attr = set_record(0, auparse_get_record_num(au));
-			attr = set_field(attr, auparse_get_field_num(au));
-			cllist_append(&D.actor.attr, attr, NULL);
-		}
-		if ((auparse_find_field(au, "sgid"))) {
-			attr = set_record(0, auparse_get_record_num(au));
-			attr = set_field(attr, auparse_get_field_num(au));
-			cllist_append(&D.actor.attr, attr, NULL);
-		}
-		if ((auparse_find_field(au, "fsgid"))) {
-			attr = set_record(0, auparse_get_record_num(au));
-			attr = set_field(attr, auparse_get_field_num(au));
-			cllist_append(&D.actor.attr, attr, NULL);
-		}
-		if ((auparse_find_field(au, "tty"))) {
-			attr = set_record(0, auparse_get_record_num(au));
-			attr = set_field(attr, auparse_get_field_num(au));
-			cllist_append(&D.actor.attr, attr, NULL);
-		}
-		if ((auparse_find_field(au, "ses"))) {
-			D.session = set_record(0, auparse_get_record_num(au));
-			D.session = set_field(D.session, auparse_get_field_num(au));
-		}
-		if ((auparse_find_field(au, "subj"))) {
-			attr = set_record(0, auparse_get_record_num(au));
-			attr = set_field(attr, auparse_get_field_num(au));
-			cllist_append(&D.actor.attr, attr, NULL);
-		}
-		return;
+		rnum = auparse_get_record_num(au);
+		if (auparse_get_type(au) == AUDIT_SYSCALL) {
+			add_subj_attr(au, "ppid", rnum);
+			add_subj_attr(au, "pid", rnum);
+			add_subj_attr(au, "gid", rnum);
+			add_subj_attr(au, "euid", rnum);
+			add_subj_attr(au, "suid", rnum);
+			add_subj_attr(au, "fsuid", rnum);
+			add_subj_attr(au, "egid", rnum);
+			add_subj_attr(au, "sgid", rnum);
+			add_subj_attr(au, "fsgid", rnum);
+			add_subj_attr(au, "tty", rnum);
+			add_session(au, rnum);
+			add_subj_attr(au, "subj", rnum);
+			return;
 		}
 	} while (auparse_next_record(au) == 1);
 }
@@ -158,17 +197,14 @@ static void syscall_subj_attr(auparse_state_t *au)
 static void collect_path_attrs(auparse_state_t *au)
 {
 	value_t attr;
+	unsigned int rnum = auparse_get_record_num(au);
 
-	if ((auparse_find_field(au, "mode"))) {
-		attr = set_record(0, auparse_get_record_num(au));
-		attr = set_field(attr, auparse_get_field_num(au));
-		cllist_append(&D.thing.attr, attr, NULL);
-	} else
+	if (add_obj_attr(au, "mode", rnum))
 		return;	// Failed opens don't have anything else
 
 	// All the rest of the fields matter
 	while ((auparse_next_field(au))) {
-		attr = set_record(0, auparse_get_record_num(au));
+		attr = set_record(0, rnum);
 		attr = set_field(attr, auparse_get_field_num(au));
 		cllist_append(&D.thing.attr, attr, NULL);
 	}
@@ -176,24 +212,14 @@ static void collect_path_attrs(auparse_state_t *au)
 
 static void collect_cwd_attrs(auparse_state_t *au)
 {
-	value_t attr;
-
-	if ((auparse_find_field(au, "cwd"))) {
-		attr = set_record(0, auparse_get_record_num(au));
-		attr = set_field(attr, auparse_get_field_num(au));
-		cllist_append(&D.thing.attr, attr, NULL);
-	}
+	unsigned int rnum = auparse_get_record_num(au);
+	add_obj_attr(au, "cwd", rnum);
 }
 
 static void collect_sockaddr_attrs(auparse_state_t *au)
 {
-	value_t attr;
-
-	if ((auparse_find_field(au, "saddr"))) {
-		attr = set_record(0, auparse_get_record_num(au));
-		attr = set_field(attr, auparse_get_field_num(au));
-		cllist_append(&D.thing.attr, attr, NULL);
-	}
+	unsigned int rnum = auparse_get_record_num(au);
+	add_obj_attr(au, "saddr", rnum);
 }
 
 static void simple_file_attr(auparse_state_t *au)
@@ -213,7 +239,7 @@ static void simple_file_attr(auparse_state_t *au)
 				f = auparse_find_field(au, "nametype");
 				if (f && strcmp(f, "PARENT") == 0) {
 					if (parent == 0)
-						parent = auparse_get_record_num(au);
+					    parent = auparse_get_record_num(au);
 					continue;
 				}
 				// First normal record is collected
@@ -230,7 +256,7 @@ static void simple_file_attr(auparse_state_t *au)
 		}
 	} while (auparse_next_record(au) == 1);
 
-	// If we get here, path was never collecteD. Go back and get parent
+	// If we get here, path was never collected. Go back and get parent
 	if (parent) {
 		auparse_goto_record_num(au, parent);
 		auparse_first_field(au);
@@ -242,6 +268,7 @@ static void set_file_object(auparse_state_t *au)
 {
 	const char *f;
 	int parent = 0;
+	unsigned int rnum;
 
 	auparse_goto_record_num(au, 2);
 	auparse_first_field(au);
@@ -257,27 +284,26 @@ static void set_file_object(auparse_state_t *au)
 		}
 	} while (f && auparse_next_record(au) == 1);
 
+	// Sometimes we only have the parent (failed open at dir permission)
 	if (f == NULL) {
-		// Didn't find anything else, let's try parent
 		if (parent == 0)
 			return;
+
 		auparse_goto_record_num(au, parent);
 		auparse_first_field(au);
-	}
+		rnum = parent;
+	} else
+		rnum = auparse_get_record_num(au);
 
 	if (auparse_get_type(au) == AUDIT_PATH) {
 		auparse_first_field(au);
-		f = auparse_find_field(au, "name");
-		if (f) {
-			D.thing.primary = set_record(0,
-					auparse_get_record_num(au));
-			D.thing.primary = set_field(D.thing.primary,
-						auparse_get_field_num(au));
-		}
+
+		// Object
+		set_prime_object(au, "name", rnum);
+
 		f = auparse_find_field(au, "inode");
 		if (f) {
-			D.thing.secondary = set_record(0,
-					auparse_get_record_num(au));
+			D.thing.secondary = set_record(0, rnum);
 			D.thing.secondary = set_field(D.thing.secondary,
 						auparse_get_field_num(au));
 		}
@@ -310,17 +336,11 @@ static void set_socket_object(auparse_state_t *au)
 
 	auparse_goto_record_num(au, 1);
 	auparse_first_field(au);
-	f = auparse_find_field(au, "saddr");
-	if (f) {
-		D.thing.primary = set_record(0,	auparse_get_record_num(au));
-		D.thing.primary = set_field(D.thing.primary,
-					auparse_get_field_num(au));
-	}
+	set_prime_object(au, "saddr", 1);
 }
 
 static int set_program_obj(auparse_state_t *au)
 {
-
 	auparse_first_record(au);
 	if (auparse_find_field(au, "exe")) {
 		const char *exe = auparse_interpret_field(au);
@@ -575,16 +595,17 @@ static int classify_compound(auparse_state_t *au)
 	const char *f, *syscall = NULL;
 	int rc, recno, saved = 0, type = auparse_get_type(au);
 
+	// All compound events have a syscall record
+	// Some start with a record type and follow with a syscall
 	if (type == AUDIT_NETFILTER_CFG || type == AUDIT_ANOM_PROMISCUOUS ||
 		type == AUDIT_AVC || type == AUDIT_SELINUX_ERR) {
-		// Should record the action
 		auparse_next_record(au);
 		type = auparse_get_type(au);
 	} else if (type == AUDIT_ANOM_LINK) {
-		// Should record the action
-		auparse_next_record(au);
-		auparse_next_record(au);
+		// Save the action before moving to syscall
 		saved = type;
+		auparse_next_record(au);
+		auparse_next_record(au);
 		type = auparse_get_type(au);
 	}
 	if (type == AUDIT_SYSCALL) {
@@ -599,7 +620,7 @@ static int classify_compound(auparse_state_t *au)
 		// Results
 		f = auparse_find_field(au, "success");
 		if (f) {
-			D.results = set_record(0, auparse_get_record_num(au));
+			D.results = set_record(0, recno);
 			D.results = set_field(D.results,
 					auparse_get_field_num(au));
 		} else {
@@ -612,13 +633,7 @@ static int classify_compound(auparse_state_t *au)
 		}
 
 		// Subject - primary
-		f = auparse_find_field(au, "auid");
-		if (f) {
-			D.actor.primary = set_record(0,
-						auparse_get_record_num(au));
-			D.actor.primary = set_field(D.actor.primary,
-						auparse_get_field_num(au));
-		} else {
+		if (set_prime_subject(au, "auid", recno)) {
 			rc = auparse_goto_record_num(au, recno);
 			if (rc != 1) {
 				free(syscall);
@@ -628,13 +643,7 @@ static int classify_compound(auparse_state_t *au)
 		}
 
 		// Subject - alias, uid comes before auid
-		f = auparse_find_field(au, "uid");
-		if (f) {
-			D.actor.secondary = set_record(0,
-						 auparse_get_record_num(au));
-			D.actor.secondary = set_field(D.actor.secondary,
-					auparse_get_field_num(au));
-		} else {
+		if (set_secondary_subject(au, "uid", recno)) {
 			rc = auparse_goto_record_num(au, recno);
 			if (rc != 1) {
 				free(syscall);
@@ -837,16 +846,8 @@ static void collect_simple_subj_attr(auparse_state_t *au)
 
         auparse_first_record(au);
         auparse_first_field(au);
-	if (auparse_find_field(au, "pid")) {
-		attr = set_record(0, auparse_get_record_num(au));
-		attr = set_field(attr, auparse_get_field_num(au));
-		cllist_append(&D.actor.attr, attr, NULL);
-	}
-	if (auparse_find_field(au, "subj")) {
-		attr = set_record(0, auparse_get_record_num(au));
-		attr = set_field(attr, auparse_get_field_num(au));
-		cllist_append(&D.actor.attr, attr, NULL);
-	}
+	add_subj_attr(au, "pid", 0); // Just pass 0 since simple is 1 record
+	add_subj_attr(au, "subj", 0);
 }
 
 static int classify_simple(auparse_state_t *au)
@@ -863,21 +864,10 @@ static int classify_simple(auparse_state_t *au)
 	if (type == AUDIT_CONFIG_CHANGE || type == AUDIT_FEATURE_CHANGE ||
 			type == AUDIT_SECCOMP || type == AUDIT_ANOM_ABEND) {
 		// Subject - primary
-		f = auparse_find_field(au, "auid");
-		if (f) {
-			D.actor.primary = set_record(0, 0);
-			D.actor.primary = set_field(D.actor.primary,
-					auparse_get_field_num(au));
-		}
+		set_prime_subject(au, "auid", 0);
 
 		// Session
-		f = auparse_find_field(au, "ses");
-		if (f) {
-			D.session = set_record(0, 0);
-			D.session = set_field(D.session,
-					auparse_get_field_num(au));
-		} else
-			auparse_first_record(au);
+		add_session(au, 0);
 
 		// Subject attrs
 		collect_simple_subj_attr(au);
@@ -892,10 +882,12 @@ static int classify_simple(auparse_state_t *au)
 					str++;
 				if (strncmp(str, "add_rule", 8) == 0) {
 					D.action = strdup("added-audit-rule");
-					D.thing.primary = find_simple_object(au, type);
-				} else if (strncmp(str, "remove_rule", 11) == 0) {
+					D.thing.primary =
+						find_simple_object(au, type);
+				} else if (strncmp(str,"remove_rule",11) == 0){
 					D.action = strdup("deleted-audit-rule");
-					D.thing.primary = find_simple_object(au, type);
+					D.thing.primary =
+						find_simple_object(au, type);
 				} else {
 					act = classify_record_map_i2s(type);
 					if (act)
@@ -915,14 +907,9 @@ map:
 
 		// object
 		if (type == AUDIT_FEATURE_CHANGE) {
-			// Subject - primary
+			// Subject - secondary
 			auparse_first_field(au);
-			f = auparse_find_field(au, "uid");
-			if (f) {
-				D.actor.secondary = set_record(0, 0);
-				D.actor.secondary = set_field(D.actor.secondary,
-					auparse_get_field_num(au));
-			}
+			set_secondary_subject(au, "uid", 0);
 
 			// how
 			f = auparse_find_field(au, "exe");
@@ -932,23 +919,13 @@ map:
 			}
 
 			// object
-			f = auparse_find_field(au, "feature");
-			if (f) {
-				D.thing.primary = set_record(0, 0);
-				D.thing.primary = set_field(D.thing.primary,
-					auparse_get_field_num(au));
-			}
+			set_prime_object(au, "feature", 0);
 		}
 
 		if (type == AUDIT_SECCOMP) {
 			// Subject - secondary
 			auparse_first_field(au);
-			f = auparse_find_field(au, "uid");
-			if (f) {
-				D.actor.secondary = set_record(0, 0);
-				D.actor.secondary = set_field(D.actor.secondary,
-						auparse_get_field_num(au));
-			} else
+			if (set_secondary_subject(au, "uid", 0))
 				auparse_first_record(au);
 
 			// how
@@ -959,33 +936,20 @@ map:
 			}
 
 			// Object
-			f = auparse_find_field(au, "syscall");
-			if (f) {
-				D.thing.primary = set_record(0, 0);
-				D.thing.primary = set_field(D.thing.primary,
-						auparse_get_field_num(au));
-			} else
+			if (set_prime_object(au, "syscall", 0))
 				auparse_first_record(au);
 		}
 
 		if (type == AUDIT_ANOM_ABEND) {
 			// Subject - secondary
 			auparse_first_field(au);
-			f = auparse_find_field(au, "uid");
-			if (f) {
-				D.actor.secondary = set_record(0, 0);
-				D.actor.secondary = set_field(D.actor.secondary,
-						auparse_get_field_num(au));
-			} else
+			if (set_secondary_subject(au, "uid", 0))
 				auparse_first_record(au);
+
 			//object
-			f = auparse_find_field(au, "exe");
-			if (f) {
-				D.thing.primary = set_record(0, 0);
-				D.thing.primary = set_field(D.thing.primary,
-						auparse_get_field_num(au));
-			} else
+			if (set_prime_object(au, "exe", 0))
 				auparse_first_record(au);
+
 			// how
 			f = auparse_find_field(au, "sig");
 			if (f) {
@@ -995,60 +959,33 @@ map:
 		}
 
 		// Results
-		f = auparse_find_field(au, "res");
-		if (f) {
-			D.results = set_record(0, 0);
-			D.results = set_field(D.results,
-				auparse_get_field_num(au));
-		}
+		set_results(au, 0);
+
 		return 0;
 	}
 
 	// This one is atypical
 	if (type == AUDIT_LOGIN) {
 		// Secondary
-		f = auparse_find_field(au, "uid");
-		if (f) {
-			D.actor.secondary = set_record(0, 0);
-			D.actor.secondary = set_field(D.actor.secondary,
-					auparse_get_field_num(au));
-		} else
+		if (set_secondary_subject(au, "uid", 0))
 			auparse_first_record(au);
 
 		// Subject attrs
 		collect_simple_subj_attr(au);
 
 		// Subject
-		f = auparse_find_field(au, "old-auid");
-		if (f) {
-			D.actor.primary = set_record(0, 0);
-			D.actor.primary = set_field(D.actor.primary,
-					auparse_get_field_num(au));
-		} else
+		if (set_prime_subject(au, "old-auid", 0))
 			auparse_first_record(au);
 
 		// Object
-		f = auparse_find_field(au, "auid");
-		if (f) {
-			D.thing.primary = set_record(0, 0);
-			D.thing.primary = set_field(D.thing.primary,
-					auparse_get_field_num(au));
-		} else
+		if (set_prime_object(au, "auid", 0))
 			auparse_first_record(au);
 
 		// Session
-		f = auparse_find_field(au, "ses");
-		if (f) {
-			D.session = set_record(0, 0);
-			D.session = set_field(D.session, auparse_get_field_num(au));
-		}
+		add_session(au, 0);
 
 		// Results
-		f = auparse_find_field(au, "res");
-		if (f) {
-			D.results = set_record(0, 0);
-			D.results = set_field(D.results, auparse_get_field_num(au));
-		}
+		set_results(au, 0);
 
 		// action
 		act = classify_record_map_i2s(type);
@@ -1061,42 +998,53 @@ map:
 		return 0;
 	}
 
+	if (type >= AUDIT_FIRST_DAEMON && 
+		type < AUDIT_LAST_DAEMON) {
+		// Subject - primary
+		set_prime_subject(au, "auid", 0);
+
+		// Secondary - optional
+		if (set_secondary_subject(au, "uid", 0))
+			auparse_first_record(au);
+
+		// Session - optional
+		if (add_session(au, 0))
+			auparse_first_record(au);
+
+		// Subject attrs
+		collect_simple_subj_attr(au);
+
+		// action
+		act = classify_record_map_i2s(type);
+		if (act)
+			D.action = strdup(act);
+
+		// Object type
+		D.thing.what = CLASS_WHAT_SERVICE;
+
+		// Results
+		set_results(au, 0);
+		return 0;
+	}
+
 	// This is for events that follow:
 	// uid, auid, ses, res, find_simple_object
 	//
 	// Subject - alias, uid comes before auid
-	f = auparse_find_field(au, "uid");
-	if (f) {
-		D.actor.secondary = set_record(0, 0);
-		D.actor.secondary = set_field(D.actor.secondary,
-				auparse_get_field_num(au));
-	} else
+	if (set_secondary_subject(au, "uid", 0))
 		auparse_first_record(au);
 
 	// Subject - primary
-	f = auparse_find_field(au, "auid");
-	if (f) {
-		D.actor.primary = set_record(0, 0);
-		D.actor.primary = set_field(D.actor.primary,
-					auparse_get_field_num(au));
-	}
+	set_prime_subject(au, "auid", 0);
 
 	// Session
-	f = auparse_find_field(au, "ses");
-	if (f) {
-		D.session = set_record(0, 0);
-		D.session = set_field(D.session, auparse_get_field_num(au));
-	}
+	add_session(au, 0);
 
 	// Subject attrs
 	collect_simple_subj_attr(au);
 
 	// Results
-	f = auparse_find_field(au, "res");
-	if (f) {
-		D.results = set_record(0, 0);
-		D.results = set_field(D.results, auparse_get_field_num(au));
-	}
+	set_results(au, 0);
 
 	// action
 	act = classify_record_map_i2s(type);
@@ -1144,19 +1092,20 @@ int auparse_classify(auparse_state_t *au, classify_option_t opt)
 	int rc = auparse_first_record(au);
 	unsigned num = auparse_get_num_records(au);
 
+	// Reset cursor - no idea what we are being handed
 	auparse_first_record(au);
 	clear_classify(&D);
 	D.opt = opt;
 
 	// If we have more than one record in the event its a syscall based
 	// event. Otherwise its a simple event with all pieces in the same
-	// recorD.
+	// record.
 	if (num > 1)
 		rc = classify_compound(au);
 	else
 		rc = classify_simple(au);	
 
-	// reset the location
+	// Reset the cursor
 	auparse_first_record(au);
 	return rc;
 }
