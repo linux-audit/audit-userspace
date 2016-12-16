@@ -250,7 +250,7 @@ static unsigned int need_escaping(const char *s, unsigned int len,
 		case AUPARSE_ESC_SHELL:
 			return need_shell_escape(s, len);
 		case AUPARSE_ESC_SHELL_QUOTE:
-			return need_shell_quote_escape(s, len);;
+			return need_shell_quote_escape(s, len);
 	}
 	return 0;
 }
