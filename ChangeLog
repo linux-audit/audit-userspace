@@ -1,5 +1,6 @@
 2.7.1
 - In auparse_classify, handle simple SYSCALL events
+- In auparse_classify, correct identification of execve object 
 
 2.7
 - Remove config file permission checks in auparse

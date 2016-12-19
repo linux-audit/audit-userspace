@@ -264,13 +264,13 @@ static void simple_file_attr(auparse_state_t *au)
 	}
 }
 
-static void set_file_object(auparse_state_t *au)
+static void set_file_object(auparse_state_t *au, int adjust)
 {
 	const char *f;
 	int parent = 0;
 	unsigned int rnum;
 
-	auparse_goto_record_num(au, 2);
+	auparse_goto_record_num(au, 2 + adjust);
 	auparse_first_field(au);
 
 	// Now double check that we picked the right one.
@@ -396,82 +396,82 @@ static int classify_syscall(auparse_state_t *au, const char *syscall, int type)
 	{
 		case CLASS_FILE:
 			act = "opened-file";
-			set_file_object(au);
+			set_file_object(au, 0);
 			D.thing.what = CLASS_WHAT_FILE; // this gets overridden
 			simple_file_attr(au);
 			break;
 		case CLASS_FILE_CHATTR:
 			act = "changed-file-attributes-of";
 			D.thing.what = CLASS_WHAT_FILE; // this gets overridden
-			set_file_object(au);
+			set_file_object(au, 0);
 			simple_file_attr(au);
 			break;
 		case CLASS_FILE_LDMOD:
 			act = "loaded-kernel-module";
 			D.thing.what = CLASS_WHAT_FILE; // this gets overridden
-			set_file_object(au);
+			set_file_object(au, 0);
 			// simple_file_attr(au);
 			break;
 		case CLASS_FILE_UNLDMOD:
 			act = "unloaded-kernel-module";
 			D.thing.what = CLASS_WHAT_FILE; // this gets overridden
-			set_file_object(au);
+			set_file_object(au, 0);
 			// simple_file_attr(au);
 			break;
 		case CLASS_FILE_DIR:
 			act = "created-directory";
 			D.thing.what = CLASS_WHAT_FILE; // this gets overridden
-			set_file_object(au);
+			set_file_object(au, 0);
 			// simple_file_attr(au);
 			break;
 		case CLASS_FILE_MOUNT:
 			act = "mounted";
 			D.thing.what = CLASS_WHAT_FILE; // this gets overridden
-			set_file_object(au);
+			set_file_object(au, 0);
 			// simple_file_attr(au);
 			break;
 		case CLASS_FILE_RENAME:
 			act = "renamed";
 			D.thing.what = CLASS_WHAT_FILE; // this gets overridden
 			// FIXME: need to see this event
-			set_file_object(au);
+			set_file_object(au, 0);
 			simple_file_attr(au);
 			break;
 		case CLASS_FILE_STAT:
 			act = "checked";
 			D.thing.what = CLASS_WHAT_FILE; // this gets overridden
-			set_file_object(au);
+			set_file_object(au, 0);
 			simple_file_attr(au);
 			break;
 		case CLASS_FILE_LNK:
 			act = "symlinked";
 			D.thing.what = CLASS_WHAT_FILE; // this gets overridden
 			// FIXME: need to see this event
-			// set_file_object(au);
+			// set_file_object(au, 0);
 			// simple_file_attr(au);
 			break;
 		case CLASS_FILE_UMNT:
 			act = "unmounted";
 			D.thing.what = CLASS_WHAT_FILE; // this gets overridden
-			set_file_object(au);
+			set_file_object(au, 0);
 			// simple_file_attr(au);
 			break;
 		case CLASS_FILE_DEL:
 			act = "deleted";
 			D.thing.what = CLASS_WHAT_FILE; // this gets overridden
-			set_file_object(au);
+			set_file_object(au, 0);
 			simple_file_attr(au);
 			break;
 		case CLASS_FILE_TIME:
 			act = "changed-timestamp-of";
 			D.thing.what = CLASS_WHAT_FILE; // this gets overridden
-			set_file_object(au);
+			set_file_object(au, 0);
 			simple_file_attr(au);
 			break;
 		case CLASS_EXEC:
 			act = "executed";
 			D.thing.what = CLASS_WHAT_FILE; // this gets overridden
-			set_file_object(au);
+			set_file_object(au, 1);
 			simple_file_attr(au);
 			break;
 		case CLASS_SOCKET_ACCEPT:
