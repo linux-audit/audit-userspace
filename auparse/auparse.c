@@ -1806,8 +1806,10 @@ const char *auparse_find_field_next(auparse_state_t *au)
 			if (nvlist_find_name(&r->nv, au->find_field))
 				return nvlist_get_cur_val(&r->nv);
 			r = aup_list_next(au->le);
-			if (r)
+			if (r) {
 				aup_list_first_field(au->le);
+				load_interpretation_list(r->interp);
+			}
 		}
 	}
 	return NULL;
