@@ -68,6 +68,7 @@ void init_classify(classify_data *d)
 
 void clear_classify(classify_data *d)
 {
+	d->session = set_record(0, UNSET);
 	d->actor.primary = set_record(0, UNSET);
 	d->actor.secondary = set_record(0, UNSET);
 	cllist_clear(&d->actor.attr);

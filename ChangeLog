@@ -3,6 +3,7 @@
 - In auparse_classify, correct identification of execve object
 - In auparse, load interpretations when auparse_find_field_next changes record
 - In auparse_classify, collect some new object data on some syscalls
+- In auparse_classify, make sure session is cleared on each new event
 
 2.7
 - Remove config file permission checks in auparse
