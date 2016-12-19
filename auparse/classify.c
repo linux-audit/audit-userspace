@@ -859,6 +859,10 @@ static int classify_simple(auparse_state_t *au)
 	if (type == AUDIT_NETFILTER_CFG)
 		return 1;
 
+	// Some older OS do not have PROCTITLE records
+	if (type == AUDIT_SYSCALL)
+		return classify_compound(au);
+
 	// This is for events that follow:
 	// auid, (op), (uid), stuff
 	if (type == AUDIT_CONFIG_CHANGE || type == AUDIT_FEATURE_CHANGE ||
