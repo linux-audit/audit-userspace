@@ -100,7 +100,6 @@ static void output_raw(llist *l)
 		return;
 	}
 	do {
-		// If enriched, the interpretations will be set.
 		// Only add the separator for enriched events.
 		if (l->fmt == LF_ENRICHED)
 			n->message[n->mlen] = AUDIT_INTERP_SEPARATOR;
