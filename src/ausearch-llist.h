@@ -96,6 +96,7 @@ typedef struct {
 			// Data we add as 1 per event
   event e;		// event - time & serial number
   search_items s;	// items in master rec that are searchable
+  int fmt;		// The event's format (raw, enriched)
 } llist;
 
 void list_create(llist *l);

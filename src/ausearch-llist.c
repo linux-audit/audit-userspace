@@ -26,12 +26,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include "ausearch-llist.h"
+#include "auditd-config.h"
 
 void list_create(llist *l)
 {
 	l->head = NULL;
 	l->cur = NULL;
 	l->cnt = 0;
+	l->fmt = LF_RAW;
 	l->e.milli = 0L;       
 	l->e.sec = 0L;         
 	l->e.serial = 0L;      

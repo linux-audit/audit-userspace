@@ -27,6 +27,7 @@
 #include <string.h>
 #include <stdio.h>
 #include "ausearch-common.h"
+#include "auditd-config.h"
 #include "private.h"
 
 #define ARRAY_LIMIT 80
@@ -215,7 +216,7 @@ static void check_events(lol *lo, time_t sec)
 // or creates a new one if its a new event
 int lol_add_record(lol *lo, char *buff)
 {
-	int i;
+	int i, fmt;
 	lnode n;
 	event e;
 	char *ptr;
@@ -237,6 +238,7 @@ int lol_add_record(lol *lo, char *buff)
 		ptr = strrchr(n.interp, 0x0a);
 		if (ptr)
 			*ptr = 0;
+		fmt = LF_ENRICHED;
 	} else {
 		ptr = strrchr(n.message, 0x0a);
 		if (ptr) {
@@ -245,6 +247,7 @@ int lol_add_record(lol *lo, char *buff)
 		} else
 			n.mlen = MAX_AUDIT_MESSAGE_LENGTH;
 		n.interp = NULL;
+		fmt = LF_RAW;
 	}
 
 	// Now see where this belongs
@@ -254,6 +257,8 @@ int lol_add_record(lol *lo, char *buff)
 			if (events_are_equal(&l->e, &e)) {
 				free((char *)e.node);
 				list_append(l, &n);
+				if (fmt > l->fmt)
+					l->fmt = fmt;
 				return 1;
 			}
 		}
@@ -266,6 +271,7 @@ int lol_add_record(lol *lo, char *buff)
 	l->e.serial = e.serial;
 	l->e.node = e.node;
 	l->e.type = e.type;
+	l->fmt = fmt;
 	list_append(l, &n);
 	lol_append(lo, l);
 	check_events(lo,  e.sec);

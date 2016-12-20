@@ -32,6 +32,7 @@
 #include "ausearch-lookup.h"
 #include "auparse-idata.h"
 #include "auparse-defs.h"
+#include "auditd-config.h"
 
 /* Local functions */
 static void output_raw(llist *l);
@@ -101,7 +102,7 @@ static void output_raw(llist *l)
 	do {
 		// If enriched, the interpretations will be set.
 		// Only add the separator for enriched events.
-		if (n->interp)
+		if (l->fmt == LF_ENRICHED)
 			n->message[n->mlen] = AUDIT_INTERP_SEPARATOR;
 		puts(n->message);
 	} while ((n=list_next(l)));
