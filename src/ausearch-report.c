@@ -99,7 +99,10 @@ static void output_raw(llist *l)
 		return;
 	}
 	do {
-		n->message[n->mlen] = AUDIT_INTERP_SEPARATOR;
+		// If enriched, the interpretations will be set.
+		// Only add the separator for enriched events.
+		if (n->interp)
+			n->message[n->mlen] = AUDIT_INTERP_SEPARATOR;
 		puts(n->message);
 	} while ((n=list_next(l)));
 }
