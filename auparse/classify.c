@@ -566,6 +566,21 @@ static int classify_syscall(auparse_state_t *au, const char *syscall, int type)
 				D.how = strdup(syscall);
 			}
 			break;
+		case CLASS_SYSTEM_TIME:
+			act = "changed-system-time";
+			// TODO: can't think of an object for this one
+			D.thing.what = CLASS_WHAT_SYSTEM;
+			break;
+		case CLASS_MAKE_DEV:
+			set_file_object(au, 0);
+			simple_file_attr(au);
+			if (D.thing.what == CLASS_WHAT_CHAR_DEV)
+				act = "made-character-device";
+			else if (D.thing.what == CLASS_WHAT_BLOCK_DEV)
+				act = "made-block-device";
+			else
+				act = "make-device";
+			break;
 		default:
 			{
 				char *k;

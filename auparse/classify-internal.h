@@ -50,6 +50,8 @@
 #define CLASS_PROMISCUOUS	23
 #define CLASS_UID		24
 #define CLASS_GID		25
+#define CLASS_SYSTEM_TIME	26
+#define CLASS_MAKE_DEV		27
 
 // This enum is used to map what the system objects are
 #define CLASS_WHAT_UNKNOWN	0

@@ -91,5 +91,10 @@ _S(CLASS_GID, "setegid")
 _S(CLASS_GID, "setfsgid")
 _S(CLASS_GID, "setregid")
 _S(CLASS_GID, "setresgid")
-
+_S(CLASS_SYSTEM_TIME, "settimeofday")
+_S(CLASS_SYSTEM_TIME, "clock_settime")
+_S(CLASS_SYSTEM_TIME, "stime")
+_S(CLASS_SYSTEM_TIME, "adjtimex")
+_S(CLASS_MAKE_DEV, "mknod")
+_S(CLASS_MAKE_DEV, "mknodat")
 
