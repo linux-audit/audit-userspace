@@ -24,6 +24,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <sys/stat.h>
+#include <errno.h>
 #include <libaudit.h>
 #include "auparse.h"
 #include "internal.h"
@@ -310,8 +311,10 @@ static void set_file_object(auparse_state_t *au, int adjust)
 		}
 		f = auparse_find_field(au, "mode");
 		if (f) {
-			int mode = auparse_get_field_int(au);
-			if (mode != -1) {
+			unsigned int mode;
+			errno = 0;
+			mode = strtoul(f, NULL, 8);
+			if (errno == 0) {
 				if (S_ISREG(mode))
 					D.thing.what = CLASS_WHAT_FILE;
 				else if (S_ISDIR(mode))

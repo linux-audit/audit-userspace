@@ -6,6 +6,7 @@
 - In auparse_classify, make sure session is cleared on each new event
 - In ausearch, only add the separator for enriched events (#1406328)
 - In auparse_classify, add more syscalls to action map
+- In auparse_classify, fix mode conversion so file object classification works
 
 2.7
 - Remove config file permission checks in auparse
