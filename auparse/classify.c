@@ -584,6 +584,11 @@ static int classify_syscall(auparse_state_t *au, const char *syscall, int type)
 			else
 				act = "make-device";
 			break;
+		case CLASS_SYSTEM_NAME:
+			act = "changed-system-name";
+			// TODO: can't think of an object for this one
+			D.thing.what = CLASS_WHAT_SYSTEM_NAME;
+			break;
 		default:
 			{
 				char *k;

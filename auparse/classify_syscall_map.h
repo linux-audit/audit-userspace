@@ -98,4 +98,6 @@ _S(CLASS_SYSTEM_TIME, "stime")
 _S(CLASS_SYSTEM_TIME, "adjtimex")
 _S(CLASS_MAKE_DEV, "mknod")
 _S(CLASS_MAKE_DEV, "mknodat")
+_S(CLASS_SYSTEM_NAME, "sethostname")
+_S(CLASS_SYSTEM_NAME, "setdomainname")
 

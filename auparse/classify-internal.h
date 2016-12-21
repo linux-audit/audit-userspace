@@ -52,6 +52,7 @@
 #define CLASS_GID		25
 #define CLASS_SYSTEM_TIME	26
 #define CLASS_MAKE_DEV		27
+#define CLASS_SYSTEM_NAME	28
 
 // This enum is used to map what the system objects are
 #define CLASS_WHAT_UNKNOWN	0
@@ -74,5 +75,6 @@
 #define CLASS_WHAT_AUDIT_CONFIG	17
 #define CLASS_WHAT_MAC_CONFIG	18
 #define CLASS_WHAT_SYSTEM_TIME	19
+#define CLASS_WHAT_SYSTEM_NAME	20
 
 #endif
