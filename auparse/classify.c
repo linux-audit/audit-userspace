@@ -801,6 +801,12 @@ static value_t find_simple_object(auparse_state_t *au, int type)
 			break;
 		case AUDIT_USYS_CONFIG:
 			f = auparse_find_field(au, "op");
+			if (f) {
+				free(D.action);
+				D.action = strdup(auparse_interpret_field(au));
+				f = NULL;
+			}
+			D.thing.what = CLASS_WHAT_SYSTEM;
 			break;
 		case AUDIT_CRYPTO_KEY_USER:
 			f = auparse_find_field(au, "fp");
