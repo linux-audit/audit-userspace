@@ -572,7 +572,7 @@ static int classify_syscall(auparse_state_t *au, const char *syscall, int type)
 		case CLASS_SYSTEM_TIME:
 			act = "changed-system-time";
 			// TODO: can't think of an object for this one
-			D.thing.what = CLASS_WHAT_SYSTEM_TIME;
+			D.thing.what = CLASS_WHAT_SYSTEM;
 			break;
 		case CLASS_MAKE_DEV:
 			set_file_object(au, 0);
@@ -587,7 +587,7 @@ static int classify_syscall(auparse_state_t *au, const char *syscall, int type)
 		case CLASS_SYSTEM_NAME:
 			act = "changed-system-name";
 			// TODO: can't think of an object for this one
-			D.thing.what = CLASS_WHAT_SYSTEM_NAME;
+			D.thing.what = CLASS_WHAT_SYSTEM;
 			break;
 		default:
 			{
