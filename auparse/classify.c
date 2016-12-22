@@ -109,7 +109,7 @@ static unsigned int set_secondary_subject(auparse_state_t *au, const char *str,
 	return 1;
 }
 
-static void add_subj_attr(auparse_state_t *au, const char *str,
+static unsigned int add_subj_attr(auparse_state_t *au, const char *str,
 	unsigned int rnum)
 {
 	value_t attr;
@@ -118,8 +118,11 @@ static void add_subj_attr(auparse_state_t *au, const char *str,
 		attr = set_record(0, rnum);
 		attr = set_field(attr, auparse_get_field_num(au));
 		cllist_append(&D.actor.attr, attr, NULL);
+		return 0;
 	} else
 		auparse_goto_record_num(au, rnum);
+
+	return 1;
 }
 
 static unsigned int set_prime_object(auparse_state_t *au, const char *str,
@@ -868,8 +871,6 @@ static value_t find_simple_obj_secondary(auparse_state_t *au, int type)
 
 static void collect_simple_subj_attr(auparse_state_t *au)
 {
-	value_t attr;
-
         if (D.opt == CLOPT_NO_ATTRS)
                 return;
 
@@ -877,6 +878,21 @@ static void collect_simple_subj_attr(auparse_state_t *au)
         auparse_first_field(au);
 	add_subj_attr(au, "pid", 0); // Just pass 0 since simple is 1 record
 	add_subj_attr(au, "subj", 0);
+}
+
+static void collect_userspace_subj_attr(auparse_state_t *au, int type)
+{
+        if (D.opt == CLOPT_NO_ATTRS)
+                return;
+
+	// Just pass 0 since simple is 1 record
+	add_subj_attr(au, "hostname", 0);
+	add_subj_attr(au, "addr", 0);
+
+	// Some events have the terminal as the object - skip for them
+	if (type != AUDIT_USER_START && type != AUDIT_USER_END &&
+				type != AUDIT_USER_ERR)
+		add_subj_attr(au, "terminal", 0);
 }
 
 static int classify_simple(auparse_state_t *au)
@@ -953,6 +969,7 @@ map:
 
 			// object
 			set_prime_object(au, "feature", 0);
+			D.thing.what = CLASS_WHAT_SYSTEM;
 		}
 
 		if (type == AUDIT_SECCOMP) {
@@ -971,6 +988,7 @@ map:
 			// Object
 			if (set_prime_object(au, "syscall", 0))
 				auparse_first_record(au);
+			D.thing.what = CLASS_WHAT_PROCESS;
 		}
 
 		if (type == AUDIT_ANOM_ABEND) {
@@ -982,6 +1000,7 @@ map:
 			//object
 			if (set_prime_object(au, "exe", 0))
 				auparse_first_record(au);
+			D.thing.what = CLASS_WHAT_PROCESS;
 
 			// how
 			f = auparse_find_field(au, "sig");
@@ -1075,6 +1094,9 @@ map:
 
 	// Subject attrs
 	collect_simple_subj_attr(au);
+	if ((type >= AUDIT_FIRST_USER_MSG && type < AUDIT_LAST_USER_MSG) ||
+		(type >= AUDIT_FIRST_USER_MSG2 && type < AUDIT_LAST_USER_MSG2))
+		collect_userspace_subj_attr(au, type);
 
 	// Results
 	set_results(au, 0);
