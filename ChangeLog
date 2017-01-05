@@ -8,6 +8,7 @@
 - In auparse_classify, add more syscalls to action map
 - In auparse_classify, fix mode conversion so file object classification works
 - Do not let libev process SIGCHLD
+- In auditd, install temporary SIGCHLD handler until libev starts
 
 2.7
 - Remove config file permission checks in auparse

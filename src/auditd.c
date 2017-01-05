@@ -178,6 +178,11 @@ static void child_handler(struct ev_loop *loop, struct ev_signal *sig,
 	}
 }
 
+static void child_handler2( int sig )
+{
+	child_handler(NULL, NULL, 0);
+}
+
 static int extract_type(const char *str)
 {
 	const char *tptr, *ptr2, *ptr = str;
@@ -682,6 +687,12 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
+	/* This signal handler gets replaced later. Its here in case
+	 * the dispatcher exits before libev is in control */
+	sa.sa_flags = 0;
+	sigemptyset(&sa.sa_mask);
+	sa.sa_handler = child_handler2;
+	sigaction(SIGCHLD, &sa, NULL);
 	if (init_dispatcher(&config)) {
 		if (pidfile)
 			unlink(pidfile);
