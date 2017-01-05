@@ -48,6 +48,10 @@
 
 #include "ev.h"
 
+#if EV_CHILD_ENABLE
+#error "LIBEV must not have EV_CHILD_ENABLE set"
+#endif
+
 #define EV_STOP() ev_unloop (ev_default_loop (EVFLAG_AUTO), EVUNLOOP_ALL), stop = 1;
 
 #define DEFAULT_BUF_SZ	448

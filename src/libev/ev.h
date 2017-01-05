@@ -125,7 +125,7 @@ EV_CPP(extern "C" {)
 # ifdef _WIN32
 #  define EV_CHILD_ENABLE 0
 # else
-#  define EV_CHILD_ENABLE EV_FEATURE_WATCHERS
+#  define EV_CHILD_ENABLE 0
 #endif
 #endif
 
