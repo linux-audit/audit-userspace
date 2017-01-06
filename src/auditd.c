@@ -628,6 +628,11 @@ int main(int argc, char *argv[])
 	for (i=1; i<NSIG; i++)
 		sigaction( i, &sa, NULL );
 
+	/* This signal handler gets replaced later. Its here in case
+	 * the dispatcher exits before libev is in control */
+	sa.sa_handler = child_handler2;
+	sigaction(SIGCHLD, &sa, NULL);
+
 	atexit(clean_exit);
 
 	/* Raise the rlimits in case we're being started from a shell
@@ -687,12 +692,6 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	/* This signal handler gets replaced later. Its here in case
-	 * the dispatcher exits before libev is in control */
-	sa.sa_flags = 0;
-	sigemptyset(&sa.sa_mask);
-	sa.sa_handler = child_handler2;
-	sigaction(SIGCHLD, &sa, NULL);
 	if (init_dispatcher(&config)) {
 		if (pidfile)
 			unlink(pidfile);
