@@ -134,11 +134,10 @@ int init_dispatcher(const struct daemon_conf *config)
 void shutdown_dispatcher(void)
 {
 	// kill child
-	if (pid)
+	if (pid) {
 		kill(pid, SIGTERM);
-	// wait for term
-	// if not in time, send sigkill
-	pid = 0;
+		pid = 0;
+	}
 
 	// cleanup comm pipe
 	if (disp_pipe[0] >= 0) {

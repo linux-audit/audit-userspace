@@ -362,7 +362,8 @@ int main(int argc, char *argv[])
 	else
 		audit_fd = dup(0);
 	if (audit_fd < 0) {
-		syslog(LOG_ERR, "Failed setting up input, exiting");
+		syslog(LOG_ERR, "Failed setting up input(%s, %d), exiting",
+				strerror(errno), audit_fd);
 		return 1;
 	}
 
