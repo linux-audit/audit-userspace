@@ -36,7 +36,7 @@
 
 /* This is the communications channel between auditd & the dispatcher */
 static int disp_pipe[2] = {-1, -1};
-static pid_t pid = 0;
+static volatile pid_t pid = 0;
 static int n_errs = 0;
 static int protocol_ver = AUDISP_PROTOCOL_VER;
 #define REPORT_LIMIT 10
@@ -48,7 +48,7 @@ int dispatcher_pid(void)
 
 void dispatcher_reaped(void)
 {
-	audit_msg(LOG_INFO, "dispatcher %d reaped\n", pid);
+	audit_msg(LOG_INFO, "dispatcher %d reaped", pid);
 	pid = 0;
 	shutdown_dispatcher();
 }
@@ -59,7 +59,7 @@ static int set_flags(int fn, int flags)
 	int fl;
 
 	if ((fl = fcntl(fn, F_GETFL, 0)) < 0) {
-		audit_msg(LOG_ERR, "fcntl failed. Cannot get flags (%s)\n", 
+		audit_msg(LOG_ERR, "fcntl failed. Cannot get flags (%s)", 
 			strerror(errno));
 		return fl;
 	}
@@ -72,8 +72,6 @@ static int set_flags(int fn, int flags)
 /* This function returns 1 on error & 0 on success */
 int init_dispatcher(const struct daemon_conf *config)
 {
-	struct sigaction sa;
-
 	if (config->dispatcher == NULL) 
 		return 0;
 
@@ -104,9 +102,6 @@ int init_dispatcher(const struct daemon_conf *config)
 			dup2(disp_pipe[0], 0);
 			close(disp_pipe[0]);
 			close(disp_pipe[1]);
-			sigfillset (&sa.sa_mask);
-			sigprocmask (SIG_UNBLOCK, &sa.sa_mask, 0);
-			setsid();
 			execl(config->dispatcher, config->dispatcher, NULL);
 			audit_msg(LOG_ERR, "exec() failed");
 			exit(1);
