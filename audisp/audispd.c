@@ -355,6 +355,7 @@ int main(int argc, char *argv[])
 	sigaction(SIGALRM, &sa, NULL);
 	sa.sa_handler = child_handler;
 	sigaction(SIGCHLD, &sa, NULL);
+	setsid();
 
 	/* move stdin to its own fd */
 	if (argc == 3 && strcmp(argv[1], "--input") == 0) 
