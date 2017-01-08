@@ -431,6 +431,12 @@ int main(int argc, char *argv[])
 	/* Create inbound thread */
 	pthread_create(&inbound_thread, NULL, inbound_thread_main, NULL); 
 
+	// Block these signals on main thread so poll(2) wakes up
+	sigemptyset (&sa.sa_mask);
+	sigaddset(&sa.sa_mask, SIGHUP);
+	sigaddset(&sa.sa_mask, SIGTERM);
+	pthread_sigmask(SIG_BLOCK, &sa.sa_mask, NULL);
+
 	/* Start event loop */
 	while (event_loop()) {
 		hup = 0;
