@@ -10,6 +10,7 @@
 - Do not let libev process SIGCHLD
 - In auditd, install temporary SIGCHLD handler until libev starts
 - Fix signal handling in audispd so that it responds faster
+- In auditd, fix descriptor setup when initializing the dispatcher
 
 2.7
 - Remove config file permission checks in auparse

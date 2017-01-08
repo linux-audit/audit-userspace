@@ -1499,6 +1499,9 @@ static void reconfigure(struct auditd_event *e)
 			logging_suspended = saved_suspend;
 	}
 
+	/* This had to wait until now so the child exec has happened */
+	make_dispatcher_fd_private();
+
 	// Next document the results
 	srand(time(NULL));
 	seq_num = rand()%10000;

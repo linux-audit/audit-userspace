@@ -720,6 +720,9 @@ int main(int argc, char *argv[])
 	fcntl(pipefds[0], F_SETFD, FD_CLOEXEC);
 	fcntl(pipefds[1], F_SETFD, FD_CLOEXEC);
 
+	/* This had to wait until now so the child exec has happened */
+	make_dispatcher_fd_private();
+
 	/* Write message to log that we are alive */
 	{
 		struct utsname ubuf;

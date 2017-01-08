@@ -58,6 +58,9 @@ static int set_flags(int fn, int flags)
 {
 	int fl;
 
+	if (fn == -1)
+		return 0;
+
 	if ((fl = fcntl(fn, F_GETFL, 0)) < 0) {
 		audit_msg(LOG_ERR, "fcntl failed. Cannot get flags (%s)", 
 			strerror(errno));
@@ -69,16 +72,29 @@ static int set_flags(int fn, int flags)
 	return fcntl(fn, F_SETFL, fl);
 }
 
+int make_dispatcher_fd_private(void)
+{
+	if (set_flags(disp_pipe[0], FD_CLOEXEC) < 0) {
+		audit_msg(LOG_ERR, "Failed to set FD_CLOEXEC flag");
+		return 1;
+	}
+	return 0;
+}
+
 /* This function returns 1 on error & 0 on success */
 int init_dispatcher(const struct daemon_conf *config)
 {
-	struct sigaction sa;
-
 	if (config->dispatcher == NULL) 
 		return 0;
 
 	if (socketpair(AF_UNIX, SOCK_STREAM, 0, disp_pipe)) {
 		audit_msg(LOG_ERR, "Failed creating disp_pipe");
+		return 1;
+	}
+
+	/* Don't let this leak to anything */
+	if (set_flags(disp_pipe[1], FD_CLOEXEC) < 0) {
+		audit_msg(LOG_ERR, "Failed to set FD_CLOEXEC flag");
 		return 1;
 	}
 
@@ -88,7 +104,7 @@ int init_dispatcher(const struct daemon_conf *config)
 	else
 		protocol_ver = AUDISP_PROTOCOL_VER;
 
-	/* Make both disp_pipe non-blocking */
+	/* Make both disp_pipe non-blocking if requested */
 	if (config->qos == QOS_NON_BLOCKING) {
 		if (set_flags(disp_pipe[0], O_NONBLOCK) < 0 ||
 			set_flags(disp_pipe[1], O_NONBLOCK) < 0) {
@@ -101,11 +117,8 @@ int init_dispatcher(const struct daemon_conf *config)
 	pid = fork();
 	switch(pid) {
 		case 0:	// child
-			dup2(disp_pipe[0], 0);
-			close(disp_pipe[0]);
-			close(disp_pipe[1]);
-			sigfillset (&sa.sa_mask);
-			sigprocmask (SIG_UNBLOCK, &sa.sa_mask, 0);
+			if (disp_pipe[0] != 0)
+				dup2(disp_pipe[0], 0);
 			execl(config->dispatcher, config->dispatcher, NULL);
 			audit_msg(LOG_ERR, "exec() failed");
 			exit(1);
@@ -114,14 +127,6 @@ int init_dispatcher(const struct daemon_conf *config)
 			return 1;
 			break;
 		default:	// parent
-			close(disp_pipe[0]);
-			disp_pipe[0] = -1;
-			/* Avoid leaking this */
-			if (fcntl(disp_pipe[1], F_SETFD, FD_CLOEXEC) < 0) {
-				audit_msg(LOG_ERR,
-					"Failed to set FD_CLOEXEC flag");
-				return 1;
-			}
 			audit_msg(LOG_INFO, "Started dispatcher: %s pid: %u",
 					config->dispatcher, pid);
 			break;
@@ -152,15 +157,14 @@ void shutdown_dispatcher(void)
 void reconfigure_dispatcher(const struct daemon_conf *config)
 {
 	// signal child or start it so it can see if config changed
-	if (pid)
+	if (pid) {
 		kill(pid, SIGHUP);
-	else
+		if (config->log_format == LF_ENRICHED)
+			protocol_ver = AUDISP_PROTOCOL_VER2;
+		else
+			protocol_ver = AUDISP_PROTOCOL_VER;
+	} else
 		init_dispatcher(config);
-
-	if (config->log_format == LF_ENRICHED)
-		protocol_ver = AUDISP_PROTOCOL_VER2;
-	else
-		protocol_ver = AUDISP_PROTOCOL_VER;
 }
 
 /* Returns -1 on err, 0 on success, and 1 if eagain occurred and not an err */
