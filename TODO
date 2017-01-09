@@ -1,15 +1,18 @@
 Things that need to be done:
 ===========================
 2.7.1
-* Document new auparse classify functions with man pages
-* Selectable escaping for ausearch/report output
+* Support resetting overflow counter
 * Look into TLS support
+* Document new auparse classify functions with man pages
+
+2.7.2
+* Selectable escaping for ausearch/report output
 * Add sockaddr accessor functions in auparse
 * Add a realpath variant accessor that resolves whole path
 * non-equality comparisons for values other than \timestamp, \timestamp_ex and \record_type in ausearch-expression
 * Formats for ausearch output
 
-2.7.2
+2.7.3
 * Fix audit.pc.in to use Requires.private
 * Look at pulling audispd into auditd
 * In audispd, look into non-blocking handling of write to plugins
