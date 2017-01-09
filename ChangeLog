@@ -13,6 +13,7 @@
 - In auditd, fix descriptor setup when initializing the dispatcher
 - In auparse_classify, only collect syscall subj attributes when asked
 - Add auparse_classify_key function to auparse
+- In auparse_classify, handle more common interpreters
 
 2.7
 - Remove config file permission checks in auparse

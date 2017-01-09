@@ -349,16 +349,25 @@ static void set_socket_object(auparse_state_t *au)
 	set_prime_object(au, "saddr", 1);
 }
 
+/* This is only called processing syscall records */
 static int set_program_obj(auparse_state_t *au)
 {
 	auparse_first_record(au);
 	if (auparse_find_field(au, "exe")) {
 		const char *exe = auparse_interpret_field(au);
-		if (strncmp(exe, "/usr/bin/python", 15) == 0) {
-			auparse_first_record(au);
+		if ((strncmp(D.how, "/usr/bin/python", 15) == 0) ||
+		    (strncmp(D.how, "/usr/bin/sh", 11) == 0) ||
+		    (strncmp(D.how, "/usr/bin/bash", 13) == 0) ||
+		    (strncmp(D.how, "/usr/bin/perl", 13) == 0)) {
+			// comm should be the previous field
+			int fnum;
+			if ((fnum = auparse_get_field_num(au)) > 0)
+				auparse_goto_field_num(au, fnum - 1);
+			else
+				auparse_first_record(au);
 			auparse_find_field(au, "comm");
 		}
-		// FIXME: sh, perl
+
 		D.thing.primary = set_record(0,
 				auparse_get_record_num(au));
 		D.thing.primary = set_field(D.thing.primary,
@@ -690,8 +699,17 @@ static int classify_compound(auparse_state_t *au)
 		if (f) {
 			const char *exe = auparse_interpret_field(au);
 			D.how = strdup(exe);
-			if (strncmp(exe, "/usr/bin/python", 15) == 0) {
-				auparse_first_record(au);
+			if ((strncmp(D.how, "/usr/bin/python", 15) == 0) ||
+			    (strncmp(D.how, "/usr/bin/sh", 11) == 0) ||
+			    (strncmp(D.how, "/usr/bin/bash", 13) == 0) ||
+			    (strncmp(D.how, "/usr/bin/perl", 13) == 0)) {
+				int fnum;
+				rc = 0;
+				// Comm should be the previous field
+				if ((fnum = auparse_get_field_num(au)) > 0)
+					rc = auparse_goto_field_num(au,fnum-1);
+				if (rc == 0)
+					auparse_first_record(au);
 				f = auparse_find_field(au, "comm");
 				if (f) {
 					exe = auparse_interpret_field(au);
@@ -1138,8 +1156,16 @@ map:
 	if (f) {
 		const char *exe = auparse_interpret_field(au);
 		D.how = strdup(exe);
-		if (strncmp(D.how, "/usr/bin/python", 15) == 0) {
-			auparse_first_record(au);
+		if ((strncmp(D.how, "/usr/bin/python", 15) == 0) ||
+		    (strncmp(D.how, "/usr/bin/sh", 11) == 0) ||
+		    (strncmp(D.how, "/usr/bin/bash", 13) == 0) ||
+		    (strncmp(D.how, "/usr/bin/perl", 13) == 0)) {
+                        // comm should be the previous field if its there at all
+                        int fnum;
+			if ((fnum = auparse_get_field_num(au)) > 0)
+				auparse_goto_field_num(au, fnum - 1);
+			else
+				auparse_first_record(au);
 			f = auparse_find_field(au, "comm");
 			if (f) {
 				free(D.how);
@@ -1147,7 +1173,6 @@ map:
 				D.how = strdup(exe);
 			}
 		}
-		//  FIXME: sh, perl, etc
 	}
 
 	return 0;
