@@ -342,8 +342,6 @@ static void set_file_object(auparse_state_t *au, int adjust)
 
 static void set_socket_object(auparse_state_t *au)
 {
-	const char *f;
-
 	auparse_goto_record_num(au, 1);
 	auparse_first_field(au);
 	set_prime_object(au, "saddr", 1);
