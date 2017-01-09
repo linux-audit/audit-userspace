@@ -72,6 +72,15 @@ static int set_flags(int fn, int flags)
 	return fcntl(fn, F_SETFL, fl);
 }
 
+/*
+ * This function exists in order to prevent the dispatcher's read pipe
+ * from being leaked into other child processes. We cannot mark it
+ * CLOEXEC until after the dispatcher is started by execl or it'll
+ * get closed such that the dispatcher has no stdin fd. So, any path
+ * that leads to calling init_dispatcher needs to call this function later
+ * after we are sure the execl should have happened. Everything is serialized
+ * with the main thread, so there shouldn't be any unexpected execs.
+ */
 int make_dispatcher_fd_private(void)
 {
 	if (set_flags(disp_pipe[0], FD_CLOEXEC) < 0) {
