@@ -178,6 +178,9 @@ static void syscall_subj_attr(auparse_state_t *au)
 {
 	unsigned int rnum;
 
+	if (D.opt == CLOPT_NO_ATTRS)
+		return;
+
 	auparse_first_record(au);
 	do {
 		rnum = auparse_get_record_num(au);
