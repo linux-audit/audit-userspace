@@ -1501,6 +1501,7 @@ static int au_auparse_next_event(auparse_state_t *au)
 // Brute force go to next event. Returns < 0 on error, 0 no data, > 0 success
 int auparse_next_event(auparse_state_t *au)
 {
+	clear_classify(&au->cl_data);
 	return au_auparse_next_event(au);
 }
 
