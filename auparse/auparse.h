@@ -97,6 +97,8 @@ int auparse_classify_get_results(auparse_state_t *au);
 // How accessor
 const char *auparse_classify_how(auparse_state_t *au);
 
+// Syscall key accessor
+int auparse_classify_key(auparse_state_t *au);
 
 /* Functions that traverse events */
 int ausearch_next_event(auparse_state_t *au);

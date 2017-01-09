@@ -141,6 +141,7 @@ typedef struct data
 	value_t results;
 	const char *how;
 	classify_option_t opt;
+	value_t key;
 } classify_data;
 
 struct opaque

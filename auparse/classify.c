@@ -65,6 +65,7 @@ void init_classify(classify_data *d)
 	d->results = set_record(0, UNSET);
 	d->how = NULL;
 	d->opt = CLOPT_ALL;
+	d->key = set_record(0, UNSET);
 }
 
 void clear_classify(classify_data *d)
@@ -83,6 +84,7 @@ void clear_classify(classify_data *d)
 	free(d->how);
 	d->how = NULL;
 	d->opt = CLOPT_ALL;
+	d->key = set_record(0, UNSET);
 }
 
 static unsigned int set_prime_subject(auparse_state_t *au, const char *str,
@@ -708,6 +710,18 @@ static int classify_compound(auparse_state_t *au)
 			auparse_first_field(au);
 		}
 
+		f = auparse_find_field(au, "key");
+		if (f) {
+			const char *k = auparse_get_field_str(au);
+			if (strcmp(k, "(null)")) {
+				// We only collect real keys
+				D.key = set_record(0, recno);
+				D.key = set_field(D.key,
+						auparse_get_field_num(au));
+			}
+		} // No error repositioning will be done because nothing
+		  // below uses fields.
+
 		// action & object
 		if (saved) {
 			const char *act = classify_record_map_i2s(saved);
@@ -1291,3 +1305,7 @@ const char *auparse_classify_how(auparse_state_t *au)
 	return D.how;
 }
 
+int auparse_classify_key(auparse_state_t *au)
+{
+	return seek_field(au, D.key);
+}
