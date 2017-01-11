@@ -1,5 +1,5 @@
 /* auditctl.c -- 
- * Copyright 2004-2016 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2004-2017 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -135,6 +135,7 @@ static void usage(void)
 #endif
 #if HAVE_DECL_AUDIT_VERSION_BACKLOG_WAIT_TIME
      "    --backlog_wait_time    Set the kernel backlog_wait_time\n"
+     "    --reset-lost         Reset the lost record counter\n"
 #endif
      );
 }
@@ -511,6 +512,7 @@ struct option long_opts[] =
 #endif
 #if HAVE_DECL_AUDIT_VERSION_BACKLOG_WAIT_TIME
   {"backlog_wait_time", 1, NULL, 2},
+  {"reset-lost", 0, NULL, 3},
 #endif
   {NULL, 0, NULL, 0}
 };
@@ -1034,6 +1036,16 @@ process_keys:
 				optarg);
 			retval = -1;
 		}
+		break;
+	case 3: // This piggy backs on backlog_wait_time because we can't tell
+		// if the underlying kernel supports reset_lost. Supposedly
+		// its benign to send this if it does not. All we need is a
+		// kernal that supports backlog_wait_time because that has the
+		// mask code.
+		if (audit_reset_lost(fd) > 0)
+			audit_request_status(fd);
+		else
+			return -1;
 #else
 		audit_msg(LOG_ERR,
 			"backlog_wait_time is not supported on your kernel");

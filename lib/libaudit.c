@@ -1,5 +1,5 @@
 /* libaudit.c -- 
- * Copyright 2004-2009,2012,2014,2016 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2004-2009,2012,2014,2016-17 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -508,6 +508,26 @@ int audit_set_backlog_wait_time(int fd, uint32_t bwt)
 	if (rc < 0)
 		audit_msg(audit_priority(errno),
 			"Error sending backlog limit request (%s)", 
+			strerror(-rc));
+#endif
+	return rc;
+}
+
+int audit_reset_lost(int fd)
+{
+	int rc = -1;
+// This is used to gate all code that uses masks. If we test for 
+// AUDIT_STATUS_LOST, then we will not be able to do run time detection.
+#if HAVE_DECL_AUDIT_VERSION_BACKLOG_WAIT_TIME
+	struct audit_status s;
+
+	memset(&s, 0, sizeof(s));
+	s.mask = AUDIT_STATUS_LOST;
+	s.lost = 0;
+	rc = audit_send(fd, AUDIT_SET, &s, sizeof(s));
+	if (rc < 0)
+		audit_msg(audit_priority(errno),
+			"Error sending lost reset request (%s)", 
 			strerror(-rc));
 #endif
 	return rc;

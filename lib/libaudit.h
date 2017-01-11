@@ -1,5 +1,5 @@
 /* libaudit.h -- 
- * Copyright 2004-2016 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2004-2017 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -267,6 +267,11 @@ extern "C" {
 #define AUDIT_FILTER_EXCLUDE	AUDIT_FILTER_TYPE
 #define AUDIT_FILTER_MASK	0x07	/* Mask to get actual filter */
 #define AUDIT_FILTER_UNSET	0x80	/* This value means filter is unset */
+
+/* Status symbol mask values */
+#ifndef AUDIT_STATUS_LOST
+#define AUDIT_STATUS_LOST               0x0040
+#endif
 
 /* These defines describe what features are in the kernel */
 #ifndef AUDIT_FEATURE_BITMAP_BACKLOG_LIMIT
@@ -549,6 +554,7 @@ extern int  audit_set_failure(int fd, uint32_t failure);
 extern int  audit_set_rate_limit(int fd, uint32_t limit);
 extern int  audit_set_backlog_limit(int fd, uint32_t limit);
 int audit_set_backlog_wait_time(int fd, uint32_t bwt);
+int audit_reset_lost(int fd);
 extern int  audit_set_feature(int fd, unsigned feature, unsigned value, unsigned lock);
 extern int  audit_set_loginuid_immutable(int fd);
 

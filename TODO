@@ -1,8 +1,5 @@
 Things that need to be done:
 ===========================
-2.7.1
-* Support resetting overflow counter
-
 2.7.2
 * Look into TLS support
 * Document new auparse classify functions with man pages

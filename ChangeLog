@@ -14,6 +14,7 @@
 - In auparse_classify, only collect syscall subj attributes when asked
 - Add auparse_classify_key function to auparse
 - In auparse_classify, handle more common interpreters
+- Add support in auditctl to reset the lost record counter
 
 2.7
 - Remove config file permission checks in auparse
