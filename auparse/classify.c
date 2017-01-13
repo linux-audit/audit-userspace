@@ -991,14 +991,8 @@ map:
 		if (type == AUDIT_FEATURE_CHANGE) {
 			// Subject - secondary
 			auparse_first_field(au);
-			if (set_secondary_subject(au, "uid", 0)) {
-				rc = auparse_goto_record_num(au, 0);
-				if (rc != 1) {
-					free(syscall);
-					return 1;
-				}
-				auparse_first_field(au);
-			}
+			if (set_secondary_subject(au, "uid", 0))
+				auparse_first_record(au);
 
 			// how
 			f = auparse_find_field(au, "exe");
