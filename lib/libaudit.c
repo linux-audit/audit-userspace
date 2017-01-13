@@ -515,11 +515,11 @@ int audit_set_backlog_wait_time(int fd, uint32_t bwt)
 
 int audit_reset_lost(int fd)
 {
-	int rc = -1;
-// This is used to gate all code that uses masks. If we test for 
-// AUDIT_STATUS_LOST, then we will not be able to do run time detection.
-#if HAVE_DECL_AUDIT_VERSION_BACKLOG_WAIT_TIME
+	int rc;
 	struct audit_status s;
+
+	if ((audit_get_features() & AUDIT_FEATURE_BITMAP_LOST_RESET) == 0)
+		return -30;
 
 	memset(&s, 0, sizeof(s));
 	s.mask = AUDIT_STATUS_LOST;
@@ -529,7 +529,6 @@ int audit_reset_lost(int fd)
 		audit_msg(audit_priority(errno),
 			"Error sending lost reset request (%s)", 
 			strerror(-rc));
-#endif
 	return rc;
 }
 

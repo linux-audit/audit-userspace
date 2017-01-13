@@ -289,6 +289,9 @@ extern "C" {
 #ifndef AUDIT_FEATURE_BITMAP_SESSIONID_FILTER
 #define AUDIT_FEATURE_BITMAP_SESSIONID_FILTER   0x00000010
 #endif
+#ifndef AUDIT_FEATURE_BITMAP_LOST_RESET
+#define AUDIT_FEATURE_BITMAP_LOST_RESET		0x00000020
+#endif
 
 /* Defines for interfield comparison update */
 #ifndef AUDIT_OBJ_UID
