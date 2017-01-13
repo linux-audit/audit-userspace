@@ -325,7 +325,7 @@ static int count_em(int fd)
 					break;
 			}
 		} else if (errno == EAGAIN)  // Take short delay
-			retval = select(fd+1, &read_mask, NULL, NULL, &t);
+			select(fd+1, &read_mask, NULL, NULL, &t);
 	}
 	if (i >= timeout && count == 0)
 		count = -1;

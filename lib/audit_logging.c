@@ -186,6 +186,10 @@ static char *_get_commname(const char *comm, char *commname, unsigned int size)
 		close(fd);
 		if (len > 0)
 			tmp_comm[len-1] = 0;
+		else {
+			strcpy(commname, "\"?\"");
+			return commname;
+		}
 		comm = tmp_comm;
 	}
 
