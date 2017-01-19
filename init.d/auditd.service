@@ -1,6 +1,9 @@
 [Unit]
 Description=Security Auditing Service
 DefaultDependencies=no
+## If auditd.conf has tcp_listen_port enabled, copy this file to
+## /etc/systemd/system/auditd.service and add network-online.target
+## to the next line so it waits for the network to start before launching.
 After=local-fs.target systemd-tmpfiles-setup.service
 Conflicts=shutdown.target
 Before=sysinit.target shutdown.target

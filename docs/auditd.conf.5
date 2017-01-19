@@ -237,7 +237,9 @@ This is a numeric value in the range 1..65535 which, if specified,
 causes auditd to listen on the corresponding TCP port for audit
 records from remote systems. The audit daemon may be linked with
 tcp_wrappers. You may want to control access with an entry in the
-hosts.allow and deny files.
+hosts.allow and deny files. If this is deployed on a systemd based
+OS, then you may need to adjust the 'After' directive. See the note in
+the auditd.service file.
 .TP
 .I tcp_listen_queue
 This is a numeric value which indicates how many pending (requested
