@@ -1,5 +1,6 @@
 2.7.2
 - Add documentation about networking and systemd
+- Adjust text in auparse classifier
 
 2.7.1
 - In auparse_classify, handle simple SYSCALL events

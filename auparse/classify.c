@@ -456,7 +456,7 @@ static int classify_syscall(auparse_state_t *au, const char *syscall, int type)
 			simple_file_attr(au);
 			break;
 		case CLASS_FILE_STAT:
-			act = "checked";
+			act = "checked-metadata-of";
 			D.thing.what = CLASS_WHAT_FILE; // this gets overridden
 			set_file_object(au, 0);
 			simple_file_attr(au);
