@@ -2005,6 +2005,9 @@ static int parse_kernel_anom(const lnode *n, search_items *s)
 		}
 	}
 
+	if (n->type == AUDIT_ANOM_PROMISCUOUS)
+		return 0; // Nothing else in the event
+
 	if (event_subject) {
 		// scontext
 		str = strstr(term, "subj=");
@@ -2061,26 +2064,26 @@ static int parse_kernel_anom(const lnode *n, search_items *s)
 		} 
 	}
 
-	if (n->type == AUDIT_SECCOMP) {
-		if (event_exe) {
-			// dont do this search unless needed
-			str = strstr(n->message, "exe=");
-			if (str) {
-				str += 4;
-			if (*str == '"') {
-					str++;
-					term = strchr(str, '"');
-					if (term == NULL)
-						return 13;
-					*term = 0;
-					s->exe = strdup(str);
-					*term = '"';
-				} else 
-					s->exe = unescape(str);
-			} else
-				return 14;
-		}
+	if (event_exe) {
+		// dont do this search unless needed
+		str = strstr(term, "exe=");
+		if (str) {
+			str += 4;
+		if (*str == '"') {
+				str++;
+				term = strchr(str, '"');
+				if (term == NULL)
+					return 13;
+				*term = 0;
+				s->exe = strdup(str);
+				*term = '"';
+			} else 
+				s->exe = unescape(str);
+		} else
+			return 14;
+	}
 
+	if (n->type == AUDIT_SECCOMP) {
 		// get arch
 		str = strstr(term, "arch=");
 		if (str == NULL) 
