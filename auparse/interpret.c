@@ -644,7 +644,7 @@ static const char *print_arch(const char *val, unsigned int machine)
 		machine = audit_elf_to_machine(ival);
 	}
         if ((int)machine < 0) {
-		if (asprintf(&out, "unknown elf type(%s)", val) < 0)
+		if (asprintf(&out, "unknown-elf-type(%s)", val) < 0)
 			out = NULL;
                 return out;
         }
@@ -652,7 +652,7 @@ static const char *print_arch(const char *val, unsigned int machine)
 	if (ptr)
 	        return strdup(ptr);
 	else {
-		if (asprintf(&out, "unknown machine type(%d)", machine) < 0)
+		if (asprintf(&out, "unknown-machine-type(%d)", machine) < 0)
 			out = NULL;
                 return out;
 	}
@@ -676,7 +676,7 @@ static const char *print_ipccall(const char *val, unsigned int base)
 	if (func)
 		return strdup(func);
 	else {
-		if (asprintf(&out, "unknown ipccall(%s)", val) < 0)
+		if (asprintf(&out, "unknown-ipccall(%s)", val) < 0)
 			out = NULL;
                 return out;
 	}
@@ -700,7 +700,7 @@ static const char *print_socketcall(const char *val, unsigned int base)
 	if (func)
 		return strdup(func);
 	else {
-		if (asprintf(&out, "unknown socketcall(%s)", val) < 0)
+		if (asprintf(&out, "unknown-socketcall(%s)", val) < 0)
 			out = NULL;
                 return out;
 	}
@@ -734,7 +734,7 @@ static const char *print_syscall(const idata *id)
 		} else
                         return strdup(sys);
         } else {
-		if (asprintf(&out, "unknown syscall(%d)", syscall) < 0)
+		if (asprintf(&out, "unknown-syscall(%d)", syscall) < 0)
 			out = NULL;
 	}
 
@@ -961,7 +961,7 @@ static const char *print_socket_domain(const char *val)
 	}
         str = fam_i2s(i);
         if (str == NULL) {
-		if (asprintf(&out, "unknown family(0x%s)", val) < 0)
+		if (asprintf(&out, "unknown-family(0x%s)", val) < 0)
 			out = NULL;
 		return out;
 	} else
@@ -983,7 +983,7 @@ static const char *print_socket_type(const char *val)
 	}
         str = sock_type_i2s(type);
         if (str == NULL) {
-		if (asprintf(&out, "unknown type(%s)", val) < 0)
+		if (asprintf(&out, "unknown-type(%s)", val) < 0)
 			out = NULL;
 		return out;
 	} else
@@ -1005,7 +1005,7 @@ static const char *print_socket_proto(const char *val)
 	}
         p = getprotobynumber(proto);
         if (p == NULL) {
-		if (asprintf(&out, "unknown proto(%s)", val) < 0)
+		if (asprintf(&out, "unknown-proto(%s)", val) < 0)
 			out = NULL;
 		return out;
 	} else
@@ -1024,7 +1024,7 @@ static const char *print_sockaddr(const char *val)
         slen = strlen(val)/2;
         host = au_unescape((char *)val);
 	if (host == NULL) {
-		if (asprintf(&out, "malformed host(%s)", val) < 0)
+		if (asprintf(&out, "malformed-host(%s)", val) < 0)
 			out = NULL;
 		return out;
 	}
@@ -1033,7 +1033,7 @@ static const char *print_sockaddr(const char *val)
 
         str = fam_i2s(saddr->sa_family);
         if (str == NULL) {
-		if (asprintf(&out, "unknown family(%d)", saddr->sa_family) < 0)
+		if (asprintf(&out, "unknown-family(%d)", saddr->sa_family) < 0)
 			out = NULL;
 		free((char *)host);
 		return out;
@@ -1224,7 +1224,7 @@ static const char *print_capabilities(const char *val, int base)
 	s = cap_i2s(cap);
 	if (s != NULL)
 		return strdup(s);
-	if (asprintf(&out, "unknown capability(%s%s)",
+	if (asprintf(&out, "unknown-capability(%s%s)",
 				base == 16 ? "0x" : "", val) < 0)
 		out = NULL;
 	return out;
@@ -1384,7 +1384,7 @@ static const char *print_fcntl_cmd(const char *val)
 	s = fcntl_i2s(cmd);
 	if (s != NULL)
 		return strdup(s);
-	if (asprintf(&out, "unknown fcntl command(%d)", cmd) < 0)
+	if (asprintf(&out, "unknown-fcntl-command(%d)", cmd) < 0)
 		out = NULL;
 	return out;
 }
@@ -1406,7 +1406,7 @@ static const char *print_epoll_ctl(const char *val)
 	s = epoll_ctl_i2s(cmd);
 	if (s != NULL)
 		return strdup(s);
-	if (asprintf(&out, "unknown epoll_ctl operation (%d)", cmd) < 0)
+	if (asprintf(&out, "unknown-epoll_ctl-operation(%d)", cmd) < 0)
 		out = NULL;
 	return out;
 }
@@ -1428,7 +1428,7 @@ static const char *print_clock_id(const char *val)
 		if (s != NULL)
 			return strdup(s);
 	}
-	if (asprintf(&out, "unknown clk_id (0x%s)", val) < 0)
+	if (asprintf(&out, "unknown-clk_id(0x%s)", val) < 0)
 		out = NULL;
 	return out;
 }
@@ -1537,7 +1537,7 @@ static const char *print_personality(const char *val)
 		} else
 			return strdup(s);
 	}
-	if (asprintf(&out, "unknown personality (0x%s)", val) < 0)
+	if (asprintf(&out, "unknown-personality(0x%s)", val) < 0)
 		out = NULL;
 	return out;
 }
@@ -1559,7 +1559,7 @@ static const char *print_ptrace(const char *val)
 	s = ptrace_i2s(trace);
 	if (s != NULL)
 		return strdup(s);
-	if (asprintf(&out, "unknown ptrace (0x%s)", val) < 0)
+	if (asprintf(&out, "unknown-ptrace(0x%s)", val) < 0)
 		out = NULL;
 	return out;
 }
@@ -1581,7 +1581,7 @@ static const char *print_prctl_opt(const char *val)
 	s = prctl_opt_i2s(opt);
 	if (s != NULL)
 		return strdup(s);
-	if (asprintf(&out, "unknown prctl option (0x%s)", val) < 0)
+	if (asprintf(&out, "unknown-prctl-option(0x%s)", val) < 0)
 		out = NULL;
 	return out;
 }
@@ -1636,7 +1636,7 @@ static const char *print_rlimit(const char *val)
 		if (s != NULL)
 			return strdup(s);
 	}
-	if (asprintf(&out, "unknown rlimit (0x%s)", val) < 0)
+	if (asprintf(&out, "unknown-rlimit(0x%s)", val) < 0)
 		out = NULL;
 	return out;
 }
@@ -1750,7 +1750,7 @@ static const char *print_sched(const char *val)
 			strcat(buf, "|SCHED_RESET_ON_FORK");
 		return strdup(buf);
 	}
-	if (asprintf(&out, "unknown scheduler policy (0x%s)", val) < 0)
+	if (asprintf(&out, "unknown-scheduler-policy(0x%s)", val) < 0)
 		out = NULL;
 	return out;
 }
@@ -1775,7 +1775,7 @@ static const char *print_sock_opt_level(const char *val)
 			const char *s = socklevel_i2s(lvl);
 			if (s != NULL)
 				return strdup(s);
-			if (asprintf(&out, "unknown sockopt level (0x%s)", val) < 0)
+			if (asprintf(&out, "unknown-sockopt-level(0x%s)", val) < 0)
 				out = NULL;
 		} else
 			return strdup(p->p_name);
@@ -1805,7 +1805,7 @@ static const char *print_sock_opt_name(const char *val, int machine)
 	s = sockoptname_i2s(opt);
 	if (s != NULL)
 		return strdup(s);
-	if (asprintf(&out, "unknown sockopt name (0x%s)", val) < 0)
+	if (asprintf(&out, "unknown-sockopt-name(0x%s)", val) < 0)
 		out = NULL;
 	return out;
 }
@@ -1827,7 +1827,7 @@ static const char *print_ip_opt_name(const char *val)
 	s = ipoptname_i2s(opt);
 	if (s != NULL)
 		return strdup(s);
-	if (asprintf(&out, "unknown ipopt name (0x%s)", val) < 0)
+	if (asprintf(&out, "unknown-ipopt-name(0x%s)", val) < 0)
 		out = NULL;
 	return out;
 }
@@ -1849,7 +1849,7 @@ static const char *print_ip6_opt_name(const char *val)
 	s = ip6optname_i2s(opt);
 	if (s != NULL)
 		return strdup(s);
-	if (asprintf(&out, "unknown ip6opt name (0x%s)", val) < 0)
+	if (asprintf(&out, "unknown-ip6opt-name(0x%s)", val) < 0)
 		out = NULL;
 	return out;
 }
@@ -1871,7 +1871,7 @@ static const char *print_tcp_opt_name(const char *val)
 	s = tcpoptname_i2s(opt);
 	if (s != NULL)
 		return strdup(s);
-	if (asprintf(&out, "unknown tcpopt name (0x%s)", val) < 0)
+	if (asprintf(&out, "unknown-tcpopt-name(0x%s)", val) < 0)
 		out = NULL;
 	return out;
 }
@@ -1893,7 +1893,7 @@ static const char *print_udp_opt_name(const char *val)
 		out = strdup("UDP_CORK");
 	else if (opt == 100)
 		out = strdup("UDP_ENCAP");
-	else if (asprintf(&out, "unknown udpopt name (0x%s)", val) < 0)
+	else if (asprintf(&out, "unknown-udpopt-name(0x%s)", val) < 0)
 		out = NULL;
 	return out;
 }
@@ -1915,7 +1915,7 @@ static const char *print_pkt_opt_name(const char *val)
 	s = pktoptname_i2s(opt);
 	if (s != NULL)
 		return strdup(s);
-	if (asprintf(&out, "unknown pktopt name (0x%s)", val) < 0)
+	if (asprintf(&out, "unknown-pktopt-name(0x%s)", val) < 0)
 		out = NULL;
 	return out;
 }
@@ -1994,7 +1994,7 @@ static const char *print_seek(const char *val)
 	}
 	str = seek_i2s(whence);
 	if (str == NULL) {
-		if (asprintf(&out, "unknown whence(%s)", val) < 0)
+		if (asprintf(&out, "unknown-whence(%s)", val) < 0)
 			out = NULL;
 		return out;
 	} else
@@ -2378,7 +2378,7 @@ static const char *print_signals(const char *val, unsigned int base)
 		if (s != NULL)
 			return strdup(s);
 	}
-	if (asprintf(&out, "unknown signal (%s%s)",
+	if (asprintf(&out, "unknown-signal(%s%s)",
 					base == 16 ? "0x" : "", val) < 0)
 		out = NULL;
 	return out;
@@ -2401,7 +2401,7 @@ static const char *print_nfproto(const char *val)
 	s = nfproto_i2s(proto);
 	if (s != NULL)
 		return strdup(s);
-	if (asprintf(&out, "unknown netfilter protocol (%s)", val) < 0)
+	if (asprintf(&out, "unknown-netfilter-protocol(%s)", val) < 0)
 		out = NULL;
 	return out;
 }
@@ -2423,7 +2423,7 @@ static const char *print_icmptype(const char *val)
 	s = icmptype_i2s(icmptype);
 	if (s != NULL)
 		return strdup(s);
-	if (asprintf(&out, "unknown icmp type (%s)", val) < 0)
+	if (asprintf(&out, "unknown-icmp-type(%s)", val) < 0)
 		out = NULL;
 	return out;
 }
@@ -2464,7 +2464,7 @@ static const char *print_hook(const char *val)
 	}
 	str = inethook_i2s(hook);
 	if (str == NULL) {
-		if (asprintf(&out, "unknown hook(%s)", val) < 0)
+		if (asprintf(&out, "unknown-hook(%s)", val) < 0)
 			out = NULL;
 		return out;
 	} else
@@ -2486,7 +2486,7 @@ static const char *print_netaction(const char *val)
 	}
 	str = netaction_i2s(action);
 	if (str == NULL) {
-		if (asprintf(&out, "unknown action(%s)", val) < 0)
+		if (asprintf(&out, "unknown-action(%s)", val) < 0)
 			out = NULL;
 		return out;
 	} else
@@ -2689,7 +2689,7 @@ static const char *print_seccomp_code(const char *val)
 	s = seccomp_i2s(code & SECCOMP_RET_ACTION);
 	if (s != NULL)
 		return strdup(s);
-	if (asprintf(&out, "unknown seccomp code (%s)", val) < 0)
+	if (asprintf(&out, "unknown-seccomp-code(%s)", val) < 0)
 		out = NULL;
 	return out;
 }
