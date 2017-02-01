@@ -1,6 +1,6 @@
 /*
-* classify-llist.c - Minimal linked list library
-* Copyright (c) 2016 Red Hat Inc., Durham, North Carolina.
+* normalize-llist.c - Minimal linked list library
+* Copyright (c) 2016-17 Red Hat Inc., Durham, North Carolina.
 * All Rights Reserved. 
 *
 * This software may be freely redistributed and/or modified under the
@@ -22,7 +22,7 @@
 */
 
 #include <stdlib.h>
-#include "classify-llist.h"
+#include "normalize-llist.h"
 
 void cllist_create(cllist *l, void (*cleanup)(void *))
 {

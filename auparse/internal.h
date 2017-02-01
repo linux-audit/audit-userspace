@@ -1,5 +1,5 @@
 /* internal.h -- 
- * Copyright 2006-07,2013-16 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2006-07,2013-17 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -26,7 +26,7 @@
 #include "ellist.h"
 #include "auditd-config.h"
 #include "data_buf.h"
-#include "classify-llist.h"
+#include "normalize-llist.h"
 #include "dso.h"
 #include <stdio.h>
 
@@ -140,9 +140,9 @@ typedef struct data
 	object thing;
 	value_t results;
 	const char *how;
-	classify_option_t opt;
+	normalize_option_t opt;
 	value_t key;
-} classify_data;
+} normalize_data;
 
 struct opaque
 {
@@ -182,7 +182,7 @@ struct opaque
 	auparse_esc_t escape_mode;
 	message_t message_mode;		// Where to send error messages
 	debug_message_t debug_message;	// Whether or not messages are debug or not
-	classify_data cl_data;
+	normalize_data norm_data;
 };
 
 AUDIT_HIDDEN_START
@@ -192,9 +192,9 @@ void clear_config(struct daemon_conf *config);
 int aup_load_config(auparse_state_t *au, struct daemon_conf *config, log_test_t lt);
 void free_config(struct daemon_conf *config);
 
-// classify.c
-void init_classify(classify_data *d);
-void clear_classify(classify_data *d);
+// normalize.c
+void init_normalizer(normalize_data *d);
+void clear_normalizer(normalize_data *d);
 
 AUDIT_HIDDEN_END
 

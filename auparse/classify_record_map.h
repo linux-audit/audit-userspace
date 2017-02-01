@@ -1,6 +1,6 @@
 /*
-* classify_record_map.h
-* Copyright (c) 2016 Red Hat Inc., Durham, North Carolina.
+* normalize_record_map.h
+* Copyright (c) 2016-17 Red Hat Inc., Durham, North Carolina.
 * All Rights Reserved.
 *
 * This software may be freely redistributed and/or modified under the

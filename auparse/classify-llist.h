@@ -1,6 +1,6 @@
 /*
-* classify-llist.h - Header file for classify-llist.c
-* Copyright (c) 2016 Red Hat Inc., Durham, North Carolina.
+* normalize-llist.h - Header file for normalize-llist.c
+* Copyright (c) 2016-17 Red Hat Inc., Durham, North Carolina.
 * All Rights Reserved.
 *
 * This software may be freely redistributed and/or modified under the
@@ -21,8 +21,8 @@
 *   Steve Grubb <sgrubb@redhat.com>
 */
 
-#ifndef CLASSIFY_LLIST_HEADER
-#define CLASSIFY_LLIST_HEADER
+#ifndef NORMALIZE_LLIST_HEADER
+#define NORMALIZE_LLIST_HEADER
 
 #include "config.h"
 #include <stdint.h>

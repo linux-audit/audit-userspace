@@ -1,5 +1,5 @@
 /* auparse.c --
- * Copyright 2006-08,2012-16 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2006-08,2012-17 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -515,7 +515,7 @@ auparse_state_t *auparse_init(ausource_t source, const void *b)
 	au->escape_mode = AUPARSE_ESC_TTY;
 	au->message_mode = MSG_QUIET;
 	au->debug_message = DBG_NO;
-	init_classify(&au->cl_data);
+	init_normalizer(&au->norm_data);
 
 	return au;
 bad_exit:
@@ -917,7 +917,7 @@ static void auparse_destroy_common(auparse_state_t *au)
 		au->in = NULL;
 	}
 	free_interpretation_list();
-	clear_classify(&au->cl_data);
+	clear_normalizer(&au->norm_data);
 	au_lol_clear(au->au_lo, 0);
 	free(au->au_lo);
 	free(au);
@@ -1501,7 +1501,7 @@ static int au_auparse_next_event(auparse_state_t *au)
 // Brute force go to next event. Returns < 0 on error, 0 no data, > 0 success
 int auparse_next_event(auparse_state_t *au)
 {
-	clear_classify(&au->cl_data);
+	clear_normalizer(&au->norm_data);
 	return au_auparse_next_event(au);
 }
 

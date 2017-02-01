@@ -2,6 +2,7 @@
 - Add documentation about networking and systemd
 - Adjust text in auparse classifier
 - In ausearch, fix parsing of kernel anomaly events
+- Rename whole auparse classifier subsystem to normalizer
 
 2.7.1
 - In auparse_classify, handle simple SYSCALL events

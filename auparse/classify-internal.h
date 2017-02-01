@@ -1,6 +1,6 @@
 /*
- * classify-internal.h
- * Copyright (c) 2016 Red Hat Inc., Durham, North Carolina.
+ * normalize-internal.h
+ * Copyright (c) 2016-17 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This software may be freely redistributed and/or modified under the
@@ -21,58 +21,58 @@
  *   Steve Grubb <sgrubb@redhat.com>
  */
 
-#ifndef CLASSIFY_INTERNAL
-#define CLASSIFY_INTERNAL
+#ifndef NORMALIZE_INTERNAL
+#define NORMALIZE_INTERNAL
 
-#define CLASS_UNKNOWN		0
-#define CLASS_FILE		1
-#define CLASS_FILE_CHATTR	2
-#define CLASS_FILE_LDMOD	3
-#define CLASS_FILE_UNLDMOD	4
-#define CLASS_FILE_DIR		5
-#define CLASS_FILE_MOUNT	6
-#define CLASS_FILE_RENAME	7
-#define CLASS_FILE_STAT		8
-#define CLASS_FILE_LNK		9
-#define CLASS_FILE_UMNT		10
-#define CLASS_FILE_DEL		11
-#define CLASS_FILE_TIME		12
-#define CLASS_EXEC		13
-#define CLASS_SOCKET_ACCEPT	14
-#define CLASS_SOCKET_BIND	15
-#define CLASS_SOCKET_CONN	16
-#define CLASS_SOCKET_RECV	17
-#define CLASS_SOCKET_SEND	18
-#define CLASS_PID		19
-#define CLASS_MAC		20
-#define CLASS_MAC_ERR		21
-#define CLASS_IPTABLES		22
-#define CLASS_PROMISCUOUS	23
-#define CLASS_UID		24
-#define CLASS_GID		25
-#define CLASS_SYSTEM_TIME	26
-#define CLASS_MAKE_DEV		27
-#define CLASS_SYSTEM_NAME	28
+#define NORM_UNKNOWN		0
+#define NORM_FILE		1
+#define NORM_FILE_CHATTR	2
+#define NORM_FILE_LDMOD	3
+#define NORM_FILE_UNLDMOD	4
+#define NORM_FILE_DIR		5
+#define NORM_FILE_MOUNT	6
+#define NORM_FILE_RENAME	7
+#define NORM_FILE_STAT		8
+#define NORM_FILE_LNK		9
+#define NORM_FILE_UMNT		10
+#define NORM_FILE_DEL		11
+#define NORM_FILE_TIME		12
+#define NORM_EXEC		13
+#define NORM_SOCKET_ACCEPT	14
+#define NORM_SOCKET_BIND	15
+#define NORM_SOCKET_CONN	16
+#define NORM_SOCKET_RECV	17
+#define NORM_SOCKET_SEND	18
+#define NORM_PID		19
+#define NORM_MAC		20
+#define NORM_MAC_ERR		21
+#define NORM_IPTABLES		22
+#define NORM_PROMISCUOUS	23
+#define NORM_UID		24
+#define NORM_GID		25
+#define NORM_SYSTEM_TIME	26
+#define NORM_MAKE_DEV		27
+#define NORM_SYSTEM_NAME	28
 
 // This enum is used to map what the system objects are
-#define CLASS_WHAT_UNKNOWN	0
-#define CLASS_WHAT_FIFO		1
-#define CLASS_WHAT_CHAR_DEV	2
-#define CLASS_WHAT_DIRECTORY	3
-#define CLASS_WHAT_BLOCK_DEV	4
-#define CLASS_WHAT_FILE		5
-#define CLASS_WHAT_LINK		6
-#define CLASS_WHAT_SOCKET	7
-#define CLASS_WHAT_PROCESS	8
-#define CLASS_WHAT_FIREWALL	9
-#define CLASS_WHAT_SERVICE	10
-#define CLASS_WHAT_ACCT		11
-#define CLASS_WHAT_USER_SESSION	12
-#define CLASS_WHAT_VM		13
-#define CLASS_WHAT_PRINTER	14
-#define CLASS_WHAT_SYSTEM	15
-#define CLASS_WHAT_AUDIT_RULE	16
-#define CLASS_WHAT_AUDIT_CONFIG	17
-#define CLASS_WHAT_MAC_CONFIG	18
+#define NORM_WHAT_UNKNOWN	0
+#define NORM_WHAT_FIFO		1
+#define NORM_WHAT_CHAR_DEV	2
+#define NORM_WHAT_DIRECTORY	3
+#define NORM_WHAT_BLOCK_DEV	4
+#define NORM_WHAT_FILE		5
+#define NORM_WHAT_LINK		6
+#define NORM_WHAT_SOCKET	7
+#define NORM_WHAT_PROCESS	8
+#define NORM_WHAT_FIREWALL	9
+#define NORM_WHAT_SERVICE	10
+#define NORM_WHAT_ACCT		11
+#define NORM_WHAT_USER_SESSION	12
+#define NORM_WHAT_VM		13
+#define NORM_WHAT_PRINTER	14
+#define NORM_WHAT_SYSTEM	15
+#define NORM_WHAT_AUDIT_RULE	16
+#define NORM_WHAT_AUDIT_CONFIG	17
+#define NORM_WHAT_MAC_CONFIG	18
 
 #endif

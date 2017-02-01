@@ -1,5 +1,5 @@
-/* classify.c --
- * Copyright 2016 Red Hat Inc., Durham, North Carolina.
+/* normalize.c --
+ * Copyright 2016-17 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -28,12 +28,12 @@
 #include <libaudit.h>
 #include "auparse.h"
 #include "internal.h"
-#include "classify-llist.h"
-#include "classify-internal.h"
+#include "normalize-llist.h"
+#include "normalize-internal.h"
 #include "gen_tables.h"
-#include "classify_record_maps.h"
-#include "classify_syscall_maps.h"
-#include "classify_obj_type_maps.h"
+#include "normalize_record_maps.h"
+#include "normalize_syscall_maps.h"
+#include "normalize_obj_type_maps.h"
 
 
 /*
@@ -48,10 +48,10 @@
 #define get_field(y) (y & 0x0000FFFF)
 #define set_field(y, x) ((y & 0xFFFF0000) | (x & 0x0000FFFF))
 #define is_unset(y) (get_record(y) == UNSET)
-#define D au->cl_data
+#define D au->norm_data
 
 
-void init_classify(classify_data *d)
+void init_normalizer(normalize_data *d)
 {
 	d->session = set_record(0, UNSET);
 	d->actor.primary = set_record(0, UNSET);
@@ -61,14 +61,14 @@ void init_classify(classify_data *d)
 	d->thing.primary = set_record(0, UNSET);
 	d->thing.secondary = set_record(0, UNSET);
 	cllist_create(&d->thing.attr, NULL);
-	d->thing.what = CLASS_WHAT_UNKNOWN;
+	d->thing.what = NORM_WHAT_UNKNOWN;
 	d->results = set_record(0, UNSET);
 	d->how = NULL;
-	d->opt = CLOPT_ALL;
+	d->opt = NORM_OPT_ALL;
 	d->key = set_record(0, UNSET);
 }
 
-void clear_classify(classify_data *d)
+void clear_normalizer(normalize_data *d)
 {
 	d->session = set_record(0, UNSET);
 	d->actor.primary = set_record(0, UNSET);
@@ -79,11 +79,11 @@ void clear_classify(classify_data *d)
 	d->thing.primary = set_record(0, UNSET);
 	d->thing.secondary = set_record(0, UNSET);
 	cllist_clear(&d->thing.attr);
-	d->thing.what = CLASS_WHAT_UNKNOWN;
+	d->thing.what = NORM_WHAT_UNKNOWN;
 	d->results = set_record(0, UNSET);
 	free(d->how);
 	d->how = NULL;
-	d->opt = CLOPT_ALL;
+	d->opt = NORM_OPT_ALL;
 	d->key = set_record(0, UNSET);
 }
 
@@ -180,7 +180,7 @@ static void syscall_subj_attr(auparse_state_t *au)
 {
 	unsigned int rnum;
 
-	if (D.opt == CLOPT_NO_ATTRS)
+	if (D.opt == NORM_OPT_NO_ATTRS)
 		return;
 
 	auparse_first_record(au);
@@ -236,7 +236,7 @@ static void simple_file_attr(auparse_state_t *au)
 {
 	int parent = 0;
 
-	if (D.opt == CLOPT_NO_ATTRS)
+	if (D.opt == NORM_OPT_NO_ATTRS)
 		return;
 
 	auparse_first_record(au);
@@ -324,19 +324,19 @@ static void set_file_object(auparse_state_t *au, int adjust)
 			mode = strtoul(f, NULL, 8);
 			if (errno == 0) {
 				if (S_ISREG(mode))
-					D.thing.what = CLASS_WHAT_FILE;
+					D.thing.what = NORM_WHAT_FILE;
 				else if (S_ISDIR(mode))
-					D.thing.what = CLASS_WHAT_DIRECTORY;
+					D.thing.what = NORM_WHAT_DIRECTORY;
 				else if (S_ISCHR(mode))
-					D.thing.what = CLASS_WHAT_CHAR_DEV;
+					D.thing.what = NORM_WHAT_CHAR_DEV;
 				else if (S_ISBLK(mode))
-					D.thing.what = CLASS_WHAT_BLOCK_DEV;
+					D.thing.what = NORM_WHAT_BLOCK_DEV;
 				else if (S_ISFIFO(mode))
-					D.thing.what = CLASS_WHAT_FIFO;
+					D.thing.what = NORM_WHAT_FIFO;
 				else if (S_ISLNK(mode))
-					D.thing.what = CLASS_WHAT_LINK;
+					D.thing.what = NORM_WHAT_LINK;
 				else if (S_ISSOCK(mode))
-					D.thing.what = CLASS_WHAT_SOCKET;
+					D.thing.what = NORM_WHAT_SOCKET;
 			}
 		}
 	}
@@ -381,9 +381,9 @@ static int set_program_obj(auparse_state_t *au)
  * This function is supposed to come up with the action and object for the
  * syscalls.
  */
-static int classify_syscall(auparse_state_t *au, const char *syscall, int type)
+static int normalize_syscall(auparse_state_t *au, const char *syscall, int type)
 {
-	int rc, cltype = CLASS_UNKNOWN;
+	int rc, cltype = NORM_UNKNOWN;
 	const char *act = NULL, *f;
 
 	// cycle through all records and see what we have
@@ -392,132 +392,132 @@ static int classify_syscall(auparse_state_t *au, const char *syscall, int type)
 		int ttype = auparse_get_type(au);
 
 		if (ttype == AUDIT_AVC) {
-			cltype = CLASS_MAC;
+			cltype = NORM_MAC;
 			break;
 		} else if (ttype == AUDIT_SELINUX_ERR) {
-			cltype = CLASS_MAC_ERR;
+			cltype = NORM_MAC_ERR;
 			break;
 		} else if (ttype == AUDIT_NETFILTER_CFG) {
-			cltype = CLASS_IPTABLES;
+			cltype = NORM_IPTABLES;
 			break;
 		} else if (ttype == AUDIT_ANOM_PROMISCUOUS) {
-			cltype = CLASS_PROMISCUOUS;
+			cltype = NORM_PROMISCUOUS;
 			break;
 		}
 		rc = auparse_next_record(au);
 	}
 
 	// lookup system call
-	if (cltype == CLASS_UNKNOWN)
-		classify_syscall_map_s2i(syscall, &cltype);
+	if (cltype == NORM_UNKNOWN)
+		normalize_syscall_map_s2i(syscall, &cltype);
 
 	switch (cltype)
 	{
-		case CLASS_FILE:
+		case NORM_FILE:
 			act = "opened-file";
 			set_file_object(au, 0);
-			D.thing.what = CLASS_WHAT_FILE; // this gets overridden
+			D.thing.what = NORM_WHAT_FILE; // this gets overridden
 			simple_file_attr(au);
 			break;
-		case CLASS_FILE_CHATTR:
+		case NORM_FILE_CHATTR:
 			act = "changed-file-attributes-of";
-			D.thing.what = CLASS_WHAT_FILE; // this gets overridden
+			D.thing.what = NORM_WHAT_FILE; // this gets overridden
 			set_file_object(au, 0);
 			simple_file_attr(au);
 			break;
-		case CLASS_FILE_LDMOD:
+		case NORM_FILE_LDMOD:
 			act = "loaded-kernel-module";
-			D.thing.what = CLASS_WHAT_FILE; // this gets overridden
+			D.thing.what = NORM_WHAT_FILE; // this gets overridden
 			// set_file_object(au, 0);
 			// simple_file_attr(au);
 			break;
-		case CLASS_FILE_UNLDMOD:
+		case NORM_FILE_UNLDMOD:
 			act = "unloaded-kernel-module";
-			D.thing.what = CLASS_WHAT_FILE; // this gets overridden
+			D.thing.what = NORM_WHAT_FILE; // this gets overridden
 			// set_file_object(au, 0);
 			// simple_file_attr(au);
 			break;
-		case CLASS_FILE_DIR:
+		case NORM_FILE_DIR:
 			act = "created-directory";
-			D.thing.what = CLASS_WHAT_FILE; // this gets overridden
+			D.thing.what = NORM_WHAT_FILE; // this gets overridden
 			set_file_object(au, 1); // New dir is one after
 			simple_file_attr(au);
 			break;
-		case CLASS_FILE_MOUNT:
+		case NORM_FILE_MOUNT:
 			act = "mounted";
-			D.thing.what = CLASS_WHAT_FILE; // this gets overridden
+			D.thing.what = NORM_WHAT_FILE; // this gets overridden
 			set_file_object(au, 1); // The device is one after
 			simple_file_attr(au);
 			break;
-		case CLASS_FILE_RENAME:
+		case NORM_FILE_RENAME:
 			act = "renamed";
-			D.thing.what = CLASS_WHAT_FILE; // this gets overridden
+			D.thing.what = NORM_WHAT_FILE; // this gets overridden
 			set_file_object(au, 2); // Thing renamed is 2 after
 			simple_file_attr(au);
 			break;
-		case CLASS_FILE_STAT:
+		case NORM_FILE_STAT:
 			act = "checked-metadata-of";
-			D.thing.what = CLASS_WHAT_FILE; // this gets overridden
+			D.thing.what = NORM_WHAT_FILE; // this gets overridden
 			set_file_object(au, 0);
 			simple_file_attr(au);
 			break;
-		case CLASS_FILE_LNK:
+		case NORM_FILE_LNK:
 			act = "symlinked";
-			D.thing.what = CLASS_WHAT_FILE; // this gets overridden
+			D.thing.what = NORM_WHAT_FILE; // this gets overridden
 			set_file_object(au, 0);
 			simple_file_attr(au);
 			// FIXME: what do we do with the link?
 			break;
-		case CLASS_FILE_UMNT:
+		case NORM_FILE_UMNT:
 			act = "unmounted";
-			D.thing.what = CLASS_WHAT_FILE; // this gets overridden
+			D.thing.what = NORM_WHAT_FILE; // this gets overridden
 			set_file_object(au, 0);
 			simple_file_attr(au);
 			break;
-		case CLASS_FILE_DEL:
+		case NORM_FILE_DEL:
 			act = "deleted";
-			D.thing.what = CLASS_WHAT_FILE; // this gets overridden
+			D.thing.what = NORM_WHAT_FILE; // this gets overridden
 			set_file_object(au, 0);
 			simple_file_attr(au);
 			break;
-		case CLASS_FILE_TIME:
+		case NORM_FILE_TIME:
 			act = "changed-timestamp-of";
-			D.thing.what = CLASS_WHAT_FILE; // this gets overridden
+			D.thing.what = NORM_WHAT_FILE; // this gets overridden
 			set_file_object(au, 0);
 			simple_file_attr(au);
 			break;
-		case CLASS_EXEC:
+		case NORM_EXEC:
 			act = "executed";
-			D.thing.what = CLASS_WHAT_FILE; // this gets overridden
+			D.thing.what = NORM_WHAT_FILE; // this gets overridden
 			set_file_object(au, 1);
 			simple_file_attr(au);
 			break;
-		case CLASS_SOCKET_ACCEPT:
+		case NORM_SOCKET_ACCEPT:
 			act = "accepted-connection-from";
-			D.thing.what = CLASS_WHAT_SOCKET;// this gets overridden
+			D.thing.what = NORM_WHAT_SOCKET;// this gets overridden
 			set_socket_object(au);
 			break;
-		case CLASS_SOCKET_BIND:
+		case NORM_SOCKET_BIND:
 			act = "bound-socket";
-			D.thing.what = CLASS_WHAT_SOCKET;// this gets overridden
+			D.thing.what = NORM_WHAT_SOCKET;// this gets overridden
 			set_socket_object(au);
 			break;
-		case CLASS_SOCKET_CONN:
+		case NORM_SOCKET_CONN:
 			act = "connected-to";
-			D.thing.what = CLASS_WHAT_SOCKET;// this gets overridden
+			D.thing.what = NORM_WHAT_SOCKET;// this gets overridden
 			set_socket_object(au);
 			break;
-		case CLASS_SOCKET_RECV:
+		case NORM_SOCKET_RECV:
 			act = "received-from";
-			D.thing.what = CLASS_WHAT_SOCKET;// this gets overridden
+			D.thing.what = NORM_WHAT_SOCKET;// this gets overridden
 			set_socket_object(au);
 			break;
-		case CLASS_SOCKET_SEND:
+		case NORM_SOCKET_SEND:
 			act = "sent-to";
-			D.thing.what = CLASS_WHAT_SOCKET;// this gets overridden
+			D.thing.what = NORM_WHAT_SOCKET;// this gets overridden
 			set_socket_object(au);
 			break;
-		case CLASS_PID:
+		case NORM_PID:
 			if (auparse_get_num_records(au) > 2)
 				// FIXME: this has implications for object
 				act = "killed-list-of-pids";
@@ -532,18 +532,18 @@ static int classify_syscall(auparse_state_t *au, const char *syscall, int type)
 				D.thing.primary = set_field(D.thing.primary,
 					auparse_get_field_num(au));
 			}
-			D.thing.what = CLASS_WHAT_PROCESS;
+			D.thing.what = NORM_WHAT_PROCESS;
 			break;
-		case CLASS_MAC:
-			// FIXME: we need to also use other classifications
+		case NORM_MAC:
+			// FIXME: we need to also use other normalizations
 			// the AVC could be against many kinds of objects.
 			act = "violated-mac-policy";
 			break;
-		case CLASS_MAC_ERR:
+		case NORM_MAC_ERR:
 			// FIXME: See above
 			act = "caused-mac-policy-error";
 			break;
-		case CLASS_IPTABLES:
+		case NORM_IPTABLES:
 			act = "loaded-firewall-rule-to";
 			auparse_first_record(au);
 			f = auparse_find_field(au, "table");
@@ -553,9 +553,9 @@ static int classify_syscall(auparse_state_t *au, const char *syscall, int type)
 				D.thing.primary = set_field(D.thing.primary,
 					auparse_get_field_num(au));
 			}
-			D.thing.what = CLASS_WHAT_FIREWALL;
+			D.thing.what = NORM_WHAT_FIREWALL;
 			break;
-		case CLASS_PROMISCUOUS:
+		case NORM_PROMISCUOUS:
 			auparse_first_record(au);
 			f = auparse_find_field(au, "dev");
 			if (f) {
@@ -572,37 +572,37 @@ static int classify_syscall(auparse_state_t *au, const char *syscall, int type)
 				else
 					act = "entered-promiscuous-mode-on-device";
 			}
-			D.thing.what = CLASS_WHAT_SOCKET;
+			D.thing.what = NORM_WHAT_SOCKET;
 			break;
-		case CLASS_UID:
-		case CLASS_GID:
+		case NORM_UID:
+		case NORM_GID:
 			act = "changed-identity-of";
-			D.thing.what = CLASS_WHAT_PROCESS;
+			D.thing.what = NORM_WHAT_PROCESS;
 			set_program_obj(au);
 			if (D.how) {
 				free(D.how);
 				D.how = strdup(syscall);
 			}
 			break;
-		case CLASS_SYSTEM_TIME:
+		case NORM_SYSTEM_TIME:
 			act = "changed-system-time";
 			// TODO: can't think of an object for this one
-			D.thing.what = CLASS_WHAT_SYSTEM;
+			D.thing.what = NORM_WHAT_SYSTEM;
 			break;
-		case CLASS_MAKE_DEV:
+		case NORM_MAKE_DEV:
 			set_file_object(au, 0);
 			simple_file_attr(au);
-			if (D.thing.what == CLASS_WHAT_CHAR_DEV)
+			if (D.thing.what == NORM_WHAT_CHAR_DEV)
 				act = "made-character-device";
-			else if (D.thing.what == CLASS_WHAT_BLOCK_DEV)
+			else if (D.thing.what == NORM_WHAT_BLOCK_DEV)
 				act = "made-block-device";
 			else
 				act = "make-device";
 			break;
-		case CLASS_SYSTEM_NAME:
+		case NORM_SYSTEM_NAME:
 			act = "changed-system-name";
 			// TODO: can't think of an object for this one
-			D.thing.what = CLASS_WHAT_SYSTEM;
+			D.thing.what = NORM_WHAT_SYSTEM;
 			break;
 		default:
 			{
@@ -618,7 +618,7 @@ static int classify_syscall(auparse_state_t *au, const char *syscall, int type)
 						auparse_get_field_num(au));
 				} else
 					act = "triggered-unknown-audit-rule";
-				D.thing.what = CLASS_WHAT_AUDIT_RULE;
+				D.thing.what = NORM_WHAT_AUDIT_RULE;
 			}
 			break;
 	}
@@ -628,7 +628,7 @@ static int classify_syscall(auparse_state_t *au, const char *syscall, int type)
 	return 0;
 }
 
-static int classify_compound(auparse_state_t *au)
+static int normalize_compound(auparse_state_t *au)
 {
 	const char *f, *syscall = NULL;
 	int rc, recno, saved = 0, type = auparse_get_type(au);
@@ -742,11 +742,11 @@ static int classify_compound(auparse_state_t *au)
 
 		// action & object
 		if (saved) {
-			const char *act = classify_record_map_i2s(saved);
+			const char *act = normalize_record_map_i2s(saved);
 			if (act)
 				D.action = strdup(act);
 		} else
-			classify_syscall(au, syscall, type);
+			normalize_syscall(au, syscall, type);
 	}
 
 	free(syscall);
@@ -764,15 +764,15 @@ static value_t find_simple_object(auparse_state_t *au, int type)
 		case AUDIT_SERVICE_START:
 		case AUDIT_SERVICE_STOP:
 			f = auparse_find_field(au, "unit");
-			D.thing.what = CLASS_WHAT_SERVICE;
+			D.thing.what = NORM_WHAT_SERVICE;
 			break;
 		case AUDIT_SYSTEM_RUNLEVEL:
 			f = auparse_find_field(au, "new-level");
-			D.thing.what = CLASS_WHAT_SYSTEM;
+			D.thing.what = NORM_WHAT_SYSTEM;
 			break;
 		case AUDIT_USER_ROLE_CHANGE:
 			f = auparse_find_field(au, "selected-context");
-			D.thing.what = CLASS_WHAT_USER_SESSION;
+			D.thing.what = NORM_WHAT_USER_SESSION;
 			break;
 		case AUDIT_ROLE_ASSIGN:
 		case AUDIT_ROLE_REMOVE:
@@ -785,18 +785,18 @@ static value_t find_simple_object(auparse_state_t *au, int type)
 				auparse_first_record(au);
 				f = auparse_find_field(au, "acct");
 			}
-			D.thing.what = CLASS_WHAT_ACCT;
+			D.thing.what = NORM_WHAT_ACCT;
 			break;
 		case AUDIT_USER_START:
 		case AUDIT_USER_END:
 		case AUDIT_USER_ERR:
 			f = auparse_find_field(au, "terminal");
-			D.thing.what = CLASS_WHAT_USER_SESSION;
+			D.thing.what = NORM_WHAT_USER_SESSION;
 			break;
 		case AUDIT_USER_LOGIN:
 		case AUDIT_USER_LOGOUT:
 			f = auparse_find_field(au, "exe");
-			D.thing.what = CLASS_WHAT_USER_SESSION;
+			D.thing.what = NORM_WHAT_USER_SESSION;
 			break;
 		case AUDIT_USER_AUTH:
 		case AUDIT_USER_ACCT:
@@ -806,39 +806,39 @@ static value_t find_simple_object(auparse_state_t *au, int type)
 		case AUDIT_CRED_DISP:
 		case AUDIT_USER_CHAUTHTOK:
 			f = auparse_find_field(au, "acct");
-			D.thing.what = CLASS_WHAT_USER_SESSION;
+			D.thing.what = NORM_WHAT_USER_SESSION;
 			break;
 		case AUDIT_USER_CMD:
 			f = auparse_find_field(au, "cmd");
-			D.thing.what = CLASS_WHAT_PROCESS;
+			D.thing.what = NORM_WHAT_PROCESS;
 			break;
 		case AUDIT_VIRT_MACHINE_ID:
 			f = auparse_find_field(au, "vm");
-			D.thing.what = CLASS_WHAT_VM;
+			D.thing.what = NORM_WHAT_VM;
 			break;
 		case AUDIT_VIRT_RESOURCE:
 			f = auparse_find_field(au, "resrc");
-			D.thing.what = CLASS_WHAT_VM;
+			D.thing.what = NORM_WHAT_VM;
 			break;
 		case AUDIT_VIRT_CONTROL:
 			f = auparse_find_field(au, "op");
-			D.thing.what = CLASS_WHAT_VM;
+			D.thing.what = NORM_WHAT_VM;
 			break;
 		case AUDIT_LABEL_LEVEL_CHANGE:
 			f = auparse_find_field(au, "printer");
-			D.thing.what = CLASS_WHAT_PRINTER;
+			D.thing.what = NORM_WHAT_PRINTER;
 			break;
 		case AUDIT_CONFIG_CHANGE:
 			f = auparse_find_field(au, "key");
-			D.thing.what = CLASS_WHAT_AUDIT_CONFIG;
+			D.thing.what = NORM_WHAT_AUDIT_CONFIG;
 			break;
 		case AUDIT_MAC_CONFIG_CHANGE:
 			f = auparse_find_field(au, "bool");
-			D.thing.what = CLASS_WHAT_MAC_CONFIG;
+			D.thing.what = NORM_WHAT_MAC_CONFIG;
 			break;
 		case AUDIT_MAC_STATUS:
 			f = auparse_find_field(au, "enforcing");
-			D.thing.what = CLASS_WHAT_MAC_CONFIG;
+			D.thing.what = NORM_WHAT_MAC_CONFIG;
 			break;
 		case AUDIT_USER:
 			f = auparse_find_field(au, "addr");
@@ -850,15 +850,15 @@ static value_t find_simple_object(auparse_state_t *au, int type)
 				D.action = strdup(auparse_interpret_field(au));
 				f = NULL;
 			}
-			D.thing.what = CLASS_WHAT_SYSTEM;
+			D.thing.what = NORM_WHAT_SYSTEM;
 			break;
 		case AUDIT_CRYPTO_KEY_USER:
 			f = auparse_find_field(au, "fp");
-			D.thing.what = CLASS_WHAT_USER_SESSION;
+			D.thing.what = NORM_WHAT_USER_SESSION;
 			break;
 		case AUDIT_CRYPTO_SESSION:
 			f = auparse_find_field(au, "addr");
-			D.thing.what = CLASS_WHAT_USER_SESSION;
+			D.thing.what = NORM_WHAT_USER_SESSION;
 			break;
 		default:
 			break;
@@ -904,7 +904,7 @@ static value_t find_simple_obj_secondary(auparse_state_t *au, int type)
 
 static void collect_simple_subj_attr(auparse_state_t *au)
 {
-        if (D.opt == CLOPT_NO_ATTRS)
+        if (D.opt == NORM_OPT_NO_ATTRS)
                 return;
 
         auparse_first_record(au);
@@ -915,7 +915,7 @@ static void collect_simple_subj_attr(auparse_state_t *au)
 
 static void collect_userspace_subj_attr(auparse_state_t *au, int type)
 {
-        if (D.opt == CLOPT_NO_ATTRS)
+        if (D.opt == NORM_OPT_NO_ATTRS)
                 return;
 
 	// Just pass 0 since simple is 1 record
@@ -928,7 +928,7 @@ static void collect_userspace_subj_attr(auparse_state_t *au, int type)
 		add_subj_attr(au, "terminal", 0);
 }
 
-static int classify_simple(auparse_state_t *au)
+static int normalize_simple(auparse_state_t *au)
 {
 	const char *f, *act;
 	int type = auparse_get_type(au);
@@ -939,7 +939,7 @@ static int classify_simple(auparse_state_t *au)
 
 	// Some older OS do not have PROCTITLE records
 	if (type == AUDIT_SYSCALL)
-		return classify_compound(au);
+		return normalize_compound(au);
 
 	// This is for events that follow:
 	// auid, (op), (uid), stuff
@@ -971,7 +971,7 @@ static int classify_simple(auparse_state_t *au)
 					D.thing.primary =
 						find_simple_object(au, type);
 				} else {
-					act = classify_record_map_i2s(type);
+					act = normalize_record_map_i2s(type);
 					if (act)
 						D.action = strdup(act);
 					else
@@ -981,7 +981,7 @@ static int classify_simple(auparse_state_t *au)
 				goto map;
 		} else {
 map:
-			act = classify_record_map_i2s(type);
+			act = normalize_record_map_i2s(type);
 			if (act)
 				D.action = strdup(act);
 			auparse_first_record(au);
@@ -1003,7 +1003,7 @@ map:
 
 			// object
 			set_prime_object(au, "feature", 0);
-			D.thing.what = CLASS_WHAT_SYSTEM;
+			D.thing.what = NORM_WHAT_SYSTEM;
 		}
 
 		if (type == AUDIT_SECCOMP) {
@@ -1022,7 +1022,7 @@ map:
 			// Object
 			if (set_prime_object(au, "syscall", 0))
 				auparse_first_record(au);
-			D.thing.what = CLASS_WHAT_PROCESS;
+			D.thing.what = NORM_WHAT_PROCESS;
 		}
 
 		if (type == AUDIT_ANOM_ABEND) {
@@ -1034,7 +1034,7 @@ map:
 			//object
 			if (set_prime_object(au, "exe", 0))
 				auparse_first_record(au);
-			D.thing.what = CLASS_WHAT_PROCESS;
+			D.thing.what = NORM_WHAT_PROCESS;
 
 			// how
 			f = auparse_find_field(au, "sig");
@@ -1074,12 +1074,12 @@ map:
 		set_results(au, 0);
 
 		// action
-		act = classify_record_map_i2s(type);
+		act = normalize_record_map_i2s(type);
 		if (act)
 			D.action = strdup(act);
 
 		// How
-		D.thing.what = CLASS_WHAT_USER_SESSION;
+		D.thing.what = NORM_WHAT_USER_SESSION;
 
 		return 0;
 	}
@@ -1101,12 +1101,12 @@ map:
 		collect_simple_subj_attr(au);
 
 		// action
-		act = classify_record_map_i2s(type);
+		act = normalize_record_map_i2s(type);
 		if (act)
 			D.action = strdup(act);
 
 		// Object type
-		D.thing.what = CLASS_WHAT_SERVICE;
+		D.thing.what = NORM_WHAT_SERVICE;
 
 		// Results
 		set_results(au, 0);
@@ -1136,7 +1136,7 @@ map:
 	set_results(au, 0);
 
 	// action
-	act = classify_record_map_i2s(type);
+	act = normalize_record_map_i2s(type);
 	if (act)
 		D.action = strdup(act);
 
@@ -1146,10 +1146,10 @@ map:
 
 	// how
 	if (type == AUDIT_SYSTEM_BOOT) {
-		D.thing.what = CLASS_WHAT_SYSTEM;
+		D.thing.what = NORM_WHAT_SYSTEM;
 		return 0;
 	} else if (type == AUDIT_SYSTEM_SHUTDOWN) {
-		D.thing.what = CLASS_WHAT_SERVICE;
+		D.thing.what = NORM_WHAT_SERVICE;
 		return 0;
 	}
 	auparse_first_record(au);
@@ -1180,26 +1180,26 @@ map:
 }
 
 /*
- * This is the main entry point for the classification. This function
+ * This is the main entry point for the normalization. This function
  * will analyze the current record to pick out the important pieces.
  */
-int auparse_classify(auparse_state_t *au, classify_option_t opt)
+int auparse_normalize(auparse_state_t *au, normalize_option_t opt)
 {
 	int rc = auparse_first_record(au);
 	unsigned num = auparse_get_num_records(au);
 
 	// Reset cursor - no idea what we are being handed
 	auparse_first_record(au);
-	clear_classify(&D);
+	clear_normalizer(&D);
 	D.opt = opt;
 
 	// If we have more than one record in the event its a syscall based
 	// event. Otherwise its a simple event with all pieces in the same
 	// record.
 	if (num > 1)
-		rc = classify_compound(au);
+		rc = normalize_compound(au);
 	else
-		rc = classify_simple(au);	
+		rc = normalize_simple(au);	
 
 	// Reset the cursor
 	auparse_first_record(au);
@@ -1232,23 +1232,23 @@ static int seek_field(auparse_state_t *au, value_t location)
 	return 1;
 }
 
-int auparse_classify_session(auparse_state_t *au)
+int auparse_normalize_session(auparse_state_t *au)
 {
 	return seek_field(au, D.session);
 }
 
-int auparse_classify_subject_primary(auparse_state_t *au)
+int auparse_normalize_subject_primary(auparse_state_t *au)
 {
 	return seek_field(au, D.actor.primary);
 }
 
-int auparse_classify_subject_secondary(auparse_state_t *au)
+int auparse_normalize_subject_secondary(auparse_state_t *au)
 {
 	return seek_field(au, D.actor.secondary);
 }
 
 // Returns: -1 = error, 0 uninitialized, 1 == success
-int auparse_classify_subject_first_attribute(auparse_state_t *au)
+int auparse_normalize_subject_first_attribute(auparse_state_t *au)
 {
 	if (D.actor.attr.cnt) {
 		data_node *n;
@@ -1262,7 +1262,7 @@ int auparse_classify_subject_first_attribute(auparse_state_t *au)
 }
 
 // Returns: -1 = error, 0 uninitialized, 1 == success
-int auparse_classify_subject_next_attribute(auparse_state_t *au)
+int auparse_normalize_subject_next_attribute(auparse_state_t *au)
 {
 	if (D.actor.attr.cnt) {
 		data_node *n;
@@ -1274,23 +1274,23 @@ int auparse_classify_subject_next_attribute(auparse_state_t *au)
 	return 0;
 }
 
-const char *auparse_classify_get_action(auparse_state_t *au)
+const char *auparse_normalize_get_action(auparse_state_t *au)
 {
 	return D.action;
 }
 
-int auparse_classify_object_primary(auparse_state_t *au)
+int auparse_normalize_object_primary(auparse_state_t *au)
 {
 	return seek_field(au, D.thing.primary);
 }
 
-int auparse_classify_object_secondary(auparse_state_t *au)
+int auparse_normalize_object_secondary(auparse_state_t *au)
 {
 	return seek_field(au, D.thing.secondary);
 }
 
 // Returns: -1 = error, 0 uninitialized, 1 == success
-int auparse_classify_object_first_attribute(auparse_state_t *au)
+int auparse_normalize_object_first_attribute(auparse_state_t *au)
 {
 	if (D.thing.attr.cnt) {
 		data_node *n;
@@ -1304,7 +1304,7 @@ int auparse_classify_object_first_attribute(auparse_state_t *au)
 }
 
 // Returns: -1 = error, 0 uninitialized, 1 == success
-int auparse_classify_object_next_attribute(auparse_state_t *au)
+int auparse_normalize_object_next_attribute(auparse_state_t *au)
 {
 	if (D.thing.attr.cnt) {
 		data_node *n;
@@ -1316,22 +1316,22 @@ int auparse_classify_object_next_attribute(auparse_state_t *au)
 	return 0;
 }
 
-const char *auparse_classify_object_type(auparse_state_t *au)
+const char *auparse_normalize_object_type(auparse_state_t *au)
 {
-	return classify_obj_type_map_i2s(D.thing.what);
+	return normalize_obj_type_map_i2s(D.thing.what);
 }
 
-int auparse_classify_get_results(auparse_state_t *au)
+int auparse_normalize_get_results(auparse_state_t *au)
 {
 	return seek_field(au, D.results);
 }
 
-const char *auparse_classify_how(auparse_state_t *au)
+const char *auparse_normalize_how(auparse_state_t *au)
 {
 	return D.how;
 }
 
-int auparse_classify_key(auparse_state_t *au)
+int auparse_normalize_key(auparse_state_t *au)
 {
 	return seek_field(au, D.key);
 }

@@ -1,5 +1,5 @@
 /* auparse-defs.h --
- * Copyright 2006-07,09,2011-12,2014-16 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2006-07,09,2011-12,2014-17 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -96,8 +96,8 @@ typedef enum { AUPARSE_ESC_RAW, AUPARSE_ESC_TTY, AUPARSE_ESC_SHELL,
 typedef enum { AUPARSE_DESTROY_ALL,
 	AUPARSE_DESTROY_COMMON } auparse_destroy_what_t;
 
-/* auparse_classify options */
-typedef enum { CLOPT_ALL, CLOPT_NO_ATTRS} classify_option_t;
+/* auparse_normalize options */
+typedef enum { NORM_OPT_ALL, NORM_OPT_NO_ATTRS} normalize_option_t;
 
 
 #ifdef __cplusplus
