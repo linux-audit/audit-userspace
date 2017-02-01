@@ -445,7 +445,7 @@ static int normalize_syscall(auparse_state_t *au, const char *syscall, int type)
 			break;
 		case NORM_FILE_MOUNT:
 			act = "mounted";
-			D.thing.what = NORM_WHAT_FILE; // this gets overridden
+			D.thing.what = NORM_WHAT_FILESYSTEM; // this gets overridden
 			set_file_object(au, 1); // The device is one after
 			simple_file_attr(au);
 			break;
@@ -461,6 +461,12 @@ static int normalize_syscall(auparse_state_t *au, const char *syscall, int type)
 			set_file_object(au, 0);
 			simple_file_attr(au);
 			break;
+		case NORM_FILE_SYS_STAT:
+			act = "checked-filesystem-metadata-of";
+			D.thing.what = NORM_WHAT_FILESYSTEM; // this gets overridden
+			set_file_object(au, 0);
+			simple_file_attr(au);
+			break;
 		case NORM_FILE_LNK:
 			act = "symlinked";
 			D.thing.what = NORM_WHAT_FILE; // this gets overridden
@@ -470,7 +476,7 @@ static int normalize_syscall(auparse_state_t *au, const char *syscall, int type)
 			break;
 		case NORM_FILE_UMNT:
 			act = "unmounted";
-			D.thing.what = NORM_WHAT_FILE; // this gets overridden
+			D.thing.what = NORM_WHAT_FILESYSTEM; // this gets overridden
 			set_file_object(au, 0);
 			simple_file_attr(au);
 			break;

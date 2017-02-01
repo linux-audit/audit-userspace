@@ -53,6 +53,7 @@
 #define NORM_SYSTEM_TIME	26
 #define NORM_MAKE_DEV		27
 #define NORM_SYSTEM_NAME	28
+#define NORM_FILE_SYS_STAT	29
 
 // This enum is used to map what the system objects are
 #define NORM_WHAT_UNKNOWN	0
@@ -74,5 +75,6 @@
 #define NORM_WHAT_AUDIT_RULE	16
 #define NORM_WHAT_AUDIT_CONFIG	17
 #define NORM_WHAT_MAC_CONFIG	18
+#define NORM_WHAT_FILESYSTEM	19
 
 #endif
