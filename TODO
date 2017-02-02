@@ -1,22 +1,27 @@
 Things that need to be done:
 ===========================
 2.7.2
-* Look into TLS support
-* Document new auparse classify functions with man pages
-* Add sockaddr accessor functions in auparse
-* non-equality comparisons for values other than \timestamp, \timestamp_ex and \record_type in ausearch-expression
+* Formats for ausearch output
 * Selectable escaping for ausearch/report output
+* Look into TLS support
+* Document new auparse normalize functions with man pages
 
 2.7.3
-* Formats for ausearch output
-* Fix audit.pc.in to use Requires.private
-* Look at pulling audispd into auditd
-* Support mutiple time streams when searching
-* If relative file in cwd, need to build also (realpath). watch out for (null) and socket
-* Change ausearch to output name="" unless its a real null. (mount) ausearch-report.c, 523. FIXME
-* ausearch --op search
-* In audispd, look into non-blocking handling of write to plugins
+* Add ability to filter events in auditd
+* non-equality comparisons for values other than \timestamp, \timestamp_ex and \record_type in ausearch-expression
+* Add sockaddr accessor functions in auparse
 * Add a realpath variant accessor that resolves whole path
+* Fix audit.pc.in to use Requires.private
+* If relative file in cwd, need to build also (realpath). watch out for (null) and socket
+
+2.8
+* Support mutiple time streams when searching
+* Re-write auvirt
+* Look at pulling audispd into auditd
+* In audispd, look into non-blocking handling of write to plugins
+* ausearch --op search
+* Change ausearch to output name="" unless its a real null. (mount) ausearch-report.c, 523. FIXME
+* IPv6 remote logging
 
 3.0
 * Basic HIDS
