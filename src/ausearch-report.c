@@ -478,11 +478,10 @@ static void csv_event(auparse_state_t *au,
 	printf("%lu,", auparse_get_serial(au));
 
 	if (rc) {
-		fprintf(stderr, "error normalizeing %s\n", type);
+		fprintf(stderr, "error normalizing %s\n", type);
 
-		// FIXME: conditional on labels to add more?
 		// Just dump an empty frame
-		printf(",,,,,,,,\n");
+		printf(",,,,,,,%s%s\n", labels ? ",," : "", keys ? "," : "");
 		return;
 	}
 
@@ -600,19 +599,18 @@ static void text_event(auparse_state_t *au,
 	if (cb_event_type != AUPARSE_CB_EVENT_READY)
 		return;
 
-	// Event level
 	char tmp[20];
         const char *item, *action, *how;
         int rc, type, id = -2;
         time_t t = auparse_get_time(au);
         struct tm *tv = localtime(&t);
 
-	strftime(tmp, sizeof(tmp), "%T",tv);
+	strftime(tmp, sizeof(tmp), "%T", tv);
 	type = auparse_get_type(au);
 	auparse_normalize(au, NORM_OPT_NO_ATTRS);
 	item = auparse_get_node(au);
 	if (item) {
-		printf("On %s at %s ",auparse_interpret_field(au),tmp);
+		printf("On %s at %s ", auparse_interpret_field(au), tmp);
 		free(item);
 	} else
 		printf("At %s ", tmp);
@@ -625,6 +623,7 @@ static void text_event(auparse_state_t *au,
 			subj = "system";
 		printf("%s", subj);
 	}
+
 	// Need to compare auid and uid before doing this
 	rc = auparse_normalize_subject_secondary(au);
 	if (rc == 1) {
@@ -632,6 +631,7 @@ static void text_event(auparse_state_t *au,
 		if (uid != id && id != -2)
 			printf(", acting as %s,", auparse_interpret_field(au));
 	}
+
 	rc = auparse_normalize_get_results(au);
 	if (rc == 1) {
 		int i = 0;
@@ -644,10 +644,11 @@ static void text_event(auparse_state_t *au,
 		printf(" %s ", res[i]);
 	} else
 		putchar(' ');
+
 	action = auparse_normalize_get_action(au);
 // FIXME: remove later
 if (action == NULL) printf("error on type:%d\n", type);
-                printf("%s ", action ? action : "did-unknown");
+	printf("%s ", action ? action : "did-unknown");
 
 	rc = auparse_normalize_object_primary(au);
 	if (rc == 1)
@@ -668,7 +669,7 @@ if (action == NULL) printf("error on type:%d\n", type);
 }
 
 /* This function will push an event into auparse. The callback arg will
- * determine any formatting. */
+ * perform all formating for the intended report option. */
 static auparse_state_t *au; 
 static void feed_auparse(llist *l, auparse_callback_ptr callback)
 {
@@ -683,8 +684,12 @@ static void feed_auparse(llist *l, auparse_callback_ptr callback)
 	au = auparse_init(AUSOURCE_FEED, 0);
 	auparse_add_callback(au, callback, NULL, NULL);
 	do {
-		auparse_feed(au, n->message, n->mlen);
-		auparse_feed(au, "\n", 1);
+		// Records need to be terminated by a newline
+		// Temporarily replace it.
+		char tmp = n->message[n->mlen];
+		n->message[n->mlen] = '\n';
+		auparse_feed(au, n->message, n->mlen+1);
+		n->message[n->mlen] = tmp;
 	} while ((n=list_next(l)));
 
 	auparse_flush_feed(au);
