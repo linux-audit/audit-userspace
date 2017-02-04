@@ -400,7 +400,7 @@ static void interpret(char *name, char *val, int comma, int rtype)
 /* This function will output a normalized line of audit
  * fields one line per event in csv format */
 static int csv_header_done = 0;
-static int extra_time = 0, labels = 0, keys = 0;
+extern int extra_keys, extra_labels, extra_time;
 static void csv_event(auparse_state_t *au,
 		auparse_cb_event_t cb_event_type, void *user_data)
 {
@@ -412,8 +412,9 @@ static void csv_event(auparse_state_t *au,
 		printf( "NODE,TYPE,DATE,TIME,%sSERIAL_NUM,SESSION,SUBJ_PRIME,"
 		"SUBJ_SEC,%sACTION,RESULT,OBJ_PRIME,OBJ_SEC,%sOBJ_TYPE,HOW%s\n",
 		extra_time ? "YEAR,MONTH,DAY,WEEKDAY,HOUR,GMT_OFFSET," : "",
-		labels ? "SUBJ_LABEL," : "", labels ? "OBJ_LABEL," : "",
-		keys ? ",KEY" : "");
+		extra_labels ? "SUBJ_LABEL," : "",
+		extra_labels ? "OBJ_LABEL," : "",
+		extra_keys ? ",KEY" : "");
 	}
 
 	char tmp[20];
@@ -437,7 +438,8 @@ static void csv_event(auparse_state_t *au,
 	putchar(',');
 
 	// Normalize
-	rc = auparse_normalize(au, labels ? NORM_OPT_ALL : NORM_OPT_NO_ATTRS);
+	rc = auparse_normalize(au,
+			extra_labels ? NORM_OPT_ALL : NORM_OPT_NO_ATTRS);
 
 	//DATE
 	strftime(tmp, sizeof(tmp), "%x", tv);
@@ -481,7 +483,8 @@ static void csv_event(auparse_state_t *au,
 		fprintf(stderr, "error normalizing %s\n", type);
 
 		// Just dump an empty frame
-		printf(",,,,,,,%s%s\n", labels ? ",," : "", keys ? "," : "");
+		printf(",,,,,,,%s%s\n", extra_labels ? ",," : "",
+			extra_keys ? "," : "");
 		return;
 	}
 
@@ -508,7 +511,7 @@ static void csv_event(auparse_state_t *au,
 	putchar(',');
 
 	// SUBJ_LABEL
-	if (labels) {
+	if (extra_labels) {
 		rc = auparse_normalize_subject_first_attribute(au);
 		do {
 			if (rc == 1) {
@@ -556,7 +559,7 @@ static void csv_event(auparse_state_t *au,
 	putchar(',');
 
 	// OBJ_LABEL
-	if (labels) {
+	if (extra_labels) {
 		rc = auparse_normalize_object_first_attribute(au);
 		do {
 			if (rc == 1) {
@@ -581,7 +584,7 @@ static void csv_event(auparse_state_t *au,
 		printf("%s", how);
 
 	// KEY
-	if (keys) {
+	if (extra_keys) {
 		putchar(','); // This is to close out HOW
 		rc = auparse_normalize_key(au);
 		if (rc == 1)
@@ -617,7 +620,7 @@ static void text_event(auparse_state_t *au,
 
 	rc = auparse_normalize_subject_primary(au);
 	if (rc == 1) {
-		char *subj = auparse_interpret_field(au);
+		const char *subj = auparse_interpret_field(au);
 		id = auparse_get_field_int(au);
 		if (strcmp(subj, "unset") == 0)
 			subj = "system";

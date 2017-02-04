@@ -62,6 +62,7 @@ int event_exit_is_set = 0;
 int line_buffered = 0;
 int event_debug = 0;
 int checkpt_timeonly = 0;
+int extra_keys = 0, extra_labels = 0, extra_time = 0;
 const char *event_key = NULL;
 const char *event_filename = NULL;
 const char *event_exe = NULL;
@@ -87,7 +88,8 @@ S_HOSTNAME, S_INTERP, S_INFILE, S_MESSAGE_TYPE, S_PID, S_SYSCALL, S_OSUCCESS,
 S_TIME_END, S_TIME_START, S_TERMINAL, S_ALL_UID, S_EFF_UID, S_UID, S_LOGINID,
 S_VERSION, S_EXACT_MATCH, S_EXECUTABLE, S_CONTEXT, S_SUBJECT, S_OBJECT,
 S_PPID, S_KEY, S_RAW, S_NODE, S_IN_LOGS, S_JUST_ONE, S_SESSION, S_EXIT,
-S_LINEBUFFERED, S_UUID, S_VMNAME, S_DEBUG, S_CHECKPOINT, S_ARCH, S_FORMAT };
+S_LINEBUFFERED, S_UUID, S_VMNAME, S_DEBUG, S_CHECKPOINT, S_ARCH, S_FORMAT,
+S_EXTRA_TIME, S_EXTRA_LABELS, S_EXTRA_KEYS };
 
 static struct nv_pair optiontab[] = {
 	{ S_EVENT, "-a" },
@@ -99,6 +101,9 @@ static struct nv_pair optiontab[] = {
 	{ S_DEBUG, "--debug" },
 	{ S_EXIT, "-e" },
 	{ S_EXIT, "--exit" },
+	{ S_EXTRA_KEYS, "--extra-keys" },
+	{ S_EXTRA_LABELS, "--extra-labels" },
+	{ S_EXTRA_TIME, "--extra-time" },
 	{ S_FILENAME, "-f" },
 	{ S_FILENAME, "--file" },
 	{ S_FORMAT, "--format" },
@@ -330,6 +335,33 @@ int check_params(int count, char *vars[])
 			"Audit event id must be a numeric value, was %s\n",
 					optarg);
 				retval = -1;
+			}
+			break;
+		case S_EXTRA_KEYS:
+			extra_keys = 1;
+			if (optarg) {
+				fprintf(stderr, 
+					"Argument is NOT required for %s\n",
+					vars[c]);
+        	                retval = -1;
+			}
+			break;
+		case S_EXTRA_LABELS:
+			extra_labels = 1;
+			if (optarg) {
+				fprintf(stderr, 
+					"Argument is NOT required for %s\n",
+					vars[c]);
+        	                retval = -1;
+			}
+			break;
+		case S_EXTRA_TIME:
+			extra_time = 1;
+			if (optarg) {
+				fprintf(stderr, 
+					"Argument is NOT required for %s\n",
+					vars[c]);
+        	                retval = -1;
 			}
 			break;
 		case S_COMM:
@@ -1210,6 +1242,12 @@ int check_params(int count, char *vars[])
 			break;
 		}
 		c++;
+	}
+
+	// Final config checks
+	if ((extra_time || extra_labels || extra_keys) && report_format != RPT_CSV) {
+		fprintf(stderr, "--extra options requires format to be csv\n");
+		retval = -1;
 	}
 
 	return retval;

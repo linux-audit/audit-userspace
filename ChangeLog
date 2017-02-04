@@ -5,6 +5,7 @@
 - Rename whole auparse classifier subsystem to normalizer
 - Add filesystem object to the auparse normalizer
 - Add basic support for formatted output in ausearch
+- Add 'extra' options for csv output in ausearch
 
 2.7.1
 - In auparse_classify, handle simple SYSCALL events
