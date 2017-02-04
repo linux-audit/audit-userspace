@@ -230,8 +230,10 @@ static event_list_t *au_get_ready_event(auparse_state_t *au, int is_test)
         int i;
 	au_lol *lol = au->au_lo;
 	
-	if (au->au_ready == 0)
+	if (au->au_ready == 0) {
+		//if (debug) printf("No events ready\n");
 		return NULL;
+	}
 
         for (i=0; i<=lol->maxi; i++) {
                 au_lolnode *cur = &(lol->array[i]);
@@ -310,6 +312,7 @@ static void au_terminate_all_events(auparse_state_t *au)
                 if (cur->status == EBS_BUILDING) {
                         cur->status = EBS_COMPLETE;
 			au->au_ready++;
+			//if (debug) printf("%d events complete\n", au->au_ready);
                 }
         }
 }
@@ -548,6 +551,7 @@ void auparse_add_callback(auparse_state_t *au, auparse_callback_ptr callback,
 
 static void consume_feed(auparse_state_t *au, int flush)
 {
+	//if (debug) printf("consume feed, flush %d\n", flush);
 	while (auparse_next_event(au) > 0) {
 		if (au->callback) {
 			(*au->callback)(au, AUPARSE_CB_EVENT_READY,
@@ -566,7 +570,7 @@ static void consume_feed(auparse_state_t *au, int flush)
 		 */
 		event_list_t	*l;
 
-		if (debug) printf("terminate all events in flush\n");
+		//if (debug) printf("terminate all events in flush\n");
 		au_terminate_all_events(au);
 		while ((l = au_get_ready_event(au, 0)) != NULL) {
 			au->le = l;  // make this current the event of interest
@@ -1347,8 +1351,12 @@ static int au_auparse_next_event(auparse_state_t *au)
 	 * redress a singleton approach to event processing.
 	 */
 	if (au->au_lo->array == NULL && au->au_lo->maxi == -1) {
+#if	LOL_EVENTS_DEBUG01
+		if (debug) printf("Creating lol array\n");
+#endif	/* LOL_EVENTS_DEBUG01 */
 		au_lol_create(au->au_lo);
 	}	
+
 	/*
 	 * First see if we have any empty events but with an allocated event
 	 * list. These would have just been processed, so we can free them
@@ -1401,7 +1409,9 @@ static int au_auparse_next_event(auparse_state_t *au)
 			}
 		}
 		rc = retrieve_next_line(au);
+#if	LOL_EVENTS_DEBUG01
 		if (debug) printf("next_line(%d) '%s'\n", rc, au->cur_buf);
+#endif	/* LOL_EVENTS_DEBUG01 */
 		if (rc == 0) {
 #if	LOL_EVENTS_DEBUG01
 			if (debug) printf("Empty line\n");
@@ -1413,7 +1423,9 @@ static int au_auparse_next_event(auparse_state_t *au)
 			 * We are at EOF, so see if we have any accumulated
 			 * events.
 			 */
+#if	LOL_EVENTS_DEBUG01
 			if (debug) printf("EOF\n");
+#endif	/* LOL_EVENTS_DEBUG01 */
 			au_terminate_all_events(au);
 			if ((l = au_get_ready_event(au, 0)) != NULL) {
 				rnode *r;
@@ -1431,13 +1443,17 @@ static int au_auparse_next_event(auparse_state_t *au)
 			}
 			return 0;
 		} else if (rc < 0) {
+#if	LOL_EVENTS_DEBUG01
 			/* Straight error */
 			if (debug) printf("Error %d\n", rc);
+#endif	/* LOL_EVENTS_DEBUG01 */
 			return -1;
 		}
 		/* So we got a successful read ie rc > 0 */
 		if (extract_timestamp(au->cur_buf, &e)) {
+#if	LOL_EVENTS_DEBUG01
 			if (debug) printf("Malformed line:%s\n", au->cur_buf);
+#endif	/* LOL_EVENTS_DEBUG01 */
 			continue;
 		}
 
@@ -1449,7 +1465,9 @@ static int au_auparse_next_event(auparse_state_t *au)
 			au_lolnode *cur = &au->au_lo->array[i];
 			if (cur->status == EBS_BUILDING) {
 				if (events_are_equal(&cur->l->e, &e)) {
+#if	LOL_EVENTS_DEBUG01
 					if (debug) printf("Adding event to building event\n");
+#endif	/* LOL_EVENTS_DEBUG01 */
 					aup_list_append(cur->l, au->cur_buf,
 						au->list_idx, au->line_number);
 					au->cur_buf = NULL;
@@ -1468,7 +1486,9 @@ static int au_auparse_next_event(auparse_state_t *au)
 			continue;
 
 		/* So create one */
+#if	LOL_EVENTS_DEBUG01
 		if (debug) printf("First record in new event, initialize event\n");
+#endif	/* LOL_EVENTS_DEBUG01 */
 		if ((l=(event_list_t *)malloc(sizeof(event_list_t))) == NULL) {
 			return -1;
 		}
@@ -1476,6 +1496,9 @@ static int au_auparse_next_event(auparse_state_t *au)
 		aup_list_set_event(l, &e);
 		aup_list_append(l, au->cur_buf, au->list_idx, au->line_number);
 		if (au_lol_append(au->au_lo, l) == NULL) {
+#if	LOL_EVENTS_DEBUG01
+			if (debug) printf("error appending to lol\n");
+#endif	/* LOL_EVENTS_DEBUG01 */
 			return -1;
 		}
 		au->cur_buf = NULL;

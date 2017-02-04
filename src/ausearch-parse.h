@@ -21,8 +21,8 @@
 *   Steve Grubb <sgrubb@redhat.com>
 */
 
-#ifndef AUPARSE_HEADER
-#define AUPARSE_HEADER
+#ifndef AUSEARCH_PARSE_HEADER
+#define AUSEARCH_PARSE_HEADER
 
 #include "config.h"
 #include "ausearch-llist.h"

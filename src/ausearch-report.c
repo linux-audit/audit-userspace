@@ -1,6 +1,6 @@
 /*
 * ausearch-report.c - Format and output events
-* Copyright (c) 2005-09,2011-13,2016 Red Hat Inc., Durham, North Carolina.
+* Copyright (c) 2005-09,2011-13,2016-17 Red Hat Inc., Durham, North Carolina.
 * All Rights Reserved. 
 *
 * This software may be freely redistributed and/or modified under the
@@ -30,8 +30,8 @@
 #include "ausearch-options.h"
 #include "ausearch-parse.h"
 #include "ausearch-lookup.h"
+#include "auparse.h"
 #include "auparse-idata.h"
-#include "auparse-defs.h"
 #include "auditd-config.h"
 
 /* Local functions */
@@ -39,7 +39,12 @@ static void output_raw(llist *l);
 static void output_default(llist *l);
 static void output_interpreted(llist *l);
 static void output_interpreted_node(const lnode *n, const event *e);
+static void feed_auparse(llist *l, auparse_callback_ptr callback);
 static void interpret(char *name, char *val, int comma, int rtype);
+static void csv_event(auparse_state_t *au,
+		auparse_cb_event_t cb_event_type, void *user_data);
+static void text_event(auparse_state_t *au,
+		auparse_cb_event_t cb_event_type, void *user_data);
 
 /* The machine based on elf type */
 static unsigned long machine = -1;
@@ -81,6 +86,12 @@ void output_record(llist *l)
 			output_interpreted(l);
 			break;
 		case RPT_PRETTY:
+			break;
+		case RPT_CSV:
+			feed_auparse(l, csv_event);
+			break;
+		case RPT_TEXT:
+			feed_auparse(l, text_event);
 			break;
 		default:
 			fprintf(stderr, "Report format error");
@@ -384,5 +395,299 @@ static void interpret(char *name, char *val, int comma, int rtype)
 		printf("%s ", out);
 
 	free(out);
+}
+
+/* This function will output a normalized line of audit
+ * fields one line per event in csv format */
+static int csv_header_done = 0;
+static int extra_time = 0, labels = 0, keys = 0;
+static void csv_event(auparse_state_t *au,
+		auparse_cb_event_t cb_event_type, void *user_data)
+{
+	if (cb_event_type != AUPARSE_CB_EVENT_READY)
+		return;
+
+	if (csv_header_done == 0) {
+		csv_header_done = 1;
+		printf( "NODE,TYPE,DATE,TIME,%sSERIAL_NUM,SESSION,SUBJ_PRIME,"
+		"SUBJ_SEC,%sACTION,RESULT,OBJ_PRIME,OBJ_SEC,%sOBJ_TYPE,HOW%s\n",
+		extra_time ? "YEAR,MONTH,DAY,WEEKDAY,HOUR,GMT_OFFSET," : "",
+		labels ? "SUBJ_LABEL," : "", labels ? "OBJ_LABEL," : "",
+		keys ? ",KEY" : "");
+	}
+
+	char tmp[20];
+	const char *item, *type, *action, *str, *how;
+	int rc;
+	time_t t = auparse_get_time(au);
+	struct tm *tv = localtime(&t);
+
+	// NODE
+	item = auparse_get_node(au);
+	if (item) {
+		printf("%s", auparse_interpret_field(au));
+		free(item);
+	}
+	putchar(',');
+
+	// Event type
+	type = auparse_get_type_name(au);
+	if (type)
+		printf("%s", type);
+	putchar(',');
+
+	// Normalize
+	rc = auparse_normalize(au, labels ? NORM_OPT_ALL : NORM_OPT_NO_ATTRS);
+
+	//DATE
+	strftime(tmp, sizeof(tmp), "%x", tv);
+	printf("%s,", tmp);
+
+	// TIME
+	strftime(tmp, sizeof(tmp), "%T", tv);
+	printf("%s,", tmp);
+
+	if (extra_time) {
+		// YEAR
+		strftime(tmp, sizeof(tmp), "%Y", tv);
+		printf("%s,", tmp);
+
+		// MONTH
+		strftime(tmp, sizeof(tmp), "%m", tv);
+		printf("%s,", tmp);
+
+		// DAY
+		strftime(tmp, sizeof(tmp), "%d", tv);
+		printf("%s,", tmp);
+
+		// WEEKDAY
+		strftime(tmp, sizeof(tmp), "%u", tv);
+		printf("%s,", tmp);
+
+		// HOUR
+		strftime(tmp, sizeof(tmp), "%k", tv);
+		printf("%s,", tmp);
+		char sign = tv->tm_gmtoff >= 0 ? '+' : '-';
+		unsigned long total = labs(tv->tm_gmtoff);
+		unsigned long hour = total/3600;
+		unsigned long min = (total - (hour * 3600))%60;
+		printf("%c%02lu:%02lu,", sign, hour, min);
+	}
+
+	// SERIAL_NUMBER
+	printf("%lu,", auparse_get_serial(au));
+
+	if (rc) {
+		fprintf(stderr, "error normalizeing %s\n", type);
+
+		// FIXME: conditional on labels to add more?
+		// Just dump an empty frame
+		printf(",,,,,,,,\n");
+		return;
+	}
+
+	// SESSION
+	rc = auparse_normalize_session(au);
+	if (rc == 1)
+		printf("%s", auparse_interpret_field(au));
+	putchar(',');
+
+	// SUBJ_PRIME
+	rc = auparse_normalize_subject_primary(au);
+	if (rc == 1) {
+		char *subj = auparse_interpret_field(au);
+		if (strcmp(subj, "unset") == 0)
+			subj = "system";
+		printf("%s", subj);
+	}
+	putchar(',');
+
+	// SUBJ_SEC
+	rc = auparse_normalize_subject_secondary(au);
+	if (rc == 1)
+		printf("%s", auparse_interpret_field(au));
+	putchar(',');
+
+	// SUBJ_LABEL
+	if (labels) {
+		rc = auparse_normalize_subject_first_attribute(au);
+		do {
+			if (rc == 1) {
+				const char *name = auparse_get_field_name(au);
+				if (strcmp(name, "subj") == 0) {
+					printf("%s",
+						auparse_interpret_field(au));
+					break;
+				}
+			}
+		} while (auparse_normalize_subject_next_attribute(au) == 1);
+		putchar(',');
+	}
+
+	// ACTION
+	action = auparse_normalize_get_action(au);
+	if (action)
+		printf("%s", action ? action : "did-unknown");
+	putchar(',');
+
+	// RESULT
+	rc = auparse_normalize_get_results(au);
+	if (rc == 1) {
+		int i = 0;
+		const char *res[] = { "failed", "success" };
+		item = auparse_interpret_field(au);
+		if (strcmp(item, "yes") == 0)
+			i = 1;
+		else if (strncmp(item, "suc", 3) == 0)
+			i = 1;
+		printf("%s", res[i]);
+	}
+	putchar(',');
+
+	// OBJ_PRIME
+	rc = auparse_normalize_object_primary(au);
+	if (rc == 1)
+		printf("%s", auparse_interpret_field(au));
+	putchar(',');
+
+	// OBJ_SEC
+	rc = auparse_normalize_object_secondary(au);
+	if (rc == 1)
+		printf("%s", auparse_interpret_field(au));
+	putchar(',');
+
+	// OBJ_LABEL
+	if (labels) {
+		rc = auparse_normalize_object_first_attribute(au);
+		do {
+			if (rc == 1) {
+				const char *name = auparse_get_field_name(au);
+				if (strcmp(name, "obj") == 0) {
+					printf("%s",
+						auparse_interpret_field(au));
+					break;
+				}
+			}
+		} while (auparse_normalize_object_next_attribute(au) == 1);
+		putchar(',');
+	}
+
+	// OBJ_TYPE
+	str = auparse_normalize_object_type(au);
+	printf("%s,", str);
+
+	// HOW
+	how = auparse_normalize_how(au);
+	if (how)
+		printf("%s", how);
+
+	// KEY
+	if (keys) {
+		putchar(','); // This is to close out HOW
+		rc = auparse_normalize_key(au);
+		if (rc == 1)
+			printf("%s", auparse_interpret_field(au));
+	}
+	printf("\n");
+}
+
+
+/* This function will output a normalized line of audit
+ * fields one line per event as an english sentence */
+static void text_event(auparse_state_t *au,
+		auparse_cb_event_t cb_event_type, void *user_data)
+{
+	if (cb_event_type != AUPARSE_CB_EVENT_READY)
+		return;
+
+	// Event level
+	char tmp[20];
+        const char *item, *action, *how;
+        int rc, type, id = -2;
+        time_t t = auparse_get_time(au);
+        struct tm *tv = localtime(&t);
+
+	strftime(tmp, sizeof(tmp), "%T",tv);
+	type = auparse_get_type(au);
+	auparse_normalize(au, NORM_OPT_NO_ATTRS);
+	item = auparse_get_node(au);
+	if (item) {
+		printf("On %s at %s ",auparse_interpret_field(au),tmp);
+		free(item);
+	} else
+		printf("At %s ", tmp);
+
+	rc = auparse_normalize_subject_primary(au);
+	if (rc == 1) {
+		char *subj = auparse_interpret_field(au);
+		id = auparse_get_field_int(au);
+		if (strcmp(subj, "unset") == 0)
+			subj = "system";
+		printf("%s", subj);
+	}
+	// Need to compare auid and uid before doing this
+	rc = auparse_normalize_subject_secondary(au);
+	if (rc == 1) {
+		int uid = auparse_get_field_int(au);
+		if (uid != id && id != -2)
+			printf(", acting as %s,", auparse_interpret_field(au));
+	}
+	rc = auparse_normalize_get_results(au);
+	if (rc == 1) {
+		int i = 0;
+		const char *res[] = { "unsuccessfully", "successfully" };
+		item = auparse_interpret_field(au);
+		if (strcmp(item, "yes") == 0)
+			i = 1;
+		else if (strncmp(item, "suc", 3) == 0)
+			i = 1;
+		printf(" %s ", res[i]);
+	} else
+		putchar(' ');
+	action = auparse_normalize_get_action(au);
+// FIXME: remove later
+if (action == NULL) printf("error on type:%d\n", type);
+                printf("%s ", action ? action : "did-unknown");
+
+	rc = auparse_normalize_object_primary(au);
+	if (rc == 1)
+		printf("%s ", auparse_interpret_field(au));
+
+	if (    type == AUDIT_VIRT_RESOURCE ||
+		type == AUDIT_VIRT_CONTROL) {
+		rc = auparse_normalize_object_secondary(au);
+		if (rc)
+			printf("to %s ", auparse_interpret_field(au));
+	}
+
+	how = auparse_normalize_how(au);
+	if (how && action && *action != 'e' && strcmp(action, "executed")) {
+		printf("using %s", how);
+	}
+	printf("\n");
+}
+
+/* This function will push an event into auparse. The callback arg will
+ * determine any formatting. */
+static auparse_state_t *au; 
+static void feed_auparse(llist *l, auparse_callback_ptr callback)
+{
+	const lnode *n;
+
+	list_first(l);
+	n = list_get_cur(l);
+	if (!n) {
+		fprintf(stderr, "Error - no elements in record.");
+		return;
+	}
+	au = auparse_init(AUSOURCE_FEED, 0);
+	auparse_add_callback(au, callback, NULL, NULL);
+	do {
+		auparse_feed(au, n->message, n->mlen);
+		auparse_feed(au, "\n", 1);
+	} while ((n=list_next(l)));
+
+	auparse_flush_feed(au);
+	auparse_destroy(au);
 }
 

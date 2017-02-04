@@ -1,5 +1,5 @@
 /* ausearch-options.c - parse commandline options and configure ausearch
- * Copyright 2005-08,2010-11,2014,2016 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2005-08,2010-11,2014,2016-17 Red Hat Inc., Durham, North Carolina.
  * Copyright (c) 2011 IBM Corp.
  * All Rights Reserved.
  *
@@ -40,6 +40,9 @@
 /* Global vars that will be accessed by the main program */
 char *user_file = NULL;
 int force_logs = 0;
+const char *checkpt_filename = NULL;	/* checkpoint filename if present */
+report_t report_format = RPT_DEFAULT;
+
 
 /* Global vars that will be accessed by the match model */
 unsigned int event_id = -1;
@@ -69,8 +72,6 @@ const char *event_subject = NULL;
 const char *event_object = NULL;
 const char *event_uuid = NULL;
 const char *event_vmname = NULL;
-const char *checkpt_filename = NULL;	/* checkpoint filename if present */
-report_t report_format = RPT_DEFAULT;
 ilist *event_type;
 
 slist *event_node_list = NULL;
@@ -86,7 +87,7 @@ S_HOSTNAME, S_INTERP, S_INFILE, S_MESSAGE_TYPE, S_PID, S_SYSCALL, S_OSUCCESS,
 S_TIME_END, S_TIME_START, S_TERMINAL, S_ALL_UID, S_EFF_UID, S_UID, S_LOGINID,
 S_VERSION, S_EXACT_MATCH, S_EXECUTABLE, S_CONTEXT, S_SUBJECT, S_OBJECT,
 S_PPID, S_KEY, S_RAW, S_NODE, S_IN_LOGS, S_JUST_ONE, S_SESSION, S_EXIT,
-S_LINEBUFFERED, S_UUID, S_VMNAME, S_DEBUG, S_CHECKPOINT, S_ARCH };
+S_LINEBUFFERED, S_UUID, S_VMNAME, S_DEBUG, S_CHECKPOINT, S_ARCH, S_FORMAT };
 
 static struct nv_pair optiontab[] = {
 	{ S_EVENT, "-a" },
@@ -100,6 +101,7 @@ static struct nv_pair optiontab[] = {
 	{ S_EXIT, "--exit" },
 	{ S_FILENAME, "-f" },
 	{ S_FILENAME, "--file" },
+	{ S_FORMAT, "--format" },
 	{ S_ALL_GID, "-ga" },
 	{ S_ALL_GID, "--gid-all" },
 	{ S_EFF_GID, "-ge" },
@@ -609,6 +611,39 @@ int check_params(int count, char *vars[])
 				fprintf(stderr, 
 					"Argument is NOT required for --raw\n");
         	                retval = -1;
+			}
+			break;
+		case S_FORMAT:
+			if (report_format != RPT_DEFAULT) {
+				fprintf(stderr, 
+					"Multiple output formats, use only 1\n");
+        	                retval = -1;
+				break;
+			}
+			if (!optarg) {
+				fprintf(stderr, 
+					"Argument is required for %s\n",
+					vars[c]);
+				retval = -1;
+			} else {
+				if (strcmp(optarg, "raw") == 0)
+					report_format = RPT_RAW;
+				else if (strcmp(optarg, "default") == 0)
+					report_format = RPT_DEFAULT;
+				else if (strncmp(optarg, "interp", 6) == 0)
+					report_format = RPT_INTERP;
+				else if (strcmp(optarg, "csv") == 0)
+					report_format = RPT_CSV;
+				else if (strcmp(optarg, "text") == 0)
+					report_format = RPT_TEXT;
+				else {
+					fprintf(stderr, 
+						"Unknown option (%s)\n",
+						optarg);
+					retval = -1;
+					break;
+				}
+				c++;
 			}
 			break;
 		case S_NODE:
