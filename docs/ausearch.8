@@ -55,6 +55,9 @@ Search for an event based on the given syscall \fIexit code or errno\fP.
 .BR \-f ,\  \-\-file \ \fIfile-name\fP
 Search for an event based on the given \fIfilename\fP. The argument will match normal files as well as af_unix sockets.
 .TP
+.BR \-\-format \ \fIoption\fP
+Events that match the search criteria are formatted using this option. The supported formats are: raw, default, interpret, csv, and text. The \fIraw\fP option is described under the \fI\-\-raw\fP command line option. The \fIdefault\fP option is what you get when no formatting options are passed. It includes one line as a visual separator which indicates the time stamp and then the records of the event follow. The \fIinterpret\fP option is explained under the \fI\-i\fP command line option. The \fIcsv\fP option outputs the results of the search as a normalized event in comma separated value (CSV) format suitable for import into analytical programs. The \fItext\fP option turns the event into an English sentence that is easier to understand than other options, but it comes at the expense of loss of detail. In most cases this is perfectly fine since the original event still retains all the original information.
+.TP
 .BR \-ga ,\  \-\-gid\-all \ \fIall-group-id\fP
 Search for an event with either effective group ID or group ID matching the given \fIgroup ID\fP.
 .TP
@@ -71,7 +74,7 @@ Help
 Search for an event with the given \fIhost name\fP. The hostname can be either a hostname, fully qualified domain name, or numeric network address. No attempt is made to resolve numeric addresses to domain names or aliases.
 .TP
 .BR \-i ,\  \-\-interpret
-Interpret numeric entities into text. For example, uid is converted to account name. The conversion is done using the current resources of the machine where the search is being run. If you have renamed the accounts, or don't have the same accounts on your machine, you could get misleading results.
+Interpret numeric entities into text. For example, uid is converted to account name. If the audit logs are unenriched, the conversion is done using the current resources of the machine where the search is being run. If you have renamed the accounts, or don't have the same accounts on your machine, you could get misleading results. If the logs are enriched, it uses the supplemental data to do the conversion. This allows accurate log reporting even when run on a different machine than the original logs came from.
 .TP
 .BR \-if ,\  \-\-input \ \fIfile-name\fP\ |\ \fIdirectory\fP
 Use the given \fIfile\fP or \fIdirectory\fP instead of the logs. This is to aid analysis where the logs have been moved to another machine or only part of a log was saved.
