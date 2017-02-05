@@ -39,7 +39,7 @@ libauparse_la_SOURCES = lru.c interpret.c nvlist.c ellist.c		\
 	nvlist.h auparse.h ellist.h					\
 	internal.h lru.h rnode.h interpret.h				\
 	private.h expression.c expression.h tty_named_keys.h		\
-	normalize.c normalize-llist.c normalize-llist.h 			\
+	normalize.c normalize-llist.c normalize-llist.h 		\
 	normalize-internal.h normalize_obj_type_map.h			\
 	normalize_record_map.h normalize_syscall_map.h
 nodist_libauparse_la_SOURCES = $(BUILT_SOURCES)
@@ -67,7 +67,7 @@ BUILT_SOURCES = accesstabs.h captabs.h clocktabs.h clone-flagtabs.h \
 	tcpoptnametabs.h typetabs.h umounttabs.h inethooktabs.h \
 	netactiontabs.h \
 	normalize_obj_type_maps.h normalize_record_maps.h \
-	normalize_syscall_maps.h
+	normalize_syscall_maps.h normalize_evtypetabs.h
 noinst_PROGRAMS = gen_accesstabs_h gen_captabs_h gen_clock_h \
 	gen_clone-flagtabs_h \
 	gen_epoll_ctls_h gen_famtabs_h \
@@ -84,7 +84,7 @@ noinst_PROGRAMS = gen_accesstabs_h gen_captabs_h gen_clock_h \
 	gen_socktypetabs_h gen_tcpoptnametabs_h gen_typetabs_h \
 	gen_umounttabs_h gen_inethooktabs_h gen_netactiontabs_h \
 	gen_normalize_record_map gen_normalize_syscall_map \
-	gen_normalize_obj_type_map
+	gen_normalize_obj_type_map gen_normalize_evtypetabs_h
 
 gen_accesstabs_h_SOURCES = ../lib/gen_tables.c ../lib/gen_tables.h accesstab.h
 gen_accesstabs_h_CFLAGS = '-DTABLE_H="accesstab.h"'
@@ -635,4 +635,17 @@ gen_normalize_obj_type_map$(BUILD_EXEEXT): CPPFLAGS=$(CPPFLAGS_FOR_BUILD)
 gen_normalize_obj_type_map$(BUILD_EXEEXT): LDFLAGS=$(LDFLAGS_FOR_BUILD)
 normalize_obj_type_maps.h: gen_normalize_obj_type_map Makefile
 	./gen_normalize_obj_type_map --lowercase --i2s normalize_obj_type_map > $@
+
+gen_normalize_evtypetabs_h_SOURCES = ../lib/gen_tables.c ../lib/gen_tables.h normalize_evtypetab.h
+gen_normalize_evtypetabs_h_CFLAGS = '-DTABLE_H="normalize_evtypetab.h"'
+$(gen_normalize_evtypetabs_h_OBJECTS): CC=$(CC_FOR_BUILD)
+$(gen_normalize_evtypetabs_h_OBJECTS): CFLAGS=$(CFLAGS_FOR_BUILD)
+$(gen_normalize_evtypetabs_h_OBJECTS): CPPFLAGS=$(CPPFLAGS_FOR_BUILD)
+$(gen_normalize_evtypetabs_h_OBJECTS): LDFLAGS=$(LDFLAGS_FOR_BUILD)
+gen_normalize_evtypetabs_h$(BUILD_EXEEXT): CC=$(CC_FOR_BUILD)
+gen_normalize_evtypetabs_h$(BUILD_EXEEXT): CFLAGS=$(CFLAGS_FOR_BUILD)
+gen_normalize_evtypetabs_h$(BUILD_EXEEXT): CPPFLAGS=$(CPPFLAGS_FOR_BUILD)
+gen_normalize_evtypetabs_h$(BUILD_EXEEXT): LDFLAGS=$(LDFLAGS_FOR_BUILD)
+normalize_evtypetabs.h: gen_normalize_evtypetabs_h Makefile
+	./gen_normalize_evtypetabs_h --i2s evtype > $@
 

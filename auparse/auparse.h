@@ -72,6 +72,9 @@ void ausearch_clear(auparse_state_t *au);
 // This causes the current event to become normalized.
 int auparse_normalize(auparse_state_t *au, normalize_option_t opt);
 
+// Event kind accessor
+const char *auparse_normalize_get_event_kind(auparse_state_t *au);
+
 // session accessor
 int auparse_normalize_session(auparse_state_t *au);
 

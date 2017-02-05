@@ -34,6 +34,7 @@
 #include "normalize_record_maps.h"
 #include "normalize_syscall_maps.h"
 #include "normalize_obj_type_maps.h"
+#include "normalize_evtypetabs.h"
 
 
 /*
@@ -53,6 +54,7 @@
 
 void init_normalizer(normalize_data *d)
 {
+	d->evkind = NULL;
 	d->session = set_record(0, UNSET);
 	d->actor.primary = set_record(0, UNSET);
 	d->actor.secondary = set_record(0, UNSET);
@@ -70,6 +72,7 @@ void init_normalizer(normalize_data *d)
 
 void clear_normalizer(normalize_data *d)
 {
+	d->evkind = NULL;
 	d->session = set_record(0, UNSET);
 	d->actor.primary = set_record(0, UNSET);
 	d->actor.secondary = set_record(0, UNSET);
@@ -634,6 +637,90 @@ static int normalize_syscall(auparse_state_t *au, const char *syscall, int type)
 	return 0;
 }
 
+static const char *normalize_determine_evkind(int type)
+{
+	int kind;
+
+	switch (type)
+	{
+		case AUDIT_USER_AUTH ... AUDIT_USER_END:
+		case AUDIT_USER_CHAUTHTOK ... AUDIT_CRED_REFR:
+		case AUDIT_USER_LOGIN ... AUDIT_USER_LOGOUT:
+		case AUDIT_GRP_AUTH:
+			kind = NORM_EVTYPE_USER_SESSION;
+			break;
+		case AUDIT_ADD_USER ...AUDIT_DEL_GROUP:
+		case AUDIT_GRP_MGMT ... AUDIT_GRP_CHAUTHTOK:
+		case AUDIT_ACCT_LOCK ... AUDIT_ACCT_UNLOCK:
+			kind = NORM_EVTYPE_USER_ACCT;
+			break;
+		case AUDIT_KERNEL:
+		case AUDIT_SYSTEM_BOOT ... AUDIT_SERVICE_STOP:
+			kind = NORM_EVTYPE_SYSTEM;
+			break;
+		case AUDIT_USYS_CONFIG:
+		case AUDIT_CONFIG_CHANGE:
+		case AUDIT_NETFILTER_CFG:
+		case AUDIT_FEATURE_CHANGE ... AUDIT_REPLACE:
+			kind = NORM_EVTYPE_CONFIG;
+			break;
+		case AUDIT_CHGRP_ID ... AUDIT_TRUSTED_APP:
+		case AUDIT_USER_CMD:
+		case AUDIT_CHUSER_ID:
+			kind = NORM_EVTYPE_USERSPACE;
+			break;
+		case AUDIT_USER_TTY:
+		case AUDIT_TTY:
+			kind = NORM_EVTYPE_TTY;
+			break;
+		case AUDIT_FIRST_DAEMON ... AUDIT_LAST_DAEMON:
+			kind = NORM_EVTYPE_AUDIT_DAEMON;
+			break;
+		case AUDIT_USER_SELINUX_ERR:
+		case AUDIT_USER_AVC:
+		case AUDIT_APPARMOR_ALLOWED ... AUDIT_APPARMOR_DENIED:
+		case AUDIT_APPARMOR_ERROR:
+		case AUDIT_AVC ... AUDIT_AVC_PATH:
+			kind = NORM_EVTYPE_MAC_DECISION;
+			break;
+		case AUDIT_INTEGRITY_FIRST_MSG ... AUDIT_INTEGRITY_LAST_MSG:
+		case AUDIT_ANOM_RBAC_INTEGRITY_FAIL: // Aide sends this
+			kind = NORM_EVTYPE_INTEGRITY;
+			break;
+		case AUDIT_FIRST_KERN_ANOM_MSG ... AUDIT_LAST_KERN_ANOM_MSG:
+		case AUDIT_FIRST_ANOM_MSG ... AUDIT_ANOM_RBAC_FAIL:
+		case AUDIT_ANOM_CRYPTO_FAIL ... AUDIT_LAST_ANOM_MSG:
+			kind = NORM_EVTYPE_ANOMALY;
+			break;
+		case AUDIT_FIRST_ANOM_RESP ... AUDIT_LAST_ANOM_RESP:
+			kind = NORM_EVTYPE_ANOMALY_RESP;
+			break;
+		case AUDIT_MAC_POLICY_LOAD ... AUDIT_LAST_SELINUX:
+		case AUDIT_AA ... AUDIT_APPARMOR_AUDIT:
+		case AUDIT_APPARMOR_HINT ... AUDIT_APPARMOR_STATUS:
+		case AUDIT_FIRST_USER_LSPP_MSG ... AUDIT_LAST_USER_LSPP_MSG:
+			kind = NORM_EVTYPE_MAC;
+			break;
+		case AUDIT_FIRST_KERN_CRYPTO_MSG ... AUDIT_LAST_KERN_CRYPTO_MSG:
+		case AUDIT_FIRST_CRYPTO_MSG ... AUDIT_LAST_CRYPTO_MSG:
+			kind = NORM_EVTYPE_CRYPTO;
+			break;
+		case AUDIT_FIRST_VIRT_MSG ... AUDIT_LAST_VIRT_MSG:
+			kind = NORM_EVTYPE_VIRT;
+			break;
+		case AUDIT_SYSCALL ... AUDIT_SOCKETCALL:
+		case AUDIT_SOCKADDR ... AUDIT_MQ_GETSETATTR:
+		case AUDIT_FD_PAIR ... AUDIT_OBJ_PID:
+		case AUDIT_BPRM_FCAPS ... AUDIT_NETFILTER_PKT:
+			kind = NORM_EVTYPE_AUDIT_RULE;
+			break;
+		default:
+			kind = NORM_EVTYPE_UNKNOWN;
+	}
+
+	return evtype_i2s(kind);
+}
+
 static int normalize_compound(auparse_state_t *au)
 {
 	const char *f, *syscall = NULL;
@@ -652,6 +739,10 @@ static int normalize_compound(auparse_state_t *au)
 		auparse_next_record(au);
 		type = auparse_get_type(au);
 	}
+
+	// Determine the kind of event
+	D.evkind = normalize_determine_evkind(type);
+
 	if (type == AUDIT_SYSCALL) {
 		recno = auparse_get_record_num(au);
 		f = auparse_find_field(au, "syscall");
@@ -947,6 +1038,9 @@ static int normalize_simple(auparse_state_t *au)
 	if (type == AUDIT_SYSCALL)
 		return normalize_compound(au);
 
+	// Determine the kind of event
+	D.evkind = normalize_determine_evkind(type);
+
 	// This is for events that follow:
 	// auid, (op), (uid), stuff
 	if (type == AUDIT_CONFIG_CHANGE || type == AUDIT_FEATURE_CHANGE ||
@@ -1236,6 +1330,11 @@ static int seek_field(auparse_state_t *au, value_t location)
 		return -1;
 
 	return 1;
+}
+
+const char *auparse_normalize_get_event_kind(auparse_state_t *au)
+{
+	return D.evkind;
 }
 
 int auparse_normalize_session(auparse_state_t *au)

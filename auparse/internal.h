@@ -134,6 +134,7 @@ typedef struct obj
 
 typedef struct data
 {
+	const char *evkind;
 	value_t session;
 	subject actor;
 	const char *action;
