@@ -904,6 +904,10 @@ static value_t find_simple_object(auparse_state_t *au, int type)
 		case AUDIT_CRED_REFR:
 		case AUDIT_CRED_DISP:
 		case AUDIT_USER_CHAUTHTOK:
+		case AUDIT_ANOM_LOGIN_FAILURES:
+		case AUDIT_ANOM_LOGIN_TIME:
+		case AUDIT_ANOM_LOGIN_SESSIONS:
+		case AUDIT_ANOM_LOGIN_LOCATION:
 			f = auparse_find_field(au, "acct");
 			D.thing.what = NORM_WHAT_USER_SESSION;
 			break;
