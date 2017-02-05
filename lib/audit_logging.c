@@ -1,5 +1,5 @@
 /* audit_logging.c -- 
- * Copyright 2005-2008,2010,2011,2013 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2005-2008,2010,2011,2013,2017 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -237,6 +237,22 @@ static const char *_get_tty(char *tname, int size)
 	return tname;
 }
 
+#define HOSTLEN 64
+static char _host[HOSTLEN] = "";
+static const char *_get_hostname(const char *ttyn)
+{
+	if (ttyn && ((strncmp(ttyn, "pts", 3) == 0) ||
+		(strncmp(ttyn, "tty", 3) == 0) ||
+		(strncmp(ttyn, "/dev/tty", 8) == 0) )) {
+		if (_host[0] == 0) {
+			gethostname(_host, HOSTLEN);
+			_host[HOSTLEN - 1] = 0;
+		}
+		return _host;
+	}
+	return NULL;
+}
+
 /*
  * This function will log a message to the audit system using a predefined
  * message format. This function should be used by all console apps that do
@@ -273,18 +289,27 @@ int audit_log_user_message(int audit_fd, int type, const char *message,
 	/* If hostname is empty string, make it NULL ptr */
 	if (hostname && *hostname == 0)
 		hostname = NULL;
+
+	/* See if we can deduce addr */
 	addrbuf[0] = 0;
 	if (addr == NULL || strlen(addr) == 0)
 		_resolve_addr(addrbuf, hostname);
 	else
 		strncat(addrbuf, addr, sizeof(addrbuf)-1);
 
+	/* Fill in exec name if needed */
 	if (exename[0] == 0)
 		_get_exename(exename, sizeof(exename));
+
+	/* Fill in tty if needed */
 	if (tty == NULL) 
 		tty = _get_tty(ttyname, TTY_PATH);
 	else if (*tty == 0)
 		tty = NULL;
+
+	/* Get the local name if we have a real tty */
+	if (hostname == NULL && tty)
+		hostname = _get_hostname(tty);
 
 	snprintf(buf, sizeof(buf),
 		"%s exe=%s hostname=%s addr=%s terminal=%s res=%s",
@@ -342,19 +367,29 @@ int audit_log_user_comm_message(int audit_fd, int type, const char *message,
 	/* If hostname is empty string, make it NULL ptr */
 	if (hostname && *hostname == 0)
 		hostname = NULL;
+
+	/* See if we can deduce addr */
 	addrbuf[0] = 0;
 	if (addr == NULL || strlen(addr) == 0)
 		_resolve_addr(addrbuf, hostname);
 	else
 		strncat(addrbuf, addr, sizeof(addrbuf)-1);
+
+	/* Fill in exec name if needed */
 	if (exename[0] == 0)
 		_get_exename(exename, sizeof(exename));
+
+	/* Fill in tty if needed */
 	if (tty == NULL) 
 		tty = _get_tty(ttyname, TTY_PATH);
 	else if (*tty == 0)
 		tty = NULL;
 
 	_get_commname(comm, commname, sizeof(commname));
+
+	/* Get the local name if we have a real tty */
+	if (hostname == NULL && tty)
+		hostname = _get_hostname(tty);
 
 	snprintf(buf, sizeof(buf),
 		"%s comm=%s exe=%s hostname=%s addr=%s terminal=%s res=%s",
@@ -415,12 +450,15 @@ int audit_log_acct_message(int audit_fd, int type, const char *pgname,
 	/* If hostname is empty string, make it NULL ptr */
 	if (host && *host == 0)
 		host = NULL;
+
+	/* See if we can deduce addr */
 	addrbuf[0] = 0;
 	if (addr == NULL || strlen(addr) == 0)
 		_resolve_addr(addrbuf, host);
 	else
 		strncat(addrbuf, addr, sizeof(addrbuf)-1);
 
+	/* Fill in exec name if needed */
         if (pgname == NULL) {
 		if (exename[0] == 0)
 	                _get_exename(exename, sizeof(exename));
@@ -429,10 +467,15 @@ int audit_log_acct_message(int audit_fd, int type, const char *pgname,
         else
                 snprintf(exename, sizeof(exename), "%s", pgname);
 
+	/* Fill in tty if needed */
 	if (tty == NULL) 
 		tty = _get_tty(ttyname, TTY_PATH);
 	else if (*tty == 0)
 		tty = NULL;
+
+	/* Get the local name if we have a real tty */
+	if (host == NULL && tty)
+		host = _get_hostname(tty);
 
 	if (name && id == -1) {
 		char user[MAX_USER];
@@ -505,13 +548,16 @@ int audit_log_user_avc_message(int audit_fd, int type, const char *message,
 	/* If hostname is empty string, make it NULL ptr */
 	if (hostname && *hostname == 0)
 		hostname = NULL;
+
 	addrbuf[0] = 0;
 	if (addr == NULL || strlen(addr) == 0)
 		_resolve_addr(addrbuf, hostname);
 	else
 		strncat(addrbuf, addr, sizeof(addrbuf)-1);
+
 	if (exename[0] == 0)
 		_get_exename(exename, sizeof(exename));
+
 	if (tty == NULL) 
 		tty = _get_tty(ttyname, TTY_PATH);
 	else if (*tty == 0)
@@ -599,6 +645,7 @@ int audit_log_semanage_message(int audit_fd, int type, const char *pgname,
 			_get_exename(exename, sizeof(exename));
 		pgname = exename;
 	}
+
 	if (tty == NULL || strlen(tty) == 0) 
 		tty = _get_tty(ttyname, TTY_PATH);
 	else if (*tty == 0)
