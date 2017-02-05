@@ -7,6 +7,7 @@
 - Add basic support for formatted output in ausearch
 - Add 'extra' options for csv output in ausearch
 - Add event kind metadata to the auparse normalizer
+- Add event kind metadata to the ausearch csv format
 
 2.7.1
 - In auparse_classify, handle simple SYSCALL events

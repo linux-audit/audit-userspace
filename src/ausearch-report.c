@@ -409,16 +409,17 @@ static void csv_event(auparse_state_t *au,
 
 	if (csv_header_done == 0) {
 		csv_header_done = 1;
-		printf( "NODE,TYPE,DATE,TIME,%sSERIAL_NUM,SESSION,SUBJ_PRIME,"
-		"SUBJ_SEC,%sACTION,RESULT,OBJ_PRIME,OBJ_SEC,%sOBJ_TYPE,HOW%s\n",
-		extra_time ? "YEAR,MONTH,DAY,WEEKDAY,HOUR,GMT_OFFSET," : "",
-		extra_labels ? "SUBJ_LABEL," : "",
-		extra_labels ? "OBJ_LABEL," : "",
-		extra_keys ? ",KEY" : "");
+		printf( "NODE,EVENT,DATE,TIME,%sSERIAL_NUM,EVENT_KIND,"
+			"SESSION,SUBJ_PRIME,SUBJ_SEC,%sACTION,RESULT,"
+			"OBJ_PRIME,OBJ_SEC,%sOBJ_TYPE,HOW%s\n",
+		    extra_time ? "YEAR,MONTH,DAY,WEEKDAY,HOUR,GMT_OFFSET," : "",
+			extra_labels ? "SUBJ_LABEL," : "",
+			extra_labels ? "OBJ_LABEL," : "",
+			extra_keys ? ",KEY" : "");
 	}
 
 	char tmp[20];
-	const char *item, *type, *action, *str, *how;
+	const char *item, *type, *evkind, *action, *str, *how;
 	int rc;
 	time_t t = auparse_get_time(au);
 	struct tm *tv = localtime(&t);
@@ -431,7 +432,7 @@ static void csv_event(auparse_state_t *au,
 	}
 	putchar(',');
 
-	// Event type
+	// Event
 	type = auparse_get_type_name(au);
 	if (type)
 		printf("%s", type);
@@ -483,10 +484,16 @@ static void csv_event(auparse_state_t *au,
 		fprintf(stderr, "error normalizing %s\n", type);
 
 		// Just dump an empty frame
-		printf(",,,,,,,%s%s\n", extra_labels ? ",," : "",
+		printf(",,,,,,,,%s%s\n", extra_labels ? ",," : "",
 			extra_keys ? "," : "");
 		return;
 	}
+
+	// EVENT_KIND
+	evkind = auparse_normalize_get_event_kind(au);
+	if (evkind)
+		printf("%s", evkind ? evkind : "unknown");
+	putchar(',');
 
 	// SESSION
 	rc = auparse_normalize_session(au);
