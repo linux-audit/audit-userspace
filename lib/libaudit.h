@@ -256,6 +256,10 @@ extern "C" {
 #define AUDIT_FEATURE_CHANGE	1328 /* Audit feature changed value */
 #endif
 
+#ifndef AUDIT_REPLACE
+#define AUDIT_REPLACE           1329 /* Replace auditd probe fails */
+#endif
+
 #ifndef AUDIT_ANOM_LINK
 #define AUDIT_ANOM_LINK		1702 /* Suspicious use of file links */
 #endif
