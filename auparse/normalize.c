@@ -959,6 +959,10 @@ static value_t find_simple_object(auparse_state_t *au, int type)
 			f = auparse_find_field(au, "addr");
 			D.thing.what = NORM_WHAT_USER_SESSION;
 			break;
+		case AUDIT_ANOM_RBAC_INTEGRITY_FAIL:
+			f = auparse_find_field(au, "hostname");
+			D.thing.what = NORM_WHAT_FILESYSTEM;
+			break;
 		default:
 			break;
 	}
