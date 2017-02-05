@@ -257,7 +257,7 @@ extern "C" {
 #endif
 
 #ifndef AUDIT_REPLACE
-#define AUDIT_REPLACE           1329 /* Replace auditd probe fails */
+#define AUDIT_REPLACE           1329 /* Auditd replaced because probe failed */
 #endif
 
 #ifndef AUDIT_ANOM_LINK
