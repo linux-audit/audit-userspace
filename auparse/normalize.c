@@ -724,7 +724,9 @@ static const char *normalize_determine_evkind(int type)
 static int normalize_compound(auparse_state_t *au)
 {
 	const char *f, *syscall = NULL;
-	int rc, recno, saved = 0, type = auparse_get_type(au);
+	int rc, recno, saved = 0, otype, type;
+
+	otype = type = auparse_get_type(au);
 
 	// All compound events have a syscall record
 	// Some start with a record type and follow with a syscall
@@ -740,8 +742,8 @@ static int normalize_compound(auparse_state_t *au)
 		type = auparse_get_type(au);
 	}
 
-	// Determine the kind of event
-	D.evkind = normalize_determine_evkind(type);
+	// Determine the kind of event using original event type
+	D.evkind = normalize_determine_evkind(otype);
 
 	if (type == AUDIT_SYSCALL) {
 		recno = auparse_get_record_num(au);
