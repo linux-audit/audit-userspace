@@ -672,9 +672,9 @@ if (action == NULL) printf("error on type:%d\n", type);
 	}
 
 	how = auparse_normalize_how(au);
-	if (how && action && *action != 'e' && strcmp(action, "executed")) {
+	if (how && action && *action != 'e')   // Don't print for ended-session
 		printf("using %s", how);
-	}
+
 	printf("\n");
 }
 

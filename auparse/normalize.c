@@ -911,6 +911,7 @@ static value_t find_simple_object(auparse_state_t *au, int type)
 			f = auparse_find_field(au, "acct");
 			D.thing.what = NORM_WHAT_USER_SESSION;
 			break;
+		case AUDIT_ANOM_EXEC:
 		case AUDIT_USER_CMD:
 			f = auparse_find_field(au, "cmd");
 			D.thing.what = NORM_WHAT_PROCESS;
@@ -1263,6 +1264,14 @@ map:
 		return 0;
 	}
 	auparse_first_record(au);
+	if (type == AUDIT_ANOM_EXEC) {
+		f = auparse_find_field(au, "terminal");
+		if (f) {
+			const char *term = auparse_interpret_field(au);
+			D.how = strdup(term);
+		}
+		return 0;
+	}
 	f = auparse_find_field(au, "exe");
 	if (f) {
 		const char *exe = auparse_interpret_field(au);
