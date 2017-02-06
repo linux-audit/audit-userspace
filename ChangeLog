@@ -1,8 +1,8 @@
 2.7.2
-- Add documentation about networking and systemd
-- Adjust text in auparse classifier
-- In ausearch, fix parsing of kernel anomaly events
 - Rename whole auparse classifier subsystem to normalizer
+- Add documentation about networking and systemd
+- Adjust text in auparse normalizer
+- In ausearch, fix parsing of kernel anomaly events
 - Add filesystem object to the auparse normalizer
 - Add basic support for formatted output in ausearch
 - Add 'extra' options for csv output in ausearch

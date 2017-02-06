@@ -2,8 +2,8 @@ Things that need to be done:
 ===========================
 2.7.2
 * Selectable escaping for ausearch/report output
-* Look into TLS support
 * Document new auparse normalize functions with man pages
+* Look into TLS support
 
 2.7.3
 * Add ability to filter events in auditd
