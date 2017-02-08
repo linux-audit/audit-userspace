@@ -215,6 +215,11 @@ extern "C" {
 #define AUDIT_VIRT_CONTROL		2500 /* Start, Pause, Stop VM */
 #define AUDIT_VIRT_RESOURCE		2501 /* Resource assignment */
 #define AUDIT_VIRT_MACHINE_ID		2502 /* Binding of label to VM */
+#define AUDIT_VIRT_INTEGRITY_CHECK	2503 /* Guest integrity results */
+#define AUDIT_VIRT_CREATE		2504 /* Creation of guest image */
+#define AUDIT_VIRT_DESTROY		2505 /* Destruction of guest image */
+#define AUDIT_VIRT_MIGRATE_IN		2506 /* Inbound guest migration info */
+#define AUDIT_VIRT_MIGRATE_OUT		2507 /* Outbound guest migration info */
 
 #define AUDIT_LAST_VIRT_MSG		2599
 

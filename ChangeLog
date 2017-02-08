@@ -10,6 +10,7 @@
 - Add event kind metadata to the ausearch csv format
 - Add auparse normalizer support to some anomaly events
 - In libaudit logging functions, fill in hostname if we have real tty
+- Add new virtualization events
 
 2.7.1
 - In auparse_classify, handle simple SYSCALL events

@@ -1,5 +1,5 @@
 /* msg_typetab.h --
- * Copyright 2005-07,2009-16 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2005-07,2009-17 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -214,4 +214,9 @@ _S(AUDIT_CRYPTO_IPSEC_SA,            "CRYPTO_IPSEC_SA"               )
 _S(AUDIT_VIRT_CONTROL,               "VIRT_CONTROL"                  )
 _S(AUDIT_VIRT_RESOURCE,              "VIRT_RESOURCE"                 )
 _S(AUDIT_VIRT_MACHINE_ID,            "VIRT_MACHINE_ID"               )
+_S(AUDIT_VIRT_INTEGRITY_CHECK,       "VIRT_INTEGRITY_CHECK"          )
+_S(AUDIT_VIRT_CREATE,                "VIRT_CREATE"                   )
+_S(AUDIT_VIRT_DESTROY,               "VIRT_DESTROY"                  )
+_S(AUDIT_VIRT_MIGRATE_IN,            "VIRT_MIGRATE_IN"               )
+_S(AUDIT_VIRT_MIGRATE_OUT,           "VIRT_MIGRATE_OUT"              )
 
