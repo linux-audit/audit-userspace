@@ -129,11 +129,12 @@ static void usage(void)
      "    -v                  Version\n"
      "    -w <path>           Insert watch at <path>\n"
      "    -W <path>           Remove watch at <path>\n"
-#if defined(HAVE_DECL_AUDIT_FEATURE_VERSION) || \
+#if defined(HAVE_DECL_AUDIT_FEATURE_VERSION) && \
     defined(HAVE_STRUCT_AUDIT_STATUS_FEATURE_BITMAP)
      "    --loginuid-immutable  Make loginuids unchangeable once set\n"
 #endif
-#if HAVE_DECL_AUDIT_VERSION_BACKLOG_WAIT_TIME
+#if defined(HAVE_DECL_AUDIT_VERSION_BACKLOG_WAIT_TIME) || \
+    defined(HAVE_DECL_AUDIT_STATUS_BACKLOG_WAIT_TIME)
      "    --backlog_wait_time  Set the kernel backlog_wait_time\n"
 #endif
 #if defined(HAVE_STRUCT_AUDIT_STATUS_FEATURE_BITMAP)
@@ -508,11 +509,12 @@ int parse_syscall(struct audit_rule_data *rule_new, const char *optarg)
 
 struct option long_opts[] =
 {
-#if defined(HAVE_DECL_AUDIT_FEATURE_VERSION) || \
+#if defined(HAVE_DECL_AUDIT_FEATURE_VERSION) && \
     defined(HAVE_STRUCT_AUDIT_STATUS_FEATURE_BITMAP)
   {"loginuid-immutable", 0, NULL, 1},
 #endif
-#if HAVE_DECL_AUDIT_VERSION_BACKLOG_WAIT_TIME
+#if defined(HAVE_DECL_AUDIT_VERSION_BACKLOG_WAIT_TIME) || \
+    defined(HAVE_DECL_AUDIT_STATUS_BACKLOG_WAIT_TIME)
   {"backlog_wait_time", 1, NULL, 2},
 #endif
 #if HAVE_STRUCT_AUDIT_STATUS_FEATURE_BITMAP
@@ -1020,7 +1022,8 @@ process_keys:
 			return -2;  // success - no reply for this
 		break;
 	case 2:
-#if HAVE_DECL_AUDIT_VERSION_BACKLOG_WAIT_TIME
+#if defined(HAVE_DECL_AUDIT_VERSION_BACKLOG_WAIT_TIME) || \
+    defined(HAVE_DECL_AUDIT_STATUS_BACKLOG_WAIT_TIME)
 		if (optarg && isdigit(optarg[0])) {
 			uint32_t bwt;
 			errno = 0;
