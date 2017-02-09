@@ -545,8 +545,8 @@ int audit_print_reply(struct audit_reply *rep, int fd)
 			rep->status->pid, rep->status->rate_limit,
 			rep->status->backlog_limit, rep->status->lost,
 			rep->status->backlog);
-#if defined(HAVE_DECL_AUDIT_VERSION_BACKLOG_WAIT_TIME) || \
-    defined(HAVE_DECL_AUDIT_STATUS_BACKLOG_WAIT_TIME)
+#if HAVE_DECL_AUDIT_VERSION_BACKLOG_WAIT_TIME == 1 || \
+    HAVE_DECL_AUDIT_STATUS_BACKLOG_WAIT_TIME == 1
 
 			printf("backlog_wait_time %u\n",
 				rep->status->backlog_wait_time);

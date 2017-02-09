@@ -513,8 +513,8 @@ struct option long_opts[] =
     defined(HAVE_STRUCT_AUDIT_STATUS_FEATURE_BITMAP)
   {"loginuid-immutable", 0, NULL, 1},
 #endif
-#if defined(HAVE_DECL_AUDIT_VERSION_BACKLOG_WAIT_TIME) || \
-    defined(HAVE_DECL_AUDIT_STATUS_BACKLOG_WAIT_TIME)
+#if HAVE_DECL_AUDIT_VERSION_BACKLOG_WAIT_TIME == 1 || \
+    HAVE_DECL_AUDIT_STATUS_BACKLOG_WAIT_TIME == 1
   {"backlog_wait_time", 1, NULL, 2},
 #endif
 #if HAVE_STRUCT_AUDIT_STATUS_FEATURE_BITMAP

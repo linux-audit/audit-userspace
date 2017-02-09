@@ -498,8 +498,8 @@ int audit_set_backlog_limit(int fd, uint32_t limit)
 int audit_set_backlog_wait_time(int fd, uint32_t bwt)
 {
 	int rc = -1;
-#if defined(HAVE_DECL_AUDIT_VERSION_BACKLOG_WAIT_TIME) || \
-    defined(HAVE_DECL_AUDIT_STATUS_BACKLOG_WAIT_TIME)
+#if HAVE_DECL_AUDIT_VERSION_BACKLOG_WAIT_TIME == 1 || \
+    HAVE_DECL_AUDIT_STATUS_BACKLOG_WAIT_TIME == 1
 	struct audit_status s;
 
 	memset(&s, 0, sizeof(s));
