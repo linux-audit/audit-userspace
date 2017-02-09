@@ -133,8 +133,8 @@ static void usage(void)
     defined(HAVE_STRUCT_AUDIT_STATUS_FEATURE_BITMAP)
      "    --loginuid-immutable  Make loginuids unchangeable once set\n"
 #endif
-#if defined(HAVE_DECL_AUDIT_VERSION_BACKLOG_WAIT_TIME) || \
-    defined(HAVE_DECL_AUDIT_STATUS_BACKLOG_WAIT_TIME)
+#if HAVE_DECL_AUDIT_VERSION_BACKLOG_WAIT_TIME == 1 || \
+    HAVE_DECL_AUDIT_STATUS_BACKLOG_WAIT_TIME == 1
      "    --backlog_wait_time  Set the kernel backlog_wait_time\n"
 #endif
 #if defined(HAVE_STRUCT_AUDIT_STATUS_FEATURE_BITMAP)
@@ -517,7 +517,7 @@ struct option long_opts[] =
     HAVE_DECL_AUDIT_STATUS_BACKLOG_WAIT_TIME == 1
   {"backlog_wait_time", 1, NULL, 2},
 #endif
-#if HAVE_STRUCT_AUDIT_STATUS_FEATURE_BITMAP
+#if defined(HAVE_STRUCT_AUDIT_STATUS_FEATURE_BITMAP)
   {"reset-lost", 0, NULL, 3},
 #endif
   {NULL, 0, NULL, 0}
@@ -1022,8 +1022,8 @@ process_keys:
 			return -2;  // success - no reply for this
 		break;
 	case 2:
-#if defined(HAVE_DECL_AUDIT_VERSION_BACKLOG_WAIT_TIME) || \
-    defined(HAVE_DECL_AUDIT_STATUS_BACKLOG_WAIT_TIME)
+#if HAVE_DECL_AUDIT_VERSION_BACKLOG_WAIT_TIME == 1 || \
+    HAVE_DECL_AUDIT_STATUS_BACKLOG_WAIT_TIME == 1
 		if (optarg && isdigit(optarg[0])) {
 			uint32_t bwt;
 			errno = 0;
