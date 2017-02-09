@@ -11,6 +11,7 @@
 - Add auparse normalizer support to some anomaly events
 - In libaudit logging functions, fill in hostname if we have real tty
 - Add new virtualization events
+- Fix compile time feature detection in auditctl
 
 2.7.1
 - In auparse_classify, handle simple SYSCALL events
