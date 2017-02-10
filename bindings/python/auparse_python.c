@@ -1383,7 +1383,7 @@ PyDoc_STRVAR(find_field_doc,
 "find_field(name) Search for field name.\n\
 \n\
 find_field() will scan all records in an event to find the first\n\
-occurence of the field name passed to it. Searching begins from the\n\
+occurrence of the field name passed to it. Searching begins from the\n\
 cursor’s current position. The field name is stored for subsequent\n\
 searching.\n\
 \n\
