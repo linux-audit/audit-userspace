@@ -615,7 +615,7 @@ static void text_event(auparse_state_t *au,
         time_t t = auparse_get_time(au);
         struct tm *tv = localtime(&t);
 
-	strftime(tmp, sizeof(tmp), "%T", tv);
+	strftime(tmp, sizeof(tmp), "%T %x", tv);
 	type = auparse_get_type(au);
 	auparse_normalize(au, NORM_OPT_NO_ATTRS);
 	item = auparse_get_node(au);
