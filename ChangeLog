@@ -1,3 +1,5 @@
+2.7.3
+
 2.7.2
 - Rename whole auparse classifier subsystem to normalizer
 - Add documentation about networking and systemd
