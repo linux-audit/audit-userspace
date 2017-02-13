@@ -484,7 +484,7 @@ static void csv_event(auparse_state_t *au,
 		fprintf(stderr, "error normalizing %s\n", type);
 
 		// Just dump an empty frame
-		printf(",,,,,,,,%s%s\n", extra_labels ? ",," : "",
+		printf(",,,,,,,,,%s%s\n", extra_labels ? ",," : "",
 			extra_keys ? "," : "");
 		return;
 	}

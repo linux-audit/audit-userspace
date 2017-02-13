@@ -1,4 +1,5 @@
 2.7.3
+- Add one more comma to ausearch csv output
 
 2.7.2
 - Rename whole auparse classifier subsystem to normalizer
