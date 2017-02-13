@@ -1,11 +1,11 @@
 Things that need to be done:
 ===========================
-2.7.2
+2.7.3
 * Selectable escaping for ausearch/report output
 * Document new auparse normalize functions with man pages
 * Look into TLS support
 
-2.7.3
+2.7.4
 * Add ability to filter events in auditd
 * non-equality comparisons for values other than \timestamp, \timestamp_ex and \record_type in ausearch-expression
 * Add sockaddr accessor functions in auparse
