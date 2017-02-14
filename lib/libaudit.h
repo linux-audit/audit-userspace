@@ -265,6 +265,10 @@ extern "C" {
 #define AUDIT_REPLACE           1329 /* Auditd replaced because probe failed */
 #endif
 
+#ifndef AUDIT_KERN_MODULE
+#define AUDIT_KERN_MODULE	1330 /* Kernel Module events */
+#endif
+
 #ifndef AUDIT_ANOM_LINK
 #define AUDIT_ANOM_LINK		1702 /* Suspicious use of file links */
 #endif

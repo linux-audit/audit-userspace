@@ -386,7 +386,7 @@ static int set_program_obj(auparse_state_t *au)
  */
 static int normalize_syscall(auparse_state_t *au, const char *syscall, int type)
 {
-	int rc, cltype = NORM_UNKNOWN;
+	int rc, objtype = NORM_UNKNOWN;
 	const char *act = NULL, *f;
 
 	// cycle through all records and see what we have
@@ -395,26 +395,29 @@ static int normalize_syscall(auparse_state_t *au, const char *syscall, int type)
 		int ttype = auparse_get_type(au);
 
 		if (ttype == AUDIT_AVC) {
-			cltype = NORM_MAC;
+			objtype = NORM_MAC;
 			break;
 		} else if (ttype == AUDIT_SELINUX_ERR) {
-			cltype = NORM_MAC_ERR;
+			objtype = NORM_MAC_ERR;
 			break;
 		} else if (ttype == AUDIT_NETFILTER_CFG) {
-			cltype = NORM_IPTABLES;
+			objtype = NORM_IPTABLES;
 			break;
 		} else if (ttype == AUDIT_ANOM_PROMISCUOUS) {
-			cltype = NORM_PROMISCUOUS;
+			objtype = NORM_PROMISCUOUS;
+			break;
+		} else if (ttype == AUDIT_KERN_MODULE) {
+			objtype = NORM_FILE_LDMOD;
 			break;
 		}
 		rc = auparse_next_record(au);
 	}
 
 	// lookup system call
-	if (cltype == NORM_UNKNOWN)
-		normalize_syscall_map_s2i(syscall, &cltype);
+	if (objtype == NORM_UNKNOWN)
+		normalize_syscall_map_s2i(syscall, &objtype);
 
-	switch (cltype)
+	switch (objtype)
 	{
 		case NORM_FILE:
 			act = "opened-file";
@@ -430,9 +433,9 @@ static int normalize_syscall(auparse_state_t *au, const char *syscall, int type)
 			break;
 		case NORM_FILE_LDMOD:
 			act = "loaded-kernel-module";
-			D.thing.what = NORM_WHAT_FILE; // this gets overridden
-			// set_file_object(au, 0);
-			// simple_file_attr(au);
+			D.thing.what = NORM_WHAT_FILE; 
+			auparse_goto_record_num(au, 1);
+			set_prime_object(au, "name", 1);
 			break;
 		case NORM_FILE_UNLDMOD:
 			act = "unloaded-kernel-module";
@@ -503,27 +506,27 @@ static int normalize_syscall(auparse_state_t *au, const char *syscall, int type)
 			break;
 		case NORM_SOCKET_ACCEPT:
 			act = "accepted-connection-from";
-			D.thing.what = NORM_WHAT_SOCKET;// this gets overridden
+			D.thing.what = NORM_WHAT_SOCKET;
 			set_socket_object(au);
 			break;
 		case NORM_SOCKET_BIND:
 			act = "bound-socket";
-			D.thing.what = NORM_WHAT_SOCKET;// this gets overridden
+			D.thing.what = NORM_WHAT_SOCKET;
 			set_socket_object(au);
 			break;
 		case NORM_SOCKET_CONN:
 			act = "connected-to";
-			D.thing.what = NORM_WHAT_SOCKET;// this gets overridden
+			D.thing.what = NORM_WHAT_SOCKET;
 			set_socket_object(au);
 			break;
 		case NORM_SOCKET_RECV:
 			act = "received-from";
-			D.thing.what = NORM_WHAT_SOCKET;// this gets overridden
+			D.thing.what = NORM_WHAT_SOCKET;
 			set_socket_object(au);
 			break;
 		case NORM_SOCKET_SEND:
 			act = "sent-to";
-			D.thing.what = NORM_WHAT_SOCKET;// this gets overridden
+			D.thing.what = NORM_WHAT_SOCKET;
 			set_socket_object(au);
 			break;
 		case NORM_PID:
@@ -844,6 +847,7 @@ static int normalize_compound(auparse_state_t *au)
 			const char *act = normalize_record_map_i2s(saved);
 			if (act)
 				D.action = strdup(act);
+			// FIXME: AUDIT_ANOM_LINK needs an object
 		} else
 			normalize_syscall(au, syscall, type);
 	}
