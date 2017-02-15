@@ -523,7 +523,7 @@ auparse_state_t *auparse_init(ausource_t source, const void *b)
 	return au;
 bad_exit:
 	databuf_free(&au->databuf);
-	/* Feee list of events list (au_lo) structure */
+	/* Free list of events list (au_lo) structure */
 	au_lol_clear(au->au_lo, 0);
 	free(au->au_lo);
 	free(au);
@@ -1344,7 +1344,7 @@ static int au_auparse_next_event(auparse_state_t *au)
 	/*
 	 * Deal with Python memory management issues where it issues a
 	 * auparse_destroy() call after an auparse_init() call but then wants
-	 * to still work with auparse data. Bascially, we assume if the user
+	 * to still work with auparse data. Basically, we assume if the user
 	 * wants to parse for events (calling auparse_next_event()) we accept
 	 * that they expect the memory structures to exist. This is a bit
 	 * 'disconcerting' but the au_lol capability is a patch trying to

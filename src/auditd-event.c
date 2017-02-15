@@ -462,7 +462,7 @@ void enqueue_event(struct auditd_event *e)
 }
 
 /* This function allocates memory and fills the event fields with
-   passed arguements. Caller must free memory. */
+   passed arguments. Caller must free memory. */
 struct auditd_event *create_event(char *msg, ack_func_type ack_func,
 	 void *ack_data, uint32_t sequence_id)
 {

@@ -679,7 +679,7 @@ if (action == NULL) printf("error on type:%d\n", type);
 }
 
 /* This function will push an event into auparse. The callback arg will
- * perform all formating for the intended report option. */
+ * perform all formatting for the intended report option. */
 static auparse_state_t *au; 
 static void feed_auparse(llist *l, auparse_callback_ptr callback)
 {

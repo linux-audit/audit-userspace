@@ -959,7 +959,7 @@ a search condition is met. The possible values are:\n\
 \n\
 AUSEARCH_STOP_EVENT:\n\
 This one repositions the cursors to the first field of the first\n\
-record of the event con- taining the items searched for.\n\
+record of the event containing the items searched for.\n\
 \n\
 AUSEARCH_STOP_RECORD:\n\
 This one repositions the cursors to the first field of the record\n\
@@ -1383,7 +1383,7 @@ PyDoc_STRVAR(find_field_doc,
 "find_field(name) Search for field name.\n\
 \n\
 find_field() will scan all records in an event to find the first\n\
-occurence of the field name passed to it. Searching begins from the\n\
+occurrence of the field name passed to it. Searching begins from the\n\
 cursor’s current position. The field name is stored for subsequent\n\
 searching.\n\
 \n\
@@ -1490,7 +1490,7 @@ in the current event.\n\
 \n\
 Returns AUPARSE_TYPE_UNCLASSIFIED if the field’s data type has no\n\
 known description or is an integer. Otherwise it returns another enum.\n\
-Fields with the type AUPARSE_TYPE_ESCAPED must be interpretted to access\n\
+Fields with the type AUPARSE_TYPE_ESCAPED must be interpreted to access\n\
 their value since those field’s raw value is encoded.\n\
 ");
 static PyObject *
@@ -1525,7 +1525,7 @@ AuParser_get_field_int(AuParser *self)
     Py_RETURN_NONE;
 }
 
-// FIXME: can't tell if interpret is succesful, always returns some string in somewhat arbitrary format.
+// FIXME: can't tell if interpret is successful, always returns some string in somewhat arbitrary format.
 PyDoc_STRVAR(interpret_field_doc,
 "interpret_field() Return an interpretation of the current field as a string that has the chosen character escaping applied.\n\
 \n\

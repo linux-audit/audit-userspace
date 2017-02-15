@@ -156,7 +156,7 @@ int main(int argc, char *argv[])
 		free((void *)checkpt_filename);
 		/*
  		 * A checkpoint failure at this point means either 
- 		 * - we failed in attempting to create the checkpouint file
+ 		 * - we failed in attempting to create the checkpoint file
  		 *   and so we will return 11
  		 * - we had a corrupted checkpoint file and so we will return 12
  		 */
@@ -249,7 +249,7 @@ static int process_logs(void)
 			if (	(sbuf.st_dev == chkpt_input_dev) &&
 				(sbuf.st_ino == chkpt_input_ino) ) {
 				/*
-				 * If we are ignoing all but time, then we
+				 * If we are ignoring all but time, then we
 				 * don't stop checking more files and just
 				 * let this loop go to completion and hence
 				 * we will find the 'oldest' file.
@@ -318,7 +318,7 @@ static int process_logs(void)
 }
 
 /*
- * Decide if we should start outputing events given we loaded a checkpoint.
+ * Decide if we should start outputting events given we loaded a checkpoint.
  *
  * The previous checkpoint will have recorded the last event outputted,
  * if there was one. If nothing is to be output, either the audit.log file
@@ -329,7 +329,7 @@ static int process_logs(void)
  * 	1	can output
  * 	2	can output but not this event
  * 	3	we have found an event whose time is > MAX_EVENT_DELTA_SECS secs
- * 		past our checkpoint time, which means this particulare event is
+ * 		past our checkpoint time, which means this particular event is
  * 		complete. This should not happen, for we should have found our
  * 		checkpoint event before ANY other completed event.
  *
@@ -552,7 +552,7 @@ static int get_record(llist **l)
 					log_fd);
 
 		if (timer_running) {
-			/* timer may have fired but thats ok */
+			/* timer may have fired but that's ok */
 			timer_running = 0;
 			alarm(0);
 		}
