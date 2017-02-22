@@ -1,4 +1,4 @@
-.TH AUSEARCH: "8" "July 2016" "Red Hat" "System Administration Utilities"
+.TH AUSEARCH: "8" "February 2017" "Red Hat" "System Administration Utilities"
 .SH NAME
 ausearch \- a tool to query audit daemon logs
 .SH SYNOPSIS
@@ -51,6 +51,9 @@ Should the file or the last checkpointed event not be found, one of a number of 
 .TP
 .BR \-e,\  \-\-exit \ \fIexit-code-or-errno\fP
 Search for an event based on the given syscall \fIexit code or errno\fP.
+.TP
+.BR \-\-escape \ \fIoption\fP
+This option determines if the output is escaped to make the content safer for certain uses. The options are \fIraw\fP , \fItty\fP , \fIshell\fP , and \fIshell_quote\fP. Each mode includes the characters of the preceding mode and escapes more characters. That is to say \fIshell\fP includes all characters escaped by \fItty\fP and adds more. \fItty\fP is the default.
 .TP
 .BR \-\-extra-keys \ 
 When the \fIformat\fP mode is \fIcsv\fP, this option will add a final column with key information if its exists for the event. This would only occur on SYSCALL records which were the result of triggering an audit rule that defines a key.

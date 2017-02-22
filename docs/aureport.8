@@ -1,4 +1,4 @@
-.TH AUREPORT: "8" "July 2016" "Red Hat" "System Administration Utilities"
+.TH AUREPORT: "8" "February 2017" "Red Hat" "System Administration Utilities"
 .SH NAME
 aureport \- a tool that produces summary reports of audit daemon logs
 .SH SYNOPSIS
@@ -26,6 +26,9 @@ Report about crypto events
 .TP
 .BR \-e ,\  \-\-event
 Report about events
+.TP
+.BR \-\-escape \ \fIoption\fP
+This option determines if the output is escaped to make the content safer for certain uses. The options are \fIraw\fP , \fItty\fP , \fIshell\fP , and \fIshell_quote\fP. Each mode includes the characters of the preceding mode and escapes more characters. That is to say \fIshell\fP includes all characters escaped by \fItty\fP and adds more. \fItty\fP is the default.
 .TP
 .BR \-f ,\  \-\-file
 Report about files and af_unix sockets

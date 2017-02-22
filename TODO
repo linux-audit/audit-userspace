@@ -1,7 +1,6 @@
 Things that need to be done:
 ===========================
 2.7.3
-* Selectable escaping for ausearch/report output
 * Document new auparse normalize functions with man pages
 * Look into TLS support
 

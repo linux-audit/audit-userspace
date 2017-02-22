@@ -35,6 +35,7 @@
 #include "ausearch-time.h"
 #include "ausearch-int.h"
 #include "libaudit.h"
+#include "auparse-defs.h"
 
 
 /* Global vars that will be accessed by the main program */
@@ -50,6 +51,7 @@ gid_t event_gid = -1, event_egid = -1;
 ilist *event_type = NULL;
 pid_t event_pid = -1, event_ppid = -1;
 success_t event_success = S_UNSET;
+auparse_esc_t escape_mode = AUPARSE_ESC_TTY;
 int event_exact_match = 0;
 uid_t event_uid = -1, event_euid = -1, event_loginuid = -2;
 const char *event_tuid = NULL, *event_teuid = NULL, *event_tauid = NULL;
@@ -89,7 +91,7 @@ S_TIME_END, S_TIME_START, S_TERMINAL, S_ALL_UID, S_EFF_UID, S_UID, S_LOGINID,
 S_VERSION, S_EXACT_MATCH, S_EXECUTABLE, S_CONTEXT, S_SUBJECT, S_OBJECT,
 S_PPID, S_KEY, S_RAW, S_NODE, S_IN_LOGS, S_JUST_ONE, S_SESSION, S_EXIT,
 S_LINEBUFFERED, S_UUID, S_VMNAME, S_DEBUG, S_CHECKPOINT, S_ARCH, S_FORMAT,
-S_EXTRA_TIME, S_EXTRA_LABELS, S_EXTRA_KEYS };
+S_EXTRA_TIME, S_EXTRA_LABELS, S_EXTRA_KEYS, S_ESCAPE };
 
 static struct nv_pair optiontab[] = {
 	{ S_EVENT, "-a" },
@@ -100,6 +102,7 @@ static struct nv_pair optiontab[] = {
 	{ S_CHECKPOINT, "--checkpoint" },
 	{ S_DEBUG, "--debug" },
 	{ S_EXIT, "-e" },
+	{ S_ESCAPE, "--escape" },
 	{ S_EXIT, "--exit" },
 	{ S_EXTRA_KEYS, "--extra-keys" },
 	{ S_EXTRA_LABELS, "--extra-labels" },
@@ -643,6 +646,31 @@ int check_params(int count, char *vars[])
 				fprintf(stderr, 
 					"Argument is NOT required for --raw\n");
         	                retval = -1;
+			}
+			break;
+		case S_ESCAPE:
+			if (!optarg) {
+				fprintf(stderr, 
+					"Argument is required for %s\n",
+					vars[c]);
+				retval = -1;
+			} else {
+				if (strcmp(optarg, "raw") == 0)
+					escape_mode = AUPARSE_ESC_RAW;
+				else if (strcmp(optarg, "tty") == 0)
+					escape_mode = AUPARSE_ESC_TTY;
+				else if (strncmp(optarg, "shell", 6) == 0)
+					escape_mode = AUPARSE_ESC_SHELL;
+				else if (strcmp(optarg, "shell_quote") == 0)
+					escape_mode = AUPARSE_ESC_SHELL_QUOTE;
+				else {
+					fprintf(stderr, 
+						"Unknown option (%s)\n",
+						optarg);
+					retval = -1;
+					break;
+				}
+				c++;
 			}
 			break;
 		case S_FORMAT:

@@ -370,7 +370,7 @@ static void interpret(char *name, char *val, int comma, int rtype)
 	id.name = name;
 	id.val = val;
 
-	char *out = auparse_do_interpretation(type, &id, AUPARSE_ESC_TTY);
+	char *out = auparse_do_interpretation(type, &id, escape_mode);
 	if (type == AUPARSE_TYPE_UNCLASSIFIED)
 		printf("%s%c", val, comma ? ',' : ' ');
 	else if (name[0] == 'k' && strcmp(name, "key") == 0) {
@@ -692,6 +692,7 @@ static void feed_auparse(llist *l, auparse_callback_ptr callback)
 		return;
 	}
 	au = auparse_init(AUSOURCE_FEED, 0);
+	auparse_set_escape_mode(au, escape_mode);
 	auparse_add_callback(au, callback, NULL, NULL);
 	do {
 		// Records need to be terminated by a newline

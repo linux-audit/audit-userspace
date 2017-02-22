@@ -34,6 +34,7 @@
 #include "aureport-options.h"
 #include "ausearch-time.h"
 #include "libaudit.h"
+#include "auparse-defs.h"
 
 
 /* Global vars that will be accessed by the main program */
@@ -71,6 +72,7 @@ failed_t event_failed = F_BOTH;
 conf_act_t event_conf_act = C_NEITHER;
 success_t event_success = S_SUCCESS;
 int event_pid = 0;
+auparse_esc_t escape_mode = AUPARSE_ESC_TTY;
 
 struct nv_pair {
     int        value;
@@ -82,7 +84,7 @@ enum {  R_INFILE, R_TIME_END, R_TIME_START, R_VERSION, R_SUMMARY, R_LOG_TIMES,
 	R_AVCS, R_SYSCALLS, R_PIDS, R_EVENTS, R_ACCT_MODS,  
 	R_INTERPRET, R_HELP, R_ANOMALY, R_RESPONSE, R_SUMMARY_DET, R_CRYPTO,
 	R_MAC, R_FAILED, R_SUCCESS, R_ADD, R_DEL, R_AUTH, R_NODE, R_IN_LOGS,
-	R_KEYS, R_TTY, R_NO_CONFIG, R_COMM, R_VIRT, R_INTEG };
+	R_KEYS, R_TTY, R_NO_CONFIG, R_COMM, R_VIRT, R_INTEG, R_ESCAPE };
 
 static struct nv_pair optiontab[] = {
 	{ R_AUTH, "-au" },
@@ -98,6 +100,7 @@ static struct nv_pair optiontab[] = {
 	{ R_DEL, "--delete" },
 	{ R_EVENTS, "-e" },
 	{ R_EVENTS, "--event" },
+	{ R_ESCAPE, "--escape" },
 	{ R_FILES, "-f" },
 	{ R_FILES, "--file" },
 	{ R_FAILED, "--failed" },
@@ -678,6 +681,31 @@ int check_params(int count, char *vars[])
 				sn.key = NULL;
 				sn.hits=0;
 				slist_append(event_node_list, &sn);
+			}
+			break;
+		case R_ESCAPE:
+			if (!optarg) {
+				fprintf(stderr, 
+					"Argument is required for %s\n",
+					vars[c]);
+				retval = -1;
+			} else {
+				if (strcmp(optarg, "raw") == 0)
+					escape_mode = AUPARSE_ESC_RAW;
+				else if (strcmp(optarg, "tty") == 0)
+					escape_mode = AUPARSE_ESC_TTY;
+				else if (strncmp(optarg, "shell", 6) == 0)
+					escape_mode = AUPARSE_ESC_SHELL;
+				else if (strcmp(optarg, "shell_quote") == 0)
+					escape_mode = AUPARSE_ESC_SHELL_QUOTE;
+				else {
+					fprintf(stderr, 
+						"Unknown option (%s)\n",
+						optarg);
+					retval = -1;
+					break;
+				}
+				c++;
 			}
 			break;
 		case R_SUMMARY_DET:

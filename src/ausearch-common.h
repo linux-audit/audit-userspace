@@ -29,6 +29,7 @@
 #include <sys/types.h>
 #include <time.h>
 #include "ausearch-string.h"
+#include "auparse-defs.h"
 
 /*
  * MAX_EVENT_DELTA_SECS is the maximum number of seconds it would take for
@@ -72,6 +73,7 @@ typedef enum { RPT_RAW, RPT_DEFAULT, RPT_INTERP, RPT_PRETTY,
 extern failed_t event_failed;
 extern conf_act_t event_conf_act;
 extern success_t event_success;
+extern auparse_esc_t escape_mode;
 
 #endif
 
