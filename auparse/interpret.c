@@ -171,7 +171,7 @@ static void tty_escape(const char *s, char *dest, unsigned int len)
 	dest[j] = '\0';	/* terminate string */
 }
 
-static const char sh_set[] = "\"'`$\\";
+static const char sh_set[] = "\"'`$\\!()| ";
 static unsigned int need_shell_escape(const char *s, unsigned int len)
 {
 	unsigned int i = 0, cnt = 0;
@@ -203,8 +203,8 @@ static void shell_escape(const char *s, char *dest, unsigned int len)
 	}
 	dest[j] = '\0';	/* terminate string */
 }
-
-static const char quote_set[] = ";'\"`#$&*?[]<>{}\\";
+                                
+static const char quote_set[] = "\"'`$\\!()| ;#&*?[]<>{}";
 static unsigned int need_shell_quote_escape(const unsigned char *s, unsigned int len)
 {
 	unsigned int i = 0, cnt = 0;
