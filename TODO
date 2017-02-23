@@ -2,22 +2,23 @@ Things that need to be done:
 ===========================
 2.7.3
 * Document new auparse normalize functions with man pages
-* Look into TLS support
 
 2.7.4
+* Look into TLS support
 * Add ability to filter events in auditd
 * non-equality comparisons for values other than \timestamp, \timestamp_ex and \record_type in ausearch-expression
 * Add sockaddr accessor functions in auparse
 * Add a realpath variant accessor that resolves whole path
-* Fix audit.pc.in to use Requires.private
-* If relative file in cwd, need to build also (realpath). watch out for (null) and socket
 
 2.8
+* rework aureport to use auparse
 * Support mutiple time streams when searching
 * Re-write auvirt
 * Look at pulling audispd into auditd
 * In audispd, look into non-blocking handling of write to plugins
 * ausearch --op search
+* Fix audit.pc.in to use Requires.private
+* If relative file in cwd, need to build also (realpath). watch out for (null) and socket
 * Change ausearch to output name="" unless its a real null. (mount) ausearch-report.c, 523. FIXME
 * IPv6 remote logging
 
@@ -27,31 +28,25 @@ Things that need to be done:
 * Consolidate linked lists and other functions
 * Consolidate parsing code between libaudit and auditd-conf.c
 * Performance improvements for auparse
-* When interpretting sockaddr, use syscall to determine remote vs local
 * If auparse input is a pipe timeout events by wall clock
 * Add rule verify to detect mismatch between in-kernel and on-disk rules
 
 3.0.1
 * Fix auvirt to report AVC's and --proof for --all-events
 * Fix SIGHUP for auditd network settings
-* auditctl should ignore invalid arches for rules
 * Add gzip format for logs
 * Add keywords for time: month-ago
 
 3.0.2
-* When searching, build log time list & only read the ones that are in range
 * Look at adding the direction read/write to file report (threat modelling)
 * Changes in uid/gid, failed changes in credentials in aureport
 * Group event types in ausearch help.
 
 3.1
 * Allow -F path!=/var/my/app
-* Add ignore action for rules
 * Look at openat and why passed dir is not given
 * Add SYSLOG data source for auparse. This allows leading text before audit       messages, missing type, any line with no = gets thrown away. iow, must have     time and 1 field to be valid.
 * Fix aureport accounting for avc in permissive mode
-* rework ausearch to use auparse
-* rework aureport to use auparse
 
 3.1.1
 * add more libaudit man pages
