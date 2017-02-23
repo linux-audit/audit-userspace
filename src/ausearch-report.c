@@ -491,8 +491,7 @@ static void csv_event(auparse_state_t *au,
 
 	// EVENT_KIND
 	evkind = auparse_normalize_get_event_kind(au);
-	if (evkind)
-		printf("%s", evkind ? evkind : "unknown");
+	printf("%s", evkind ? evkind : "unknown");
 	putchar(',');
 
 	// SESSION
@@ -535,8 +534,7 @@ static void csv_event(auparse_state_t *au,
 
 	// ACTION
 	action = auparse_normalize_get_action(au);
-	if (action)
-		printf("%s", action ? action : "did-unknown");
+	printf("%s", action ? action : "did-unknown");
 	putchar(',');
 
 	// RESULT
