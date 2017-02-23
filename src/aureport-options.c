@@ -31,6 +31,7 @@
 #include <pwd.h>
 #include <grp.h>
 #include <time.h>
+#include <limits.h>
 #include "aureport-options.h"
 #include "ausearch-time.h"
 #include "libaudit.h"
@@ -258,6 +259,13 @@ int check_params(int count, char *vars[])
 					vars[c]);
 				retval = -1;
 			} else {
+				if (strlen(optarg) >= PATH_MAX) {
+					fprintf(stderr, 
+						"File name is too long %s\n",
+						optarg);
+					retval = -1;
+					break;
+				}
 				user_file = strdup(optarg);
 				if (user_file == NULL)
 					retval = -1;

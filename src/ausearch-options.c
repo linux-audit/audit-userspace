@@ -31,6 +31,7 @@
 #include <errno.h>
 #include <pwd.h>
 #include <grp.h>
+#include <limits.h>
 #include "ausearch-options.h"
 #include "ausearch-time.h"
 #include "ausearch-int.h"
@@ -387,10 +388,18 @@ int check_params(int count, char *vars[])
 					"Argument is required for %s\n",
 					vars[c]);
 				retval = -1;
+				break;
 			} else {
+				if (strlen(optarg) >= PATH_MAX) {
+					fprintf(stderr,
+						"File name is too long %s\n",
+						optarg);
+					retval = -1;
+					break;
+				}
 				event_filename = strdup(optarg);
-        	                if (event_filename == NULL)
-                	                retval = -1;
+       		                if (event_filename == NULL)
+               		                retval = -1;
 				c++;
 			}
 			break;
