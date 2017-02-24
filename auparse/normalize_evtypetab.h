@@ -24,11 +24,11 @@
 
 _S(NORM_EVTYPE_UNKNOWN,		"unknown"	)
 _S(NORM_EVTYPE_USERSPACE,	"user-space"	)
-_S(NORM_EVTYPE_SYSTEM,		"system"	)
+_S(NORM_EVTYPE_SYSTEM_SERVICES,	"system-services" )
 _S(NORM_EVTYPE_CONFIG,		"configuration"	)
 _S(NORM_EVTYPE_TTY,		"TTY"		)
 _S(NORM_EVTYPE_USER_ACCT,	"user-account"	)
-_S(NORM_EVTYPE_USER_SESSION,	"user-session"	)
+_S(NORM_EVTYPE_USER_LOGIN,	"user-login"	)
 _S(NORM_EVTYPE_AUDIT_DAEMON,	"audit-daemon"	)
 _S(NORM_EVTYPE_MAC_DECISION,	"mac-decision"	)
 _S(NORM_EVTYPE_ANOMALY,		"anomaly"	)
