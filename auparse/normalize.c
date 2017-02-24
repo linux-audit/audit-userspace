@@ -183,10 +183,13 @@ static void syscall_subj_attr(auparse_state_t *au)
 {
 	unsigned int rnum;
 
-	if (D.opt == NORM_OPT_NO_ATTRS)
-		return;
-
 	auparse_first_record(au);
+
+	if (D.opt == NORM_OPT_NO_ATTRS) {
+		add_session(au, rnum);
+		return;
+	}
+
 	do {
 		rnum = auparse_get_record_num(au);
 		if (auparse_get_type(au) == AUDIT_SYSCALL) {
@@ -1332,7 +1335,7 @@ int auparse_normalize(auparse_state_t *au, normalize_option_t opt)
 /*
  * This function positions the internal cursor to the record and field that
  * the location refers to.
- * Returns: -1 = error, 0 uninitialized, 1 == success
+ * Returns: < 0 error, 0 uninitialized, 1 == success
  */
 static int seek_field(auparse_state_t *au, value_t location)
 {
@@ -1350,7 +1353,7 @@ static int seek_field(auparse_state_t *au, value_t location)
 
 	rc = auparse_goto_field_num(au, field);
 	if (rc != 1)
-		return -1;
+		return -2;
 
 	return 1;
 }
