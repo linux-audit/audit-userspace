@@ -12,7 +12,9 @@ ConditionKernelCommandLine=!audit=0
 Documentation=man:auditd(8) https://people.redhat.com/sgrubb/audit/
 
 [Service]
-ExecStart=/sbin/auditd -n
+Type=forking
+PIDFile=/var/run/auditd.pid
+ExecStart=/sbin/auditd
 ## To not use augenrules, copy this file to /etc/systemd/system/auditd.service
 ## and comment/delete the next line and uncomment the auditctl line.
 ## NOTE: augenrules expect any rules to be added to /etc/audit/rules.d/

@@ -3,6 +3,7 @@
 - Add support for KERN_MODULE event
 - Add selectable escaping for ausearch/report output
 - In auparse normalizer, always report session for syscalls
+- Modify systemd service file to make auditd a forking type of service
 
 2.7.2
 - Rename whole auparse classifier subsystem to normalizer
