@@ -33,7 +33,7 @@
 #include "gen_tables.h"
 #include "normalize_record_maps.h"
 #include "normalize_syscall_maps.h"
-#include "normalize_obj_type_maps.h"
+#include "normalize_obj_kind_maps.h"
 #include "normalize_evtypetabs.h"
 
 
@@ -1447,9 +1447,9 @@ int auparse_normalize_object_next_attribute(auparse_state_t *au)
 	return 0;
 }
 
-const char *auparse_normalize_object_type(auparse_state_t *au)
+const char *auparse_normalize_object_kind(auparse_state_t *au)
 {
-	return normalize_obj_type_map_i2s(D.thing.what);
+	return normalize_obj_kind_map_i2s(D.thing.what);
 }
 
 int auparse_normalize_get_results(auparse_state_t *au)

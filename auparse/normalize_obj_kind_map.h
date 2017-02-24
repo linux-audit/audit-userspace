@@ -1,5 +1,5 @@
 /*
-* normalize_obj_type_map.h
+* normalize_obj_kind_map.h
 * Copyright (c) 2016-17 Red Hat Inc., Durham, North Carolina.
 * All Rights Reserved.
 *

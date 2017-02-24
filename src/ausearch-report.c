@@ -411,7 +411,7 @@ static void csv_event(auparse_state_t *au,
 		csv_header_done = 1;
 		printf( "NODE,EVENT,DATE,TIME,%sSERIAL_NUM,EVENT_KIND,"
 			"SESSION,SUBJ_PRIME,SUBJ_SEC,%sACTION,RESULT,"
-			"OBJ_PRIME,OBJ_SEC,%sOBJ_TYPE,HOW%s\n",
+			"OBJ_PRIME,OBJ_SEC,%sOBJ_KIND,HOW%s\n",
 		    extra_time ? "YEAR,MONTH,DAY,WEEKDAY,HOUR,GMT_OFFSET," : "",
 			extra_labels ? "SUBJ_LABEL," : "",
 			extra_labels ? "OBJ_LABEL," : "",
@@ -579,8 +579,8 @@ static void csv_event(auparse_state_t *au,
 		putchar(',');
 	}
 
-	// OBJ_TYPE
-	str = auparse_normalize_object_type(au);
+	// OBJ_KIND
+	str = auparse_normalize_object_kind(au);
 	printf("%s,", str);
 
 	// HOW
