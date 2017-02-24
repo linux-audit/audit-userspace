@@ -6,6 +6,7 @@
 - Modify systemd service file to make auditd a forking type of service
 - Adjust a couple of words to prevent collisions in normalizer
 - Change object_type to object_kind in the normalizer
+- Add rudementary data for AVC without a syscall record
 
 2.7.2
 - Rename whole auparse classifier subsystem to normalizer

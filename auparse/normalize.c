@@ -184,15 +184,14 @@ static void syscall_subj_attr(auparse_state_t *au)
 	unsigned int rnum;
 
 	auparse_first_record(au);
-
-	if (D.opt == NORM_OPT_NO_ATTRS) {
-		add_session(au, rnum);
-		return;
-	}
-
 	do {
 		rnum = auparse_get_record_num(au);
 		if (auparse_get_type(au) == AUDIT_SYSCALL) {
+			if (D.opt == NORM_OPT_NO_ATTRS) {
+				add_session(au, rnum);
+				return;
+			}
+
 			add_subj_attr(au, "ppid", rnum);
 			add_subj_attr(au, "pid", rnum);
 			add_subj_attr(au, "gid", rnum);
@@ -1184,6 +1183,7 @@ map:
 		// Object
 		if (set_prime_object(au, "auid", 0))
 			auparse_first_record(au);
+		D.thing.what = NORM_WHAT_USER_SESSION;
 
 		// Session
 		add_session(au, 0);
@@ -1196,9 +1196,34 @@ map:
 		if (act)
 			D.action = strdup(act);
 
-		// How
-		D.thing.what = NORM_WHAT_USER_SESSION;
+		// How - currently missing
 
+		return 0;
+	}
+
+	if (type == AUDIT_AVC) {
+		// how
+		f = auparse_find_field(au, "comm");
+		if (f) {
+			const char *sig = auparse_interpret_field(au);
+			D.how = strdup(sig);
+		} else
+			auparse_first_record(au);
+
+		// Subject
+		if (set_prime_subject(au, "scontext", 0))
+			auparse_first_record(au);
+
+		// Object
+		if (set_prime_object(au, "tcontext", 0))
+			auparse_first_record(au);
+
+		// action
+		act = normalize_record_map_i2s(type);
+		if (act)
+			D.action = strdup(act);
+
+		// This is slim pickings without a syscall record
 		return 0;
 	}
 
