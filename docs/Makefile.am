@@ -1,5 +1,5 @@
 # Makefile.am --
-# Copyright 2004-09,2012,2014-16 Red Hat Inc., Durham, North Carolina.
+# Copyright 2004-09,2012,2014-17 Red Hat Inc., Durham, North Carolina.
 # All Rights Reserved.
 #
 # This program is free software; you can redistribute it and/or modify
@@ -51,6 +51,7 @@ auparse_goto_field_num.3 auparse_goto_record_num.3 \
 auparse_init.3 auparse_interpret_field.3 \
 auparse_next_event.3 auparse_next_field.3 auparse_next_record.3 \
 auparse_node_compare.3 auparse_reset.3 auparse_set_escape_mode.3 \
+auparse_normalize.3 \
 auparse_timestamp_compare.3 ausearch-expression.5 \
 aureport.8 ausearch.8 ausearch_add_item.3 ausearch_add_interpreted_item.3 \
 ausearch_add_expression.3 ausearch_add_timestamp_item.3 ausearch_add_regex.3 \
