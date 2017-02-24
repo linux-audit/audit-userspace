@@ -1215,8 +1215,12 @@ map:
 			auparse_first_record(au);
 
 		// Object
-		if (set_prime_object(au, "tcontext", 0))
-			auparse_first_record(au);
+		if (D.opt == NORM_OPT_ALL) {
+			// We will only collect this when everything is asked
+			// for because it messes up text format otherwise
+			if (set_prime_object(au, "tcontext", 0))
+				auparse_first_record(au);
+		}
 
 		// action
 		act = normalize_record_map_i2s(type);
