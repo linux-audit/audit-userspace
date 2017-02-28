@@ -33,7 +33,9 @@
 #include <unistd.h>
 #include <stdio_ext.h>
 
+#if	LOL_EVENTS_DEBUG01
 static int debug = 0;
+#endif
 
 static void init_lib(void) __attribute__ ((constructor));
 static void init_lib(void)

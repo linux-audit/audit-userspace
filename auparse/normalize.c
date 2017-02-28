@@ -360,10 +360,10 @@ static int set_program_obj(auparse_state_t *au)
 	auparse_first_record(au);
 	if (auparse_find_field(au, "exe")) {
 		const char *exe = auparse_interpret_field(au);
-		if ((strncmp(D.how, "/usr/bin/python", 15) == 0) ||
-		    (strncmp(D.how, "/usr/bin/sh", 11) == 0) ||
-		    (strncmp(D.how, "/usr/bin/bash", 13) == 0) ||
-		    (strncmp(D.how, "/usr/bin/perl", 13) == 0)) {
+		if ((strncmp(exe, "/usr/bin/python", 15) == 0) ||
+		    (strncmp(exe, "/usr/bin/sh", 11) == 0) ||
+		    (strncmp(exe, "/usr/bin/bash", 13) == 0) ||
+		    (strncmp(exe, "/usr/bin/perl", 13) == 0)) {
 			// comm should be the previous field
 			int fnum;
 			if ((fnum = auparse_get_field_num(au)) > 0)
@@ -816,13 +816,11 @@ static int normalize_compound(auparse_state_t *au)
 					auparse_first_record(au);
 				f = auparse_find_field(au, "comm");
 				if (f) {
+					free(D.how);
 					exe = auparse_interpret_field(au);
-					// We can do this because comm is
-					// guaranteed to be 16 bytes max.
-					strcpy(D.how, exe);
+					D.how = strdup(exe);
 				}
 			}
-			// FIXME: sh, perl
 		} else {
 			rc = auparse_goto_record_num(au, recno);
 			if (rc != 1) {
@@ -1340,8 +1338,11 @@ map:
  */
 int auparse_normalize(auparse_state_t *au, normalize_option_t opt)
 {
-	int rc = auparse_first_record(au);
-	unsigned num = auparse_get_num_records(au);
+	int rc;
+	unsigned num;
+
+	auparse_first_record(au);
+	num = auparse_get_num_records(au);
 
 	// Reset cursor - no idea what we are being handed
 	auparse_first_record(au);
