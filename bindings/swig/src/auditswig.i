@@ -24,7 +24,7 @@
 %}
 
 #if defined(SWIGPYTHON)
-%except(python) {
+%exception audit_open {
   $action
   if (result < 0) {
     PyErr_SetFromErrno(PyExc_OSError);
