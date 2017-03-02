@@ -1,4 +1,5 @@
 2.7.4
+- Fix python3 byte compile for libaudit bindings
 
 2.7.3
 - Add one more comma to ausearch csv output

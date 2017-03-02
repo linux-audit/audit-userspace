@@ -25,6 +25,8 @@ AM_CPPFLAGS = -I. -I$(top_builddir) -I${top_srcdir}/lib $(PYTHON3_INCLUDES)
 LIBS = $(top_builddir)/lib/libaudit.la
 SWIG_FLAGS = -python -py3 -modern
 SWIG_INCLUDES = -I. -I$(top_builddir) -I${top_srcdir}/lib $(PYTHON3_INCLUDES)
+# REMOVE SOMEDAY - without overriding this macro, it uses python2
+am__py_compile = PYTHON=$(PYTHON3) $(SHELL) $(py_compile)
 py3exec_PYTHON = audit.py
 py3exec_LTLIBRARIES = _audit.la
 py3exec_SOLIBRARIES = _audit.so
