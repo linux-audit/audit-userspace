@@ -1,5 +1,5 @@
 /* ausearch-time.h - header file for ausearch-time.c
- * Copyright 2006-07,2016 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2006-07,2016-17 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -25,7 +25,7 @@
 
 #include "ausearch-common.h"
 
-enum {  T_NOW, T_RECENT, T_TODAY, T_YESTERDAY, T_THIS_WEEK, T_WEEK_AGO, 
+enum {  T_NOW, T_RECENT, T_BOOT, T_TODAY, T_YESTERDAY, T_THIS_WEEK, T_WEEK_AGO, 
 	T_THIS_MONTH, T_THIS_YEAR };
 
 int lookup_time(const char *name);
