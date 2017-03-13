@@ -819,10 +819,9 @@ static const char *print_proctitle(const char *val)
 		// Proctitle has arguments separated by NUL bytes
 		// We need to write over the NUL bytes with a space
 		// so that we can see the arguments
-		while ((ptr  = rawmemchr(ptr, '\0'))) {
-			if (ptr >= end)
-				break;
-			*ptr = ' ';
+		while (ptr < end) {
+			if (*ptr == '\0')
+				*ptr = ' ';
 			ptr++;
 		}
 	}
