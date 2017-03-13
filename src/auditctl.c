@@ -32,6 +32,8 @@
 #include <ctype.h>
 #include <unistd.h>
 #include <sys/utsname.h>
+#include <sys/select.h>
+#include <sys/time.h>
 #include <fcntl.h>
 #include <errno.h>
 #include <libgen.h>	/* For basename */
