@@ -2,6 +2,7 @@
 - Fix python3 byte compile for libaudit bindings
 - Add "boot" keyword to time parameters of ausearch/aureport
 - In auparse normalizer, add memory object kind
+- In auparse normalizer, handle a couple more file related syscalls
 
 2.7.3
 - Add one more comma to ausearch csv output
