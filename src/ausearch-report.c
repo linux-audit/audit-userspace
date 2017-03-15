@@ -662,8 +662,12 @@ static void text_event(auparse_state_t *au,
 	printf("%s ", action ? action : "did-unknown");
 
 	rc = auparse_normalize_object_primary(au);
-	if (rc == 1)
+	if (rc == 1) {
+		// If we have an object and this is an AVC, add some words
+		if (action && strstr(action, "violated"))
+			printf("accessing ");
 		printf("%s ", auparse_interpret_field(au));
+	}
 
 	if (    type == AUDIT_VIRT_RESOURCE ||
 		type == AUDIT_VIRT_CONTROL) {

@@ -388,16 +388,18 @@ static int set_program_obj(auparse_state_t *au)
  */
 static int normalize_syscall(auparse_state_t *au, const char *syscall, int type)
 {
-	int rc, objtype = NORM_UNKNOWN;
+	int rc, tmp_objkind, objtype = NORM_UNKNOWN;
 	const char *act = NULL, *f;
 
 	// cycle through all records and see what we have
+	tmp_objkind = objtype;
 	rc = auparse_first_record(au);
 	while (rc == 1) {
 		int ttype = auparse_get_type(au);
 
 		if (ttype == AUDIT_AVC) {
-			objtype = NORM_MAC;
+			// We want to go ahead with syscall to get objects
+			tmp_objkind = NORM_MAC;
 			break;
 		} else if (ttype == AUDIT_SELINUX_ERR) {
 			objtype = NORM_MAC_ERR;
@@ -548,14 +550,11 @@ static int normalize_syscall(auparse_state_t *au, const char *syscall, int type)
 			}
 			D.thing.what = NORM_WHAT_PROCESS;
 			break;
-		case NORM_MAC:
-			// FIXME: we need to also use other normalizations
-			// the AVC could be against many kinds of objects.
-			act = "violated-mac-policy";
-			break;
 		case NORM_MAC_ERR:
-			// FIXME: See above
+			// FIXME: What could the object be?
 			act = "caused-mac-policy-error";
+			// For now we'll call the obj_kind the system
+			D.thing.what = NORM_WHAT_SYSTEM;
 			break;
 		case NORM_IPTABLES:
 			act = "loaded-firewall-rule-to";
@@ -641,6 +640,11 @@ static int normalize_syscall(auparse_state_t *au, const char *syscall, int type)
 			}
 			break;
 	}
+
+	// We put the AVC back after gathering the object information
+	if (tmp_objkind == NORM_MAC)
+		act = "violated-mac-policy";
+	
 	if (act)
 		D.action = strdup(act);
 
