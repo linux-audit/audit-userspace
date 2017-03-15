@@ -24,6 +24,10 @@
 #ifndef NORMALIZE_INTERNAL
 #define NORMALIZE_INTERNAL
 
+/*
+ * This is used for normalizing syscalls. It can determine
+ * the action, object, obj_kind, and object attributes.
+ */
 #define NORM_UNKNOWN		0
 #define NORM_FILE		1
 #define NORM_FILE_CHATTR	2
@@ -54,6 +58,7 @@
 #define NORM_MAKE_DEV		27
 #define NORM_SYSTEM_NAME	28
 #define NORM_FILE_SYS_STAT	29
+#define NORM_SYSTEM_MEMORY	30
 
 // This enum is used to map what the system objects are
 #define NORM_WHAT_UNKNOWN	0
@@ -76,6 +81,7 @@
 #define NORM_WHAT_AUDIT_CONFIG	17
 #define NORM_WHAT_MAC_CONFIG	18
 #define NORM_WHAT_FILESYSTEM	19
+#define NORM_WHAT_MEMORY	20
 
 // This enum is used to map events to what kind they are
 #define NORM_EVTYPE_UNKNOWN		0

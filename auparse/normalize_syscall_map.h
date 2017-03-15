@@ -100,4 +100,6 @@ _S(NORM_MAKE_DEV, "mknod")
 _S(NORM_MAKE_DEV, "mknodat")
 _S(NORM_SYSTEM_NAME, "sethostname")
 _S(NORM_SYSTEM_NAME, "setdomainname")
+_S(NORM_SYSTEM_MEMORY, "mmap")
+_S(NORM_SYSTEM_MEMORY, "brk")
 

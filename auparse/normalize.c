@@ -618,6 +618,11 @@ static int normalize_syscall(auparse_state_t *au, const char *syscall, int type)
 			// TODO: can't think of an object for this one
 			D.thing.what = NORM_WHAT_SYSTEM;
 			break;
+		case NORM_SYSTEM_MEMORY:
+			act = "allocated-memory";
+			// TODO: The object is implied
+			D.thing.what = NORM_WHAT_MEMORY;
+			break;
 		default:
 			{
 				char *k;
