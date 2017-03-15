@@ -654,8 +654,11 @@ static void text_event(auparse_state_t *au,
 		putchar(' ');
 
 	action = auparse_normalize_get_action(au);
-// FIXME: remove later
-if (action == NULL) printf("error on type:%d\n", type);
+
+	if (event_debug) {
+		if (action == NULL)
+			printf("error on type:%d\n", type);
+	}
 	printf("%s ", action ? action : "did-unknown");
 
 	rc = auparse_normalize_object_primary(au);
