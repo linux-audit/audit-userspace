@@ -4,6 +4,7 @@
 - In auparse normalizer, add memory object kind
 - In auparse normalizer, handle a couple more file related syscalls
 - In auparse normalizer, find the object for AVC's
+- In ausearch/auparse mark KERNEL event as 1 record event
 
 2.7.3
 - Add one more comma to ausearch csv output
