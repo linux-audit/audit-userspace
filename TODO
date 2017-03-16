@@ -2,10 +2,13 @@ Things that need to be done:
 ===========================
 2.7.4
 * Document new auparse normalize functions with man pages
-* Add ability to filter events in auditd
 * non-equality comparisons for values other than \timestamp, \timestamp_ex and \record_type in ausearch-expression
+* ausearch, check lol aging to see that lowest time + serial is first out
+* Fix aureport file report to choose the best answer like normalizer
+* Space left reported to work once
 
 2.7.5
+* Add ability to filter events in auditd
 * Look into TLS support
 * Add sockaddr accessor functions in auparse
 * Add a realpath variant accessor that resolves whole path
