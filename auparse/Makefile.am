@@ -21,6 +21,7 @@
 #
 
 SUBDIRS = test
+EXTRA_DIST = expression-design.txt
 CLEANFILES = $(BUILT_SOURCES)
 CONFIG_CLEAN_FILES = *.loT *.rej *.orig
 AM_CFLAGS = -fPIC -DPIC -D_GNU_SOURCE -g ${DEBUG} -Wno-pointer-sign
