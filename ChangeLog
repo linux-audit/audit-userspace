@@ -7,6 +7,7 @@
 - In ausearch/auparse mark KERNEL event as 1 record event
 - Bump up the default value of the audispd q_depth setting to 250
 - In auparse, allow '-' in field names for ausearch_add_expression()
+- In auparse normalize, break change-file-attribute to permission and ownership
 
 2.7.3
 - Add one more comma to ausearch csv output
