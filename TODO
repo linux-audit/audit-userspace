@@ -1,7 +1,6 @@
 Things that need to be done:
 ===========================
 2.7.4
-* Add python bindings for auparse_normalizer
 * Document new auparse normalize functions with man pages
 * non-equality comparisons for values other than \timestamp, \timestamp_ex and \record_type in ausearch-expression
 * Fix aureport file report to choose the best answer like normalizer
