@@ -9,6 +9,7 @@
 - In auparse, allow '-' in field names for ausearch_add_expression()
 - In auparse normalize, break change-file-attribute to permission and ownership
 - Add python bindings for auparse normalizer
+- Fix aureport's file report to not pick the parent path record in reports
 
 2.7.3
 - Add one more comma to ausearch csv output

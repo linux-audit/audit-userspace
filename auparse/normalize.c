@@ -444,7 +444,7 @@ static int normalize_syscall(auparse_state_t *au, const char *syscall, int type)
 		case NORM_FILE_CHOWN:
 			act = "changed-file-ownership-of";
 			D.thing.what = NORM_WHAT_FILE; // this gets overridden
-			set_file_object(au, 0);
+			set_file_object(au, 0); // FIXME: fchown has no cwd
 			simple_file_attr(au);
 			break;
 		case NORM_FILE_LDMOD:

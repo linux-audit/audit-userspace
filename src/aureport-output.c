@@ -572,8 +572,17 @@ void print_per_event_item(llist *l)
 			break;
 		case RPT_FILE:	// report_detail == D_DETAILED
 			// file, syscall, success, exe, who, event
-			slist_first(l->s.filename);
-			safe_print_string(l->s.filename->cur->str,0);
+			{
+			slist *s = l->s.filename;
+			slist_first(s);
+			if (s->cnt > 1) {
+				char *key = s->cur->key;
+				while (key && strcmp(key, "PARENT") == 0) {
+					slist_next(s);
+					key = s->cur->key;
+				}
+			}
+			safe_print_string(s->cur->str,0);
 			printf(" %s %s ",
 				aulookup_syscall(l,buf,sizeof(buf)),
 				aulookup_success(l->s.success));
@@ -582,6 +591,7 @@ void print_per_event_item(llist *l)
 			safe_print_string(aulookup_uid(l->s.loginuid, name,
 					sizeof(name)), 0);
 			printf(" %lu\n", l->e.serial);
+			}
 			break;
 		case RPT_HOST:	// report_detail == D_DETAILED
 			// host, syscall, who, event

@@ -734,6 +734,17 @@ static int parse_path(const lnode *n, search_items *s)
 			rc = common_path_parser(s, str);
 			if (rc)
 				return rc;
+			term = str;
+
+			// Note that at this point we should be past beginning
+			// and around the path element. The type we search for
+			// is objtype or nametype. Searching for both will
+			// slow us down. So, I'm using what is common to both.
+			str = strstr(term, "type=");
+			if (str) {
+				str += 5;
+				s->filename->cur->key = strdup(str);
+			}
 		}
 	}
 	if (event_object) {
