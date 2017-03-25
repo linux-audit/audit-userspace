@@ -3,7 +3,6 @@ Things that need to be done:
 2.7.4
 * non-equality comparisons for values other than \timestamp, \timestamp_ex and \record_type in ausearch-expression
 * Check offset of events lacking cwd. f* variants of file syscalls.
-* sched_setscheduler/sched_setparam, adjusted-scheduling-policy of /usr/bin/binary using strdup(syscall)
 * Add updated STIG RHEL-7
 * Check for new syscalls
 

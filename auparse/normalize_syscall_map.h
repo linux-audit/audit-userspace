@@ -105,4 +105,7 @@ _S(NORM_SYSTEM_NAME, "sethostname")
 _S(NORM_SYSTEM_NAME, "setdomainname")
 _S(NORM_SYSTEM_MEMORY, "mmap")
 _S(NORM_SYSTEM_MEMORY, "brk")
+_S(NORM_SCHEDULER, "sched_setparam")
+_S(NORM_SCHEDULER, "sched_setscheduler")
+_S(NORM_SCHEDULER, "sched_setattr")
 

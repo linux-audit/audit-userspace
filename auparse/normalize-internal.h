@@ -61,6 +61,7 @@
 #define NORM_SYSTEM_NAME	30
 #define NORM_FILE_SYS_STAT	31
 #define NORM_SYSTEM_MEMORY	32
+#define NORM_SCHEDULER		33
 
 // This enum is used to map what the system objects are
 #define NORM_WHAT_UNKNOWN	0

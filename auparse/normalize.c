@@ -634,6 +634,15 @@ static int normalize_syscall(auparse_state_t *au, const char *syscall, int type)
 			// TODO: The object is implied
 			D.thing.what = NORM_WHAT_MEMORY;
 			break;
+		case NORM_SCHEDULER:
+			act = "adjusted-scheduling-policy-of";
+			D.thing.what = NORM_WHAT_PROCESS;
+			set_program_obj(au);
+			if (D.how) {
+				free(D.how);
+				D.how = strdup(syscall);
+			}
+			break;
 		default:
 			{
 				char *k;
