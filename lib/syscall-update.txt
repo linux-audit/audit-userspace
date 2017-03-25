@@ -1,12 +1,12 @@
 The place where syscall information is gathered is:
 
-arch/alpha/include/uapi/asm/unistd.h
+arch/arm/tools/syscall.tbl
 arch/arm/include/uapi/asm/unistd.h
 arch/ia64/include/uapi/asm/unistd.h
 arch/powerpc/include/uapi/asm/unistd.h
 arch/s390/include/uapi/asm/unistd.h
 arch/x86/entry/syscalls/syscall_32.tbl
-arch/x86/entry/syscall_64.tbl
+arch/x86/entry/syscalls/syscall_64.tbl
 include/uapi/asm-generic/unistd.h  (aarch64)
 
 For src/ausearch-lookup.c:

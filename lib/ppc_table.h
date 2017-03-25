@@ -1,5 +1,5 @@
 /* ppc_table.h --
- * Copyright 2005-09,2011-16 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2005-09,2011-17 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -381,3 +381,8 @@ _S(364, "userfaultfd")
 _S(365, "membarrier")
 _S(378, "mlock2")
 _S(379, "copy_file_range")
+_S(380, "preadv2")
+_S(381, "pwritev2")
+_S(382, "kexec_file_load")
+_S(383, "statx")
+

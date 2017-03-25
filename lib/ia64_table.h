@@ -1,5 +1,5 @@
 /* ia64_table.h --
- * Copyright 2005-16 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2005-17 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -338,3 +338,5 @@ _S(1344, "membarrier")
 _S(1345, "kcmp")
 _S(1346, "mlock2")
 _S(1347, "copy_file_range")
+_S(1348, "preadv2")
+_S(1349, "pwritev2")

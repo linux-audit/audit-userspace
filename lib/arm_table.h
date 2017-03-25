@@ -1,5 +1,5 @@
 /* arm_table.h --
- * Copyright 2009-10,2013-16 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2009-10,2013-17 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -375,3 +375,8 @@ _S(388, "userfaultfd")
 _S(389, "membarrier")
 _S(390, "mlock2")
 _S(391, "copy_file_range")
+_S(392, "preadv2")
+_S(393, "pwritev2")
+_S(394, "pkey_mprotect")
+_S(395, "pkey_alloc")
+_S(396, "pkey_free")

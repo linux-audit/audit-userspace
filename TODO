@@ -3,7 +3,6 @@ Things that need to be done:
 2.7.4
 * non-equality comparisons for values other than \timestamp, \timestamp_ex and \record_type in ausearch-expression
 * Add updated STIG RHEL-7
-* Check for new syscalls
 
 2.7.5
 * Space left reported to work once

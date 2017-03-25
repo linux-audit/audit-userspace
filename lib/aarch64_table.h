@@ -1,5 +1,5 @@
 /* aarch64_table.h --
- * Copyright 2013-16 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2013-17 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -290,3 +290,8 @@ _S(282, "userfaultfd")
 _S(283, "membarrier")
 _S(284, "mlock2")
 _S(285, "copy_file_range")
+_S(286, "preadv2")
+_S(287, "pwritev2")
+_S(288, "pkey_mprotect")
+_S(289, "pkey_alloc")
+_S(290, "pkey_free")

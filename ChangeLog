@@ -13,6 +13,7 @@
 - Document auparse normalize accessor functions with a man page
 - In auparse normalizer, handle scheduler syscalls
 - In auparse normalizer, find path record for file syscalls without cwd record
+- Update the syscall table to the 4.11 kernel
 
 2.7.3
 - Add one more comma to ausearch csv output

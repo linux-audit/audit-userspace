@@ -1,5 +1,5 @@
 /* x86_64_table.h --
- * Copyright 2005-16 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2005-17 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -347,3 +347,9 @@ _S(323, "userfaultfd")
 _S(324, "membarrier")
 _S(325, "mlock2")
 _S(326, "copy_file_range")
+_S(327, "preadv2")
+_S(328, "pwritev2")
+_S(329, "pkey_mprotect")
+_S(330, "pkey_alloc")
+_S(331, "pkey_free")
+_S(332, "statx")

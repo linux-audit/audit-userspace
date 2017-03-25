@@ -1,5 +1,5 @@
 /* s390x_table.h --
- * Copyright 2005-06,2008-16 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2005-06,2008-17 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -337,4 +337,6 @@ _S(372, "recvmsg")
 _S(373, "shutdown")
 _S(374, "mlock2")
 _S(375, "copy_file_range")
-
+_S(376, "preadv2")
+_S(377, "pwritev2")
+_S(379, "statx")

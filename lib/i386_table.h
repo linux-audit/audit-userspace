@@ -1,5 +1,5 @@
 /* i386_table.h --
- * Copyright 2005-16 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2005-17 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -396,3 +396,9 @@ _S(374, "userfaultfd")
 _S(375, "membarrier")
 _S(376, "mlock2")
 _S(377, "copy_file_range")
+_S(378, "preadv2")
+_S(379, "pwritev2")
+_S(380, "pkey_mprotect")
+_S(381, "pkey_alloc")
+_S(382, "pkey_free")
+_S(383, "statx")
