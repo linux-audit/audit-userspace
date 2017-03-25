@@ -15,6 +15,7 @@ Things that need to be done:
 * Add a realpath variant accessor that resolves whole path
 
 2.8
+* ausearch text format, add 'to xxx' for file perm/owner, & uid/gid changes
 * rework aureport to use auparse
 * Support mutiple time streams when searching
 * Re-write auvirt
