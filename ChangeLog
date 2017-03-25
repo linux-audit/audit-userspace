@@ -12,6 +12,7 @@
 - Fix aureport's file report to not pick the parent path record in reports
 - Document auparse normalize accessor functions with a man page
 - In auparse normalizer, handle scheduler syscalls
+- In auparse normalizer, find path record for file syscalls without cwd record
 
 2.7.3
 - Add one more comma to ausearch csv output

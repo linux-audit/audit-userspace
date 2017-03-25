@@ -388,7 +388,7 @@ static int set_program_obj(auparse_state_t *au)
  */
 static int normalize_syscall(auparse_state_t *au, const char *syscall, int type)
 {
-	int rc, tmp_objkind, objtype = NORM_UNKNOWN;
+	int rc, tmp_objkind, objtype = NORM_UNKNOWN, offset = 0;;
 	const char *act = NULL, *f;
 
 	// cycle through all records and see what we have
@@ -432,19 +432,25 @@ static int normalize_syscall(auparse_state_t *au, const char *syscall, int type)
 		case NORM_FILE_CHATTR:
 			act = "changed-file-attributes-of";
 			D.thing.what = NORM_WHAT_FILE; // this gets overridden
-			set_file_object(au, 0);
+			if (strcmp(syscall, "fsetxattr") == 0)
+				offset = -1;
+			set_file_object(au, offset);
 			simple_file_attr(au);
 			break;
 		case NORM_FILE_CHPERM:
 			act = "changed-file-permissions-of";
 			D.thing.what = NORM_WHAT_FILE; // this gets overridden
-			set_file_object(au, 0);
+			if (strcmp(syscall, "fchmod") == 0)
+				offset = -1;
+			set_file_object(au, offset);
 			simple_file_attr(au);
 			break;
 		case NORM_FILE_CHOWN:
 			act = "changed-file-ownership-of";
 			D.thing.what = NORM_WHAT_FILE; // this gets overridden
-			set_file_object(au, 0); // FIXME: fchown has no cwd
+			if (strcmp(syscall, "fchown") == 0)
+				offset = -1;
+			set_file_object(au, offset); // FIXME: fchown has no cwd
 			simple_file_attr(au);
 			break;
 		case NORM_FILE_LDMOD:
