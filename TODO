@@ -1,11 +1,11 @@
 Things that need to be done:
 ===========================
 2.7.4
+* Space left reported to work once
 * non-equality comparisons for values other than \timestamp, \timestamp_ex and \record_type in ausearch-expression
-* Add updated STIG RHEL-7
 
 2.7.5
-* Space left reported to work once
+* auditd.conf space_left sizes can be %
 * Add ability to filter events in auditd
 * Look into TLS support
 * Add sockaddr accessor functions in auparse

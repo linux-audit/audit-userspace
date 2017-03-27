@@ -222,10 +222,12 @@ int parse_args(int argc, char **argv)
 				goto error;
 			}
 			date = argv[++i];
+			if (lookup_time(date) >= 0)
+				time = "00:00:00";
 			if ((i + 1) < argc && argv[i + 1][0] != '-')
 				time = argv[++i];
 			/* This will set start_time */
-			if(ausearch_time_start(date, time))
+			if (ausearch_time_start(date, time))
 				goto error;
 		} else if (strcmp("--end", opt) == 0 ||
 			   strcmp("-te", opt) == 0) {
@@ -236,6 +238,8 @@ int parse_args(int argc, char **argv)
 				goto error;
 			}
 			date = argv[++i];
+			if (lookup_time(date) >= 0)
+				time = "00:00:00";
 			if ((i + 1) < argc && argv[i + 1][0] != '-')
 				time = argv[++i];
 			/* This will set end_time */
@@ -1436,7 +1440,7 @@ void print_events(void)
 void print_summary(void)
 {
 	/* Summary numbers */
-	time_t start_time = 0, end_time = 0;
+	time_t stime = 0, etime = 0;
 	long start = 0, stop = 0, res = 0, avc = 0, anom = 0,
 	     shutdown = 0, failure = 0;
 	char start_buf[32], end_buf[32];
@@ -1475,30 +1479,30 @@ void print_summary(void)
 
 		/* Calculate time range */
 		if (event->start) {
-			if (start_time == 0 || event->start < start_time) {
-				start_time = event->start;
+			if (stime == 0 || event->start < stime) {
+				stime = event->start;
 			}
-			if (end_time == 0 || event->start > end_time) {
-				end_time = event->start;
+			if (etime == 0 || event->start > etime) {
+				etime = event->start;
 			}
 		}
 		if (event->end) {
-			if (start_time == 0 || event->end < start_time) {
-				start_time = event->end;
+			if (stime == 0 || event->end < stime) {
+				stime = event->end;
 			}
-			if (end_time == 0 || event->end > end_time) {
-				end_time = event->end;
+			if (etime == 0 || event->end > etime) {
+				etime = event->end;
 			}
 		}
 
 	}
 
-	if (start_time)
-		ctime_r(&start_time, start_buf);
+	if (stime)
+		ctime_r(&stime, start_buf);
 	else
 		strcpy(start_buf, "undef");
-	if (end_time)
-		ctime_r(&end_time, end_buf);
+	if (etime)
+		ctime_r(&etime, end_buf);
 	else
 		strcpy(end_buf, "undef");
 
