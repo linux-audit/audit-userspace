@@ -9,7 +9,7 @@ Conflicts=shutdown.target
 Before=sysinit.target shutdown.target
 RefuseManualStop=yes
 ConditionKernelCommandLine=!audit=0
-Documentation=man:auditd(8) https://people.redhat.com/sgrubb/audit/
+Documentation=man:auditd(8) https://github.com/linux-audit/audit-documentation
 
 [Service]
 Type=forking
