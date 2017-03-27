@@ -222,10 +222,10 @@ int parse_args(int argc, char **argv)
 				goto error;
 			}
 			date = argv[++i];
-			if (lookup_time(date) >= 0)
-				time = "00:00:00";
 			if ((i + 1) < argc && argv[i + 1][0] != '-')
 				time = argv[++i];
+			else
+				time = "00:00:00";
 			/* This will set start_time */
 			if (ausearch_time_start(date, time))
 				goto error;
@@ -238,10 +238,10 @@ int parse_args(int argc, char **argv)
 				goto error;
 			}
 			date = argv[++i];
-			if (lookup_time(date) >= 0)
-				time = "00:00:00";
 			if ((i + 1) < argc && argv[i + 1][0] != '-')
 				time = argv[++i];
+			else
+				time = "00:00:00";
 			/* This will set end_time */
 			if (ausearch_time_end(date, time))
 				goto error;
