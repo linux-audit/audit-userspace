@@ -70,7 +70,7 @@ static void init_flush_thread(void);
 
 /* Local Data */
 static struct daemon_conf *config;
-static int log_fd;
+static volatile int log_fd;
 static FILE *log_file;
 static unsigned int disk_err_warning = 0;
 static int fs_space_warning = 0;
@@ -561,12 +561,28 @@ static void send_ack(const struct auditd_event *e, int ack_type,
 
 void resume_logging(void)
 {
+	audit_msg(LOG_NOTICE, "Audit daemon is attempting to resume logging.");
 	logging_suspended = 0; 
 	fs_space_left = 1;
+
+	// User space action scripts cause fd to close
+	// Need to reopen here to recreate the file if the
+	// script deleted or moved it.
+	if (log_file == NULL) {
+		fix_disk_permissions();
+		if (open_audit_log()) {
+			int saved_errno = errno;
+			audit_msg(LOG_WARNING, 
+				"Could not reopen a log after resume logging");
+			logging_suspended = 1;
+			do_disk_error_action("resume", saved_errno);
+		} else
+			check_log_file_size();
+		audit_msg(LOG_NOTICE, "Audit daemon resumed logging.");
+	}
 	disk_err_warning = 0;
 	fs_space_warning = 0;
 	fs_admin_space_warning = 0;
-	audit_msg(LOG_ERR, "Audit daemon is attempting to resume logging.");
 }
 
 /* This function writes the given buf to the current log file */
@@ -741,6 +757,12 @@ static void do_space_left_action(int admin)
 			}
 			break;
 		case FA_EXEC:
+			// Close the logging file in case the script zips or
+			// moves the file. We'll reopen in sigusr2 handler
+			fclose(log_file);
+			log_file = NULL;
+			log_fd = -1;
+			logging_suspended = 1;
 			if (admin)
 				safe_exec(config->admin_space_left_exe);
 			else
@@ -785,6 +807,12 @@ static void do_disk_full_action(void)
 			}
 			break;
 		case FA_EXEC:
+			// Close the logging file in case the script zips or
+			// moves the file. We'll reopen in sigusr2 handler
+			fclose(log_file);
+			log_file = NULL;
+			log_fd = -1;
+			logging_suspended = 1;
 			safe_exec(config->disk_full_exe);
 			break;
 		case FA_SUSPEND:
@@ -826,6 +854,12 @@ static void do_disk_error_action(const char *func, int err)
 			}
 			break;
 		case FA_EXEC:
+			// Close the logging file in case the script zips or
+			// moves the file. We'll reopen in sigusr2 handler
+			fclose(log_file);
+			log_file = NULL;
+			log_fd = -1;
+			logging_suspended = 1;
 			safe_exec(config->disk_error_exe);
 			break;
 		case FA_SUSPEND:
@@ -942,11 +976,11 @@ static void rotate_logs(unsigned int num_logs)
 	 * already adjusted log file permissions and ownership when opening the
 	 * log file. */
 	if (fchmod(log_fd, config->log_group ? S_IRUSR|S_IRGRP : S_IRUSR) < 0){
-		audit_msg(LOG_NOTICE, "Couldn't change permissions while "
+		audit_msg(LOG_WARNING, "Couldn't change permissions while "
 			"rotating log file (%s)", strerror(errno));
 	}
 	if (fchown(log_fd, 0, config->log_group) < 0) {
-		audit_msg(LOG_NOTICE, "Couldn't change ownership while "
+		audit_msg(LOG_WARNING, "Couldn't change ownership while "
 			"rotating log file (%s)", strerror(errno));
 	}
 	fclose(log_file);
@@ -1021,7 +1055,7 @@ static void rotate_logs(unsigned int num_logs)
 	/* open new audit file */
 	if (open_audit_log()) {
 		int saved_errno = errno;
-		audit_msg(LOG_NOTICE, 
+		audit_msg(LOG_CRIT, 
 			"Could not reopen a log after rotating.");
 		logging_suspended = 1;
 		do_disk_error_action("reopen", saved_errno);
@@ -1095,7 +1129,7 @@ retry:
 		if (errno == ENOENT) {
 			lfd = create_log_file(config->log_file);
 			if (lfd < 0) {
-				audit_msg(LOG_ERR,
+				audit_msg(LOG_CRIT,
 					"Couldn't create log file %s (%s)",
 					config->log_file,
 					strerror(errno));
@@ -1109,7 +1143,7 @@ retry:
 			goto retry;
 		}
 		if (lfd < 0) {
-			audit_msg(LOG_ERR, "Couldn't open log file %s (%s)",
+			audit_msg(LOG_CRIT, "Couldn't open log file %s (%s)",
 				config->log_file, strerror(errno));
 			return 1;
 		}
@@ -1150,7 +1184,7 @@ retry:
 	log_fd = lfd;
 	log_file = fdopen(lfd, "a");
 	if (log_file == NULL) {
-		audit_msg(LOG_ERR, "Error setting up log descriptor (%s)",
+		audit_msg(LOG_CRIT, "Error setting up log descriptor (%s)",
 			strerror(errno));
 		close(lfd);
 		return 1;
@@ -1261,7 +1295,7 @@ static void reconfigure(struct auditd_event *e)
 		errno = 0;
 		rc = nice(-oconf->priority_boost);
 		if (rc == -1 && errno) 
-			audit_msg(LOG_NOTICE, "Cannot change priority in "
+			audit_msg(LOG_WARNING, "Cannot change priority in "
 					"reconfigure (%s)", strerror(errno));
 	}
 
@@ -1305,7 +1339,7 @@ static void reconfigure(struct auditd_event *e)
 			oconf->dispatcher = strdup(nconf->dispatcher);
 			if (oconf->dispatcher == NULL) {
 				int saved_errno = errno;
-				audit_msg(LOG_NOTICE,
+				audit_msg(LOG_ERR,
 					"Could not allocate dispatcher memory"
 					" in reconfigure");
 				// Likely errors: ENOMEM
@@ -1313,7 +1347,7 @@ static void reconfigure(struct auditd_event *e)
 			}
 			if(init_dispatcher(oconf)) {// dispatcher & qos is used
 				int saved_errno = errno;
-				audit_msg(LOG_NOTICE,
+				audit_msg(LOG_WARNING,
 					"Could not start dispatcher %s"
 					" in reconfigure", oconf->dispatcher);
 				// Likely errors: Socketpairs or exec perms
@@ -1333,7 +1367,7 @@ static void reconfigure(struct auditd_event *e)
 			oconf->dispatcher = strdup(nconf->dispatcher);
 			if (oconf->dispatcher == NULL) {
 				int saved_errno = errno;
-				audit_msg(LOG_NOTICE,
+				audit_msg(LOG_ERR,
 					"Could not allocate dispatcher memory"
 					" in reconfigure");
 				// Likely errors: ENOMEM
@@ -1341,7 +1375,7 @@ static void reconfigure(struct auditd_event *e)
 			}
 			if(init_dispatcher(oconf)) {// dispatcher & qos is used
 				int saved_errno = errno;
-				audit_msg(LOG_NOTICE,
+				audit_msg(LOG_WARNING,
 					"Could not start dispatcher %s"
 					" in reconfigure", oconf->dispatcher);
 				// Likely errors: Socketpairs or exec perms
@@ -1402,7 +1436,7 @@ static void reconfigure(struct auditd_event *e)
 		fix_disk_permissions();
 		if (open_audit_log()) {
 			int saved_errno = errno;
-			audit_msg(LOG_NOTICE, 
+			audit_msg(LOG_ERR, 
 				"Could not reopen a log after reconfigure");
 			logging_suspended = 1;
 			// Likely errors: ENOMEM, ENOSPC

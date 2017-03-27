@@ -1,7 +1,6 @@
 Things that need to be done:
 ===========================
 2.7.4
-* Space left reported to work once
 * non-equality comparisons for values other than \timestamp, \timestamp_ex and \record_type in ausearch-expression
 
 2.7.5

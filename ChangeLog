@@ -15,6 +15,7 @@
 - In auparse normalizer, find path record for file syscalls without cwd record
 - Update the syscall table to the 4.11 kernel
 - Fix auvirt time keywords to work properly (#1367703)
+- In auditd, if any action is exec, close and reopen the logging descriptor
 
 2.7.3
 - Add one more comma to ausearch csv output
