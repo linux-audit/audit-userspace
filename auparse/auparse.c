@@ -33,7 +33,9 @@
 #include <unistd.h>
 #include <stdio_ext.h>
 
-#if	LOL_EVENTS_DEBUG01
+//#define LOL_EVENTS_DEBUG01
+
+#ifdef LOL_EVENTS_DEBUG01
 static int debug = 0;
 #endif
 
@@ -320,7 +322,7 @@ static void au_terminate_all_events(auparse_state_t *au)
         }
 }
 
-#if	LOL_EVENTS_DEBUG01
+#ifdef	LOL_EVENTS_DEBUG01
 /*
  * print_list_t	- Print summary of event's records
  * Args:
@@ -1354,7 +1356,7 @@ static int au_auparse_next_event(auparse_state_t *au)
 	 * redress a singleton approach to event processing.
 	 */
 	if (au->au_lo->array == NULL && au->au_lo->maxi == -1) {
-#if	LOL_EVENTS_DEBUG01
+#ifdef	LOL_EVENTS_DEBUG01
 		if (debug) printf("Creating lol array\n");
 #endif	/* LOL_EVENTS_DEBUG01 */
 		au_lol_create(au->au_lo);
@@ -1367,7 +1369,7 @@ static int au_auparse_next_event(auparse_state_t *au)
 	for (i = 0; i <= au->au_lo->maxi; i++) {
 		au_lolnode *cur = &au->au_lo->array[i];
 		if (cur->status == EBS_EMPTY && cur->l) {
-#if	LOL_EVENTS_DEBUG01
+#ifdef	LOL_EVENTS_DEBUG01
 			if (debug) {printf("Freeing at start "); print_list_t(cur->l);}
 #endif	/* LOL_EVENTS_DEBUG01 */
 			aup_list_clear(cur->l);
@@ -1390,7 +1392,7 @@ static int au_auparse_next_event(auparse_state_t *au)
 		load_interpretation_list(r->interp);
 		aup_list_first_field(l);
 		au->le = l;
-#if	LOL_EVENTS_DEBUG01
+#ifdef	LOL_EVENTS_DEBUG01
 		if (debug) print_lol("upfront", au->au_lo);
 #endif	/* LOL_EVENTS_DEBUG01 */
 		return 1;
@@ -1402,7 +1404,7 @@ static int au_auparse_next_event(auparse_state_t *au)
 		for (i = 0; i <= au->au_lo->maxi; i++) {
 			au_lolnode *cur = &au->au_lo->array[i];
 			if (cur->status == EBS_EMPTY && cur->l) {
-#if	LOL_EVENTS_DEBUG01
+#ifdef	LOL_EVENTS_DEBUG01
 				if (debug) {printf("Freeing at loop"); print_list_t(cur->l);}
 #endif	/* LOL_EVENTS_DEBUG01 */
 				aup_list_clear(cur->l);
@@ -1412,11 +1414,11 @@ static int au_auparse_next_event(auparse_state_t *au)
 			}
 		}
 		rc = retrieve_next_line(au);
-#if	LOL_EVENTS_DEBUG01
+#ifdef	LOL_EVENTS_DEBUG01
 		if (debug) printf("next_line(%d) '%s'\n", rc, au->cur_buf);
 #endif	/* LOL_EVENTS_DEBUG01 */
 		if (rc == 0) {
-#if	LOL_EVENTS_DEBUG01
+#ifdef	LOL_EVENTS_DEBUG01
 			if (debug) printf("Empty line\n");
 #endif	/* LOL_EVENTS_DEBUG01 */
 			return 0;	/* NO data now */
@@ -1426,7 +1428,7 @@ static int au_auparse_next_event(auparse_state_t *au)
 			 * We are at EOF, so see if we have any accumulated
 			 * events.
 			 */
-#if	LOL_EVENTS_DEBUG01
+#ifdef	LOL_EVENTS_DEBUG01
 			if (debug) printf("EOF\n");
 #endif	/* LOL_EVENTS_DEBUG01 */
 			au_terminate_all_events(au);
@@ -1439,14 +1441,14 @@ static int au_auparse_next_event(auparse_state_t *au)
 				load_interpretation_list(r->interp);
 				aup_list_first_field(l);
 				au->le = l;
-#if	LOL_EVENTS_DEBUG01
+#ifdef	LOL_EVENTS_DEBUG01
 				if (debug) print_lol("eof termination",au->au_lo);
 #endif	/* LOL_EVENTS_DEBUG01 */
 				return 1;
 			}
 			return 0;
 		} else if (rc < 0) {
-#if	LOL_EVENTS_DEBUG01
+#ifdef	LOL_EVENTS_DEBUG01
 			/* Straight error */
 			if (debug) printf("Error %d\n", rc);
 #endif	/* LOL_EVENTS_DEBUG01 */
@@ -1454,7 +1456,7 @@ static int au_auparse_next_event(auparse_state_t *au)
 		}
 		/* So we got a successful read ie rc > 0 */
 		if (extract_timestamp(au->cur_buf, &e)) {
-#if	LOL_EVENTS_DEBUG01
+#ifdef	LOL_EVENTS_DEBUG01
 			if (debug) printf("Malformed line:%s\n", au->cur_buf);
 #endif	/* LOL_EVENTS_DEBUG01 */
 			continue;
@@ -1468,7 +1470,7 @@ static int au_auparse_next_event(auparse_state_t *au)
 			au_lolnode *cur = &au->au_lo->array[i];
 			if (cur->status == EBS_BUILDING) {
 				if (events_are_equal(&cur->l->e, &e)) {
-#if	LOL_EVENTS_DEBUG01
+#ifdef	LOL_EVENTS_DEBUG01
 					if (debug) printf("Adding event to building event\n");
 #endif	/* LOL_EVENTS_DEBUG01 */
 					aup_list_append(cur->l, au->cur_buf,
@@ -1476,7 +1478,7 @@ static int au_auparse_next_event(auparse_state_t *au)
 					au->cur_buf = NULL;
 					free((char *)e.host);
 					au_check_events(au,  e.sec);
-#if	LOL_EVENTS_DEBUG01
+#ifdef	LOL_EVENTS_DEBUG01
 					if (debug) print_lol("building",au->au_lo);
 #endif	/* LOL_EVENTS_DEBUG01 */
 					/* we built something, so break out */
@@ -1489,7 +1491,7 @@ static int au_auparse_next_event(auparse_state_t *au)
 			continue;
 
 		/* So create one */
-#if	LOL_EVENTS_DEBUG01
+#ifdef	LOL_EVENTS_DEBUG01
 		if (debug) printf("First record in new event, initialize event\n");
 #endif	/* LOL_EVENTS_DEBUG01 */
 		if ((l=(event_list_t *)malloc(sizeof(event_list_t))) == NULL) {
@@ -1499,7 +1501,7 @@ static int au_auparse_next_event(auparse_state_t *au)
 		aup_list_set_event(l, &e);
 		aup_list_append(l, au->cur_buf, au->list_idx, au->line_number);
 		if (au_lol_append(au->au_lo, l) == NULL) {
-#if	LOL_EVENTS_DEBUG01
+#ifdef	LOL_EVENTS_DEBUG01
 			if (debug) printf("error appending to lol\n");
 #endif	/* LOL_EVENTS_DEBUG01 */
 			return -1;
@@ -1516,7 +1518,7 @@ static int au_auparse_next_event(auparse_state_t *au)
 			load_interpretation_list(r->interp);
 			aup_list_first_field(l);
 			au->le = l;
-#if	LOL_EVENTS_DEBUG01
+#ifdef	LOL_EVENTS_DEBUG01
 			if (debug) print_lol("basic", au->au_lo);
 #endif	/* LOL_EVENTS_DEBUG01 */
 			return 1;
