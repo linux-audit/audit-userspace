@@ -130,6 +130,7 @@ error_out:
 
         t = time(NULL);
 	rc = read(fd, buf, sizeof(buf)-1);
+	close(fd);
 	if (rc > 0) {
 		struct tm *tv;
 		float f_uptime;
