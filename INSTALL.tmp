@@ -6,6 +6,6 @@ If you insist on doing it the hard way:
 make
 make install
 
-If you want to do this from a svn copy, precede the above with:
+If you want to do this from a git copy, precede the above with:
 ./autogen.sh
 
