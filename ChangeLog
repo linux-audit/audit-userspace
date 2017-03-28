@@ -1,3 +1,5 @@
+2.7.5
+
 2.7.4
 - Fix python3 byte compile for libaudit bindings
 - Add "boot" keyword to time parameters of ausearch/aureport
