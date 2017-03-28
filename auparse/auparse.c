@@ -33,7 +33,8 @@
 #include <unistd.h>
 #include <stdio_ext.h>
 
-//#define LOL_EVENTS_DEBUG01
+//#define LOL_EVENTS_DEBUG01	1	// add debug for list of list event
+					// processing
 
 #ifdef LOL_EVENTS_DEBUG01
 static int debug = 0;

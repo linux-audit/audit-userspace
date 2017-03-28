@@ -33,9 +33,6 @@
 /* This is what state the parser is in */
 typedef enum { EVENT_EMPTY, EVENT_ACCUMULATING, EVENT_EMITTED } auparser_state_t;
 
-#define LOL_EVENTS_DEBUG01      0       // add debug for list of list event
-                                        // processing
-
 /*
  * NOTES:
  * Auditd events are made up of one or more records. The auditd system cannot
