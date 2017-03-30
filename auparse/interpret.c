@@ -1143,6 +1143,9 @@ static const char *print_sockaddr(const char *val)
 					  str, n->nl_family, n->nl_pid);
                         }
                         break;
+		default:
+			rc = asprintf(&out, "{ fam=%s (unsupported) }", str);
+			break;
         }
 	if (rc < 0)
 		out = NULL;
@@ -2917,7 +2920,7 @@ char *auparse_do_interpretation(int type, const idata *id,
 			break;
         }
 
-	if (escape_mode != AUPARSE_ESC_RAW) {
+	if (escape_mode != AUPARSE_ESC_RAW && out) {
 		char *str = NULL;
 		unsigned int len = strlen(out);
 		if (type == AUPARSE_TYPE_ESCAPED_KEY) {
