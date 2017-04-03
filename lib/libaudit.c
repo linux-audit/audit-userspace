@@ -976,7 +976,7 @@ int audit_rule_interfield_comp_data(struct audit_rule_data **rulep,
 	struct audit_rule_data *rule = *rulep;
 
 	if (f == NULL)
-		return -1;
+		return -EAU_FILTERMISSING;
 
 	if (rule->field_count >= (AUDIT_MAX_FIELDS - 1))
 		return -EAU_FIELDTOOMANY;
@@ -1043,7 +1043,7 @@ int audit_rule_interfield_comp_data(struct audit_rule_data **rulep,
 						AUDIT_COMPARE_UID_TO_EUID;
 				break;
 			default:
-				return -1;
+				return -EAU_COMPINCOMPAT;
 			}
 			break;
 		case AUDIT_FSUID:
@@ -1069,7 +1069,7 @@ int audit_rule_interfield_comp_data(struct audit_rule_data **rulep,
 						AUDIT_COMPARE_UID_TO_FSUID;
 				break;
 			default:
-				return -1;
+				return -EAU_COMPINCOMPAT;
 			}
 			break;
 		case AUDIT_LOGINUID:
@@ -1095,7 +1095,7 @@ int audit_rule_interfield_comp_data(struct audit_rule_data **rulep,
 						AUDIT_COMPARE_UID_TO_AUID;
 				break;
 			default:
-				return -1;
+				return -EAU_COMPINCOMPAT;
 			}
 			break;
 		case AUDIT_SUID:
@@ -1121,7 +1121,7 @@ int audit_rule_interfield_comp_data(struct audit_rule_data **rulep,
 						AUDIT_COMPARE_UID_TO_SUID;
 				break;
 			default:
-				return -1;
+				return -EAU_COMPINCOMPAT;
 			}
 			break;
 		case AUDIT_OBJ_UID:
@@ -1147,7 +1147,7 @@ int audit_rule_interfield_comp_data(struct audit_rule_data **rulep,
 						AUDIT_COMPARE_SUID_TO_OBJ_UID;
 				break;
 			default:
-				return -1;
+				return -EAU_COMPINCOMPAT;
 			}
 			break;
 		case AUDIT_UID:
@@ -1173,7 +1173,7 @@ int audit_rule_interfield_comp_data(struct audit_rule_data **rulep,
 						AUDIT_COMPARE_UID_TO_SUID;
 				break;
 			default:
-				return -1;
+				return -EAU_COMPINCOMPAT;
 			}
 			break;
 
@@ -1197,7 +1197,7 @@ int audit_rule_interfield_comp_data(struct audit_rule_data **rulep,
 						AUDIT_COMPARE_EGID_TO_SGID;
 				break;
 			default:
-				return -1;
+				return -EAU_COMPINCOMPAT;
 			}
 			break;
 		case AUDIT_FSGID:
@@ -1219,7 +1219,7 @@ int audit_rule_interfield_comp_data(struct audit_rule_data **rulep,
 						 AUDIT_COMPARE_EGID_TO_FSGID;
 				break;
 			default:
-				return -1;
+				return -EAU_COMPINCOMPAT;
 			}
 			break;
 		case AUDIT_GID:
@@ -1241,7 +1241,7 @@ int audit_rule_interfield_comp_data(struct audit_rule_data **rulep,
 						AUDIT_COMPARE_GID_TO_SGID;
 				break;
 			default:
-				return -1;
+				return -EAU_COMPINCOMPAT;
 			}
 			break;
 		case AUDIT_OBJ_GID:
@@ -1263,7 +1263,7 @@ int audit_rule_interfield_comp_data(struct audit_rule_data **rulep,
 						AUDIT_COMPARE_SGID_TO_OBJ_GID;
 				break;
 			default:
-				return -1;
+				return -EAU_COMPINCOMPAT;
 			}
 			break;
 		case AUDIT_SGID:
@@ -1285,11 +1285,11 @@ int audit_rule_interfield_comp_data(struct audit_rule_data **rulep,
 						AUDIT_COMPARE_EGID_TO_SGID;
 				break;
 			default:
-				return -1;
+				return -EAU_COMPINCOMPAT;
 			}
 			break;
 		default:
-			return -1;
+			return -EAU_COMPINCOMPAT;
 			break;
 	}
 	rule->field_count++;
@@ -1389,7 +1389,7 @@ int audit_rule_fieldpair_data(struct audit_rule_data **rulep, const char *pair,
 	struct audit_rule_data *rule = *rulep;
 
 	if (f == NULL)
-		return -1;
+		return -EAU_FILTERMISSING;
 
 	if (rule->field_count >= (AUDIT_MAX_FIELDS - 1))
 		return -EAU_FIELDTOOMANY;

@@ -67,6 +67,8 @@ static const struct msg_tab err_msgtab[] = {
     { -29,    1,    "only takes = operator" },
     { -30,    2,    "Field option not supported by kernel:" },
     { -31,    1,    "must be used with exclude, user, or exit filter" },
+    { -32,    0,    "filter is missing from rule" },
+    { -33,    2,    "-C incompatible comparison" },
 };
 #define EAU_OPMISSING		1
 #define EAU_FIELDUNKNOWN	2
@@ -97,4 +99,6 @@ static const struct msg_tab err_msgtab[] = {
 #define EAU_OPEQ		29
 #define EAU_FIELDNOSUPPORT	30
 #define EAU_FIELDNOFILTER	31
+#define EAU_FILTERMISSING	32
+#define EAU_COMPINCOMPAT	33
 #endif
