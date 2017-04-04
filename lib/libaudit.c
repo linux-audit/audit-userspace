@@ -967,7 +967,8 @@ int audit_rule_syscallbyname_data(struct audit_rule_data *rule,
 
 int audit_rule_interfield_comp_data(struct audit_rule_data **rulep,
 					 const char *pair,
-					 int flags) {
+					 int flags)
+{
 	const char *f = pair;
 	char       *v;
 	int        op;
