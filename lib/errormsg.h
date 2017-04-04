@@ -44,7 +44,7 @@ static const struct msg_tab err_msgtab[] = {
     { -6,    1,    "requested bit level not supported by machine" },
     { -7,    1,    "can only be used with exit filter list" },
     { -8,    2,    "-F unknown message type -" },
-    { -9,    0,    "msgtype field can only be used with exclude filter list" },
+    { -9,    0,    "msgtype field can only be used with exclude or user filter list" },
     { -10,    0,    "Failed upgrading rule" },
     { -11,    0,    "String value too long" },
     { -12,    0,    "Only msgtype, *uid, *gid, pid, and subj* fields can be used with exclude filter" },
@@ -76,7 +76,7 @@ static const struct msg_tab err_msgtab[] = {
 #define EAU_ARCHNOBIT		6
 #define EAU_EXITONLY		7
 #define EAU_MSGTYPEUNKNOWN	8
-#define EAU_MSGTYPEEXCLUDE	9
+#define EAU_MSGTYPEEXCLUDEUSER	9
 #define EAU_UPGRADEFAIL		10
 #define EAU_STRTOOLONG		11
 #define EAU_MSGTYPECREDEXCLUDE	12

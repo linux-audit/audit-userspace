@@ -1516,7 +1516,7 @@ int audit_rule_fieldpair_data(struct audit_rule_data **rulep, const char *pair,
 			break;
 		case AUDIT_EXIT:
 			if (flags != AUDIT_FILTER_EXIT)
-				return -7;
+				return -EAU_EXITONLY;
 			vlen = strlen(v);
 			if (isdigit((char)*(v))) 
 				rule->values[rule->field_count] = 
@@ -1535,7 +1535,7 @@ int audit_rule_fieldpair_data(struct audit_rule_data **rulep, const char *pair,
 		case AUDIT_MSGTYPE:
 			if (flags != AUDIT_FILTER_EXCLUDE &&
 					flags != AUDIT_FILTER_USER)
-				return -EAU_MSGTYPEEXCLUDE;
+				return -EAU_MSGTYPEEXCLUDEUSER;
 
 			if (isdigit((char)*(v)))
 				rule->values[rule->field_count] =
@@ -1639,7 +1639,7 @@ int audit_rule_fieldpair_data(struct audit_rule_data **rulep, const char *pair,
 			if (flags != AUDIT_FILTER_EXIT)
 				return -EAU_EXITONLY;
 			else if (op != AUDIT_EQUAL)
-				return -EAU_OPEQNOTEQ;
+				return -EAU_OPEQ;
 			else {
 				unsigned int i, len, val = 0;
 
@@ -1670,7 +1670,7 @@ int audit_rule_fieldpair_data(struct audit_rule_data **rulep, const char *pair,
 			break;
 		case AUDIT_FILETYPE:
 			if (!(flags == AUDIT_FILTER_EXIT))
-				return -EAU_EXITENTRYONLY;
+				return -EAU_EXITONLY;
 			rule->values[rule->field_count] = 
 				audit_name_to_ftype(v);
 			if ((int)rule->values[rule->field_count] < 0) {
@@ -1722,7 +1722,7 @@ int audit_rule_fieldpair_data(struct audit_rule_data **rulep, const char *pair,
 			}
 
 			if (field == AUDIT_PPID && !(flags==AUDIT_FILTER_EXIT))
-				return -EAU_EXITENTRYONLY;
+				return -EAU_EXITONLY;
 			
 			if (!isdigit((char)*(v)))
 				return -EAU_FIELDVALNUM;
