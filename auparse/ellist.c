@@ -200,10 +200,13 @@ static int parse_up_record(rnode* r)
 			// Do some info gathering for use later
 			if (r->nv.cnt == 1 && strcmp(n.name, "node") == 0)
 				offset = 1; // if node, some positions changes
+				// This has to account for seccomp records
 			else if (r->nv.cnt == (1 + offset) &&
 					strcmp(n.name, "type") == 0) {
 				r->type = audit_name_to_msg_type(n.val);
-			} else if (r->nv.cnt == (2 + offset) && 
+				// This has to account for seccomp records
+			} else if ((r->nv.cnt == (2 + offset) ||
+					r->nv.cnt == (11 + offset)) && 
 					strcmp(n.name, "arch")== 0){
 				unsigned int ival;
 				errno = 0;
@@ -212,7 +215,8 @@ static int parse_up_record(rnode* r)
 					r->machine = -2;
 				else
 					r->machine = audit_elf_to_machine(ival);
-			} else if (r->nv.cnt == (3 + offset) &&
+			} else if ((r->nv.cnt == (3 + offset) ||
+					r->nv.cnt == (12 + offset)) &&
 					strcmp(n.name, "syscall") == 0){
 				errno = 0;
 				r->syscall = strtoul(n.val, NULL, 10);
