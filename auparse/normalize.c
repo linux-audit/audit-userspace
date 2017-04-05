@@ -705,6 +705,9 @@ static const char *normalize_determine_evkind(int type)
 		case AUDIT_FEATURE_CHANGE ... AUDIT_REPLACE:
 			kind = NORM_EVTYPE_CONFIG;
 			break;
+		case AUDIT_SECCOMP:
+			kind = NORM_EVTYPE_DAC_DECISION;
+			break;
 		case AUDIT_CHGRP_ID ... AUDIT_TRUSTED_APP:
 		case AUDIT_USER_CMD:
 		case AUDIT_CHUSER_ID:
