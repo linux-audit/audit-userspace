@@ -1,3 +1,5 @@
+2.7.6
+
 2.7.5
 - In auparse, output socket family name if unsupported but known
 - In auparse, store arch & syscall fields in SECCOMP records for interpretation
