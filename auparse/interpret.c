@@ -2794,6 +2794,11 @@ char *auparse_do_interpretation(int type, const idata *id,
 			const char *val = il.cur->interp_val;
 
 			if (val) {
+				// If we don't know what it is when auditd
+				// recorded it, try it again incase the
+				// libraries have been updated to support it.
+				if (strncmp(val, "unknown-", 8 ) == 0)
+					goto unknown; 
 				if (type == AUPARSE_TYPE_UID ||
 						type == AUPARSE_TYPE_GID)
 					return print_escaped(val);
@@ -2802,6 +2807,7 @@ char *auparse_do_interpretation(int type, const idata *id,
 			}
 		}
 	}
+unknown:
 
 	switch(type) {
 		case AUPARSE_TYPE_UID:
