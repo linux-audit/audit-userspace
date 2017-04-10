@@ -30,7 +30,9 @@ Set failure mode
 Help
 .TP
 .B \-i
-Ignore errors when reading rules from a file. This causes auditctl to always return a success exit code.
+When given by itself, ignore errors when reading rules from a file. This causes auditctl to always return a success exit code. If passed as an argument to
+.B \-s
+then it gives an interpretation of the numbers to human readable words if possible.
 .TP
 .BI \-\-loginuid-immutable
 This option tells the kernel to make loginuids unchangeable once they are set. Changing loginuids requires CAP_AUDIT_CONTROL. So, its not something that can be done by unprivileged users. Setting this makes loginuid tamper-proof, but can cause some problems in certain kinds of containers.
