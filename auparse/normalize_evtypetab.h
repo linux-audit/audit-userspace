@@ -39,4 +39,5 @@ _S(NORM_EVTYPE_CRYPTO,		"crypto"	)
 _S(NORM_EVTYPE_VIRT,		"virt"		)
 _S(NORM_EVTYPE_AUDIT_RULE,	"audit-rule"	)
 _S(NORM_EVTYPE_DAC_DECISION,	"dac-decision"	)
+_S(NORM_EVTYPE_GROUP_CHANGE,	"group-change"	)
 

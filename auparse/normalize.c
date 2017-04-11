@@ -687,9 +687,11 @@ static const char *normalize_determine_evkind(int type)
 		case AUDIT_USER_AUTH ... AUDIT_USER_END:
 		case AUDIT_USER_CHAUTHTOK ... AUDIT_CRED_REFR:
 		case AUDIT_USER_LOGIN ... AUDIT_USER_LOGOUT:
-		case AUDIT_GRP_AUTH:
 		case AUDIT_LOGIN:
 			kind = NORM_EVTYPE_USER_LOGIN;
+			break;
+		case AUDIT_GRP_AUTH:
+			kind = NORM_EVTYPE_GROUP_CHANGE;
 			break;
 		case AUDIT_ADD_USER ...AUDIT_DEL_GROUP:
 		case AUDIT_GRP_MGMT ... AUDIT_GRP_CHAUTHTOK:
