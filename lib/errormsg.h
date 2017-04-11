@@ -68,4 +68,33 @@ static const struct msg_tab err_msgtab[] = {
     { -30,    2,    "Field option not supported by kernel:" },
     { -31,    1,    "must be used with exclude, user, or exit filter" },
 };
+#define EAU_OPMISSING		1
+#define EAU_FIELDUNKNOWN	2
+#define EAU_ARCHMISPLACED	3
+#define EAU_ARCHUNKNOWN		4
+#define EAU_ELFUNKNOWN		5
+#define EAU_ARCHNOBIT		6
+#define EAU_EXITONLY		7
+#define EAU_MSGTYPEUNKNOWN	8
+#define EAU_MSGTYPEEXCLUDE	9
+#define EAU_UPGRADEFAIL		10
+#define EAU_STRTOOLONG		11
+#define EAU_MSGTYPECREDEXCLUDE	12
+#define EAU_OPEQNOTEQ		13
+#define EAU_PERMRWXA		14
+#define EAU_ERRUNKNOWN		15
+#define EAU_FILETYPEUNKNOWN	16
+#define EAU_EXITENTRYONLY	17
+#define EAU_KEYDEP		19
+#define EAU_FIELDVALMISSING	20
+#define EAU_FIELDVALNUM		21
+#define EAU_FIELDNAME		22
+#define EAU_COMPFIELDNAME	24
+#define EAU_COMPVAL		25
+#define EAU_COMPFIELDUNKNOWN	26
+#define EAU_COMPVALUNKNOWN	27
+#define EAU_FIELDTOOMANY	28
+#define EAU_OPEQ		29
+#define EAU_FIELDNOSUPPORT	30
+#define EAU_FIELDNOFILTER	31
 #endif
