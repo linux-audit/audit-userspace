@@ -1155,20 +1155,18 @@ static int normalize_simple(auparse_state_t *au)
 					D.action = strdup("deleted-audit-rule");
 					D.thing.primary =
 						find_simple_object(au, type);
-				} else {
-					act = normalize_record_map_i2s(type);
-					if (act)
-						D.action = strdup(act);
-					else
-						goto map;
-				}
+				} else
+					goto map;
 			} else
 				goto map;
-		} else {
+		} else { // This assigns action for feature_change, seccomp,
+			 // and anom_abend
 map:
 			act = normalize_record_map_i2s(type);
 			if (act)
 				D.action = strdup(act);
+			if (type == AUDIT_CONFIG_CHANGE)
+				D.thing.primary = find_simple_object(au, type);
 			auparse_first_record(au);
 		}
 
