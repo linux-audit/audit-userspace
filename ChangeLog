@@ -3,6 +3,7 @@
 - In auparse_normalize, move GRP_AUTH to its own event kind, group-change
 - In auparse_normalize, assign obj_kind values for some group events
 - In auparse_normalize, assign obj_kind values to some MAC events
+- In auparse_normalize, try harder to find object for CONFIG_CHANGE events
 
 2.7.5
 - In auparse, output socket family name if unsupported but known

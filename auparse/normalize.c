@@ -983,6 +983,24 @@ static value_t find_simple_object(auparse_state_t *au, int type)
 			break;
 		case AUDIT_CONFIG_CHANGE:
 			f = auparse_find_field(au, "key");
+			if (f == NULL) {
+				auparse_first_record(au);
+				f = auparse_find_field(au, "audit_enabled");
+				if (f == NULL) {
+					auparse_first_record(au);
+					f = auparse_find_field(au, "audit_pid");
+					if (f == NULL) {
+						auparse_first_record(au);
+						f = auparse_find_field(au,
+							"audit_backlog_limit");
+						if (f == NULL) {
+						    auparse_first_record(au);
+						    f = auparse_find_field(au,
+							"audit_failure");
+						}
+					}
+				}
+			}
 			D.thing.what = NORM_WHAT_AUDIT_CONFIG;
 			break;
 		case AUDIT_MAC_CONFIG_CHANGE:
