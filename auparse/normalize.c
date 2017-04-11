@@ -691,6 +691,7 @@ static const char *normalize_determine_evkind(int type)
 			kind = NORM_EVTYPE_USER_LOGIN;
 			break;
 		case AUDIT_GRP_AUTH:
+		case AUDIT_CHGRP_ID:
 			kind = NORM_EVTYPE_GROUP_CHANGE;
 			break;
 		case AUDIT_ADD_USER ...AUDIT_DEL_GROUP:
@@ -711,7 +712,7 @@ static const char *normalize_determine_evkind(int type)
 		case AUDIT_SECCOMP:
 			kind = NORM_EVTYPE_DAC_DECISION;
 			break;
-		case AUDIT_CHGRP_ID ... AUDIT_TRUSTED_APP:
+		case AUDIT_TEST ... AUDIT_TRUSTED_APP:
 		case AUDIT_USER_CMD:
 		case AUDIT_CHUSER_ID:
 			kind = NORM_EVTYPE_USERSPACE;
@@ -925,6 +926,7 @@ static value_t find_simple_object(auparse_state_t *au, int type)
 		case AUDIT_DEL_USER:
 		case AUDIT_ADD_GROUP:
 		case AUDIT_DEL_GROUP:
+		case AUDIT_GRP_MGMT:
 			f = auparse_find_field(au, "id");
 			if (f == NULL) {
 				auparse_first_record(au);
@@ -950,6 +952,7 @@ static value_t find_simple_object(auparse_state_t *au, int type)
 		case AUDIT_CRED_REFR:
 		case AUDIT_CRED_DISP:
 		case AUDIT_USER_CHAUTHTOK:
+		case AUDIT_GRP_CHAUTHTOK:
 		case AUDIT_ANOM_LOGIN_FAILURES:
 		case AUDIT_ANOM_LOGIN_TIME:
 		case AUDIT_ANOM_LOGIN_SESSIONS:

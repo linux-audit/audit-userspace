@@ -1,6 +1,7 @@
 2.7.6
 - In auparse_nomalize, assign user-login as the event kind for AUDIT_LOGIN
 - In auparse_normalize, move GRP_AUTH to its own event kind, group-change
+- In auparse_normalize, assign obj_kind values for some group events
 
 2.7.5
 - In auparse, output socket family name if unsupported but known
