@@ -993,8 +993,15 @@ static value_t find_simple_object(auparse_state_t *au, int type)
 			f = auparse_find_field(au, "enforcing");
 			D.thing.what = NORM_WHAT_MAC_CONFIG;
 			break;
+		// These deal with policy, not sure about object yet
+		case AUDIT_MAC_POLICY_LOAD:
+		case AUDIT_LABEL_OVERRIDE:
+		case AUDIT_DEV_ALLOC ... AUDIT_USER_MAC_CONFIG_CHANGE:
+			D.thing.what = NORM_WHAT_MAC_CONFIG;
+			break;
 		case AUDIT_USER:
 			f = auparse_find_field(au, "addr");
+			// D.thing.what = NORM_WHAT_?
 			break;
 		case AUDIT_USYS_CONFIG:
 			f = auparse_find_field(au, "op");
