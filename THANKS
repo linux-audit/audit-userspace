@@ -15,4 +15,4 @@ to this project.
 * DJ Delorie of Red Hat for the remote logging code
 * Marcelo Cerri of IBM for the auvirt program
 * Peter Moody of Google for the interfield comparator code
-* Burn Alting for the augenrules code
+* Burn Alting for the augenrules code and the auparse list of lists conversion
