@@ -937,12 +937,9 @@ static value_t find_simple_object(auparse_state_t *au, int type)
 		case AUDIT_USER_START:
 		case AUDIT_USER_END:
 		case AUDIT_USER_ERR:
-			f = auparse_find_field(au, "terminal");
-			D.thing.what = NORM_WHAT_USER_SESSION;
-			break;
 		case AUDIT_USER_LOGIN:
 		case AUDIT_USER_LOGOUT:
-			f = auparse_find_field(au, "exe");
+			f = auparse_find_field(au, "terminal");
 			D.thing.what = NORM_WHAT_USER_SESSION;
 			break;
 		case AUDIT_USER_AUTH:
@@ -1061,10 +1058,6 @@ static value_t find_simple_obj_secondary(auparse_state_t *au, int type)
 	auparse_first_field(au);
 	switch (type)
 	{
-		case AUDIT_USER_LOGIN:
-		case AUDIT_USER_LOGOUT:
-			f = auparse_find_field(au, "terminal");
-			break;
 		case AUDIT_VIRT_CONTROL:
 			f = auparse_find_field(au, "vm");
 			break;
