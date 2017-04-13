@@ -4,7 +4,7 @@
 - In auparse_normalize, assign obj_kind values for some group events
 - In auparse_normalize, assign obj_kind values to some MAC events
 - In auparse_normalize, try harder to find object for CONFIG_CHANGE events
-- In auparse_normalize, correct selection of the primary subject field
+- In auparse_normalize, correct the primary subject field for USER_LOGIN events
 
 2.7.5
 - In auparse, output socket family name if unsupported but known
