@@ -1329,13 +1329,23 @@ map:
 	// This is for events that follow:
 	// uid, auid, ses, res, find_simple_object
 	//
-	// Subject - alias, uid comes before auid
-	if (set_secondary_subject(au, "uid", 0))
+	// USER_LOGIN is different in locating the subject because if they
+	// fail login, they are not quite in the system to have an auid.
+	if (type == AUDIT_USER_LOGIN) {
+		// Subject - primary
+		if (set_prime_subject(au, "id", 0)) {
+			auparse_first_record(au);
+			set_prime_subject(au, "acct", 0);
+		}
 		auparse_first_record(au);
+	} else {
+		// Subject - alias, uid comes before auid
+		if (set_secondary_subject(au, "uid", 0))
+			auparse_first_record(au);
 
-	// Subject - primary
-	set_prime_subject(au, "auid", 0);
-
+		// Subject - primary
+		set_prime_subject(au, "auid", 0);
+	}
 	// Session
 	add_session(au, 0);
 
