@@ -2532,8 +2532,13 @@ static const char *print_list(const char *val)
 	if (errno) { 
 		if (asprintf(&out, "conversion error(%s)", val) < 0)
 			out = NULL;
-	} else
-		out = strdup(audit_flag_to_name(i));
+	} else {
+		char *o = audit_flag_to_name(i);
+		if (o != NULL)
+			out = strdup(o);
+		else if (asprintf(&out, "unknown-list(%s)", val) < 0)
+			out = NULL;
+	}
 	return out;
 }
 
