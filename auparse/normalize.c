@@ -417,7 +417,8 @@ static int normalize_syscall(auparse_state_t *au, const char *syscall, int type)
 		rc = auparse_next_record(au);
 	}
 
-	// lookup system call
+	// lookup system call - it can be NULL if interpret_field failed. In
+	// that case, the s2i call will fail and leave objtype untouched
 	if (objtype == NORM_UNKNOWN)
 		normalize_syscall_map_s2i(syscall, &objtype);
 

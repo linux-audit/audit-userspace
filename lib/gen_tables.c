@@ -224,6 +224,8 @@ output_s2i(const char *prefix, bool uppercase, bool lowercase)
 	if (uppercase || lowercase) {
 		printf("static int %s_s2i(const char *s, int *value) {\n"
 		       "\tsize_t len, i;\n"
+		       "\t if (s == NULL || value == NULL)\n"
+		       "\t\treturn 0;\n"
 		       "\tlen = strlen(s);\n"
 		       "\t{ char copy[len + 1];\n"
 		       "\tfor (i = 0; i < len; i++) {\n"
