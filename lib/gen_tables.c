@@ -54,6 +54,7 @@
 #define SHMDT           22
 #define SHMGET          23
 #define SHMCTL          24
+#define DIPC            25
 
 /*
  * Defines EHWPOISON to the value found in uapi/asm-generic/errno.h,
