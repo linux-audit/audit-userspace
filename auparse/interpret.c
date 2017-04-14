@@ -318,7 +318,7 @@ static int is_hex_string(const char *str)
 /* returns a freshly malloc'ed and converted buffer */
 char *au_unescape(char *buf)
 {
-        int len, i;
+        int olen, len, i;
         char saved, *str, *ptr = buf;
 
         /* Find the end of the name */
@@ -332,9 +332,17 @@ char *au_unescape(char *buf)
                 while (isxdigit(*ptr))
                         ptr++;
         }
+	// Make the buffer based on size of original buffer.
+	// This is in case we have unexpected non-hex digit
+	// that causes truncation of the conversion and passes
+	// back a buffer that is not sized on the expectation of
+	// strlen(buf) / 2.
+	olen = strlen(buf);
+	str = malloc(olen+1);
+
         saved = *ptr;
         *ptr = 0;
-        str = strdup(buf);
+	strcpy(str, buf);
         *ptr = saved;
 
 	/* See if its '(null)' from the kernel */
@@ -355,6 +363,11 @@ char *au_unescape(char *buf)
                 ptr++;
         }
         *ptr = 0;
+	len = ptr - str - 1;
+	olen /= 2;
+	// Because *ptr is 0, writing another 0 to it doesn't hurt anything
+	if (olen > len)
+		memset(ptr, 0, olen - len);
         return str;
 }
 
@@ -803,6 +816,9 @@ static const char *print_proctitle(const char *val)
 		size_t len = strlen(val) / 2;
 		const char *end = out + len;
 		char *ptr = out;
+		// Proctitle has arguments separated by NUL bytes
+		// We need to write over the NUL bytes with a space
+		// so that we can see the arguments
 		while ((ptr  = rawmemchr(ptr, '\0'))) {
 			if (ptr >= end)
 				break;
