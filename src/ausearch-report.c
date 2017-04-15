@@ -224,7 +224,10 @@ no_print:
 		return;
 	*str++ = 0;
 	btm = localtime(&e->sec);
-	strftime(tmp, sizeof(tmp), "%x %T", btm);
+	if (btm)
+		strftime(tmp, sizeof(tmp), "%x %T", btm);
+	else
+		strcpy(tmp, "?");
 	printf("%s", tmp);
 	printf(".%03d:%lu) ", e->milli, e->serial);
 

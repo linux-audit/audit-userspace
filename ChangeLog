@@ -9,6 +9,7 @@
 - Make string lookup tables more robust against bad input
 - In auparse, make printing lists more robust against bad input
 - In auparse, make unescaping more robust against bad input
+- Make ausearch a little more robust to bad input
 
 2.7.5
 - In auparse, output socket family name if unsupported but known
