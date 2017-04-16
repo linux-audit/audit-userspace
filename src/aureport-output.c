@@ -490,7 +490,10 @@ void print_per_event_item(llist *l)
 
 	// The beginning is common to all reports
 	tv = localtime(&l->e.sec);
-	strftime(date, sizeof(date), "%x %T", tv);
+	if (tv)
+		strftime(date, sizeof(date), "%x %T", tv);
+	else
+		strcpy(date, "?");
 	if (report_type != RPT_AVC) {
 		line_item++;
 		printf("%u. %s ", line_item, date);
@@ -858,10 +861,16 @@ static void do_summary_output(void)
 		char tmp[48];
 
 		btm = localtime(&very_first_event.sec);
-		strftime(tmp, sizeof(tmp), "%x %T", btm);
+		if (btm)
+			strftime(tmp, sizeof(tmp), "%x %T", btm);
+		else
+			strcpy(tmp, "?");
 		printf("%s.%03d - ", tmp, very_first_event.milli);
 		btm = localtime(&very_last_event.sec);
-		strftime(tmp, sizeof(tmp), "%x %T", btm);
+		if (btm)
+			strftime(tmp, sizeof(tmp), "%x %T", btm);
+		else
+			strcpy(tmp, "?");
 		printf("%s.%03d\n", tmp, very_last_event.milli);
 	}
 	printf("Selected time for report: ");
@@ -873,13 +882,19 @@ static void do_summary_output(void)
 			btm = localtime(&start_time);
 		else
 			btm = localtime(&very_first_event.sec);
-		strftime(tmp, sizeof(tmp), "%x %T", btm);
+		if (btm)
+			strftime(tmp, sizeof(tmp), "%x %T", btm);
+		else
+			strcpy(tmp, "?");
 		printf("%s - ", tmp);
 		if (end_time) 
 			btm = localtime(&end_time);
 		else 
 			btm = localtime(&very_last_event.sec);
-		strftime(tmp, sizeof(tmp), "%x %T", btm);
+		if (btm)
+			strftime(tmp, sizeof(tmp), "%x %T", btm);
+		else
+			strcpy(tmp, "?");
 		if (end_time) 
 			printf("%s\n", tmp);
 		else 
