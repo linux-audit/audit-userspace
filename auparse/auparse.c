@@ -1109,7 +1109,7 @@ static int extract_timestamp(const char *b, au_event_t *e)
 		// Optionally grab the node - may or may not be included
 		if (*ptr == 'n') {
 			e->host = strdup(ptr+5);
-			(void)audit_strsplit(NULL); // Bump along to the next one
+			(void)audit_strsplit(NULL);// Bump along to next one
 		}
 		// at this point we have type=
 		ptr = audit_strsplit(NULL);
@@ -1128,16 +1128,14 @@ static int extract_timestamp(const char *b, au_event_t *e)
 
 				if (str2event(ptr, e) == 0)
 					rc = 0;
-//				else {
-//					audit_msg(LOG_ERROR,
-//					  "Error extracting time stamp (%s)\n",
-//						ptr);
-//				}
 			}
 			// else we have a bad line
 		}
 		// else we have a bad line
 	}
+	if (rc)
+		free(e->host);
+
 	// else we have a bad line
 	return rc;
 }
@@ -1496,12 +1494,14 @@ static int au_auparse_next_event(auparse_state_t *au)
 		if (debug) printf("First record in new event, initialize event\n");
 #endif	/* LOL_EVENTS_DEBUG01 */
 		if ((l=(event_list_t *)malloc(sizeof(event_list_t))) == NULL) {
+			free((char *)e.host);
 			return -1;
 		}
 		aup_list_create(l);
 		aup_list_set_event(l, &e);
 		aup_list_append(l, au->cur_buf, au->list_idx, au->line_number);
 		if (au_lol_append(au->au_lo, l) == NULL) {
+			free((char *)e.host);
 #ifdef	LOL_EVENTS_DEBUG01
 			if (debug) printf("error appending to lol\n");
 #endif	/* LOL_EVENTS_DEBUG01 */

@@ -10,6 +10,7 @@
 - In auparse, make printing lists more robust against bad input
 - In auparse, make unescaping more robust against bad input
 - Make ausearch a little more robust to bad input
+- Fix a memory leak in auparse when extracting a buggy date
 
 2.7.5
 - In auparse, output socket family name if unsupported but known
