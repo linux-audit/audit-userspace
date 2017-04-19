@@ -13,6 +13,7 @@
 - Fix a memory leak in auparse when extracting a buggy date
 - In ausearch --format mode, load interpretations for enriched events
 - In auparse, load interpretations for feed events
+- In audisp-remote, check for stop if stdin is a pipe (#1443107)
 
 2.7.5
 - In auparse, output socket family name if unsupported but known

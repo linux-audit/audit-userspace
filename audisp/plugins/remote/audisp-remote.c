@@ -602,7 +602,8 @@ int main(int argc, char *argv[])
 
 	// If stdin is a pipe, then flush the queue
 	if (is_pipe(0)) {
-		while (q_queue_length(queue) && !suspend && transport_ok)
+		while (q_queue_length(queue) && !suspend && !stop &&
+					transport_ok)
 			send_one(queue);
 	}
 
