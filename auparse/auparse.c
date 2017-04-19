@@ -579,9 +579,14 @@ static void consume_feed(auparse_state_t *au, int flush)
 		//if (debug) printf("terminate all events in flush\n");
 		au_terminate_all_events(au);
 		while ((l = au_get_ready_event(au, 0)) != NULL) {
+			rnode *r;
 			au->le = l;  // make this current the event of interest
 			aup_list_first(l);
+			r = aup_list_get_cur(l);
+			free_interpretation_list();
+			load_interpretation_list(r->interp);
 			aup_list_first_field(l);
+
 			if (au->callback) {
 				(*au->callback)(au, AUPARSE_CB_EVENT_READY,
 					au->callback_user_data);
