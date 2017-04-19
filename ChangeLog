@@ -1,3 +1,5 @@
+2.7.7
+
 2.7.6
 - In auparse_nomalize, assign user-login as the event kind for AUDIT_LOGIN
 - In auparse_normalize, move GRP_AUTH to its own event kind, group-change
