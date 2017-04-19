@@ -446,32 +446,39 @@ static void csv_event(auparse_state_t *au,
 			extra_labels ? NORM_OPT_ALL : NORM_OPT_NO_ATTRS);
 
 	//DATE
-	strftime(tmp, sizeof(tmp), "%x", tv);
+	if (tv)
+		strftime(tmp, sizeof(tmp), "%x", tv);
 	printf("%s,", tmp);
 
 	// TIME
-	strftime(tmp, sizeof(tmp), "%T", tv);
+	if (tv)
+		strftime(tmp, sizeof(tmp), "%T", tv);
 	printf("%s,", tmp);
 
 	if (extra_time) {
 		// YEAR
-		strftime(tmp, sizeof(tmp), "%Y", tv);
+		if (tv)
+			strftime(tmp, sizeof(tmp), "%Y", tv);
 		printf("%s,", tmp);
 
 		// MONTH
-		strftime(tmp, sizeof(tmp), "%m", tv);
+		if (tv)
+			strftime(tmp, sizeof(tmp), "%m", tv);
 		printf("%s,", tmp);
 
 		// DAY
-		strftime(tmp, sizeof(tmp), "%d", tv);
+		if (tv)
+			strftime(tmp, sizeof(tmp), "%d", tv);
 		printf("%s,", tmp);
 
 		// WEEKDAY
-		strftime(tmp, sizeof(tmp), "%u", tv);
+		if (tv)
+			strftime(tmp, sizeof(tmp), "%u", tv);
 		printf("%s,", tmp);
 
 		// HOUR
-		strftime(tmp, sizeof(tmp), "%k", tv);
+		if (tv)
+			strftime(tmp, sizeof(tmp), "%k", tv);
 		printf("%s,", tmp);
 		char sign = tv->tm_gmtoff >= 0 ? '+' : '-';
 		unsigned long total = labs(tv->tm_gmtoff);
@@ -616,7 +623,10 @@ static void text_event(auparse_state_t *au,
         time_t t = auparse_get_time(au);
         struct tm *tv = localtime(&t);
 
-	strftime(tmp, sizeof(tmp), "%T %x", tv);
+	if (tv)
+		strftime(tmp, sizeof(tmp), "%T %x", tv);
+	else
+		strcpy(tmp, "?");
 	type = auparse_get_type(au);
 	auparse_normalize(au, NORM_OPT_NO_ATTRS);
 	item = auparse_get_node(au);
