@@ -446,45 +446,62 @@ static void csv_event(auparse_state_t *au,
 			extra_labels ? NORM_OPT_ALL : NORM_OPT_NO_ATTRS);
 
 	//DATE
-	if (tv)
+	if (tv) {
 		strftime(tmp, sizeof(tmp), "%x", tv);
-	printf("%s,", tmp);
+		printf("%s", tmp);
+	}
+	putchar(',');
 
 	// TIME
-	if (tv)
+	if (tv) {
 		strftime(tmp, sizeof(tmp), "%T", tv);
-	printf("%s,", tmp);
+		printf("%s", tmp);
+	}
+	putchar(',');
 
 	if (extra_time) {
 		// YEAR
-		if (tv)
+		if (tv) {
 			strftime(tmp, sizeof(tmp), "%Y", tv);
-		printf("%s,", tmp);
+			printf("%s", tmp);
+		}
+		putchar(',');
 
 		// MONTH
-		if (tv)
+		if (tv) {
 			strftime(tmp, sizeof(tmp), "%m", tv);
-		printf("%s,", tmp);
+			printf("%s", tmp);
+		}
+		putchar(',');
 
 		// DAY
-		if (tv)
+		if (tv) {
 			strftime(tmp, sizeof(tmp), "%d", tv);
-		printf("%s,", tmp);
+			printf("%s", tmp);
+		}
+		putchar(',');
 
 		// WEEKDAY
-		if (tv)
+		if (tv) {
 			strftime(tmp, sizeof(tmp), "%u", tv);
-		printf("%s,", tmp);
+			printf("%s", tmp);
+		}
+		putchar(',');
 
 		// HOUR
-		if (tv)
+		if (tv) {
 			strftime(tmp, sizeof(tmp), "%k", tv);
-		printf("%s,", tmp);
-		char sign = tv->tm_gmtoff >= 0 ? '+' : '-';
-		unsigned long total = labs(tv->tm_gmtoff);
-		unsigned long hour = total/3600;
-		unsigned long min = (total - (hour * 3600))%60;
-		printf("%c%02lu:%02lu,", sign, hour, min);
+			printf("%s", tmp);
+		}
+		putchar(',');
+		if (tv) {
+			char sign = tv->tm_gmtoff >= 0 ? '+' : '-';
+			unsigned long total = labs(tv->tm_gmtoff);
+			unsigned long hour = total/3600;
+			unsigned long min = (total - (hour * 3600))%60;
+			printf("%c%02lu:%02lu", sign, hour, min);
+		}
+		putchar(',');
 	}
 
 	// SERIAL_NUMBER
