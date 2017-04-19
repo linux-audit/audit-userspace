@@ -114,6 +114,7 @@ void list_append(llist *l, lnode *node)
 
 	newnode->interp = node->interp;
 	newnode->mlen = node->mlen;
+	newnode->tlen = node->tlen;
 	newnode->type = node->type;
 	newnode->a0 = node->a0;
 	newnode->a1 = node->a1;

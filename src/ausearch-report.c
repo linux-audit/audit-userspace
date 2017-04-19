@@ -705,10 +705,13 @@ static void feed_auparse(llist *l, auparse_callback_ptr callback)
 	do {
 		// Records need to be terminated by a newline
 		// Temporarily replace it.
-		char tmp = n->message[n->mlen];
-		n->message[n->mlen] = '\n';
-		auparse_feed(au, n->message, n->mlen+1);
-		n->message[n->mlen] = tmp;
+		if (l->fmt == LF_ENRICHED)
+			n->message[n->mlen] = AUDIT_INTERP_SEPARATOR;
+		n->message[n->tlen] = 0x0a;
+		auparse_feed(au, n->message, n->tlen+1);
+		if (l->fmt == LF_ENRICHED)
+			n->message[n->mlen] = 0;
+		n->message[n->tlen] = 0;
 	} while ((n=list_next(l)));
 
 	auparse_flush_feed(au);

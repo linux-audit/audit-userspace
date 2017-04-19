@@ -78,7 +78,8 @@ typedef struct
 typedef struct _lnode{
   char *message;		// The whole unparsed message
   char *interp;			// Beginning of interpretations within message
-  unsigned int mlen;		// Length of the message
+  unsigned int mlen;		// Length of the message up to separator
+  unsigned int tlen;		// Total message size
   int type;			// message type (KERNEL, USER, LOGIN, etc)
   unsigned long long a0;	// argv 0
   unsigned long long a1;	// argv 1

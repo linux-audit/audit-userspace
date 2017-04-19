@@ -231,23 +231,32 @@ int lol_add_record(lol *lo, char *buff)
 	n.message = strdup(buff);
 	ptr = strchr(n.message, AUDIT_INTERP_SEPARATOR);
 	if (ptr) {
-		n.interp = ptr;
 		n.mlen = ptr - n.message;
+		if (n.mlen > MAX_AUDIT_MESSAGE_LENGTH)
+			n.mlen = MAX_AUDIT_MESSAGE_LENGTH;
 		*ptr = 0;
 		n.interp = ptr + 1;
 		// since we are most of the way down the string, scan from there
 		ptr = strrchr(n.interp, 0x0a);
-		if (ptr)
+		if (ptr) {
 			*ptr = 0;
+			n.tlen = ptr - n.message;
+			if (n.tlen > MAX_AUDIT_MESSAGE_LENGTH)
+				n.tlen = MAX_AUDIT_MESSAGE_LENGTH;
+		} else
+			n.tlen = MAX_AUDIT_MESSAGE_LENGTH;
 		fmt = LF_ENRICHED;
 	} else {
 		ptr = strrchr(n.message, 0x0a);
 		if (ptr) {
 			*ptr = 0;
 			n.mlen = ptr - n.message;
+			if (n.mlen > MAX_AUDIT_MESSAGE_LENGTH)
+				n.mlen = MAX_AUDIT_MESSAGE_LENGTH;
 		} else
 			n.mlen = MAX_AUDIT_MESSAGE_LENGTH;
 		n.interp = NULL;
+		n.tlen = n.mlen;
 		fmt = LF_RAW;
 	}
 

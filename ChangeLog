@@ -11,6 +11,7 @@
 - In auparse, make unescaping more robust against bad input
 - Make ausearch/report a little more robust to bad input
 - Fix a memory leak in auparse when extracting a buggy date
+- In ausearch --format mode, load interpretations for enriched events
 
 2.7.5
 - In auparse, output socket family name if unsupported but known
