@@ -35,41 +35,6 @@ struct msg_tab {
 };
 
 #ifndef NO_TABLES
-static const struct msg_tab err_msgtab[] = {
-    { -1,    2,    "-F missing operation for" },
-    { -2,    2,    "-F unknown field:" },
-    { -3,    1,    "must be before -S" },
-    { -4,    1,    "machine type not found" },
-    { -5,    1,    "elf mapping not found" },
-    { -6,    1,    "requested bit level not supported by machine" },
-    { -7,    1,    "can only be used with exit filter list" },
-    { -8,    2,    "-F unknown message type -" },
-    { -9,    0,    "msgtype field can only be used with exclude or user filter list" },
-    { -10,    0,    "Failed upgrading rule" },
-    { -11,    0,    "String value too long" },
-    { -12,    0,    "Only msgtype, *uid, *gid, pid, and subj* fields can be used with exclude filter" },
-    { -13,    1,    "only takes = or != operators" },
-    { -14,    0,    "Permission can only contain  \'rwxa\'" },
-    { -15,    2,    "-F unknown errno -"},
-    { -16,    2,    "-F unknown file type - " },
-    { -17,    1,    "can only be used with exit and entry filter list" },
-    { -18,    1,    "" }, // Deprecated don't reuse
-    { -19,    0,    "Key field needs a watch, syscall or exe path given prior to it" },
-    { -20,    2,    "-F missing value after operation for" },
-    { -21,    2,    "-F value should be number for" },
-    { -22,    2,    "-F missing field name before operator for" },
-    { -23,    2,    "" }, // Deprecated don't reuse
-    { -24,    2,    "-C missing field name before operator for" },
-    { -25,    2,    "-C missing value after operation for "},
-    { -26,    2,    "-C unknown field:" },
-    { -27,    2,    "-C unknown right hand value for comparison with:" },
-    { -28,    2,    "Too many fields in rule:" },
-    { -29,    1,    "only takes = operator" },
-    { -30,    2,    "Field option not supported by kernel:" },
-    { -31,    1,    "must be used with exclude, user, or exit filter" },
-    { -32,    0,    "filter is missing from rule" },
-    { -33,    2,    "-C incompatible comparison" },
-};
 #define EAU_OPMISSING		1
 #define EAU_FIELDUNKNOWN	2
 #define EAU_ARCHMISPLACED	3
@@ -101,4 +66,39 @@ static const struct msg_tab err_msgtab[] = {
 #define EAU_FIELDNOFILTER	31
 #define EAU_FILTERMISSING	32
 #define EAU_COMPINCOMPAT	33
+static const struct msg_tab err_msgtab[] = {
+    { -EAU_OPMISSING,		2, "-F missing operation for" },
+    { -EAU_FIELDUNKNOWN,	2, "-F unknown field:" },
+    { -EAU_ARCHMISPLACED,	1, "must be before -S" },
+    { -EAU_ARCHUNKNOWN,		1, "machine type not found" },
+    { -EAU_ELFUNKNOWN,		1, "elf mapping not found" },
+    { -EAU_ARCHNOBIT,		1, "requested bit level not supported by machine" },
+    { -EAU_EXITONLY,		1, "can only be used with exit filter list" },
+    { -EAU_MSGTYPEUNKNOWN,	2, "-F unknown message type -" },
+    { -EAU_MSGTYPEEXCLUDEUSER,	0, "msgtype field can only be used with exclude or user filter list" },
+    { -EAU_UPGRADEFAIL,		0, "Failed upgrading rule" },
+    { -EAU_STRTOOLONG,		0, "String value too long" },
+    { -EAU_MSGTYPECREDEXCLUDE,	0, "Only msgtype, *uid, *gid, pid, and subj* fields can be used with exclude filter" },
+    { -EAU_OPEQNOTEQ,		1, "only takes = or != operators" },
+    { -EAU_PERMRWXA,		0, "Permission can only contain  \'rwxa\'" },
+    { -EAU_ERRUNKNOWN,		2, "-F unknown errno -"},
+    { -EAU_FILETYPEUNKNOWN,	2, "-F unknown file type - " },
+    { -EAU_EXITENTRYONLY,	1, "can only be used with exit and entry filter list" },
+    { -18,			1, "" }, // Deprecated don't reuse
+    { -EAU_KEYDEP,		0, "Key field needs a watch, syscall or exe path given prior to it" },
+    { -EAU_FIELDVALMISSING,	2, "-F missing value after operation for" },
+    { -EAU_FIELDVALNUM,		2, "-F value should be number for" },
+    { -EAU_FIELDNAME,		2, "-F missing field name before operator for" },
+    { -23,			2, "" }, // Deprecated don't reuse
+    { -EAU_COMPFIELDNAME,	2, "-C missing field name before operator for" },
+    { -EAU_COMPVAL,		2, "-C missing value after operation for "},
+    { -EAU_COMPFIELDUNKNOWN,	2, "-C unknown field:" },
+    { -EAU_COMPVALUNKNOWN,	2, "-C unknown right hand value for comparison with:" },
+    { -EAU_FIELDTOOMANY,	2, "Too many fields in rule:" },
+    { -EAU_OPEQ,		1, "only takes = operator" },
+    { -EAU_FIELDNOSUPPORT,	2, "Field option not supported by kernel:" },
+    { -EAU_FIELDNOFILTER,	1, "must be used with exclude, user, or exit filter" },
+    { -EAU_FILTERMISSING,	0, "filter is missing from rule" },
+    { -EAU_COMPINCOMPAT,	2, "-C incompatible comparison" },
+};
 #endif
