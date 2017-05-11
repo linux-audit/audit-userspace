@@ -91,7 +91,9 @@ static const char *startup_states[] = {"disable", "enable", "nochange"};
  */
 static void usage(void)
 {
-	fprintf(stderr, "Usage: auditd [-f] [-l] [-n] [-s %s|%s|%s]\n",
+	fprintf(stderr,
+		"Usage: auditd [-f] [-l] [-n] [-s %s|%s|%s] "
+		"[-c <config_file>]\n",
 		startup_states[startup_disable],
 		startup_states[startup_enable],
 		startup_states[startup_nochange]);
@@ -544,6 +546,14 @@ int main(int argc, char *argv[])
 	struct sigaction sa;
 	struct rlimit limit;
 	int i, c, rc;
+	static const struct option opts[] = {
+		{"foreground", no_argument, NULL, 'f'},
+		{"allow_links", no_argument, NULL, 'l'},
+		{"disable_fork", no_argument, NULL, 'n'},
+		{"enable_state", required_argument, NULL, 's'},
+		{"config_file", required_argument, NULL, 'c'},
+		{NULL, 0, NULL, 0}
+	};
 	int opt_foreground = 0, opt_allow_links = 0;
 	enum startup_state opt_startup = startup_enable;
 	extern char *optarg;
@@ -558,7 +568,7 @@ int main(int argc, char *argv[])
 	struct ev_signal sigchld_watcher;
 
 	/* Get params && set mode */
-	while ((c = getopt(argc, argv, "aflns:")) != -1) {
+	while ((c = getopt_long(argc, argv, "flns:c:", opts, NULL)) != -1) {
 		switch (c) {
 		case 'f':
 			opt_foreground = 1;
@@ -580,6 +590,11 @@ int main(int argc, char *argv[])
 			if (i == startup_INVALID) {
 				fprintf(stderr, "unknown startup mode '%s'\n",
 					optarg);
+				usage();
+			}
+			break;
+ 		case 'c':
+			if (set_config_file(optarg) != 0) {
 				usage();
 			}
 			break;
@@ -1040,4 +1055,3 @@ static char *getsubj(char *subj)
 	subj[num_read] = '\0';
 	return subj;
 }
-

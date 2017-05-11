@@ -34,6 +34,7 @@
 #include <sys/poll.h>
 #include <netdb.h>
 #include <arpa/inet.h>
+#include <getopt.h>
 
 #include "audispd-config.h"
 #include "audispd-pconfig.h"
@@ -51,8 +52,10 @@ static daemon_conf_t daemon_config;
 static conf_llist plugin_conf;
 static int audit_fd;
 static pthread_t inbound_thread;
-static const char *config_file = "/etc/audisp/audispd.conf";
-static const char *plugin_dir =  "/etc/audisp/plugins.d/";
+static char config_file[PATH_MAX + 1] = "/etc/audisp/audispd.conf";
+
+/* '/' on the end is required. */
+static char plugin_dir[PATH_MAX + 1] = "/etc/audisp/plugins.d/";
 
 /* Local function prototypes */
 static void signal_plugins(int sig);
@@ -60,6 +63,22 @@ static int event_loop(void);
 static int safe_exec(plugin_conf_t *conf);
 static void *inbound_thread_main(void *arg);
 static void process_inbound_event(int fd);
+
+/*
+ * Output a usage message and exit with an error.
+ */
+static void usage(void)
+{
+	fprintf(stderr, "%s",
+		"Usage: audispd [options]\n"
+		"-i,--input <input_path>: Use named file instead of stdin for audit "
+		"data\n"
+		"-c,--config_file <config_file_path>: Override default configuration "
+		"file path\n"
+		"-d,--plugin_dir <plugin_dir_path>: Override default plugin "
+		"directory path\n");
+	exit(2);
+}
 
 /*
  * SIGTERM handler
@@ -329,9 +348,68 @@ static int reconfigure(void)
 
 int main(int argc, char *argv[])
 {
+	extern char *optarg;
+	extern int optind;
+	static const struct option opts[] = {
+		{"input", required_argument, NULL, 'i'},
+		{"config_file", required_argument, NULL, 'c'},
+		{"plugin_dir", required_argument, NULL, 'd'},
+		{NULL, 0, NULL, 0}
+	};
 	lnode *conf;
 	struct sigaction sa;
 	int i;
+	size_t len;
+	char input[PATH_MAX + 1];
+
+	input[0] = '\0';
+	while ((i = getopt_long(argc, argv, "i:c:d:", opts, NULL)) != -1) {
+		switch (i) {
+			case 'i':
+				len = strnlen(optarg, PATH_MAX);
+				if (len < 1 || optarg[len] != '\0') {
+					/* Path is too short or too long. */
+					usage();
+					break;
+				}
+				memcpy(input, optarg, len + 1);
+				break;
+			case 'c':
+				len = strnlen(optarg, PATH_MAX);
+				if (len < 1 || optarg[len] != '\0') {
+					/* Path is too short or too long. */
+					usage();
+					break;
+				}
+				memcpy(config_file, optarg, len + 1);
+				break;
+			case 'd':
+				len = strnlen(optarg, PATH_MAX);
+				if (len < 1 || optarg[len] != '\0') {
+					/* Path is too short or too long. */
+					usage();
+					break;
+				}
+				memcpy(plugin_dir, optarg, len + 1);
+				if (plugin_dir[len - 1] != '/') {
+					if (len == PATH_MAX) {
+						/* Path is too long to add the '/'. */
+						usage();
+						break;
+					}
+					plugin_dir[len] = '/';
+					plugin_dir[len + 1] = '\0';
+				}
+				break;
+			default:
+				usage();
+		}
+	}
+
+	/* check for trailing command line following options */
+	if (optind < argc) {
+		usage();
+	}
 
 	set_aumessage_mode(MSG_SYSLOG, DBG_YES);
 
@@ -358,8 +436,8 @@ int main(int argc, char *argv[])
 	setsid();
 
 	/* move stdin to its own fd */
-	if (argc == 3 && strcmp(argv[1], "--input") == 0) 
-		audit_fd = open(argv[2], O_RDONLY);
+	if (input[0] != '\0') 
+		audit_fd = open(input, O_RDONLY);
 	else
 		audit_fd = dup(0);
 	if (audit_fd < 0) {
@@ -871,4 +949,3 @@ static void process_inbound_event(int fd)
 		}
 	}
 }
-
