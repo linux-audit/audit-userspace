@@ -1,6 +1,7 @@
 2.7.7
 - Make ausearch a little more robust to bad time values
 - Aureport's login report was corrected to print the loginuid (#1448526)
+- In auparse_nomalize, add SUBJ_KIND metadata
 
 2.7.6
 - In auparse_nomalize, assign user-login as the event kind for AUDIT_LOGIN

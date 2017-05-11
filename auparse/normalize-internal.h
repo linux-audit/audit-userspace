@@ -24,6 +24,11 @@
 #ifndef NORMALIZE_INTERNAL
 #define NORMALIZE_INTERNAL
 
+#define NORM_ACCT_PRIV		0
+#define NORM_ACCT_UNSET		4294967295
+#define NORM_ACCT_MAX_SYS	1000
+#define NORM_ACCT_MAX_USER	60000
+
 /*
  * This is used for normalizing syscalls. It can determine
  * the action, object, obj_kind, and object attributes.

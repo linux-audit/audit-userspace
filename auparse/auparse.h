@@ -81,6 +81,7 @@ int auparse_normalize_session(auparse_state_t *au);
 // Subject accessing functions
 int auparse_normalize_subject_primary(auparse_state_t *au);
 int auparse_normalize_subject_secondary(auparse_state_t *au);
+const char *auparse_normalize_subject_kind(auparse_state_t *au);
 int auparse_normalize_subject_first_attribute(auparse_state_t *au);
 int auparse_normalize_subject_next_attribute(auparse_state_t *au);
 

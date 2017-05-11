@@ -58,6 +58,7 @@ void init_normalizer(normalize_data *d)
 	d->session = set_record(0, UNSET);
 	d->actor.primary = set_record(0, UNSET);
 	d->actor.secondary = set_record(0, UNSET);
+	d->actor.what = NULL;
 	cllist_create(&d->actor.attr, NULL);
 	d->action = NULL;
 	d->thing.primary = set_record(0, UNSET);
@@ -76,6 +77,8 @@ void clear_normalizer(normalize_data *d)
 	d->session = set_record(0, UNSET);
 	d->actor.primary = set_record(0, UNSET);
 	d->actor.secondary = set_record(0, UNSET);
+	free(d->actor.what);
+	d->actor.what = NULL;
 	cllist_clear(&d->actor.attr);
 	free(d->action);
 	d->action = NULL;
@@ -88,6 +91,26 @@ void clear_normalizer(normalize_data *d)
 	d->how = NULL;
 	d->opt = NORM_OPT_ALL;
 	d->key = set_record(0, UNSET);
+}
+
+static unsigned int set_subject_what(auparse_state_t *au)
+{
+	int ftype = auparse_get_field_type(au);
+	if (ftype == AUPARSE_TYPE_UID) {
+		int uid = auparse_get_field_int(au);
+		if (uid == NORM_ACCT_PRIV)
+			D.actor.what = strdup("priviliged-acct");
+		else if (uid == NORM_ACCT_UNSET)
+			D.actor.what = strdup("unset-acct");
+		else if (uid < NORM_ACCT_MAX_SYS)
+			D.actor.what = strdup("service-acct");
+		else if (uid < NORM_ACCT_MAX_USER)
+			D.actor.what = strdup("user-acct");
+		else
+			D.actor.what = strdup("unknown-acct");
+		return 0;
+	}
+	return 1;
 }
 
 static unsigned int set_prime_subject(auparse_state_t *au, const char *str,
@@ -109,7 +132,7 @@ static unsigned int set_secondary_subject(auparse_state_t *au, const char *str,
 		D.actor.secondary = set_record(0, rnum);
 		D.actor.secondary = set_field(D.actor.secondary,
 				auparse_get_field_num(au));
-		return 0;
+		return set_subject_what(au);
 	}
 	return 1;
 }
@@ -1478,6 +1501,11 @@ int auparse_normalize_subject_primary(auparse_state_t *au)
 int auparse_normalize_subject_secondary(auparse_state_t *au)
 {
 	return seek_field(au, D.actor.secondary);
+}
+
+const char *auparse_normalize_subject_kind(auparse_state_t *au)
+{
+	return D.actor.what;
 }
 
 // Returns: -1 = error, 0 uninitialized, 1 == success

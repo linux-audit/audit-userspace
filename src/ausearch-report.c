@@ -413,8 +413,8 @@ static void csv_event(auparse_state_t *au,
 	if (csv_header_done == 0) {
 		csv_header_done = 1;
 		printf( "NODE,EVENT,DATE,TIME,%sSERIAL_NUM,EVENT_KIND,"
-			"SESSION,SUBJ_PRIME,SUBJ_SEC,%sACTION,RESULT,"
-			"OBJ_PRIME,OBJ_SEC,%sOBJ_KIND,HOW%s\n",
+			"SESSION,SUBJ_PRIME,SUBJ_SEC,SUBJ_KIND,%sACTION,"
+			"RESULT,OBJ_PRIME,OBJ_SEC,%sOBJ_KIND,HOW%s\n",
 		    extra_time ? "YEAR,MONTH,DAY,WEEKDAY,HOUR,GMT_OFFSET," : "",
 			extra_labels ? "SUBJ_LABEL," : "",
 			extra_labels ? "OBJ_LABEL," : "",
@@ -422,7 +422,7 @@ static void csv_event(auparse_state_t *au,
 	}
 
 	char tmp[20];
-	const char *item, *type, *evkind, *action, *str, *how;
+	const char *item, *type, *evkind, *subj_kind, *action, *str, *how;
 	int rc;
 	time_t t = auparse_get_time(au);
 	struct tm *tv = localtime(&t);
@@ -541,6 +541,12 @@ static void csv_event(auparse_state_t *au,
 	rc = auparse_normalize_subject_secondary(au);
 	if (rc == 1)
 		printf("%s", auparse_interpret_field(au));
+	putchar(',');
+
+	// SUBJ_KIND
+	subj_kind = auparse_normalize_subject_kind(au);
+	if (subj_kind)
+		printf("%s", subj_kind);
 	putchar(',');
 
 	// SUBJ_LABEL

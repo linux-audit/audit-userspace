@@ -119,6 +119,7 @@ typedef struct subj
 	value_t primary;        // typically auid
 	value_t secondary;      // typically uid
 	cllist attr;            // List of attributes
+	const char *what;	// What the subject is
 }subject;
 
 typedef struct obj
