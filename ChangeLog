@@ -3,6 +3,7 @@
 - Aureport's login report was corrected to print the loginuid (#1448526)
 - In auparse_nomalize, add SUBJ_KIND metadata
 - In auparse_nomalize, adjust USER_ERR mapping
+- Fix queue_error_action in audisp-remote.conf (#1455594)
 
 2.7.6
 - In auparse_nomalize, assign user-login as the event kind for AUDIT_LOGIN
