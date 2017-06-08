@@ -452,7 +452,8 @@ static int per_event_summary(llist *l)
 			} else {
 				if (list_find_msg_range(l, 
 					AUDIT_FIRST_KERN_ANOM_MSG,
-						AUDIT_LAST_KERN_ANOM_MSG)) {
+						AUDIT_LAST_KERN_ANOM_MSG) ||
+					list_find_msg(l, AUDIT_SECCOMP) ) {
 					ilist_add_if_uniq(&sd.anom_list, 
 							l->head->type, 0);
 				}
@@ -729,7 +730,8 @@ static int per_event_detailed(llist *l)
 				} else {
 					if (list_find_msg_range(l, 
 						AUDIT_FIRST_KERN_ANOM_MSG,
-						AUDIT_LAST_KERN_ANOM_MSG)) {
+						AUDIT_LAST_KERN_ANOM_MSG) ||
+					list_find_msg(l, AUDIT_SECCOMP) ) {
 						print_per_event_item(l);
 						rc = 1;
 					}

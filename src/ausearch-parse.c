@@ -2080,7 +2080,7 @@ static int parse_kernel_anom(const lnode *n, search_items *s)
 		str = strstr(term, "exe=");
 		if (str) {
 			str += 4;
-		if (*str == '"') {
+			if (*str == '"') {
 				str++;
 				term = strchr(str, '"');
 				if (term == NULL)
@@ -2090,7 +2090,7 @@ static int parse_kernel_anom(const lnode *n, search_items *s)
 				*term = '"';
 			} else 
 				s->exe = unescape(str);
-		} else
+		} else if (n->type != AUDIT_ANOM_ABEND)
 			return 14;
 	}
 
