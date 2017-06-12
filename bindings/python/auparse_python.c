@@ -424,6 +424,10 @@ AuParser_init(AuParser *self, PyObject *args, PyObject *kwds)
             PyErr_SetString(PyExc_ValueError, "source must be resolvable to a file descriptor when source_type is AUSOURCE_DESCRIPTOR");
             return -1;
         }
+        if ((self->au = auparse_init(source_type, fd)) == NULL) {
+            PyErr_SetFromErrno(PyExc_EnvironmentError);
+            return -1;
+        }
     } break;
     case AUSOURCE_FILE_POINTER: {
         FILE* fp;

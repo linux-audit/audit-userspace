@@ -6,6 +6,7 @@
 - Fix queue_error_action in audisp-remote.conf (#1455594)
 - Fix aureport to identify seccomp and anom_abend events in anomaly report
 - In auparse, don't do euid permission check use file permissions
+- Fix auparse python binding to support AUSOURCE_DESCRIPTOR
 
 2.7.6
 - In auparse_nomalize, assign user-login as the event kind for AUDIT_LOGIN
