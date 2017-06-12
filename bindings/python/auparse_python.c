@@ -1108,7 +1108,10 @@ AuParser_aup_normalize_get_event_kind(AuParser *self)
 
     PARSER_CHECK;
     kind = auparse_normalize_get_event_kind(self->au);
-    if (kind == NULL) return NULL;
+    if (kind == NULL) {
+        PyErr_SetString(PyExc_RuntimeError, "'event_kind' has no value");
+        return NULL;
+    }
     return Py_BuildValue("s", kind);
 }
 
@@ -1231,7 +1234,10 @@ AuParser_aup_normalize_get_action(AuParser *self)
 
     PARSER_CHECK;
     action = auparse_normalize_get_action(self->au);
-    if (action == NULL) return NULL;
+    if (action == NULL) {
+        PyErr_SetString(PyExc_RuntimeError, "'action' has no value");
+        return NULL;
+    }
     return Py_BuildValue("s", action);
 }
 
@@ -1333,7 +1339,10 @@ AuParser_aup_normalize_object_kind(AuParser *self)
 
     PARSER_CHECK;
     kind = auparse_normalize_object_kind(self->au);
-    if (kind == NULL) return NULL;
+    if (kind == NULL) {
+        PyErr_SetString(PyExc_RuntimeError, "'object_kind' has no value");
+        return NULL;
+    }
     return Py_BuildValue("s", kind);
 }
 
@@ -1372,7 +1381,10 @@ AuParser_aup_normalize_how(AuParser *self)
 
     PARSER_CHECK;
     how = auparse_normalize_how(self->au);
-    if (how == NULL) return NULL;
+    if (how == NULL) {
+        PyErr_SetString(PyExc_RuntimeError, "'how' has no value");
+        return NULL;
+    }
     return Py_BuildValue("s", how);
 }
 
