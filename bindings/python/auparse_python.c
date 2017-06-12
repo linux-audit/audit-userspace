@@ -1221,6 +1221,27 @@ AuParser_aup_normalize_subject_next_attribute(AuParser *self)
 }
 
 /********************************
+ * aup_normalize_subject_kind
+ ********************************/
+PyDoc_STRVAR(aup_normalize_subject_kind_doc,
+"aup_normalize_subject_kind() This returns a string that indicates the\n\
+kind of account the subject is.\n\
+");
+static PyObject *
+AuParser_aup_normalize_subject_kind(AuParser *self)
+{
+    const char *kind = NULL;
+
+    PARSER_CHECK;
+    kind = auparse_normalize_subject_kind(self->au);
+    if (kind == NULL) {
+        PyErr_SetString(PyExc_RuntimeError, "'subject_kind' has no value");
+        return NULL;
+    }
+    return Py_BuildValue("s", kind);
+}
+
+/********************************
  * aup_normalize_get_action
  ********************************/
 PyDoc_STRVAR(aup_normalize_get_action_doc,
@@ -1926,6 +1947,7 @@ static PyMethodDef AuParser_methods[] = {
     {"aup_normalize_subject_secondary",  (PyCFunction)AuParser_aup_normalize_subject_secondary, METH_NOARGS, aup_normalize_subject_secondary_doc},
     {"aup_normalize_subject_first_attribute",  (PyCFunction)AuParser_aup_normalize_subject_first_attribute, METH_NOARGS, aup_normalize_subject_first_attribute_doc},
     {"aup_normalize_subject_next_attribute",  (PyCFunction)AuParser_aup_normalize_subject_next_attribute, METH_NOARGS, aup_normalize_subject_next_attribute_doc},
+    {"aup_normalize_subject_kind",  (PyCFunction)AuParser_aup_normalize_subject_kind, METH_NOARGS, aup_normalize_subject_kind_doc},
     {"aup_normalize_get_action",  (PyCFunction)AuParser_aup_normalize_get_action, METH_NOARGS, aup_normalize_get_action_doc},
     {"aup_normalize_object_primary",  (PyCFunction)AuParser_aup_normalize_object_primary, METH_NOARGS, aup_normalize_object_primary_doc},
     {"aup_normalize_object_secondary",  (PyCFunction)AuParser_aup_normalize_object_secondary, METH_NOARGS, aup_normalize_object_secondary_doc},
