@@ -1919,7 +1919,7 @@ static PyMethodDef AuParser_methods[] = {
     {"aup_normalize_object_secondary",  (PyCFunction)AuParser_aup_normalize_object_secondary, METH_NOARGS, aup_normalize_object_secondary_doc},
     {"aup_normalize_object_first_attribute",  (PyCFunction)AuParser_aup_normalize_object_first_attribute, METH_NOARGS, aup_normalize_object_first_attribute_doc},
     {"aup_normalize_object_next_attribute",  (PyCFunction)AuParser_aup_normalize_object_next_attribute, METH_NOARGS, aup_normalize_object_next_attribute_doc},
-    {"aup_normalize_get_object_kind",  (PyCFunction)AuParser_aup_normalize_get_object_kind, METH_NOARGS, aup_normalize_get_object_kind_doc},
+    {"aup_normalize_object_kind",  (PyCFunction)AuParser_aup_normalize_object_kind, METH_NOARGS, aup_normalize_object_kind_doc},
     {"aup_normalize_get_results",  (PyCFunction)AuParser_aup_normalize_get_results, METH_NOARGS, aup_normalize_get_results_doc},
     {"aup_normalize_how", (PyCFunction)AuParser_aup_normalize_how, METH_NOARGS, aup_normalize_how_doc},
     {"aup_normalize_key", (PyCFunction)AuParser_aup_normalize_key, METH_NOARGS, aup_normalize_key_doc},
