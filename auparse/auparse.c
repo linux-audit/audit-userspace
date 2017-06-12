@@ -433,11 +433,8 @@ auparse_state_t *auparse_init(ausource_t source, const void *b)
 	switch (source)
 	{
 		case AUSOURCE_LOGS:
-			if (geteuid()) {
-				errno = EPERM;
+			if (setup_log_file_array(au))
 				goto bad_exit;
-			}
-			setup_log_file_array(au);
 			break;
 		case AUSOURCE_FILE:
 			if (b == NULL)
