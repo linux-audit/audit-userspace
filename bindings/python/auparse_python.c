@@ -1090,14 +1090,12 @@ AuParser_aup_normalize(AuParser *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "i", &opt)) return NULL;
     PARSER_CHECK;
     result = auparse_normalize(self->au, opt);
-    if (result == 0) Py_RETURN_NONE;
-    PyErr_SetFromErrno(PyExc_ValueError);
-    return NULL;
+    return Py_BuildValue("i", result);
 }
 
 
 /********************************
- * auaup_normalize_get_event_kind
+ * aup_normalize_get_event_kind
  ********************************/
 PyDoc_STRVAR(aup_normalize_get_event_kind_doc,
 "aup_normalize_get_event_kind() This returns a string that indicates what\n\
@@ -1110,11 +1108,12 @@ AuParser_aup_normalize_get_event_kind(AuParser *self)
 
     PARSER_CHECK;
     kind = auparse_normalize_get_event_kind(self->au);
+    if (kind == NULL) return NULL;
     return Py_BuildValue("s", kind);
 }
 
 /********************************
- * auaup_normalize_session
+ * aup_normalize_session
  ********************************/
 PyDoc_STRVAR(aup_normalize_session_doc,
 "aup_normalize_session() This function positions the internal cursor on\n\
@@ -1127,13 +1126,15 @@ AuParser_aup_normalize_session(AuParser *self)
 
     PARSER_CHECK;
     result = auparse_normalize_session(self->au);
-    if (result == 1) Py_RETURN_NONE;
-    PyErr_SetFromErrno(PyExc_ValueError);
-    return NULL;
+    if (result < 0) {
+	    PyErr_SetFromErrno(PyExc_ValueError);
+	    return NULL;
+    }
+    return Py_BuildValue("i", result);
 }
 
 /********************************
- * auaup_normalize_subject_primary
+ * aup_normalize_subject_primary
  ********************************/
 PyDoc_STRVAR(aup_normalize_subject_primary_doc,
 "aup_normalize_subject_primary() This function positions the internal\n\
@@ -1146,13 +1147,15 @@ AuParser_aup_normalize_subject_primary(AuParser *self)
 
     PARSER_CHECK;
     result = auparse_normalize_subject_primary(self->au);
-    if (result == 1) Py_RETURN_NONE;
-    PyErr_SetFromErrno(PyExc_ValueError);
-    return NULL;
+    if (result < 0) {
+	    PyErr_SetFromErrno(PyExc_ValueError);
+	    return NULL;
+    }
+    return Py_BuildValue("i", result);
 }
 
 /********************************
- * auaup_normalize_subject_secondary
+ * aup_normalize_subject_secondary
  ********************************/
 PyDoc_STRVAR(aup_normalize_subject_secondary_doc,
 "aup_normalize_subject_secondary() This function positions the internal\n\
@@ -1165,13 +1168,15 @@ AuParser_aup_normalize_subject_secondary(AuParser *self)
 
     PARSER_CHECK;
     result = auparse_normalize_subject_secondary(self->au);
-    if (result == 1) Py_RETURN_NONE;
-    PyErr_SetFromErrno(PyExc_ValueError);
-    return NULL;
+    if (result < 0) {
+	    PyErr_SetFromErrno(PyExc_ValueError);
+	    return NULL;
+    }
+    return Py_BuildValue("i", result);
 }
 
 /********************************
- * auaup_normalize_subject_first_attribute
+ * aup_normalize_subject_first_attribute
  ********************************/
 PyDoc_STRVAR(aup_normalize_subject_first_attribute_doc,
 "aup_normalize_subject_first_attribute() This function positions the internal\n\
@@ -1184,13 +1189,15 @@ AuParser_aup_normalize_subject_first_attribute(AuParser *self)
 
     PARSER_CHECK;
     result = auparse_normalize_subject_first_attribute(self->au);
-    if (result == 1) Py_RETURN_NONE;
-    PyErr_SetFromErrno(PyExc_ValueError);
-    return NULL;
+    if (result < 0) {
+	    PyErr_SetFromErrno(PyExc_ValueError);
+	    return NULL;
+    }
+    return Py_BuildValue("i", result);
 }
 
 /********************************
- * auaup_normalize_subject_next_attribute
+ * aup_normalize_subject_next_attribute
  ********************************/
 PyDoc_STRVAR(aup_normalize_subject_next_attribute_doc,
 "aup_normalize_subject_next_attribute() This function positions the internal\n\
@@ -1203,13 +1210,15 @@ AuParser_aup_normalize_subject_next_attribute(AuParser *self)
 
     PARSER_CHECK;
     result = auparse_normalize_subject_next_attribute(self->au);
-    if (result == 1) Py_RETURN_NONE;
-    PyErr_SetFromErrno(PyExc_ValueError);
-    return NULL;
+    if (result < 0) {
+	    PyErr_SetFromErrno(PyExc_ValueError);
+	    return NULL;
+    }
+    return Py_BuildValue("i", result);
 }
 
 /********************************
- * auaup_normalize_get_action
+ * aup_normalize_get_action
  ********************************/
 PyDoc_STRVAR(aup_normalize_get_action_doc,
 "aup_normalize_get_action() This returns a string that indicates the\n\
@@ -1222,11 +1231,12 @@ AuParser_aup_normalize_get_action(AuParser *self)
 
     PARSER_CHECK;
     action = auparse_normalize_get_action(self->au);
+    if (action == NULL) return NULL;
     return Py_BuildValue("s", action);
 }
 
 /********************************
- * auaup_normalize_object_primary
+ * aup_normalize_object_primary
  ********************************/
 PyDoc_STRVAR(aup_normalize_object_primary_doc,
 "aup_normalize_object_primary() This function positions the internal\n\
@@ -1239,13 +1249,15 @@ AuParser_aup_normalize_object_primary(AuParser *self)
 
     PARSER_CHECK;
     result = auparse_normalize_object_primary(self->au);
-    if (result == 1) Py_RETURN_NONE;
-    PyErr_SetFromErrno(PyExc_ValueError);
-    return NULL;
+    if (result < 0) {
+	    PyErr_SetFromErrno(PyExc_ValueError);
+	    return NULL;
+    }
+    return Py_BuildValue("i", result);
 }
 
 /********************************
- * auaup_normalize_object_secondary
+ * aup_normalize_object_secondary
  ********************************/
 PyDoc_STRVAR(aup_normalize_object_secondary_doc,
 "aup_normalize_object_secondary() This function positions the internal\n\
@@ -1258,13 +1270,15 @@ AuParser_aup_normalize_object_secondary(AuParser *self)
 
     PARSER_CHECK;
     result = auparse_normalize_object_secondary(self->au);
-    if (result == 1) Py_RETURN_NONE;
-    PyErr_SetFromErrno(PyExc_ValueError);
-    return NULL;
+    if (result < 0) {
+	    PyErr_SetFromErrno(PyExc_ValueError);
+	    return NULL;
+    }
+    return Py_BuildValue("i", result);
 }
 
 /********************************
- * auaup_normalize_object_first_attribute
+ * aup_normalize_object_first_attribute
  ********************************/
 PyDoc_STRVAR(aup_normalize_object_first_attribute_doc,
 "aup_normalize_object_first_attribute() This function positions the internal\n\
@@ -1277,13 +1291,15 @@ AuParser_aup_normalize_object_first_attribute(AuParser *self)
 
     PARSER_CHECK;
     result = auparse_normalize_object_first_attribute(self->au);
-    if (result == 1) Py_RETURN_NONE;
-    PyErr_SetFromErrno(PyExc_ValueError);
-    return NULL;
+    if (result < 0) {
+	    PyErr_SetFromErrno(PyExc_ValueError);
+	    return NULL;
+    }
+    return Py_BuildValue("i", result);
 }
 
 /********************************
- * auaup_normalize_object_next_attribute
+ * aup_normalize_object_next_attribute
  ********************************/
 PyDoc_STRVAR(aup_normalize_object_next_attribute_doc,
 "aup_normalize_object_next_attribute() This function positions the internal\n\
@@ -1296,13 +1312,15 @@ AuParser_aup_normalize_object_next_attribute(AuParser *self)
 
     PARSER_CHECK;
     result = auparse_normalize_object_next_attribute(self->au);
-    if (result == 1) Py_RETURN_NONE;
-    PyErr_SetFromErrno(PyExc_ValueError);
-    return NULL;
+    if (result < 0) {
+	    PyErr_SetFromErrno(PyExc_ValueError);
+	    return NULL;
+    }
+    return Py_BuildValue("i", result);
 }
 
 /********************************
- * auaup_normalize_get_object_kind
+ * aup_normalize_get_object_kind
  ********************************/
 PyDoc_STRVAR(aup_normalize_get_object_kind_doc,
 "aup_normalize_get_object_kind() This returns a string that indicates the\n\
@@ -1315,11 +1333,12 @@ AuParser_aup_normalize_get_object_kind(AuParser *self)
 
     PARSER_CHECK;
     kind = auparse_normalize_object_kind(self->au);
+    if (kind == NULL) return NULL;
     return Py_BuildValue("s", kind);
 }
 
 /********************************
- * auaup_normalize_get_results
+ * aup_normalize_get_results
  ********************************/
 PyDoc_STRVAR(aup_normalize_get_results_doc,
 "aup_normalize_subject_primary() This function positions the internal\n\
@@ -1332,13 +1351,15 @@ AuParser_aup_normalize_get_results(AuParser *self)
 
     PARSER_CHECK;
     result = auparse_normalize_get_results(self->au);
-    if (result == 1) Py_RETURN_NONE;
-    PyErr_SetFromErrno(PyExc_ValueError);
-    return NULL;
+    if (result < 0) {
+	    PyErr_SetFromErrno(PyExc_ValueError);
+	    return NULL;
+    }
+    return Py_BuildValue("i", result);
 }
 
 /********************************
- * auaup_normalize_how
+ * aup_normalize_how
  ********************************/
 PyDoc_STRVAR(aup_normalize_how_doc,
 "aup_normalize_how() This returns a string that indicates the\n\
@@ -1351,11 +1372,12 @@ AuParser_aup_normalize_how(AuParser *self)
 
     PARSER_CHECK;
     how = auparse_normalize_how(self->au);
+    if (how == NULL) return NULL;
     return Py_BuildValue("s", how);
 }
 
 /********************************
- * auaup_normalize_key
+ * aup_normalize_key
  ********************************/
 PyDoc_STRVAR(aup_normalize_key_doc,
 "aup_normalize_key() This function positions the internal\n\
@@ -1368,9 +1390,11 @@ AuParser_aup_normalize_key(AuParser *self)
 
     PARSER_CHECK;
     result = auparse_normalize_key(self->au);
-    if (result == 1) Py_RETURN_NONE;
-    PyErr_SetFromErrno(PyExc_ValueError);
-    return NULL;
+    if (result < 0) {
+	    PyErr_SetFromErrno(PyExc_ValueError);
+	    return NULL;
+    }
+    return Py_BuildValue("i", result);
 }
 
 
