@@ -8,6 +8,7 @@
 - In auparse, don't do euid permission check use file permissions
 - Fix auparse python binding to support AUSOURCE_DESCRIPTOR
 - Fix auparse normalizer python binding return codes
+- Rename auparse normalizer python binding function to aup_normalize_object_kind
 
 2.7.6
 - In auparse_nomalize, assign user-login as the event kind for AUDIT_LOGIN

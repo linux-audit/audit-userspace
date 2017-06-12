@@ -1320,14 +1320,14 @@ AuParser_aup_normalize_object_next_attribute(AuParser *self)
 }
 
 /********************************
- * aup_normalize_get_object_kind
+ * aup_normalize_object_kind
  ********************************/
-PyDoc_STRVAR(aup_normalize_get_object_kind_doc,
-"aup_normalize_get_object_kind() This returns a string that indicates the\n\
+PyDoc_STRVAR(aup_normalize_object_kind_doc,
+"aup_normalize_object_kind() This returns a string that indicates the\n\
 kind of thing the object is.\n\
 ");
 static PyObject *
-AuParser_aup_normalize_get_object_kind(AuParser *self)
+AuParser_aup_normalize_object_kind(AuParser *self)
 {
     const char *kind = NULL;
 
