@@ -1090,7 +1090,9 @@ AuParser_aup_normalize(AuParser *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "i", &opt)) return NULL;
     PARSER_CHECK;
     result = auparse_normalize(self->au, opt);
-    return Py_BuildValue("i", result);
+    if (result >  0) Py_RETURN_TRUE;
+    if (result == 0) Py_RETURN_FALSE;
+    PyErr_SetFromErrno(PyExc_ValueError);
 }
 
 
@@ -1129,11 +1131,10 @@ AuParser_aup_normalize_session(AuParser *self)
 
     PARSER_CHECK;
     result = auparse_normalize_session(self->au);
-    if (result < 0) {
-	    PyErr_SetFromErrno(PyExc_ValueError);
-	    return NULL;
-    }
-    return Py_BuildValue("i", result);
+    if (result >  0) Py_RETURN_TRUE;
+    if (result == 0) Py_RETURN_FALSE;
+    PyErr_SetFromErrno(PyExc_ValueError);
+    return NULL;
 }
 
 /********************************
@@ -1150,11 +1151,10 @@ AuParser_aup_normalize_subject_primary(AuParser *self)
 
     PARSER_CHECK;
     result = auparse_normalize_subject_primary(self->au);
-    if (result < 0) {
-	    PyErr_SetFromErrno(PyExc_ValueError);
-	    return NULL;
-    }
-    return Py_BuildValue("i", result);
+    if (result >  0) Py_RETURN_TRUE;
+    if (result == 0) Py_RETURN_FALSE;
+    PyErr_SetFromErrno(PyExc_ValueError);
+    return NULL;
 }
 
 /********************************
@@ -1171,11 +1171,10 @@ AuParser_aup_normalize_subject_secondary(AuParser *self)
 
     PARSER_CHECK;
     result = auparse_normalize_subject_secondary(self->au);
-    if (result < 0) {
-	    PyErr_SetFromErrno(PyExc_ValueError);
-	    return NULL;
-    }
-    return Py_BuildValue("i", result);
+    if (result >  0) Py_RETURN_TRUE;
+    if (result == 0) Py_RETURN_FALSE;
+    PyErr_SetFromErrno(PyExc_ValueError);
+    return NULL;
 }
 
 /********************************
@@ -1192,11 +1191,10 @@ AuParser_aup_normalize_subject_first_attribute(AuParser *self)
 
     PARSER_CHECK;
     result = auparse_normalize_subject_first_attribute(self->au);
-    if (result < 0) {
-	    PyErr_SetFromErrno(PyExc_ValueError);
-	    return NULL;
-    }
-    return Py_BuildValue("i", result);
+    if (result >  0) Py_RETURN_TRUE;
+    if (result == 0) Py_RETURN_FALSE;
+    PyErr_SetFromErrno(PyExc_ValueError);
+    return NULL;
 }
 
 /********************************
@@ -1213,11 +1211,10 @@ AuParser_aup_normalize_subject_next_attribute(AuParser *self)
 
     PARSER_CHECK;
     result = auparse_normalize_subject_next_attribute(self->au);
-    if (result < 0) {
-	    PyErr_SetFromErrno(PyExc_ValueError);
-	    return NULL;
-    }
-    return Py_BuildValue("i", result);
+    if (result >  0) Py_RETURN_TRUE;
+    if (result == 0) Py_RETURN_FALSE;
+    PyErr_SetFromErrno(PyExc_ValueError);
+    return NULL;
 }
 
 /********************************
@@ -1276,11 +1273,10 @@ AuParser_aup_normalize_object_primary(AuParser *self)
 
     PARSER_CHECK;
     result = auparse_normalize_object_primary(self->au);
-    if (result < 0) {
-	    PyErr_SetFromErrno(PyExc_ValueError);
-	    return NULL;
-    }
-    return Py_BuildValue("i", result);
+    if (result >  0) Py_RETURN_TRUE;
+    if (result == 0) Py_RETURN_FALSE;
+    PyErr_SetFromErrno(PyExc_ValueError);
+    return NULL;
 }
 
 /********************************
@@ -1297,11 +1293,10 @@ AuParser_aup_normalize_object_secondary(AuParser *self)
 
     PARSER_CHECK;
     result = auparse_normalize_object_secondary(self->au);
-    if (result < 0) {
-	    PyErr_SetFromErrno(PyExc_ValueError);
-	    return NULL;
-    }
-    return Py_BuildValue("i", result);
+    if (result >  0) Py_RETURN_TRUE;
+    if (result == 0) Py_RETURN_FALSE;
+    PyErr_SetFromErrno(PyExc_ValueError);
+    return NULL;
 }
 
 /********************************
@@ -1318,11 +1313,10 @@ AuParser_aup_normalize_object_first_attribute(AuParser *self)
 
     PARSER_CHECK;
     result = auparse_normalize_object_first_attribute(self->au);
-    if (result < 0) {
-	    PyErr_SetFromErrno(PyExc_ValueError);
-	    return NULL;
-    }
-    return Py_BuildValue("i", result);
+    if (result >  0) Py_RETURN_TRUE;
+    if (result == 0) Py_RETURN_FALSE;
+    PyErr_SetFromErrno(PyExc_ValueError);
+    return NULL;
 }
 
 /********************************
@@ -1339,11 +1333,10 @@ AuParser_aup_normalize_object_next_attribute(AuParser *self)
 
     PARSER_CHECK;
     result = auparse_normalize_object_next_attribute(self->au);
-    if (result < 0) {
-	    PyErr_SetFromErrno(PyExc_ValueError);
-	    return NULL;
-    }
-    return Py_BuildValue("i", result);
+    if (result >  0) Py_RETURN_TRUE;
+    if (result == 0) Py_RETURN_FALSE;
+    PyErr_SetFromErrno(PyExc_ValueError);
+    return NULL;
 }
 
 /********************************
@@ -1381,11 +1374,10 @@ AuParser_aup_normalize_get_results(AuParser *self)
 
     PARSER_CHECK;
     result = auparse_normalize_get_results(self->au);
-    if (result < 0) {
-	    PyErr_SetFromErrno(PyExc_ValueError);
-	    return NULL;
-    }
-    return Py_BuildValue("i", result);
+    if (result >  0) Py_RETURN_TRUE;
+    if (result == 0) Py_RETURN_FALSE;
+    PyErr_SetFromErrno(PyExc_ValueError);
+    return NULL;
 }
 
 /********************************
@@ -1423,11 +1415,10 @@ AuParser_aup_normalize_key(AuParser *self)
 
     PARSER_CHECK;
     result = auparse_normalize_key(self->au);
-    if (result < 0) {
-	    PyErr_SetFromErrno(PyExc_ValueError);
-	    return NULL;
-    }
-    return Py_BuildValue("i", result);
+    if (result >  0) Py_RETURN_TRUE;
+    if (result == 0) Py_RETURN_FALSE;
+    PyErr_SetFromErrno(PyExc_ValueError);
+    return NULL;
 }
 
 
