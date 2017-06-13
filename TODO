@@ -1,16 +1,16 @@
 Things that need to be done:
 ===========================
-2.7.7
-* Optionally don't verify email address domain
-* non-equality comparisons for values other than \timestamp, \timestamp_ex and \record_type in ausearch-expression (#1399314)
-* If auparse input is a pipe timeout events by wall clock
-* auditd.conf space_left sizes can be %
-* Add ability to filter events in auditd
-* Look into TLS support
+2.7.8
 * Add sockaddr accessor functions in auparse
 * Add a realpath variant accessor that resolves whole path in auparse
 
 2.8
+* Look into TLS support
+* Optionally don't verify email address domain
+* auditd.conf space_left sizes can be %
+* Add ability to filter events in auditd
+* non-equality comparisons for values other than \timestamp, \timestamp_ex and \record_type in ausearch-expression (#1399314)
+* If auparse input is a pipe timeout events by wall clock
 * ausearch text format, add 'to xxx' for file perm/owner, & uid/gid changes
 * Support mutiple time streams when searching
 * In audispd, look into non-blocking handling of write to plugins
