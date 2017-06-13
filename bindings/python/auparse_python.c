@@ -17,6 +17,14 @@ auparse_timestamp_compare: because AuEvent calls this via the cmp operator
 
 */
 
+/*
+ * Note about function return codes. If a C function returns:
+ *
+ * -1 and 0, then we return exception and none respectively
+ * -1, 0, 1, then we return exception, false, true respectively
+ *
+ */
+
 #if PY_MAJOR_VERSION > 2
 #define IS_PY3K
 #define MODINITERROR return NULL
@@ -418,13 +426,13 @@ AuParser_init(AuParser *self, PyObject *args, PyObject *kwds)
         PyMem_Del(buffers);
     } break;
     case AUSOURCE_DESCRIPTOR: {
-        int fd;
+        long fd;
         fd = PyObject_AsFileDescriptor(source);
         if (fd < 0) {
             PyErr_SetString(PyExc_ValueError, "source must be resolvable to a file descriptor when source_type is AUSOURCE_DESCRIPTOR");
             return -1;
         }
-        if ((self->au = auparse_init(source_type, fd)) == NULL) {
+        if ((self->au = auparse_init(source_type, (const void *)fd)) == NULL) {
             PyErr_SetFromErrno(PyExc_EnvironmentError);
             return -1;
         }
@@ -525,6 +533,24 @@ AuParser_flush_feed(AuParser *self)
 }
 
 /********************************
+ * auparse_feed_has_data
+ ********************************/
+PyDoc_STRVAR(feed_has_data_doc,
+"feed_has_data() determines if there are any records that\n\
+ are accumulating but not yet ready to emit.\n\
+\n\
+Returns True if data left and false otherwise.\n\
+");
+static PyObject *
+AuParser_feed_has_data(AuParser *self)
+{
+    PARSER_CHECK;
+    if (auparse_feed_has_data(self->au) == 0)
+        Py_RETURN_FALSE;
+    Py_RETURN_TRUE;
+}
+
+/********************************
  * auparse_feed_age_events
  ********************************/
 PyDoc_STRVAR(feed_age_events_doc,
@@ -619,7 +645,7 @@ AuParser_set_escape_mode(AuParser *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "i", &mode)) return NULL;
     auparse_set_escape_mode(self->au, mode);
 
-    return NULL;
+    Py_RETURN_NONE;
 }
 
 /********************************
@@ -1080,6 +1106,11 @@ This means include subject and object attributes\n\
 \n\
 NORM_OPT_NO_ATTRS:\n\
 This means do not gather subject and object attributes\n\
+\n\
+Returns True on success\n\
+Returns False if uninitialized\n\
+\n\
+Raises exception (ValueError) on error\n\
 ");
 static PyObject *
 AuParser_aup_normalize(AuParser *self, PyObject *args)
@@ -1093,6 +1124,7 @@ AuParser_aup_normalize(AuParser *self, PyObject *args)
     if (result >  0) Py_RETURN_TRUE;
     if (result == 0) Py_RETURN_FALSE;
     PyErr_SetFromErrno(PyExc_ValueError);
+    return NULL;
 }
 
 
@@ -1102,6 +1134,8 @@ AuParser_aup_normalize(AuParser *self, PyObject *args)
 PyDoc_STRVAR(aup_normalize_get_event_kind_doc,
 "aup_normalize_get_event_kind() This returns a string that indicates what\n\
 kind of event this is.\n\
+\n\
+Raises exception (RuntimeError) on error\n\
 ");
 static PyObject *
 AuParser_aup_normalize_get_event_kind(AuParser *self)
@@ -1123,6 +1157,11 @@ AuParser_aup_normalize_get_event_kind(AuParser *self)
 PyDoc_STRVAR(aup_normalize_session_doc,
 "aup_normalize_session() This function positions the internal cursor on\n\
 the session's field of the event.\n\
+\n\
+Returns True on success\n\
+Returns False if uninitialized\n\
+\n\
+Raises exception (ValueError) on error\n\
 ");
 static PyObject *
 AuParser_aup_normalize_session(AuParser *self)
@@ -1143,6 +1182,11 @@ AuParser_aup_normalize_session(AuParser *self)
 PyDoc_STRVAR(aup_normalize_subject_primary_doc,
 "aup_normalize_subject_primary() This function positions the internal\n\
 cursor on the subject's field of the event.\n\
+\n\
+Returns True on success\n\
+Returns False if uninitialized\n\
+\n\
+Raises exception (ValueError) on error\n\
 ");
 static PyObject *
 AuParser_aup_normalize_subject_primary(AuParser *self)
@@ -1163,6 +1207,11 @@ AuParser_aup_normalize_subject_primary(AuParser *self)
 PyDoc_STRVAR(aup_normalize_subject_secondary_doc,
 "aup_normalize_subject_secondary() This function positions the internal\n\
 cursor on the subject's secondary field of the event.\n\
+\n\
+Returns True on success\n\
+Returns False if uninitialized\n\
+\n\
+Raises exception (ValueError) on error\n\
 ");
 static PyObject *
 AuParser_aup_normalize_subject_secondary(AuParser *self)
@@ -1183,6 +1232,11 @@ AuParser_aup_normalize_subject_secondary(AuParser *self)
 PyDoc_STRVAR(aup_normalize_subject_first_attribute_doc,
 "aup_normalize_subject_first_attribute() This function positions the internal\n\
 cursor on the subject's first attribute field of the event.\n\
+\n\
+Returns True on success\n\
+Returns False if uninitialized\n\
+\n\
+Raises exception (ValueError) on error\n\
 ");
 static PyObject *
 AuParser_aup_normalize_subject_first_attribute(AuParser *self)
@@ -1203,6 +1257,11 @@ AuParser_aup_normalize_subject_first_attribute(AuParser *self)
 PyDoc_STRVAR(aup_normalize_subject_next_attribute_doc,
 "aup_normalize_subject_next_attribute() This function positions the internal\n\
 cursor on the next subject's attribute field of the event.\n\
+\n\
+Returns True on success\n\
+Returns False if uninitialized\n\
+\n\
+Raises exception (ValueError) on error\n\
 ");
 static PyObject *
 AuParser_aup_normalize_subject_next_attribute(AuParser *self)
@@ -1223,6 +1282,8 @@ AuParser_aup_normalize_subject_next_attribute(AuParser *self)
 PyDoc_STRVAR(aup_normalize_subject_kind_doc,
 "aup_normalize_subject_kind() This returns a string that indicates the\n\
 kind of account the subject is.\n\
+\n\
+Raises exception (RuntimeError) on error\n\
 ");
 static PyObject *
 AuParser_aup_normalize_subject_kind(AuParser *self)
@@ -1244,6 +1305,8 @@ AuParser_aup_normalize_subject_kind(AuParser *self)
 PyDoc_STRVAR(aup_normalize_get_action_doc,
 "aup_normalize_get_action() This returns a string that indicates the\n\
 subject's action.\n\
+\n\
+Raises exception (RuntimeError) on error\n\
 ");
 static PyObject *
 AuParser_aup_normalize_get_action(AuParser *self)
@@ -1265,6 +1328,11 @@ AuParser_aup_normalize_get_action(AuParser *self)
 PyDoc_STRVAR(aup_normalize_object_primary_doc,
 "aup_normalize_object_primary() This function positions the internal\n\
 cursor on the object's field of the event.\n\
+\n\
+Returns True on success\n\
+Returns False if uninitialized\n\
+\n\
+Raises exception (ValueError) on error\n\
 ");
 static PyObject *
 AuParser_aup_normalize_object_primary(AuParser *self)
@@ -1285,6 +1353,11 @@ AuParser_aup_normalize_object_primary(AuParser *self)
 PyDoc_STRVAR(aup_normalize_object_secondary_doc,
 "aup_normalize_object_secondary() This function positions the internal\n\
 cursor on the object's secondary field of the event.\n\
+\n\
+Returns True on success\n\
+Returns False if uninitialized\n\
+\n\
+Raises exception (ValueError) on error\n\
 ");
 static PyObject *
 AuParser_aup_normalize_object_secondary(AuParser *self)
@@ -1305,6 +1378,11 @@ AuParser_aup_normalize_object_secondary(AuParser *self)
 PyDoc_STRVAR(aup_normalize_object_first_attribute_doc,
 "aup_normalize_object_first_attribute() This function positions the internal\n\
 cursor on the object's first attribute field of the event.\n\
+\n\
+Returns True on success\n\
+Returns False if uninitialized\n\
+\n\
+Raises exception (ValueError) on error\n\
 ");
 static PyObject *
 AuParser_aup_normalize_object_first_attribute(AuParser *self)
@@ -1325,6 +1403,11 @@ AuParser_aup_normalize_object_first_attribute(AuParser *self)
 PyDoc_STRVAR(aup_normalize_object_next_attribute_doc,
 "aup_normalize_object_next_attribute() This function positions the internal\n\
 cursor on the next object's attribute field of the event.\n\
+\n\
+Returns True on success\n\
+Returns False if uninitialized\n\
+\n\
+Raises exception (ValueError) on error\n\
 ");
 static PyObject *
 AuParser_aup_normalize_object_next_attribute(AuParser *self)
@@ -1345,6 +1428,8 @@ AuParser_aup_normalize_object_next_attribute(AuParser *self)
 PyDoc_STRVAR(aup_normalize_object_kind_doc,
 "aup_normalize_object_kind() This returns a string that indicates the\n\
 kind of thing the object is.\n\
+\n\
+Raises exception (RuntimeError) on error\n\
 ");
 static PyObject *
 AuParser_aup_normalize_object_kind(AuParser *self)
@@ -1366,6 +1451,11 @@ AuParser_aup_normalize_object_kind(AuParser *self)
 PyDoc_STRVAR(aup_normalize_get_results_doc,
 "aup_normalize_subject_primary() This function positions the internal\n\
 cursor on the results field of the event.\n\
+\n\
+Returns True on success\n\
+Returns False if uninitialized\n\
+\n\
+Raises exception (ValueError) on error\n\
 ");
 static PyObject *
 AuParser_aup_normalize_get_results(AuParser *self)
@@ -1386,6 +1476,8 @@ AuParser_aup_normalize_get_results(AuParser *self)
 PyDoc_STRVAR(aup_normalize_how_doc,
 "aup_normalize_how() This returns a string that indicates the\n\
 how the object is being accessed. This is usually a program.\n\
+\n\
+Raises exception (RuntimeError) on error\n\
 ");
 static PyObject *
 AuParser_aup_normalize_how(AuParser *self)
@@ -1407,6 +1499,11 @@ AuParser_aup_normalize_how(AuParser *self)
 PyDoc_STRVAR(aup_normalize_key_doc,
 "aup_normalize_key() This function positions the internal\n\
 cursor on the key field of the event.\n\
+\n\
+Returns True on success\n\
+Returns False if uninitialized\n\
+\n\
+Raises exception (ValueError) on error\n\
 ");
 static PyObject *
 AuParser_aup_normalize_key(AuParser *self)
@@ -1454,12 +1551,13 @@ AuParser_get_timestamp(AuParser *self)
 
 /********************************
  * auparse_get_num_records
+ *
  ********************************/
 PyDoc_STRVAR(get_num_records_doc,
 "get_num_records() Get the number of records.\n\
 \n\
 Returns the number of records in the current event.\n\
-Raises exception (EnvironmentError) on error.\n\
+Raises exception (RuntimeError) on error.\n\
 ");
 static PyObject *
 AuParser_get_num_records(AuParser *self)
@@ -1469,7 +1567,7 @@ AuParser_get_num_records(AuParser *self)
     PARSER_CHECK;
     num_records = auparse_get_num_records(self->au);
     if (num_records == 0) {
-        PyErr_SetFromErrno(PyExc_EnvironmentError);
+        PyErr_SetString(PyExc_RuntimeError, "No records");
         return NULL;
     }
     return Py_BuildValue("i", num_records);
@@ -1615,6 +1713,7 @@ get_line_number will return the source input line number for\n\
 the current record of the current event. Line numbers start at 1.  If\n\
 the source input type is AUSOURCE_FILE_ARRAY the line numbering will\n\
 reset back to 1 each time a new life in the file array is opened.\n\
+Raises exception (RuntimeError) on error.\n\
 ");
 static PyObject *
 AuParser_get_line_number(AuParser *self)
@@ -1623,6 +1722,10 @@ AuParser_get_line_number(AuParser *self)
 
     PARSER_CHECK;
     value = auparse_get_line_number(self->au);
+    if (value == 0) {
+        PyErr_SetString(PyExc_RuntimeError, "No line number");
+        return NULL;
+    }
     return Py_BuildValue("I", value);
 }
 
@@ -1808,6 +1911,8 @@ get_field_name() allows access to the current field name of the\n\
 current record in the current event.\n\
 \n\
 Returns None if the field value is unavailable.\n\
+Returns String.\n\
+Raises exception (RuntimeError) on error\n\
 ");
 static PyObject *
 AuParser_get_field_name(AuParser *self)
@@ -1816,6 +1921,10 @@ AuParser_get_field_name(AuParser *self)
 
     PARSER_CHECK;
     name = auparse_get_field_name(self->au);
+    if (name == NULL) {
+        PyErr_SetString(PyExc_RuntimeError, "'field name' is NULL");
+        return NULL;
+    }
     return Py_BuildValue("s", name);
 }
 
@@ -1828,7 +1937,8 @@ PyDoc_STRVAR(get_field_str_doc,
 get_field_str() allows access to the value in the current field of the\n\
 current record in the current event.\n\
 \n\
-Returns None if the field value is unavailable.\n\
+Returns String.\n\
+Raises exception (RuntimeError) on error\n\
 ");
 static PyObject *
 AuParser_get_field_str(AuParser *self)
@@ -1837,6 +1947,10 @@ AuParser_get_field_str(AuParser *self)
 
     PARSER_CHECK;
     value = auparse_get_field_str(self->au);
+    if (value == NULL) {
+        PyErr_SetString(PyExc_RuntimeError, "'field str' is NULL");
+        return NULL;
+    }
     return Py_BuildValue("s", value);
 }
 
@@ -1874,7 +1988,8 @@ PyDoc_STRVAR(get_field_int_doc,
 get_field_int() allows access to the value as an int of the current\n\
 field of the current record in the current event.\n\
 \n\
-Returns None if the field value is unavailable.\n\
+Returns field's numeric value.\n\
+Raises exception (EnvironmentError) on error\n\
 ");
 static PyObject *
 AuParser_get_field_int(AuParser *self)
@@ -1884,7 +1999,8 @@ AuParser_get_field_int(AuParser *self)
     PARSER_CHECK;
     value = auparse_get_field_int(self->au);
     if (errno == 0) return Py_BuildValue("i", value);
-    Py_RETURN_NONE;
+    PyErr_SetFromErrno(PyExc_EnvironmentError);
+    return NULL;
 }
 
 // FIXME: can't tell if interpret is successful, always returns some string in somewhat arbitrary format.
@@ -1892,7 +2008,7 @@ PyDoc_STRVAR(interpret_field_doc,
 "interpret_field() Return an interpretation of the current field as a string that has the chosen character escaping applied.\n\
 \n\
 If the field cannot be interpreted the field is returned unmodified.\n\
-Returns None if the field value is unavailable.\n\
+Raises exception (RuntimeError) on error\n\
 ");
 static PyObject *
 AuParser_interpret_field(AuParser *self)
@@ -1901,6 +2017,10 @@ AuParser_interpret_field(AuParser *self)
 
     PARSER_CHECK;
     value = auparse_interpret_field(self->au);
+    if (value == NULL) {
+        PyErr_SetString(PyExc_RuntimeError, "'interpretation' is NULL");
+        return NULL;
+    }
     return Py_BuildValue("s", value);
 }
 
@@ -1917,6 +2037,7 @@ PyMemberDef AuParser_members[] = {
 static PyMethodDef AuParser_methods[] = {
     {"feed",              (PyCFunction)AuParser_feed,              METH_VARARGS, feed_doc},
     {"flush_feed",        (PyCFunction)AuParser_flush_feed,        METH_NOARGS,  flush_feed_doc},
+    {"feed_has_data",     (PyCFunction)AuParser_feed_has_data,     METH_NOARGS,  feed_has_data_doc},
     {"feed_age_events",   (PyCFunction)AuParser_feed_age_events,   METH_NOARGS,  feed_age_events_doc},
     {"add_callback",      (PyCFunction)AuParser_add_callback,      METH_VARARGS, add_callback_doc},
     {"set_escape_mode",   (PyCFunction)AuParser_set_escape_mode,   METH_VARARGS, set_escape_mode_doc},
@@ -2035,6 +2156,7 @@ static PyTypeObject AuParserType = {
  *                                Module
  *===========================================================================*/
 
+#ifndef IS_PY3K
 PyDoc_STRVAR(auparse_doc,
 "Parsing library for audit messages.\n\
 \n\
@@ -2042,6 +2164,7 @@ The module defines the following exceptions:\n\
 \n\
 NoParser: Raised if the underlying C code parser is not bound to the AuParser object.\n\
 ");
+#endif
 
 static PyMethodDef module_methods[] = {
     {NULL}  /* Sentinel */

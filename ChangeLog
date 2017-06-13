@@ -10,6 +10,7 @@
 - Fix auparse normalizer python binding return codes
 - Rename auparse normalizer python binding function to aup_normalize_object_kind
 - Add python bindings for auparse_nomalize_subject_kind
+- Fixup all auparse python bindings return codes and documentation
 
 2.7.6
 - In auparse_nomalize, assign user-login as the event kind for AUDIT_LOGIN
