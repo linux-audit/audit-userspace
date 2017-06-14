@@ -711,6 +711,7 @@ int main(int argc, char *argv[])
 
 	/* Setup the reconfig notification pipe */
 	if (socketpair(AF_UNIX, SOCK_STREAM, 0, pipefds)) {
+        	audit_msg(LOG_ERR, "Cannot open reconfig socket");
 		if (pidfile)
 			unlink(pidfile);
 		tell_parent(FAILURE);
