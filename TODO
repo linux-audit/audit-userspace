@@ -1,23 +1,27 @@
 Things that need to be done:
 ===========================
 2.7.8
-* Add sockaddr accessor functions in auparse
 * Add a realpath variant accessor that resolves whole path in auparse
+* ausearch text format, add 'to xxx' for file perm/owner, & uid/gid changes
+* Optionally don't verify email address domain
+* Add autrace EPERM/EACCES mode
 
 2.8
 * Look into TLS support
-* Optionally don't verify email address domain
-* auditd.conf space_left sizes can be %
-* Add ability to filter events in auditd
 * non-equality comparisons for values other than \timestamp, \timestamp_ex and \record_type in ausearch-expression (#1399314)
-* If auparse input is a pipe timeout events by wall clock
-* ausearch text format, add 'to xxx' for file perm/owner, & uid/gid changes
-* Support mutiple time streams when searching
+* Add rule verify to detect mismatch between in-kernel and on-disk rules
+* Add sockaddr accessor functions in auparse
+* Support multiple time streams when searching
 * In audispd, look into non-blocking handling of write to plugins
 * Re-write auvirt
 * Fix auvirt to report AVC's and --proof for --all-events
+
+2.9
 * Look at pulling audispd into auditd
+* auditd.conf space_left sizes can be %
+* Add ability to filter events in auditd
 * Fix audit.pc.in to use Requires.private
+* If auparse input is a pipe timeout events by wall clock
 * If relative file, use cwd to build (realpath). watch out for (null) and socket
 * Change ausearch to output name="" unless its a real null. (mount) ausearch-report.c, 523. FIXME
 
@@ -26,8 +30,7 @@ Things that need to be done:
 * Support ipv6 remote logging
 * Consolidate linked lists and other functions
 * Consolidate parsing code between libaudit and auditd-conf.c
-* Performance improvements for auparse
-* Add rule verify to detect mismatch between in-kernel and on-disk rules
+* Performance improvements for auparse (Memory management)
 
 3.0.1
 * Fix SIGHUP for auditd network settings
