@@ -34,6 +34,7 @@
 #include <sys/poll.h>
 #include <netdb.h>
 #include <arpa/inet.h>
+#include <limits.h>
 
 #include "audispd-config.h"
 #include "audispd-pconfig.h"
