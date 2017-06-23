@@ -65,6 +65,7 @@ struct daemon_conf
 	failure_action_t space_left_action;
 	const char *space_left_exe;
 	const char *action_mail_acct;
+	unsigned int verify_email;
 	unsigned long admin_space_left;
 	failure_action_t admin_space_left_action;
 	const char *admin_space_left_exe;

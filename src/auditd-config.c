@@ -100,6 +100,8 @@ static int space_action_parser(struct nv_pair *nv, int line,
 		struct daemon_conf *config);
 static int action_mail_acct_parser(struct nv_pair *nv, int line, 
 		struct daemon_conf *config);
+static int verify_email_parser(struct nv_pair *nv, int line, 
+		struct daemon_conf *config);
 static int admin_space_left_parser(struct nv_pair *nv, int line, 
 		struct daemon_conf *config);
 static int admin_space_left_action_parser(struct nv_pair *nv, int line, 
@@ -151,6 +153,7 @@ static const struct kw_pair keywords[] =
   {"space_left",               space_left_parser,		0 },
   {"space_left_action",        space_action_parser,		1 },
   {"action_mail_acct",         action_mail_acct_parser,		0 },
+  {"verify_email",             verify_email_parser,		0 },
   {"admin_space_left",         admin_space_left_parser,		0 },
   {"admin_space_left_action",  admin_space_left_action_parser,	1 },
   {"disk_full_action",         disk_full_action_parser,		1 },
@@ -271,6 +274,7 @@ void clear_config(struct daemon_conf *config)
 	config->space_left_action = FA_IGNORE;
 	config->space_left_exe = NULL;
 	config->action_mail_acct = strdup("root");
+	config->verify_email = 1;
 	config->admin_space_left= 0L;
 	config->admin_space_left_action = FA_IGNORE;
 	config->admin_space_left_exe = NULL;
@@ -1110,7 +1114,7 @@ static int action_mail_acct_parser(struct nv_pair *nv, int line,
 	if (tmail == NULL)
 		return 1;
 
-	if (validate_email(tmail) > 1) {
+	if (config->verify_email && validate_email(tmail) > 1) {
 		free(tmail);
 		return 1;
 	}
@@ -1120,6 +1124,24 @@ static int action_mail_acct_parser(struct nv_pair *nv, int line,
 		free((void *)config->action_mail_acct);
 	config->action_mail_acct = tmail;
 	return 0;
+}
+
+static int verify_email_parser(struct nv_pair *nv, int line,
+	struct daemon_conf *config)
+{
+	unsigned long i;
+	audit_msg(LOG_DEBUG, "verify_email_parser called with: %s",
+		  nv->value);
+
+
+	for (i=0; yes_no_values[i].name != NULL; i++) {
+		if (strcasecmp(nv->value, yes_no_values[i].name) == 0) {
+			config->verify_email = yes_no_values[i].option;
+			return 0;
+		}
+	}
+	audit_msg(LOG_ERR, "Option %s not found - line %d", nv->value, line);
+	return 1;
 }
 
 static int admin_space_left_parser(struct nv_pair *nv, int line, 

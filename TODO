@@ -1,7 +1,6 @@
 Things that need to be done:
 ===========================
 2.7.8
-* Optionally don't verify email address domain
 * Add autrace EPERM/EACCES mode
 * Add a realpath variant accessor that resolves whole path in auparse
 * ausearch text format, add 'to xxx' for file perm/owner, & uid/gid changes

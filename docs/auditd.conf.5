@@ -129,6 +129,13 @@ option is similar to rotate except it does not use the num_logs setting. This pr
 .I space_left_action
 if the volume fills up. This is best used in combination with an external script used to archive logs on a periodic basis.
 .TP
+.I verify_email
+This option determines if the email address given in
+.IR action_mail_acct
+is checked to see if the domain name can be resolved. This option must be given before
+.IR action_mail_acct
+or the default value of yes will be used.
+.TP
 .I action_mail_acct
 This option should contain a valid email address or alias. The default address is root. If the email address is not local to the machine, you must make sure you have email properly configured on your machine and network. Also, this option requires that /usr/lib/sendmail exists on the machine.
 .TP

@@ -1,4 +1,5 @@
 2.7.8
+- Add config option to auditd to not verify email addr domain (#1406887)
 
 2.7.7
 - Make ausearch a little more robust to bad time values
