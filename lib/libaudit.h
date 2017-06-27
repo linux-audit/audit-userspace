@@ -278,6 +278,9 @@ extern "C" {
 #define AUDIT_KEY_SEPARATOR 0x01
 
 /* These are used in filter control */
+#ifndef AUDIT_FILTER_FS
+#define AUDIT_FILTER_FS		0x06 /* FS record filter in __audit_inode_child */
+#endif
 #define AUDIT_FILTER_EXCLUDE	AUDIT_FILTER_TYPE
 #define AUDIT_FILTER_MASK	0x07	/* Mask to get actual filter */
 #define AUDIT_FILTER_UNSET	0x80	/* This value means filter is unset */
@@ -306,6 +309,9 @@ extern "C" {
 #ifndef AUDIT_FEATURE_BITMAP_LOST_RESET
 #define AUDIT_FEATURE_BITMAP_LOST_RESET		0x00000020
 #endif
+#ifndef AUDIT_FEATURE_BITMAP_FILTER_FS
+#define AUDIT_FEATURE_BITMAP_FILTER_FS		0x00000040
+#endif
 
 /* Defines for interfield comparison update */
 #ifndef AUDIT_OBJ_UID
@@ -323,6 +329,10 @@ extern "C" {
 
 #ifndef AUDIT_SESSIONID
 #define AUDIT_SESSIONID 25
+#endif
+
+#ifndef AUDIT_FSTYPE
+#define AUDIT_FSTYPE 26
 #endif
 
 #ifndef AUDIT_COMPARE_UID_TO_OBJ_UID

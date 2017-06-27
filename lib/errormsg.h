@@ -20,6 +20,7 @@
  * Authors:
  *      Zhang Xiliang <zhangxiliang@cn.fujitsu.com>
  *      Steve Grubb <sgrubb@redhat.com>
+ *      Richard Guy Briggs <rgb@redhat.com>
  */
 
 struct msg_tab {
@@ -66,6 +67,8 @@ struct msg_tab {
 #define EAU_FIELDNOFILTER	31
 #define EAU_FILTERMISSING	32
 #define EAU_COMPINCOMPAT	33
+#define EAU_FIELDUNAVAIL	34
+#define EAU_FILTERNOSUPPORT	35
 static const struct msg_tab err_msgtab[] = {
     { -EAU_OPMISSING,		2, "-F missing operation for" },
     { -EAU_FIELDUNKNOWN,	2, "-F unknown field:" },
@@ -100,5 +103,7 @@ static const struct msg_tab err_msgtab[] = {
     { -EAU_FIELDNOFILTER,	1, "must be used with exclude, user, or exit filter" },
     { -EAU_FILTERMISSING,	0, "filter is missing from rule" },
     { -EAU_COMPINCOMPAT,	2, "-C incompatible comparison" },
+    { -EAU_FIELDUNAVAIL,	1, "field is not valid for the filter" },
+    { -EAU_FILTERNOSUPPORT,	1, "filter is not supported ty kernel" },
 };
 #endif

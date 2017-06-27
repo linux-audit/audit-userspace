@@ -19,6 +19,7 @@
  * Authors:
  *      Steve Grubb <sgrubb@redhat.com>
  *      Rickard E. (Rik) Faith <faith@redhat.com>
+ *      Richard Guy Briggs <rgb@redhat.com>
  */
 
 #include "config.h"
@@ -85,6 +86,7 @@ int _audit_permadded = 0;
 int _audit_archadded = 0;
 int _audit_syscalladded = 0;
 int _audit_exeadded = 0;
+int _audit_filterfsadded = 0;
 unsigned int _audit_elf = 0U;
 static struct libaudit_conf config;
 
@@ -1466,6 +1468,23 @@ int audit_rule_fieldpair_data(struct audit_rule_data **rulep, const char *pair,
 		}
 	}
 
+	/* FS filter can be used only with FSTYPE field */
+	if (flags == AUDIT_FILTER_FS) {
+		uint32_t features = audit_get_features();
+		if ((features & AUDIT_FEATURE_BITMAP_FILTER_FS) == 0) {
+			return -EAU_FILTERNOSUPPORT;
+		} else {
+			switch(field) {
+				case AUDIT_FSTYPE:
+					_audit_filterfsadded = 1;
+				case AUDIT_FILTERKEY:
+					break;
+				default:
+					return -EAU_FIELDUNAVAIL;
+			}
+		}
+	}
+
 	rule->fields[rule->field_count] = field;
 	rule->fieldflags[rule->field_count] = op;
 	switch (field)
@@ -1580,7 +1599,8 @@ int audit_rule_fieldpair_data(struct audit_rule_data **rulep, const char *pair,
 			}
 			if (field == AUDIT_FILTERKEY &&
 				!(_audit_syscalladded || _audit_permadded ||
-				_audit_exeadded))
+				_audit_exeadded ||
+				_audit_filterfsadded))
                                 return -EAU_KEYDEP;
 			vlen = strlen(v);
 			if (field == AUDIT_FILTERKEY &&
@@ -1715,7 +1735,7 @@ int audit_rule_fieldpair_data(struct audit_rule_data **rulep, const char *pair,
 				return -EAU_EXITONLY;
 			/* fallthrough */
 		default:
-			if (field == AUDIT_INODE) {
+			if (field == AUDIT_INODE || field == AUDIT_FSTYPE) {
 				if (!(op == AUDIT_NOT_EQUAL ||
 							op == AUDIT_EQUAL))
 					return -EAU_OPEQNOTEQ;
@@ -1727,6 +1747,8 @@ int audit_rule_fieldpair_data(struct audit_rule_data **rulep, const char *pair,
 			if (!isdigit((char)*(v)))
 				return -EAU_FIELDVALNUM;
 
+			if (field == AUDIT_FSTYPE && flags != AUDIT_FILTER_FS)
+				return -EAU_FIELDUNAVAIL;
 			if (field == AUDIT_INODE)
 				rule->values[rule->field_count] =
 					strtoul(v, NULL, 0);

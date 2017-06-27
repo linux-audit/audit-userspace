@@ -139,6 +139,7 @@ extern int _audit_permadded;
 extern int _audit_archadded;
 extern int _audit_syscalladded;
 extern int _audit_exeadded;
+extern int _audit_filterfsadded;
 extern unsigned int _audit_elf;
 
 #ifdef __cplusplus

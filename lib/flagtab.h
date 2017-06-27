@@ -18,8 +18,10 @@
  *
  * Authors:
  *      Steve Grubb <sgrubb@redhat.com>
+ *      Richard Guy Briggs <rgb@redhat.com>
  */
-_S(AUDIT_FILTER_TASK,    "task"     )
-_S(AUDIT_FILTER_EXIT,    "exit"     )
-_S(AUDIT_FILTER_USER,    "user"     )
-_S(AUDIT_FILTER_EXCLUDE, "exclude"  )
+_S(AUDIT_FILTER_TASK,    "task"      )
+_S(AUDIT_FILTER_EXIT,    "exit"      )
+_S(AUDIT_FILTER_USER,    "user"      )
+_S(AUDIT_FILTER_EXCLUDE, "exclude"   )
+_S(AUDIT_FILTER_FS,      "filesystem")

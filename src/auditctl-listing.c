@@ -91,7 +91,8 @@ static int is_watch(const struct audit_rule_data *r)
 
 	if (((r->flags & AUDIT_FILTER_MASK) != AUDIT_FILTER_USER) &&
 		((r->flags & AUDIT_FILTER_MASK) != AUDIT_FILTER_TASK) &&
-		((r->flags & AUDIT_FILTER_MASK) != AUDIT_FILTER_EXCLUDE)) {
+		((r->flags & AUDIT_FILTER_MASK) != AUDIT_FILTER_EXCLUDE) &&
+		((r->flags & AUDIT_FILTER_MASK) != AUDIT_FILTER_FS)) {
 		for (i = 0; i < (AUDIT_BITMASK_SIZE-1); i++) {
 			if (r->mask[i] != (uint32_t)~0) {
 				all = 0;
@@ -139,7 +140,8 @@ static int print_syscall(const struct audit_rule_data *r, unsigned int *sc)
 	/* Rules on the following filters do not take a syscall */
 	if (((r->flags & AUDIT_FILTER_MASK) == AUDIT_FILTER_USER) ||
 	    ((r->flags & AUDIT_FILTER_MASK) == AUDIT_FILTER_TASK) ||
-	    ((r->flags &AUDIT_FILTER_MASK) == AUDIT_FILTER_EXCLUDE))
+	    ((r->flags &AUDIT_FILTER_MASK) == AUDIT_FILTER_EXCLUDE) ||
+	    ((r->flags &AUDIT_FILTER_MASK) == AUDIT_FILTER_FS))
 		return 0;
 
 	/* See if its all or specific syscalls */
