@@ -1,5 +1,5 @@
 /* auditd-dispatch.h -- 
- * Copyright 2005,2007,2013 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2005,2007,2013,2017 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -32,7 +32,7 @@ int make_dispatcher_fd_private(void);
 int init_dispatcher(const struct daemon_conf *config);
 void shutdown_dispatcher(void);
 void reconfigure_dispatcher(const struct daemon_conf *config);
-int dispatch_event(const struct audit_reply *rep, int is_err);
+int dispatch_event(const struct audit_reply *rep, int is_err, int protocol_ver);
 
 #endif
 

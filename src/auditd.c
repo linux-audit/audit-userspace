@@ -1,5 +1,5 @@
 /* auditd.c -- 
- * Copyright 2004-09,2011,2013,2016 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2004-09,2011,2013,2016-17 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -207,15 +207,28 @@ static int extract_type(const char *str)
 
 void distribute_event(struct auditd_event *e)
 {
-	int attempt = 0, route = 1;
+	int attempt = 0, route = 1, proto;
+
+	if (config.log_format == LF_ENRICHED)
+		proto = AUDISP_PROTOCOL_VER2;
+	else
+		proto = AUDISP_PROTOCOL_VER;
 
 	/* If type is 0, then its a network originating event */
 	if (e->reply.type == 0) {
 		// See if we are distributing network originating events
 		if (!dispatch_network_events())
 			route = 0;
-		else	// We only need the original type if its being routed
+		else {	// We only need the original type if its being routed
 			e->reply.type = extract_type(e->reply.message);
+			char *p = strchr(e->reply.message,
+					AUDIT_INTERP_SEPARATOR);
+			if (p)
+				proto = AUDISP_PROTOCOL_VER2;
+			else
+				proto = AUDISP_PROTOCOL_VER;
+
+		}
 	} else if (e->reply.type != AUDIT_DAEMON_RECONFIG)
 		// All other events need formatting
 		format_event(e);
@@ -223,7 +236,7 @@ void distribute_event(struct auditd_event *e)
 		route = 0; // Don't DAEMON_RECONFIG events until after enqueue
 
 	/* Make first attempt to send to plugins */
-	if (route && dispatch_event(&e->reply, attempt) == 1)
+	if (route && dispatch_event(&e->reply, attempt, proto) == 1)
 		attempt++; /* Failed sending, retry after writing to disk */
 
 	/* End of Event is for realtime interface - skip local logging of it */
@@ -232,7 +245,7 @@ void distribute_event(struct auditd_event *e)
 
 	/* Last chance to send...maybe the pipe is empty now. */
 	if ((attempt && route) || (e->reply.type == AUDIT_DAEMON_RECONFIG))
-		dispatch_event(&e->reply, attempt);
+		dispatch_event(&e->reply, attempt, proto);
 
 	/* Free msg and event memory */
 	cleanup_event(e);

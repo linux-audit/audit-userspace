@@ -4,7 +4,6 @@ Things that need to be done:
 * Add autrace EPERM/EACCES mode
 * Add a realpath variant accessor that resolves whole path in auparse
 * ausearch text format, add 'to xxx' for file perm/owner, & uid/gid changes
-* If aggregating server uses raw events, audispd shuts down on remote event
 * If server suspends after client sends event &before ack, client wont reconnect
 
 2.8
