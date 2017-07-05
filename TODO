@@ -1,13 +1,13 @@
 Things that need to be done:
 ===========================
 2.7.8
-* Add autrace EPERM/EACCES mode
 * Add a realpath variant accessor that resolves whole path in auparse
 * ausearch text format, add 'to xxx' for file perm/owner, & uid/gid changes
 * If server suspends after client sends event &before ack, client wont reconnect
 
 2.8
 * Look into TLS support
+* Support ipv6 remote logging
 * non-equality comparisons for values other than \timestamp, \timestamp_ex and \record_type in ausearch-expression (#1399314)
 * Add rule verify to detect mismatch between in-kernel and on-disk rules
 * Add sockaddr accessor functions in auparse
@@ -18,6 +18,7 @@ Things that need to be done:
 
 2.9
 * Look at pulling audispd into auditd
+* Performance improvements for auparse (Memory management)
 * auditd.conf space_left sizes can be %
 * Add ability to filter events in auditd
 * Fix audit.pc.in to use Requires.private
@@ -27,10 +28,8 @@ Things that need to be done:
 
 3.0
 * Basic HIDS
-* Support ipv6 remote logging
 * Consolidate linked lists and other functions
 * Consolidate parsing code between libaudit and auditd-conf.c
-* Performance improvements for auparse (Memory management)
 
 3.0.1
 * Fix SIGHUP for auditd network settings
