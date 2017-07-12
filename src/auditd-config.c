@@ -1724,12 +1724,14 @@ const char *audit_lookup_format(int fmt)
 int create_log_file(const char *val)
 {
 	int fd;
+	mode_t u;
 
-	umask(S_IRWXO);
+	u = umask(S_IRWXO);
 	fd = open(val, O_CREAT|O_EXCL|O_APPEND, S_IRUSR|S_IWUSR|S_IRGRP);
 	if (fd < 0) 
 		audit_msg(LOG_ERR, "Unable to create %s (%s)", val,
 			strerror(errno));
+	umask(u);
 	return fd;
 }
 
