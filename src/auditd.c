@@ -185,7 +185,7 @@ static void child_handler2( int sig )
 
 static int extract_type(const char *str)
 {
-	const char *tptr, *ptr2, *ptr = str;
+	const char *ptr2, *ptr = str;
 	if (*str == 'n') {
 		ptr = strchr(str+1, ' ');
 		if (ptr == NULL)
@@ -194,12 +194,12 @@ static int extract_type(const char *str)
 	}
 	// ptr should be at 't'
 	ptr2 = strchr(ptr, ' ');
-	// get type=xxx in a buffer
-	tptr = strndupa(ptr, ptr2 - ptr);
+
 	// find =
-	str = strchr(tptr, '=');
-	if (str == NULL)
+	str = strchr(ptr, '=');
+	if (str == NULL || str >= ptr2)
 		return -1; // Malformed - bomb out
+
 	// name is 1 past
 	str++;
 	return audit_name_to_msg_type(str);
