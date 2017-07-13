@@ -334,7 +334,7 @@ int main(int argc, char *argv[])
 	struct sigaction sa;
 	int i;
 
-	set_aumessage_mode(MSG_SYSLOG, DBG_YES);
+	set_aumessage_mode(MSG_SYSLOG, DBG_NO);
 
 	/* Clear any procmask set by libev */
 	sigfillset (&sa.sa_mask);
