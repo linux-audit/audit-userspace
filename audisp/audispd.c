@@ -35,6 +35,7 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 #include <limits.h>
+#include <sys/uio.h>
 
 #include "audispd-config.h"
 #include "audispd-pconfig.h"
