@@ -586,8 +586,15 @@ static void csv_event(auparse_state_t *au,
 
 	// OBJ_PRIME
 	rc = auparse_normalize_object_primary(au);
-	if (rc == 1)
-		printf("%s", auparse_interpret_field(au));
+	if (rc == 1) {
+		const char *val;
+
+		if (auparse_get_field_type(au) == AUPARSE_TYPE_ESCAPED_FILE)
+			val = auparse_interpret_realpath(au);
+		else
+			val = auparse_interpret_field(au);
+		printf("%s", val);
+	}
 	putchar(',');
 
 	// OBJ_SEC
@@ -699,10 +706,17 @@ static void text_event(auparse_state_t *au,
 
 	rc = auparse_normalize_object_primary(au);
 	if (rc == 1) {
+		const char *val;
+
 		// If we have an object and this is an AVC, add some words
 		if (action && strstr(action, "violated"))
 			printf("accessing ");
-		printf("%s ", auparse_interpret_field(au));
+
+		if (auparse_get_field_type(au) == AUPARSE_TYPE_ESCAPED_FILE)
+			val = auparse_interpret_realpath(au);
+		else
+			val = auparse_interpret_field(au);
+		printf("%s ", val);
 	}
 
 	if (    type == AUDIT_VIRT_RESOURCE ||

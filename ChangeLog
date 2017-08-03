@@ -2,6 +2,7 @@
 - Add config option to auditd to not verify email addr domain (#1406887)
 - When auditd forwards events to disptcher, calculate protocol each event
 - In auditd, restore umask after creating log file (Avi Yeger)
+- Add a realpath interpretation function that resolves whole path in auparse
 
 2.7.7
 - Make ausearch a little more robust to bad time values

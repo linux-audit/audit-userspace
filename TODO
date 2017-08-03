@@ -1,7 +1,6 @@
 Things that need to be done:
 ===========================
 2.7.8
-* Add a realpath variant accessor that resolves whole path in auparse
 * Support FANOTIFY record
 * ausearch text format, add 'to xxx' for file perm/owner, & uid/gid changes
 * If server suspends after client sends event &before ack, client wont reconnect

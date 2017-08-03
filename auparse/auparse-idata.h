@@ -1,6 +1,6 @@
 /*
 * idata.h - Header file for ausearch-lookup.c
-* Copyright (c) 2013,2016 Red Hat Inc., Durham, North Carolina.
+* Copyright (c) 2013,2016-17 Red Hat Inc., Durham, North Carolina.
 * All Rights Reserved.
 *
 * This library is free software; you can redistribute it and/or
@@ -33,6 +33,7 @@ typedef struct _idata {
 	int syscall;		// The syscall for the event
 	unsigned long long a0;	// arg 0 to the syscall
 	unsigned long long a1;	// arg 1 to the syscall
+	const char *cwd;	// The current working directory
 	const char *name;	// name of field being interpretted
 	const char *val;	// value of field being interpretted
 } idata;

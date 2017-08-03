@@ -2003,7 +2003,6 @@ AuParser_get_field_int(AuParser *self)
     return NULL;
 }
 
-// FIXME: can't tell if interpret is successful, always returns some string in somewhat arbitrary format.
 PyDoc_STRVAR(interpret_field_doc,
 "interpret_field() Return an interpretation of the current field as a string that has the chosen character escaping applied.\n\
 \n\
@@ -2017,6 +2016,26 @@ AuParser_interpret_field(AuParser *self)
 
     PARSER_CHECK;
     value = auparse_interpret_field(self->au);
+    if (value == NULL) {
+        PyErr_SetString(PyExc_RuntimeError, "'interpretation' is NULL");
+        return NULL;
+    }
+    return Py_BuildValue("s", value);
+}
+
+PyDoc_STRVAR(interpret_realpath_doc,
+"interpret_realpath() Return an interpretation of the current field as a realpath string that has the chosen character escaping applied.\n\
+\n\
+If the field cannot be interpreted the field is returned unmodified.\n\
+Raises exception (RuntimeError) on error\n\
+");
+static PyObject *
+AuParser_interpret_realpath(AuParser *self)
+{
+    const char *value = NULL;
+
+    PARSER_CHECK;
+    value = auparse_interpret_realpath(self->au);
     if (value == NULL) {
         PyErr_SetString(PyExc_RuntimeError, "'interpretation' is NULL");
         return NULL;
@@ -2089,6 +2108,7 @@ static PyMethodDef AuParser_methods[] = {
     {"get_field_type",    (PyCFunction)AuParser_get_field_type,    METH_NOARGS,  get_field_type_doc},
     {"get_field_int",     (PyCFunction)AuParser_get_field_int,     METH_NOARGS,  get_field_int_doc},
     {"interpret_field",   (PyCFunction)AuParser_interpret_field,   METH_NOARGS,  interpret_field_doc},
+    {"interpret_realpath",   (PyCFunction)AuParser_interpret_realpath, METH_NOARGS,  interpret_realpath_doc},
     {NULL, NULL}  /* Sentinel */
 };
 

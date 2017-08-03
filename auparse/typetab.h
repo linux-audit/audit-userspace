@@ -1,5 +1,5 @@
 /* typetab.h --
- * Copyright 2007-09,2011-12,2014-16 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2007-09,2011-12,2014-17 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -50,7 +50,7 @@ _S(AUPARSE_TYPE_ESCAPED,	"path"		)
 _S(AUPARSE_TYPE_ESCAPED,	"comm"		)
 _S(AUPARSE_TYPE_ESCAPED,	"exe"		)
 _S(AUPARSE_TYPE_ESCAPED,	"file"		)
-_S(AUPARSE_TYPE_ESCAPED,	"name"		)
+_S(AUPARSE_TYPE_ESCAPED_FILE,	"name"		)
 _S(AUPARSE_TYPE_ESCAPED,	"watch"		)
 _S(AUPARSE_TYPE_ESCAPED,	"cwd"		)
 _S(AUPARSE_TYPE_ESCAPED,	"cmd"		)

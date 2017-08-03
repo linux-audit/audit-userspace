@@ -1924,10 +1924,26 @@ int auparse_get_field_int(auparse_state_t *au)
 
 const char *auparse_interpret_field(auparse_state_t *au)
 {
+	if (au->le->e.sec) {
+		rnode *r = aup_list_get_cur(au->le);
+		if (r) {
+			r->cwd = NULL;
+			return nvlist_interp_cur_val(r, au->escape_mode);
+		}
+	}
+	return NULL;
+}
+
+
+const char *auparse_interpret_realpath(auparse_state_t *au)
+{
         if (au->le->e.sec) {
                 rnode *r = aup_list_get_cur(au->le);
-                if (r)
+                if (r) {
+			// Tell it to make a realpath
+			r->cwd = au->le->cwd;
                         return nvlist_interp_cur_val(r, au->escape_mode);
+		}
         }
 	return NULL;
 }

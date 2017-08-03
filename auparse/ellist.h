@@ -1,6 +1,6 @@
 /*
 * ellist.h - Header file for ellist.c
-* Copyright (c) 2006-07 Red Hat Inc., Durham, North Carolina.
+* Copyright (c) 2006-07,2017 Red Hat Inc., Durham, North Carolina.
 * All Rights Reserved.
 *
 * This library is free software; you can redistribute it and/or
@@ -30,7 +30,7 @@
 #include <sys/types.h>
 #include "nvlist.h"
 
-/* This is the linked list head. Only data elements that are 1 per
+/* This is the record linked list head. Only data elements that are 1 per
  * event goes here. */
 typedef struct {
 	rnode *head;		// List head
@@ -39,6 +39,7 @@ typedef struct {
 
 	// Data we add as 1 per event
 	au_event_t e;		// event - time & serial number
+	const char *cwd;	// cwd used for realpath conversion
 } event_list_t;
 
 static inline unsigned int aup_list_get_cnt(event_list_t *l) { return l ? l->cnt : 0; }

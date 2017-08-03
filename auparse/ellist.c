@@ -1,6 +1,6 @@
 /*
 * ellist.c - Minimal linked list library
-* Copyright (c) 2006-08,2014,2016 Red Hat Inc., Durham, North Carolina.
+* Copyright (c) 2006-08,2014,2016-17 Red Hat Inc., Durham, North Carolina.
 * All Rights Reserved. 
 *
 * This library is free software; you can redistribute it and/or
@@ -40,6 +40,7 @@ void aup_list_create(event_list_t *l)
 	l->e.sec = 0L;         
 	l->e.serial = 0L;
 	l->e.host = NULL;
+	l->cwd = NULL;
 }
 
 static void aup_list_last(event_list_t *l)
@@ -234,6 +235,9 @@ static int parse_up_record(rnode* r)
 				r->a1 = strtoull(n.val, NULL, 16);
 				if (errno)
 					r->a1 = -1LL;
+			} else if (r->type == AUDIT_CWD) {
+				if (strcmp(n.name, "cwd") == 0)
+					r->cwd = strdup(n.val);
 			}
 		} else if (r->type == AUDIT_AVC || r->type == AUDIT_USER_AVC) {
 			// We special case these 2 fields because selinux
@@ -277,7 +281,6 @@ static int parse_up_record(rnode* r)
 			n.val = strdup(ptr);
 			nvlist_append(&r->nv, &n);
 		}
-		// FIXME: There should be an else here to catch ancillary data
 	} while((ptr = audit_strsplit_r(NULL, &saved)));
 
 	free(buf);
@@ -288,6 +291,7 @@ static int parse_up_record(rnode* r)
 int aup_list_append(event_list_t *l, char *record, int list_idx,
 	unsigned int line_number)
 {
+	int rc;
 	rnode* r;
 
 	if (record == NULL)
@@ -300,6 +304,7 @@ int aup_list_append(event_list_t *l, char *record, int list_idx,
 
 	r->record = record;
 	r->interp = NULL;
+	r->cwd = NULL;
 	r->type = 0;
 	r->a0 = 0LL;
 	r->a1 = 0LL;
@@ -324,7 +329,10 @@ int aup_list_append(event_list_t *l, char *record, int list_idx,
 	l->cnt++;
 
 	// Then parse the record up into nvlist
-	return parse_up_record(r);	
+	rc = parse_up_record(r);
+	if (r->cwd)
+		l->cwd = r->cwd;
+	return rc;
 }
 
 void aup_list_clear(event_list_t* l)
@@ -350,7 +358,8 @@ void aup_list_clear(event_list_t* l)
 	l->e.sec = 0L;         
 	l->e.serial = 0L;
 	free((char *)l->e.host);
-	l->e.host = NULL;      
+	l->e.host = NULL;
+	free(l->cwd);
 }
 
 /*int aup_list_get_event(event_list_t* l, au_event_t *e)

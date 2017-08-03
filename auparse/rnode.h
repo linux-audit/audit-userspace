@@ -1,6 +1,6 @@
 
 /* rnode.h --
- * Copyright 2007,2016 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2007,2016-17 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -25,7 +25,7 @@
 #define RNODE_HEADER
 
 /* This is the node of the linked list. Any data elements that are
- * per item goes here. */
+ * per field goes here. */
 typedef struct _nvnode{
   char *name;           // The name string
   char *val;            // The value field
@@ -34,8 +34,7 @@ typedef struct _nvnode{
   struct _nvnode* next; // Next nvpair node pointer
 } nvnode;
 
-/* This is the linked list head. Only data elements that are 1 per
- * event goes here. */
+/* This is the field linked list head. */
 typedef struct {
   nvnode *head;         // List head
   nvnode *cur;          // Pointer to current node
@@ -43,11 +42,12 @@ typedef struct {
 } nvlist;
 
 
-/* This is the node of the linked list. Any data elements that are per
- * item goes here. */
+/* This is the node of the linked list. Only data elements that are per
+ * record goes here. */
 typedef struct _rnode{
 	char *record;           // The whole unparsed record
 	char *interp;		// The interpretations that go with record
+	const char *cwd;	// This is pass thru for ellist
 	int type;               // record type (KERNEL, USER, LOGIN, etc)
 	int machine;            // The machine type for the event
 	int syscall;            // The syscall for the event
