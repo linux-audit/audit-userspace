@@ -3,6 +3,7 @@
 - When auditd forwards events to disptcher, calculate protocol each event
 - In auditd, restore umask after creating log file (Avi Yeger)
 - Add a realpath interpretation function that resolves whole path in auparse
+- In audispd, strip out EOE events for syslog plugin
 
 2.7.7
 - Make ausearch a little more robust to bad time values

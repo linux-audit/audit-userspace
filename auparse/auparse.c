@@ -1940,6 +1940,9 @@ const char *auparse_interpret_realpath(auparse_state_t *au)
         if (au->le->e.sec) {
                 rnode *r = aup_list_get_cur(au->le);
                 if (r) {
+			if (nvlist_get_cur_type(r) != AUPARSE_TYPE_ESCAPED_FILE)
+				return NULL;
+
 			// Tell it to make a realpath
 			r->cwd = au->le->cwd;
                         return nvlist_interp_cur_val(r, au->escape_mode);
