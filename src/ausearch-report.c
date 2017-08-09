@@ -38,7 +38,7 @@
 static void output_raw(llist *l);
 static void output_default(llist *l);
 static void output_interpreted(llist *l);
-static void output_interpreted_node(const lnode *n, const event *e);
+static void output_interpreted_record(const lnode *n, const event *e);
 static void feed_auparse(llist *l, auparse_callback_ptr callback);
 static void interpret(char *name, char *val, int comma, int rtype);
 static void csv_event(auparse_state_t *au,
@@ -159,10 +159,10 @@ static void output_interpreted(llist *l)
 		return;
 	}
 	if (n->type >= AUDIT_DAEMON_START && n->type < AUDIT_SYSCALL) 
-		output_interpreted_node(n, &(l->e));
+		output_interpreted_record(n, &(l->e));
 	else {
 		do {
-			output_interpreted_node(n, &(l->e));
+			output_interpreted_record(n, &(l->e));
 		} while ((n=list_prev(l)));
 	}
 }
@@ -171,7 +171,7 @@ static void output_interpreted(llist *l)
  * This function will cycle through a single record and lookup each field's
  * value that it finds. 
  */
-static void output_interpreted_node(const lnode *n, const event *e)
+static void output_interpreted_record(const lnode *n, const event *e)
 {
 	char *ptr, *str = n->message;
 	int found, comma = 0;
@@ -372,6 +372,7 @@ static void interpret(char *name, char *val, int comma, int rtype)
 	id.a1 = a1;
 	id.name = name;
 	id.val = val;
+	id.cwd = NULL;
 
 	char *out = auparse_do_interpretation(type, &id, escape_mode);
 	if (type == AUPARSE_TYPE_UNCLASSIFIED)
