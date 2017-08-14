@@ -448,6 +448,10 @@ AuParser_init(AuParser *self, PyObject *args, PyObject *kwds)
             PyErr_SetString(PyExc_TypeError, "source must be open file when source_type is AUSOURCE_FILE_POINTER");
             return -1;
 	}
+#if PY_MAJOR_VERSION < 3
+	int fd = fileno(fp);
+	fp = fdopen(fd, "r");
+#endif
         if ((self->au = auparse_init(source_type, fp)) == NULL) {
             //char *filename = PYSTR_ASSTRING(PyFile_Name(source));
             char *filename = "TODO";
