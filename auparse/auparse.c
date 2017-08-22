@@ -1624,9 +1624,7 @@ int auparse_timestamp_compare(au_event_t *e1, au_event_t *e2)
 
 unsigned int auparse_get_num_records(auparse_state_t *au)
 {
-	if (au->le == NULL)
-		return 0;
-
+	// Its OK if au->le == NULL because get_cnt handles it
 	return aup_list_get_cnt(au->le);
 }
 
@@ -1649,9 +1647,7 @@ int auparse_first_record(auparse_state_t *au)
 	int rc;
 	rnode *r;
 
-	if (au->le == NULL)
-		return -1;
-
+	// Its OK if au->le == NULL because get_cnt handles it
 	if (aup_list_get_cnt(au->le) == 0) {
 		// This function loads interpretations
 		rc = auparse_next_event(au);
@@ -1676,10 +1672,8 @@ int auparse_next_record(auparse_state_t *au)
 {
 	rnode *r;
 
-	if (au->le == NULL)
-		return -1;
-
 	free_interpretation_list();
+	// Its OK if au->le == NULL because get_cnt handles it
 	if (aup_list_get_cnt(au->le) == 0) { 
 		int rc = auparse_first_record(au);
 		if (rc <= 0)
@@ -1698,11 +1692,9 @@ int auparse_goto_record_num(auparse_state_t *au, unsigned int num)
 {
 	rnode *r;
 
-	if (au->le == NULL)
-		return 0;
-
 	/* Check if a request is out of range */
 	free_interpretation_list();
+	// Its OK if au->le == NULL because get_cnt handles it
 	if (num >= aup_list_get_cnt(au->le))
 		return 0;
 
