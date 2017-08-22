@@ -1297,6 +1297,9 @@ static int ausearch_compare(auparse_state_t *au)
 {
 	rnode *r;
 
+	if (au->le == NULL)
+		return 0;
+
 	r = aup_list_get_cur(au->le);
 	if (r)
 		return expr_eval(au, r, au->expr);
@@ -1539,7 +1542,7 @@ int auparse_next_event(auparse_state_t *au)
 /* Accessors to event data */
 const au_event_t *auparse_get_timestamp(auparse_state_t *au)
 {
-	if (au && au->le->e.sec != 0)
+	if (au && au->le && au->le->e.sec != 0)
 		return &au->le->e;
 	else
 		return NULL;
@@ -1548,7 +1551,7 @@ const au_event_t *auparse_get_timestamp(auparse_state_t *au)
 
 time_t auparse_get_time(auparse_state_t *au)
 {
-	if (au)
+	if (au && au->le)
 		return au->le->e.sec;
 	else
 		return 0;
@@ -1557,7 +1560,7 @@ time_t auparse_get_time(auparse_state_t *au)
 
 unsigned int auparse_get_milli(auparse_state_t *au)
 {
-	if (au)
+	if (au && au->le)
 		return au->le->e.milli;
 	else
 		return 0;
@@ -1566,7 +1569,7 @@ unsigned int auparse_get_milli(auparse_state_t *au)
 
 unsigned long auparse_get_serial(auparse_state_t *au)
 {
-	if (au)
+	if (au && au->le)
 		return au->le->e.serial;
 	else
 		return 0;
@@ -1576,7 +1579,7 @@ unsigned long auparse_get_serial(auparse_state_t *au)
 // Gets the machine node name
 const char *auparse_get_node(auparse_state_t *au)
 {
-	if (au && au->le->e.host != NULL)
+	if (au && au->le && au->le->e.host != NULL)
 		return strdup(au->le->e.host);
 	else
 		return NULL;
@@ -1621,11 +1624,17 @@ int auparse_timestamp_compare(au_event_t *e1, au_event_t *e2)
 
 unsigned int auparse_get_num_records(auparse_state_t *au)
 {
+	if (au->le == NULL)
+		return 0;
+
 	return aup_list_get_cnt(au->le);
 }
 
 unsigned int auparse_get_record_num(auparse_state_t *au)
 {
+	if (au->le == NULL)
+		return 0;
+
 	rnode *r = aup_list_get_cur(au->le);
 	if (r) 
 		return r->item;
@@ -1639,6 +1648,9 @@ int auparse_first_record(auparse_state_t *au)
 {
 	int rc;
 	rnode *r;
+
+	if (au->le == NULL)
+		return -1;
 
 	if (aup_list_get_cnt(au->le) == 0) {
 		// This function loads interpretations
@@ -1664,6 +1676,9 @@ int auparse_next_record(auparse_state_t *au)
 {
 	rnode *r;
 
+	if (au->le == NULL)
+		return -1;
+
 	free_interpretation_list();
 	if (aup_list_get_cnt(au->le) == 0) { 
 		int rc = auparse_first_record(au);
@@ -1683,6 +1698,9 @@ int auparse_goto_record_num(auparse_state_t *au, unsigned int num)
 {
 	rnode *r;
 
+	if (au->le == NULL)
+		return 0;
+
 	/* Check if a request is out of range */
 	free_interpretation_list();
 	if (num >= aup_list_get_cnt(au->le))
@@ -1700,6 +1718,9 @@ int auparse_goto_record_num(auparse_state_t *au, unsigned int num)
 /* Accessors to record data */
 int auparse_get_type(auparse_state_t *au)
 {
+	if (au->le == NULL)
+		return 0;
+
 	rnode *r = aup_list_get_cur(au->le);
 	if (r) 
 		return r->type;
@@ -1710,6 +1731,9 @@ int auparse_get_type(auparse_state_t *au)
 
 const char *auparse_get_type_name(auparse_state_t *au)
 {
+	if (au->le == NULL)
+		return NULL;
+
 	rnode *r = aup_list_get_cur(au->le);
 	if (r)
 		return audit_msg_type_to_name(r->type);
@@ -1720,6 +1744,9 @@ const char *auparse_get_type_name(auparse_state_t *au)
 
 unsigned int auparse_get_line_number(auparse_state_t *au)
 {
+	if (au->le == NULL)
+		return 0;
+
 	rnode *r = aup_list_get_cur(au->le);
 	if (r) 
 		return r->line_number;
@@ -1739,6 +1766,9 @@ const char *auparse_get_filename(auparse_state_t *au)
 			return NULL;
 	}
 
+	if (au->le == NULL)
+		return NULL;
+
 	rnode *r = aup_list_get_cur(au->le);
 	if (r) {
 		if (r->list_idx < 0) return NULL;
@@ -1751,12 +1781,18 @@ const char *auparse_get_filename(auparse_state_t *au)
 
 int auparse_first_field(auparse_state_t *au)
 {
+	if (au->le == NULL)
+		return 0;
+
 	return aup_list_first_field(au->le);
 }
 
 
 int auparse_next_field(auparse_state_t *au)
 {
+	if (au->le == NULL)
+		return 0;
+
 	rnode *r = aup_list_get_cur(au->le);
 	if (r) {
 		if (nvlist_next(&r->nv))
@@ -1770,6 +1806,9 @@ int auparse_next_field(auparse_state_t *au)
 
 unsigned int auparse_get_num_fields(auparse_state_t *au)
 {
+	if (au->le == NULL)
+		return 0;
+
 	rnode *r = aup_list_get_cur(au->le);
 	if (r)
 		return nvlist_get_cnt(&r->nv);
@@ -1779,6 +1818,9 @@ unsigned int auparse_get_num_fields(auparse_state_t *au)
 
 const char *auparse_get_record_text(auparse_state_t *au)
 {
+	if (au->le == NULL)
+		return NULL;
+
 	rnode *r = aup_list_get_cur(au->le);
 	if (r) 
 		return r->record;
@@ -1788,6 +1830,9 @@ const char *auparse_get_record_text(auparse_state_t *au)
 
 const char *auparse_get_record_interpretations(auparse_state_t *au)
 {
+	if (au->le == NULL)
+		return NULL;
+
 	rnode *r = aup_list_get_cur(au->le);
 	if (r) 
 		return r->interp;
@@ -1799,6 +1844,9 @@ const char *auparse_get_record_interpretations(auparse_state_t *au)
 /* scan from current location to end of event */
 const char *auparse_find_field(auparse_state_t *au, const char *name)
 {
+	if (au->le == NULL)
+		return NULL;
+
 	free(au->find_field);
 	au->find_field = strdup(name);
 
@@ -1822,6 +1870,9 @@ const char *auparse_find_field(auparse_state_t *au, const char *name)
 /* Increment 1 location and then scan for next field */
 const char *auparse_find_field_next(auparse_state_t *au)
 {
+	if (au->le == NULL)
+		return NULL;
+
 	if (au->find_field == NULL) {
 		errno = EINVAL;
 		return NULL;
@@ -1851,6 +1902,9 @@ const char *auparse_find_field_next(auparse_state_t *au)
 /* Accessors to field data */
 unsigned int auparse_get_field_num(auparse_state_t *au)
 {
+	if (au->le == NULL)
+		return 0;
+
 	rnode *r = aup_list_get_cur(au->le);
 	if (r) {
 		nvnode *n = nvlist_get_cur(&r->nv);
@@ -1878,6 +1932,9 @@ int auparse_goto_field_num(auparse_state_t *au, unsigned int num)
 
 const char *auparse_get_field_name(auparse_state_t *au)
 {
+	if (au->le == NULL)
+		return NULL;
+
 	if (au->le->e.sec) {
 		rnode *r = aup_list_get_cur(au->le);
 		if (r) 
@@ -1889,6 +1946,9 @@ const char *auparse_get_field_name(auparse_state_t *au)
 
 const char *auparse_get_field_str(auparse_state_t *au)
 {
+	if (au->le == NULL)
+		return NULL;
+
 	if (au->le->e.sec) {
 		rnode *r = aup_list_get_cur(au->le);
 		if (r) 
@@ -1899,6 +1959,9 @@ const char *auparse_get_field_str(auparse_state_t *au)
 
 int auparse_get_field_type(auparse_state_t *au)
 {
+	if (au->le == NULL)
+		return AUPARSE_TYPE_UNCLASSIFIED;
+
         if (au->le->e.sec) {
                 rnode *r = aup_list_get_cur(au->le);
                 if (r)
@@ -1924,6 +1987,9 @@ int auparse_get_field_int(auparse_state_t *au)
 
 const char *auparse_interpret_field(auparse_state_t *au)
 {
+	if (au->le == NULL)
+		return NULL;
+
 	if (au->le->e.sec) {
 		rnode *r = aup_list_get_cur(au->le);
 		if (r) {
@@ -1937,6 +2003,9 @@ const char *auparse_interpret_field(auparse_state_t *au)
 
 const char *auparse_interpret_realpath(auparse_state_t *au)
 {
+	if (au->le == NULL)
+		return NULL;
+
         if (au->le->e.sec) {
                 rnode *r = aup_list_get_cur(au->le);
                 if (r) {

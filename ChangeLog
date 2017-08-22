@@ -6,6 +6,7 @@
 - In audispd, strip out EOE events for syslog plugin
 - In python 2 bindings, fix AUSOURCE_FILE_POINTER to use new FILE * (#1475998)
 - In python bindings, check NULL return for auparse_get_type_name (#1482121)
+- Make auparse more robust against misuse of the API (#1482121)
 
 2.7.7
 - Make ausearch a little more robust to bad time values
