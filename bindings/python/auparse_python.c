@@ -1695,7 +1695,7 @@ PyDoc_STRVAR(get_type_name_doc,
 get_type_name() allows access to the current record type name in the\n\
 current event.\n\
 \n\
-Returns None if the record type name is unavailable.\n\
+Raises exception (LookupError) on error.\n\
 ");
 static PyObject *
 AuParser_get_type_name(AuParser *self)
@@ -1704,6 +1704,10 @@ AuParser_get_type_name(AuParser *self)
 
     PARSER_CHECK;
     name = auparse_get_type_name(self->au);
+    if (name == NULL) {
+	PyErr_SetString(PyExc_LookupError, "Not found");
+	return NULL;
+    }
     return Py_BuildValue("s", name);
 }
 
