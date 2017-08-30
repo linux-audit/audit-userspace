@@ -96,6 +96,7 @@ extern "C" {
 #define AUDIT_MAC_CHECK		1134    /* User space MAC decision results */
 #define AUDIT_ACCT_LOCK		1135    /* User's account locked by admin */
 #define AUDIT_ACCT_UNLOCK	1136    /* User's account unlocked by admin */
+#define AUDIT_USER_DEVICE	1137	/* User space hotplug device changes */
 
 #define AUDIT_FIRST_DAEMON	1200
 #define AUDIT_LAST_DAEMON	1299
