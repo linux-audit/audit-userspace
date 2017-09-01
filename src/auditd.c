@@ -127,7 +127,7 @@ static void hup_handler( struct ev_loop *loop, struct ev_signal *sig, int revent
 	rc = audit_request_signal_info(fd);
 	if (rc < 0)
 		send_audit_event(AUDIT_DAEMON_CONFIG, 
-			 "op=hup-info auid=? pid=? subj=? res=failed");
+			 "op=hup-info auid=-1 pid=-1 subj=? res=failed");
 	else
 		hup_info_requested = 1;
 }
@@ -143,7 +143,7 @@ static void user1_handler(struct ev_loop *loop, struct ev_signal *sig,
 	rc = audit_request_signal_info(fd);
 	if (rc < 0)
 		send_audit_event(AUDIT_DAEMON_ROTATE, 
-			 "op=usr1-info auid=? pid=? subj=? res=failed");
+			 "op=usr1-info auid=-1 pid=-1 subj=? res=failed");
 	else
 		usr1_info_requested = 1;
 }
@@ -159,7 +159,7 @@ static void user2_handler( struct ev_loop *loop, struct ev_signal *sig, int reve
 	if (rc < 0) {
 		resume_logging();
 		send_audit_event(AUDIT_DAEMON_RESUME, 
-			 "op=resume-logging auid=? pid=? subj=? res=success");
+			 "op=resume-logging auid=-1 pid=-1 subj=? res=success");
 	} else
 		usr2_info_requested = 1;
 }
@@ -480,7 +480,7 @@ static void netlink_handler(struct ev_loop *loop, struct ev_io *io,
 					send_audit_event(
 						AUDIT_DAEMON_CONFIG, 
 				  "op=reconfigure state=no-change "
-				  "auid=? pid=? subj=? res=failed");
+				  "auid=-1 pid=-1 subj=? res=failed");
 				}
 				cur_event = NULL;
 				hup_info_requested = 0;
@@ -488,7 +488,7 @@ static void netlink_handler(struct ev_loop *loop, struct ev_io *io,
 				char usr1[MAX_AUDIT_MESSAGE_LENGTH];
 				if (cur_event->reply.len == 24) {
 					snprintf(usr1, sizeof(usr1),
-					 "op=rotate-logs auid=? pid=? subj=?");
+					"op=rotate-logs auid=-1 pid=-1 subj=?");
 				} else {
 					snprintf(usr1, sizeof(usr1),
 				 "op=rotate-logs auid=%u pid=%d subj=%s",
@@ -502,8 +502,8 @@ static void netlink_handler(struct ev_loop *loop, struct ev_io *io,
 				char usr2[MAX_AUDIT_MESSAGE_LENGTH];
 				if (cur_event->reply.len == 24) {
 					snprintf(usr2, sizeof(usr2), 
-						"op=resume-logging auid=? "
-						"pid=? subj=? res=success");
+						"op=resume-logging auid=-1 "
+						"pid=-1 subj=? res=success");
 				} else {
 					snprintf(usr2, sizeof(usr2),
 						"op=resume-logging "
@@ -933,7 +933,7 @@ int main(int argc, char *argv[])
 	} 
 	if (rc <= 0)
 		send_audit_event(AUDIT_DAEMON_END, 
-			"op=terminate auid=? pid=? subj=? res=success");
+			"op=terminate auid=-1 pid=-1 subj=? res=success");
 	free(cur_event);
 
 	// Tear down IO watchers Part 2

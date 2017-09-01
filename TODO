@@ -4,6 +4,7 @@ Things that need to be done:
 * Support FANOTIFY record
 * ausearch text format, add 'to xxx' for file perm/owner, & uid/gid changes
 * If server suspends after client sends event &before ack, client wont reconnect
+* In auparse-normalize, fix USER_CHAUTHTOK to use op field
 
 2.8
 * In audispd, look into non-blocking handling of write to plugins
