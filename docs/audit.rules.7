@@ -40,7 +40,7 @@ The exit filter is the place where all syscall and file system audit requests ar
 
 The user filter is used to filter (remove) some events that originate in user space.  By default, any event originating in user space is allowed. So, if there are some events that you do not want to see, then this is a place where some can be removed. See auditctl(8) for fields that are valid.
 
-The exclude filter is used to exclude certain events from being emitted. The msgtype field is used to tell the kernel which message types you do not want to record. This filter can remove the event as a whole and is not selective about any other attribute. The user and exit filters are better suited to selectively auditing events.
+The exclude filter is used to exclude certain events from being emitted. The msgtype and a number of subject attribute fields can be used to tell the kernel which message types you do not want to record. This filter can remove the event as a whole and is not selective about any other attribute. The user and exit filters are better suited to selectively auditing events.  The action is ignored for this filter, defaulting to "never".
 
 Syscall rules take the general form of:
 

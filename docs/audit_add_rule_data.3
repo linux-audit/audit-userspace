@@ -21,7 +21,7 @@ AUDIT_FILTER_TASK - Apply rule at task creation (not syscall). This is the task 
 AUDIT_FILTER_EXIT - Apply rule at syscall exit. This is the main filter that is used for syscalls and filesystem watches. Normally all syscall do not trigger events, so this is normally used to specify events that are of interest.
 .TP
 \(bu
-AUDIT_FILTER_TYPE - Apply rule at audit_log_start. This is the exclude filter which discards any records that match.
+AUDIT_FILTER_TYPE - Apply rule at audit_log_start. This is the exclude filter which discards any records that match.  The action type is ignored for this filter, defaulting to "never".
 .LP
 
 .PP
