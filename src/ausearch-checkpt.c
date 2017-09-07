@@ -128,7 +128,8 @@ void save_ChkPt(const char *fn)
 		checkpt_failure |= CP_STATUSIO;
 		return;
 	}
-	fprintf(fd, "dev=0x%X\ninode=0x%X\n",
+	// Write the inode in decimal to make ls -i easier to use.
+	fprintf(fd, "dev=0x%X\ninode=%u\n",
 		(unsigned int)checkpt_dev, (unsigned int)checkpt_ino);
 	fprintf(fd, "output=%s %lu.%03u:%lu 0x%X\n",
 		last_event.node ? last_event.node : "-",
@@ -220,7 +221,7 @@ int load_ChkPt(const char *fn)
 			}
 		} else if (strncmp(lbuf, "inode=", 6) == 0) {
 			errno = 0;
-			chkpt_input_ino = strtoul(&lbuf[6], NULL, 16);
+			chkpt_input_ino = strtoul(&lbuf[6], NULL, 0);
 			if (errno) {
 				fprintf(stderr, "Malformed inode checkpoint "
 						"line - [%s]\n", lbuf);

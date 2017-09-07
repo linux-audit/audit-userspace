@@ -9,6 +9,7 @@
 - Make auparse more robust against misuse of the API (#1482121)
 - Add USER_DEVICE record type
 - In auditd, do not use '?' for auid when signal sender is unknown
+- In ausearch, write checkpoint inode in decimal to be easier to use
 
 2.7.7
 - Make ausearch a little more robust to bad time values
