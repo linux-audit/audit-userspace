@@ -229,7 +229,7 @@ no_print:
 	else
 		strcpy(tmp, "?");
 	printf("%s", tmp);
-	printf(".%03d:%lu) ", e->milli, e->serial);
+	printf(".%03u:%lu) ", e->milli, e->serial);
 
 	if (n->type == AUDIT_SYSCALL) { 
 		a0 = n->a0;

@@ -339,11 +339,11 @@ void print_list_t(event_list_t *l)
 		printf("\n");
 		return;
 	}
-	printf("0x%X: %lu.%3.3lu:%d %s", l, l->e.sec, l->e.milli,
+	printf("0x%X: %ld.%3.3u:%lu %s", l, l->e.sec, l->e.milli,
 			l->e.serial, l->e.host ? l->e.host : "");
-	printf(" cnt=%d", l->cnt);
+	printf(" cnt=%u", l->cnt);
 	for (r = l->head; r != NULL; r = r->next) {
-		printf(" {%d %d %d}", r->type, r->list_idx, r->line_number);
+		printf(" {%d %d %u}", r->type, r->list_idx, r->line_number);
 	}
 	printf("\n");
 }

@@ -652,7 +652,7 @@ static int event_loop(void)
 		type = audit_msg_type_to_name(e->hdr.type);
 		if (type == NULL) {
 			snprintf(unknown, sizeof(unknown),
-				"UNKNOWN[%d]", e->hdr.type);
+				"UNKNOWN[%u]", e->hdr.type);
 			type = unknown;
 		}
 		// Protocol 1 is not formatted

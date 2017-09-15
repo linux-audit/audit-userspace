@@ -280,7 +280,7 @@ int send_audit_event(int type, const char *str)
 			tv.tv_sec, (unsigned)(tv.tv_usec/1000), seq_num, str);
 	} else {
 		e->reply.len = snprintf((char *)e->reply.msg.data,
-			DMSG_SIZE, "audit(%lu.%03u:%u): %s", 
+			DMSG_SIZE, "audit(%lu.%03d:%u): %s", 
 			(unsigned long)time(NULL), 0, seq_num, str);
 	}
 	// Point message at the netlink buffer like normal events

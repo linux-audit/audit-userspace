@@ -916,7 +916,7 @@ static void check_excess_logs(void)
 	i = config->num_logs;
 	rc = 0;
 	while (rc == 0) {
-		snprintf(name, len, "%s.%d", config->log_file, i++);
+		snprintf(name, len, "%s.%u", config->log_file, i++);
 		rc=unlink(name);
 		if (rc == 0)
 			audit_msg(LOG_NOTICE,
@@ -949,7 +949,7 @@ static void fix_disk_permissions(void)
 	// Now, for each file...
 	for (i = 1; i < config->num_logs; i++) {
 		int rc;
-		snprintf(path, len, "%s.%d", config->log_file, i);
+		snprintf(path, len, "%s.%u", config->log_file, i);
 		rc = chmod(path, config->log_group ? S_IRUSR|S_IRGRP : S_IRUSR);
 		if (rc && errno == ENOENT)
 			break;
@@ -1010,8 +1010,8 @@ static void rotate_logs(unsigned int num_logs)
 		snprintf(oldname, len, "%s.1", config->log_file);
 
 	for (i=num_logs - 1; i>1; i--) {
-		snprintf(oldname, len, "%s.%d", config->log_file, i-1);
-		snprintf(newname, len, "%s.%d", config->log_file, i);
+		snprintf(oldname, len, "%s.%u", config->log_file, i-1);
+		snprintf(newname, len, "%s.%u", config->log_file, i);
 		/* if the old file exists */
 		rc = rename(oldname, newname);
 		if (rc == -1 && errno != ENOENT) {
@@ -1081,7 +1081,7 @@ static void shift_logs(void)
 	// Find last log
 	num_logs = last_log;
 	while (num_logs) {
-		snprintf(name, len, "%s.%d", config->log_file, 
+		snprintf(name, len, "%s.%u", config->log_file, 
 						num_logs);
 		if (access(name, R_OK) != 0)
 			break;
@@ -1093,7 +1093,7 @@ static void shift_logs(void)
 		audit_msg(LOG_WARNING, "Last known log disappeared (%s)", name);
 		num_logs = last_log = 1;
 		while (num_logs) {
-			snprintf(name, len, "%s.%d", config->log_file, 
+			snprintf(name, len, "%s.%u", config->log_file, 
 							num_logs);
 			if (access(name, R_OK) != 0)
 				break;
@@ -1544,7 +1544,7 @@ static void reconfigure(struct auditd_event *e)
 			(unsigned)(tv.tv_usec/1000), seq_num);
 	} else {
 		snprintf(date, sizeof(date),
-			"audit(%lu.%03u:%u)", (unsigned long)time(NULL),
+			"audit(%lu.%03d:%u)", (unsigned long)time(NULL),
 			 0, seq_num);
         }
 

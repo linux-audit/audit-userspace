@@ -133,7 +133,7 @@ static void report_session(lnode* cur)
 		    printf("    ausearch --start %s", start);
 		}
 		if (cur->name == NULL)
-			printf(" --session %d", cur->session);
+			printf(" --session %u", cur->session);
 		if (cur->loginuid_proof == 0 && cur->result == 1) // Bad login
 			printf(" -a %lu", cur->user_login_proof);
 		printf("\n\n");

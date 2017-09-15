@@ -169,7 +169,7 @@ static int print_syscall(const struct audit_rule_data *r, unsigned int *sc)
 			if (ptr)
 				printf("%s%s", !count ? "" : ",", ptr);
 			else
-				printf("%s%d", !count ? "" : ",", i);
+				printf("%s%u", !count ? "" : ",", i);
 			count++;
 			*sc = i;
 		}
