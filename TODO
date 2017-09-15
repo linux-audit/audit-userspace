@@ -1,12 +1,14 @@
 Things that need to be done:
 ===========================
 2.7.8
-* Support FANOTIFY record
 * ausearch text format, add 'to xxx' for file perm/owner, & uid/gid changes
-* If server suspends after client sends event &before ack, client wont reconnect
+* ausearch text format, add 'to xxx' for mount operations
+* Fix umount2 for ausearch text format
 * In auparse-normalize, fix USER_CHAUTHTOK to use op field
 
 2.8
+* Support FANOTIFY record
+* If server suspends after client sends event &before ack, client wont reconnect
 * In audispd, look into non-blocking handling of write to plugins
 * Re-write auvirt
 * Fix auvirt to report AVC's and --proof for --all-events
