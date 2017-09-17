@@ -824,7 +824,10 @@ static const char *print_escaped_ext(int type, const idata *id)
 			if (!str3)
 				goto err_out;
 		} else {
-			// Still call realpath in case /home/../etc/passwd
+			// Check in case /home/../etc/passwd
+			if (strstr(str2, "..") == NULL)
+				return str2;
+
 			str3 = str2;
 			str2 = NULL;
 			str1 = NULL;

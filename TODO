@@ -3,7 +3,7 @@ Things that need to be done:
 2.7.8
 * ausearch text format, add 'to xxx' for file perm/owner, & uid/gid changes
 * ausearch text format, add 'to xxx' for mount operations
-* Fix umount2 for ausearch text format
+* Mount is collecting the wrong attr. Its getting secondary not primary
 * In auparse-normalize, fix USER_CHAUTHTOK to use op field
 
 2.8
