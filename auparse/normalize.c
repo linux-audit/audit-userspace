@@ -1111,7 +1111,6 @@ static void collect_simple_subj_attr(auparse_state_t *au)
                 return;
 
         auparse_first_record(au);
-        auparse_first_field(au);
 	add_subj_attr(au, "pid", 0); // Just pass 0 since simple is 1 record
 	add_subj_attr(au, "subj", 0);
 }
