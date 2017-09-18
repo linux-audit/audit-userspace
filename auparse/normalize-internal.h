@@ -90,6 +90,7 @@
 #define NORM_WHAT_MAC_CONFIG	18
 #define NORM_WHAT_FILESYSTEM	19
 #define NORM_WHAT_MEMORY	20
+#define NORM_WHAT_KEYSTROKES	21
 
 // This enum is used to map events to what kind they are
 #define NORM_EVTYPE_UNKNOWN		0

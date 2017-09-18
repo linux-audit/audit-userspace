@@ -990,6 +990,12 @@ static value_t find_simple_object(auparse_state_t *au, int type)
 			f = auparse_find_field(au, "cmd");
 			D.thing.what = NORM_WHAT_PROCESS;
 			break;
+		case AUDIT_USER_TTY:
+		case AUDIT_TTY:
+			auparse_first_record(au);
+			f = auparse_find_field(au, "data");
+			D.thing.what = NORM_WHAT_KEYSTROKES;
+			break;
 		case AUDIT_VIRT_MACHINE_ID:
 			f = auparse_find_field(au, "vm");
 			D.thing.what = NORM_WHAT_VM;
@@ -1401,6 +1407,14 @@ map:
 		if (f) {
 			const char *term = auparse_interpret_field(au);
 			D.how = strdup(term);
+		}
+		return 0;
+	}
+	if (type == AUDIT_TTY) {
+		f = auparse_find_field(au, "comm");
+		if (f) {
+			const char *comm = auparse_interpret_field(au);
+			D.how = strdup(comm);
 		}
 		return 0;
 	}
