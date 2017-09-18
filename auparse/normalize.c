@@ -497,9 +497,13 @@ static int normalize_syscall(auparse_state_t *au, const char *syscall, int type)
 			break;
 		case NORM_FILE_MOUNT:
 			act = "mounted";
-			D.thing.what = NORM_WHAT_FILESYSTEM; // this gets overridden
+			// this gets overridden
+			D.thing.what = NORM_WHAT_FILESYSTEM;
 			set_file_object(au, 1); // The device is one after
-			simple_file_attr(au);
+			// We call this directly to make sure the right
+			// PATH record is used. (There can be 4.)
+			auparse_first_field(au);
+			collect_path_attrs(au);
 			break;
 		case NORM_FILE_RENAME:
 			act = "renamed";
