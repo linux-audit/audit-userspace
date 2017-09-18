@@ -1,17 +1,18 @@
 Things that need to be done:
 ===========================
 2.7.8
-* ausearch text format, add 'to xxx' for file perm/owner, & uid/gid changes
-* ausearch text format, add 'to xxx' for mount operations
 * Mount is collecting the wrong attr. Its getting secondary not primary
-* In auparse-normalize, fix USER_CHAUTHTOK to use op field
 
 2.8
 * Support FANOTIFY record
+* Add object2 API to auparse-normalize
+* ausearch text format, add 'to xxx' for file perm/owner, & uid/gid changes
+* ausearch text format, add 'to xxx' for mount operations
+* In auparse-normalize, fix USER_CHAUTHTOK to use op field
 * If server suspends after client sends event &before ack, client wont reconnect
-* In audispd, look into non-blocking handling of write to plugins
 * Re-write auvirt
 * Fix auvirt to report AVC's and --proof for --all-events
+* In audispd, look into non-blocking handling of write to plugins
 * Add sockaddr accessor functions in auparse
 * non-equality comparisons for values other than \timestamp, \timestamp_ex and \record_type in ausearch-expression (#1399314)
 
@@ -29,7 +30,6 @@ Things that need to be done:
 * Add ability to filter events in auditd
 * Fix audit.pc.in to use Requires.private
 * If auparse input is a pipe timeout events by wall clock
-* If relative file, use cwd to build (realpath). watch out for (null) and socket
 * Change ausearch to output name="" unless its a real null. (mount) ausearch-report.c, 523. FIXME
 
 3.0
