@@ -531,7 +531,7 @@ static void csv_event(auparse_state_t *au,
 	// SUBJ_PRIME
 	rc = auparse_normalize_subject_primary(au);
 	if (rc == 1) {
-		char *subj = auparse_interpret_field(au);
+		const char *subj = auparse_interpret_field(au);
 		if (strcmp(subj, "unset") == 0)
 			subj = "system";
 		printf("%s", subj);

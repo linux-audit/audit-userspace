@@ -369,6 +369,7 @@ static int negotiate_credentials (ev_tcp *io)
 
 	context = & io->gss_context;
 	*context = GSS_C_NO_CONTEXT;
+	io->remote_name = NULL;
 
 	maj_stat = GSS_S_CONTINUE_NEEDED;
 	do {
@@ -380,8 +381,11 @@ static int negotiate_credentials (ev_tcp *io)
 				  sockaddr_to_addr4(&io->addr));
 			return -1;
 		}
-		if (recv_tok.length == 0)
+		if (recv_tok.length == 0) {
+			free(recv_tok.value);
+			recv_tok.value = NULL;
 			continue;
+		}
 
 		/* STEP 2 - let GSS process that token.  */
 
@@ -847,6 +851,7 @@ static void auditd_tcp_listen_handler( struct ev_loop *loop,
 	if (use_gss && negotiate_credentials (client)) {
 		shutdown(afd, SHUT_RDWR);
 		close(afd);
+		free(client->remote_name);
 		free(client);
 		return;
 	}

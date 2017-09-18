@@ -1009,6 +1009,7 @@ static int parse_user(const lnode *n, search_items *s)
 			if (errno)
 				return 15;
 			*term = saved;
+			if (s->tuid) free(s->tuid);
 			s->tuid = lookup_uid("uid", s->uid);
 		}
 	}

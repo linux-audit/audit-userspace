@@ -72,7 +72,7 @@ struct event {
 	enum event_type type;
 	time_t start;
 	time_t end;
-	char *user;
+	const char *user;
 	char *uuid;
 	char *name;
 	int success;
@@ -380,7 +380,7 @@ int extract_virt_fields(auparse_state_t *au, const char **p_uuid,
 
 	/* Order matters */
 	if (p_user) {
-		char *t;
+		const char *t;
 		if (!auparse_find_field(au, field = "uid"))
 			goto error;
 		t = auparse_interpret_field(au);
@@ -484,8 +484,10 @@ int process_machine_id_event(auparse_state_t *au)
 		return 0;
 
 	event = event_alloc();
-	if (event == NULL)
+	if (event == NULL) {
+		free(user);
 		return 1;
+	}
 	event->type = ET_MACHINE_ID;
 	event->uuid = copy_str(uuid);
 	event->name = copy_str(name);
@@ -867,12 +869,15 @@ int process_avc_selinux_context(auparse_state_t *au, const char *context)
 			fprintf(stderr, "Couldn't get the security "
 					"level from the AVC event.\n");
 		}
+		free(user);
 		return 0;
 	}
 
 	avc = event_alloc();
-	if (avc == NULL)
+	if (avc == NULL) {
+		free(user);
 		return 1;
+	}
 	avc->type = ET_AVC;
 
 	/* Guest info */

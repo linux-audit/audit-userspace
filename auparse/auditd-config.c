@@ -206,10 +206,10 @@ static char *get_line(auparse_state_t *au, FILE *f, char *buf, unsigned size,
 			too_long = 0;
 			*lineno = *lineno + 1;
 		} else {
-		// If a line is too long skip it.
-		// Only output 1 warning
-		if (!too_long)
-			audit_msg(au, LOG_ERR,
+			// If a line is too long skip it.
+			// Only output 1 warning
+			if (!too_long)
+				audit_msg(au, LOG_ERR,
 					"Skipping line %d in %s: too long",
 					*lineno, file);
 			too_long = 1;

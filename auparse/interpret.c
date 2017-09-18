@@ -778,7 +778,7 @@ static const char *print_exit(const char *val)
 
 static char *print_escaped(const char *val)
 {
-	const char *out;
+	char *out;
 
         if (*val == '"') {
                 char *term;
@@ -2585,7 +2585,7 @@ static const char *print_list(const char *val)
 		if (asprintf(&out, "conversion error(%s)", val) < 0)
 			out = NULL;
 	} else {
-		char *o = audit_flag_to_name(i);
+		const char *o = audit_flag_to_name(i);
 		if (o != NULL)
 			out = strdup(o);
 		else if (asprintf(&out, "unknown-list(%s)", val) < 0)

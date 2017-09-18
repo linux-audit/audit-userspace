@@ -679,7 +679,7 @@ static int normalize_syscall(auparse_state_t *au, const char *syscall, int type)
 			break;
 		default:
 			{
-				char *k;
+				const char *k;
 				rc = auparse_first_record(au);
 				k = auparse_find_field(au, "key");
 				if (k && strcmp(k, "(null)")) {

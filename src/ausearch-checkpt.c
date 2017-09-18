@@ -204,6 +204,7 @@ int load_ChkPt(const char *fn)
 			fn, strerror(errno));
 		return -2;
 	}
+	chkpt_input_levent.node = NULL;
 	while (fgets(lbuf, MAX_LN, fd) != NULL) {
 		size_t len = strlen(lbuf);
 
@@ -229,6 +230,8 @@ int load_ChkPt(const char *fn)
 				break;
 			}
 		} else if (strncmp(lbuf, "output=", 7) == 0) {
+			free((void *)chkpt_input_levent.node);
+			chkpt_input_levent.node = NULL;
 			if (parse_checkpt_event(lbuf, 7, &chkpt_input_levent))
 				break;
 		} else {

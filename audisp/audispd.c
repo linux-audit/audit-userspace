@@ -498,7 +498,12 @@ static int safe_exec(plugin_conf_t *conf)
 	}
 
 	/* Set up comm with child */
-	dup2(conf->plug_pipe[0], 0);
+	if (dup2(conf->plug_pipe[0], 0) < 0) {
+		close(conf->plug_pipe[0]);
+		close(conf->plug_pipe[1]);
+		conf->pid = 0;
+		return -1;	/* Failed to fork */
+	}
 	for (i=3; i<24; i++)	 /* Arbitrary number */
 		close(i);
 

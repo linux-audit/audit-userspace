@@ -105,17 +105,11 @@ static int debug = 0;
 static inline char *databuf_end(DataBuf *db)
 {return (db->alloc_ptr == NULL) ? NULL : db->alloc_ptr+db->offset+db->len;}
 
-static inline char *databuf_alloc_end(DataBuf *db)
-{return (db->alloc_ptr == NULL) ? NULL : db->alloc_ptr+db->alloc_size;}
-
 static inline int databuf_tail_size(DataBuf *db)
 {return db->alloc_size - (db->offset+db->len);}
 
 static inline int databuf_tail_available(DataBuf *db, size_t append_len)
 {return append_len <= databuf_tail_size(db);}
-
-static inline size_t databuf_free_size(DataBuf *db)
-{return db->alloc_size-db->len;}
 
 /*****************************************************************************/
 /***************************  Internal Functions  ****************************/
