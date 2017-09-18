@@ -1,3 +1,5 @@
+2.8
+
 2.7.8
 - Add config option to auditd to not verify email addr domain (#1406887)
 - When auditd forwards events to disptcher, calculate protocol each event
