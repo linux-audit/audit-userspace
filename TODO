@@ -1,7 +1,5 @@
 Things that need to be done:
 ===========================
-2.7.8
-
 2.8
 * Support FANOTIFY record
 * Add object2 API to auparse-normalize
