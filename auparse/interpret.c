@@ -832,7 +832,10 @@ static const char *print_escaped_ext(int type, const idata *id)
 			str2 = NULL;
 			str1 = NULL;
 		}
+		errno = 0;
 		out = realpath(str3, NULL);
+		if (errno) // If there's an error, just return the original
+			return str3;
 err_out:
 		free(str1);
 		free(str2);
