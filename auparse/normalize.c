@@ -1112,14 +1112,33 @@ static value_t find_simple_obj_secondary(auparse_state_t *au, int type)
 	auparse_first_field(au);
 	switch (type)
 	{
+		case AUDIT_CRYPTO_SESSION:
+			f = auparse_find_field(au, "rport");
+			break;
+		default:
+			break;
+	}
+	if (f) {
+		o = set_record(0, 0);
+		o = set_field(o, auparse_get_field_num(au));
+	}
+	return o;
+}
+
+static value_t find_simple_obj_primary2(auparse_state_t *au, int type)
+{
+	value_t o = set_record(0, UNSET);
+	const char *f = NULL;
+
+	// FIXME: maybe pass flag indicating if this is needed
+	auparse_first_field(au);
+	switch (type)
+	{
 		case AUDIT_VIRT_CONTROL:
 			f = auparse_find_field(au, "vm");
 			break;
 		case AUDIT_VIRT_RESOURCE:
 			f = auparse_find_field(au, "vm");
-			break;
-		case AUDIT_CRYPTO_SESSION:
-			f = auparse_find_field(au, "rport");
 			break;
 		default:
 			break;
@@ -1412,6 +1431,7 @@ map:
 	// object
 	D.thing.primary = find_simple_object(au, type);
 	D.thing.secondary = find_simple_obj_secondary(au, type);
+	D.thing.two = find_simple_obj_primary2(au, type);
 
 	// how
 	if (type == AUDIT_SYSTEM_BOOT) {

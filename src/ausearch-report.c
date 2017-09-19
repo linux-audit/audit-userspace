@@ -748,13 +748,6 @@ static void text_event(auparse_state_t *au,
 		printf("to %s ", val);
 	}
 
-	if (    type == AUDIT_VIRT_RESOURCE ||
-		type == AUDIT_VIRT_CONTROL) {
-		rc = auparse_normalize_object_secondary(au);
-		if (rc)
-			printf("to %s ", auparse_interpret_field(au));
-	}
-
 	how = auparse_normalize_how(au);
 	if (how && action && *action != 'e')   // Don't print for ended-session
 		printf("using %s", how);
