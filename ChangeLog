@@ -4,6 +4,7 @@
 - Add auparse_normalize_object_primary2 API
 - In ausearch text format, add 'to xxx' for mount operations
 - In ausearch add new --extra-obj2 option for CSV output
+- In auparse_normalize, pick up second file name for rename syscalls
 
 2.7.8
 - Add config option to auditd to not verify email addr domain (#1406887)
