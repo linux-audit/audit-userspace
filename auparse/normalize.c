@@ -251,6 +251,43 @@ static void syscall_subj_attr(auparse_state_t *au)
 	} while (auparse_next_record(au) == 1);
 }
 
+static void collect_perm_obj2(auparse_state_t *au, const char *syscall)
+{
+	const char *val;
+
+	if (strcmp(syscall, "fchmodat") == 0)
+		val = "a2";
+	else
+		val = "a1";
+
+	auparse_first_record(au);
+	if (auparse_find_field(au, val)) {
+		D.thing.two = set_record(0, 0);
+		D.thing.two = set_field(D.thing.two,
+			auparse_get_field_num(au));
+	}
+}
+
+static void collect_own_obj2(auparse_state_t *au, const char *syscall)
+{
+	const char *val;
+
+	if (strcmp(syscall, "fchownat") == 0)
+		val = "a2";
+	else
+		val = "a1";
+
+	auparse_first_record(au);
+	if (auparse_find_field(au, val)) {
+		// if uid is -1, its not being changed, user group
+		if (auparse_get_field_int(au) == -1 && errno == 0)
+			auparse_next_field(au);
+		D.thing.two = set_record(0, 0);
+		D.thing.two = set_field(D.thing.two,
+			auparse_get_field_num(au));
+	}
+}
+
 static void collect_path_attrs(auparse_state_t *au)
 {
 	value_t attr;
@@ -485,6 +522,7 @@ static int normalize_syscall(auparse_state_t *au, const char *syscall, int type)
 			D.thing.what = NORM_WHAT_FILE; // this gets overridden
 			if (strcmp(syscall, "fchmod") == 0)
 				offset = -1;
+			collect_perm_obj2(au, syscall);
 			set_file_object(au, offset);
 			simple_file_attr(au);
 			break;
@@ -493,6 +531,7 @@ static int normalize_syscall(auparse_state_t *au, const char *syscall, int type)
 			D.thing.what = NORM_WHAT_FILE; // this gets overridden
 			if (strcmp(syscall, "fchown") == 0)
 				offset = -1;
+			collect_own_obj2(au, syscall);
 			set_file_object(au, offset); // FIXME: fchown has no cwd
 			simple_file_attr(au);
 			break;
