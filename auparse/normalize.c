@@ -167,6 +167,23 @@ static unsigned int set_prime_object(auparse_state_t *au, const char *str,
 	return 1;
 }
 
+static unsigned int set_prime_object2(auparse_state_t *au, const char *str,
+	unsigned int adjust)
+{
+	unsigned int rnum = 2 + adjust;
+
+	auparse_goto_record_num(au, rnum);
+	auparse_first_field(au);
+
+	if (auparse_find_field(au, str)) {
+		D.thing.two = set_record(0, rnum);
+		D.thing.two = set_field(D.thing.two,
+			auparse_get_field_num(au));
+		return 0;
+	}
+	return 1;
+}
+
 static unsigned int add_obj_attr(auparse_state_t *au, const char *str,
 	unsigned int rnum)
 {
@@ -501,6 +518,7 @@ static int normalize_syscall(auparse_state_t *au, const char *syscall, int type)
 			act = "mounted";
 			// this gets overridden
 			D.thing.what = NORM_WHAT_FILESYSTEM;
+			set_prime_object2(au, "name", 0);
 			set_file_object(au, 1); // The device is one after
 			// We call this directly to make sure the right
 			// PATH record is used. (There can be 4.)

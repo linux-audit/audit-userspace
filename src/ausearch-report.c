@@ -404,7 +404,7 @@ static void interpret(char *name, char *val, int comma, int rtype)
 /* This function will output a normalized line of audit
  * fields one line per event in csv format */
 static int csv_header_done = 0;
-extern int extra_keys, extra_labels, extra_time;
+extern int extra_keys, extra_labels, extra_obj2, extra_time;
 static void csv_event(auparse_state_t *au,
 		auparse_cb_event_t cb_event_type, void *user_data)
 {
@@ -415,9 +415,10 @@ static void csv_event(auparse_state_t *au,
 		csv_header_done = 1;
 		printf( "NODE,EVENT,DATE,TIME,%sSERIAL_NUM,EVENT_KIND,"
 			"SESSION,SUBJ_PRIME,SUBJ_SEC,SUBJ_KIND,%sACTION,"
-			"RESULT,OBJ_PRIME,OBJ_SEC,%sOBJ_KIND,HOW%s\n",
+			"RESULT,OBJ_PRIME,OBJ_SEC,%s%sOBJ_KIND,HOW%s\n",
 		    extra_time ? "YEAR,MONTH,DAY,WEEKDAY,HOUR,GMT_OFFSET," : "",
 			extra_labels ? "SUBJ_LABEL," : "",
+			extra_obj2 ? "OBJ2," : "",
 			extra_labels ? "OBJ_LABEL," : "",
 			extra_keys ? ",KEY" : "");
 	}
@@ -604,6 +605,22 @@ static void csv_event(auparse_state_t *au,
 		printf("%s", auparse_interpret_field(au));
 	putchar(',');
 
+	// OBJECT 2
+	if (extra_obj2) {
+		rc = auparse_normalize_object_primary2(au);
+		if (rc == 1) {
+			const char *val;
+
+			if (auparse_get_field_type(au) ==
+						AUPARSE_TYPE_ESCAPED_FILE)
+				val = auparse_interpret_realpath(au);
+			else
+				val = auparse_interpret_field(au);
+			printf("%s", val);
+		}
+		putchar(',');
+	}
+
 	// OBJ_LABEL
 	if (extra_labels) {
 		rc = auparse_normalize_object_first_attribute(au);
@@ -718,6 +735,17 @@ static void text_event(auparse_state_t *au,
 		else
 			val = auparse_interpret_field(au);
 		printf("%s ", val);
+	}
+
+	rc = auparse_normalize_object_primary2(au);
+	if (rc == 1) {
+		const char *val;
+
+		if (auparse_get_field_type(au) == AUPARSE_TYPE_ESCAPED_FILE)
+			val = auparse_interpret_realpath(au);
+		else
+			val = auparse_interpret_field(au);
+		printf("to %s ", val);
 	}
 
 	if (    type == AUDIT_VIRT_RESOURCE ||
