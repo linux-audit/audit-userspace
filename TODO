@@ -2,7 +2,6 @@ Things that need to be done:
 ===========================
 2.8
 * Support FANOTIFY record
-* Add object2 API to auparse-normalize
 * ausearch text format, add 'to xxx' for file perm/owner, & uid/gid changes
 * ausearch text format, add 'to xxx' for mount operations
 * There are 3 kinds of mount: failed, fuser success, kernel success

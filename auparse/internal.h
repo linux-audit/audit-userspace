@@ -120,12 +120,13 @@ typedef struct subj
 	value_t secondary;      // typically uid
 	cllist attr;            // List of attributes
 	const char *what;	// What the subject is
-}subject;
+} subject;
 
 typedef struct obj
 {
 	value_t primary;
 	value_t secondary;
+	value_t two;		// Sometimes we have a second e.g. rename/mount
 	cllist attr;            // List of attributes
 	unsigned int what;      // What the primary object is
 } object;

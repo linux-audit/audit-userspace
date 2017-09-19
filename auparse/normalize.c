@@ -63,6 +63,7 @@ void init_normalizer(normalize_data *d)
 	d->action = NULL;
 	d->thing.primary = set_record(0, UNSET);
 	d->thing.secondary = set_record(0, UNSET);
+	d->thing.two = set_record(0, UNSET);
 	cllist_create(&d->thing.attr, NULL);
 	d->thing.what = NORM_WHAT_UNKNOWN;
 	d->results = set_record(0, UNSET);
@@ -84,6 +85,7 @@ void clear_normalizer(normalize_data *d)
 	d->action = NULL;
 	d->thing.primary = set_record(0, UNSET);
 	d->thing.secondary = set_record(0, UNSET);
+	d->thing.two = set_record(0, UNSET);
 	cllist_clear(&d->thing.attr);
 	d->thing.what = NORM_WHAT_UNKNOWN;
 	d->results = set_record(0, UNSET);
@@ -1565,6 +1567,11 @@ int auparse_normalize_object_primary(auparse_state_t *au)
 int auparse_normalize_object_secondary(auparse_state_t *au)
 {
 	return seek_field(au, D.thing.secondary);
+}
+
+int auparse_normalize_object_primary2(auparse_state_t *au)
+{
+	return seek_field(au, D.thing.two);
 }
 
 // Returns: -1 = error, 0 uninitialized, 1 == success
