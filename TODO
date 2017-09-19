@@ -2,7 +2,6 @@ Things that need to be done:
 ===========================
 2.8
 * Support FANOTIFY record
-* ausearch text format, uid/gid changes
 * There are 3 kinds of mount: failed, fuser success, kernel success
 * Check calls to simple_file_attr() are getting right record
 * In normalizer, check number of first_field calls

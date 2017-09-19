@@ -288,6 +288,41 @@ static void collect_own_obj2(auparse_state_t *au, const char *syscall)
 	}
 }
 
+static void collect_id_obj2(auparse_state_t *au, const char *syscall)
+{
+	unsigned int limit, cnt = 1;;
+
+	if (strcmp(syscall, "setuid") == 0)
+		limit = 1;
+	else if (strcmp(syscall, "setreuid") == 0)
+		limit = 2;
+	else if (strcmp(syscall, "setresuid") == 0)
+		limit = 3;
+	else if (strcmp(syscall, "setgid") == 0)
+		limit = 1;
+	else if (strcmp(syscall, "setregid") == 0)
+		limit = 2;
+	else if (strcmp(syscall, "setresgid") == 0)
+		limit = 3;
+
+	auparse_first_record(au);
+	if (auparse_find_field(au, "a0")) {
+		while (cnt <= limit) {
+			const char *str = auparse_interpret_field(au);
+			if ((strcmp(str, "unset") == 0) && errno == 0) {
+				// Only move it if its safe to
+				if (cnt < limit) {
+					auparse_next_field(au);
+					cnt++;
+				}
+			} else
+				break;
+		}
+		D.thing.two = set_record(0, 0);
+		D.thing.two = set_field(D.thing.two,
+			auparse_get_field_num(au));
+	}
+}
 static void collect_path_attrs(auparse_state_t *au)
 {
 	value_t attr;
@@ -702,6 +737,7 @@ static int normalize_syscall(auparse_state_t *au, const char *syscall, int type)
 				free(D.how);
 				D.how = strdup(syscall);
 			}
+			collect_id_obj2(au, syscall);
 			break;
 		case NORM_SYSTEM_TIME:
 			act = "changed-system-time";
