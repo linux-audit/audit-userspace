@@ -574,7 +574,7 @@ static int normalize_syscall(auparse_state_t *au, const char *syscall, int type)
 			act = "loaded-kernel-module";
 			D.thing.what = NORM_WHAT_FILE; 
 			auparse_goto_record_num(au, 1);
-			set_prime_object(au, "name", 1);
+			set_prime_object(au, "name", 1);// FIXME:is this needed?
 			break;
 		case NORM_FILE_UNLDMOD:
 			act = "unloaded-kernel-module";
@@ -621,9 +621,9 @@ static int normalize_syscall(auparse_state_t *au, const char *syscall, int type)
 		case NORM_FILE_LNK:
 			act = "symlinked";
 			D.thing.what = NORM_WHAT_FILE; // this gets overridden
-			set_file_object(au, 0);
+			set_prime_object2(au, "name", 0);
+			set_file_object(au, 2);
 			simple_file_attr(au);
-			// FIXME: what do we do with the link?
 			break;
 		case NORM_FILE_UMNT:
 			act = "unmounted";

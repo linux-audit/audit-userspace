@@ -7,6 +7,7 @@
 - In auparse_normalize, pick up second file name for rename syscalls
 - In auparse_normalize, pick up permission & ownership changes as obj2
 - In auparse_normalize, pick up uid/gid for setuid/gid syscalls as obj2
+- In auparse_normalize, pick up link for symlink syscalls as obj2
 
 2.7.8
 - Add config option to auditd to not verify email addr domain (#1406887)
