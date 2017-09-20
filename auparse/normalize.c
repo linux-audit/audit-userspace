@@ -51,6 +51,7 @@
 #define is_unset(y) (get_record(y) == UNSET)
 #define D au->norm_data
 
+static int syscall_success;
 
 void init_normalizer(normalize_data *d)
 {
@@ -70,6 +71,7 @@ void init_normalizer(normalize_data *d)
 	d->how = NULL;
 	d->opt = NORM_OPT_ALL;
 	d->key = set_record(0, UNSET);
+	syscall_success = -1;
 }
 
 void clear_normalizer(normalize_data *d)
@@ -93,6 +95,7 @@ void clear_normalizer(normalize_data *d)
 	d->how = NULL;
 	d->opt = NORM_OPT_ALL;
 	d->key = set_record(0, UNSET);
+	syscall_success = -1;
 }
 
 static unsigned int set_subject_what(auparse_state_t *au)
@@ -589,15 +592,19 @@ static int normalize_syscall(auparse_state_t *au, const char *syscall, int type)
 			simple_file_attr(au);
 			break;
 		case NORM_FILE_MOUNT:
-			act = "mounted";
-			// this gets overridden
-			D.thing.what = NORM_WHAT_FILESYSTEM;
-			set_prime_object2(au, "name", 0);
-			set_file_object(au, 1); // The device is one after
-			// We call this directly to make sure the right
-			// PATH record is used. (There can be 4.)
-			auparse_first_field(au);
-			collect_path_attrs(au);
+			{
+				act = "mounted";
+				// this gets overridden
+				D.thing.what = NORM_WHAT_FILESYSTEM;
+				if (syscall_success == 1)
+					set_prime_object2(au, "name", 0);
+				//The device is 1 after on success 0 on fail
+				set_file_object(au, syscall_success);
+				// We call this directly to make sure the right
+				// PATH record is used. (There can be 4.)
+				auparse_first_field(au);
+				collect_path_attrs(au);
+			}
 			break;
 		case NORM_FILE_RENAME:
 			act = "renamed";
@@ -929,6 +936,12 @@ static int normalize_compound(auparse_state_t *au)
 		// Results
 		f = auparse_find_field(au, "success");
 		if (f) {
+			const char *str = auparse_get_field_str(au);
+			if (strcmp(str, "no") == 0)
+				syscall_success = 0;
+			else
+				syscall_success = 1;
+
 			D.results = set_record(0, recno);
 			D.results = set_field(D.results,
 					auparse_get_field_num(au));
