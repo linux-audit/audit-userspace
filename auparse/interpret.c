@@ -820,8 +820,7 @@ static const char *print_escaped_ext(int type, const idata *id)
 			str1 = print_escaped(id->cwd);
 			if (!str1)
 				goto err_out;
-			asprintf(&str3, "%s/%s", str1, str2);
-			if (!str3)
+			if (asprintf(&str3, "%s/%s", str1, str2) < 0)
 				goto err_out;
 		} else {
 			// Check in case /home/../etc/passwd
