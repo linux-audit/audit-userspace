@@ -2,7 +2,6 @@ Things that need to be done:
 ===========================
 2.8
 * Support FANOTIFY record
-* In auparse-normalize, fix USER_CHAUTHTOK to use op field
 * If server suspends after client sends event &before ack, client wont reconnect
 * Re-write auvirt
 * Fix auvirt to report AVC's and --proof for --all-events

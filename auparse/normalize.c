@@ -815,7 +815,8 @@ static const char *normalize_determine_evkind(int type)
 
 	switch (type)
 	{
-		case AUDIT_USER_AUTH ... AUDIT_USER_END:
+		case AUDIT_USER_AUTH ... AUDIT_USER_ACCT:
+		case AUDIT_CRED_ACQ ... AUDIT_USER_END:
 		case AUDIT_USER_CHAUTHTOK ... AUDIT_CRED_REFR:
 		case AUDIT_USER_LOGIN ... AUDIT_USER_LOGOUT:
 		case AUDIT_LOGIN:
@@ -825,6 +826,7 @@ static const char *normalize_determine_evkind(int type)
 		case AUDIT_CHGRP_ID:
 			kind = NORM_EVTYPE_GROUP_CHANGE;
 			break;
+		case AUDIT_USER_MGMT:
 		case AUDIT_ADD_USER ...AUDIT_DEL_GROUP:
 		case AUDIT_GRP_MGMT ... AUDIT_GRP_CHAUTHTOK:
 		case AUDIT_ACCT_LOCK ... AUDIT_ACCT_UNLOCK:
@@ -1059,6 +1061,9 @@ static value_t find_simple_object(auparse_state_t *au, int type)
 			break;
 		case AUDIT_ROLE_ASSIGN:
 		case AUDIT_ROLE_REMOVE:
+		case AUDIT_USER_MGMT:
+		case AUDIT_ACCT_LOCK:
+		case AUDIT_ACCT_UNLOCK:
 		case AUDIT_ADD_USER:
 		case AUDIT_DEL_USER:
 		case AUDIT_ADD_GROUP:
@@ -1081,7 +1086,6 @@ static value_t find_simple_object(auparse_state_t *au, int type)
 			break;
 		case AUDIT_USER_AUTH:
 		case AUDIT_USER_ACCT:
-		case AUDIT_USER_MGMT:
 		case AUDIT_CRED_ACQ:
 		case AUDIT_CRED_REFR:
 		case AUDIT_CRED_DISP:
