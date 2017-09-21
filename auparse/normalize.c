@@ -331,6 +331,7 @@ static void collect_path_attrs(auparse_state_t *au)
 	value_t attr;
 	unsigned int rnum = auparse_get_record_num(au);
 
+	auparse_first_field(au);
 	if (add_obj_attr(au, "mode", rnum))
 		return;	// Failed opens don't have anything else
 
@@ -375,7 +376,6 @@ static void simple_file_attr(auparse_state_t *au)
 					continue;
 				}
 				// First normal record is collected
-				auparse_first_field(au);
 				collect_path_attrs(au);
 				return;
 				break;
@@ -391,7 +391,6 @@ static void simple_file_attr(auparse_state_t *au)
 	// If we get here, path was never collected. Go back and get parent
 	if (parent) {
 		auparse_goto_record_num(au, parent);
-		auparse_first_field(au);
 		collect_path_attrs(au);
 	}
 }
@@ -592,19 +591,16 @@ static int normalize_syscall(auparse_state_t *au, const char *syscall, int type)
 			simple_file_attr(au);
 			break;
 		case NORM_FILE_MOUNT:
-			{
-				act = "mounted";
-				// this gets overridden
-				D.thing.what = NORM_WHAT_FILESYSTEM;
-				if (syscall_success == 1)
-					set_prime_object2(au, "name", 0);
-				//The device is 1 after on success 0 on fail
-				set_file_object(au, syscall_success);
-				// We call this directly to make sure the right
-				// PATH record is used. (There can be 4.)
-				auparse_first_field(au);
-				collect_path_attrs(au);
-			}
+			act = "mounted";
+			// this gets overridden
+			D.thing.what = NORM_WHAT_FILESYSTEM;
+			if (syscall_success == 1)
+				set_prime_object2(au, "name", 0);
+			//The device is 1 after on success 0 on fail
+			set_file_object(au, syscall_success);
+			// We call this directly to make sure the right
+			// PATH record is used. (There can be 4.)
+			collect_path_attrs(au);
 			break;
 		case NORM_FILE_RENAME:
 			act = "renamed";
