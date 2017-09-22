@@ -393,24 +393,35 @@ int add_proof(struct event *event, auparse_state_t *au)
 // This returns -1 if we don't want the event and 0 if we do
 int filter_event(auparse_state_t *au)
 {
-	if (vm) {
-		const char *v = auparse_find_field(au, "vm");
-		if (v) {
-			const char *v_text = auparse_interpret_field(au);
-			if (v_text && strcmp(vm, v_text))
-				return -1;
+	extern time_t start_time, end_time;
+	time_t current = auparse_get_time(au);
+
+	if (start_time == 0 || current >= start_time) {
+		if (end_time == 0 || current <= end_time) {
+
+			if (vm) {
+				const char *v = auparse_find_field(au, "vm");
+				if (v) {
+					const char *v_text =
+						auparse_interpret_field(au);
+					if (v_text && strcmp(vm, v_text))
+						return -1;
+				}
+			}
+			if (uuid) {
+				const char *u = auparse_find_field(au, "uuid");
+				if (u) {
+					const char *u_text =
+						auparse_interpret_field(au);
+					if (u_text && strcmp(uuid, u_text))
+						return -1;
+				}
+			}
+			auparse_first_record(au);
+			return 0;
 		}
 	}
-	if (uuid) {
-		const char *u = auparse_find_field(au, "uuid");
-		if (u) {
-			const char *u_text = auparse_interpret_field(au);
-			if (u_text && strcmp(uuid, u_text))
-				return -1;
-		}
-	}
-	auparse_first_record(au);
-	return 0;
+	return -1;
 }
 
 /*
