@@ -60,8 +60,7 @@ static int debug = 0;
 
 /* List of events */
 enum event_type {
-	ET_NONE = 0, ET_START, ET_STOP, ET_MACHINE_ID, ET_AVC, ET_RES, ET_ANOM,
-	ET_DOWN
+	ET_NONE = 0, ET_START, ET_STOP, ET_MACHINE_ID, ET_AVC, ET_RES, ET_ANOM
 };
 struct record_id {
 	time_t time;
@@ -291,83 +290,12 @@ auparse_state_t *init_auparse(void)
 	} else if (file) {
 		au = auparse_init(AUSOURCE_FILE, file);
 	} else {
-		if (getuid()) {
-			fprintf(stderr,
-			   "You probably need to be root for this to work\n");
-		}
 		au = auparse_init(AUSOURCE_LOGS, NULL);
 	}
 	if (au == NULL) {
 		fprintf(stderr, "Error: %s\n", strerror(errno));
 	}
 	return au;
-}
-
-/* Create a criteria to search for the virtualization related records */
-int create_search_criteria(auparse_state_t *au)
-{
-	char *error = NULL;
-	char expr[1024];
-	snprintf(expr, sizeof(expr),
-		"(\\record_type >= %d && \\record_type <= %d)",
-		AUDIT_FIRST_VIRT_MSG, AUDIT_LAST_VIRT_MSG);
-	if (ausearch_add_expression(au, expr, &error, AUSEARCH_RULE_CLEAR)) {
-		fprintf(stderr, "Criteria error: %s\n", error);
-		free(error);
-		return 1;
-	}
-	if (uuid) {
-		if (ausearch_add_item(au, "uuid", "=", uuid,
-					AUSEARCH_RULE_AND)) {
-			fprintf(stderr, "Criteria error: uuid\n");
-			return 1;
-		}
-	}
-	if (vm) {
-		if (ausearch_add_interpreted_item(au, "vm", "=", vm,
-					AUSEARCH_RULE_AND)) {
-			fprintf(stderr, "Criteria error: id\n");
-			return 1;
-		}
-	}
-	if (all_events_flag || summary_flag) {
-		if (ausearch_add_item(au, "type", "=", "AVC",
-					AUSEARCH_RULE_OR)) {
-			fprintf(stderr, "Criteria error: AVC\n");
-			return 1;
-		}
-		if (ausearch_add_item(au, "type", "=", "SYSTEM_SHUTDOWN",
-					AUSEARCH_RULE_OR)) {
-			fprintf(stderr, "Criteria error: shutdown\n");
-			return 1;
-		}
-		snprintf(expr, sizeof(expr),
-			"(\\record_type >= %d && \\record_type <= %d) ||"
-			"(\\record_type >= %d && \\record_type <= %d)",
-			AUDIT_FIRST_ANOM_MSG, AUDIT_LAST_ANOM_MSG,
-			AUDIT_FIRST_KERN_ANOM_MSG, AUDIT_LAST_KERN_ANOM_MSG);
-		if (ausearch_add_expression(au, expr, &error,
-					AUSEARCH_RULE_OR)) {
-			fprintf(stderr, "Criteria error: %s\n", error);
-			free(error);
-			return 1;
-		}
-	}
-	if (start_time) {
-		if (ausearch_add_timestamp_item(au, ">=", start_time, 0,
-					AUSEARCH_RULE_AND)) {
-			fprintf(stderr, "Criteria error: start_time\n");
-			return 1;
-		}
-	}
-	if (end_time) {
-		if (ausearch_add_timestamp_item(au, "<=", end_time, 0,
-					AUSEARCH_RULE_AND)) {
-			fprintf(stderr, "Criteria error: end_time\n");
-			return 1;
-		}
-	}
-	return 0;
 }
 
 /* Extract the most common fields from virtualization-related records. */
@@ -462,6 +390,29 @@ int add_proof(struct event *event, auparse_state_t *au)
 	return 0;
 }
 
+// This returns -1 if we don't want the event and 0 if we do
+int filter_event(auparse_state_t *au)
+{
+	if (vm) {
+		const char *v = auparse_find_field(au, "vm");
+		if (v) {
+			const char *v_text = auparse_interpret_field(au);
+			if (v_text && strcmp(vm, v_text))
+				return -1;
+		}
+	}
+	if (uuid) {
+		const char *u = auparse_find_field(au, "uuid");
+		if (u) {
+			const char *u_text = auparse_interpret_field(au);
+			if (u_text && strcmp(uuid, u_text))
+				return -1;
+		}
+	}
+	auparse_first_record(au);
+	return 0;
+}
+
 /*
  * machine_id records are used to get the selinux context associated to a
  * guest.
@@ -472,6 +423,9 @@ int process_machine_id_event(auparse_state_t *au)
 	const char *seclevel, *uuid, *name, *user = NULL;
 	struct event *event;
 	int success;
+
+	if (filter_event(au))
+		return 0;
 
 	seclevel = get_seclevel(auparse_find_field(au, "vm-ctx"));
 	if (seclevel == NULL) {
@@ -643,6 +597,9 @@ int process_control_event(auparse_state_t *au)
 {
 	const char *op;
 
+	if (filter_event(au))
+		return 0;
+
 	op = auparse_find_field(au, "op");
 	if (op == NULL) {
 		if (debug)
@@ -759,6 +716,9 @@ int process_resource_event(auparse_state_t *au)
 	char field[64];
 	const char *reason;
 	int success;
+
+	if (filter_event(au))
+		return 0;
 
 	/* Just skip this record if it failed to get some of the fields */
 	if (extract_virt_fields(au, &uuid, &user, &time, &name, &success))
@@ -955,12 +915,7 @@ int process_avc_apparmor_source(auparse_state_t *au)
 	for (it = events->tail; it; it = it->prev) {
 		struct event *event = it->data;
 		if (event->success) {
-			if (event->type == ET_DOWN) {
-				/* It's just possible to find a matching guest
-				 * session in the current host session.
-				 */
-				break;
-			} else if (event->type == ET_RES &&
+			if (event->type == ET_RES &&
 			           event->end == 0 &&
 			           event->res != NULL &&
 		                   strcmp(target, event->res) == 0) {
@@ -1077,8 +1032,6 @@ int process_avc_apparmor_target(auparse_state_t *au)
 				} else if (event->type == ET_STOP) {
 					break;
 				}
-			} else if (event->type == ET_DOWN) {
-				break;
 			}
 		}
 	}
@@ -1143,6 +1096,9 @@ int process_avc_apparmor(auparse_state_t *au)
 
 int process_avc(auparse_state_t *au)
 {
+	if (filter_event(au))
+		return 0;
+
 	/* Check if it is a SELinux AVC record */
 	if (auparse_find_field(au, "tcontext")) {
 		auparse_first_record(au);
@@ -1169,6 +1125,9 @@ int process_anom(auparse_state_t *au)
 	pid_t pid = -1;
 	list_node_t *it;
 	struct event *anom, *start = NULL;
+
+	if (filter_event(au))
+		return 0;
 
 	/* An anomaly record is correlated to a guest by the process id */
 	if (auparse_find_field(au, "pid")) {
@@ -1269,48 +1228,6 @@ int process_anom(auparse_state_t *au)
 	return 0;
 }
 
-int process_shutdown(auparse_state_t *au)
-{
-	const char *user = NULL;
-	time_t time = 0;
-	struct event *down;
-	list_node_t *it;
-	int success = 0;
-
-	if (extract_virt_fields(au, NULL, &user, &time, NULL, &success))
-		return 0;
-
-	for (it = events->tail; it; it = it->prev) {
-		struct event *event = it->data;
-		if (event->success) {
-			if (event->type == ET_START || event->type == ET_RES) {
-				if (event->end == 0) {
-					event->end = time;
-					add_proof(event, au);
-				}
-			} else if (event->type == ET_DOWN) {
-				break;
-			}
-		}
-	}
-
-	down = event_alloc();
-	if (down == NULL) {
-		free(user);
-		return 1;
-	}
-	down->type = ET_DOWN;
-	down->user = user;
-	down->start = time;
-	down->success = success;
-	add_proof(down, au);
-	if (list_append(events, down) == NULL) {
-		event_free(down);
-		return 1;
-	}
-	return 0;
-}
-
 /* Convert record type to a string */
 const char *get_rec_type(struct event *e)
 {
@@ -1329,8 +1246,8 @@ const char *get_rec_type(struct event *e)
 		return "avc";
 	case ET_ANOM:
 		return "anom";
-	case ET_DOWN:
-		return "down";
+	default:
+		break;
 	}
 
 	snprintf(buf, sizeof(buf), "%d", e->type);
@@ -1384,10 +1301,10 @@ void print_event(struct event *event)
 		printf("%-5.5s ", get_rec_type(event));
 
 	/* Print common fields */
-	printf("%-25.25s", N(event->name));
+	printf("%-24.24s", N(event->name));
 	if (uuid_flag)
 		printf("\t%-36.36s", N(event->uuid));
-	printf("\t%-11.11s\t%-35.35s", N(event->user),
+	printf("\t%-11.11s\t%-33.33s", N(event->user),
 			get_time_period(event));
 
 	/* Print type specific fields */
@@ -1418,10 +1335,11 @@ void print_event(struct event *event)
 		printf("    Proof:");
 		for (i = 0; i < len; i++) {
 			if (event->proof[i].time) {
-				printf("%s %ld.%03u:%lu",
+				//printf("%s %ld.%03u:%lu",
+				printf("%s%lu",
 					(first) ? "" : ",",
-					event->proof[i].time,
-					event->proof[i].milli,
+//					event->proof[i].time,
+//					event->proof[i].milli,
 					event->proof[i].serial);
 				first = 0;
 			}
@@ -1446,8 +1364,7 @@ void print_summary(void)
 {
 	/* Summary numbers */
 	time_t stime = 0, etime = 0;
-	long start = 0, stop = 0, res = 0, avc = 0, anom = 0,
-	     shutdown = 0, failure = 0;
+	long start = 0, stop = 0, res = 0, avc = 0, anom = 0, failure = 0;
 	char start_buf[32], end_buf[32];
 
 	/* Calculate summary */
@@ -1476,8 +1393,7 @@ void print_summary(void)
 			case ET_ANOM:
 				anom++;
 				break;
-			case ET_DOWN:
-				shutdown++;
+			default:
 				break;
 			}
 		}
@@ -1519,7 +1435,6 @@ void print_summary(void)
 	printf("Number of resource assignments: %ld\n", res);
 	printf("Number of related AVCs:         %ld\n", avc);
 	printf("Number of related anomalies:    %ld\n", anom);
-	printf("Number of host shutdowns:       %ld\n", shutdown);
 	printf("Number of failed operations:    %ld\n", failure);
 }
 
@@ -1545,10 +1460,8 @@ int main(int argc, char **argv)
 	au = init_auparse();
 	if (au == NULL)
 		goto error;
-	if (create_search_criteria(au))
-		goto error;
 
-	while (ausearch_next_event(au) > 0) {
+	while (auparse_next_event(au) > 0) {
 		int err = 0;
 
 		switch(auparse_get_type(au)) {
@@ -1562,20 +1475,20 @@ int main(int argc, char **argv)
 			err = process_resource_event(au);
 			break;
 		case AUDIT_AVC:
-			err = process_avc(au);
+			if (all_events_flag || summary_flag)
+				err = process_avc(au);
 			break;
 		case AUDIT_FIRST_ANOM_MSG ... AUDIT_LAST_ANOM_MSG:
 		case AUDIT_FIRST_KERN_ANOM_MSG ... AUDIT_LAST_KERN_ANOM_MSG:
-			err = process_anom(au);
+			if (all_events_flag || summary_flag)
+				err = process_anom(au);
 			break;
-		case AUDIT_SYSTEM_SHUTDOWN:
-			err = process_shutdown(au);
+		default:
 			break;
 		}
 		if (err) {
 			goto unexpected_error;
 		}
-		auparse_next_event(au);
 	}
 
 	/* Show results */

@@ -17,9 +17,9 @@ the guest was stopped.
 
 If the option "\-\-all\-events" is given a more detailed output is shown. In this
 mode other records are shown for guest's stops, resource
-assignments, host shutdowns and AVC and anomaly events. The first field
+assignments, AVC and anomaly events. The first field
 indicates the event type and can have the following values: start, stop,
-res, avc, anom and down (for host shutdowns).
+res, avc, and anom.
 
 Resource assignments have the additional fields: resource type, reason and
 resource. And AVC records have the following additional fields: operation,
@@ -58,8 +58,8 @@ This option cannot be specified with \fB--file\fP. The audit events must be in t
 \fB--summary\fP
 Print a summary with information about the events found. The summary contains
 the considered range of time, the number of guest starts and stops, the number
-of resource assignments, the number of AVC and anomaly events, the number of
-host shutdowns and the number of failed operations.
+of resource assignments, the number of AVC and anomaly events, and the number
+of failed operations.
 .TP
 .BR \-te ,\  \-\-end \ [\fIend-date\fP]\ [\fIend-time\fP]
 Search for events with time stamps equal to or before the given end time. The
