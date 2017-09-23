@@ -431,7 +431,7 @@ int filter_event(auparse_state_t *au)
 int process_machine_id_event(auparse_state_t *au)
 {
 	time_t time;
-	const char *seclevel, *uuid, *name, *user = NULL;
+	const char *seclevel, *model, *uuid, *name, *user = NULL;
 	struct event *event;
 	int success;
 
@@ -444,6 +444,11 @@ int process_machine_id_event(auparse_state_t *au)
 			fprintf(stderr, "Security context not found for "
 					"MACHINE_ID event.\n");
 	}
+
+	// We only need to collect seclevel if model is selinux	
+	model = auparse_find_field(au, "model");
+	if (model && strcmp(model, "dac") == 0)
+		return 0;
 
 	if (extract_virt_fields(au, &uuid, &user, &time, &name, &success))
 		return 0;
@@ -806,23 +811,24 @@ struct event *get_machine_id_by_seclevel(const char *seclevel)
 	for (it = events->tail; it; it = it->prev) {
 		struct event *event = it->data;
 		if (event->type == ET_MACHINE_ID &&
-		    event->seclevel != NULL &&
-		    strcmp(event->seclevel, seclevel) == 0) {
-			machine_id = event;
-			break;
+		    event->seclevel != NULL) {
+			if (strcmp(event->seclevel, seclevel) == 0) {
+				machine_id = event;
+				break;
+			}
 		}
 	}
 
 	return machine_id;
 }
 
-int process_avc_selinux_context(auparse_state_t *au, const char *context)
+int process_avc_selinux_context(auparse_state_t *au)
 {
 	const char *seclevel, *user = NULL;
 	struct event *machine_id, *avc;
 	time_t time;
 
-	seclevel = get_seclevel(auparse_find_field(au, context));
+	seclevel = get_seclevel(auparse_find_field(au, "scontext"));
 	if (seclevel == NULL) {
 		if (debug) {
 			fprintf(stderr, "Security context not found "
@@ -890,13 +896,8 @@ int process_avc_selinux_context(auparse_state_t *au, const char *context)
 /* AVC records are correlated to guest through the selinux context. */
 int process_avc_selinux(auparse_state_t *au)
 {
-	const char **context;
-	const char *contexts[] = { "tcontext", "scontext", NULL };
-
-	for (context = contexts; context && *context; context++) {
-		if (process_avc_selinux_context(au, *context))
-			return 1;
-	}
+	if (process_avc_selinux_context(au))
+		return 1;
 	return 0;
 }
 

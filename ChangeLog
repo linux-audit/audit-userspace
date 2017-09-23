@@ -11,6 +11,7 @@
 - In auparse_normalize, correct mount records based on success
 - In auparse_normalize, correct object for USER_MGMT, ACCT_LOCK, & ACCT_UNLOCK
 - Add default port to auditd.conf (#1455598)
+- Fix auvirt to report AVC's (#982154)
 
 2.7.8
 - Add config option to auditd to not verify email addr domain (#1406887)
