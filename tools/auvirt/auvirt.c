@@ -822,7 +822,8 @@ struct event *get_machine_id_by_seclevel(const char *seclevel)
 	return machine_id;
 }
 
-int process_avc_selinux_context(auparse_state_t *au)
+/* AVC records are correlated to guest through the selinux context. */
+int process_avc_selinux(auparse_state_t *au)
 {
 	const char *seclevel, *user = NULL;
 	struct event *machine_id, *avc;
@@ -890,14 +891,6 @@ int process_avc_selinux_context(auparse_state_t *au)
 		event_free(avc);
 		return 1;
 	}
-	return 0;
-}
-
-/* AVC records are correlated to guest through the selinux context. */
-int process_avc_selinux(auparse_state_t *au)
-{
-	if (process_avc_selinux_context(au))
-		return 1;
 	return 0;
 }
 
@@ -1112,8 +1105,7 @@ int process_avc(auparse_state_t *au)
 		return 0;
 
 	/* Check if it is a SELinux AVC record */
-	if (auparse_find_field(au, "tcontext")) {
-		auparse_first_record(au);
+	if (auparse_find_field(au, "scontext")) {
 		return process_avc_selinux(au);
 	}
 
