@@ -724,16 +724,22 @@ static void text_event(auparse_state_t *au,
 
 	rc = auparse_normalize_object_primary(au);
 	if (rc == 1) {
-		const char *val;
+		const char *val = NULL;
+		int ftype;
 
 		// If we have an object and this is an AVC, add some words
 		if (action && strstr(action, "violated"))
-			printf("accessing ");
+			val = "accessing ";
 
-		if (auparse_get_field_type(au) == AUPARSE_TYPE_ESCAPED_FILE)
+		ftype = auparse_get_field_type(au);
+		if (ftype == AUPARSE_TYPE_ESCAPED_FILE)
 			val = auparse_interpret_realpath(au);
-		else
+		else if (ftype == AUPARSE_TYPE_SOCKADDR)
+			val = auparse_interpret_sock_address(au);
+
+		if (val == NULL)
 			val = auparse_interpret_field(au);
+
 		printf("%s ", val);
 	}
 
