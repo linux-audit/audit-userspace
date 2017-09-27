@@ -1369,11 +1369,17 @@ static int check_message_managed(void)
 		return remote_server_ending_handler(msg);
 	if (type == AUDIT_RMW_TYPE_DISKLOW)
 		return remote_disk_low_handler(msg);
-	if (type == AUDIT_RMW_TYPE_DISKFULL)
+	if (type == AUDIT_RMW_TYPE_DISKFULL) {
+		// Can't log for a while might want a delay
+		stop_transport();
 		return remote_disk_full_handler(msg);
-	if (type == AUDIT_RMW_TYPE_DISKERROR)
+	}
+	if (type == AUDIT_RMW_TYPE_DISKERROR) {
+		// Can't log for a while might want a delay
+		stop_transport();
 		return remote_disk_error_handler(msg);
-	return -1;
+	}
+	return 0;
 }
 
 /* This is to check for async notification like server is shutting down */
@@ -1488,10 +1494,16 @@ try_again:
 	/* Specific errors we know how to deal with.  */
 	if (type == AUDIT_RMW_TYPE_DISKLOW)
 		return remote_disk_low_handler (msg);
-	if (type == AUDIT_RMW_TYPE_DISKFULL)
+	if (type == AUDIT_RMW_TYPE_DISKFULL) {
+		// Can't log for a while might want a delay
+		stop_transport();
 		return remote_disk_full_handler (msg);
-	if (type == AUDIT_RMW_TYPE_DISKERROR)
+	}
+	if (type == AUDIT_RMW_TYPE_DISKERROR) {
+		// Can't log for a while might want a delay
+		stop_transport();
 		return remote_disk_error_handler (msg);
+	}
 
 	/* Generic errors.  */
 	if (type & AUDIT_RMW_TYPE_FATALMASK)
