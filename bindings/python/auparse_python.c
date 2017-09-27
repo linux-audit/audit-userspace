@@ -2112,9 +2112,6 @@ AuParser_interpret_sock_address(AuParser *self)
 }
 
 static
-static
-static
-static
 PyGetSetDef AuParser_getseters[] = {
     {NULL}  /* Sentinel */
 };
