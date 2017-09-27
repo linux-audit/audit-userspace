@@ -5,7 +5,6 @@ Things that need to be done:
 * Suppress file systems for module load
 * If server suspends after client sends event &before ack, client wont reconnect
 * non-equality comparisons for values other than \timestamp, \timestamp_ex and \record_type in ausearch-expression (#1399314)
-* Add sockaddr accessor functions in auparse
 
 2.8.1
 * Support ipv6 remote logging

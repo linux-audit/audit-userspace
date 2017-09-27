@@ -182,6 +182,7 @@ struct opaque
 	auparse_esc_t escape_mode;
 	message_t message_mode;		// Where to send error messages
 	debug_message_t debug_message;	// Whether or not messages are debug or not
+	const char *tmp_translation;	// Pointer to manage mem for field translation
 	normalize_data norm_data;
 };
 

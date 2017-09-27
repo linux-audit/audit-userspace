@@ -521,6 +521,7 @@ auparse_state_t *auparse_init(ausource_t source, const void *b)
 	au->escape_mode = AUPARSE_ESC_TTY;
 	au->message_mode = MSG_QUIET;
 	au->debug_message = DBG_NO;
+	au->tmp_translation = NULL;
 	init_normalizer(&au->norm_data);
 
 	return au;
@@ -931,6 +932,7 @@ static void auparse_destroy_common(auparse_state_t *au)
 	free_interpretation_list();
 	clear_normalizer(&au->norm_data);
 	au_lol_clear(au->au_lo, 0);
+	free(au->tmp_translation);
 	free(au->au_lo);
 	free(au);
 }
@@ -2010,5 +2012,62 @@ const char *auparse_interpret_realpath(auparse_state_t *au)
 		}
         }
 	return NULL;
+}
+
+static const char *auparse_interpret_sock_parts(auparse_state_t *au,
+	const char *field)
+{
+	if (au->le == NULL)
+		return NULL;
+
+        if (au->le->e.sec) {
+        	rnode *r = aup_list_get_cur(au->le);
+		if (r == NULL)
+			return NULL;
+		// This is limited to socket address fields
+		if (nvlist_get_cur_type(r) != AUPARSE_TYPE_SOCKADDR)
+			return NULL;
+		// Get interpretation
+		const char *val = nvlist_interp_cur_val(r, au->escape_mode);
+		if (val == NULL)
+			return NULL;
+		// make a copy since we modify it
+		char *tmp = strdup(val);
+		if (tmp == NULL)
+			return NULL;
+		// Locate the address part
+		val = strstr(tmp, field);
+		if (val) {
+			// Get past the =
+			val += strlen(field);
+			// find other side
+			char *ptr = strchr(val, ' ');
+			if (ptr) {
+				// terminate, copy, and return it
+				*ptr = 0;
+				const char *final = strdup(val);
+				free(tmp);
+				free(au->tmp_translation);
+				au->tmp_translation = final;
+				return final;
+			}
+		}
+        }
+	return NULL;
+}
+
+const char *auparse_interpret_sock_family(auparse_state_t *au)
+{
+	return auparse_interpret_sock_parts(au, "fam=");
+}
+
+const char *auparse_interpret_sock_port(auparse_state_t *au)
+{
+	return auparse_interpret_sock_parts(au, "lport=");
+}
+
+const char *auparse_interpret_sock_address(auparse_state_t *au)
+{
+	return auparse_interpret_sock_parts(au, "laddr=");
 }
 

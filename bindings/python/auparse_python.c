@@ -2051,6 +2051,69 @@ AuParser_interpret_realpath(AuParser *self)
     return Py_BuildValue("s", value);
 }
 
+PyDoc_STRVAR(interpret_sock_family_doc,
+"interpret_sock_family() Return an interpretation of the current field's socket family. Only supported on sockaddr field types.\n\
+\n\
+If the field cannot be interpreted the field is returned unmodified.\n\
+Raises exception (RuntimeError) on error\n\
+");
+static PyObject *
+AuParser_interpret_sock_family(AuParser *self)
+{
+    const char *value = NULL;
+
+    PARSER_CHECK;
+    value = auparse_interpret_sock_family(self->au);
+    if (value == NULL) {
+        PyErr_SetString(PyExc_RuntimeError, "'interpretation' is NULL");
+        return NULL;
+    }
+    return Py_BuildValue("s", value);
+}
+
+PyDoc_STRVAR(interpret_sock_port_doc,
+"interpret_sock_address() Return an interpretation of the current field's socket port. Only supported on sockaddr field types.\n\
+\n\
+If the field cannot be interpreted the field is returned unmodified.\n\
+Raises exception (RuntimeError) on error\n\
+");
+static PyObject *
+AuParser_interpret_sock_port(AuParser *self)
+{
+    const char *value = NULL;
+
+    PARSER_CHECK;
+    value = auparse_interpret_sock_port(self->au);
+    if (value == NULL) {
+        PyErr_SetString(PyExc_RuntimeError, "'interpretation' is NULL");
+        return NULL;
+    }
+    return Py_BuildValue("s", value);
+}
+
+PyDoc_STRVAR(interpret_sock_address_doc,
+"interpret_sock_address() Return an interpretation of the current field's socket address. Only supported on sockaddr field types.\n\
+\n\
+If the field cannot be interpreted the field is returned unmodified.\n\
+Raises exception (RuntimeError) on error\n\
+");
+static PyObject *
+AuParser_interpret_sock_address(AuParser *self)
+{
+    const char *value = NULL;
+
+    PARSER_CHECK;
+    value = auparse_interpret_sock_address(self->au);
+    if (value == NULL) {
+        PyErr_SetString(PyExc_RuntimeError, "'interpretation' is NULL");
+        return NULL;
+    }
+    return Py_BuildValue("s", value);
+}
+
+static
+static
+static
 static
 PyGetSetDef AuParser_getseters[] = {
     {NULL}  /* Sentinel */
@@ -2117,6 +2180,9 @@ static PyMethodDef AuParser_methods[] = {
     {"get_field_int",     (PyCFunction)AuParser_get_field_int,     METH_NOARGS,  get_field_int_doc},
     {"interpret_field",   (PyCFunction)AuParser_interpret_field,   METH_NOARGS,  interpret_field_doc},
     {"interpret_realpath",   (PyCFunction)AuParser_interpret_realpath, METH_NOARGS,  interpret_realpath_doc},
+    {"interpret_sock_family",   (PyCFunction)AuParser_interpret_sock_family, METH_NOARGS,  interpret_sock_family_doc},
+    {"interpret_sock_port",   (PyCFunction)AuParser_interpret_sock_port, METH_NOARGS,  interpret_sock_port_doc},
+    {"interpret_sock_address",   (PyCFunction)AuParser_interpret_sock_address, METH_NOARGS,  interpret_sock_address_doc},
     {NULL, NULL}  /* Sentinel */
 };
 
