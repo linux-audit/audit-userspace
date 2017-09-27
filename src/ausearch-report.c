@@ -734,8 +734,11 @@ static void text_event(auparse_state_t *au,
 		ftype = auparse_get_field_type(au);
 		if (ftype == AUPARSE_TYPE_ESCAPED_FILE)
 			val = auparse_interpret_realpath(au);
-		else if (ftype == AUPARSE_TYPE_SOCKADDR)
+		else if (ftype == AUPARSE_TYPE_SOCKADDR) {
 			val = auparse_interpret_sock_address(au);
+			if (val == NULL)
+				val = auparse_interpret_sock_family(au);
+		}
 
 		if (val == NULL)
 			val = auparse_interpret_field(au);
