@@ -15,6 +15,7 @@
 - Add sockaddr accessor functions in auparse
 - In ausearch, use auparse_interpret_sock_address for text mode output
 - In remote logging, inform client auditd is suspended and please disconnect
+- Audisp-remote now supports IPv6
 
 2.7.8
 - Add config option to auditd to not verify email addr domain (#1406887)

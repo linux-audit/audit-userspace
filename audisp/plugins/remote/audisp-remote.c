@@ -1006,7 +1006,7 @@ static int stop_transport(void)
 static int init_sock(void)
 {
 	int rc;
-	struct addrinfo *ai;
+	struct addrinfo *ai, *runp;
 	struct addrinfo hints;
 	char remote[BUF_SIZE];
 	int one=1;
@@ -1016,6 +1016,8 @@ static int init_sock(void)
 		transport_ok = 1;
 		return ET_SUCCESS;
 	}
+
+	// Resolve the remote host
 	memset(&hints, '\0', sizeof(hints));
 	hints.ai_flags = AI_ADDRCONFIG|AI_NUMERICSERV;
 	hints.ai_socktype = SOCK_STREAM;
@@ -1031,46 +1033,71 @@ static int init_sock(void)
 		else
 			return ET_TEMPORARY;
 	}
-	sock = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol);
-	if (sock < 0) {
-		if (!quiet)
-			syslog(LOG_ERR, "Error creating socket: %s",
-			strerror(errno));
-		freeaddrinfo(ai);
-		return ET_TEMPORARY;
-	}
 
-	setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (char *)&one, sizeof (int));
-
-	if (config.local_port != 0) {
-		struct sockaddr_in address;
-		
-		memset (&address, 0, sizeof(address));
-		address.sin_family = AF_INET;
-		address.sin_port = htons(config.local_port);
-		address.sin_addr.s_addr = htonl(INADDR_ANY);
-
-		if (bind(sock, (struct sockaddr *)&address, sizeof(address))) {
+	// Cycle through the list until we connect
+	runp = ai;
+	while (runp) {
+		sock = socket(runp->ai_family, runp->ai_socktype,
+					runp->ai_protocol);
+		if (sock < 0) {
 			if (!quiet)
-				syslog(LOG_ERR,
-			       "Cannot bind local socket to port %d",
-					config.local_port);
-			stop_sock();
-			freeaddrinfo(ai);
-			return ET_TEMPORARY;
+				syslog(LOG_ERR, "Error creating socket: %s",
+				strerror(errno));
+			continue;
 		}
 
-	}
-	if (connect(sock, ai->ai_addr, ai->ai_addrlen)) {
-		if (!quiet)
-			syslog(LOG_ERR, "Error connecting to %s: %s",
-				config.remote_server, strerror(errno));
-		freeaddrinfo(ai);
-		stop_sock();
-		return ET_TEMPORARY;
-	}
+		setsockopt(sock, SOL_SOCKET, SO_REUSEADDR,
+					(char *)&one, sizeof (int));
 
-	freeaddrinfo(ai);
+		// If we are binding, resolve somethihng relative to
+		// the address of the aggregating server
+		if (config.local_port != 0) {
+			struct addrinfo *ai2;
+			struct addrinfo hints2;
+			char local[BUF_SIZE];
+
+			// Ask for setting that can be used for bind
+			memset(&hints2, '\0', sizeof(hints2));
+			hints2.ai_flags = AI_PASSIVE | AI_ADDRCONFIG;
+			hints2.ai_socktype = SOCK_STREAM;
+			hints2.ai_family = runp->ai_family;
+			hints2.ai_protocol = runp->ai_protocol;
+			snprintf(local, BUF_SIZE, "%u", config.local_port);
+
+			rc = getaddrinfo(NULL, local, &hints2, &ai2);
+			if (rc) {
+				if (!quiet)
+					syslog(LOG_ERR,
+				"Error looking up local host: %s - retrying",
+						gai_strerror(rc));
+				continue;
+			}
+			// We are not going to cycle through the list.
+			// If done right only one should be on list.
+			if (bind(sock,  ai2->ai_addr, ai2->ai_addrlen)) {
+				if (!quiet)
+					syslog(LOG_ERR,
+				       "Cannot bind local socket to port %d",
+						config.local_port);
+				stop_sock();
+				continue;
+			}
+		}
+		if (connect(sock, runp->ai_addr, runp->ai_addrlen)) {
+			if (!quiet)
+				syslog(LOG_ERR, "Error connecting to %s: %s",
+					config.remote_server, strerror(errno));
+			stop_sock();
+		} else
+			break;	// Success, quit trying
+		runp = runp->ai_next;
+	}
+	// If the list was exhausted and no connection, we failed.
+	if (runp == NULL) {
+		rc = ET_PERMANENT;
+		goto out;
+	}
+	rc = ET_SUCCESS;
 	setsockopt(sock, SOL_SOCKET, SO_KEEPALIVE, (char *)&one, sizeof (int));
 
 	/* The idea here is to minimize the time between the message
@@ -1083,14 +1110,18 @@ static int init_sock(void)
 
 #ifdef USE_GSSAPI
 	if (USE_GSS) {
-		if (negotiate_credentials ())
-			return ET_PERMANENT;
+		if (negotiate_credentials ()) {
+			rc = ET_PERMANENT;
+			goto out;
+		}
 	}
 #endif
 
 	transport_ok = 1;
 	syslog(LOG_NOTICE, "Connected to %s", config.remote_server);
-	return ET_SUCCESS;
+out:
+	freeaddrinfo(ai);
+	return rc;
 }
 
 static int init_transport(void)
