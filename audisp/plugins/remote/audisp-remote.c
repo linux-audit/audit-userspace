@@ -1043,7 +1043,7 @@ static int init_sock(void)
 			if (!quiet)
 				syslog(LOG_ERR, "Error creating socket: %s",
 				strerror(errno));
-			continue;
+			goto next_try;
 		}
 
 		setsockopt(sock, SOL_SOCKET, SO_REUSEADDR,
@@ -1070,7 +1070,7 @@ static int init_sock(void)
 					syslog(LOG_ERR,
 				"Error looking up local host: %s - retrying",
 						gai_strerror(rc));
-				continue;
+				goto next_try;
 			}
 			// We are not going to cycle through the list.
 			// If done right only one should be on list.
@@ -1080,7 +1080,7 @@ static int init_sock(void)
 				       "Cannot bind local socket to port %d",
 						config.local_port);
 				stop_sock();
-				continue;
+				goto next_try;
 			}
 		}
 		if (connect(sock, runp->ai_addr, runp->ai_addrlen)) {
@@ -1090,6 +1090,7 @@ static int init_sock(void)
 			stop_sock();
 		} else
 			break;	// Success, quit trying
+next_try:
 		runp = runp->ai_next;
 	}
 	// If the list was exhausted and no connection, we failed.
