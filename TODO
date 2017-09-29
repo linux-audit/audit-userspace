@@ -6,7 +6,6 @@ Things that need to be done:
 * non-equality comparisons for values other than \timestamp, \timestamp_ex and \record_type in ausearch-expression (#1399314)
 
 2.8.1
-* Support ipv6 remote logging
 * Look into TLS support
 * Support multiple time streams when searching
 * Add rule verify to detect mismatch between in-kernel and on-disk rules
