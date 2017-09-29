@@ -2052,6 +2052,7 @@ static const char *auparse_interpret_sock_parts(auparse_state_t *au,
 				return final;
 			}
 		}
+		free(tmp);
         }
 	return NULL;
 }

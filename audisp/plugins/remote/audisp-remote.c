@@ -1080,8 +1080,10 @@ static int init_sock(void)
 				       "Cannot bind local socket to port %d",
 						config.local_port);
 				stop_sock();
+				freeaddrinfo(ai2);
 				goto next_try;
 			}
+			freeaddrinfo(ai2);
 		}
 		if (connect(sock, runp->ai_addr, runp->ai_addrlen)) {
 			if (!quiet)
