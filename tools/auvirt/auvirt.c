@@ -844,8 +844,8 @@ int process_avc_selinux(auparse_state_t *au)
 	machine_id = get_machine_id_by_seclevel(seclevel);
 	if (machine_id == NULL) {
 		if (debug) {
-			fprintf(stderr, "Couldn't get the security "
-					"level from the AVC event.\n");
+			fprintf(stderr, "Couldn't get the machine id "
+				"based on security level in AVC event.\n");
 		}
 		free(user);
 		return 0;
@@ -1245,7 +1245,7 @@ const char *get_rec_type(struct event *e)
 	case ET_STOP:
 		return "stop";
 	case ET_RES:
-		return "res";
+		return "resrc";
 	case ET_AVC:
 		return "avc";
 	case ET_ANOM:
@@ -1302,13 +1302,13 @@ void print_event(struct event *event)
 		return;
 	/* The type of event is shown only when all records are shown */
 	if (all_events_flag)
-		printf("%-5.5s ", get_rec_type(event));
+		printf("%-6.5s ", get_rec_type(event));
 
 	/* Print common fields */
-	printf("%-24.24s", N(event->name));
+	printf("%-22.22s", N(event->name));
 	if (uuid_flag)
 		printf("\t%-36.36s", N(event->uuid));
-	printf("\t%-11.11s\t%-33.33s", N(event->user),
+	printf("\t%-11.11s\t%-32.32s", N(event->user),
 			get_time_period(event));
 
 	/* Print type specific fields */
