@@ -87,6 +87,10 @@ struct daemon_conf
 };
 
 void set_allow_links(int allow);
+
+/* Return 0 on success. */
+int set_config_file(const char *val);
+
 int load_config(struct daemon_conf *config, log_test_t lt);
 void clear_config(struct daemon_conf *config);
 const char *audit_lookup_format(int fmt);
@@ -101,4 +105,3 @@ void shutdown_config(void);
 void free_config(struct daemon_conf *config);
 
 #endif
-
