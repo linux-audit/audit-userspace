@@ -62,7 +62,7 @@ struct auditd_remote_message_wrapper {
 /* If set, this reply indicates success but with some warnings.  */
 #define AUDIT_RMW_TYPE_WARNMASK		0x10000000
 /* This part of the message type is the details for the above.  */
-#define AUDIT_RMW_TYPE_DETAILMASK	0x0fffffff
+#define AUDIT_RMW_TYPE_DETAILMASK	0x000FFFFF
 
 /* Version 0 messages.  */
 #define AUDIT_RMW_TYPE_MESSAGE		0x00000000
