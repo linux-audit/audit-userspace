@@ -169,7 +169,7 @@ static int print_syscall(const struct audit_rule_data *r, unsigned int *sc)
 			if (ptr)
 				printf("%s%s", !count ? "" : ",", ptr);
 			else
-				printf("%s%d", !count ? "" : ",", i);
+				printf("%s%u", !count ? "" : ",", i);
 			count++;
 			*sc = i;
 		}
@@ -422,6 +422,7 @@ static void print_rule(const struct audit_rule_data *r)
 					id.a0 = a0;
 					id.a1 = a1;
 					id.name = name;
+					id.cwd = NULL;
 					snprintf(val, 32, "%x", r->values[i]);
 					id.val = val;
 					type = auparse_interp_adjust_type(

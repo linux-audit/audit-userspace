@@ -84,7 +84,7 @@ int main(void)
 	do {
 		node = slist_get_cur(&s);
 		if (node->hits != (4-i)) {
-			printf("Sort test failed - i:%d != hits:%d\n", i, node->hits);
+			printf("Sort test failed - i:%d != hits:%u\n", i, node->hits);
 			return 1;
 		}
 		i++;

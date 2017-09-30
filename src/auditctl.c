@@ -32,6 +32,8 @@
 #include <ctype.h>
 #include <unistd.h>
 #include <sys/utsname.h>
+#include <sys/select.h>
+#include <sys/time.h>
 #include <fcntl.h>
 #include <errno.h>
 #include <libgen.h>	/* For basename */
@@ -1091,8 +1093,10 @@ process_keys:
 	} else {
 		/* Add this to the rule */
 		int ret = audit_rule_fieldpair_data(&rule_new, cmd, flags);
-		if (ret < 0)
+		if (ret != 0) {
+			audit_number_to_errmsg(ret, cmd);
 			retval = -1;
+		}
 		free(cmd);
 	}
     }

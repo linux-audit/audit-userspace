@@ -51,6 +51,7 @@
 #define is_unset(y) (get_record(y) == UNSET)
 #define D au->norm_data
 
+static int syscall_success;
 
 void init_normalizer(normalize_data *d)
 {
@@ -63,12 +64,14 @@ void init_normalizer(normalize_data *d)
 	d->action = NULL;
 	d->thing.primary = set_record(0, UNSET);
 	d->thing.secondary = set_record(0, UNSET);
+	d->thing.two = set_record(0, UNSET);
 	cllist_create(&d->thing.attr, NULL);
 	d->thing.what = NORM_WHAT_UNKNOWN;
 	d->results = set_record(0, UNSET);
 	d->how = NULL;
 	d->opt = NORM_OPT_ALL;
 	d->key = set_record(0, UNSET);
+	syscall_success = -1;
 }
 
 void clear_normalizer(normalize_data *d)
@@ -84,6 +87,7 @@ void clear_normalizer(normalize_data *d)
 	d->action = NULL;
 	d->thing.primary = set_record(0, UNSET);
 	d->thing.secondary = set_record(0, UNSET);
+	d->thing.two = set_record(0, UNSET);
 	cllist_clear(&d->thing.attr);
 	d->thing.what = NORM_WHAT_UNKNOWN;
 	d->results = set_record(0, UNSET);
@@ -91,6 +95,7 @@ void clear_normalizer(normalize_data *d)
 	d->how = NULL;
 	d->opt = NORM_OPT_ALL;
 	d->key = set_record(0, UNSET);
+	syscall_success = -1;
 }
 
 static unsigned int set_subject_what(auparse_state_t *au)
@@ -165,6 +170,23 @@ static unsigned int set_prime_object(auparse_state_t *au, const char *str,
 	return 1;
 }
 
+static unsigned int set_prime_object2(auparse_state_t *au, const char *str,
+	unsigned int adjust)
+{
+	unsigned int rnum = 2 + adjust;
+
+	auparse_goto_record_num(au, rnum);
+	auparse_first_field(au);
+
+	if (auparse_find_field(au, str)) {
+		D.thing.two = set_record(0, rnum);
+		D.thing.two = set_field(D.thing.two,
+			auparse_get_field_num(au));
+		return 0;
+	}
+	return 1;
+}
+
 static unsigned int add_obj_attr(auparse_state_t *au, const char *str,
 	unsigned int rnum)
 {
@@ -232,11 +254,84 @@ static void syscall_subj_attr(auparse_state_t *au)
 	} while (auparse_next_record(au) == 1);
 }
 
+static void collect_perm_obj2(auparse_state_t *au, const char *syscall)
+{
+	const char *val;
+
+	if (strcmp(syscall, "fchmodat") == 0)
+		val = "a2";
+	else
+		val = "a1";
+
+	auparse_first_record(au);
+	if (auparse_find_field(au, val)) {
+		D.thing.two = set_record(0, 0);
+		D.thing.two = set_field(D.thing.two,
+			auparse_get_field_num(au));
+	}
+}
+
+static void collect_own_obj2(auparse_state_t *au, const char *syscall)
+{
+	const char *val;
+
+	if (strcmp(syscall, "fchownat") == 0)
+		val = "a2";
+	else
+		val = "a1";
+
+	auparse_first_record(au);
+	if (auparse_find_field(au, val)) {
+		// if uid is -1, its not being changed, user group
+		if (auparse_get_field_int(au) == -1 && errno == 0)
+			auparse_next_field(au);
+		D.thing.two = set_record(0, 0);
+		D.thing.two = set_field(D.thing.two,
+			auparse_get_field_num(au));
+	}
+}
+
+static void collect_id_obj2(auparse_state_t *au, const char *syscall)
+{
+	unsigned int limit, cnt = 1;;
+
+	if (strcmp(syscall, "setuid") == 0)
+		limit = 1;
+	else if (strcmp(syscall, "setreuid") == 0)
+		limit = 2;
+	else if (strcmp(syscall, "setresuid") == 0)
+		limit = 3;
+	else if (strcmp(syscall, "setgid") == 0)
+		limit = 1;
+	else if (strcmp(syscall, "setregid") == 0)
+		limit = 2;
+	else if (strcmp(syscall, "setresgid") == 0)
+		limit = 3;
+
+	auparse_first_record(au);
+	if (auparse_find_field(au, "a0")) {
+		while (cnt <= limit) {
+			const char *str = auparse_interpret_field(au);
+			if ((strcmp(str, "unset") == 0) && errno == 0) {
+				// Only move it if its safe to
+				if (cnt < limit) {
+					auparse_next_field(au);
+					cnt++;
+				}
+			} else
+				break;
+		}
+		D.thing.two = set_record(0, 0);
+		D.thing.two = set_field(D.thing.two,
+			auparse_get_field_num(au));
+	}
+}
 static void collect_path_attrs(auparse_state_t *au)
 {
 	value_t attr;
 	unsigned int rnum = auparse_get_record_num(au);
 
+	auparse_first_field(au);
 	if (add_obj_attr(au, "mode", rnum))
 		return;	// Failed opens don't have anything else
 
@@ -281,7 +376,6 @@ static void simple_file_attr(auparse_state_t *au)
 					continue;
 				}
 				// First normal record is collected
-				auparse_first_field(au);
 				collect_path_attrs(au);
 				return;
 				break;
@@ -297,7 +391,6 @@ static void simple_file_attr(auparse_state_t *au)
 	// If we get here, path was never collected. Go back and get parent
 	if (parent) {
 		auparse_goto_record_num(au, parent);
-		auparse_first_field(au);
 		collect_path_attrs(au);
 	}
 }
@@ -466,6 +559,7 @@ static int normalize_syscall(auparse_state_t *au, const char *syscall, int type)
 			D.thing.what = NORM_WHAT_FILE; // this gets overridden
 			if (strcmp(syscall, "fchmod") == 0)
 				offset = -1;
+			collect_perm_obj2(au, syscall);
 			set_file_object(au, offset);
 			simple_file_attr(au);
 			break;
@@ -474,6 +568,7 @@ static int normalize_syscall(auparse_state_t *au, const char *syscall, int type)
 			D.thing.what = NORM_WHAT_FILE; // this gets overridden
 			if (strcmp(syscall, "fchown") == 0)
 				offset = -1;
+			collect_own_obj2(au, syscall);
 			set_file_object(au, offset); // FIXME: fchown has no cwd
 			simple_file_attr(au);
 			break;
@@ -481,7 +576,7 @@ static int normalize_syscall(auparse_state_t *au, const char *syscall, int type)
 			act = "loaded-kernel-module";
 			D.thing.what = NORM_WHAT_FILE; 
 			auparse_goto_record_num(au, 1);
-			set_prime_object(au, "name", 1);
+			set_prime_object(au, "name", 1);// FIXME:is this needed?
 			break;
 		case NORM_FILE_UNLDMOD:
 			act = "unloaded-kernel-module";
@@ -497,13 +592,20 @@ static int normalize_syscall(auparse_state_t *au, const char *syscall, int type)
 			break;
 		case NORM_FILE_MOUNT:
 			act = "mounted";
-			D.thing.what = NORM_WHAT_FILESYSTEM; // this gets overridden
-			set_file_object(au, 1); // The device is one after
-			simple_file_attr(au);
+			// this gets overridden
+			D.thing.what = NORM_WHAT_FILESYSTEM;
+			if (syscall_success == 1)
+				set_prime_object2(au, "name", 0);
+			//The device is 1 after on success 0 on fail
+			set_file_object(au, syscall_success);
+			// We call this directly to make sure the right
+			// PATH record is used. (There can be 4.)
+			collect_path_attrs(au);
 			break;
 		case NORM_FILE_RENAME:
 			act = "renamed";
 			D.thing.what = NORM_WHAT_FILE; // this gets overridden
+			set_prime_object2(au, "name", 4);
 			set_file_object(au, 2); // Thing renamed is 2 after
 			simple_file_attr(au);
 			break;
@@ -522,9 +624,9 @@ static int normalize_syscall(auparse_state_t *au, const char *syscall, int type)
 		case NORM_FILE_LNK:
 			act = "symlinked";
 			D.thing.what = NORM_WHAT_FILE; // this gets overridden
-			set_file_object(au, 0);
+			set_prime_object2(au, "name", 0);
+			set_file_object(au, 2);
 			simple_file_attr(au);
-			// FIXME: what do we do with the link?
 			break;
 		case NORM_FILE_UMNT:
 			act = "unmounted";
@@ -638,6 +740,7 @@ static int normalize_syscall(auparse_state_t *au, const char *syscall, int type)
 				free(D.how);
 				D.how = strdup(syscall);
 			}
+			collect_id_obj2(au, syscall);
 			break;
 		case NORM_SYSTEM_TIME:
 			act = "changed-system-time";
@@ -675,7 +778,7 @@ static int normalize_syscall(auparse_state_t *au, const char *syscall, int type)
 			break;
 		default:
 			{
-				char *k;
+				const char *k;
 				rc = auparse_first_record(au);
 				k = auparse_find_field(au, "key");
 				if (k && strcmp(k, "(null)")) {
@@ -708,7 +811,8 @@ static const char *normalize_determine_evkind(int type)
 
 	switch (type)
 	{
-		case AUDIT_USER_AUTH ... AUDIT_USER_END:
+		case AUDIT_USER_AUTH ... AUDIT_USER_ACCT:
+		case AUDIT_CRED_ACQ ... AUDIT_USER_END:
 		case AUDIT_USER_CHAUTHTOK ... AUDIT_CRED_REFR:
 		case AUDIT_USER_LOGIN ... AUDIT_USER_LOGOUT:
 		case AUDIT_LOGIN:
@@ -718,6 +822,7 @@ static const char *normalize_determine_evkind(int type)
 		case AUDIT_CHGRP_ID:
 			kind = NORM_EVTYPE_GROUP_CHANGE;
 			break;
+		case AUDIT_USER_MGMT:
 		case AUDIT_ADD_USER ...AUDIT_DEL_GROUP:
 		case AUDIT_GRP_MGMT ... AUDIT_GRP_CHAUTHTOK:
 		case AUDIT_ACCT_LOCK ... AUDIT_ACCT_UNLOCK:
@@ -829,6 +934,12 @@ static int normalize_compound(auparse_state_t *au)
 		// Results
 		f = auparse_find_field(au, "success");
 		if (f) {
+			const char *str = auparse_get_field_str(au);
+			if (strcmp(str, "no") == 0)
+				syscall_success = 0;
+			else
+				syscall_success = 1;
+
 			D.results = set_record(0, recno);
 			D.results = set_field(D.results,
 					auparse_get_field_num(au));
@@ -946,6 +1057,9 @@ static value_t find_simple_object(auparse_state_t *au, int type)
 			break;
 		case AUDIT_ROLE_ASSIGN:
 		case AUDIT_ROLE_REMOVE:
+		case AUDIT_USER_MGMT:
+		case AUDIT_ACCT_LOCK:
+		case AUDIT_ACCT_UNLOCK:
 		case AUDIT_ADD_USER:
 		case AUDIT_DEL_USER:
 		case AUDIT_ADD_GROUP:
@@ -968,7 +1082,6 @@ static value_t find_simple_object(auparse_state_t *au, int type)
 			break;
 		case AUDIT_USER_AUTH:
 		case AUDIT_USER_ACCT:
-		case AUDIT_USER_MGMT:
 		case AUDIT_CRED_ACQ:
 		case AUDIT_CRED_REFR:
 		case AUDIT_CRED_DISP:
@@ -985,6 +1098,12 @@ static value_t find_simple_object(auparse_state_t *au, int type)
 		case AUDIT_USER_CMD:
 			f = auparse_find_field(au, "cmd");
 			D.thing.what = NORM_WHAT_PROCESS;
+			break;
+		case AUDIT_USER_TTY:
+		case AUDIT_TTY:
+			auparse_first_record(au);
+			f = auparse_find_field(au, "data");
+			D.thing.what = NORM_WHAT_KEYSTROKES;
 			break;
 		case AUDIT_VIRT_MACHINE_ID:
 			f = auparse_find_field(au, "vm");
@@ -1082,14 +1201,33 @@ static value_t find_simple_obj_secondary(auparse_state_t *au, int type)
 	auparse_first_field(au);
 	switch (type)
 	{
+		case AUDIT_CRYPTO_SESSION:
+			f = auparse_find_field(au, "rport");
+			break;
+		default:
+			break;
+	}
+	if (f) {
+		o = set_record(0, 0);
+		o = set_field(o, auparse_get_field_num(au));
+	}
+	return o;
+}
+
+static value_t find_simple_obj_primary2(auparse_state_t *au, int type)
+{
+	value_t o = set_record(0, UNSET);
+	const char *f = NULL;
+
+	// FIXME: maybe pass flag indicating if this is needed
+	auparse_first_field(au);
+	switch (type)
+	{
 		case AUDIT_VIRT_CONTROL:
 			f = auparse_find_field(au, "vm");
 			break;
 		case AUDIT_VIRT_RESOURCE:
 			f = auparse_find_field(au, "vm");
-			break;
-		case AUDIT_CRYPTO_SESSION:
-			f = auparse_find_field(au, "rport");
 			break;
 		default:
 			break;
@@ -1107,7 +1245,6 @@ static void collect_simple_subj_attr(auparse_state_t *au)
                 return;
 
         auparse_first_record(au);
-        auparse_first_field(au);
 	add_subj_attr(au, "pid", 0); // Just pass 0 since simple is 1 record
 	add_subj_attr(au, "subj", 0);
 }
@@ -1383,6 +1520,7 @@ map:
 	// object
 	D.thing.primary = find_simple_object(au, type);
 	D.thing.secondary = find_simple_obj_secondary(au, type);
+	D.thing.two = find_simple_obj_primary2(au, type);
 
 	// how
 	if (type == AUDIT_SYSTEM_BOOT) {
@@ -1398,6 +1536,14 @@ map:
 		if (f) {
 			const char *term = auparse_interpret_field(au);
 			D.how = strdup(term);
+		}
+		return 0;
+	}
+	if (type == AUDIT_TTY) {
+		f = auparse_find_field(au, "comm");
+		if (f) {
+			const char *comm = auparse_interpret_field(au);
+			D.how = strdup(comm);
 		}
 		return 0;
 	}
@@ -1548,6 +1694,11 @@ int auparse_normalize_object_primary(auparse_state_t *au)
 int auparse_normalize_object_secondary(auparse_state_t *au)
 {
 	return seek_field(au, D.thing.secondary);
+}
+
+int auparse_normalize_object_primary2(auparse_state_t *au)
+{
+	return seek_field(au, D.thing.two);
 }
 
 // Returns: -1 = error, 0 uninitialized, 1 == success

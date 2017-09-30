@@ -778,7 +778,7 @@ static const char *print_exit(const char *val)
 
 static char *print_escaped(const char *val)
 {
-	const char *out;
+	char *out;
 
         if (*val == '"') {
                 char *term;
@@ -807,6 +807,41 @@ static char *print_escaped(const char *val)
 	if (out)
 		return out;
 	return strdup(val); // Something is wrong with string, just send as is
+}
+
+static const char *print_escaped_ext(int type, const idata *id)
+{
+	if (id->cwd) {
+		char *str1 = NULL, *str2, *str3 = NULL, *out = NULL;
+		str2 = print_escaped(id->val);
+		if (!str2)
+			goto err_out;
+		if (*str2 != '/') {
+			str1 = print_escaped(id->cwd);
+			if (!str1)
+				goto err_out;
+			if (asprintf(&str3, "%s/%s", str1, str2) < 0)
+				goto err_out;
+		} else {
+			// Check in case /home/../etc/passwd
+			if (strstr(str2, "..") == NULL)
+				return str2;
+
+			str3 = str2;
+			str2 = NULL;
+			str1 = NULL;
+		}
+		errno = 0;
+		out = realpath(str3, NULL);
+		if (errno) // If there's an error, just return the original
+			return str3;
+err_out:
+		free(str1);
+		free(str2);
+		free(str3);
+		return out;
+	} else
+		return print_escaped(id->val);
 }
 
 static const char *print_proctitle(const char *val)
@@ -2549,7 +2584,7 @@ static const char *print_list(const char *val)
 		if (asprintf(&out, "conversion error(%s)", val) < 0)
 			out = NULL;
 	} else {
-		char *o = audit_flag_to_name(i);
+		const char *o = audit_flag_to_name(i);
 		if (o != NULL)
 			out = strdup(o);
 		else if (asprintf(&out, "unknown-list(%s)", val) < 0)
@@ -2743,6 +2778,7 @@ const char *interpret(const rnode *r, auparse_esc_t escape_mode)
 	id.syscall = r->syscall;
 	id.a0 = r->a0;
 	id.a1 = r->a1;
+	id.cwd = r->cwd;
 	id.name = nvlist_get_cur_name(nv);
 	id.val = nvlist_get_cur_val(nv);
 	type = auparse_interp_adjust_type(r->type, id.name, id.val);
@@ -2847,9 +2883,12 @@ unknown:
 			out = print_exit(id->val);
 			break;
 		case AUPARSE_TYPE_ESCAPED:
+		case AUPARSE_TYPE_ESCAPED_FILE:
+			out = print_escaped_ext(type, id);
+			break;
 		case AUPARSE_TYPE_ESCAPED_KEY:
 			out = print_escaped(id->val);
-                        break;
+			break;
 		case AUPARSE_TYPE_PERM:
 			out = print_perm(id->val);
 			break;

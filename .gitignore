@@ -33,6 +33,8 @@ audisp/audispd
 audisp/plugins/remote/audisp-remote
 audisp/plugins/zos-remote/audispd-zos-remote
 auparse/*tabs.h
+auparse/normalize_*_maps.h
+auparse/gen_normalize_*_map
 auparse/epoll_ctls.h
 auparse/strsplit.c
 bindings/swig/python/audit.py

@@ -61,6 +61,10 @@ static Hash *create_hash(unsigned int hsize)
 		return hash;
 
 	hash->array = malloc(hsize * sizeof(QNode*));
+	if (hash->array == NULL) {
+		free(hash);
+		return NULL;
+	}
  
 	// Initialize all hash entries as empty
 	for (i = 0; i < hsize; i++)

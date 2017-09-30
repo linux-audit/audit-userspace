@@ -572,8 +572,7 @@ int main(int argc, char *argv[])
                 alarm(0);                   /* cancel any pending alarm */
                 auparse_destroy(au);                               /* 2 */
                 plugin_free_config(&conf);                                /* 1 */
-        }
-        while (hup && stop == 0);
+        } while (hup && stop == 0);
         
         /* destroy queue before leaving */
         destroy_queue();

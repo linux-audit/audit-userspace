@@ -91,6 +91,7 @@ const char *auparse_normalize_get_action(auparse_state_t *au);
 // Object accessing functions
 int auparse_normalize_object_primary(auparse_state_t *au);
 int auparse_normalize_object_secondary(auparse_state_t *au);
+int auparse_normalize_object_primary2(auparse_state_t *au);
 int auparse_normalize_object_first_attribute(auparse_state_t *au);
 int auparse_normalize_object_next_attribute(auparse_state_t *au);
 const char *auparse_normalize_object_kind(auparse_state_t *au);
@@ -145,8 +146,10 @@ const char *auparse_get_field_str(auparse_state_t *au);
 int auparse_get_field_type(auparse_state_t *au);
 int auparse_get_field_int(auparse_state_t *au);
 const char *auparse_interpret_field(auparse_state_t *au);
-
-
+const char *auparse_interpret_realpath(auparse_state_t *au);
+const char *auparse_interpret_sock_family(auparse_state_t *au);
+const char *auparse_interpret_sock_port(auparse_state_t *au);
+const char *auparse_interpret_sock_address(auparse_state_t *au);
 #ifdef __cplusplus
 }
 #endif

@@ -9,7 +9,7 @@ audit.rules \- a set of rules loaded in the kernel audit system
 Control commands generally involve configuring the audit system rather than telling it what to watch for. These commands typically include deleting all rules, setting the size of the kernel's backlog queue, setting the failure mode, setting the event rate limit, or to tell auditctl to ignore syntax errors in the rules and continue loading. Generally, these rules are at the top of the rules file.
 
 .SS File System
-File System rules are sometimes called watches. These rules are used to audit access to particular files or directories that you may be interested in. If the path given in the rule is a directory, then the rule used is recursive to the bottom of the directory tree excluding any directories that may be mount points. The syntax of these rules generally follow this format:
+File System rules are sometimes called watches. These rules are used to audit access to particular files or directories that you may be interested in. If the path given in a watch rule is a directory, then the rule used is recursive to the bottom of the directory tree excluding any directories that may be mount points. The syntax of these watch rules generally follow this format:
 
 .nf
 .B \-w path-to-file \-p permissions \-k keyname
@@ -31,6 +31,15 @@ where the permission are any one of the following:
 .B a
 - change in the file's attribute
 .RE
+
+Watches can also be created using the syscall format described below which allow for greater flexibility and options. Using syscall rules you can choose between
+.B path
+and
+.B dir
+which is against a specific inode or directory tree respectively. It should also be noted that the recursive directory watch will stop if there is a mount point below the parent directory. There is an option to make the mounted subdirectory equivalent by using a
+.B -q
+rule.
+
 .SS System Call
 The system call rules are loaded into a matching engine that intercepts each syscall that all programs on the system makes. Therefore it is very important to only use syscall rules when you have to since these affect performance. The more rules, the bigger the performance hit. You can help the performance, though, by combining syscalls into one rule whenever possible.
 
@@ -40,7 +49,7 @@ The exit filter is the place where all syscall and file system audit requests ar
 
 The user filter is used to filter (remove) some events that originate in user space.  By default, any event originating in user space is allowed. So, if there are some events that you do not want to see, then this is a place where some can be removed. See auditctl(8) for fields that are valid.
 
-The exclude filter is used to exclude certain events from being emitted. The msgtype field is used to tell the kernel which message types you do not want to record. This filter can remove the event as a whole and is not selective about any other attribute. The user and exit filters are better suited to selectively auditing events.
+The exclude filter is used to exclude certain events from being emitted. The msgtype and a number of subject attribute fields can be used to tell the kernel which message types you do not want to record. This filter can remove the event as a whole and is not selective about any other attribute. The user and exit filters are better suited to selectively auditing events.  The action is ignored for this filter, defaulting to "never".
 
 Syscall rules take the general form of:
 

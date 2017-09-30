@@ -74,7 +74,9 @@ typedef struct ev_tcp {
 	unsigned char buffer [MAX_AUDIT_MESSAGE_LENGTH + 17];
 } ev_tcp;
 
-static int listen_socket;
+#define N_SOCKS	4
+static int listen_socket[N_SOCKS];
+static int nlsocks;
 static struct ev_io tcp_listen_watcher;
 static struct ev_periodic periodic_watcher;
 static int min_port, max_port, max_per_addr;
@@ -369,6 +371,7 @@ static int negotiate_credentials (ev_tcp *io)
 
 	context = & io->gss_context;
 	*context = GSS_C_NO_CONTEXT;
+	io->remote_name = NULL;
 
 	maj_stat = GSS_S_CONTINUE_NEEDED;
 	do {
@@ -380,8 +383,11 @@ static int negotiate_credentials (ev_tcp *io)
 				  sockaddr_to_addr4(&io->addr));
 			return -1;
 		}
-		if (recv_tok.length == 0)
+		if (recv_tok.length == 0) {
+			free(recv_tok.value);
+			recv_tok.value = NULL;
 			continue;
+		}
 
 		/* STEP 2 - let GSS process that token.  */
 
@@ -764,7 +770,7 @@ static void auditd_tcp_listen_handler( struct ev_loop *loop,
 
 	/* Accept the connection and see where it's coming from.  */
 	aaddrlen = sizeof(aaddr);
-	afd = accept (listen_socket, (struct sockaddr *)&aaddr, &aaddrlen);
+	afd = accept (_io->fd, (struct sockaddr *)&aaddr, &aaddrlen);
 	if (afd == -1) {
         	audit_msg(LOG_ERR, "Unable to accept TCP connection");
 		return;
@@ -847,6 +853,7 @@ static void auditd_tcp_listen_handler( struct ev_loop *loop,
 	if (use_gss && negotiate_credentials (client)) {
 		shutdown(afd, SHUT_RDWR);
 		close(afd);
+		free(client->remote_name);
 		free(client);
 		return;
 	}
@@ -903,8 +910,10 @@ static void periodic_handler(struct ev_loop *loop, struct ev_periodic *per,
 
 int auditd_tcp_listen_init ( struct ev_loop *loop, struct daemon_conf *config )
 {
-	struct sockaddr_in address;
-	int one = 1;
+	struct addrinfo *ai, *runp;
+	struct addrinfo hints;
+	char local[16];
+	int one = 1, rc;
 
 	ev_periodic_init (&periodic_watcher, periodic_handler,
 			  0, config->tcp_client_max_idle, NULL);
@@ -917,41 +926,74 @@ int auditd_tcp_listen_init ( struct ev_loop *loop, struct daemon_conf *config )
 	if (config->tcp_listen_port == 0)
 		return 0;
 
-	listen_socket = socket (AF_INET, SOCK_STREAM, 0);
-	if (listen_socket < 0) {
-        	audit_msg(LOG_ERR, "Cannot create tcp listener socket");
+	memset(&hints, '\0', sizeof(hints));
+	hints.ai_flags = AI_PASSIVE | AI_ADDRCONFIG;
+	hints.ai_socktype = SOCK_STREAM;
+	snprintf(local, sizeof(local), "%ld", config->tcp_listen_port);
+
+	rc = getaddrinfo(NULL, local, &hints, &ai);
+	if (rc) {
+        	audit_msg(LOG_ERR, "Cannot lookup addresses");
 		return 1;
 	}
 
-	set_close_on_exec (listen_socket);
-	setsockopt(listen_socket, SOL_SOCKET, SO_REUSEADDR,
-			(char *)&one, sizeof (int));
+	nlsocks = 0;
+	runp = ai;
+	while (runp && nlsocks < N_SOCKS) {
+		listen_socket[nlsocks] = socket (runp->ai_family,
+				 runp->ai_socktype, runp->ai_protocol);
+		if (listen_socket[nlsocks] < 0) {
+        		audit_msg(LOG_ERR, "Cannot create tcp listener socket");
+			goto next_try;
+		}
 
-	memset (&address, 0, sizeof(address));
-	address.sin_family = AF_INET;
-	address.sin_port = htons(config->tcp_listen_port);
-	address.sin_addr.s_addr = htonl(INADDR_ANY);
+		set_close_on_exec (listen_socket[nlsocks]);
+		setsockopt(listen_socket[nlsocks], SOL_SOCKET, SO_REUSEADDR,
+				(char *)&one, sizeof (int));
 
-	/* This avoids problems if auditd needs to be restarted.  */
-	setsockopt(listen_socket, SOL_SOCKET, SO_REUSEADDR,
-			(char *)&one, sizeof (int));
+		/* This avoids problems if auditd needs to be restarted.  */
+		setsockopt(listen_socket[nlsocks], SOL_SOCKET, SO_REUSEADDR,
+				(char *)&one, sizeof (int));
 
-	if (bind(listen_socket, (struct sockaddr *)&address, sizeof(address))){
-        	audit_msg(LOG_ERR,
-			"Cannot bind tcp listener socket to port %ld",
-			config->tcp_listen_port);
-		close(listen_socket);
-		return 1;
+		if (bind(listen_socket[nlsocks], runp->ai_addr,
+						runp->ai_addrlen)) {
+			if (errno != EADDRINUSE)
+		        	audit_msg(LOG_ERR,
+				"Cannot bind listener socket to port %ld (%s)",
+				config->tcp_listen_port, strerror(errno));
+			close(listen_socket[nlsocks]);
+			listen_socket[nlsocks] = -1;
+			goto non_fatal;
+		}
+
+		if (listen(listen_socket[nlsocks], config->tcp_listen_queue)) {
+        		audit_msg(LOG_ERR, "Unable to listen on %ld (%s)",
+				config->tcp_listen_port,
+				strerror(errno));
+			close(listen_socket[nlsocks]);
+			listen_socket[nlsocks] = -1;
+			goto next_try;
+		}
+		struct protoent *p = getprotobynumber(runp->ai_protocol);
+		audit_msg(LOG_DEBUG, "Listening on TCP port %ld, protocol %s",
+			config->tcp_listen_port,
+			 p ? p->p_name: "?");
+		endprotoent();
+
+		ev_io_init (&tcp_listen_watcher, auditd_tcp_listen_handler,
+				listen_socket[nlsocks], EV_READ);
+		ev_io_start (loop, &tcp_listen_watcher);
+non_fatal:
+		nlsocks++;
+		if (nlsocks == N_SOCKS)
+			break;
+next_try:
+		runp = runp->ai_next;
 	}
 
-	listen(listen_socket, config->tcp_listen_queue);
-
-	audit_msg(LOG_DEBUG, "Listening on TCP port %ld",
-		config->tcp_listen_port);
-
-	ev_io_init (&tcp_listen_watcher, auditd_tcp_listen_handler,
-			listen_socket, EV_READ);
-	ev_io_start (loop, &tcp_listen_watcher);
+	freeaddrinfo(ai);
+	if (nlsocks == 0)
+		return -1;
 
 	use_libwrap = config->use_libwrap;
 	auditd_set_ports(config->tcp_client_min_port,
@@ -1005,7 +1047,10 @@ void auditd_tcp_listen_uninit ( struct ev_loop *loop,
 #endif
 
 	ev_io_stop ( loop, &tcp_listen_watcher );
-	close ( listen_socket );
+	while (nlsocks >= 0) {
+		nlsocks--;
+		close ( listen_socket[nlsocks] );
+	}
 
 #ifdef USE_GSSAPI
 	if (use_gss) {

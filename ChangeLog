@@ -1,7 +1,50 @@
+2.8
+- Add support for ambient capability fields (Richard Guy Briggs)
+- Update auparse-normalizer to support TTY events
+- Add auparse_normalize_object_primary2 API
+- In ausearch text format, add 'to xxx' for mount operations
+- In ausearch add new --extra-obj2 option for CSV output
+- In auparse_normalize, pick up second file name for rename syscalls
+- In auparse_normalize, pick up permission & ownership changes as obj2
+- In auparse_normalize, pick up uid/gid for setuid/gid syscalls as obj2
+- In auparse_normalize, pick up link for symlink syscalls as obj2
+- In auparse_normalize, correct mount records based on success
+- In auparse_normalize, correct object for USER_MGMT, ACCT_LOCK, & ACCT_UNLOCK
+- Add default port to auditd.conf (#1455598)
+- Fix auvirt to report AVC's (#982154)
+- Add sockaddr accessor functions in auparse
+- In ausearch, use auparse_interpret_sock_address for text mode output
+- In remote logging, inform client auditd is suspended and please disconnect
+- Auditd and audisp-remote now supports IPv6
+
+2.7.8
+- Add config option to auditd to not verify email addr domain (#1406887)
+- When auditd forwards events to disptcher, calculate protocol each event
+- In auditd, restore umask after creating log file (Avi Yeger)
+- Add a realpath interpretation function that resolves whole path in auparse
+- In audispd, strip out EOE events for syslog plugin
+- In python 2 bindings, fix AUSOURCE_FILE_POINTER to use new FILE * (#1475998)
+- In python bindings, check NULL return for auparse_get_type_name (#1482121)
+- Make auparse more robust against misuse of the API (#1482121)
+- Add USER_DEVICE record type
+- In auditd, do not use '?' for auid when signal sender is unknown
+- In ausearch, write checkpoint inode in decimal to be easier to use
+- In auparse-normalizer, correct attr's collected for mount object
+
 2.7.7
 - Make ausearch a little more robust to bad time values
 - Aureport's login report was corrected to print the loginuid (#1448526)
 - In auparse_nomalize, add SUBJ_KIND metadata
+- In auparse_nomalize, adjust USER_ERR mapping
+- Fix queue_error_action in audisp-remote.conf (#1455594)
+- Fix aureport to identify seccomp and anom_abend events in anomaly report
+- In auparse, don't do euid permission check use file permissions
+- Fix auparse python binding to support AUSOURCE_DESCRIPTOR
+- Rename auparse normalizer python binding function to aup_normalize_object_kind
+- Add python bindings for auparse_nomalize_subject_kind
+- Fixup all auparse python bindings return codes and documentation
+- Fix interpretaion of fe field of BPRM_FCAPS record. (Richard Guy Briggs)
+- Various error reporting fixups in auditctl and libaudit (Richard Guy Briggs)
 
 2.7.6
 - In auparse_nomalize, assign user-login as the event kind for AUDIT_LOGIN

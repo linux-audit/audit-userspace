@@ -35,6 +35,8 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 #include <getopt.h>
+#include <limits.h>
+#include <sys/uio.h>
 
 #include "audispd-config.h"
 #include "audispd-pconfig.h"
@@ -411,7 +413,7 @@ int main(int argc, char *argv[])
 		usage();
 	}
 
-	set_aumessage_mode(MSG_SYSLOG, DBG_YES);
+	set_aumessage_mode(MSG_SYSLOG, DBG_NO);
 
 	/* Clear any procmask set by libev */
 	sigfillset (&sa.sa_mask);
@@ -574,7 +576,12 @@ static int safe_exec(plugin_conf_t *conf)
 	}
 
 	/* Set up comm with child */
-	dup2(conf->plug_pipe[0], 0);
+	if (dup2(conf->plug_pipe[0], 0) < 0) {
+		close(conf->plug_pipe[0]);
+		close(conf->plug_pipe[1]);
+		conf->pid = 0;
+		return -1;	/* Failed to fork */
+	}
 	for (i=3; i<24; i++)	 /* Arbitrary number */
 		close(i);
 
@@ -728,7 +735,7 @@ static int event_loop(void)
 		type = audit_msg_type_to_name(e->hdr.type);
 		if (type == NULL) {
 			snprintf(unknown, sizeof(unknown),
-				"UNKNOWN[%d]", e->hdr.type);
+				"UNKNOWN[%u]", e->hdr.type);
 			type = unknown;
 		}
 		// Protocol 1 is not formatted
@@ -769,9 +776,11 @@ static int event_loop(void)
 				continue;
 
 			/* Now send the event to the right child */
-			if (conf->p->type == S_SYSLOG) 
-				send_syslog(v, e->hdr.ver);
-			else if (conf->p->type == S_AF_UNIX) {
+			if (conf->p->type == S_SYSLOG) {
+				// Strip out End of event records for syslog
+				if (e->hdr.type != AUDIT_EOE)
+					send_syslog(v, e->hdr.ver);
+			} else if (conf->p->type == S_AF_UNIX) {
 				if (conf->p->format == F_STRING)
 					send_af_unix_string(v, len);
 				else

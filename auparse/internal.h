@@ -120,12 +120,13 @@ typedef struct subj
 	value_t secondary;      // typically uid
 	cllist attr;            // List of attributes
 	const char *what;	// What the subject is
-}subject;
+} subject;
 
 typedef struct obj
 {
 	value_t primary;
 	value_t secondary;
+	value_t two;		// Sometimes we have a second e.g. rename/mount
 	cllist attr;            // List of attributes
 	unsigned int what;      // What the primary object is
 } object;
@@ -181,6 +182,7 @@ struct opaque
 	auparse_esc_t escape_mode;
 	message_t message_mode;		// Where to send error messages
 	debug_message_t debug_message;	// Whether or not messages are debug or not
+	const char *tmp_translation;	// Pointer to manage mem for field translation
 	normalize_data norm_data;
 };
 

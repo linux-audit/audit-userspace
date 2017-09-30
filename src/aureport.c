@@ -275,13 +275,13 @@ static int process_log_fd(const char *filename)
 				strftime(tmp, sizeof(tmp), "%x %T", btm);
 			else
 				strcpy(tmp, "?");
-			printf("%s.%03d - ", tmp, first_event.milli);
+			printf("%s.%03u - ", tmp, first_event.milli);
 			btm = localtime(&last_event.sec);
 			if (btm)
 				strftime(tmp, sizeof(tmp), "%x %T", btm);
 			else
 				strcpy(tmp, "?");
-			printf("%s.%03d\n", tmp, last_event.milli);
+			printf("%s.%03u\n", tmp, last_event.milli);
 		}
 	}
 

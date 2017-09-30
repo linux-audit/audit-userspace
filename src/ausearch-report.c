@@ -38,7 +38,7 @@
 static void output_raw(llist *l);
 static void output_default(llist *l);
 static void output_interpreted(llist *l);
-static void output_interpreted_node(const lnode *n, const event *e);
+static void output_interpreted_record(const lnode *n, const event *e);
 static void feed_auparse(llist *l, auparse_callback_ptr callback);
 static void interpret(char *name, char *val, int comma, int rtype);
 static void csv_event(auparse_state_t *au,
@@ -159,10 +159,10 @@ static void output_interpreted(llist *l)
 		return;
 	}
 	if (n->type >= AUDIT_DAEMON_START && n->type < AUDIT_SYSCALL) 
-		output_interpreted_node(n, &(l->e));
+		output_interpreted_record(n, &(l->e));
 	else {
 		do {
-			output_interpreted_node(n, &(l->e));
+			output_interpreted_record(n, &(l->e));
 		} while ((n=list_prev(l)));
 	}
 }
@@ -171,7 +171,7 @@ static void output_interpreted(llist *l)
  * This function will cycle through a single record and lookup each field's
  * value that it finds. 
  */
-static void output_interpreted_node(const lnode *n, const event *e)
+static void output_interpreted_record(const lnode *n, const event *e)
 {
 	char *ptr, *str = n->message;
 	int found, comma = 0;
@@ -229,7 +229,7 @@ no_print:
 	else
 		strcpy(tmp, "?");
 	printf("%s", tmp);
-	printf(".%03d:%lu) ", e->milli, e->serial);
+	printf(".%03u:%lu) ", e->milli, e->serial);
 
 	if (n->type == AUDIT_SYSCALL) { 
 		a0 = n->a0;
@@ -372,6 +372,7 @@ static void interpret(char *name, char *val, int comma, int rtype)
 	id.a1 = a1;
 	id.name = name;
 	id.val = val;
+	id.cwd = NULL;
 
 	char *out = auparse_do_interpretation(type, &id, escape_mode);
 	if (type == AUPARSE_TYPE_UNCLASSIFIED)
@@ -403,7 +404,7 @@ static void interpret(char *name, char *val, int comma, int rtype)
 /* This function will output a normalized line of audit
  * fields one line per event in csv format */
 static int csv_header_done = 0;
-extern int extra_keys, extra_labels, extra_time;
+extern int extra_keys, extra_labels, extra_obj2, extra_time;
 static void csv_event(auparse_state_t *au,
 		auparse_cb_event_t cb_event_type, void *user_data)
 {
@@ -414,9 +415,10 @@ static void csv_event(auparse_state_t *au,
 		csv_header_done = 1;
 		printf( "NODE,EVENT,DATE,TIME,%sSERIAL_NUM,EVENT_KIND,"
 			"SESSION,SUBJ_PRIME,SUBJ_SEC,SUBJ_KIND,%sACTION,"
-			"RESULT,OBJ_PRIME,OBJ_SEC,%sOBJ_KIND,HOW%s\n",
+			"RESULT,OBJ_PRIME,OBJ_SEC,%s%sOBJ_KIND,HOW%s\n",
 		    extra_time ? "YEAR,MONTH,DAY,WEEKDAY,HOUR,GMT_OFFSET," : "",
 			extra_labels ? "SUBJ_LABEL," : "",
+			extra_obj2 ? "OBJ2," : "",
 			extra_labels ? "OBJ_LABEL," : "",
 			extra_keys ? ",KEY" : "");
 	}
@@ -530,7 +532,7 @@ static void csv_event(auparse_state_t *au,
 	// SUBJ_PRIME
 	rc = auparse_normalize_subject_primary(au);
 	if (rc == 1) {
-		char *subj = auparse_interpret_field(au);
+		const char *subj = auparse_interpret_field(au);
 		if (strcmp(subj, "unset") == 0)
 			subj = "system";
 		printf("%s", subj);
@@ -586,8 +588,15 @@ static void csv_event(auparse_state_t *au,
 
 	// OBJ_PRIME
 	rc = auparse_normalize_object_primary(au);
-	if (rc == 1)
-		printf("%s", auparse_interpret_field(au));
+	if (rc == 1) {
+		const char *val;
+
+		if (auparse_get_field_type(au) == AUPARSE_TYPE_ESCAPED_FILE)
+			val = auparse_interpret_realpath(au);
+		else
+			val = auparse_interpret_field(au);
+		printf("%s", val);
+	}
 	putchar(',');
 
 	// OBJ_SEC
@@ -595,6 +604,22 @@ static void csv_event(auparse_state_t *au,
 	if (rc == 1)
 		printf("%s", auparse_interpret_field(au));
 	putchar(',');
+
+	// OBJECT 2
+	if (extra_obj2) {
+		rc = auparse_normalize_object_primary2(au);
+		if (rc == 1) {
+			const char *val;
+
+			if (auparse_get_field_type(au) ==
+						AUPARSE_TYPE_ESCAPED_FILE)
+				val = auparse_interpret_realpath(au);
+			else
+				val = auparse_interpret_field(au);
+			printf("%s", val);
+		}
+		putchar(',');
+	}
 
 	// OBJ_LABEL
 	if (extra_labels) {
@@ -699,17 +724,37 @@ static void text_event(auparse_state_t *au,
 
 	rc = auparse_normalize_object_primary(au);
 	if (rc == 1) {
+		const char *val = NULL;
+		int ftype;
+
 		// If we have an object and this is an AVC, add some words
 		if (action && strstr(action, "violated"))
-			printf("accessing ");
-		printf("%s ", auparse_interpret_field(au));
+			val = "accessing ";
+
+		ftype = auparse_get_field_type(au);
+		if (ftype == AUPARSE_TYPE_ESCAPED_FILE)
+			val = auparse_interpret_realpath(au);
+		else if (ftype == AUPARSE_TYPE_SOCKADDR) {
+			val = auparse_interpret_sock_address(au);
+			if (val == NULL)
+				val = auparse_interpret_sock_family(au);
+		}
+
+		if (val == NULL)
+			val = auparse_interpret_field(au);
+
+		printf("%s ", val);
 	}
 
-	if (    type == AUDIT_VIRT_RESOURCE ||
-		type == AUDIT_VIRT_CONTROL) {
-		rc = auparse_normalize_object_secondary(au);
-		if (rc)
-			printf("to %s ", auparse_interpret_field(au));
+	rc = auparse_normalize_object_primary2(au);
+	if (rc == 1) {
+		const char *val;
+
+		if (auparse_get_field_type(au) == AUPARSE_TYPE_ESCAPED_FILE)
+			val = auparse_interpret_realpath(au);
+		else
+			val = auparse_interpret_field(au);
+		printf("to %s ", val);
 	}
 
 	how = auparse_normalize_how(au);
