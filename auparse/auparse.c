@@ -1703,6 +1703,7 @@ int auparse_goto_record_num(auparse_state_t *au, unsigned int num)
 	r = aup_list_goto_rec(au->le, num);
 	if (r != NULL) {
 		load_interpretation_list(r->interp);
+		aup_list_first_field(au->le);
 		return 1;
 	} else
 		return 0;
