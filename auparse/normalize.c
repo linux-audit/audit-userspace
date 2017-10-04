@@ -105,7 +105,7 @@ static unsigned int set_subject_what(auparse_state_t *au)
 		int uid = auparse_get_field_int(au);
 		if (uid == NORM_ACCT_PRIV)
 			D.actor.what = strdup("priviliged-acct");
-		else if (uid == NORM_ACCT_UNSET)
+		else if ((unsigned)uid == NORM_ACCT_UNSET)
 			D.actor.what = strdup("unset-acct");
 		else if (uid < NORM_ACCT_MAX_SYS)
 			D.actor.what = strdup("service-acct");
@@ -502,16 +502,16 @@ static int set_program_obj(auparse_state_t *au)
  * This function is supposed to come up with the action and object for the
  * syscalls.
  */
-static int normalize_syscall(auparse_state_t *au, const char *syscall, int type)
+static int normalize_syscall(auparse_state_t *au, const char *syscall)
 {
-	int rc, tmp_objkind, objtype = NORM_UNKNOWN, offset = 0;;
+	int rc, tmp_objkind, objtype = NORM_UNKNOWN, ttype = 0, offset = 0;
 	const char *act = NULL, *f;
 
 	// cycle through all records and see what we have
 	tmp_objkind = objtype;
 	rc = auparse_first_record(au);
 	while (rc == 1) {
-		int ttype = auparse_get_type(au);
+		ttype = auparse_get_type(au);
 
 		if (ttype == AUDIT_AVC) {
 			// We want to go ahead with syscall to get objects
@@ -528,6 +528,15 @@ static int normalize_syscall(auparse_state_t *au, const char *syscall, int type)
 			break;
 		} else if (ttype == AUDIT_KERN_MODULE) {
 			objtype = NORM_FILE_LDMOD;
+			break;
+		} else if (ttype == AUDIT_MAC_POLICY_LOAD) {
+			objtype = NORM_MAC_LOAD;
+			break;
+		} else if (ttype == AUDIT_MAC_STATUS) {
+			objtype = NORM_MAC_ENFORCE;
+			break;
+		} else if (ttype == AUDIT_MAC_CONFIG_CHANGE) {
+			objtype = NORM_MAC_CONFIG;
 			break;
 		}
 		rc = auparse_next_record(au);
@@ -693,6 +702,33 @@ static int normalize_syscall(auparse_state_t *au, const char *syscall, int type)
 					auparse_get_field_num(au));
 			}
 			D.thing.what = NORM_WHAT_PROCESS;
+			break;
+		case NORM_MAC_LOAD:
+			act = normalize_record_map_i2s(ttype);
+			// FIXME: What is the object?
+			D.thing.what = NORM_WHAT_MAC_CONFIG;
+			break;
+		case NORM_MAC_CONFIG:
+			act = normalize_record_map_i2s(ttype);
+			f = auparse_find_field(au, "bool");
+			if (f) {
+				D.thing.primary = set_record(0,
+					auparse_get_record_num(au));
+				D.thing.primary = set_field(D.thing.primary,
+					auparse_get_field_num(au));
+			}
+			D.thing.what = NORM_WHAT_MAC_CONFIG;
+			break;
+		case NORM_MAC_ENFORCE:
+			act = normalize_record_map_i2s(ttype);
+			f = auparse_find_field(au, "enforcing");
+			if (f) {
+				D.thing.primary = set_record(0,
+					auparse_get_record_num(au));
+				D.thing.primary = set_field(D.thing.primary,
+					auparse_get_field_num(au));
+			}
+			D.thing.what = NORM_WHAT_MAC_CONFIG;
 			break;
 		case NORM_MAC_ERR:
 			// FIXME: What could the object be?
@@ -901,19 +937,19 @@ static const char *normalize_determine_evkind(int type)
 static int normalize_compound(auparse_state_t *au)
 {
 	const char *f, *syscall = NULL;
-	int rc, recno, saved = 0, otype, type;
+	int rc, recno, otype, type;
 
 	otype = type = auparse_get_type(au);
 
 	// All compound events have a syscall record
 	// Some start with a record type and follow with a syscall
 	if (type == AUDIT_NETFILTER_CFG || type == AUDIT_ANOM_PROMISCUOUS ||
-		type == AUDIT_AVC || type == AUDIT_SELINUX_ERR) {
+		type == AUDIT_AVC || type == AUDIT_SELINUX_ERR ||
+		type == AUDIT_MAC_POLICY_LOAD || type == AUDIT_MAC_STATUS ||
+		type == AUDIT_MAC_CONFIG_CHANGE) {
 		auparse_next_record(au);
 		type = auparse_get_type(au);
 	} else if (type == AUDIT_ANOM_LINK) {
-		// Save the action before moving to syscall
-		saved = type;
 		auparse_next_record(au);
 		auparse_next_record(au);
 		type = auparse_get_type(au);
@@ -1021,13 +1057,13 @@ static int normalize_compound(auparse_state_t *au)
 		  // below uses fields.
 
 		// action & object
-		if (saved) {
-			const char *act = normalize_record_map_i2s(saved);
+		if (otype == AUDIT_ANOM_LINK) {
+			const char *act = normalize_record_map_i2s(otype);
 			if (act)
 				D.action = strdup(act);
 			// FIXME: AUDIT_ANOM_LINK needs an object
 		} else
-			normalize_syscall(au, syscall, type);
+			normalize_syscall(au, syscall);
 	}
 
 	free(syscall);

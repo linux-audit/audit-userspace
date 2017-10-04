@@ -25,7 +25,7 @@
 #define NORMALIZE_INTERNAL
 
 #define NORM_ACCT_PRIV		0
-#define NORM_ACCT_UNSET		4294967295
+#define NORM_ACCT_UNSET		4294967295U
 #define NORM_ACCT_MAX_SYS	1000
 #define NORM_ACCT_MAX_USER	60000
 
@@ -56,17 +56,20 @@
 #define NORM_SOCKET_SEND	20
 #define NORM_PID		21
 #define NORM_MAC		22
-#define NORM_MAC_ERR		23
-#define NORM_IPTABLES		24
-#define NORM_PROMISCUOUS	25
-#define NORM_UID		26
-#define NORM_GID		27
-#define NORM_SYSTEM_TIME	28
-#define NORM_MAKE_DEV		29
-#define NORM_SYSTEM_NAME	30
-#define NORM_FILE_SYS_STAT	31
-#define NORM_SYSTEM_MEMORY	32
-#define NORM_SCHEDULER		33
+#define NORM_MAC_LOAD		23
+#define NORM_MAC_CONFIG		24
+#define NORM_MAC_ENFORCE	25
+#define NORM_MAC_ERR		26
+#define NORM_IPTABLES		27
+#define NORM_PROMISCUOUS	28
+#define NORM_UID		29
+#define NORM_GID		30
+#define NORM_SYSTEM_TIME	31
+#define NORM_MAKE_DEV		32
+#define NORM_SYSTEM_NAME	33
+#define NORM_FILE_SYS_STAT	34
+#define NORM_SYSTEM_MEMORY	35
+#define NORM_SCHEDULER		36
 
 // This enum is used to map what the system objects are
 #define NORM_WHAT_UNKNOWN	0
