@@ -23,6 +23,10 @@ AUDIT_FILTER_EXIT - Apply rule at syscall exit. This is the main filter that is 
 \(bu
 AUDIT_FILTER_TYPE - Apply rule at audit_log_start. This is the exclude filter which discards any records that match.  The action type is ignored for this filter, defaulting to "never".
 .LP
+.TP
+\(bu
+AUDIT_FILTER_FS - Apply rule when adding PATH auxiliary records to SYSCALL events. This is the filesystem filter. This is used to ignore PATH records that are not of interest.
+.LP
 
 .PP
 The rule's action has two possible values:

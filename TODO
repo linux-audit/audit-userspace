@@ -2,7 +2,6 @@ Things that need to be done:
 ===========================
 2.8
 * Support FANOTIFY record
-* Suppress file systems for module load
 * non-equality comparisons for values other than \timestamp, \timestamp_ex and \record_type in ausearch-expression (#1399314)
 
 2.8.1
