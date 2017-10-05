@@ -1,5 +1,5 @@
 # Makefile.am --
-# Copyright 2016 Red Hat Inc., Durham, North Carolina.
+# Copyright 2016-17 Red Hat Inc., Durham, North Carolina.
 # All Rights Reserved.
 #
 # This program is free software; you can redistribute it and/or modify
@@ -25,6 +25,7 @@ CONFIG_CLEAN_FILES = *.rej *.orig
 EXTRA_DIST = 10-base-config.rules 10-no-audit.rules 11-loginuid.rules \
 12-ignore-error.rules  12-cont-fail.rules \
 20-dont-audit.rules 21-no32bit.rules 22-ignore-chrony.rules \
+23-ignore-filesystems.rules \
 30-nispom.rules 30-stig.rules 30-pci-dss-v31.rules \
 31-privileged.rules 32-power-abuse.rules \
 40-local.rules 41-containers.rules 42-injection.rules 43-module-load.rules \
