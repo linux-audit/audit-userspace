@@ -104,6 +104,6 @@ static const struct msg_tab err_msgtab[] = {
     { -EAU_FILTERMISSING,	0, "filter is missing from rule" },
     { -EAU_COMPINCOMPAT,	2, "-C incompatible comparison" },
     { -EAU_FIELDUNAVAIL,	1, "field is not valid for the filter" },
-    { -EAU_FILTERNOSUPPORT,	1, "filter is not supported ty kernel" },
+    { -EAU_FILTERNOSUPPORT,	1, "filter is not supported by the kernel" },
 };
 #endif
