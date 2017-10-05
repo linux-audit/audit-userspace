@@ -1,6 +1,6 @@
 /* errormsg.h --
  * Copyright 2008 FUJITSU Inc.
- * Copyright 2012-16 Red Hat
+ * Copyright 2012-17 Red Hat
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -69,6 +69,7 @@ struct msg_tab {
 #define EAU_COMPINCOMPAT	33
 #define EAU_FIELDUNAVAIL	34
 #define EAU_FILTERNOSUPPORT	35
+#define EAU_FSTYPEUNKNOWN	36
 static const struct msg_tab err_msgtab[] = {
     { -EAU_OPMISSING,		2, "-F missing operation for" },
     { -EAU_FIELDUNKNOWN,	2, "-F unknown field:" },
@@ -105,5 +106,6 @@ static const struct msg_tab err_msgtab[] = {
     { -EAU_COMPINCOMPAT,	2, "-C incompatible comparison" },
     { -EAU_FIELDUNAVAIL,	1, "field is not valid for the filter" },
     { -EAU_FILTERNOSUPPORT,	1, "filter is not supported by the kernel" },
+    { -EAU_FSTYPEUNKNOWN,	2, "file system type is unknown:" },
 };
 #endif

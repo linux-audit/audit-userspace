@@ -1473,15 +1473,6 @@ int audit_rule_fieldpair_data(struct audit_rule_data **rulep, const char *pair,
 		uint32_t features = audit_get_features();
 		if ((features & AUDIT_FEATURE_BITMAP_FILTER_FS) == 0) {
 			return -EAU_FILTERNOSUPPORT;
-		} else {
-			switch(field) {
-				case AUDIT_FSTYPE:
-					_audit_filterfsadded = 1;
-				case AUDIT_FILTERKEY:
-					break;
-				default:
-					return -EAU_FIELDUNAVAIL;
-			}
 		}
 	}
 
@@ -1697,6 +1688,22 @@ int audit_rule_fieldpair_data(struct audit_rule_data **rulep, const char *pair,
 				return -EAU_FILETYPEUNKNOWN;
 			}
 			break;
+		case AUDIT_FSTYPE:
+			if (!(flags == AUDIT_FILTER_FS))
+				return -EAU_FIELDUNAVAIL;
+			if (!(op == AUDIT_NOT_EQUAL || op == AUDIT_EQUAL))
+				return -EAU_OPEQNOTEQ;
+			if (isdigit((char)*(v))) 
+				rule->values[rule->field_count] = 
+					strtoul(v, NULL, 0);
+			else
+				rule->values[rule->field_count] = 
+					audit_name_to_fstype(v);
+			if ((int)rule->values[rule->field_count] == -1) {
+				return -EAU_FSTYPEUNKNOWN;
+			}
+			_audit_filterfsadded = 1;
+			break;
 		case AUDIT_ARG0...AUDIT_ARG3:
 			vlen = strlen(v);
 			if (isdigit((char)*(v))) 
@@ -1735,7 +1742,7 @@ int audit_rule_fieldpair_data(struct audit_rule_data **rulep, const char *pair,
 				return -EAU_EXITONLY;
 			/* fallthrough */
 		default:
-			if (field == AUDIT_INODE || field == AUDIT_FSTYPE) {
+			if (field == AUDIT_INODE) {
 				if (!(op == AUDIT_NOT_EQUAL ||
 							op == AUDIT_EQUAL))
 					return -EAU_OPEQNOTEQ;
@@ -1747,8 +1754,6 @@ int audit_rule_fieldpair_data(struct audit_rule_data **rulep, const char *pair,
 			if (!isdigit((char)*(v)))
 				return -EAU_FIELDVALNUM;
 
-			if (field == AUDIT_FSTYPE && flags != AUDIT_FILTER_FS)
-				return -EAU_FIELDUNAVAIL;
 			if (field == AUDIT_INODE)
 				rule->values[rule->field_count] =
 					strtoul(v, NULL, 0);
