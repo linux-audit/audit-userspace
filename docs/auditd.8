@@ -3,7 +3,7 @@
 auditd \- The Linux Audit daemon
 .SH SYNOPSIS
 .B auditd
-.RB [ \-f ]\ [ \-l ]\ [ \-n ]\ [ \-s\ disable|enable|nochange ]
+.RB [ \-f ]\ [ \-l ]\ [ \-n ]\ [ \-s\ disable|enable|nochange ]\ [ \-c\ <config_file> ]
 .SH DESCRIPTION
 \fBauditd\fP is the userspace component to the Linux Auditing System. It's responsible for writing audit records to the disk. Viewing the logs is done with the
 .B ausearch
@@ -29,6 +29,9 @@ no fork. This is useful for running off of inittab or systemd.
 .TP
 .B \-s=\fIENABLE_STATE\fR
 specify when starting if auditd should change the current value for the kernel enabled flag. Valid values for ENABLE_STATE are "disable", "enable" or "nochange". The default is to enable (and disable when auditd terminates). The value of the enabled flag may be changed during the lifetime of auditd using 'auditctl \-e'.
+.TP
+.B \-c
+Specify alternate config file path (default: /etc/audit/auditd.conf).
 .SH SIGNALS
 .TP
 SIGHUP

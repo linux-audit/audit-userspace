@@ -36,6 +36,7 @@
 #include <arpa/inet.h>
 #include <limits.h>
 #include <sys/uio.h>
+#include <getopt.h>
 
 #include "audispd-config.h"
 #include "audispd-pconfig.h"
@@ -53,8 +54,10 @@ static daemon_conf_t daemon_config;
 static conf_llist plugin_conf;
 static int audit_fd;
 static pthread_t inbound_thread;
-static const char *config_file = "/etc/audisp/audispd.conf";
-static const char *plugin_dir =  "/etc/audisp/plugins.d/";
+static const char *config_file = NULL;
+
+/* '/' on the end is required. */
+static char *plugin_dir = NULL;
 
 /* Local function prototypes */
 static void signal_plugins(int sig);
@@ -62,6 +65,27 @@ static int event_loop(void);
 static int safe_exec(plugin_conf_t *conf);
 static void *inbound_thread_main(void *arg);
 static void process_inbound_event(int fd);
+
+/*
+ * Output a usage message and exit with an error.
+ */
+static void usage(void)
+{
+	fprintf(stderr, "%s",
+		"Usage: audispd [options]\n"
+		"-c,--config_file <config_file_path>: Override default "
+			"configuration file path\n"
+		"-d,--plugin_dir <plugin_dir_path>: Override default plugin "
+			"directory path\n");
+	exit(2);
+}
+
+static release_memory_exit(int code)
+{
+	free(config_file);
+	free(plugin_dir);
+	exit(code);
+}
 
 /*
  * SIGTERM handler
@@ -331,9 +355,58 @@ static int reconfigure(void)
 
 int main(int argc, char *argv[])
 {
+	extern char *optarg;
+	extern int optind;
+	static const struct option opts[] = {
+		{"config_file", required_argument, NULL, 'c'},
+		{"plugin_dir", required_argument, NULL, 'd'},
+		{NULL, 0, NULL, 0}
+	};
 	lnode *conf;
 	struct sigaction sa;
 	int i;
+	size_t len;
+
+	while ((i = getopt_long(argc, argv, "i:c:d:", opts, NULL)) != -1) {
+		switch (i) {
+			case 'c':
+				config_file = strdup(optarg);
+				if (config_file == NULL)
+					goto mem_out;
+				break;
+			case 'd':
+				plugin_dir = malloc(len + 2);
+				if (plugin_dir) {
+					strcpy(plugin_dir, optarg);
+					if (plugin_dir[len - 1] != '/') {
+						plugin_dir[len] = '/';
+						plugin_dir[len + 1] = '\0';
+					}
+				} else {
+mem_out:
+					printf(
+					"Failed allocating memory, exiting\n");
+					release_memory_exit(1);
+				}
+				break;
+			default:
+				usage();
+		}
+	}
+
+	/* check for trailing command line following options */
+	if (optind < argc)
+		usage();
+
+	if (config_file == NULL)
+		config_file = strdup("/etc/audisp/audispd.conf");
+	if (config_file == NULL)
+		goto mem_out;
+
+	if (plugin_dir == NULL)
+		plugin_dir = strdup("/etc/audisp/plugins.d/");
+	if (plugin_dir == NULL)
+		goto mem_out;
 
 	set_aumessage_mode(MSG_SYSLOG, DBG_NO);
 
@@ -359,15 +432,11 @@ int main(int argc, char *argv[])
 	sigaction(SIGCHLD, &sa, NULL);
 	setsid();
 
-	/* move stdin to its own fd */
-	if (argc == 3 && strcmp(argv[1], "--input") == 0) 
-		audit_fd = open(argv[2], O_RDONLY);
-	else
-		audit_fd = dup(0);
+	audit_fd = dup(0);
 	if (audit_fd < 0) {
 		syslog(LOG_ERR, "Failed setting up input(%s, %d), exiting",
 				strerror(errno), audit_fd);
-		return 1;
+		release_memory_exit(1);
 	}
 
 	/* Make all descriptors point to dev null */
@@ -376,30 +445,39 @@ int main(int argc, char *argv[])
 		if (dup2(0, i) < 0 || dup2(1, i) < 0 || dup2(2, i) < 0) {
 			syslog(LOG_ERR, "Failed duping /dev/null %s, exiting",
 					strerror(errno));
-			return 1;
+			release_memory_exit(1);
 		}
 		close(i);
+		close(audit_fd);
 	} else {
 		syslog(LOG_ERR, "Failed opening /dev/null %s, exiting",
 					strerror(errno));
-		return 1;
+		close(audit_fd);
+		release_memory_exit(1);
 	}
 	if (fcntl(audit_fd, F_SETFD, FD_CLOEXEC) < 0) {
 		syslog(LOG_ERR, "Failed protecting input %s, exiting",
 					strerror(errno));
-		return 1;
+		close(audit_fd);
+		close(i);
+		release_memory_exit(1);
 	}
 
 	/* init the daemon's config */
-	if (load_config(&daemon_config, config_file))
-		return 6;
+	if (load_config(&daemon_config, config_file)) {
+		close(audit_fd);
+		close(i);
+		release_memory_exit(6);
+	}
 
 	load_plugin_conf(&plugin_conf);
 
 	/* if no plugins - exit */
 	if (plist_count(&plugin_conf) == 0) {
 		syslog(LOG_NOTICE, "No plugins found, exiting");
-		return 0;
+		close(audit_fd);
+		close(i);
+		release_memory_exit(0);
 	}
 
 	/* Plugins are started with the auditd priority */
@@ -427,7 +505,9 @@ int main(int argc, char *argv[])
 	/* Tell it to poll the audit fd */
 	if (add_event(audit_fd, process_inbound_event) < 0) {
 		syslog(LOG_ERR, "Cannot add event, exiting");
-		return 1;
+		close(audit_fd);
+		close(i);
+		release_memory_exit(1);
 	}
 
 	/* Create inbound thread */
@@ -472,6 +552,8 @@ int main(int argc, char *argv[])
 	/* Cleanup the queue */
 	destroy_queue();
 	free_config(&daemon_config);
+	free(config_file);
+	free(plugin_dir);
 	
 	return 0;
 }
@@ -880,4 +962,3 @@ static void process_inbound_event(int fd)
 		}
 	}
 }
-

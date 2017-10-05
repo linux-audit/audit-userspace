@@ -20,6 +20,7 @@
 - In auparse_normalize, finish support for MAC_STATUS and MAC_CONFIG events
 - Add support for filesystem filter type
 - Add file system type table for fstype lookup
+- Add command line option to auditd & audispd for config file path (Dan Born)
 
 2.7.8
 - Add config option to auditd to not verify email addr domain (#1406887)

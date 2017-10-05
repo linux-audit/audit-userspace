@@ -240,11 +240,19 @@ static const struct nv_list yes_no_values[] =
 
 const char *email_command = "/usr/lib/sendmail";
 static int allow_links = 0;
+static const char *config_file = NULL;
 
 
 void set_allow_links(int allow)
 {
 	allow_links = allow;
+}
+
+int set_config_file(const char *val) {
+	config_file = strdup(val);
+	if (config_file == NULL)
+		return 1;
+	return 0;
 }
 
 /*
@@ -310,7 +318,7 @@ int load_config(struct daemon_conf *config, log_test_t lt)
 	mode = O_RDONLY;
 	if (allow_links == 0)
 		mode |= O_NOFOLLOW;
-	rc = open(CONFIG_FILE, mode);
+	rc = open(config_file, mode);
 	if (rc < 0) {
 		if (errno != ENOENT) {
 			audit_msg(LOG_ERR, "Error opening config file (%s)", 
@@ -318,7 +326,7 @@ int load_config(struct daemon_conf *config, log_test_t lt)
 			return 1;
 		}
 		audit_msg(LOG_WARNING,
-			"Config file %s doesn't exist, skipping", CONFIG_FILE);
+			"Config file %s doesn't exist, skipping", config_file);
 		return 0;
 	}
 	fd = rc;
@@ -327,7 +335,7 @@ int load_config(struct daemon_conf *config, log_test_t lt)
 	 * not symlink.
 	 */
 	audit_msg(LOG_DEBUG, "Config file %s opened for parsing", 
-			CONFIG_FILE);
+			config_file);
 	if (fstat(fd, &st) < 0) {
 		audit_msg(LOG_ERR, "Error fstat'ing config file (%s)", 
 			strerror(errno));
@@ -336,19 +344,19 @@ int load_config(struct daemon_conf *config, log_test_t lt)
 	}
 	if (st.st_uid != 0) {
 		audit_msg(LOG_ERR, "Error - %s isn't owned by root", 
-			CONFIG_FILE);
+			config_file);
 		close(fd);
 		return 1;
 	}
 	if ((st.st_mode & S_IWOTH) == S_IWOTH) {
 		audit_msg(LOG_ERR, "Error - %s is world writable", 
-			CONFIG_FILE);
+			config_file);
 		close(fd);
 		return 1;
 	}
 	if (!S_ISREG(st.st_mode)) {
 		audit_msg(LOG_ERR, "Error - %s is not a regular file", 
-			CONFIG_FILE);
+			config_file);
 		close(fd);
 		return 1;
 	}
@@ -362,7 +370,7 @@ int load_config(struct daemon_conf *config, log_test_t lt)
 		return 1;
 	}
 
-	while (get_line(f, buf, sizeof(buf), &lineno, CONFIG_FILE)) {
+	while (get_line(f, buf, sizeof(buf), &lineno, config_file)) {
 		// convert line into name-value pair
 		const struct kw_pair *kw;
 		struct nv_pair nv;
@@ -373,17 +381,17 @@ int load_config(struct daemon_conf *config, log_test_t lt)
 			case 1: // not the right number of tokens.
 				audit_msg(LOG_ERR, 
 				"Wrong number of arguments for line %d in %s", 
-					lineno, CONFIG_FILE);
+					lineno, config_file);
 				break;
 			case 2: // no '=' sign
 				audit_msg(LOG_ERR, 
 					"Missing equal sign for line %d in %s", 
-					lineno, CONFIG_FILE);
+					lineno, config_file);
 				break;
 			default: // something else went wrong... 
 				audit_msg(LOG_ERR, 
 					"Unknown error for line %d in %s", 
-					lineno, CONFIG_FILE);
+					lineno, config_file);
 				break;
 		}
 		if (nv.name == NULL) {
@@ -394,7 +402,7 @@ int load_config(struct daemon_conf *config, log_test_t lt)
 			fclose(f);
 			audit_msg(LOG_ERR,
 				"Not processing any more lines in %s",
-				CONFIG_FILE);
+				config_file);
 			return 1;
 		}
 
@@ -403,7 +411,7 @@ int load_config(struct daemon_conf *config, log_test_t lt)
 		if (kw->name == NULL) {
 			audit_msg(LOG_ERR, 
 				"Unknown keyword \"%s\" in line %d of %s", 
-				nv.name, lineno, CONFIG_FILE);
+				nv.name, lineno, config_file);
 			fclose(f);
 			return 1;
 		}
@@ -413,7 +421,7 @@ int load_config(struct daemon_conf *config, log_test_t lt)
 			audit_msg(LOG_ERR, 
 				"Keyword \"%s\" has invalid option "
 				"\"%s\" in line %d of %s", 
-				nv.name, nv.option, lineno, CONFIG_FILE);
+				nv.name, nv.option, lineno, config_file);
 			fclose(f);
 			return 1;
 		}
@@ -1748,6 +1756,7 @@ void free_config(struct daemon_conf *config)
         free((void *)config->disk_error_exe);
         free((void *)config->krb5_principal);
         free((void *)config->krb5_key_file);
+        free(config_file);
 }
 
 int resolve_node(struct daemon_conf *config)
@@ -1840,4 +1849,3 @@ int resolve_node(struct daemon_conf *config)
 				config->node_name);
 	return rc;
 }
-
