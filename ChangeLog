@@ -19,6 +19,7 @@
 - In auparse function auparse_goto_record_num, make it positioned on first field
 - In auparse_normalize, finish support for MAC_STATUS and MAC_CONFIG events
 - Add support for filesystem filter type
+- Add file system type table for fstype lookup
 
 2.7.8
 - Add config option to auditd to not verify email addr domain (#1406887)

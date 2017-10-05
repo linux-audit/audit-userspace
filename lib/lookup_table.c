@@ -51,6 +51,7 @@
 #include "s390x_tables.h"
 #include "x86_64_tables.h"
 #include "errtabs.h"
+#include "fstypetabs.h"
 #include "ftypetabs.h"
 #include "fieldtabs.h"
 #endif
@@ -342,6 +343,26 @@ const char *audit_ftype_to_name(int ftype)
 {
 #ifndef NO_TABLES
 	return ftype_i2s(ftype);
+#else
+	return NULL;
+#endif
+}
+
+int audit_name_to_fstype(const char *name)
+{
+	int res;
+
+#ifndef NO_TABLES
+	if (fstype_s2i(name, &res) != 0)
+		return res;
+#endif
+	return -1;
+}
+
+const char *audit_fstype_to_name(int fstype)
+{
+#ifndef NO_TABLES
+	return fstype_i2s(fstype);
 #else
 	return NULL;
 #endif

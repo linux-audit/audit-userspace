@@ -43,7 +43,7 @@ libaudit_la_LDFLAGS = -Wl,-z,relro -version-info $(VERSION_INFO)
 nodist_libaudit_la_SOURCES = $(BUILT_SOURCES)
 
 BUILT_SOURCES = actiontabs.h errtabs.h fieldtabs.h flagtabs.h \
-	ftypetabs.h i386_tables.h ia64_tables.h machinetabs.h \
+	fstypetabs.h ftypetabs.h i386_tables.h ia64_tables.h machinetabs.h \
 	msg_typetabs.h optabs.h ppc_tables.h s390_tables.h \
 	s390x_tables.h x86_64_tables.h
 if USE_ALPHA
@@ -56,7 +56,7 @@ if USE_AARCH64
 BUILT_SOURCES += aarch64_tables.h
 endif
 noinst_PROGRAMS = gen_actiontabs_h gen_errtabs_h gen_fieldtabs_h \
-	gen_flagtabs_h gen_ftypetabs_h gen_i386_tables_h \
+	gen_flagtabs_h gen_fstypetabs_h gen_ftypetabs_h gen_i386_tables_h \
 	gen_ia64_tables_h gen_machinetabs_h gen_msg_typetabs_h \
 	gen_optabs_h gen_ppc_tables_h gen_s390_tables_h \
 	gen_s390x_tables_h gen_x86_64_tables_h
@@ -165,6 +165,19 @@ gen_flagtabs_h$(BUILD_EXEEXT): CPPFLAGS=$(CPPFLAGS_FOR_BUILD)
 gen_flagtabs_h$(BUILD_EXEEXT): LDFLAGS=$(LDFLAGS_FOR_BUILD)
 flagtabs.h: gen_flagtabs_h Makefile
 	./gen_flagtabs_h --lowercase --i2s --s2i flag > $@
+
+gen_fstypetabs_h_SOURCES = gen_tables.c gen_tables.h fstypetab.h
+gen_fstypetabs_h_CFLAGS = '-DTABLE_H="fstypetab.h"'
+$(gen_fstypetabs_h_OBJECTS): CC=$(CC_FOR_BUILD)
+$(gen_fstypetabs_h_OBJECTS): CFLAGS=$(CFLAGS_FOR_BUILD)
+$(gen_fstypetabs_h_OBJECTS): CPPFLAGS=$(CPPFLAGS_FOR_BUILD)
+$(gen_fstypetabs_h_OBJECTS): LDFLAGS=$(LDFLAGS_FOR_BUILD)
+gen_fstypetabs_h$(BUILD_EXEEXT): CC=$(CC_FOR_BUILD)
+gen_fstypetabs_h$(BUILD_EXEEXT): CFLAGS=$(CFLAGS_FOR_BUILD)
+gen_fstypetabs_h$(BUILD_EXEEXT): CPPFLAGS=$(CPPFLAGS_FOR_BUILD)
+gen_fstypetabs_h$(BUILD_EXEEXT): LDFLAGS=$(LDFLAGS_FOR_BUILD)
+fstypetabs.h: gen_fstypetabs_h Makefile
+	./gen_fstypetabs_h --lowercase --i2s --s2i fstype > $@
 
 gen_ftypetabs_h_SOURCES = gen_tables.c gen_tables.h ftypetab.h
 gen_ftypetabs_h_CFLAGS = '-DTABLE_H="ftypetab.h"'
