@@ -106,6 +106,6 @@ static const struct msg_tab err_msgtab[] = {
     { -EAU_COMPINCOMPAT,	2, "-C incompatible comparison" },
     { -EAU_FIELDUNAVAIL,	1, "field is not valid for the filter" },
     { -EAU_FILTERNOSUPPORT,	1, "filter is not supported by the kernel" },
-    { -EAU_FSTYPEUNKNOWN,	2, "file system type is unknown:" },
+    { -EAU_FSTYPEUNKNOWN,	2, "file system type is unknown for field:" },
 };
 #endif
