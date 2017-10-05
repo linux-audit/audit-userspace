@@ -18,7 +18,7 @@
 - Auditd and audisp-remote now supports IPv6
 - In auparse function auparse_goto_record_num, make it positioned on first field
 - In auparse_normalize, finish support for MAC_STATUS and MAC_CONFIG events
-- Add support for filesystem filter type
+- Add support for filesystem filter type (Richard Guy Briggs)
 - Add file system type table for fstype lookup
 - Add command line option to auditd & audispd for config file path (Dan Born)
 
