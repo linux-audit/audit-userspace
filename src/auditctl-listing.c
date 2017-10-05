@@ -449,6 +449,16 @@ static void print_rule(const struct audit_rule_data *r)
 					printf(" -F %s%s%d", name,
 						audit_operator_to_symbol(op),
 						(int)r->values[i]);
+			} else if (field == AUDIT_FSTYPE) {
+				if (!audit_fstype_to_name(r->values[i]))
+					printf(" -F %s%s%d", name,
+						audit_operator_to_symbol(op),
+						r->values[i]);
+				else
+					printf(" -F %s%s%s", name,
+						audit_operator_to_symbol(op),
+						audit_fstype_to_name(
+						r->values[i]));
 			} else {
 				// The default is signed decimal
 				printf(" -F %s%s%d", name, 
