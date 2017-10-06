@@ -35,7 +35,6 @@ static const char *SINGLE = "1";
 static const char *HALT = "0";
 static int queue_full_warning = 0;
 extern volatile int hup;
-#define QUEUE_FULL_LIMIT 5
 
 void reset_suspended(void)
 {
@@ -94,11 +93,13 @@ static void do_overflow_action(struct daemon_conf *config)
                 case O_IGNORE:
 			break;
                 case O_SYSLOG:
-			if (queue_full_warning < QUEUE_FULL_LIMIT) {
+			if (!config->overflow_warning_limit ||
+			    queue_full_warning < config->overflow_warning_limit) {
 				syslog(LOG_ERR,
 					"queue is full - dropping event");
 				queue_full_warning++;
-				if (queue_full_warning == QUEUE_FULL_LIMIT)
+				if (config->overflow_warning_limit &&
+				    queue_full_warning == config->overflow_warning_limit)
 					syslog(LOG_ERR,
 						"audispd queue full reporting "
 						"limit reached - ending "

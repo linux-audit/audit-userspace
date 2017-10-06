@@ -23,6 +23,13 @@ option will cause the audisp daemon to put the computer system in single user mo
 .I halt
 option will cause the audisp daemon to shutdown the computer system.
 .TP
+.I overflow_warning_limit
+This is a numeric value that controls maximum number of warnings that would be issued to syslog.  Only matters when
+.IR overflow_action
+is set to
+.IR syslog .
+Setting to 0 means there's no limit.  The default is 5.
+.TP
 .I priority_boost
 This is a non-negative number that tells the audit event dispatcher how much of a priority boost it should take. This boost is in addition to the boost provided from the audit daemon. The default is 4. No change is 0.
 .TP

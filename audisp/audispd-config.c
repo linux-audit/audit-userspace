@@ -60,13 +60,15 @@ static char *get_line(FILE *f, char *buf, unsigned size, int *lineno,
 		const char *file);
 static int nv_split(char *buf, struct nv_pair *nv);
 static const struct kw_pair *kw_lookup(const char *val);
-static int q_depth_parser(struct nv_pair *nv, int line, 
+static int q_depth_parser(struct nv_pair *nv, int line,
 		daemon_conf_t *config);
 static int name_format_parser(struct nv_pair *nv, int line, 
 		daemon_conf_t *config);
 static int name_parser(struct nv_pair *nv, int line, 
 		daemon_conf_t *config);
 static int overflow_action_parser(struct nv_pair *nv, int line, 
+		daemon_conf_t *config);
+static int overflow_warning_limit_parser(struct nv_pair *nv, int line,
 		daemon_conf_t *config);
 static int priority_boost_parser(struct nv_pair *nv, int line,
 		daemon_conf_t *config);
@@ -80,6 +82,7 @@ static const struct kw_pair keywords[] =
   {"name_format",              name_format_parser,		0 },
   {"name",                     name_parser,			0 },
   {"overflow_action",          overflow_action_parser,		0 },
+  {"overflow_warning_limit",   overflow_warning_limit_parser,   0 },
   {"priority_boost",           priority_boost_parser,           0 },
   {"max_restarts",             max_restarts_parser,             0 },
   { NULL,                      NULL }
@@ -112,6 +115,7 @@ void clear_config(daemon_conf_t *config)
 {
 	config->q_depth = 80;
 	config->overflow_action = O_SYSLOG;
+	config->overflow_warning_limit = 5;
 	config->priority_boost = 4;
 	config->max_restarts = 10;
 	config->node_name_format = N_NONE;
@@ -445,13 +449,13 @@ static int priority_boost_parser(struct nv_pair *nv, int line,
 	return 0;
 }
 
-static int max_restarts_parser(struct nv_pair *nv, int line,
-	struct daemon_conf *config)
+static int unsigned_int_parser(struct nv_pair *nv, int line,
+	unsigned int *parsed)
 {
 	const char *ptr = nv->value;
 	unsigned long i;
 
-	audit_msg(LOG_DEBUG, "max_restarts_parser called with: %s",
+	audit_msg(LOG_DEBUG, "unsigned_int_parser called with: %s",
        				nv->value);
 
 	/* check that all chars are numbers */
@@ -479,9 +483,34 @@ static int max_restarts_parser(struct nv_pair *nv, int line,
 			nv->value, line);
 		return 1;
 	}
-	config->max_restarts = (unsigned int)i;
+	*parsed = (unsigned int)i;
 	return 0;
 }
+
+static int max_restarts_parser(struct nv_pair *nv, int line,
+	struct daemon_conf *config)
+{
+	unsigned int parsed;
+	int ret;
+	ret = unsigned_int_parser(nv, line, &parsed);
+	if (ret == 0) {
+		config->max_restarts = parsed;
+	}
+	return ret;
+}
+
+static int overflow_warning_limit_parser(struct nv_pair *nv, int line,
+	struct daemon_conf *config)
+{
+	unsigned int parsed;
+	int ret;
+	ret = unsigned_int_parser(nv, line, &parsed);
+	if (ret == 0) {
+		config->overflow_warning_limit = parsed;
+	}
+	return ret;
+}
+
 
 /*
  * This function is where we do the integrated check of the audispd config
