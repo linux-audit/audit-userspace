@@ -1076,25 +1076,26 @@ static int str2event(char *s, au_event_t *e)
 
 	errno = 0;
 	e->sec = strtoul(s, NULL, 10);
+	if (errno)
+		return -1;
 	ptr = strchr(s, '.');
 	if (ptr) {
-		e->milli = strtoul(ptr+1, NULL, 10);
-		*ptr = 0;
+		ptr++;
+		e->milli = strtoul(ptr, NULL, 10);
 		if (errno)
 			return -1;
+		s = ptr;
 	} else
 		e->milli = 0;
 	
-	ptr = strchr(ptr+1, ':');
+	ptr = strchr(s, ':');
 	if (ptr) {
-		e->serial = strtoul(ptr+1, NULL, 10);
-		*ptr = 0;
+		ptr++;
+		e->serial = strtoul(ptr, NULL, 10);
 		if (errno)
 			return -1;
 	} else
 		e->serial = 0;
-	if (errno)
-		return -1;
 	return 0;
 }
 

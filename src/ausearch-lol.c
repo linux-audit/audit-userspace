@@ -92,25 +92,27 @@ static int str2event(char *s, event *e)
 	char *ptr;
 
 	errno = 0;
-	ptr = strchr(s+10, ':');
+	e->sec = strtoul(s, NULL, 10);
+	if (errno)
+		return -1;
+	ptr = strchr(s, '.');
 	if (ptr) {
-		e->serial = strtoul(ptr+1, NULL, 10);
-		*ptr = 0;
+		ptr++;
+		e->milli = strtoul(ptr, NULL, 10);
+		if (errno)
+			return -1;
+		s = ptr;
+	} else
+		e->milli = 0;
+
+	ptr = strchr(s, ':');
+	if (ptr) {
+		ptr++;
+		e->serial = strtoul(ptr, NULL, 10);
 		if (errno)
 			return -1;
 	} else
 		e->serial = 0;
-	ptr = strchr(s, '.');
-	if (ptr) {
-		e->milli = strtoul(ptr+1, NULL, 10);
-		*ptr = 0;
-		if (errno)
-			return -1;
-	} else
-		e->milli = 0;
-	e->sec = strtoul(s, NULL, 10);
-	if (errno)
-		return -1;
 	return 0;
 }
 
