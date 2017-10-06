@@ -3,6 +3,7 @@ Things that need to be done:
 2.8
 * Support FANOTIFY record
 * non-equality comparisons for values other than \timestamp, \timestamp_ex and \record_type in ausearch-expression (#1399314)
+* Issue 27
 
 2.8.1
 * Look into TLS support
