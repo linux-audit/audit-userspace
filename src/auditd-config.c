@@ -313,6 +313,8 @@ int load_config(struct daemon_conf *config, log_test_t lt)
 
 	clear_config(config);
 	log_test = lt;
+	if (config_file == NULL)
+		config_file = strdup(CONFIG_FILE);
 
 	/* open the file */
 	mode = O_RDONLY;
