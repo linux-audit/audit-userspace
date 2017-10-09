@@ -434,14 +434,12 @@ mem_out:
 		syslog(LOG_ERR, "Failed protecting input %s, exiting",
 					strerror(errno));
 		close(audit_fd);
-		close(i);
 		release_memory_exit(1);
 	}
 
 	/* init the daemon's config */
 	if (load_config(&daemon_config, config_file)) {
 		close(audit_fd);
-		close(i);
 		release_memory_exit(6);
 	}
 
@@ -451,7 +449,6 @@ mem_out:
 	if (plist_count(&plugin_conf) == 0) {
 		syslog(LOG_NOTICE, "No plugins found, exiting");
 		close(audit_fd);
-		close(i);
 		release_memory_exit(0);
 	}
 
