@@ -307,6 +307,8 @@ static void collect_id_obj2(auparse_state_t *au, const char *syscall)
 		limit = 2;
 	else if (strcmp(syscall, "setresgid") == 0)
 		limit = 3;
+	else
+		return; // Shouldn't happen
 
 	auparse_first_record(au);
 	if (auparse_find_field(au, "a0")) {
@@ -326,6 +328,7 @@ static void collect_id_obj2(auparse_state_t *au, const char *syscall)
 			auparse_get_field_num(au));
 	}
 }
+
 static void collect_path_attrs(auparse_state_t *au)
 {
 	value_t attr;
@@ -1561,7 +1564,7 @@ map:
 		auparse_first_record(au);
 		f = auparse_find_field(au, "op");
 		if (f)
-			act = strdup(f);
+			act = f;
 	}
 	if (act == NULL)
 		act = normalize_record_map_i2s(type);

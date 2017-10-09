@@ -75,7 +75,7 @@ static void usage(void)
 	exit(2);
 }
 
-static release_memory_exit(int code)
+static void release_memory_exit(int code)
 {
 	free(config_file);
 	exit(code);

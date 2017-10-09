@@ -31,6 +31,7 @@
 #include <unistd.h>
 #include <sys/un.h>
 #include <sys/stat.h>
+#include <sys/uio.h> // writev
 #include <fcntl.h>
 #include "audispd-pconfig.h"
 #include "audispd-builtins.h"
