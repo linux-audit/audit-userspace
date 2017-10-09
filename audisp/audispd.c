@@ -362,7 +362,8 @@ int main(int argc, char *argv[])
 	while ((i = getopt_long(argc, argv, "i:c:", opts, NULL)) != -1) {
 		switch (i) {
 			case 'c':
-				config_file = strdup(optarg);
+				asprintf(&config_file, "%s/audispd.conf",
+						optarg);
 				if (config_file == NULL) {
 mem_out:
 					printf(

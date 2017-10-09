@@ -2,7 +2,6 @@ Things that need to be done:
 ===========================
 2.8
 * Support FANOTIFY record
-* Fix config dir for auditd
 
 2.8.1
 * Look into TLS support

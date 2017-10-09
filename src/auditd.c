@@ -68,7 +68,7 @@ static int fd = -1, pipefds[2] = {-1, -1};
 static struct daemon_conf config;
 static const char *pidfile = "/var/run/auditd.pid";
 static int init_pipe[2];
-static int do_fork = 1, opt_aggregate_only = 0;
+static int do_fork = 1, opt_aggregate_only = 0, config_dir_set = 0;
 static struct auditd_event *cur_event = NULL, *reconfig_ev = NULL;
 static int hup_info_requested = 0;
 static int usr1_info_requested = 0, usr2_info_requested = 0;
@@ -607,9 +607,10 @@ int main(int argc, char *argv[])
 			}
 			break;
  		case 'c':
-			if (set_config_file(optarg) != 0) {
+			if (set_config_dir(optarg) != 0) {
 				usage();
 			}
+			config_dir_set = 1;
 			break;
 		default:
 			usage();
@@ -720,7 +721,7 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	if (init_dispatcher(&config)) {
+	if (init_dispatcher(&config, config_dir_set)) {
 		if (pidfile)
 			unlink(pidfile);
 		tell_parent(FAILURE);

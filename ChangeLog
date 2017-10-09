@@ -20,7 +20,7 @@
 - In auparse_normalize, finish support for MAC_STATUS and MAC_CONFIG events
 - Add support for filesystem filter type (Richard Guy Briggs)
 - Add file system type table for fstype lookup
-- Add command line option to auditd & audispd for config file path (Dan Born)
+- Add command line option to auditd & audispd for config dir path (Dan Born)
 - Fix auparse serial parsing of event when system time < 9 characters (kruvin)
 - In auparse, allow non-equality comparisons for uid & gid fields (#1399314)
 - In auparse_normalize, add support for USER_DEVICE events

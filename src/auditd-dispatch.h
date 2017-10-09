@@ -29,7 +29,7 @@
 int dispatcher_pid(void);
 void dispatcher_reaped(void);
 int make_dispatcher_fd_private(void);
-int init_dispatcher(const struct daemon_conf *config);
+int init_dispatcher(const struct daemon_conf *config, int config_dir_set);
 void shutdown_dispatcher(void);
 void reconfigure_dispatcher(const struct daemon_conf *config);
 int dispatch_event(const struct audit_reply *rep, int is_err, int protocol_ver);

@@ -90,7 +90,7 @@ int make_dispatcher_fd_private(void)
 }
 
 /* This function returns 1 on error & 0 on success */
-int init_dispatcher(const struct daemon_conf *config)
+int init_dispatcher(const struct daemon_conf *config, int config_dir_set)
 {
 	if (config->dispatcher == NULL) 
 		return 0;
@@ -118,12 +118,23 @@ int init_dispatcher(const struct daemon_conf *config)
 	// do the fork
 	pid = fork();
 	switch(pid) {
-		case 0:	// child
+		case 0:	{ // child
 			if (disp_pipe[0] != 0)
 				dup2(disp_pipe[0], 0);
-			execl(config->dispatcher, config->dispatcher, NULL);
+
+			const char *config_dir = NULL;
+			if (config_dir_set)
+				config_dir = get_config_dir();
+
+			if (config_dir == NULL)
+				execl(config->dispatcher, config->dispatcher,
+						NULL);
+			else
+				execl(config->dispatcher, config->dispatcher,
+						"-c", config_dir, NULL);
 			audit_msg(LOG_ERR, "exec() failed");
 			exit(1);
+			}
 			break;
 		case -1:	// error
 			return 1;
@@ -162,7 +173,7 @@ void reconfigure_dispatcher(const struct daemon_conf *config)
 	if (pid)
 		kill(pid, SIGHUP);
 	else
-		init_dispatcher(config);
+		init_dispatcher(config, 1); // Send 1 and let it figure it out
 }
 
 /* Returns -1 on err, 0 on success, and 1 if eagain occurred and not an err */

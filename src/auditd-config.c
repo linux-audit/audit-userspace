@@ -240,7 +240,8 @@ static const struct nv_list yes_no_values[] =
 
 const char *email_command = "/usr/lib/sendmail";
 static int allow_links = 0;
-static const char *config_file = NULL;
+static const char *config_dir = NULL;
+static char *config_file = NULL;
 
 
 void set_allow_links(int allow)
@@ -248,11 +249,24 @@ void set_allow_links(int allow)
 	allow_links = allow;
 }
 
-int set_config_file(const char *val) {
-	config_file = strdup(val);
-	if (config_file == NULL)
+int set_config_dir(const char *val)
+{
+	config_dir = strdup(val);
+	if (config_dir == NULL)
+		return 1;
+	if (asprintf(&config_file, "%s/auditd.conf", config_dir) < 0)
 		return 1;
 	return 0;
+}
+
+const char *get_config_dir(void)
+{
+	/* This function is used to determine if audispd is started with
+	 * a -c parameter followed by the config_dir location. If we are
+	 * using the standard location, do not pass back a location. */
+	if (config_file && strcmp(config_file, CONFIG_FILE) == 0)
+		return NULL;
+	return config_dir;
 }
 
 /*
@@ -1758,7 +1772,8 @@ void free_config(struct daemon_conf *config)
         free((void *)config->disk_error_exe);
         free((void *)config->krb5_principal);
         free((void *)config->krb5_key_file);
-        free((void *)config_file);
+        free((void *)config_dir);
+        free(config_file);
 }
 
 int resolve_node(struct daemon_conf *config)
