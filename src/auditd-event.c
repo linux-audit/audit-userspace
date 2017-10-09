@@ -1345,7 +1345,7 @@ static void reconfigure(struct auditd_event *e)
 				// Likely errors: ENOMEM
 				do_disk_error_action("reconfig", saved_errno);
 			}
-			if(init_dispatcher(oconf)) {// dispatcher & qos is used
+			if(init_dispatcher(oconf,1)) {//dispatcher & qos is used
 				int saved_errno = errno;
 				audit_msg(LOG_WARNING,
 					"Could not start dispatcher %s"
@@ -1373,7 +1373,7 @@ static void reconfigure(struct auditd_event *e)
 				// Likely errors: ENOMEM
 				do_disk_error_action("reconfig", saved_errno);
 			}
-			if(init_dispatcher(oconf)) {// dispatcher & qos is used
+			if(init_dispatcher(oconf,1)) {// dispatcher& qos is used
 				int saved_errno = errno;
 				audit_msg(LOG_WARNING,
 					"Could not start dispatcher %s"
