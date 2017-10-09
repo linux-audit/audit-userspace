@@ -72,6 +72,8 @@ static int priority_boost_parser(struct nv_pair *nv, int line,
 		daemon_conf_t *config);
 static int max_restarts_parser(struct nv_pair *nv, int line,
 		daemon_conf_t *config);
+static int plugin_dir_parser(struct nv_pair *nv, int line, 
+		daemon_conf_t *config);
 static int sanity_check(daemon_conf_t *config, const char *file);
 
 static const struct kw_pair keywords[] = 
@@ -80,8 +82,9 @@ static const struct kw_pair keywords[] =
   {"name_format",              name_format_parser,		0 },
   {"name",                     name_parser,			0 },
   {"overflow_action",          overflow_action_parser,		0 },
-  {"priority_boost",           priority_boost_parser,           0 },
-  {"max_restarts",             max_restarts_parser,             0 },
+  {"priority_boost",           priority_boost_parser,		0 },
+  {"max_restarts",             max_restarts_parser,		0 },
+  {"plugin_dir",               plugin_dir_parser,		0 },
   { NULL,                      NULL }
 };
 
@@ -483,6 +486,24 @@ static int max_restarts_parser(struct nv_pair *nv, int line,
 	return 0;
 }
 
+static int plugin_dir_parser(struct nv_pair *nv, int line, 
+		daemon_conf_t *config)
+{
+	if (nv->value == NULL)
+		config->plugin_dir = NULL;
+	else {
+		size_t len = strlen(nv->value);
+		config->plugin_dir = malloc(len + 2);
+		if (config->plugin_dir) {
+			strcpy(config->plugin_dir, optarg);
+			if (config->plugin_dir[len - 1] != '/')
+				config->plugin_dir[len] = '/';
+			config->plugin_dir[len + 1] = 0;
+		}
+	}
+	return 0;
+}
+
 /*
  * This function is where we do the integrated check of the audispd config
  * options. At this point, all fields have been read. Returns 0 if no
@@ -497,11 +518,14 @@ static int sanity_check(daemon_conf_t *config, const char *file)
 			file);
 		return 1;
 	}
+	if (config->plugin_dir == NULL)
+		config->plugin_dir = strdup("/etc/audisp/plugins.d/");
 	return 0;
 }
 
 void free_config(daemon_conf_t *config)
 {
 	free((void *)config->name);
+	free((void *)config->plugin_dir);
 }
 

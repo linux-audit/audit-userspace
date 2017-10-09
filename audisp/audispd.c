@@ -56,9 +56,6 @@ static int audit_fd;
 static pthread_t inbound_thread;
 static const char *config_file = NULL;
 
-/* '/' on the end is required. */
-static char *plugin_dir = NULL;
-
 /* Local function prototypes */
 static void signal_plugins(int sig);
 static int event_loop(void);
@@ -74,16 +71,13 @@ static void usage(void)
 	fprintf(stderr, "%s",
 		"Usage: audispd [options]\n"
 		"-c,--config_file <config_file_path>: Override default "
-			"configuration file path\n"
-		"-d,--plugin_dir <plugin_dir_path>: Override default plugin "
-			"directory path\n");
+			"configuration file path\n");
 	exit(2);
 }
 
 static release_memory_exit(int code)
 {
 	free(config_file);
-	free(plugin_dir);
 	exit(code);
 }
 
@@ -156,7 +150,7 @@ static void load_plugin_conf(conf_llist *plugin)
 	plist_create(plugin);
 
 	/* read configs */
-	d = opendir(plugin_dir);
+	d = opendir(daemon_config.plugin_dir);
 	if (d) {
 		struct dirent *e;
 
@@ -169,7 +163,7 @@ static void load_plugin_conf(conf_llist *plugin)
 				continue;
 
 			snprintf(fname, sizeof(fname), "%s%s",
-				plugin_dir, e->d_name);
+				daemon_config.plugin_dir, e->d_name);
 
 			clear_pconfig(&config);
 			if (load_pconfig(&config, fname) == 0) {
@@ -359,30 +353,17 @@ int main(int argc, char *argv[])
 	extern int optind;
 	static const struct option opts[] = {
 		{"config_file", required_argument, NULL, 'c'},
-		{"plugin_dir", required_argument, NULL, 'd'},
 		{NULL, 0, NULL, 0}
 	};
 	lnode *conf;
 	struct sigaction sa;
 	int i;
-	size_t len;
 
-	while ((i = getopt_long(argc, argv, "i:c:d:", opts, NULL)) != -1) {
+	while ((i = getopt_long(argc, argv, "i:c:", opts, NULL)) != -1) {
 		switch (i) {
 			case 'c':
 				config_file = strdup(optarg);
-				if (config_file == NULL)
-					goto mem_out;
-				break;
-			case 'd':
-				plugin_dir = malloc(len + 2);
-				if (plugin_dir) {
-					strcpy(plugin_dir, optarg);
-					if (plugin_dir[len - 1] != '/') {
-						plugin_dir[len] = '/';
-						plugin_dir[len + 1] = '\0';
-					}
-				} else {
+				if (config_file == NULL) {
 mem_out:
 					printf(
 					"Failed allocating memory, exiting\n");
@@ -401,11 +382,6 @@ mem_out:
 	if (config_file == NULL)
 		config_file = strdup("/etc/audisp/audispd.conf");
 	if (config_file == NULL)
-		goto mem_out;
-
-	if (plugin_dir == NULL)
-		plugin_dir = strdup("/etc/audisp/plugins.d/");
-	if (plugin_dir == NULL)
 		goto mem_out;
 
 	set_aumessage_mode(MSG_SYSLOG, DBG_NO);
@@ -552,8 +528,7 @@ mem_out:
 	/* Cleanup the queue */
 	destroy_queue();
 	free_config(&daemon_config);
-	free(config_file);
-	free(plugin_dir);
+	free((void *)config_file);
 	
 	return 0;
 }

@@ -38,6 +38,7 @@ typedef struct daemon_conf
 	unsigned int max_restarts;
 	node_t node_name_format;
 	const char *name;
+	char *plugin_dir;
 } daemon_conf_t;
 
 void clear_config(daemon_conf_t *config);
