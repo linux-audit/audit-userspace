@@ -171,9 +171,9 @@ int main(int argc, char *argv[])
 	free(event_type);
 	free(user_file);
 	free((char *)event_key);
-	free(event_tuid);
-	free(event_teuid);
-	free(event_tauid);
+	free((char *)event_tuid);
+	free((char *)event_teuid);
+	free((char *)event_tauid);
 	auparse_destroy(NULL);
 	if (rc)
 		return rc;

@@ -214,11 +214,11 @@ void list_clear(llist* l)
 	l->s.uuid = NULL;
 	free(l->s.vmname);
 	l->s.vmname = NULL;
-	free(l->s.tuid);
+	free((void *)l->s.tuid);
 	l->s.tuid = NULL;
-	free(l->s.teuid);
+	free((void *)l->s.teuid);
 	l->s.teuid = NULL;
-	free(l->s.tauid);
+	free((void *)l->s.tauid);
 	l->s.tauid = NULL;
 	l->s.exit = 0;
 	l->s.exit_is_set = 0;

@@ -117,7 +117,7 @@ struct event *event_alloc(void)
 void event_free(struct event *event)
 {
 	if (event) {
-		free(event->user);
+		free((void *)event->user);
 		free(event->uuid);
 		free(event->name);
 		free(event->reason);
@@ -345,7 +345,7 @@ error:
 				auparse_get_serial(au));
 	}
 	if (p_user)
-		free(*p_user);
+		free((void *) *p_user);
 	return 1;
 }
 
@@ -455,7 +455,7 @@ int process_machine_id_event(auparse_state_t *au)
 
 	event = event_alloc();
 	if (event == NULL) {
-		free(user);
+		free((void *)user);
 		return 1;
 	}
 	event->type = ET_MACHINE_ID;
@@ -511,7 +511,7 @@ int add_start_guest_event(auparse_state_t *au)
 
 	start = event_alloc();
 	if (start == NULL) {
-		free(user);
+		free((void *)user);
 		return 1;
 	}
 	start->type = ET_START;
@@ -575,14 +575,14 @@ int add_stop_guest_event(auparse_state_t *au)
 			fprintf(stderr, "Couldn't find the correlated start "
 					"record to the stop event.\n");
 		}
-		free(user);
+		free((void *)user);
 		return 0;
 	}
 
 	/* Create a new stop event */
 	stop = event_alloc();
 	if (stop == NULL) {
-		free(user);
+		free((void *)user);
 		return 1;
 	}
 	stop->type = ET_STOP;
@@ -596,7 +596,7 @@ int add_stop_guest_event(auparse_state_t *au)
 		stop->pid = auparse_get_field_int(au);
 	add_proof(stop, au);
 	if (list_append(events, stop) == NULL) {
-		free(user);
+		free((void *)user);
 		event_free(stop);
 		return 1;
 	}
@@ -650,7 +650,7 @@ int add_resource(auparse_state_t *au, const char *uuid, const char *user,
 		const char *res_type, const char *res)
 {
 	if (!is_resource(res)) {
-		free(user);
+		free((void *)user);
 		return 0;
 	}
 
@@ -692,8 +692,7 @@ int add_resource(auparse_state_t *au, const char *uuid, const char *user,
 }
 
 int update_resource(auparse_state_t *au, const char *uuid, time_t time,
-		const char *name, int success, const char *reason,
-		const char *res_type, const char *res)
+		int success, const char *res_type, const char *res)
 {
 	if (!is_resource(res) || !success)
 		return 0;
@@ -747,7 +746,7 @@ int process_resource_event(auparse_state_t *au)
 	if (res_type == NULL) {
 		if (debug)
 			fprintf(stderr, "Invalid resrc field.\n");
-		free(user);
+		free((void *)user);
 		return 0;
 	}
 
@@ -770,8 +769,8 @@ int process_resource_event(auparse_state_t *au)
 		if (res == NULL && debug) {
 			fprintf(stderr, "Failed to get %s field.\n", field);
 		} else {
-			rc += update_resource(au, uuid, time, name,
-					success, reason, res_type, res);
+			rc += update_resource(au, uuid, time, 
+					success, res_type, res);
 		}
 
 		/* Resource added */
@@ -781,7 +780,7 @@ int process_resource_event(auparse_state_t *au)
 			res = auparse_interpret_field(au);
 		if (res == NULL && debug) {
 			fprintf(stderr, "Failed to get %s field.\n", field);
-			free(user);
+			free((void *)user);
 		} else {
 			rc += add_resource(au, uuid, user, time, name, success,
 					reason, res_type, res);
@@ -796,9 +795,9 @@ int process_resource_event(auparse_state_t *au)
 	} else if (debug) {
 		fprintf(stderr, "Found an unknown resource: %s.\n",
 				res_type);
-		free(user);
+		free((void *)user);
 	} else
-		free(user);
+		free((void *)user);
 	return rc;
 }
 
@@ -847,13 +846,13 @@ int process_avc_selinux(auparse_state_t *au)
 			fprintf(stderr, "Couldn't get the machine id "
 				"based on security level in AVC event.\n");
 		}
-		free(user);
+		free((void *)user);
 		return 0;
 	}
 
 	avc = event_alloc();
 	if (avc == NULL) {
-		free(user);
+		free((void *)user);
 		return 1;
 	}
 	avc->type = ET_AVC;
@@ -1214,7 +1213,7 @@ int process_anom(auparse_state_t *au)
 
 	anom = event_alloc();
 	if (anom == NULL) {
-		free(user);
+		free((void *)user);
 		return 1;
 	}
 	anom->type = ET_ANOM;

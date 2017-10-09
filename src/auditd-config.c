@@ -1758,7 +1758,7 @@ void free_config(struct daemon_conf *config)
         free((void *)config->disk_error_exe);
         free((void *)config->krb5_principal);
         free((void *)config->krb5_key_file);
-        free(config_file);
+        free((void *)config_file);
 }
 
 int resolve_node(struct daemon_conf *config)

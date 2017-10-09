@@ -359,7 +359,7 @@ void aup_list_clear(event_list_t* l)
 	l->e.serial = 0L;
 	free((char *)l->e.host);
 	l->e.host = NULL;
-	free(l->cwd);
+	free((void *)l->cwd);
 }
 
 /*int aup_list_get_event(event_list_t* l, au_event_t *e)

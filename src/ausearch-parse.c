@@ -270,7 +270,7 @@ static int parse_task_info(lnode *n, search_items *s)
 		if (errno)
 			return 21;
 		*term = ' ';
-		if (s->tauid) free(s->tauid);
+		if (s->tauid) free((void *)s->tauid);
 		s->tauid = lookup_uid("auid", s->loginuid);
 	}
 	// optionally get uid
@@ -288,7 +288,7 @@ static int parse_task_info(lnode *n, search_items *s)
 		if (errno)
 			return 24;
 		*term = ' ';
-		if (s->tuid) free(s->tuid);
+		if (s->tuid) free((void *)s->tuid);
 		s->tuid = lookup_uid("uid", s->uid);
 	}
 
@@ -1010,7 +1010,7 @@ static int parse_user(const lnode *n, search_items *s)
 			if (errno)
 				return 15;
 			*term = saved;
-			if (s->tuid) free(s->tuid);
+			if (s->tuid) free((void *)s->tuid);
 			s->tuid = lookup_uid("uid", s->uid);
 		}
 	}

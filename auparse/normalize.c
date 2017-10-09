@@ -80,10 +80,10 @@ void clear_normalizer(normalize_data *d)
 	d->session = set_record(0, UNSET);
 	d->actor.primary = set_record(0, UNSET);
 	d->actor.secondary = set_record(0, UNSET);
-	free(d->actor.what);
+	free((void *)d->actor.what);
 	d->actor.what = NULL;
 	cllist_clear(&d->actor.attr);
-	free(d->action);
+	free((void *)d->action);
 	d->action = NULL;
 	d->thing.primary = set_record(0, UNSET);
 	d->thing.secondary = set_record(0, UNSET);
@@ -91,7 +91,7 @@ void clear_normalizer(normalize_data *d)
 	cllist_clear(&d->thing.attr);
 	d->thing.what = NORM_WHAT_UNKNOWN;
 	d->results = set_record(0, UNSET);
-	free(d->how);
+	free((void *)d->how);
 	d->how = NULL;
 	d->opt = NORM_OPT_ALL;
 	d->key = set_record(0, UNSET);
@@ -773,7 +773,7 @@ static int normalize_syscall(auparse_state_t *au, const char *syscall)
 			D.thing.what = NORM_WHAT_PROCESS;
 			set_program_obj(au);
 			if (D.how) {
-				free(D.how);
+				free((void *)D.how);
 				D.how = strdup(syscall);
 			}
 			collect_id_obj2(au, syscall);
@@ -808,7 +808,7 @@ static int normalize_syscall(auparse_state_t *au, const char *syscall)
 			D.thing.what = NORM_WHAT_PROCESS;
 			set_program_obj(au);
 			if (D.how) {
-				free(D.how);
+				free((void *)D.how);
 				D.how = strdup(syscall);
 			}
 			break;
@@ -983,7 +983,7 @@ static int normalize_compound(auparse_state_t *au)
 		} else {
 			rc = auparse_goto_record_num(au, recno);
 			if (rc != 1) {
-				free(syscall);
+				free((void *)syscall);
 				return 1;
 			}
 			auparse_first_field(au);
@@ -993,7 +993,7 @@ static int normalize_compound(auparse_state_t *au)
 		if (set_prime_subject(au, "auid", recno)) {
 			rc = auparse_goto_record_num(au, recno);
 			if (rc != 1) {
-				free(syscall);
+				free((void *)syscall);
 				return 1;
 			}
 			auparse_first_field(au);
@@ -1003,7 +1003,7 @@ static int normalize_compound(auparse_state_t *au)
 		if (set_secondary_subject(au, "uid", recno)) {
 			rc = auparse_goto_record_num(au, recno);
 			if (rc != 1) {
-				free(syscall);
+				free((void *)syscall);
 				return 1;
 			}
 			auparse_first_field(au);
@@ -1031,7 +1031,7 @@ static int normalize_compound(auparse_state_t *au)
 					auparse_first_record(au);
 				f = auparse_find_field(au, "comm");
 				if (f) {
-					free(D.how);
+					free((void *)D.how);
 					exe = auparse_interpret_field(au);
 					D.how = strdup(exe);
 				}
@@ -1039,7 +1039,7 @@ static int normalize_compound(auparse_state_t *au)
 		} else {
 			rc = auparse_goto_record_num(au, recno);
 			if (rc != 1) {
-				free(syscall);
+				free((void *)syscall);
 				return 1;
 			}
 			auparse_first_field(au);
@@ -1067,7 +1067,7 @@ static int normalize_compound(auparse_state_t *au)
 			normalize_syscall(au, syscall);
 	}
 
-	free(syscall);
+	free((void *)syscall);
 	return 0;
 }
 
@@ -1206,7 +1206,7 @@ static value_t find_simple_object(auparse_state_t *au, int type)
 		case AUDIT_USYS_CONFIG:
 			f = auparse_find_field(au, "op");
 			if (f) {
-				free(D.action);
+				free((void *)D.action);
 				D.action = strdup(auparse_interpret_field(au));
 				f = NULL;
 			}
@@ -1621,7 +1621,7 @@ map:
 				auparse_first_record(au);
 			f = auparse_find_field(au, "comm");
 			if (f) {
-				free(D.how);
+				free((void *)D.how);
 				exe = auparse_interpret_field(au);
 				D.how = strdup(exe);
 			}

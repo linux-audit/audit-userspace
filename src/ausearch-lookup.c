@@ -80,7 +80,7 @@ const char *aulookup_syscall(llist *l, char *buf, size_t size)
 	sys = _auparse_lookup_interpretation("syscall");
 	if (sys) {
 		snprintf(buf, size, "%s", sys);
-		free(sys);
+		free((void *)sys);
 		return buf;
 	}
 
@@ -208,7 +208,7 @@ const char *aulookup_uid(uid_t uid, char *buf, size_t size)
 	name = _auparse_lookup_interpretation("auid");
 	if (name) {
 		snprintf(buf, size, "%s", name);
-		free(name);
+		free((void *)name);
 		return buf;
 	}
 

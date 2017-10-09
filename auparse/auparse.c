@@ -933,7 +933,7 @@ static void auparse_destroy_common(auparse_state_t *au)
 	free_interpretation_list();
 	clear_normalizer(&au->norm_data);
 	au_lol_clear(au->au_lo, 0);
-	free(au->tmp_translation);
+	free((void *)au->tmp_translation);
 	free(au->au_lo);
 	free(au);
 }
@@ -1141,7 +1141,7 @@ static int extract_timestamp(const char *b, au_event_t *e)
 		// else we have a bad line
 	}
 	if (rc)
-		free(e->host);
+		free((void *)e->host);
 
 	// else we have a bad line
 	return rc;
@@ -2059,7 +2059,7 @@ static const char *auparse_interpret_sock_parts(auparse_state_t *au,
 				*ptr = 0;
 				const char *final = strdup(val);
 				free(tmp);
-				free(au->tmp_translation);
+				free((void *)au->tmp_translation);
 				au->tmp_translation = final;
 				return final;
 			}

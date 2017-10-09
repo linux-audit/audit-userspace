@@ -433,7 +433,7 @@ static void csv_event(auparse_state_t *au,
 	item = auparse_get_node(au);
 	if (item) {
 		printf("%s", auparse_interpret_field(au));
-		free(item);
+		free((void *)item);
 	}
 	putchar(',');
 
@@ -680,7 +680,7 @@ static void text_event(auparse_state_t *au,
 	item = auparse_get_node(au);
 	if (item) {
 		printf("On %s at %s ", auparse_interpret_field(au), tmp);
-		free(item);
+		free((void *)item);
 	} else
 		printf("At %s ", tmp);
 
