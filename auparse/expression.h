@@ -52,6 +52,9 @@ struct expr {
 	unsigned virtual_field : 1;
 	/* Can be non-zero only if virtual_field != 0 */
 	unsigned precomputed_value : 1;
+	/* Decides if >= > < <= applies to field */
+	unsigned numeric_field : 1;
+	unsigned started : 1;
 	union {
 		struct expr *sub[2];
 		struct {
@@ -74,6 +77,7 @@ struct expr {
 				} timestamp_ex; /* EF_TIMESTAMP_EX */
 				int int_value; /* EF_RECORD_TYPE */
 			} value;
+			uint32_t unsigned_val; /* UID & GID */
 		} p;
 		regex_t *regexp;
 	} v;

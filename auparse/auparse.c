@@ -724,6 +724,7 @@ static int add_expr(auparse_state_t *au, struct expr *expr, ausearch_rule_t how)
 		}
 		au->expr = e;
 	}
+	au->expr->started = 0;
 	return 0;
 }
 
@@ -1305,8 +1306,10 @@ static int ausearch_compare(auparse_state_t *au)
 		return 0;
 
 	r = aup_list_get_cur(au->le);
-	if (r)
-		return expr_eval(au, r, au->expr);
+	if (r) {
+		int res = expr_eval(au, r, au->expr);
+		return res;
+	}
 
 	return 0;
 }
@@ -1320,8 +1323,14 @@ int ausearch_next_event(auparse_state_t *au)
 		errno = EINVAL;
 		return -1;
 	}
-	if ((rc = auparse_first_record(au)) <= 0)
-		return rc;
+	if (au->expr->started == 0) {
+		if ((rc = auparse_first_record(au)) <= 0)
+			return rc;
+		au->expr->started = 1;
+	} else {
+		if ((rc = auparse_next_event(au)) <= 0)
+			return rc;
+	}
         do {
 		do {
 			if ((rc = ausearch_compare(au)) > 0) {

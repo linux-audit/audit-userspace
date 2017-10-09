@@ -29,8 +29,9 @@
 #include <string.h>
 
 #include "expression.h"
+#include "interpret.h"
 
- /* Utilities */
+/* Utilities */
 
 /* Free EXPR and all its subexpressions. */
 void
@@ -71,7 +72,7 @@ expr_free(struct expr *expr)
 	free(expr);
 }
 
- /* Expression parsing. */
+/* Expression parsing. */
 
 /* The formal grammar:
 
@@ -365,8 +366,9 @@ parse_escaped_field_name(enum field_id *dest, const char *name)
 		*dest = EF_RECORD_TYPE;
 	else if (strcmp(name, "timestamp_ex") == 0)
 		*dest = EF_TIMESTAMP_EX;
-	else
+	else 
 		return -1;
+
 	return 0;
 }
 
@@ -422,6 +424,29 @@ parse_record_type_value(struct expr *dest, struct parsing *p)
 		return -1;
 	}
 	dest->v.p.value.int_value = type;
+	dest->precomputed_value = 1;
+	return 0;
+}
+
+/* Parse a uid/gid field value in P->token_value to DEST.
+   On success, return 0.
+   On error, set *P->ERROR to an error string (for free()) or NULL, and return
+   -1. */
+static int
+parse_unsigned_value(struct expr *dest, struct parsing *p)
+{
+	uint32_t val;
+
+	assert(p->token == T_STRING);
+	errno = 0;
+	val = strtoul(p->token_value, NULL, 10);
+	if (errno) {
+		if (asprintf(p->error, "Error converting number `%.*s'",
+			     p->token_len, p->token_start) < 0)
+			*p->error = NULL;
+		return -1;
+	}
+	dest->v.p.unsigned_val = val;
 	dest->precomputed_value = 1;
 	return 0;
 }
@@ -510,6 +535,7 @@ parse_comparison(struct parsing *p)
 	res = parser_malloc(p, sizeof(*res));
 	if (res == NULL)
 		return NULL;
+	res->numeric_field = 0;
 	if (p->token == T_FIELD_ESCAPE) {
 		if (lex(p) != 0)
 			goto err_res;
@@ -521,6 +547,7 @@ parse_comparison(struct parsing *p)
 		if (strcmp(p->token_value, "regexp") == 0)
 			return parse_comparison_regexp(p, res);
 		res->virtual_field = 1;
+		res->numeric_field = 1;
 		if (parse_escaped_field_name(&res->v.p.field.id, p->token_value)
 		    != 0) {
 			if (asprintf(p->error,
@@ -533,6 +560,9 @@ parse_comparison(struct parsing *p)
 		assert(p->token == T_STRING);
 		res->virtual_field = 0;
 		res->v.p.field.name = p->token_value;
+		int type = lookup_type(p->token_value);
+		if (type == AUPARSE_TYPE_UID || type == AUPARSE_TYPE_GID)
+			res->numeric_field = 1;
 		p->token_value = NULL;
 	}
 	if (lex(p) != 0)
@@ -569,15 +599,20 @@ parse_comparison(struct parsing *p)
 				*p->error = NULL;
 			goto err_field;
 		}
-		if (res->virtual_field == 0) {
+		if (res->numeric_field == 0) {
 			if (asprintf(p->error, "Field `%s' does not support "
 				     "value comparison",
 				     res->v.p.field.name) < 0)
 				*p->error = NULL;
 			goto err_field;
 		} else {
-			if (parse_virtual_field_value(res, p) != 0)
-				goto err_field;
+			if (res->virtual_field) {
+				if (parse_virtual_field_value(res, p) != 0)
+					goto err_field;
+			} else {
+				if (parse_unsigned_value(res, p) != 0)
+					goto err_field;
+			}
 		}
 		if (lex(p) != 0) {
 			expr_free(res);
@@ -778,7 +813,7 @@ expr_create_comparison(const char *field, unsigned op, const char *value)
 {
 	struct expr *res;
 
-	res = malloc(sizeof(*res));
+	res = calloc(sizeof(struct expr), 1);
 	if (res == NULL)
 		goto err;
 	assert(op == EO_RAW_EQ || op == EO_RAW_NE || op == EO_INTERPRETED_EQ
@@ -812,7 +847,7 @@ expr_create_timestamp_comparison_ex(unsigned op, time_t sec, unsigned milli,
 {
 	struct expr *res;
 
-	res = malloc(sizeof(*res));
+	res = calloc(sizeof(struct expr), 1);
 	if (res == NULL)
 		return NULL;
 	assert(op == EO_VALUE_EQ || op == EO_VALUE_NE || op == EO_VALUE_LT
@@ -845,7 +880,7 @@ expr_create_field_exists(const char *field)
 {
 	struct expr *res;
 
-	res = malloc(sizeof(*res));
+	res = calloc(sizeof(struct expr), 1);
 	if (res == NULL)
 		goto err;
 	res->op = EO_FIELD_EXISTS;
@@ -869,7 +904,7 @@ expr_create_regexp_expression(const char *regexp)
 {
 	struct expr *res;
 
-	res = malloc(sizeof(*res));
+	res = calloc(sizeof(struct expr), 1);
 	if (res == NULL)
 		goto err;
 	res->v.regexp = malloc(sizeof(*res->v.regexp));
@@ -898,7 +933,7 @@ expr_create_binary(unsigned op, struct expr *e1, struct expr *e2)
 {
 	struct expr *res;
 
-	res = malloc(sizeof(*res));
+	res = calloc(sizeof(struct expr), 1);
 	if (res == NULL)
 		return NULL;
 	assert(op == EO_AND || op ==EO_OR);
@@ -908,14 +943,13 @@ expr_create_binary(unsigned op, struct expr *e1, struct expr *e2)
 	return res;
 }
 
- /* Expression evaluation */
+/* Expression evaluation */
 
 /* Return the "raw" value of the field in EXPR for RECORD in AU->le.  Set
    *FREE_IT to 1 if the return value should free()'d.
    Return NULL on error.  */
 static char *
-eval_raw_value(auparse_state_t *au, rnode *record, const struct expr *expr,
-	       int *free_it)
+eval_raw_value(rnode *record, const struct expr *expr, int *free_it)
 {
 	if (expr->virtual_field == 0) {
 		nvlist_first(&record->nv);
@@ -925,12 +959,35 @@ eval_raw_value(auparse_state_t *au, rnode *record, const struct expr *expr,
 		return (char *)nvlist_get_cur_val(&record->nv);
 	}
 	switch (expr->v.p.field.id) {
-	case EF_TIMESTAMP: case EF_RECORD_TYPE: case EF_TIMESTAMP_EX:
+	case EF_TIMESTAMP:
+	case EF_RECORD_TYPE:
+	case EF_TIMESTAMP_EX:
 		return NULL;
 
 	default:
 		abort();
 	}
+}
+
+/* Return the "int" value of the field in EXPR for RECORD in AU->le.  Set
+   valid to 1 if the return value is valid. Valid is set to 0 on error. */
+static uint32_t
+eval_unsigned_value(rnode *record, const struct expr *expr, int *valid)
+{
+	*valid = 0;
+	if (expr->virtual_field == 0) {
+		nvlist_first(&record->nv);
+		if (nvlist_find_name(&record->nv, expr->v.p.field.name) == 0)
+			return 0;
+		const char *val = nvlist_get_cur_val(&record->nv);
+		if (val) {
+			uint32_t v = strtoul(val, NULL, 10);
+			*valid = 1;
+			return v;
+		}
+	} else
+		abort();
+	return 0;
 }
 
 /* Return the "interpreted" value of the field in EXPR for RECORD in AU->le.
@@ -953,12 +1010,24 @@ eval_interpreted_value(auparse_state_t *au, rnode *record,
 		return (char *)res;
 	}
 	switch (expr->v.p.field.id) {
-	case EF_TIMESTAMP: case EF_RECORD_TYPE: case EF_TIMESTAMP_EX:
+	case EF_TIMESTAMP:
+	case EF_RECORD_TYPE:
+	case EF_TIMESTAMP_EX:
 		return NULL;
 
 	default:
 		abort();
 	}
+}
+
+static int
+compare_unsigned_values(uint32_t one, uint32_t two)
+{
+	if (one < two)
+		return -1;
+	else if (one > two)
+		return 1;
+	return 0;
 }
 
 /* Return -1, 0, 1 depending on comparing the field in EXPR with RECORD in AU.
@@ -968,7 +1037,7 @@ compare_values(auparse_state_t *au, rnode *record, const struct expr *expr,
 	       int *error)
 {
 	int res;
-	if (expr->virtual_field == 0) {
+	if (expr->numeric_field == 0) {
 		*error = 1;
 		return 0;
 	}
@@ -1026,30 +1095,36 @@ compare_values(auparse_state_t *au, rnode *record, const struct expr *expr,
 int
 expr_eval(auparse_state_t *au, rnode *record, const struct expr *expr)
 {
+	int res;
+
 	switch (expr->op) {
 	case EO_NOT:
-		return !expr_eval(au, record, expr->v.sub[0]);
+		res = !expr_eval(au, record, expr->v.sub[0]);
+		break;
 
 	case EO_AND:
-		return (expr_eval(au, record, expr->v.sub[0])
+		res = (expr_eval(au, record, expr->v.sub[0])
 			&& expr_eval(au, record, expr->v.sub[1]));
+		break;
 
 	case EO_OR:
-		return (expr_eval(au, record, expr->v.sub[0])
+		res = (expr_eval(au, record, expr->v.sub[0])
 			|| expr_eval(au, record, expr->v.sub[1]));
+		break;
 
 	case EO_RAW_EQ: case EO_RAW_NE: {
 		int free_it, ne;
 		char *value;
 
-		value = eval_raw_value(au, record, expr, &free_it);
+		value = eval_raw_value(record, expr, &free_it);
 		if (value == NULL)
 			return 0;
 		assert(expr->precomputed_value == 0);
 		ne = strcmp(expr->v.p.value.string, value);
 		if (free_it != 0)
 			free(value);
-		return expr->op == EO_RAW_EQ ? ne == 0 : ne != 0;
+		res = expr->op == EO_RAW_EQ ? ne == 0 : ne != 0;
+		break;
 	}
 
 	case EO_INTERPRETED_EQ: case EO_INTERPRETED_NE: {
@@ -1063,49 +1138,68 @@ expr_eval(auparse_state_t *au, rnode *record, const struct expr *expr)
 		ne = strcmp(expr->v.p.value.string, value);
 		if (free_it != 0)
 			free(value);
-		return expr->op == EO_INTERPRETED_EQ ? ne == 0 : ne != 0;
+		res = expr->op == EO_INTERPRETED_EQ ? ne == 0 : ne != 0;
+		break;
 	}
 
 	case EO_VALUE_EQ: case EO_VALUE_NE: case EO_VALUE_LT: case EO_VALUE_LE:
 	case EO_VALUE_GT: case EO_VALUE_GE: {
-		int err, cmp;
+		int err = 0, cmp;
 
-		cmp = compare_values(au, record, expr, &err);
+		if (expr->virtual_field == 0) {
+			// UID & GID here
+			int valid;
+			uint32_t val = eval_unsigned_value(record,expr,&valid);
+			if (valid == 0)
+				return 0;
+			cmp = compare_unsigned_values(val,
+					expr->v.p.unsigned_val);
+		} else	// virtual fields here
+			cmp = compare_values(au, record, expr, &err);
 		if (err != 0)
 			return 0;
 		switch (expr->op) {
 		case EO_VALUE_EQ:
-			return cmp == 0;
+			res = cmp == 0;
+			break;
 
 		case EO_VALUE_NE:
-			return cmp != 0;
+			res = cmp != 0;
+			break;
 
 		case EO_VALUE_LT:
-			return cmp < 0;
+			res = cmp < 0;
+			break;
 
 		case EO_VALUE_LE:
-			return cmp <= 0;
+			res = cmp <= 0;
+			break;
 
 		case EO_VALUE_GT:
-			return cmp > 0;
+			res = cmp > 0;
+			break;
 
 		case EO_VALUE_GE:
-			return cmp >= 0;
-
+			res = cmp >= 0;
+			break;
 		default:
 			abort();
 		}
 	}
+		break;
 
 	case EO_FIELD_EXISTS:
 		assert(expr->virtual_field == 0);
 		nvlist_first(&record->nv);
-		return nvlist_find_name(&record->nv, expr->v.p.field.name) != 0;
+		res = nvlist_find_name(&record->nv, expr->v.p.field.name) != 0;
+		break;
 
 	case EO_REGEXP_MATCHES:
-		return regexec(expr->v.regexp, record->record, 0, NULL, 0) == 0;
+		res = regexec(expr->v.regexp, record->record, 0, NULL, 0) == 0;
+		break;
 
 	default:
 		abort();
 	}
+	return res;
 }

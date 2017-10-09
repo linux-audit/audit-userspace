@@ -22,6 +22,7 @@
 - Add file system type table for fstype lookup
 - Add command line option to auditd & audispd for config file path (Dan Born)
 - Fix auparse serial parsing of event when system time < 9 characters (kruvin)
+- In auparse, allow non-equality comparisons for uid & gid fields (#1399314)
 
 2.7.8
 - Add config option to auditd to not verify email addr domain (#1406887)
