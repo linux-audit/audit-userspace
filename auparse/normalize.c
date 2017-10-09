@@ -872,6 +872,7 @@ static const char *normalize_determine_evkind(int type)
 		case AUDIT_CONFIG_CHANGE:
 		case AUDIT_NETFILTER_CFG:
 		case AUDIT_FEATURE_CHANGE ... AUDIT_REPLACE:
+		case AUDIT_USER_DEVICE:
 			kind = NORM_EVTYPE_CONFIG;
 			break;
 		case AUDIT_SECCOMP:
@@ -1141,6 +1142,11 @@ static value_t find_simple_object(auparse_state_t *au, int type)
 			f = auparse_find_field(au, "data");
 			D.thing.what = NORM_WHAT_KEYSTROKES;
 			break;
+		case AUDIT_USER_DEVICE:
+			auparse_first_record(au);
+			f = auparse_find_field(au, "device");
+			D.thing.what = NORM_WHAT_KEYSTROKES;
+			break;
 		case AUDIT_VIRT_MACHINE_ID:
 			f = auparse_find_field(au, "vm");
 			D.thing.what = NORM_WHAT_VM;
@@ -1302,7 +1308,7 @@ static void collect_userspace_subj_attr(auparse_state_t *au, int type)
 
 static int normalize_simple(auparse_state_t *au)
 {
-	const char *f, *act;
+	const char *f, *act = NULL;
 	int type = auparse_get_type(au);
 
 	// netfilter_cfg sometimes emits 1 record events
@@ -1423,7 +1429,7 @@ map:
 		return 0;
 	}
 
-	// This one is atypical
+	// This one is atypical and originates from the kernel
 	if (type == AUDIT_LOGIN) {
 		// Secondary
 		if (set_secondary_subject(au, "uid", 0))
@@ -1457,6 +1463,7 @@ map:
 		return 0;
 	}
 
+	/* This one is also atypical and comes from the kernel */
 	if (type == AUDIT_AVC) {
 		// how
 		f = auparse_find_field(au, "comm");
@@ -1487,6 +1494,7 @@ map:
 		return 0;
 	}
 
+	/* Daemon events are atypical because they never transit the kernel */
 	if (type >= AUDIT_FIRST_DAEMON && 
 		type < AUDIT_LAST_DAEMON) {
 		// Subject - primary
@@ -1549,7 +1557,14 @@ map:
 	set_results(au, 0);
 
 	// action
-	act = normalize_record_map_i2s(type);
+	if (type == AUDIT_USER_DEVICE) {
+		auparse_first_record(au);
+		f = auparse_find_field(au, "op");
+		if (f)
+			act = strdup(f);
+	}
+	if (act == NULL)
+		act = normalize_record_map_i2s(type);
 	if (act)
 		D.action = strdup(act);
 
@@ -1557,6 +1572,13 @@ map:
 	D.thing.primary = find_simple_object(au, type);
 	D.thing.secondary = find_simple_obj_secondary(au, type);
 	D.thing.two = find_simple_obj_primary2(au, type);
+
+	// object attrs - rare on simple events
+	if (D.opt == NORM_OPT_ALL) {
+		if (type == AUDIT_USER_DEVICE) {
+			add_obj_attr(au, "uuid", 0);
+		}
+	}
 
 	// how
 	if (type == AUDIT_SYSTEM_BOOT) {

@@ -2,9 +2,6 @@ Things that need to be done:
 ===========================
 2.8
 * Support FANOTIFY record
-* non-equality comparisons for values other than \timestamp, \timestamp_ex and \record_type in ausearch-expression (#1399314)
-* Support USER_DEVICE in ausearch
-* Support USER_DEVICE in normalizer
 * Fix config dir for auditd
 
 2.8.1
