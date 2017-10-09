@@ -1,5 +1,5 @@
 /* audispd.c --
- * Copyright 2007-08,2013,2016 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2007-08,2013,2016-17 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -54,7 +54,7 @@ static daemon_conf_t daemon_config;
 static conf_llist plugin_conf;
 static int audit_fd;
 static pthread_t inbound_thread;
-static const char *config_file = NULL;
+static char *config_file = NULL;
 
 /* Local function prototypes */
 static void signal_plugins(int sig);
@@ -70,7 +70,7 @@ static void usage(void)
 {
 	fprintf(stderr, "%s",
 		"Usage: audispd [options]\n"
-		"-c,--config_file <config_file_path>: Override default "
+		"-c,--config_dir <config_dir_path>: Override default "
 			"configuration file path\n");
 	exit(2);
 }
@@ -352,7 +352,7 @@ int main(int argc, char *argv[])
 	extern char *optarg;
 	extern int optind;
 	static const struct option opts[] = {
-		{"config_file", required_argument, NULL, 'c'},
+		{"config_dir", required_argument, NULL, 'c'},
 		{NULL, 0, NULL, 0}
 	};
 	lnode *conf;
@@ -362,9 +362,8 @@ int main(int argc, char *argv[])
 	while ((i = getopt_long(argc, argv, "i:c:", opts, NULL)) != -1) {
 		switch (i) {
 			case 'c':
-				asprintf(&config_file, "%s/audispd.conf",
-						optarg);
-				if (config_file == NULL) {
+				if (asprintf(&config_file, "%s/audispd.conf",
+						optarg) < 0) {
 mem_out:
 					printf(
 					"Failed allocating memory, exiting\n");
@@ -425,7 +424,6 @@ mem_out:
 			release_memory_exit(1);
 		}
 		close(i);
-		close(audit_fd);
 	} else {
 		syslog(LOG_ERR, "Failed opening /dev/null %s, exiting",
 					strerror(errno));
