@@ -22,16 +22,11 @@ Things that need to be done:
 * Basic HIDS
 * Consolidate linked lists and other functions
 * Consolidate parsing code between libaudit and auditd-conf.c
-
-3.0.1
 * Fix SIGHUP for auditd network settings
 * Add gzip format for logs
+
+3.0.1
 * Add keywords for time: month-ago
 * Look at adding the direction read/write to file report (threat modelling)
-
-3.1
-* Add SYSLOG data source for auparse. This allows leading text before audit       messages, missing type, any line with no = gets thrown away. iow, must have     time and 1 field to be valid.
 * Fix aureport accounting for avc in permissive mode
-
-3.1.1
 * Fix aureport-scan to properly decide if CONFIG_CHANGE is add or del, need to optionally look for op and use remove/add to decide
