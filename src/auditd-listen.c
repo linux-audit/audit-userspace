@@ -947,13 +947,10 @@ int auditd_tcp_listen_init ( struct ev_loop *loop, struct daemon_conf *config )
 			goto next_try;
 		}
 
-		set_close_on_exec (listen_socket[nlsocks]);
-		setsockopt(listen_socket[nlsocks], SOL_SOCKET, SO_REUSEADDR,
-				(char *)&one, sizeof (int));
-
 		/* This avoids problems if auditd needs to be restarted.  */
 		setsockopt(listen_socket[nlsocks], SOL_SOCKET, SO_REUSEADDR,
 				(char *)&one, sizeof (int));
+		set_close_on_exec (listen_socket[nlsocks]);
 
 		if (bind(listen_socket[nlsocks], runp->ai_addr,
 						runp->ai_addrlen)) {
