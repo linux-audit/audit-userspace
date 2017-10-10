@@ -139,4 +139,5 @@ _S(AUPARSE_TYPE_NETACTION,	"action"	)
 _S(AUPARSE_TYPE_MACPROTO,	"macproto"	)
 _S(AUPARSE_TYPE_ESCAPED,	"invalid_context")
 _S(AUPARSE_TYPE_IOCTL_REQ,	"ioctlcmd"	)
+_S(AUPARSE_TYPE_FANOTIFY,	"resp"		)
 

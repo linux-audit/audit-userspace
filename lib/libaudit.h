@@ -270,6 +270,10 @@ extern "C" {
 #define AUDIT_KERN_MODULE	1330 /* Kernel Module events */
 #endif
 
+#ifndef AUDIT_FANOTIFY
+#define AUDIT_FANOTIFY		1331 /* Fanotify access decision */
+#endif
+
 #ifndef AUDIT_ANOM_LINK
 #define AUDIT_ANOM_LINK		1702 /* Suspicious use of file links */
 #endif

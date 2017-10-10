@@ -50,6 +50,7 @@
 #include <sys/personality.h>
 #include <sys/prctl.h>
 #include <sched.h>
+#include <linux/fanotify.h>
 #include "auparse-defs.h"
 #include "gen_tables.h"
 
@@ -2110,6 +2111,42 @@ static const char *print_ioctl_req(const char *val)
 	return out;
 }
 
+static const char *fanotify[3]= { "unknown", "allow", "deny" };
+static const char *aulookup_fanotify(unsigned s)
+{
+	switch (s)
+	{
+		default:
+			return fanotify[0];
+			break;
+		case FAN_ALLOW:
+			return fanotify[1];
+			break;
+		case FAN_DENY:
+			return fanotify[2];
+			break;
+	}
+}
+
+static const char *print_fanotify(const char *val)
+{
+        int res;
+
+	if (isdigit(*val)) {
+	        errno = 0;
+        	res = strtoul(val, NULL, 10);
+	        if (errno) {
+			char *out;
+			if (asprintf(&out, "conversion error(%s)", val) < 0)
+				out = NULL;
+	                return out;
+        	}
+
+	        return strdup(aulookup_fanotify(res));
+	} else
+		return strdup(val);
+}
+
 static const char *print_exit_syscall(const char *val)
 {
 	char *out;
@@ -2978,6 +3015,9 @@ unknown:
 			break;
 		case AUPARSE_TYPE_IOCTL_REQ:
 			out = print_ioctl_req(id->val);
+			break;
+		case AUPARSE_TYPE_FANOTIFY:
+			out = print_fanotify(id->val);
 			break;
 		case AUPARSE_TYPE_MAC_LABEL:
 		case AUPARSE_TYPE_UNCLASSIFIED:

@@ -1,8 +1,5 @@
 Things that need to be done:
 ===========================
-2.8
-* Support FANOTIFY record
-
 2.8.1
 * Look into TLS support
 * Support multiple time streams when searching
@@ -19,7 +16,7 @@ Things that need to be done:
 * Change ausearch to output name="" unless its a real null. (mount) ausearch-report.c, 523. FIXME
 
 3.0
-* Basic HIDS
+* Basic HIDS based on reactive audit component
 * Consolidate linked lists and other functions
 * Consolidate parsing code between libaudit and auditd-conf.c
 * Fix SIGHUP for auditd network settings
