@@ -582,6 +582,9 @@ static void csv_event(auparse_state_t *au,
 			i = 1;
 		else if (strncmp(item, "suc", 3) == 0)
 			i = 1;
+		else if (auparse_get_field_type(au) == AUPARSE_TYPE_SECCOMP &&
+				strcmp(item, "allow") == 0)
+			i = 1;
 		printf("%s", res[i]);
 	}
 	putchar(',');
@@ -709,6 +712,9 @@ static void text_event(auparse_state_t *au,
 		if (strcmp(item, "yes") == 0)
 			i = 1;
 		else if (strncmp(item, "suc", 3) == 0)
+			i = 1;
+		else if (auparse_get_field_type(au) == AUPARSE_TYPE_SECCOMP &&
+				strcmp(item, "allow") == 0)
 			i = 1;
 		printf(" %s ", res[i]);
 	} else

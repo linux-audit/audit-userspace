@@ -1413,6 +1413,15 @@ map:
 			if (set_prime_object(au, "syscall", 0))
 				auparse_first_record(au);
 			D.thing.what = NORM_WHAT_PROCESS;
+
+			// Results
+			f = auparse_find_field(au, "code");
+			if (f) {
+				D.results = set_record(0, 0);
+				D.results = set_field(D.results,
+						auparse_get_field_num(au));
+			}
+			return 0;
 		}
 
 		if (type == AUDIT_ANOM_ABEND) {

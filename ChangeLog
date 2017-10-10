@@ -26,6 +26,7 @@
 - In auparse_normalize, add support for USER_DEVICE events
 - In audispd.conf, add new plugin_dir config item to customize plugin location
 - Add support for FANOTIFY event
+- Improve auparse_normalize support for SECCOMP events
 
 2.7.8
 - Add config option to auditd to not verify email addr domain (#1406887)
