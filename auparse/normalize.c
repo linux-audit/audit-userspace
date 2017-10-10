@@ -958,7 +958,7 @@ static int normalize_compound(auparse_state_t *au)
 	if (type == AUDIT_NETFILTER_CFG || type == AUDIT_ANOM_PROMISCUOUS ||
 		type == AUDIT_AVC || type == AUDIT_SELINUX_ERR ||
 		type == AUDIT_MAC_POLICY_LOAD || type == AUDIT_MAC_STATUS ||
-		type == AUDIT_MAC_CONFIG_CHANGE || AUDIT_FANOTIFY) {
+		type == AUDIT_MAC_CONFIG_CHANGE || type == AUDIT_FANOTIFY) {
 		auparse_next_record(au);
 		type = auparse_get_type(au);
 	} else if (type == AUDIT_ANOM_LINK) {
