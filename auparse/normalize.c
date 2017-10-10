@@ -541,6 +541,9 @@ static int normalize_syscall(auparse_state_t *au, const char *syscall)
 		} else if (ttype == AUDIT_MAC_CONFIG_CHANGE) {
 			objtype = NORM_MAC_CONFIG;
 			break;
+		} else if (ttype == AUDIT_FANOTIFY) {
+			tmp_objkind = NORM_AV;
+			break;
 		}
 		rc = auparse_next_record(au);
 	}
@@ -836,7 +839,9 @@ static int normalize_syscall(auparse_state_t *au, const char *syscall)
 
 	// We put the AVC back after gathering the object information
 	if (tmp_objkind == NORM_MAC)
-		act = "violated-mac-policy";
+		act = "accessed-mac-policy-controlled-object";
+	else if (tmp_objkind == NORM_AV)
+		act = "accessed-policy-controlled-file";
 	
 	if (act)
 		D.action = strdup(act);
@@ -931,6 +936,9 @@ static const char *normalize_determine_evkind(int type)
 		case AUDIT_BPRM_FCAPS ... AUDIT_NETFILTER_PKT:
 			kind = NORM_EVTYPE_AUDIT_RULE;
 			break;
+		case AUDIT_FANOTIFY:
+			kind = NORM_EVTYPE_AV_DECISION;
+			break;
 		default:
 			kind = NORM_EVTYPE_UNKNOWN;
 	}
@@ -950,7 +958,7 @@ static int normalize_compound(auparse_state_t *au)
 	if (type == AUDIT_NETFILTER_CFG || type == AUDIT_ANOM_PROMISCUOUS ||
 		type == AUDIT_AVC || type == AUDIT_SELINUX_ERR ||
 		type == AUDIT_MAC_POLICY_LOAD || type == AUDIT_MAC_STATUS ||
-		type == AUDIT_MAC_CONFIG_CHANGE) {
+		type == AUDIT_MAC_CONFIG_CHANGE || AUDIT_FANOTIFY) {
 		auparse_next_record(au);
 		type = auparse_get_type(au);
 	} else if (type == AUDIT_ANOM_LINK) {

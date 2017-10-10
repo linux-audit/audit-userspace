@@ -70,6 +70,7 @@
 #define NORM_FILE_SYS_STAT	34
 #define NORM_SYSTEM_MEMORY	35
 #define NORM_SCHEDULER		36
+#define NORM_AV			37
 
 // This enum is used to map what the system objects are
 #define NORM_WHAT_UNKNOWN	0
@@ -115,5 +116,6 @@
 #define NORM_EVTYPE_AUDIT_RULE		15
 #define NORM_EVTYPE_DAC_DECISION	16
 #define NORM_EVTYPE_GROUP_CHANGE	17
+#define NORM_EVTYPE_AV_DECISION		18
 
 #endif
