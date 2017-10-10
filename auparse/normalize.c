@@ -806,7 +806,19 @@ static int normalize_syscall(auparse_state_t *au, const char *syscall)
 			break;
 		case NORM_SYSTEM_MEMORY:
 			act = "allocated-memory";
-			// TODO: The object is implied
+			if (syscall_success == 1) {
+				// If its not a mmap avc, we can use comm
+				act = "allocated-memory-in";
+				auparse_first_record(au);
+				f = auparse_find_field(au, "comm");
+				if (f) {
+					D.thing.primary = set_record(0,
+						auparse_get_record_num(au));
+					D.thing.primary =
+						set_field(D.thing.primary,
+						auparse_get_field_num(au));
+				}
+			}
 			D.thing.what = NORM_WHAT_MEMORY;
 			break;
 		case NORM_SCHEDULER:
