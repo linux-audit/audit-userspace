@@ -1070,6 +1070,7 @@ static int init_sock(void)
 					syslog(LOG_ERR,
 				"Error looking up local host: %s - retrying",
 						gai_strerror(rc));
+				stop_sock();
 				goto next_try;
 			}
 			// We are not going to cycle through the list.
