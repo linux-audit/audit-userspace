@@ -21,7 +21,7 @@
  *   Steve Grubb <sgrubb@redhat.com>
  */
 
-#include <libaudit.h>
+#include "libaudit.h"
 
 _S(AUDIT_USER, "sent-message")
 _S(AUDIT_LOGIN, "changed-login-id-to")

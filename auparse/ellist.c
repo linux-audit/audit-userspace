@@ -25,7 +25,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <errno.h>
-#include <libaudit.h>
+#include "libaudit.h"
 #include "ellist.h"
 #include "interpret.h"
 

@@ -25,7 +25,7 @@
 #include <stdint.h>
 #include <sys/stat.h>
 #include <errno.h>
-#include <libaudit.h>
+#include "libaudit.h"
 #include "auparse.h"
 #include "internal.h"
 #include "normalize-llist.h"
