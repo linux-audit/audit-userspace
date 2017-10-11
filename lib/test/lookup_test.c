@@ -334,6 +334,22 @@ test_flagtab(void)
 }
 
 static void
+test_fstypetab(void)
+{
+	static const struct entry t[] = {
+#include "../fstypetab.h"
+	};
+
+	printf("Testing fstypetab...\n");
+#define I2S(I) audit_fstype_to_name(I)
+#define S2I(S) audit_name_to_fstype(S)
+	TEST_I2S(0);
+	TEST_S2I(-1);
+#undef I2S
+#undef S2I
+}
+
+static void
 test_ftypetab(void)
 {
 	static const struct entry t[] = {
@@ -421,6 +437,7 @@ main(void)
 	test_errtab();
 	test_fieldtab();
 	test_flagtab();
+	test_fstypetab();
 	test_ftypetab();
 	test_machinetab();
 	test_msg_typetab();
