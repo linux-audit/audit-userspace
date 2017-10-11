@@ -4,8 +4,8 @@
 #include <string.h>
 #include <locale.h>
 #include <errno.h>
-#include <libaudit.h>
-#include <auparse.h>
+#include "libaudit.h"
+#include "auparse.h"
 
 
 static const char *buf[] = {
