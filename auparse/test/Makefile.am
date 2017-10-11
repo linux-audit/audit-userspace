@@ -1,5 +1,5 @@
 # Makefile.am -- 
-# Copyright 2006-08,2014-16 Red Hat Inc., Durham, North Carolina.
+# Copyright 2006-08,2014-17 Red Hat Inc., Durham, North Carolina.
 # All Rights Reserved.
 #
 # This library is free software; you can redistribute it and/or
@@ -44,7 +44,7 @@ auparselol_test_LDADD = ${top_builddir}/auparse/libauparse.la \
 
 drop_srcdir = sed 's,$(srcdir)/test,test,'
 
-check: auparse_test auparselol_test
+check: auparse_test auparselol_test lookup_test
 	test "$(top_srcdir)" = "$(top_builddir)" || \
 			cp $(top_srcdir)/auparse/test/test*.log .
 	LC_ALL=C \
@@ -61,6 +61,7 @@ if HAVE_PYTHON
 		| $(drop_srcdir) > auparse_test.cur
 	diff -u $(top_srcdir)/auparse/test/auparse_test.ref.py auparse_test.cur
 endif
+	./lookup_test
 	echo -e "===================\nAuparse Test Passes\n==================="
 
 diffcheck: auparse_test auparselol_test
