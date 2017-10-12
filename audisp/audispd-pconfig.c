@@ -80,7 +80,7 @@ static const struct kw_pair keywords[] =
   {"type",                     service_type_parser,		0 },
   {"args",                     args_parser,			2 },
   {"format",                   format_parser,			0 },
-  { NULL,                      NULL }
+  { NULL,                      NULL,				0 }
 };
 
 static const struct nv_list active[] =

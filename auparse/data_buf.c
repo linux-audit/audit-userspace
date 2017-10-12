@@ -105,10 +105,10 @@ static int debug = 0;
 static inline char *databuf_end(DataBuf *db)
 {return (db->alloc_ptr == NULL) ? NULL : db->alloc_ptr+db->offset+db->len;}
 
-static inline int databuf_tail_size(DataBuf *db)
+static inline unsigned databuf_tail_size(DataBuf *db)
 {return db->alloc_size - (db->offset+db->len);}
 
-static inline int databuf_tail_available(DataBuf *db, size_t append_len)
+static inline unsigned databuf_tail_available(DataBuf *db, size_t append_len)
 {return append_len <= databuf_tail_size(db);}
 
 /*****************************************************************************/

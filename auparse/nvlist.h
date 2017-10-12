@@ -49,7 +49,7 @@ void nvlist_append(nvlist *l, nvnode *node);
 void nvlist_interp_fixup(nvlist *l);
 
 /* Given a numeric index, find that record. */
-nvnode *nvlist_goto_rec(nvlist *l, int i);
+nvnode *nvlist_goto_rec(nvlist *l, unsigned int i);
 /* Given a name, find that record */
 int nvlist_find_name(nvlist *l, const char *name);
 

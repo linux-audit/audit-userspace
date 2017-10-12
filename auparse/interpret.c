@@ -810,7 +810,7 @@ static char *print_escaped(const char *val)
 	return strdup(val); // Something is wrong with string, just send as is
 }
 
-static const char *print_escaped_ext(int type, const idata *id)
+static const char *print_escaped_ext(const idata *id)
 {
 	if (id->cwd) {
 		char *str1 = NULL, *str2, *str3 = NULL, *out = NULL;
@@ -1066,7 +1066,8 @@ static const char *print_socket_proto(const char *val)
 
 static const char *print_sockaddr(const char *val)
 {
-        int slen, rc = 0;
+        size_t slen
+	int rc = 0;
         const struct sockaddr *saddr;
         char name[NI_MAXHOST], serv[NI_MAXSERV];
         const char *host;
@@ -1490,8 +1491,8 @@ static const char *print_clock_id(const char *val)
 
 static const char *print_prot(const char *val, unsigned int is_mmap)
 {
-	unsigned int prot, i;
-	int cnt = 0, limit;
+	unsigned int prot, i, limit;
+	int cnt = 0;
 	char buf[144];
 	char *out;
 
@@ -1512,7 +1513,7 @@ static const char *print_prot(const char *val, unsigned int is_mmap)
 		limit = 4;
 	else
 		limit = 3;
-        for (i=0; i<limit; i++) {
+        for (i=0; i < limit; i++) {
                 if (prot_table[i].value & prot) {
                         if (!cnt) {
                                 strcat(buf,
@@ -2921,7 +2922,7 @@ unknown:
 			break;
 		case AUPARSE_TYPE_ESCAPED:
 		case AUPARSE_TYPE_ESCAPED_FILE:
-			out = print_escaped_ext(type, id);
+			out = print_escaped_ext(id);
 			break;
 		case AUPARSE_TYPE_ESCAPED_KEY:
 			out = print_escaped(id->val);

@@ -135,7 +135,7 @@ static struct nv_pair socktab[] = {
 
 static const char *aulookup_socketcall(long sc)
 {
-        int i;
+        unsigned int i;
 
         for (i = 0; i < SOCK_NAMES; i++)
                 if (socktab[i].value == sc)
@@ -180,7 +180,7 @@ static struct nv_pair ipctab[] = {
 
 static const char *aulookup_ipccall(long ic)
 {
-        int i;
+        unsigned int i;
 
         for (i = 0; i < IPC_NAMES; i++)
                 if (ipctab[i].value == ic)

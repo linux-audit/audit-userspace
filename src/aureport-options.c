@@ -157,7 +157,7 @@ static struct nv_pair optiontab[] = {
 
 static int audit_lookup_option(const char *name)
 {
-        int i;
+        unsigned int i;
 
         for (i = 0; i < OPTION_NAMES; i++)
                 if (!strcmp(optiontab[i].name, name))

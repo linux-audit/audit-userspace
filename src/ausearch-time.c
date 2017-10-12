@@ -59,7 +59,7 @@ static struct nv_pair timetab[] = {
 
 int lookup_time(const char *name)
 {
-        int i;
+        unsigned int i;
 
         for (i = 0; i < TIME_NAMES; i++) {
                 if (strcmp(timetab[i].name, name) == 0) {

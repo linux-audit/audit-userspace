@@ -85,7 +85,7 @@ static const struct kw_pair keywords[] =
   {"priority_boost",           priority_boost_parser,		0 },
   {"max_restarts",             max_restarts_parser,		0 },
   {"plugin_dir",               plugin_dir_parser,		0 },
-  { NULL,                      NULL }
+  { NULL,                      NULL,				0 }
 };
 
 static const struct nv_list node_name_formats[] =

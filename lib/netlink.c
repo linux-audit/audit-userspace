@@ -36,7 +36,7 @@
 #endif
 
 static int adjust_reply(struct audit_reply *rep, int len);
-static int check_ack(int fd, int seq);
+static int check_ack(int fd);
 
 /*
  * This function opens a connection to the kernel's audit
@@ -242,7 +242,7 @@ int audit_send(int fd, int type, const void *data, unsigned int size)
 			(struct sockaddr*)&addr, sizeof(addr));
 	} while (retval < 0 && errno == EINTR);
 	if (retval == (int)req.nlh.nlmsg_len) {
-		if ((retval = check_ack(fd, sequence)) == 0)
+		if ((retval = check_ack(fd)) == 0)
 			return sequence;
 		else
 			return retval; 
@@ -258,7 +258,7 @@ int audit_send(int fd, int type, const void *data, unsigned int size)
  * an error. If so, the error is returned and its non-zero. Otherwise a 
  * zero is returned indicating that we don't know of any problems.
  */
-static int check_ack(int fd, int seq)
+static int check_ack(int fd)
 {
 	int rc, retries = 80;
 	struct audit_reply rep;

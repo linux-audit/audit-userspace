@@ -674,7 +674,7 @@ int audit_request_signal_info(int fd)
 
 int audit_update_watch_perms(struct audit_rule_data *rule, int perms)
 {
-	int i, done=0;
+	unsigned int i, done=0;
 
 	if (rule->field_count < 1)
 		return -1;

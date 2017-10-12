@@ -202,7 +202,7 @@ void increase_queue_depth(unsigned int size)
 {
 	pthread_mutex_lock(&queue_lock);
 	if (size > q_depth) {
-		int i;
+		unsigned int i;
 		void *tmp_q;
 
 		tmp_q = realloc(q, size * sizeof(event_t *));

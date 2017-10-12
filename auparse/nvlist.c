@@ -95,7 +95,7 @@ void nvlist_interp_fixup(nvlist *l)
 	}
 }
 
-nvnode *nvlist_goto_rec(nvlist *l, int i)
+nvnode *nvlist_goto_rec(nvlist *l, unsigned int i)
 {
 	register nvnode* node;
 

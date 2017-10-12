@@ -102,7 +102,7 @@ static char *escape(const char *tmp)
 static int parse_up_record(rnode* r)
 {
 	char *ptr, *buf, *saved=NULL;
-	int offset = 0;
+	unsigned int offset = 0;
 
 	// Potentially cut the record in two
 	ptr = strchr(r->record, AUDIT_INTERP_SEPARATOR);

@@ -1,4 +1,6 @@
 2.8.1
+- Fix NULL ptr dereference in audispd plugin_dir parser
+- Signed/unsigned cleanup
 
 2.8
 - Add support for ambient capability fields (Richard Guy Briggs)

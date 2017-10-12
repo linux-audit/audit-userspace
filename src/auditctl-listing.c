@@ -41,7 +41,7 @@ extern const char key_sep[2];
  */
 int key_match(const struct audit_rule_data *r)
 {
-	int i;
+	unsigned int i;
 	size_t boffset = 0;
 
 	if (key[0] == 0)
@@ -77,7 +77,7 @@ int key_match(const struct audit_rule_data *r)
  */
 static int is_watch(const struct audit_rule_data *r)
 {
-	int i, perm = 0, all = 1;
+	unsigned int i, perm = 0, all = 1;
 
 	for (i = 0; i < r->field_count; i++) {
 		int field = r->fields[i] & ~AUDIT_OPERATORS;
