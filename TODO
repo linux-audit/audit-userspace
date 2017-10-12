@@ -1,6 +1,6 @@
 Things that need to be done:
 ===========================
-2.8.1
+2.8.2
 * Look into TLS support
 * Support multiple time streams when searching
 * Add rule verify to detect mismatch between in-kernel and on-disk rules
