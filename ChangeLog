@@ -1,3 +1,5 @@
+2.8.2
+
 2.8.1
 - Fix NULL ptr dereference in audispd plugin_dir parser
 - Signed/unsigned cleanup
