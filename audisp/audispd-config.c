@@ -495,7 +495,7 @@ static int plugin_dir_parser(struct nv_pair *nv, int line,
 		size_t len = strlen(nv->value);
 		config->plugin_dir = malloc(len + 2);
 		if (config->plugin_dir) {
-			strcpy(config->plugin_dir, optarg);
+			strcpy(config->plugin_dir, nv->value);
 			if (config->plugin_dir[len - 1] != '/')
 				config->plugin_dir[len] = '/';
 			config->plugin_dir[len + 1] = 0;
