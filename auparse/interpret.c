@@ -1066,8 +1066,8 @@ static const char *print_socket_proto(const char *val)
 
 static const char *print_sockaddr(const char *val)
 {
-        size_t slen
-	int rc = 0;
+        size_t slen;
+        int rc = 0;
         const struct sockaddr *saddr;
         char name[NI_MAXHOST], serv[NI_MAXSERV];
         const char *host;
