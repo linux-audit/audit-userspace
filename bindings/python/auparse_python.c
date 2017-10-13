@@ -2180,7 +2180,7 @@ static PyMethodDef AuParser_methods[] = {
     {"interpret_sock_family",   (PyCFunction)AuParser_interpret_sock_family, METH_NOARGS,  interpret_sock_family_doc},
     {"interpret_sock_port",   (PyCFunction)AuParser_interpret_sock_port, METH_NOARGS,  interpret_sock_port_doc},
     {"interpret_sock_address",   (PyCFunction)AuParser_interpret_sock_address, METH_NOARGS,  interpret_sock_address_doc},
-    {NULL, NULL}  /* Sentinel */
+    {NULL, NULL, 0, NULL}  /* Sentinel */
 };
 
 PyDoc_STRVAR(AuParser_doc,

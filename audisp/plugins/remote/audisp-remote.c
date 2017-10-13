@@ -1445,7 +1445,7 @@ static int relay_sock_managed(const char *s, size_t len)
 	int hver, mver;
 	uint32_t type, rlen, seq;
 	char msg[MAX_AUDIT_MESSAGE_LENGTH+1];
-	int n_tries_this_message = 0;
+	unsigned int n_tries_this_message = 0;
 	time_t now, then = 0;
 
 	sequence_id ++;

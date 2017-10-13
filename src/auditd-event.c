@@ -1062,7 +1062,7 @@ static void rotate_logs(unsigned int num_logs)
 	}
 }
 
-static int last_log = 1;
+static unsigned int last_log = 1;
 static void shift_logs(void)
 {
 	// The way this has to work is to start scanning from .1 up until
