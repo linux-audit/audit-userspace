@@ -1346,7 +1346,7 @@ static const char *print_open_flags(const char *val)
 	size_t i;
 	unsigned int flags;
 	int cnt = 0;
-	char *out, buf[178];
+	char *out, buf[sizeof(open_flag_strings)+8];
 
 	errno = 0;
 	flags = strtoul(val, NULL, 16);
@@ -1384,7 +1384,7 @@ static const char *print_clone_flags(const char *val)
 {
 	unsigned int flags, i, clone_sig;
 	int cnt = 0;
-	char *out, buf[362]; // added 10 for signal name
+	char *out, buf[sizeof(clone_flag_strings)+16];// + 10 for signal name
 
 	errno = 0;
 	flags = strtoul(val, NULL, 16);
@@ -1535,7 +1535,7 @@ static const char *print_mmap(const char *val)
 {
 	unsigned int maps, i;
 	int cnt = 0;
-	char buf[176];
+	char buf[sizeof(mmap_strings)+8];
 	char *out;
 
 	errno = 0;
@@ -1701,7 +1701,7 @@ static const char *print_recv(const char *val)
 {
 	unsigned int rec, i;
 	int cnt = 0;
-	char buf[234];
+	char buf[sizeof(recv_strings)+8];
 	char *out;
 
 	errno = 0;
@@ -1980,7 +1980,7 @@ static const char *print_shmflags(const char *val)
 {
 	unsigned int flags, partial, i;
 	int cnt = 0;
-	char *out, buf[32];
+	char *out, buf[sizeof(shm_mode_strings)+sizeof(ipccmd_strings)+8];
 
 	errno = 0;
 	flags = strtoul(val, NULL, 16);
@@ -2061,7 +2061,7 @@ static const char *print_umount(const char *val)
 {
 	unsigned int flags, i;
 	int cnt = 0;
-	char buf[64];
+	char buf[sizeof(umount_strings)+8];
 	char *out;
 
 	errno = 0;

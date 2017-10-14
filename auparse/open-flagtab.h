@@ -19,7 +19,6 @@
  * Authors:
  *      Steve Grubb <sgrubb@redhat.com>
  * Location: include/uapi/asm-generic/fcntl.h
- * NOTE: When updating this table, update interpret.c:print_open_flags()
  */
 
 // Handled in the code: _S(00,		"O_RDONLY" )

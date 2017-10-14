@@ -19,6 +19,7 @@
  * Authors:
  *      Steve Grubb <sgrubb@redhat.com>
  * Location: include/uapi/linux/ptrace.h
+ *           ./arch/x86/include/uapi/asm/ptrace-abi.h
  */
 
 _S(0,		"PTRACE_TRACEME"	)
@@ -40,6 +41,12 @@ _S(17,		"PTRACE_DETACH"		)
 _S(18,		"PTRACE_GETFPXREGS"	)
 _S(19,		"PTRACE_SETFPXREGS"	)
 _S(24,		"PTRACE_SYSCALL"	)
+_S(25,		"PTRACE_GET_THREAD_AREA")
+_S(26,		"PTRACE_SET_THREAD_AREA")
+_S(30,		"PTRACE_ARCH_PRCTL"	)
+_S(31,		"PTRACE_SYSEMU"		)
+_S(32,		"PTRACE_SYSEMU_SINGLESTEP")
+_S(33,		"PTRACE_SINGLEBLOCK"	)
 _S(0x4200,	"PTRACE_SETOPTIONS"	)
 _S(0x4201,	"PTRACE_GETEVENTMSG"	)
 _S(0x4202,	"PTRACE_GETSIGINFO"	)

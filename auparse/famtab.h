@@ -59,4 +59,6 @@ _S(37,			"caif"		)
 _S(38,			"alg"		)
 _S(39,			"nfc"		)
 _S(40,			"vsock"		)
-
+_S(41,			"kcm"		)
+_S(42,			"qipcrtr"	)
+_S(43,			"smc"		)

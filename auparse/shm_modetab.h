@@ -19,11 +19,13 @@
  * Authors:
  *      Steve Grubb <sgrubb@redhat.com>
  * Location: include/linux/shm.h
+ *           include/uapi/linux/shm.h
  */
 
 
 _S(00001000,	"SHM_DEST"	)
 _S(00002000,	"SHM_LOCKED"	)
+
 _S(00004000,	"SHM_HUGETLB"	)
 _S(00010000,	"SHM_NORESERVE"	)
 

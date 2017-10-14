@@ -26,5 +26,6 @@ _S(0x00000000U,	"kill"	)
 _S(0x00030000U,	"trap"	)
 _S(0x00050000U,	"errno"	)
 _S(0x7ff00000U,	"trace"	)
+_S(0x7ffc0000U,	"log"	)
 _S(0x7fff0000U,	"allow"	)
 

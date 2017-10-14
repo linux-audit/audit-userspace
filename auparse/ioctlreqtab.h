@@ -18,6 +18,8 @@
  *
  * Authors:
  *      Steve Grubb <sgrubb@redhat.com>
+ *
+ * 	This list is not comprehensive. Its just some cherry picked ioctls.
  *      include/uapi/linux/kd.h
  *	include/uapi/linux/cdrom.h
  *	include/uapi/asm-generic/ioctls.h
@@ -26,10 +28,12 @@
 
 _S(0x4B3A,	"KDSETMODE"	)
 _S(0x4B3B,	"KDGETMODE"	)
+
 _S(0x5309,	"CDROMEJECT"	)
 _S(0x530F,	"CDROMEJECT_SW"	)
 _S(0x5311,	"CDROM_GET_UPC"	)
 _S(0x5316,	"CDROMSEEK"	)
+
 _S(0x5401,	"TCGETS"	)
 _S(0x5402,	"TCSETS"	)
 _S(0x5403,	"TCSETSW"	)
@@ -43,6 +47,7 @@ _S(0x5413,	"TIOCGWINSZ"	)
 _S(0x5414,	"TIOCSWINSZ"	)
 _S(0x541B,	"TIOCINQ"	)
 _S(0x5421,	"FIONBIO"	)
+_S(0x5422,	"TIOCNOTTY"	)
 _S(0x8901,	"FIOSETOWN"	)
 _S(0x8903,	"FIOGETOWN"	)
 _S(0x8910,	"SIOCGIFNAME"	)
@@ -52,6 +57,7 @@ _S(0x89a2,	"SIOCBRADDIF"	)
 _S(0x40045431,	"TIOCSPTLCK"	) // Need a better fix for these
 _S(0x80045430,	"TIOCGPTN"	)
 _S(0x80045431,	"TIOCSPTLCK"	)
+
 _S(0xC01C64A3,	"DRM_IOCTL_MODE_CURSOR"	)
 _S(0xC01864B0,	"DRM_IOCTL_MODE_PAGE_FLIP"	)
 _S(0xC01864B1,	"DRM_IOCTL_MODE_DIRTYFB"	)
