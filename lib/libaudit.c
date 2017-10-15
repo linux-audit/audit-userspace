@@ -837,7 +837,7 @@ int audit_make_equivalent(int fd, const char *mount_point,
 }
 
 /*
- * This function will retreive the loginuid or -1 if there
+ * This function will retrieve the loginuid or -1 if there
  * is an error.
  */
 uid_t audit_getloginuid(void)
@@ -901,7 +901,7 @@ int audit_setloginuid(uid_t uid)
 }
 
 /*
- * This function will retreive the login session or -2 if there
+ * This function will retrieve the login session or -2 if there
  * is an error.
  */
 uint32_t audit_get_session(void)
