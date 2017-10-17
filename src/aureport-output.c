@@ -540,9 +540,9 @@ void print_per_event_item(llist *l)
 			break;
 		case RPT_LOGIN:
 			// who, addr, terminal, exe, success, event
-			// Special note...uid is used here because that is
-			// the way that the message works. This is because
-			// on failed logins, loginuid is not set.
+			// Special note...loginuid can be used here for
+			// successful logins. loginuid is not set on failed
+			// logins so acct is used in that situation.
 			safe_print_string(((l->s.success == S_FAILED) &&
 				l->s.acct) ? l->s.acct :
 				aulookup_uid(l->s.loginuid,
