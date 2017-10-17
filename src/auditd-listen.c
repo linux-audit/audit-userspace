@@ -914,6 +914,7 @@ int auditd_tcp_listen_init(struct ev_loop *loop, struct daemon_conf *config)
 	struct addrinfo hints;
 	char local[16];
 	int one = 1, rc;
+	int prefer_ipv6 = 0;
 
 	ev_periodic_init(&periodic_watcher, periodic_handler,
 			  0, config->tcp_client_max_idle, NULL);
@@ -929,6 +930,7 @@ int auditd_tcp_listen_init(struct ev_loop *loop, struct daemon_conf *config)
 	memset(&hints, '\0', sizeof(hints));
 	hints.ai_flags = AI_PASSIVE | AI_ADDRCONFIG;
 	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_family = AF_UNSPEC;
 	snprintf(local, sizeof(local), "%ld", config->tcp_listen_port);
 
 	rc = getaddrinfo(NULL, local, &hints, &ai);
@@ -937,9 +939,32 @@ int auditd_tcp_listen_init(struct ev_loop *loop, struct daemon_conf *config)
 		return 1;
 	}
 
+	{
+	int ipv4 = 0, ipv6 = 0;
 	nlsocks = 0;
 	runp = ai;
 	while (runp && nlsocks < N_SOCKS) {
+		// Let's take a pass through and see what we got.
+		if (runp->ai_family == AF_INET)
+			ipv4++;
+		else if (runp->ai_family == AF_INET6)
+			ipv6++;
+		runp = runp->ai_next;
+		nlsocks++;
+	}
+
+	if (nlsocks == 2 && ipv4 && ipv6)
+		prefer_ipv6 = 1;
+	}
+
+	nlsocks = 0;
+	runp = ai;
+	while (runp && nlsocks < N_SOCKS) {
+		// On linux, ipv6 sockets by default include ipv4 so
+		// we only need one.
+		if (runp->ai_family == AF_INET && prefer_ipv6)
+			goto next_try;
+			
 		listen_socket[nlsocks] = socket(runp->ai_family,
 				 runp->ai_socktype, runp->ai_protocol);
 		if (listen_socket[nlsocks] < 0) {
@@ -950,6 +975,13 @@ int auditd_tcp_listen_init(struct ev_loop *loop, struct daemon_conf *config)
 		/* This avoids problems if auditd needs to be restarted.  */
 		setsockopt(listen_socket[nlsocks], SOL_SOCKET, SO_REUSEADDR,
 				(char *)&one, sizeof (int));
+
+		// If we had more than 2 addresses suggested we'll
+		// separate the sockets.
+		if (!prefer_ipv6 && runp->ai_family == AF_INET6)
+			setsockopt(listen_socket[nlsocks], IPPROTO_IPV6,
+				IPV6_V6ONLY, &one, sizeof(int));
+
 		set_close_on_exec(listen_socket[nlsocks]);
 
 		if (bind(listen_socket[nlsocks], runp->ai_addr,
