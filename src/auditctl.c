@@ -1064,10 +1064,9 @@ process_keys:
 #endif
 		break;
 	case 3:
-		if ((rc = audit_reset_lost(fd)) >= 0) {
-			audit_msg(LOG_INFO, "lost: %u", rc);
-			return -2;
-		} else {
+		if ((rc = audit_reset_lost(fd)) >= 0)
+			audit_request_status(fd);
+		else {
 			audit_number_to_errmsg(rc, long_opts[lidx].name);
 			retval = -1;
 		}
