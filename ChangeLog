@@ -2,6 +2,7 @@
 - Update tables for 4.14 kernel
 - Fixup ipv6 server side binding
 - In auditctl, when resetting lost request status output afterwards
+- AVC report from aureport was missing result column header (#1511606)
 
 2.8.1
 - Fix NULL ptr dereference in audispd plugin_dir parser

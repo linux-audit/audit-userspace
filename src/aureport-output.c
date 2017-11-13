@@ -216,11 +216,11 @@ static void print_title_detailed(void)
 		case RPT_AVC:
 			printf("AVC Report\n");
 			printf(
-		  "========================================================\n");
+		  "===============================================================\n");
 			printf(
-		  "# date time comm subj syscall class permission obj event\n");
+		  "# date time comm subj syscall class permission obj result event\n");
 			printf(
-		  "========================================================\n");
+		  "===============================================================\n");
 			break;
 		case RPT_CONFIG:
 			printf("Config Change Report\n");
