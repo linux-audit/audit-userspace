@@ -121,6 +121,7 @@ void audit_msg(int priority, const char *fmt, ...)
 #endif
 
 extern int audit_send(int fd, int type, const void *data, unsigned int size);
+extern int __audit_send(int fd, int type, const void *data, unsigned int size, int *seq);
 
 AUDIT_HIDDEN_START
 

@@ -203,7 +203,7 @@ static int adjust_reply(struct audit_reply *rep, int len)
  *                   error:   -errno
  *                   short:   0
  */
-int audit_send(int fd, int type, const void *data, unsigned int size)
+int __audit_send(int fd, int type, const void *data, unsigned int size, int *seq)
 {
 	static int sequence = 0;
 	struct audit_message req;
@@ -224,6 +224,7 @@ int audit_send(int fd, int type, const void *data, unsigned int size)
 
 	if (++sequence < 0) 
 		sequence = 1;
+	*seq = sequence;
 
 	memset(&req, 0, sizeof(req));
 	req.nlh.nlmsg_len = NLMSG_SPACE(size);
@@ -241,16 +242,27 @@ int audit_send(int fd, int type, const void *data, unsigned int size)
 		retval = sendto(fd, &req, req.nlh.nlmsg_len, 0,
 			(struct sockaddr*)&addr, sizeof(addr));
 	} while (retval < 0 && errno == EINTR);
-	if (retval == (int)req.nlh.nlmsg_len) {
-		if ((retval = check_ack(fd)) == 0)
-			return sequence;
-		else
-			return retval; 
-	}
-	if (retval < 0) 
+	if (retval == (int)req.nlh.nlmsg_len)
+		return check_ack(fd);
+	if (retval < 0) {
 		return -errno;
+	} else if (retval > 0) {
+		errno = EINVAL;
+		return -errno;
+	}
 
 	return 0;
+}
+
+int audit_send(int fd, int type, const void *data, unsigned int size)
+{
+	int rc;
+	int seq;
+
+	rc = __audit_send(fd, type, data, size, &seq);
+	if (rc == 0)
+		rc = seq;
+	return rc;
 }
 
 /*
