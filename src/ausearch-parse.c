@@ -989,10 +989,15 @@ static int parse_user(const lnode *n, search_items *s)
 		}
 	} else if (n->type == AUDIT_VIRT_RESOURCE) {
 		if (event_filename) {
+			unigned int incr = 6;
 			str = strstr(term, " path=");
+			if (str == NULL) {
+				incr = 10;
+				str = strstr(term, " new-disk=");
+			}
 			if (str != NULL) {
 				int rc;
-				str += 6;
+				str += incr;
 				rc = common_path_parser(s, str);
 				if (rc)
 					return rc;
