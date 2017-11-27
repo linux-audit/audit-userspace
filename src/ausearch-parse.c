@@ -989,7 +989,7 @@ static int parse_user(const lnode *n, search_items *s)
 		}
 	} else if (n->type == AUDIT_VIRT_RESOURCE) {
 		if (event_filename) {
-			unigned int incr = 6;
+			unsigned int incr = 6;
 			str = strstr(term, " path=");
 			if (str == NULL) {
 				incr = 10;
