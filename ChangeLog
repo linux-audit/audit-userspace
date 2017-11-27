@@ -4,6 +4,7 @@
 - In auditctl, when resetting lost request status output afterwards
 - AVC report from aureport was missing result column header (#1511606)
 - Add SOFTWARE_UPDATE event
+- In ausearch/report pickup any path records as a file
 
 2.8.1
 - Fix NULL ptr dereference in audispd plugin_dir parser
