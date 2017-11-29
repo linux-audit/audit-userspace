@@ -854,6 +854,7 @@ expr_create_timestamp_comparison_ex(unsigned op, time_t sec, unsigned milli,
 	       || op == EO_VALUE_LE || op == EO_VALUE_GT || op == EO_VALUE_GE);
 	res->op = op;
 	res->virtual_field = 1;
+	res->numeric_field = 1;
 	res->v.p.field.id = EF_TIMESTAMP_EX;
 	res->precomputed_value = 1;
 	res->v.p.value.timestamp_ex.sec = sec;
