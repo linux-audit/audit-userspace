@@ -250,6 +250,10 @@ AC_ARG_ENABLE(systemd,
 )
 AM_CONDITIONAL(ENABLE_SYSTEMD, test x$want_systemd = xyes)
 
+# linux/fanotify.h
+AC_CHECK_HEADER(linux/fanotify.h, [ AC_DEFINE(USE_FANOTIFY, [],
+	[Defined when fanotify headers are found]) ])
+
 withval=""
 ALLDEBUG="-g"
 AC_ARG_WITH(debug,

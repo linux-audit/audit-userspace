@@ -50,7 +50,12 @@
 #include <sys/personality.h>
 #include <sys/prctl.h>
 #include <sched.h>
+#ifdef USE_FANOTIFY
 #include <linux/fanotify.h>
+#else
+#define FAN_ALLOW 1
+#define FAN_DENY 2
+#endif
 #include "auparse-defs.h"
 #include "gen_tables.h"
 
