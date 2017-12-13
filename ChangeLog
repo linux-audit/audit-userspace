@@ -8,6 +8,7 @@
 - In auparse, fix expr_create_timestamp_comparison_ex to be numeric field
 - Fix building on old systems without linux/fanotify.h
 - Fix shell portability issues reported by shellcheck
+- Auditd validate_email should not use gethostbyname
 
 2.8.1
 - Fix NULL ptr dereference in audispd plugin_dir parser

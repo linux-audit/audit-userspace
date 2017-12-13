@@ -1097,7 +1097,9 @@ static int validate_email(const char *acct)
 
 	if ((ptr1 = strchr(acct, '@'))) {
 		char *ptr2;
-		struct hostent *t_addr;
+		int rc2;
+		struct addrinfo *ai;
+		struct addrinfo hints;
 
 		ptr2 = strrchr(acct, '.');        // get last dot - sb after @
 		if ((ptr2 == NULL) || (ptr1 > ptr2)) {
@@ -1106,21 +1108,26 @@ static int validate_email(const char *acct)
 			return 2;
 		}
 
-		t_addr = gethostbyname(ptr1+1);
-		if (t_addr == 0) {
+		memset(&hints, 0, sizeof(hints));
+		hints.ai_flags = AI_ADDRCONFIG | AI_CANONNAME;
+		hints.ai_socktype = SOCK_STREAM;
+
+		rc2 = getaddrinfo(ptr1+1, NULL, &hints, &ai);
+		freeaddrinfo(ai);
+		if (rc2 != 0) {
 			if ((h_errno == HOST_NOT_FOUND) ||
-					(h_errno == NO_RECOVERY)) {
-					audit_msg(LOG_ERR,
-				"validate_email: failed looking up host for %s",
-					ptr1+1);
-				// FIXME: gethostbyname is having trouble
-				// telling when we have a temporary vs permanent
-				// dns failure. So, for now, treat all as temp
-				return 1;
-			} else if (h_errno == TRY_AGAIN)
+						(h_errno == NO_RECOVERY)) {
+				audit_msg(LOG_ERR,
+			"validate_email: failed looking up host for %s (%s)",
+					ptr1+1, gai_strerror(rc2));
+				// FIXME: How can we tell that we truly have
+				// a permanent failure and what is that? For
+				// now treat all as temp failure.
+			} else if (h_errno == TRY_AGAIN) {
 				audit_msg(LOG_DEBUG,
 		"validate_email: temporary failure looking up domain for %s",
 					ptr1+1);
+			}
 			return 1;
 		}
 	}
@@ -1818,7 +1825,7 @@ int resolve_node(struct daemon_conf *config)
 				if (rc2 != 0) {
 					audit_msg(LOG_ERR,
 					"Cannot resolve hostname %s (%s)",
-					tmp_name, gai_strerror(rc));
+					tmp_name, gai_strerror(rc2));
 					rc = -1;
 					break;
 				}

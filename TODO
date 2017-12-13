@@ -1,7 +1,6 @@
 Things that need to be done:
 ===========================
 2.8.2
-* validate_email should not use gethostbyname
 * Look into TLS support
 * Add rule verify to detect mismatch between in-kernel and on-disk rules
 
