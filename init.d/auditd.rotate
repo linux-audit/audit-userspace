@@ -9,7 +9,7 @@ PATH=/sbin:/bin:/usr/bin:/usr/sbin
 prog="auditd"
 source /etc/init.d/functions
 
-echo -n $"Rotating logs: "
+printf "Rotating logs: "
 killproc $prog -USR1
 RETVAL=$?
 echo

@@ -9,7 +9,7 @@ PATH=/sbin:/bin:/usr/bin:/usr/sbin
 prog="auditd"
 source /etc/init.d/functions
 
-echo -n $"Stopping logging: "
+printf "Stopping logging: "
 killproc $prog -TERM
 RETVAL=$?
 echo
