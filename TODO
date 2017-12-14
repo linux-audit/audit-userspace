@@ -1,6 +1,6 @@
-Things that need to be done:
-===========================
-2.8.2
+Future roadmap (subject to change):
+===================================
+2.8.3
 * Look into TLS support
 * Add rule verify to detect mismatch between in-kernel and on-disk rules
 

@@ -263,6 +263,6 @@ fi
 
 
 %changelog
-* Thu Oct 12 2017 Steve Grubb <sgrubb@redhat.com> 2.8.2-1
+* Thu Dec 14 2017 Steve Grubb <sgrubb@redhat.com> 2.8.2-1
 - New upstream release
 
