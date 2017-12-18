@@ -25,7 +25,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "lru.h"
-//#include "message.h"
+#include "private.h"
 
 //#define DEBUG
 
@@ -145,11 +145,11 @@ static void sanity_check_queue(Queue *q, const char *id)
 	i = 0;
 	while (n->next) {
 		if (n->next->prev != n) {
-			msg(LOG_DEBUG, "%s - corruption found %u", id, i);
+			audit_msg(LOG_DEBUG, "%s - corruption found %u", id, i);
 			abort();
 		}
 		if (i == q->count) {
-			msg(LOG_DEBUG, "%s - forward loop found %u", id, i);
+			audit_msg(LOG_DEBUG, "%s - forward loop found %u", id, i);
 			abort();
 		}
 		i++;
@@ -160,11 +160,11 @@ static void sanity_check_queue(Queue *q, const char *id)
 	n = q->end;
 	while (n->prev) {
 		if (n->prev->next != n) {
-			msg(LOG_DEBUG, "%s - Corruption found %u", id, i);
+			audit_msg(LOG_DEBUG, "%s - Corruption found %u", id, i);
 			abort();
 		}
 		if (i == 0) {
-			msg(LOG_DEBUG, "%s - backward loop found %u", id, i);
+			audit_msg(LOG_DEBUG, "%s - backward loop found %u", id, i);
 			abort();
 		}
 		i--;
