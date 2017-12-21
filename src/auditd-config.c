@@ -1113,7 +1113,6 @@ static int validate_email(const char *acct)
 		hints.ai_socktype = SOCK_STREAM;
 
 		rc2 = getaddrinfo(ptr1+1, NULL, &hints, &ai);
-		freeaddrinfo(ai);
 		if (rc2 != 0) {
 			if ((h_errno == HOST_NOT_FOUND) ||
 						(h_errno == NO_RECOVERY)) {
@@ -1130,6 +1129,7 @@ static int validate_email(const char *acct)
 			}
 			return 1;
 		}
+		freeaddrinfo(ai);
 	}
 	return 0;
 }

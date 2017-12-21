@@ -1,5 +1,6 @@
 2.8.3
 - Correct msg function name in lru debug code
+- Fix a segfault in auditd when dns resolution isn't available
 
 2.8.2
 - Update tables for 4.14 kernel
