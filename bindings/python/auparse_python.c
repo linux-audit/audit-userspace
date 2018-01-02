@@ -2379,6 +2379,12 @@ initauparse(void)
     PyModule_AddIntConstant(m, "AUPARSE_TYPE_MODE_SHORT", AUPARSE_TYPE_MODE_SHORT);
     PyModule_AddIntConstant(m, "AUPARSE_TYPE_MAC_LABEL", AUPARSE_TYPE_MAC_LABEL);
     PyModule_AddIntConstant(m, "AUPARSE_TYPE_PROCTITLE", AUPARSE_TYPE_PROCTITLE);
+    PyModule_AddIntConstant(m, "AUPARSE_TYPE_HOOK", AUPARSE_TYPE_HOOK);
+    PyModule_AddIntConstant(m, "AUPARSE_TYPE_NETACTION", AUPARSE_TYPE_NETACTION);
+    PyModule_AddIntConstant(m, "AUPARSE_TYPE_IOCTL_REQ", AUPARSE_TYPE_IOCTL_REQ);
+    PyModule_AddIntConstant(m, "AUPARSE_TYPE_ESCAPED_KEY", AUPARSE_TYPE_ESCAPED_KEY);
+    PyModule_AddIntConstant(m, "AUPARSE_TYPE_ESCAPED_FILE", AUPARSE_TYPE_ESCAPED_FILE);
+    PyModule_AddIntConstant(m, "AUPARSE_TYPE_FANOTIFY", AUPARSE_TYPE_FANOTIFY);
 
     /* Escape types */
     PyModule_AddIntConstant(m, "AUPARSE_ESC_RAW", AUPARSE_ESC_RAW);
