@@ -201,6 +201,7 @@ static void usage(void)
 	"\t--debug\t\t\tWrite malformed events that are skipped to stderr\n"
 	"\t-e,--exit  <Exit code or errno>\tsearch based on syscall exit code\n"
 	"\t-f,--file  <File name>\t\tsearch based on file name\n"
+	"\t--format [raw|default|interpret|csv|text] results format options\n"
 	"\t-ga,--gid-all <all Group id>\tsearch based on All group ids\n"
 	"\t-ge,--gid-effective <effective Group id>  search based on Effective\n\t\t\t\t\tgroup id\n"
 	"\t-gi,--gid <Group Id>\t\tsearch based on group id\n"
