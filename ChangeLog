@@ -3,6 +3,7 @@
 - Fix a segfault in auditd when dns resolution isn't available
 - Make a reload legacy service for auditd
 - In auparse python bindings, expose some new types that were missing
+- In normalizer, pickup subject kind for user_login events
 
 2.8.2
 - Update tables for 4.14 kernel

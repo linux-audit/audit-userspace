@@ -1,5 +1,5 @@
 /* normalize.c --
- * Copyright 2016-17 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2016-18 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -1566,7 +1566,8 @@ map:
 		if (set_prime_subject(au, "id", 0)) {
 			auparse_first_record(au);
 			set_prime_subject(au, "acct", 0);
-		}
+		} else // If id found, set the subjkind
+			set_subject_what(au);
 		auparse_first_record(au);
 	} else {
 		// Subject - alias, uid comes before auid
