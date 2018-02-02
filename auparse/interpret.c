@@ -2112,7 +2112,7 @@ static const char *print_ioctl_req(const char *val)
 	r = ioctlreq_i2s(req);
 	if (r != NULL)
 		return strdup(r);
-	if (asprintf(&out, "0x%s", val) < 0)
+	if (asprintf(&out, "0x%x", req) < 0)
 		out = NULL;
 	return out;
 }

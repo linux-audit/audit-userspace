@@ -4,6 +4,7 @@
 - Make a reload legacy service for auditd
 - In auparse python bindings, expose some new types that were missing
 - In normalizer, pickup subject kind for user_login events
+- Fix interpretation of unknown ioctcmds (#1540507)
 
 2.8.2
 - Update tables for 4.14 kernel
