@@ -1,5 +1,5 @@
 /* libaudit.h -- 
- * Copyright 2004-2017 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2004-2018 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -179,6 +179,8 @@ extern "C" {
 #define AUDIT_RESP_EXEC			2210 /* Execute a script */
 #define AUDIT_RESP_SINGLE		2211 /* Go to single user mode */
 #define AUDIT_RESP_HALT			2212 /* take the system down */
+#define AUDIT_RESP_ORIGIN_BLOCK		2213 /* Address blocked by iptables */
+#define AUDIT_RESP_ORIGIN_BLOCK_TIMED	2214 /* Address blocked for time */
 
 #define AUDIT_FIRST_USER_LSPP_MSG	2300
 #define AUDIT_LAST_USER_LSPP_MSG	2399

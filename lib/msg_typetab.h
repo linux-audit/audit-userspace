@@ -1,5 +1,5 @@
 /* msg_typetab.h --
- * Copyright 2005-07,2009-17 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2005-07,2009-18 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -192,6 +192,8 @@ _S(AUDIT_RESP_SEBOOL,                "RESP_SEBOOL"                   )
 _S(AUDIT_RESP_EXEC,                  "RESP_EXEC"                     )
 _S(AUDIT_RESP_SINGLE,                "RESP_SINGLE"                   )
 _S(AUDIT_RESP_HALT,                  "RESP_HALT"                     )
+_S(AUDIT_RESP_ORIGIN_BLOCK,          "RESP_ORIGIN_BLOCK"             )
+_S(AUDIT_RESP_ORIGIN_BLOCK_TIMED,    "RESP_ORIGIN_BLOCK_TIMED"       )
 _S(AUDIT_USER_ROLE_CHANGE,           "USER_ROLE_CHANGE"              )
 _S(AUDIT_ROLE_ASSIGN,                "ROLE_ASSIGN"                   )
 _S(AUDIT_ROLE_REMOVE,                "ROLE_REMOVE"                   )
