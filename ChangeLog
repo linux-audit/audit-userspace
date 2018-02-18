@@ -5,7 +5,7 @@
 - In auparse python bindings, expose some new types that were missing
 - In normalizer, pickup subject kind for user_login events
 - Fix interpretation of unknown ioctcmds (#1540507)
-- Add AUDIT_RESP_ORIGIN_BLOCK & AUDIT_RESP_ORIGIN_BLOCK_TIMED events
+- Add ANOM_LOGIN_SERVICE, RESP_ORIGIN_BLOCK, & RESP_ORIGIN_BLOCK_TIMED events
 
 2.8.2
 - Update tables for 4.14 kernel

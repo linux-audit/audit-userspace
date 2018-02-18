@@ -163,6 +163,7 @@ extern "C" {
 #define AUDIT_ANOM_DEL_ACCT		2115 // Deleting an acct
 #define AUDIT_ANOM_MOD_ACCT		2116 // Changing an acct
 #define AUDIT_ANOM_ROOT_TRANS		2117 // User became root
+#define AUDIT_ANOM_LOGIN_SERVICE	2118 // Service acct attempted login
 
 #define AUDIT_FIRST_ANOM_RESP		2200
 #define AUDIT_LAST_ANOM_RESP		2299
