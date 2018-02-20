@@ -25,6 +25,7 @@
 #include <stdint.h>
 #include <sys/stat.h>
 #include <errno.h>
+#include <pwd.h>
 #include "libaudit.h"
 #include "auparse.h"
 #include "internal.h"
@@ -100,22 +101,38 @@ void clear_normalizer(normalize_data *d)
 
 static unsigned int set_subject_what(auparse_state_t *au)
 {
+	int uid = NORM_ACCT_UNSET - 1;
 	int ftype = auparse_get_field_type(au);
-	if (ftype == AUPARSE_TYPE_UID) {
-		int uid = auparse_get_field_int(au);
-		if (uid == NORM_ACCT_PRIV)
-			D.actor.what = strdup("priviliged-acct");
-		else if ((unsigned)uid == NORM_ACCT_UNSET)
-			D.actor.what = strdup("unset-acct");
-		else if (uid < NORM_ACCT_MAX_SYS)
-			D.actor.what = strdup("service-acct");
-		else if (uid < NORM_ACCT_MAX_USER)
-			D.actor.what = strdup("user-acct");
-		else
-			D.actor.what = strdup("unknown-acct");
-		return 0;
+	if (ftype == AUPARSE_TYPE_UID)
+		uid = auparse_get_field_int(au);
+	else {
+		const char *n = auparse_get_field_name(au);
+		if (n && strcmp(n, "acct") == 0) {
+			const char *acct = auparse_interpret_field(au);
+			if (acct) {
+				// FIXME: Make this a LRU item
+				struct passwd *pw = getpwnam(acct);
+				if (pw) {
+					uid = pw->pw_uid;
+					goto check;
+				}
+			}
+		}
+		return 1;
 	}
-	return 1;
+
+check:
+	if (uid == NORM_ACCT_PRIV)
+		D.actor.what = strdup("priviliged-acct");
+	else if ((unsigned)uid == NORM_ACCT_UNSET)
+		D.actor.what = strdup("unset-acct");
+	else if (uid < NORM_ACCT_MAX_SYS)
+		D.actor.what = strdup("service-acct");
+	else if (uid < NORM_ACCT_MAX_USER)
+		D.actor.what = strdup("user-acct");
+	else
+		D.actor.what = strdup("unknown-acct");
+	return 0;
 }
 
 static unsigned int set_prime_subject(auparse_state_t *au, const char *str,
@@ -1565,7 +1582,8 @@ map:
 		// Subject - primary
 		if (set_prime_subject(au, "id", 0)) {
 			auparse_first_record(au);
-			set_prime_subject(au, "acct", 0);
+			if (set_prime_subject(au, "acct", 0) == 0)
+				set_subject_what(au);
 		} else // If id found, set the subjkind
 			set_subject_what(au);
 		auparse_first_record(au);
