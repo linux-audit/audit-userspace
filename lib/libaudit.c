@@ -37,7 +37,7 @@
 #include <sys/utsname.h>
 #include <sys/stat.h>
 #include <fcntl.h>	/* O_NOFOLLOW needs gnu defined */
-#include <limits.h>	/* for PATH_MAX */
+#include <limits.h>	/* for PATH_MAX, UINT_MAX */
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/socket.h> /* AF_MAX */
@@ -1536,7 +1536,7 @@ int audit_rule_fieldpair_data(struct audit_rule_data **rulep, const char *pair,
 			else {
 				if (strcmp(v, "unset") == 0)
 					rule->values[rule->field_count] =
-								4294967295;
+								UINT_MAX;
 				else if (audit_name_to_uid(v,
 					&rule->values[rule->field_count])) {
 					audit_msg(LOG_ERR, "Unknown user: %s",
@@ -1772,7 +1772,7 @@ int audit_rule_fieldpair_data(struct audit_rule_data **rulep, const char *pair,
 				rule->values[rule->field_count] =
 					strtol(v, NULL, 0);
 			else if (strcmp(v, "unset") == 0)
-				rule->values[rule->field_count] = 4294967295;
+				rule->values[rule->field_count] = UINT_MAX;
 			break;
 		case AUDIT_SADDR_FAM:
 			rule->values[rule->field_count] = strtoul(v, NULL, 0);
