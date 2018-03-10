@@ -968,9 +968,14 @@ static void rotate_logs(unsigned int num_logs)
 	unsigned int len, i;
 	char *oldname, *newname;
 
-	if (config->max_log_size_action == SZ_ROTATE &&
-				config->num_logs < 2)
+	/* Check that log rotation is enabled in the configuration file. There is
+	 * no need to check for max_log_size_action == SZ_ROTATE because this could be
+	 * invoked externally by receiving a USR1 signal, independently on
+	 *  the action parameter. */
+	if (config->num_logs < 2){
+		audit_msg(LOG_NOTICE, "Log rotation disabled (num_logs < 2), skipping");
 		return;
+	}
 
 	/* Close audit file. fchmod and fchown errors are not fatal because we
 	 * already adjusted log file permissions and ownership when opening the
