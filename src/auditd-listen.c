@@ -1,5 +1,5 @@
 /* auditd-listen.c -- 
- * Copyright 2008,2009,2011,2016 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2008,2009,2011,2016,2018 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -61,7 +61,7 @@ extern int send_audit_event(int type, const char *str);
 
 typedef struct ev_tcp {
 	struct ev_io io;
-	struct sockaddr_in addr;
+	struct sockaddr_storage addr;
 	struct ev_tcp *next, *prev;
 	unsigned int bufptr;
 	int client_active;
@@ -91,24 +91,39 @@ static char msgbuf[MAX_AUDIT_MESSAGE_LENGTH + 1];
 
 static struct ev_tcp *client_chain = NULL;
 
-static char *sockaddr_to_ipv4(struct sockaddr_in *addr)
+static char *sockaddr_to_string(struct sockaddr_storage *addr)
 {
-	unsigned char *uaddr = (unsigned char *)&(addr->sin_addr);
-	static char buf[40];
+	static char buf[INET6_ADDRSTRLEN];
 
-	snprintf(buf, sizeof(buf), "%u.%u.%u.%u",
-		uaddr[0], uaddr[1], uaddr[2], uaddr[3]);
+	inet_ntop(addr->ss_family, addr->ss_family == AF_INET ?
+		(void *) &((struct  sockaddr_in *)addr)->sin_addr :
+		(void *) &((struct sockaddr_in6 *)addr)->sin6_addr,
+		buf, INET6_ADDRSTRLEN);
+
 	return buf;
 }
 
-static char *sockaddr_to_addr4(struct sockaddr_in *addr)
+static unsigned int sockaddr_to_port(struct sockaddr_storage *addr)
 {
-	unsigned char *uaddr = (unsigned char *)&(addr->sin_addr);
+	unsigned int rc;
+
+	if (addr->ss_family == AF_INET)
+		rc = ntohs(((struct  sockaddr_in *)addr)->sin_port);
+	else if (addr->ss_family == AF_INET6)
+		rc = ntohs(((struct sockaddr_in6 *)addr)->sin6_port);
+	else
+		rc = -1;
+
+	return rc;
+}
+
+static char *sockaddr_to_addr(struct sockaddr_storage *addr)
+{
 	static char buf[40];
 
-	snprintf(buf, sizeof(buf), "%u.%u.%u.%u:%u",
-		uaddr[0], uaddr[1], uaddr[2], uaddr[3],
-		ntohs (addr->sin_port));
+	snprintf(buf, sizeof(buf), "%s:%u",
+		sockaddr_to_string(addr),
+		sockaddr_to_port(addr));
 	return buf;
 }
 
@@ -125,8 +140,9 @@ static void release_client(struct ev_tcp *client)
 {
 	char emsg[DEFAULT_BUF_SZ];
 
-	snprintf(emsg, sizeof(emsg), "addr=%s port=%d res=success",
-		sockaddr_to_ipv4(&client->addr), ntohs (client->addr.sin_port));
+	snprintf(emsg, sizeof(emsg), "addr=%s port=%u res=success",
+		sockaddr_to_string(&client->addr),
+		sockaddr_to_port(&client->addr));
 	send_audit_event(AUDIT_DAEMON_CLOSE, emsg); 
 #ifdef USE_GSSAPI
 	if (client->remote_name)
@@ -380,7 +396,7 @@ static int negotiate_credentials(ev_tcp *io)
 		if (recv_token(io->io.fd, &recv_tok) <= 0) {
 			audit_msg(LOG_ERR,
 			"TCP session from %s will be closed, error ignored",
-				  sockaddr_to_addr4(&io->addr));
+				  sockaddr_to_addr(&io->addr));
 			return -1;
 		}
 		if (recv_tok.length == 0) {
@@ -420,7 +436,7 @@ static int negotiate_credentials(ev_tcp *io)
 				gss_release_buffer(&min_stat, &send_tok);
 				audit_msg(LOG_ERR,
 			"TCP session from %s will be closed, error ignored",
-					  sockaddr_to_addr4(&io->addr));
+					  sockaddr_to_addr(&io->addr));
 				if (*context != GSS_C_NO_CONTEXT)
 					gss_delete_sec_context(&min_stat,
 						context, GSS_C_NO_BUFFER);
@@ -588,7 +604,7 @@ read_more:
 		if (r < 0)
 			audit_msg(LOG_WARNING,
 				"client %s socket closed unexpectedly",
-				sockaddr_to_addr4(&io->addr));
+				sockaddr_to_addr(&io->addr));
 
 		/* There may have been a final message without a LF.  */
 		if (io->bufptr) {
@@ -741,14 +757,24 @@ static int auditd_tcpd_check(int sock)
  * a 1 if there are too many and a 0 otherwise. It assumes the incoming
  * connection has not been added to the linked list yet.
  */
-static int check_num_connections(struct sockaddr_in *aaddr)
+static int check_num_connections(struct sockaddr_storage *aaddr)
 {
 	int num = 0;
 	struct ev_tcp *client = client_chain;
 
 	while (client) {
-		if (memcmp(&aaddr->sin_addr, &client->addr.sin_addr, 
-					sizeof(struct in_addr)) == 0) {
+		int rc;
+		struct sockaddr_storage *cl_addr = &client->addr;
+
+		if (aaddr->ss_family == AF_INET)
+			rc = memcmp(&((struct sockaddr_in *)aaddr)->sin_addr,
+				&((struct sockaddr_in *)cl_addr)->sin_addr, 
+				sizeof(struct in_addr));
+		else
+			rc = memcmp(&((struct sockaddr_in6 *)aaddr)->sin6_addr,
+				&((struct sockaddr_in6 *)cl_addr)->sin6_addr, 
+				sizeof(struct in6_addr));
+		if (rc == 0) {
 			num++;
 			if (num >= max_per_addr)
 				return 1;
@@ -764,7 +790,7 @@ static void auditd_tcp_listen_handler( struct ev_loop *loop,
 	int one=1;
 	int afd;
 	socklen_t aaddrlen;
-	struct sockaddr_in aaddr;
+	struct sockaddr_storage aaddr;
 	struct ev_tcp *client;
 	char emsg[DEFAULT_BUF_SZ];
 
@@ -781,11 +807,11 @@ static void auditd_tcp_listen_handler( struct ev_loop *loop,
 			shutdown(afd, SHUT_RDWR);
 			close(afd);
 	        	audit_msg(LOG_ERR, "TCP connection from %s rejected",
-					sockaddr_to_addr4(&aaddr));
+					sockaddr_to_addr(&aaddr));
 			snprintf(emsg, sizeof(emsg),
 				"op=wrap addr=%s port=%d res=no",
-				sockaddr_to_ipv4(&aaddr),
-				ntohs (aaddr.sin_port));
+				sockaddr_to_string(&aaddr),
+				sockaddr_to_port(&aaddr));
 			send_audit_event(AUDIT_DAEMON_ACCEPT, emsg);
 			return;
 		}
@@ -793,14 +819,14 @@ static void auditd_tcp_listen_handler( struct ev_loop *loop,
 
 	/* Verify it's coming from an authorized port.  We assume the firewall
 	 * will block attempts from unauthorized machines.  */
-	if (min_port > ntohs(aaddr.sin_port) ||
-					ntohs(aaddr.sin_port) > max_port) {
+	if (min_port > sockaddr_to_port(&aaddr) ||
+				sockaddr_to_port(&aaddr) > max_port) {
         	audit_msg(LOG_ERR, "TCP connection from %s rejected",
-				sockaddr_to_addr4(&aaddr));
+				sockaddr_to_addr(&aaddr));
 		snprintf(emsg, sizeof(emsg),
 			"op=port addr=%s port=%d res=no",
-			sockaddr_to_ipv4(&aaddr),
-			ntohs (aaddr.sin_port));
+			sockaddr_to_string(&aaddr),
+			sockaddr_to_port(&aaddr));
 		send_audit_event(AUDIT_DAEMON_ACCEPT, emsg);
 		shutdown(afd, SHUT_RDWR);
 		close(afd);
@@ -810,11 +836,11 @@ static void auditd_tcp_listen_handler( struct ev_loop *loop,
 	/* Make sure we don't have too many connections */
 	if (check_num_connections(&aaddr)) {
         	audit_msg(LOG_ERR, "Too many connections from %s - rejected",
-				sockaddr_to_addr4(&aaddr));
+				sockaddr_to_addr(&aaddr));
 		snprintf(emsg, sizeof(emsg),
 			"op=dup addr=%s port=%d res=no",
-			sockaddr_to_ipv4(&aaddr),
-			ntohs (aaddr.sin_port));
+			sockaddr_to_string(&aaddr),
+			sockaddr_to_port(&aaddr));
 		send_audit_event(AUDIT_DAEMON_ACCEPT, emsg);
 		shutdown(afd, SHUT_RDWR);
 		close(afd);
@@ -833,8 +859,8 @@ static void auditd_tcp_listen_handler( struct ev_loop *loop,
         	audit_msg(LOG_CRIT, "Unable to allocate TCP client data");
 		snprintf(emsg, sizeof(emsg),
 			"op=alloc addr=%s port=%d res=no",
-			sockaddr_to_ipv4(&aaddr),
-			ntohs(aaddr.sin_port));
+			sockaddr_to_string(&aaddr),
+			sockaddr_to_port(&aaddr));
 		send_audit_event(AUDIT_DAEMON_ACCEPT, emsg);
 		shutdown(afd, SHUT_RDWR);
 		close(afd);
@@ -847,7 +873,7 @@ static void auditd_tcp_listen_handler( struct ev_loop *loop,
 	// Was watching for EV_ERROR, but libev 3.48 took it away
 	ev_io_init(&(client->io), auditd_tcp_client_handler, afd, EV_READ);
 
-	memcpy(&client->addr, &aaddr, sizeof (struct sockaddr_in));
+	memcpy(&client->addr, &aaddr, sizeof (struct sockaddr_storage));
 
 #ifdef USE_GSSAPI
 	if (use_gss && negotiate_credentials (client)) {
@@ -870,8 +896,8 @@ static void auditd_tcp_listen_handler( struct ev_loop *loop,
 
 	/* And finally log that we accepted the connection */
 	snprintf(emsg, sizeof(emsg),
-		"addr=%s port=%d res=success", sockaddr_to_ipv4(&aaddr),
-		ntohs (aaddr.sin_port));
+		"addr=%s port=%d res=success", sockaddr_to_string(&aaddr),
+		sockaddr_to_port(&aaddr));
 	send_audit_event(AUDIT_DAEMON_ACCEPT, emsg);
 }
 
@@ -901,7 +927,7 @@ static void periodic_handler(struct ev_loop *loop, struct ev_periodic *per,
 
 		audit_msg(LOG_NOTICE,
 			"client %s idle too long - closing connection\n",
-			sockaddr_to_addr4(&(ev->addr)));
+			sockaddr_to_addr(&(ev->addr)));
 		ev_io_stop(loop, &ev->io);
 		release_client(ev);
 		free(ev);

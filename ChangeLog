@@ -7,6 +7,7 @@
 - Fix interpretation of unknown ioctcmds (#1540507)
 - Add ANOM_LOGIN_SERVICE, RESP_ORIGIN_BLOCK, & RESP_ORIGIN_BLOCK_TIMED events
 - In auparse_normalize for USER_LOGIN events, map acct for subj_kind
+- Fix logging of IPv6 addresses in DAEMON_ACCEPT events (#1534748)
 
 2.8.2
 - Update tables for 4.14 kernel
