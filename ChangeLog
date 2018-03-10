@@ -1,3 +1,5 @@
+2.8.4
+
 2.8.3
 - Correct msg function name in lru debug code
 - Fix a segfault in auditd when dns resolution isn't available
