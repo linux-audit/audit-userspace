@@ -149,8 +149,8 @@ int main(int argc, char *argv[])
 
 	/* Generate a checkpoint if required */
 	if (checkpt_filename) {
-		/* Providing we found something and haven't failed */
-		if (!checkpt_failure && found)
+		/* Providing haven't failed and have sucessfully read data records, save a checkpoint */
+		if (!checkpt_failure && (rc == 0))
 			save_ChkPt(checkpt_filename);
 		free_ChkPtMemory();
 		free((void *)checkpt_filename);
@@ -443,16 +443,6 @@ static int process_log_fd(void)
 			if (do_output == 1) {
 				found = 1;
 				output_record(entries);
-
-				/* Remember this event if checkpointing */
-				if (checkpt_filename) {
-					if (set_ChkPtLastEvent(&entries->e)) {
-						list_clear(entries);
-						free(entries);
-						fclose(log_fd);
-						return 4;	/* no memory */
-					}
-				}
 			} else if (do_output == 3) {
 				fprintf(stderr,
 			"Corrupted checkpoint file. Inode match, but newer complete event (%lu.%03u:%lu) found before loaded checkpoint %lu.%03u:%lu\n",
@@ -474,6 +464,15 @@ static int process_log_fd(void)
 			}
 			if (line_buffered)
 				fflush(stdout);
+		}
+		/* Remember this event if checkpointing, irrespective of if we displayed it or not (do_output == 1) */
+		if (checkpt_filename) {
+			if (set_ChkPtLastEvent(&entries->e)) {
+				list_clear(entries);
+				free(entries);
+				fclose(log_fd);
+				return 4;	/* no memory */
+			}
 		}
 		ausearch_free_interpretations();
 		list_clear(entries);
