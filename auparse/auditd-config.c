@@ -276,6 +276,9 @@ static int log_file_parser(auparse_state_t *au, const char *val, int line,
 	DIR *d;
 	int fd, mode;
 
+	if (config->write_logs == 0)
+		return 0;
+
 	/* split name into dir and basename. */
 	tdir = strdup(val);
 	if (tdir)

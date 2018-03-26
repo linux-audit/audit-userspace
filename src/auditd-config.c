@@ -585,6 +585,9 @@ static int log_file_parser(struct nv_pair *nv, int line,
 	int fd, mode;
 	struct stat buf;
 
+	if (config->write_logs == 0)
+		return 0;
+
 	audit_msg(LOG_DEBUG, "log_file_parser called with: %s", nv->value);
 
 	/* get dir from name. */
