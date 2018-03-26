@@ -1120,6 +1120,9 @@ static int open_audit_log(void)
 {
 	int flags, lfd;
 
+	if (config->write_logs == 0)
+		return 0;
+
 	flags = O_WRONLY|O_APPEND|O_NOFOLLOW;
 	if (config->flush == FT_DATA)
 		flags |= O_DSYNC;
