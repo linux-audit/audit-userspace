@@ -619,11 +619,9 @@ static int log_file_parser(struct nv_pair *nv, int line,
 
 	fd = open(nv->value, mode);
 	if (fd < 0) {
-		if (errno == ENOENT) {
-			fd = create_log_file(nv->value);
-			if (fd < 0) 
-				return 1;
-		} else {
+		if (errno == ENOENT)
+			goto finish_up;	// Will create the log later
+		else {
 			audit_msg(LOG_ERR, "Unable to open %s (%s)", nv->value, 
 					strerror(errno));
 			return 1;
@@ -652,6 +650,7 @@ static int log_file_parser(struct nv_pair *nv, int line,
 		audit_msg(LOG_WARNING, "audit log is not writable by owner");
 	}
 
+finish_up:
 	free((void *)config->log_file);
 	config->log_file = strdup(nv->value);
 	if (config->log_file == NULL)
