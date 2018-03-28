@@ -3,7 +3,6 @@ Future roadmap (subject to change):
 3.0
 * Use SIGCONT to dump auditd internal state
 * Check virtual field \timestamp_ex works.True add to ausearch-expression man pg
-* Update auditctl to allow ids in rules again
 * Verify \timestamp_ex is supported in ausearch-expression, if so update man pg
 * Support TLS PSK as remote logging transport
 * Fix backlog_wait_time in 10-base-config.rules
