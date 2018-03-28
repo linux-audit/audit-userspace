@@ -1,5 +1,5 @@
 3.0
-- Generate checkpoint file even when not results are returned (Burn Alting)
+- Generate checkpoint file even when no results are returned (Burn Alting)
 - Fix log file creation when file logging is disabled entirely (Vlad Glagolev)
 - Convert auparse_test to run with python3 (Tomáš Chvátal)
 - Drop support for prelude
@@ -9,7 +9,7 @@
 - Fix parsing of virtual timestamp fields in ausearch_expression (#1515903)
 
 2.8.3
-- Correct msg function name in lru debug code
+- Correct msg function name in LRU debug code
 - Fix a segfault in auditd when dns resolution isn't available
 - Make a reload legacy service for auditd
 - In auparse python bindings, expose some new types that were missing
