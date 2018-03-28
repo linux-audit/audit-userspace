@@ -2,6 +2,7 @@
 - Generate checkpoint file even when not results are returned (Burn Alting)
 - Fix log file creation when file logging is disabled entirely (Vlad Glagolev)
 - Convert auparse_test to run with python3 (Tomáš Chvátal)
+- Drop support for prelude
 
 2.8.3
 - Correct msg function name in lru debug code
