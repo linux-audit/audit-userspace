@@ -1,5 +1,5 @@
 /* auditd.c -- 
- * Copyright 2004-09,2011,2013,2016-17 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2004-09,2011,2013,2016-18 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -67,6 +67,7 @@ volatile int stop = 0;
 static int fd = -1, pipefds[2] = {-1, -1};
 static struct daemon_conf config;
 static const char *pidfile = "/var/run/auditd.pid";
+static const char *state_file = "/var/run/auditd.state";
 static int init_pipe[2];
 static int do_fork = 1, opt_aggregate_only = 0, config_dir_set = 0;
 static struct auditd_event *cur_event = NULL, *reconfig_ev = NULL;
@@ -183,6 +184,27 @@ static void child_handler(struct ev_loop *loop, struct ev_signal *sig,
 static void child_handler2( int sig )
 {
 	child_handler(NULL, NULL, 0);
+}
+
+/*
+ * Used to dump internal state information
+ */
+static void cont_handler(struct ev_loop *loop, struct ev_signal *sig,
+			int revents)
+{
+	char buf[64];
+	mode_t u = umask(0137);	// allow 0640
+	FILE *f = fopen(state_file, "w");
+	umask(u);
+	if (f == NULL)
+		return;
+
+	time_t now = time(0);
+	strftime(buf, sizeof(buf), "%x %X", localtime(&now));
+	fprintf(f, "time = %s\n", buf);
+	write_logging_state(f);
+	fprintf(f, "dispatcher pid = %d\n", dispatcher_pid());
+	fclose(f);
 }
 
 static int extract_type(const char *str)
@@ -579,6 +601,7 @@ int main(int argc, char *argv[])
 	struct ev_signal sigusr1_watcher;
 	struct ev_signal sigusr2_watcher;
 	struct ev_signal sigchld_watcher;
+	struct ev_signal sigcont_watcher;
 
 	/* Get params && set mode */
 	while ((c = getopt_long(argc, argv, "flns:c:", opts, NULL)) != -1) {
@@ -884,6 +907,9 @@ int main(int argc, char *argv[])
 	ev_signal_init (&sigchld_watcher, child_handler, SIGCHLD);
 	ev_signal_start (loop, &sigchld_watcher);
 
+	ev_signal_init (&sigcont_watcher, cont_handler, SIGCONT);
+	ev_signal_start (loop, &sigcont_watcher);
+
 	ev_io_init (&pipe_watcher, pipe_handler, pipefds[0], EV_READ);
 	ev_io_start (loop, &pipe_watcher);
 
@@ -1003,6 +1029,7 @@ static void clean_exit(void)
 	}
 	if (pidfile)
 		unlink(pidfile);
+	unlink(state_file);
 	closelog();
 }
 

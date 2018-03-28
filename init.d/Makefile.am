@@ -24,7 +24,7 @@ CONFIG_CLEAN_FILES = *.rej *.orig
 EXTRA_DIST = auditd.init auditd.service auditd.sysconfig auditd.conf \
 	auditd.cron libaudit.conf audispd.conf auditd.condrestart \
 	auditd.reload auditd.restart auditd.resume \
-	auditd.rotate auditd.stop \
+	auditd.rotate auditd.state auditd.stop \
 	audit-stop.rules augenrules
 libconfig = libaudit.conf
 dispconfig = audispd.conf
@@ -58,6 +58,7 @@ if ENABLE_SYSTEMD
 	$(INSTALL_SCRIPT) -D -m 750 ${srcdir}/auditd.rotate ${DESTDIR}${legacydir}/rotate
 	$(INSTALL_SCRIPT) -D -m 750 ${srcdir}/auditd.resume ${DESTDIR}${legacydir}/resume
 	$(INSTALL_SCRIPT) -D -m 750 ${srcdir}/auditd.reload ${DESTDIR}${legacydir}/reload
+	$(INSTALL_SCRIPT) -D -m 750 ${srcdir}/auditd.state ${DESTDIR}${legacydir}/state
 	$(INSTALL_SCRIPT) -D -m 750 ${srcdir}/auditd.stop ${DESTDIR}${legacydir}/stop
 	$(INSTALL_SCRIPT) -D -m 750 ${srcdir}/auditd.restart ${DESTDIR}${legacydir}/restart
 	$(INSTALL_SCRIPT) -D -m 750 ${srcdir}/auditd.condrestart ${DESTDIR}${legacydir}/condrestart
@@ -75,6 +76,7 @@ if ENABLE_SYSTEMD
 	rm ${DESTDIR}${legacydir}/rotate
 	rm ${DESTDIR}${legacydir}/resume
 	rm ${DESTDIR}${legacydir}/reload
+	rm ${DESTDIR}${legacydir}/state
 	rm ${DESTDIR}${legacydir}/stop
 	rm ${DESTDIR}${legacydir}/restart
 	rm ${DESTDIR}${legacydir}/condrestart

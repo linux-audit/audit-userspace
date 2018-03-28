@@ -1,7 +1,6 @@
 Future roadmap (subject to change):
 ===================================
 3.0
-* Use SIGCONT to dump auditd internal state
 * Verify \timestamp_ex is supported in ausearch-expression, if so update man pg
 * Support TLS PSK as remote logging transport
 * Performance improvements for auparse (Memory management)

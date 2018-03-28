@@ -5,6 +5,7 @@
 - Drop support for prelude
 - Adjust backlog_wait_time in rules to the kernel default (#1482848)
 - Remove ids key syntax checking of rules in auditctl
+- Use SIGCONT to dump auditd internal state (#1504251)
 
 2.8.3
 - Correct msg function name in lru debug code
