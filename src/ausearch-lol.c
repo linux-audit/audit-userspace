@@ -230,6 +230,8 @@ int lol_add_record(lol *lo, char *buff)
 	if (extract_timestamp(buff, &e) == 0)
 		return 0;
 
+	n.a0 = 0L;
+	n.a1 = 0L;
 	n.type = e.type;
 	n.message = strdup(buff);
 	ptr = strchr(n.message, AUDIT_INTERP_SEPARATOR);

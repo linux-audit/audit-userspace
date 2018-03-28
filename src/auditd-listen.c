@@ -804,6 +804,7 @@ static void auditd_tcp_listen_handler( struct ev_loop *loop,
 
 	if (use_libwrap) {
 		if (auditd_tcpd_check(afd)) {
+#ifndef HAVE_LIBWRAP
 			shutdown(afd, SHUT_RDWR);
 			close(afd);
 	        	audit_msg(LOG_ERR, "TCP connection from %s rejected",
@@ -814,6 +815,7 @@ static void auditd_tcp_listen_handler( struct ev_loop *loop,
 				sockaddr_to_port(&aaddr));
 			send_audit_event(AUDIT_DAEMON_ACCEPT, emsg);
 			return;
+#endif
 		}
 	}
 

@@ -1037,6 +1037,8 @@ static int init_sock(void)
 	// Cycle through the list until we connect
 	runp = ai;
 	while (runp) {
+		if (sock > 0)
+			close(sock);
 		sock = socket(runp->ai_family, runp->ai_socktype,
 					runp->ai_protocol);
 		if (sock < 0) {
