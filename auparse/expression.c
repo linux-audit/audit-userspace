@@ -382,11 +382,14 @@ parse_timestamp_value(struct expr *dest, struct parsing *p)
 	intmax_t sec;
 
 	assert(p->token == T_STRING);
-	/* FIXME: other formats? */
-	if (sscanf(p->token_value, "ts:%jd.%u:%u", &sec,
+	/*
+	 * On a timestamp field we will do all the parsing ourselves
+	 * rather than use lex(). At the end we will move the internal cursor.
+	 */
+	if (sscanf(p->token_start, "ts:%jd.%u:%u", &sec,
 		   &dest->v.p.value.timestamp_ex.milli,
 		   &dest->v.p.value.timestamp_ex.serial) != 3) {
-		if (sscanf(p->token_value, "ts:%jd.%u", &sec,
+		if (sscanf(p->token_start, "ts:%jd.%u", &sec,
 			   &dest->v.p.value.timestamp.milli) != 2) {
 			if (asprintf(p->error, "Invalid timestamp value `%.*s'",
 				     p->token_len, p->token_start) < 0)
@@ -394,6 +397,11 @@ parse_timestamp_value(struct expr *dest, struct parsing *p)
 			return -1;
 		}
 	}
+
+	/* Move the cursor past what we parsed. */
+	size_t num = strspn(p->token_start, "ts:0123456789.");
+	p->src = p->token_start + num;
+
 	/* FIXME: validate milli */
 	dest->v.p.value.timestamp.sec = sec;
 	if (dest->v.p.value.timestamp.sec != sec) {
