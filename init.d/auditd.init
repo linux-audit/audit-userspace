@@ -131,6 +131,21 @@ restart(){
 	start
 }
 
+state(){
+	state_file="/var/run/auditd.state"
+	printf "Getting auditd internal state: "	
+	killproc $prog -CONT
+	RETVAL=$?
+	echo -e "\n"
+	if [ $? -eq 0 ] ; then
+		if [ -e $state_file ] ; then
+			cat $state_file
+		fi
+	fi
+	echo
+	return $RETVAL
+}
+
 condrestart(){
 	[ -e /var/lock/subsys/auditd ] && restart
 	return 0
@@ -156,6 +171,9 @@ case "$1" in
 	;;
     resume)
 	resume
+	;;
+    state)
+	state
 	;;
     condrestart|try-restart)
 	condrestart
