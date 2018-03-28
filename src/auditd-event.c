@@ -1,5 +1,5 @@
 /* auditd-event.c -- 
- * Copyright 2004-08,2011,2013,2015-16 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2004-08,2011,2013,2015-16,2018 Red Hat Inc.,Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -22,7 +22,6 @@
  */
 
 #include "config.h"
-#include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <pthread.h>
@@ -93,6 +92,21 @@ static volatile int flush;
 int dispatch_network_events(void)
 {
 	return config->distribute_network_events;
+}
+
+void write_logging_state(FILE *f)
+{
+	fprintf(f, "current log size = %lu\n", log_size);
+	fprintf(f, "space left on partition = %s\n",
+					fs_space_left ? "yes" : "no");
+	fprintf(f, "logging suspended = %s\n",
+					logging_suspended ? "yes" : "no");
+	fprintf(f, "file system space warning sent = %s\n",
+					fs_space_warning ? "yes" : "no");
+	fprintf(f, "admin space warning sent = %s\n",
+					fs_admin_space_warning ? "yes" : "no");
+	fprintf(f, "disk error detected = %s\n",
+					disk_err_warning ? "yes" : "no");
 }
 
 void shutdown_events(void)
