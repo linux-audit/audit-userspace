@@ -182,12 +182,42 @@ The following virtual fields are defined:
 .B \etimestamp
 The value is the timestamp of the current event.
 .I value
-must have the \fBts:\fIseconds\fR.\fImilli\fR format, where
+must be formatted as:
+.sp
+.in +5
+.nf
+.na
+ts:seconds.milli
+.ad
+.fi
+.in -5
+.sp
+where
 .I seconds
 and
 .I milli
 are decimal numbers specifying the seconds and milliseconds part of the
 timestamp, respectively.
+
+.TP
+.B \etimestamp_ex
+This is similar to
+.B \etimestamp
+but also includes the event's serial number.
+.I value
+must be formatted as:
+.sp
+.in +5
+.nf
+.na
+ts:seconds.milli:serial
+.ad
+.fi
+.in -5
+.sp
+where
+.I serial
+is a decimal number specifying the event's serial number.
 
 .TP
 .B \erecord_type
