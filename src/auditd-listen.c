@@ -736,9 +736,7 @@ more_messages:
 	goto read_more;
 }
 
-#ifndef HAVE_LIBWRAP
-#define auditd_tcpd_check(s) ({ 0; })
-#else
+#ifdef HAVE_LIBWRAP
 int allow_severity = LOG_INFO, deny_severity = LOG_NOTICE;
 static int auditd_tcpd_check(int sock)
 {
@@ -802,9 +800,9 @@ static void auditd_tcp_listen_handler( struct ev_loop *loop,
 		return;
 	}
 
+#ifdef HAVE_LIBWRAP
 	if (use_libwrap) {
 		if (auditd_tcpd_check(afd)) {
-#ifndef HAVE_LIBWRAP
 			shutdown(afd, SHUT_RDWR);
 			close(afd);
 	        	audit_msg(LOG_ERR, "TCP connection from %s rejected",
@@ -815,9 +813,9 @@ static void auditd_tcp_listen_handler( struct ev_loop *loop,
 				sockaddr_to_port(&aaddr));
 			send_audit_event(AUDIT_DAEMON_ACCEPT, emsg);
 			return;
-#endif
 		}
 	}
+#endif
 
 	/* Verify it's coming from an authorized port.  We assume the firewall
 	 * will block attempts from unauthorized machines.  */
