@@ -222,7 +222,7 @@ static int parse_task_info(lnode *n, search_items *s)
 
 	// ppid
 	if (event_ppid != -1) {
-		str = strstr(term, "ppid=");
+		str = strstr(term, " ppid=");
 		if (str != NULL) { // ppid is an optional field
 			ptr = str + 5;
 			term = strchr(ptr, ' ');
@@ -254,9 +254,9 @@ static int parse_task_info(lnode *n, search_items *s)
 	}
 	// optionally get loginuid
 	if (event_loginuid != -2 || event_tauid) {
-		str = strstr(term, "auid=");
+		str = strstr(term, " auid=");
 		if (str == NULL) {
-			str = strstr(term, "loginuid=");
+			str = strstr(term, " loginuid=");
 			if (str == NULL)
 				return 19;
 			ptr = str + 9;
@@ -276,7 +276,7 @@ static int parse_task_info(lnode *n, search_items *s)
 	}
 	// optionally get uid
 	if (event_uid != -1 || event_tuid) {
-		str = strstr(term, "uid=");
+		str = strstr(term, " uid=");
 		if (str == NULL)
 			return 22;
 		ptr = str + 4;
@@ -295,7 +295,7 @@ static int parse_task_info(lnode *n, search_items *s)
 
 	// optionally get gid
 	if (event_gid != -1) {
-		str = strstr(term, "gid=");
+		str = strstr(term, " gid=");
 		if (str == NULL)
 			return 25;
 		ptr = str + 4;
@@ -312,7 +312,7 @@ static int parse_task_info(lnode *n, search_items *s)
 
 	// euid
 	if (event_euid != -1 || event_teuid) {
-		str = strstr(term, "euid=");
+		str = strstr(term, " euid=");
 		if (str == NULL)
 			return 28;
 		ptr = str + 5;
@@ -330,7 +330,7 @@ static int parse_task_info(lnode *n, search_items *s)
 
 	// egid
 	if (event_egid != -1) {
-		str = strstr(term, "egid=");
+		str = strstr(term, " egid=");
 		if (str == NULL)
 			return 31;
 		ptr = str + 5;
@@ -347,7 +347,7 @@ static int parse_task_info(lnode *n, search_items *s)
 
 	if (event_terminal) {
 		// dont do this search unless needed
-		str = strstr(term, "tty=");
+		str = strstr(term, " tty=");
 		if (str) {
 			str += 4;
 			term = strchr(str, ' ');
@@ -362,7 +362,7 @@ static int parse_task_info(lnode *n, search_items *s)
 	}
 	// ses
 	if (event_session_id != -2 ) {
-		str = strstr(term, "ses=");
+		str = strstr(term, " ses=");
 		if (str) {
 			ptr = str + 4;
 			term = strchr(ptr, ' ');
@@ -379,7 +379,7 @@ static int parse_task_info(lnode *n, search_items *s)
 
 	if (event_comm) {
 		// dont do this search unless needed
-		str = strstr(term, "comm=");
+		str = strstr(term, " comm=");
 		if (str) {
 			/* Make the syscall one override */
 			if (s->comm)
@@ -400,7 +400,7 @@ static int parse_task_info(lnode *n, search_items *s)
 	}
 	if (event_exe) {
 		// dont do this search unless needed
-		str = strstr(n->message, "exe=");
+		str = strstr(n->message, " exe=");
 		if (str) {
 			str += 4;
 			if (*str == '"') {
@@ -420,7 +420,7 @@ static int parse_task_info(lnode *n, search_items *s)
 	}
 	if (event_subject) {
 		// scontext
-		str = strstr(term, "subj=");
+		str = strstr(term, " subj=");
 		if (str != NULL) {
 			str += 5;
 			term = strchr(str, ' ');
@@ -451,7 +451,7 @@ static int parse_syscall(lnode *n, search_items *s)
 	term = n->message;
 	if (report_format > RPT_DEFAULT || event_machine != -1) {
 		// get arch
-		str = strstr(term, "arch=");
+		str = strstr(term, " arch=");
 		if (str == NULL) 
 			return 1;
 		ptr = str + 5;
@@ -466,7 +466,7 @@ static int parse_syscall(lnode *n, search_items *s)
 		*term = ' ';
 	} 
 	// get syscall
-	str = strstr(term, "syscall=");
+	str = strstr(term, " syscall=");
 	if (str == NULL)
 		return 4;
 	ptr = str + 8;
@@ -481,7 +481,7 @@ static int parse_syscall(lnode *n, search_items *s)
 	*term = ' ';
 	// get success
 	if (event_success != S_UNSET) {
-		str = strstr(term, "success=");
+		str = strstr(term, " success=");
 		if (str) { // exit_group does not set success !?!
 			ptr = str + 8;
 			term = strchr(ptr, ' ');
@@ -497,7 +497,7 @@ static int parse_syscall(lnode *n, search_items *s)
 	}
 	// get exit
 	if (event_exit_is_set) {
-		str = strstr(term, "exit=");
+		str = strstr(term, " exit=");
 		if (str == NULL)
 			return 8;
 		ptr = str + 5;
@@ -513,7 +513,7 @@ static int parse_syscall(lnode *n, search_items *s)
 		*term = ' ';
 	}
 	// get a0
-	str = strstr(term, "a0=");
+	str = strstr(term, " a0=");
 	if (str == NULL)
 		return 11;
 	ptr = str + 3;
@@ -528,7 +528,7 @@ static int parse_syscall(lnode *n, search_items *s)
 		return 13;
 	*term = ' ';
 	// get a1
-	str = strstr(term, "a1=");
+	str = strstr(term, " a1=");
 	if (str == NULL)
 		return 11;
 	ptr = str + 3;
@@ -548,7 +548,7 @@ static int parse_syscall(lnode *n, search_items *s)
 		return ret;
 
 	if (event_key) {
-		str = strstr(term, "key=");
+		str = strstr(term, " key=");
 		if (str) {
 			if (!s->key) {
 				//create
@@ -751,7 +751,7 @@ static int parse_path(const lnode *n, search_items *s)
 	}
 	if (event_object) {
 		// tcontext
-		str = strstr(term, "obj=");
+		str = strstr(term, " obj=");
 		if (str != NULL) {
 			str += 4;
 			term = strchr(str, ' ');
@@ -779,7 +779,7 @@ static int parse_obj(const lnode *n, search_items *s)
 	term = n->message;
 	if (event_object) {
 		// obj context
-		str = strstr(term, "obj=");
+		str = strstr(term, " obj=");
 		if (str != NULL) {
 			str += 4;
 			term = strchr(str, ' ');
@@ -808,7 +808,7 @@ static int parse_user(const lnode *n, search_items *s)
 
 	// get pid
 	if (event_pid != -1) {
-		str = strstr(term, "pid=");
+		str = strstr(term, " pid=");
 		if (str == NULL)
 			return 1;
 		ptr = str + 4;
@@ -824,7 +824,7 @@ static int parse_user(const lnode *n, search_items *s)
 	}
 	// optionally get uid
 	if (event_uid != -1 || event_tuid) {
-		str = strstr(term, "uid=");
+		str = strstr(term, " uid=");
 		if (str == NULL)
 			return 4;
 		ptr = str + 4;
@@ -841,9 +841,9 @@ static int parse_user(const lnode *n, search_items *s)
 	}
 	// optionally get loginuid
 	if (event_loginuid != -2 || event_tauid) {
-		str = strstr(term, "auid=");
+		str = strstr(term, " auid=");
 		if (str == NULL) { // Try the older one
-			str = strstr(term, "loginuid=");
+			str = strstr(term, " loginuid=");
 			if (str == NULL)
 				return 7;
 			ptr = str + 9;
@@ -862,7 +862,7 @@ static int parse_user(const lnode *n, search_items *s)
 	}
 	// ses
 	if (event_session_id != -2 ) {
-		str = strstr(term, "ses=");
+		str = strstr(term, " ses=");
 		if (str) {
 			ptr = str + 4;
 			term = strchr(ptr, ' ');
@@ -878,7 +878,7 @@ static int parse_user(const lnode *n, search_items *s)
 	}
 	if (event_subject) {
 		// scontext
-		str = strstr(term, "subj=");
+		str = strstr(term, " subj=");
 		if (str != NULL) {
 			str += 5;
 			term = strchr(str, ' ');
@@ -903,7 +903,7 @@ static int parse_user(const lnode *n, search_items *s)
 			str = strstr(term, " id=");
 			// Take second shot in the case of MGMT events
 			if (str == NULL && n->type == AUDIT_GRP_MGMT)
-				str = strstr(term, "gid=");
+				str = strstr(term, " gid=");
 			if (str) {
 				ptr = str + 4;
 				term = strchr(ptr, ' ');
@@ -919,7 +919,7 @@ static int parse_user(const lnode *n, search_items *s)
 		}
 	}
 	if (event_vmname) {
-		str = strstr(term, "vm=");
+		str = strstr(term, " vm=");
 		if (str) {
 			str += 3;
 			if (*str == '"') {
@@ -935,7 +935,7 @@ static int parse_user(const lnode *n, search_items *s)
 		}
 	}
 	if (event_uuid) {
-		str = strstr(term, "uuid=");
+		str = strstr(term, " uuid=");
 		if (str) {
 			str += 5;
 			term = str;
@@ -951,7 +951,7 @@ static int parse_user(const lnode *n, search_items *s)
 	}
 	if (n->type == AUDIT_VIRT_MACHINE_ID) {
 		if (event_subject) {
-			str = strstr(term, "vm-ctx=");
+			str = strstr(term, " vm-ctx=");
 			if (str != NULL) {
 				str += 7;
 				term = strchr(str, ' ');
@@ -970,7 +970,7 @@ static int parse_user(const lnode *n, search_items *s)
 			}
 		}
 		if (event_object) {
-			str = strstr(term, "img-ctx=");
+			str = strstr(term, " img-ctx=");
 			if (str != NULL) {
 				str += 8;
 				term = strchr(str, ' ');
@@ -1009,7 +1009,7 @@ static int parse_user(const lnode *n, search_items *s)
 	// optionally get uid - some records the second uid is what we want.
 	// USER_LOGIN for example.
 	if (event_uid != -1 || event_tuid) {
-		str = strstr(term, "uid=");
+		str = strstr(term, " uid=");
 		if (str) {
 			if (*(str - 1) == 'a' || *(str - 1) == 's' ||
 					*(str - 1) == 'u')
@@ -1039,7 +1039,7 @@ skip:
 
 	if (event_comm) {
 		// dont do this search unless needed
-		str = strstr(mptr, "comm=");
+		str = strstr(mptr, " comm=");
 		if (str) {
 			str += 5;
 			if (*str == '"') {
@@ -1056,7 +1056,7 @@ skip:
 	}
 
 	// Get acct for user/group add/del
-	str = strstr(mptr, "acct=");
+	str = strstr(mptr, " acct=");
 	if (str != NULL) {
 		ptr = str + 5;
 		term = ptr + 1;
@@ -1094,7 +1094,7 @@ skip:
 	// get hostname
 	if (event_hostname) {
 		// dont do this search unless needed
-		str = strstr(mptr, "hostname=");
+		str = strstr(mptr, " hostname=");
 		if (str) {
 			str += 9;
 			term = strchr(str, ',');
@@ -1112,7 +1112,7 @@ skip:
 			// meaningful in addr
 			if (strcmp(s->hostname, "?") == 0) {
 				term++;
-				str = strstr(term, "addr=");
+				str = strstr(term, " addr=");
 				if (str) {
 					str += 5;
 					term = strchr(str, ',');
@@ -1132,7 +1132,7 @@ skip:
 	}
 	if (event_filename) {
 		// dont do this search unless needed
-		str = strstr(mptr, "cwd=");
+		str = strstr(mptr, " cwd=");
 		if (str) {
 			str += 4;
 			if (*str == '"') {
@@ -1167,7 +1167,7 @@ skip:
 	}
 	if (event_terminal) {
 		// dont do this search unless needed
-		str = strstr(mptr, "terminal=");
+		str = strstr(mptr, " terminal=");
 		if (str) {
 			str += 9;
 			term = strchr(str, ' ');
@@ -1183,7 +1183,7 @@ skip:
 	}
 	if (event_exe) {
 	// dont do this search unless needed
-		str = strstr(mptr, "exe=");
+		str = strstr(mptr, " exe=");
 		if (str) {
 			str += 4;
 			if (*str == '"') {
@@ -1219,7 +1219,7 @@ skip:
 	
 	// get success
 	if (event_success != S_UNSET) {
-		str = strstr(mptr, "res=");
+		str = strstr(mptr, " res=");
 		if (str) {
 			ptr = str + 4;
 			term = strchr(ptr, '\'');
@@ -1231,7 +1231,7 @@ skip:
 			else
 				s->success = S_SUCCESS;
 			*term = '\'';
-		} else if ((str = strstr(mptr, "result="))) {
+		} else if ((str = strstr(mptr, " result="))) {
 			ptr = str + 7;
 			term = strchr(ptr, ')');
 			if (term == NULL)
@@ -1254,7 +1254,7 @@ static int parse_login(const lnode *n, search_items *s)
 
 	// get pid
 	if (event_pid != -1) {
-		str = strstr(term, "pid=");
+		str = strstr(term, " pid=");
 		if (str == NULL)
 			return 1;
 		ptr = str + 4;
@@ -1270,7 +1270,7 @@ static int parse_login(const lnode *n, search_items *s)
 	}
 	// optionally get uid
 	if (event_uid != -1 || event_tuid) {
-		str = strstr(term, "uid=");
+		str = strstr(term, " uid=");
 		if (str == NULL)
 			return 4;
 		ptr = str + 4;
@@ -1287,7 +1287,7 @@ static int parse_login(const lnode *n, search_items *s)
 	}
 	// optionally get subj
 	if (event_subject) {
-		str = strstr(term, "subj=");
+		str = strstr(term, " subj=");
 		if (str) {
 			ptr = str + 5;
 			term = strchr(ptr, ' ');
@@ -1308,12 +1308,12 @@ static int parse_login(const lnode *n, search_items *s)
 	}
 	// optionally get loginuid
 	if (event_loginuid != -2 || event_tauid) {
-		str = strstr(term, "new auid=");
+		str = strstr(term, " new auid=");
 		if (str == NULL) {
 			// 3.14 kernel changed it to the next line
 			str = strstr(term, " auid=");
 			if (str == NULL) {
-				str = strstr(term, "new loginuid=");
+				str = strstr(term, " new loginuid=");
 				if (str == NULL)
 					return 7;
 				ptr = str + 13;
@@ -1337,7 +1337,7 @@ static int parse_login(const lnode *n, search_items *s)
 	if (event_success != S_UNSET) {
 		if (term == NULL)
 			term = n->message;
-		str = strstr(term, "res=");
+		str = strstr(term, " res=");
 		if (str != NULL) {
 			ptr = str + 4;
 			term = strchr(ptr, ' ');
@@ -1356,7 +1356,7 @@ static int parse_login(const lnode *n, search_items *s)
 	if (event_session_id != -2 ) {
 		if (term == NULL)
 			term = n->message;
-		str = strstr(term, "new ses=");
+		str = strstr(term, " new ses=");
 		if (str == NULL) {
 			// The 3.14 kernel changed it to the next line
 			str = strstr(term, " ses=");
@@ -1391,7 +1391,7 @@ static int parse_daemon1(const lnode *n, search_items *s)
 
 	// optionally get auid
 	if (event_loginuid != -2 || event_tauid) {
-		str = strstr(mptr, "auid=");
+		str = strstr(mptr, " auid=");
 		if (str == NULL)
 			return 1;
 		ptr = str + 5;
@@ -1410,7 +1410,7 @@ static int parse_daemon1(const lnode *n, search_items *s)
 
 	// pid
 	if (event_pid != -1) {
-		str = strstr(term, "pid=");
+		str = strstr(term, " pid=");
 		if (str == NULL)
 			return 4;
 		ptr = str + 4;
@@ -1449,7 +1449,7 @@ static int parse_daemon1(const lnode *n, search_items *s)
 	// ses - optional
 	if (event_session_id != -2) {
 		ptr = term;
-		str = strstr(term, "ses=");
+		str = strstr(term, " ses=");
 		if (str) {
 			ptr = str + 4;
 			term = strchr(ptr, ' ');
@@ -1468,7 +1468,7 @@ static int parse_daemon1(const lnode *n, search_items *s)
 
 	if (event_subject) {
 		// scontext
-		str = strstr(term, "subj=");
+		str = strstr(term, " subj=");
 		if (str != NULL) {
 			str += 5;
 			term = strchr(str, ' ');
@@ -1489,7 +1489,7 @@ static int parse_daemon1(const lnode *n, search_items *s)
 
 	// success
 	if (event_success != S_UNSET) {
-		str = strstr(mptr, "res=");
+		str = strstr(mptr, " res=");
 		if (str) {
 			ptr = term = str + 4;
 			while (isalpha(*term))
@@ -1514,7 +1514,7 @@ static int parse_daemon2(const lnode *n, search_items *s)
 	char *str, saved, *term = n->message;
 
 	if (event_hostname) {
-		str = strstr(term, "addr=");
+		str = strstr(term, " addr=");
 		if (str) {
 			str += 5;
 			term = strchr(str, ':');
@@ -1532,7 +1532,7 @@ static int parse_daemon2(const lnode *n, search_items *s)
 	}
 
 	if (event_success != S_UNSET) {
-		char *str = strstr(term, "res=");
+		char *str = strstr(term, " res=");
 		if (str) {
 			char *ptr, *term, saved;
 
@@ -1559,7 +1559,7 @@ static int parse_sockaddr(const lnode *n, search_items *s)
 	char *str;
 
 	if (event_hostname || event_filename) {
-		str = strstr(n->message, "saddr=");
+		str = strstr(n->message, " saddr=");
 		if (str) {
 			int len;
 			struct sockaddr *saddr;
@@ -1656,7 +1656,7 @@ static int parse_integrity(const lnode *n, search_items *s)
 
 	term = n->message;
 	// get pid
-	str = strstr(term, "pid=");
+	str = strstr(term, " pid=");
 	if (str) {
 		ptr = str + 4;
 		term = strchr(ptr, ' ');
@@ -1690,7 +1690,7 @@ static int parse_integrity(const lnode *n, search_items *s)
 
 	// optionally get loginuid
 	if (event_loginuid != -2 || event_tauid) {
-		str = strstr(n->message, "auid=");
+		str = strstr(n->message, " auid=");
 		if (str) {
 			ptr = str + 5;
 			term = strchr(ptr, ' ');
@@ -1708,7 +1708,7 @@ static int parse_integrity(const lnode *n, search_items *s)
 
 	// ses
 	if (event_session_id != -2 ) {
-		str = strstr(term, "ses=");
+		str = strstr(term, " ses=");
 		if (str) {
 			ptr = str + 4;
 			term = strchr(ptr, ' ');
@@ -1725,7 +1725,7 @@ static int parse_integrity(const lnode *n, search_items *s)
 
 	if (event_subject) {
 		// scontext
-		str = strstr(term, "subj=");
+		str = strstr(term, " subj=");
 		if (str) {
 			str += 5;
 			term = strchr(str, ' ');
@@ -1745,7 +1745,7 @@ static int parse_integrity(const lnode *n, search_items *s)
 	}
 
 	if (event_comm) {
-		str = strstr(term, "comm=");
+		str = strstr(term, " comm=");
 		if (str) {
 			str += 5;
 			if (*str == '"') {
@@ -1772,7 +1772,7 @@ static int parse_integrity(const lnode *n, search_items *s)
 
 	// and results (usually last)
 	if (event_success != S_UNSET) {
-		str = strstr(term, "res=");
+		str = strstr(term, " res=");
 		if (str != NULL) {
 			ptr = str + 4;
 			term = strchr(ptr, ' ');
@@ -1840,7 +1840,7 @@ static int parse_avc(const lnode *n, search_items *s)
 
 	// get pid
 	if (event_pid != -1) {
-		str = strstr(term, "pid=");
+		str = strstr(term, " pid=");
 		if (str) {
 			str = str + 4;
 			term = strchr(str, ' ');
@@ -1861,7 +1861,7 @@ static int parse_avc(const lnode *n, search_items *s)
 
 	if (event_comm && s->comm == NULL) {
 	// dont do this search unless needed
-		str = strstr(term, "comm=");
+		str = strstr(term, " comm=");
 		if (str == NULL) {
 			rc = 5;
 			goto err;
@@ -1904,7 +1904,7 @@ static int parse_avc(const lnode *n, search_items *s)
 	}
 	if (event_subject) {
 		// scontext
-		str = strstr(term, "scontext=");
+		str = strstr(term, " scontext=");
 		if (str != NULL) {
 			str += 9;
 			term = strchr(str, ' ');
@@ -1920,7 +1920,7 @@ static int parse_avc(const lnode *n, search_items *s)
 
 	if (event_object) {
 		// tcontext
-		str = strstr(term, "tcontext=");
+		str = strstr(term, " tcontext=");
 		if (str != NULL) {
 			str += 9;
 			term = strchr(str, ' ');
@@ -1935,7 +1935,7 @@ static int parse_avc(const lnode *n, search_items *s)
 	}
 
 	// Now get the class...its at the end, so we do things different
-	str = strstr(term, "tclass=");
+	str = strstr(term, " tclass=");
 	if (str == NULL) {
 		rc = 9;
 		goto err;
@@ -1967,7 +1967,7 @@ static int parse_kernel_anom(const lnode *n, search_items *s)
 
 	// optionally get loginuid
 	if (event_loginuid != -2 || event_tauid) {
-		str = strstr(term, "auid=");
+		str = strstr(term, " auid=");
 		if (str == NULL)
 			return 1;
 		ptr = str + 5;
@@ -1987,7 +1987,7 @@ static int parse_kernel_anom(const lnode *n, search_items *s)
 
 	// optionally get uid
 	if (event_uid != -1 || event_tuid) {
-		str = strstr(term, "uid="); // if promiscuous, we start over
+		str = strstr(term, " uid="); // if promiscuous, we start over
 		if (str) {
 			ptr = str + 4;
 			term = strchr(ptr, ' ');
@@ -2005,7 +2005,7 @@ static int parse_kernel_anom(const lnode *n, search_items *s)
 
 	// optionally get gid
 	if (event_gid != -1) {
-		str = strstr(term, "gid=");
+		str = strstr(term, " gid=");
 		if (str) {
 			ptr = str + 4;
 			term = strchr(ptr, ' ');
@@ -2021,7 +2021,7 @@ static int parse_kernel_anom(const lnode *n, search_items *s)
 	}
 
 	if (event_session_id != -2) {
-		str = strstr(term, "ses=");
+		str = strstr(term, " ses=");
 		if (str) {
 			ptr = str + 4;
 			term = strchr(ptr, ' ');
@@ -2043,7 +2043,7 @@ static int parse_kernel_anom(const lnode *n, search_items *s)
 
 	if (event_subject) {
 		// scontext
-		str = strstr(term, "subj=");
+		str = strstr(term, " subj=");
 		if (str) {
 			str += 5;
 			term = strchr(str, ' ');
@@ -2064,7 +2064,7 @@ static int parse_kernel_anom(const lnode *n, search_items *s)
 
 	// get pid
 	if (event_pid != -1) {
-		str = strstr(term, "pid=");
+		str = strstr(term, " pid=");
 		if (str) {
 			ptr = str + 4;
 			term = strchr(ptr, ' ');
@@ -2081,7 +2081,7 @@ static int parse_kernel_anom(const lnode *n, search_items *s)
 
 	if (event_comm) {
 		// dont do this search unless needed
-		str = strstr(term, "comm=");
+		str = strstr(term, " comm=");
 		if (str) {
 			str += 5;
 			if (*str == '"') {
@@ -2099,7 +2099,7 @@ static int parse_kernel_anom(const lnode *n, search_items *s)
 
 	if (event_exe) {
 		// dont do this search unless needed
-		str = strstr(term, "exe=");
+		str = strstr(term, " exe=");
 		if (str) {
 			str += 4;
 			if (*str == '"') {
@@ -2118,7 +2118,7 @@ static int parse_kernel_anom(const lnode *n, search_items *s)
 
 	if (n->type == AUDIT_SECCOMP) {
 		// get arch
-		str = strstr(term, "arch=");
+		str = strstr(term, " arch=");
 		if (str == NULL) 
 			return 0;	// A few kernel versions don't have it
 		ptr = str + 5;
@@ -2132,7 +2132,7 @@ static int parse_kernel_anom(const lnode *n, search_items *s)
 			return 16;
 		*term = ' ';
 		// get syscall
-		str = strstr(term, "syscall=");
+		str = strstr(term, " syscall=");
 		if (str == NULL)
 			return 17;
 		ptr = str + 8;
@@ -2158,7 +2158,7 @@ static int parse_simple_message(const lnode *n, search_items *s)
 
 	// optionally get loginuid - old kernels skip auid for CONFIG_CHANGE
 	if (event_loginuid != -2 || event_tauid) {
-		str = strstr(term, "auid=");
+		str = strstr(term, " auid=");
 		if (str == NULL && n->type != AUDIT_CONFIG_CHANGE)
 			return 1;
 		if (str) {
@@ -2180,7 +2180,7 @@ static int parse_simple_message(const lnode *n, search_items *s)
 
 	// ses
 	if (event_session_id != -2 ) {
-		str = strstr(term, "ses=");
+		str = strstr(term, " ses=");
 		if (str) {
 			ptr = str + 4;
 			term = strchr(ptr, ' ');
@@ -2200,7 +2200,7 @@ static int parse_simple_message(const lnode *n, search_items *s)
 	// Now get subj label
 	if (event_subject) {
 		// scontext
-		str = strstr(term, "subj=");
+		str = strstr(term, " subj=");
 		if (str != NULL) {
 			str += 5;
 			term = strchr(str, ' ');
@@ -2222,7 +2222,7 @@ static int parse_simple_message(const lnode *n, search_items *s)
 	}
 
 	if (event_key) {
-		str = strstr(term, "key=");
+		str = strstr(term, " key=");
 		if (str != NULL) {
 			if (!s->key) {
 				//create
@@ -2278,7 +2278,7 @@ static int parse_simple_message(const lnode *n, search_items *s)
 
 	// and results (usually last)
 	if (event_success != S_UNSET) {
-		str = strstr(term, "res=");
+		str = strstr(term, " res=");
 		if (str != NULL) {
 			ptr = str + 4;
 			term = strchr(ptr, ' ');
@@ -2302,7 +2302,7 @@ static int parse_tty(const lnode *n, search_items *s)
 
 	// get pid
 	if (event_pid != -1) {
-		str = strstr(n->message, "pid=");
+		str = strstr(n->message, " pid=");
 		if (str) {
 			ptr = str + 4;
 			term = strchr(ptr, ' ');
@@ -2337,7 +2337,7 @@ static int parse_tty(const lnode *n, search_items *s)
 
 	// optionally get loginuid
 	if (event_loginuid != -2 || event_tauid) {
-		str = strstr(term, "auid=");
+		str = strstr(term, " auid=");
 		if (str == NULL)
 			return 5;
 		ptr = str + 5;
@@ -2357,7 +2357,7 @@ static int parse_tty(const lnode *n, search_items *s)
 
 	// ses
 	if (event_session_id != -2 ) {
-		str = strstr(term, "ses=");
+		str = strstr(term, " ses=");
 		if (str) {
 			ptr = str + 4;
 			term = strchr(ptr, ' ');
@@ -2374,7 +2374,7 @@ static int parse_tty(const lnode *n, search_items *s)
 
 /*	if (event_subject) {
 		// scontext
-		str = strstr(term, "subj=");
+		str = strstr(term, " subj=");
 		if (str) {
 			str += 5;
 			term = strchr(str, ' ');
@@ -2395,7 +2395,7 @@ static int parse_tty(const lnode *n, search_items *s)
 
 	if (event_comm) {
 		// dont do this search unless needed
-		str = strstr(term, "comm=");
+		str = strstr(term, " comm=");
 		if (str) {
 			str += 5;
 			if (*str == '"') {
@@ -2420,7 +2420,7 @@ static int parse_pkt(const lnode *n, search_items *s)
 
 	// get hostname
 	if (event_hostname) {
-		str = strstr(n->message, "saddr=");
+		str = strstr(n->message, " saddr=");
 		if (str) {
 			ptr = str + 6;
 			term = strchr(ptr, ' ');
@@ -2434,7 +2434,7 @@ static int parse_pkt(const lnode *n, search_items *s)
 
 	// obj context
 	if (event_object) {
-		str = strstr(term, "obj=");
+		str = strstr(term, " obj=");
 		if (str != NULL) {
 			str += 4;
 			term = strchr(str, ' ');
