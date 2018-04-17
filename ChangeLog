@@ -3,6 +3,7 @@
 - Fix log file creation when file logging is disabled entirely (Vlad Glagolev)
 - Use SIGCONT to dump auditd internal state (#1504251)
 - Fix parsing of virtual timestamp fields in ausearch_expression (#1515903)
+- Fix parsing of uid for ausearch
 
 2.8.3
 - Correct msg function name in lru debug code

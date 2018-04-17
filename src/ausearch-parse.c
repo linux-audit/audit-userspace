@@ -276,9 +276,15 @@ static int parse_task_info(lnode *n, search_items *s)
 	}
 	// optionally get uid
 	if (event_uid != -1 || event_tuid) {
+try_again:
 		str = strstr(term, "uid=");
 		if (str == NULL)
 			return 22;
+		// This sometimes hits auid instead of uid. If so, retry.
+		if (*(str-1) == 'a') {
+			term = str +1;
+			goto try_again;
+		}
 		ptr = str + 4;
 		term = strchr(ptr, ' ');
 		if (term == NULL)
@@ -436,6 +442,24 @@ static int parse_task_info(lnode *n, search_items *s)
 				*term = ' ';
 			} else
 				return 42;
+		}
+	}
+	// success
+	if (event_success != S_UNSET) {
+		if (term == NULL)
+			term = n->message;
+		str = strstr(term, "res=");
+		if (str != NULL) {
+			ptr = str + 4;
+			term = strchr(ptr, ' ');
+			if (term)
+				*term = 0;
+			errno = 0;
+			s->success = strtoul(ptr, NULL, 10);
+			if (errno)
+				return 43;
+			if (term)
+				*term = ' ';
 		}
 	}
 
@@ -1009,10 +1033,15 @@ static int parse_user(const lnode *n, search_items *s)
 	// optionally get uid - some records the second uid is what we want.
 	// USER_LOGIN for example.
 	if (event_uid != -1 || event_tuid) {
+try_again:
 		str = strstr(term, "uid=");
 		if (str) {
-			if (*(str - 1) == 'a' || *(str - 1) == 's' ||
-					*(str - 1) == 'u')
+			// If we found auid, skip and try again
+			if (*(str - 1) == 'a') {
+				term = str +1;
+				goto try_again;
+			}
+			if (*(str - 1) == 's' || *(str - 1) == 'u')
 				goto skip;
 			if (!(*(str - 1) == '\'' || *(str - 1) == ' '))
 				return 25;
