@@ -276,7 +276,7 @@ static int parse_task_info(lnode *n, search_items *s)
 	}
 	// optionally get uid
 	if (event_uid != -1 || event_tuid) {
-		str = strstr(term, "uid=");
+		str = strstr(term, " uid=");
 		if (str == NULL)
 			return 22;
 		ptr = str + 4;
@@ -824,7 +824,7 @@ static int parse_user(const lnode *n, search_items *s)
 	}
 	// optionally get uid
 	if (event_uid != -1 || event_tuid) {
-		str = strstr(term, "uid=");
+		str = strstr(term, " uid=");
 		if (str == NULL)
 			return 4;
 		ptr = str + 4;
@@ -1009,7 +1009,7 @@ static int parse_user(const lnode *n, search_items *s)
 	// optionally get uid - some records the second uid is what we want.
 	// USER_LOGIN for example.
 	if (event_uid != -1 || event_tuid) {
-		str = strstr(term, "uid=");
+		str = strstr(term, " uid=");
 		if (str) {
 			if (*(str - 1) == 'a' || *(str - 1) == 's' ||
 					*(str - 1) == 'u')
@@ -1270,7 +1270,7 @@ static int parse_login(const lnode *n, search_items *s)
 	}
 	// optionally get uid
 	if (event_uid != -1 || event_tuid) {
-		str = strstr(term, "uid=");
+		str = strstr(term, " uid=");
 		if (str == NULL)
 			return 4;
 		ptr = str + 4;
@@ -1987,7 +1987,7 @@ static int parse_kernel_anom(const lnode *n, search_items *s)
 
 	// optionally get uid
 	if (event_uid != -1 || event_tuid) {
-		str = strstr(term, "uid="); // if promiscuous, we start over
+		str = strstr(term, " uid="); // if promiscuous, we start over
 		if (str) {
 			ptr = str + 4;
 			term = strchr(ptr, ' ');
