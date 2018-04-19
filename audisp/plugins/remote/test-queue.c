@@ -1,5 +1,5 @@
 /* test-queue.c -- test suite for persistent-queue.c
- * Copyright 2011 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2011,2018 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -68,7 +68,7 @@ err__(int line, const char *message, ...)
 	va_start(ap, message);
 	vfprintf(stderr, message, ap);
 	va_end(ap);
-	fprintf(stderr, ": %s\n", errno_str);
+	fprintf(stderr, ": (%d) %s\n", errno, errno_str);
 	abort();
 }
 
