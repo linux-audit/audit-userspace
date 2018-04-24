@@ -78,10 +78,10 @@ Add a rule to the per task list. This rule list is used only at the time a task 
 Add a rule to the syscall exit list. This list is used upon exit from a system call to determine if an audit event should be created.
 .TP
 .B user
-Add a rule to the user message filter list. This list is used by the kernel to filter events originating in user space before relaying them to the audit daemon. It should be noted that the only fields that are valid are: uid, auid, gid, pid, subj_user, subj_role, subj_type, subj_sen, subj_clr, and msgtype. All other fields will be treated as non-matching. It should be understood that any event originating from user space from a process that has CAP_AUDIT_WRITE will be recorded into the audit trail. This means that the most likely use for this filter is with rules that have an action of never since nothing has to be done to allow events to be recorded.
+Add a rule to the user message filter list. This list is used by the kernel to filter events originating in user space before relaying them to the audit daemon. It should be noted that the only fields that are valid are: uid, auid, gid, pid, subj_user, subj_role, subj_type, subj_sen, subj_clr, msgtype, and executable name. All other fields will be treated as non-matching. It should be understood that any event originating from user space from a process that has CAP_AUDIT_WRITE will be recorded into the audit trail. This means that the most likely use for this filter is with rules that have an action of never since nothing has to be done to allow events to be recorded.
 .TP
 .B exclude
-Add a rule to the event type exclusion filter list. This list is used to filter events that you do not want to see. For example, if you do not want to see any avc messages, you would using this list to record that. Events can be excluded by process ID, user ID, group ID, login user ID, message type or subject context.  The action is ignored and uses its default of "never".
+Add a rule to the event type exclusion filter list. This list is used to filter events that you do not want to see. For example, if you do not want to see any avc messages, you would using this list to record that. Events can be excluded by process ID, user ID, group ID, login user ID, message type, subject context, or executable name. The action is ignored and uses its default of "never".
 .RE
 
 The following describes the valid \fIactions\fP for the rule:
@@ -145,7 +145,7 @@ Effective Group ID. May be numeric or the groups name.
 Effective User ID. May be numeric or the user account name.
 .TP
 .B exe
-Absolute path to application that while executing this rule will apply to. This can only be used on the exit list. It supports = and != operators. Note that you can only use this once for each rule.
+Absolute path to application that while executing this rule will apply to. It supports = and != operators. Note that you can only use this once for each rule.
 .TP
 .B exit
 Exit value from a syscall. If the exit code is an errno, you may use the text representation, too.
