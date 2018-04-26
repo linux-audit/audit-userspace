@@ -23,6 +23,11 @@
 
 #ifndef LRU_HEADER
 #define LRU_HEADER
+#include "dso.h"
+
+/* Make these hidden to prevent conflicts */
+AUDIT_HIDDEN_START
+
 
 // Queue is implemented using double linked list
 typedef struct QNode
@@ -62,5 +67,7 @@ void destroy_lru(Queue *queue);
 void lru_evict(Queue *queue, unsigned int key);
 QNode *check_lru_cache(Queue *q, unsigned int key);
 unsigned int compute_subject_key(const Queue *queue, unsigned int uid);
+
+AUDIT_HIDDEN_END
 
 #endif
