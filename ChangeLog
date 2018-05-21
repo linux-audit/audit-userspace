@@ -10,6 +10,7 @@
 - Fix parsing of uid & success for ausearch
 - Add support for not equal operator in audit by executable (Ondrej Mosnacek)
 - Hide lru symbols in auparse
+- Add systemd process protections
 
 2.8.3
 - Correct msg function name in LRU debug code
