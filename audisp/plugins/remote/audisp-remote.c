@@ -514,7 +514,7 @@ int main(int argc, char *argv[])
 		FD_ZERO(&rfd);
 		FD_SET(ifd, &rfd);	// input fd
 		FD_ZERO(&wfd);
-		if (sock > 0) {
+		if (sock >= 0) {
 			// Setup socket to read acks from server
 			FD_SET(sock, &rfd); // remote socket
 			if (sock > ifd)
@@ -545,7 +545,7 @@ int main(int argc, char *argv[])
 		}
 
 		// See if we got a shutdown message from the server
-		if (sock > 0 && FD_ISSET(sock, &rfd))
+		if (sock >= 0 && FD_ISSET(sock, &rfd))
 			check_message();
 
 		// If we broke out due to one of these, cycle to start
@@ -592,7 +592,7 @@ int main(int argc, char *argv[])
 			} while (remote_fgets_more(sizeof(event)));
 		}
 		// See if output fd is also set
-		if (sock > 0 && FD_ISSET(sock, &wfd)) {
+		if (sock >= 0 && FD_ISSET(sock, &wfd)) {
 			// If so, try to drain backlog
 			while (q_queue_length(queue) && !suspend &&
 					!stop && transport_ok)
@@ -1037,7 +1037,7 @@ static int init_sock(void)
 	// Cycle through the list until we connect
 	runp = ai;
 	while (runp) {
-		if (sock > 0)
+		if (sock >= 0)
 			close(sock);
 		sock = socket(runp->ai_family, runp->ai_socktype,
 					runp->ai_protocol);
