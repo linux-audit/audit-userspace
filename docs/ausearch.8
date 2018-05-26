@@ -86,7 +86,7 @@ Search for an event with the given \fIgroup ID\fP or group name.
 Help
 .TP
 .BR \-hn ,\  \-\-host \ \fIhost-name\fP
-Search for an event with the given \fIhost name\fP. The hostname can be either a hostname, fully qualified domain name, or numeric network address. No attempt is made to resolve numeric addresses to domain names or aliases.
+Search for an event with the given \fIhost name\fP. The hostname can be either a hostname, fully qualified domain name, or numeric network address. No attempt is made to resolve numeric addresses to domain names or aliases. This search typically correlates to the addr or host field of audit events. Also see the \-\-node command which searches the node field.
 .TP
 .BR \-i ,\  \-\-interpret
 Interpret numeric entities into text. For example, uid is converted to account name. If the audit logs are unenriched, the conversion is done using the current resources of the machine where the search is being run. If you have renamed the accounts, or don't have the same accounts on your machine, you could get misleading results. If the logs are enriched, it uses the supplemental data to do the conversion. This allows accurate log reporting even when run on a different machine than the original logs came from.
@@ -109,8 +109,8 @@ Flush output on every line. Most useful when stdout is connected to a pipe and t
 .BR \-m ,\  \-\-message \ \fImessage-type\fP\ |\ \fIcomma-sep-message-type-list\fP
 Search for an event matching the given \fImessage type\fP. (Message types are also known as record types.) You may also enter a \fIcomma separated list of message types\fP or multiple individual message types each with its own \fI-m\fP option. There is an \fBALL\fP message type that doesn't exist in the actual logs. It allows you to get all messages in the system. The list of valid messages types is long. The program will display the list whenever no message type is passed with this parameter. The message type can be either text or numeric. If you enter a list, there can be only commas and no spaces separating the list.
 .TP
-.BR \-n ,\  \-\-node \ \fInode-name\fP
-Search for events originating from \fInode name\fP string. Multiple nodes are allowed, and if any nodes match, the event is matched.
+.BR \-n ,\  \-\-node \
+Search for events originating from a specific machine. Multiple nodes are allowed, and if any nodes match, the event is matched. This search uses the node field in audit events. Also see the \-\-host command which search for events related to host information in the audit trail.
 .TP
 .BR \-o ,\  \-\-object \ \fISE-Linux-context-string\fP
 Search for event with \fItcontext\fP (object) matching the string.
@@ -143,7 +143,9 @@ and
 .BR no .
 .TP
 .BR \-te ,\  \-\-end \ [\fIend-date\fP]\ [\fIend-time\fP]
-Search for events with time stamps equal to or before the given end time. The format of end time depends on your locale. If the date is omitted,
+Search for events with time stamps equal to or before the given end time. The format of end time depends on your locale. You can check the format of your locale by running
+.B date \(aq+%x\(aq.
+If the date is omitted,
 .B today
 is assumed. If the time is omitted, 
 .B now
@@ -152,7 +154,9 @@ is assumed. Use 24 hour clock time rather than AM or PM to specify time. An exam
 You may also use the word: \fBnow\fP, \fBrecent\fP, \fBboot\fP, \fBtoday\fP, \fByesterday\fP, \fBthis\-week\fP, \fBweek\-ago\fP, \fBthis\-month\fP, or \fBthis\-year\fP. \fBNow\fP means starting now. \fBRecent\fP is 10 minutes ago. \fBBoot\fP means the time of day to the second when the system last booted. \fBToday\fP means now. \fBYesterday\fP is 1 second after midnight the previous day. \fBThis\-week\fP means starting 1 second after midnight on day 0 of the week determined by your locale (see \fBlocaltime\fP). \fBWeek\-ago\fP means 1 second after midnight exactly 7 days ago. \fBThis\-month\fP means 1 second after midnight on day 1 of the month. \fBThis\-year\fP means the 1 second after midnight on the first day of the first month.
 .TP
 .BR \-ts ,\  \-\-start \ [\fIstart-date\fP]\ [\fIstart-time\fP]
-Search for events with time stamps equal to or after the given start time. The format of start time depends on your locale. If the date is omitted, 
+Search for events with time stamps equal to or after the given start time. The format of start time depends on your locale. You can check the format of your locale by running
+.B date \(aq+%x\(aq.
+If the date is omitted, 
 .B today
 is assumed. If the time is omitted, 
 .B midnight
