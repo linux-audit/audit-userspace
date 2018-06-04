@@ -289,7 +289,9 @@ extern "C" {
 #ifndef AUDIT_FILTER_FS
 #define AUDIT_FILTER_FS		0x06 /* FS record filter in __audit_inode_child */
 #endif
+#ifndef AUDIT_FILTER_EXCLUDE
 #define AUDIT_FILTER_EXCLUDE	AUDIT_FILTER_TYPE
+#endif
 #define AUDIT_FILTER_MASK	0x07	/* Mask to get actual filter */
 #define AUDIT_FILTER_UNSET	0x80	/* This value means filter is unset */
 
