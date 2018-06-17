@@ -11,6 +11,7 @@
 - Add support for not equal operator in audit by executable (Ondrej Mosnacek)
 - Hide lru symbols in auparse
 - Add systemd process protections
+- Fix aureport summary time range reporting
 
 2.8.3
 - Correct msg function name in LRU debug code
