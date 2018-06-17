@@ -44,7 +44,8 @@
 #include "auparse-idata.h"
 
 
-event very_first_event, very_last_event;
+extern event very_first_event;
+event very_last_event;
 static FILE *log_fd = NULL;
 static lol lo;
 static int found = 0;
@@ -243,9 +244,10 @@ static int process_log_fd(const char *filename)
 			if (first == 0) {
 				list_get_event(entries, &first_event);
 				first = 1;
-				if (very_first_event.sec == 0)
+				if (very_first_event.sec == 0) {
 					list_get_event(entries,
 							&very_first_event);
+				}
 			}
 			list_get_event(entries, &last_event);
 		}

@@ -33,6 +33,7 @@
 
 #define ARRAY_LIMIT 80
 static int ready = 0;
+event very_first_event;
 
 void lol_create(lol *lo)
 {
@@ -174,9 +175,13 @@ static int extract_timestamp(const char *b, event *e)
 						ptr);
 					return 0;
 				} else if ((start_time && e->sec < start_time)
-					|| (end_time && e->sec > end_time))
+					|| (end_time && e->sec > end_time)) {
+					if (very_first_event.sec == 0) {
+						very_first_event.sec = e->sec;
+						very_first_event.milli = e->milli;
+					}
 					return 0;
-				else {
+				} else {
 					if (tnode)
 						e->node = strdup(tnode);
 					e->type = audit_name_to_msg_type(ttype);
