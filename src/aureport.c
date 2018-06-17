@@ -244,10 +244,6 @@ static int process_log_fd(const char *filename)
 			if (first == 0) {
 				list_get_event(entries, &first_event);
 				first = 1;
-				if (very_first_event.sec == 0) {
-					list_get_event(entries,
-							&very_first_event);
-				}
 			}
 			list_get_event(entries, &last_event);
 		}
