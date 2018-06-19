@@ -1,3 +1,5 @@
+2.8.5
+
 2.8.4
 - Generate checkpoint file even when not results are returned (Burn Alting)
 - Fix log file creation when file logging is disabled entirely (Vlad Glagolev)
