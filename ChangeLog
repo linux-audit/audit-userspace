@@ -6,6 +6,7 @@
 - Fix parsing of uid & success for ausearch
 - Hide lru symbols in auparse
 - Fix aureport summary time range reporting
+- Allow unlimited retries on startup for remote logging
 
 2.8.3
 - Correct msg function name in lru debug code
