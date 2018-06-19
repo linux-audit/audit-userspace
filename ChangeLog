@@ -13,6 +13,7 @@
 - Add systemd process protections
 - Fix aureport summary time range reporting
 - Allow unlimited retries on startup for remote logging
+- Add queue_depth to remote logging stats and increase default queue_depth size
 
 2.8.3
 - Correct msg function name in LRU debug code
