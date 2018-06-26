@@ -58,7 +58,7 @@ ausearch_add_expression.3 ausearch_add_timestamp_item.3 ausearch_add_regex.3 \
 ausearch_add_timestamp_item_ex.3 ausearch_clear.3 \
 ausearch_next_event.3 ausearch_set_stop.3 \
 autrace.8 get_auditfail_action.3 set_aumessage_mode.3 \
-audispd.8 audispd.conf.5 audispd-zos-remote.8 libaudit.conf.5 \
+audispd.conf.5 audispd-zos-remote.8 libaudit.conf.5 \
 augenrules.8 audit_set_backlog_wait_time.3 \
 zos-remote.conf.5 
 
