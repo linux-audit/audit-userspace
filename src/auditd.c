@@ -40,6 +40,7 @@
 #include <getopt.h>
 
 #include "libaudit.h"
+#include "libdisp.h"
 #include "auditd-event.h"
 #include "auditd-config.h"
 #include "auditd-dispatch.h"
@@ -982,6 +983,8 @@ int main(int argc, char *argv[])
 	// Give DAEMON_END event a little time to be sent in case
 	// of remote logging
 	usleep(10000); // 10 milliseconds
+	libdisp_shutdown();
+	usleep(20000); // 20 milliseconds
 
 	// Tear down IO watchers Part 3
 	ev_signal_stop(loop, &sigchld_watcher);

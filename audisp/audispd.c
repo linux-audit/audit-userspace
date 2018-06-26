@@ -44,9 +44,10 @@
 #include "audispd-builtins.h"
 #include "queue.h"
 #include "libaudit.h"
+#include "private.h"
 
 /* Global Data */
-extern volatile int stop;
+static volatile int stop = 0;
 volatile int hup = 0;
 
 /* Local data */
@@ -130,7 +131,7 @@ static void load_plugin_conf(conf_llist *plugin)
 				else
 					free_pconfig(&config);
 			} else
-				syslog(LOG_ERR, 
+				audit_msg(LOG_ERR, 
 					"Skipping %s plugin due to errors",
 					e->d_name);
 		}
@@ -147,7 +148,7 @@ static int start_one_plugin(lnode *conf)
 		start_builtin(conf->p);
 	else if (conf->p->type == S_ALWAYS) {
 		if (safe_exec(conf->p)) {
-			syslog(LOG_ERR,
+			audit_msg(LOG_ERR,
 				"Error running %s (%s) continuing without it",
 				conf->p->path, strerror(errno));
 			conf->p->active = A_NO;
@@ -191,7 +192,7 @@ static int reconfigure(void)
 	lnode *tpconf;
 
 	/* Read new daemon config */
-	rc = load_config(&tdc, config_file);
+	rc = disp_load_config(&tdc, config_file);
 	if (rc == 0) {
 		if (tdc.q_depth > daemon_config.q_depth) {
 			increase_queue_depth(tdc.q_depth);
@@ -214,7 +215,7 @@ static int reconfigure(void)
 	 * 7) If no change, send sighup to non-builtins and mark done
 	 * 8) Finally, scan real list for unchecked, terminate and deactivate
 	 */
-	syslog(LOG_INFO, "Starting reconfigure");
+	audit_msg(LOG_INFO, "Starting reconfigure");
 	load_plugin_conf(&tmp_plugin);
 	plist_mark_all_unchecked(&plugin_conf);
 
@@ -243,7 +244,7 @@ static int reconfigure(void)
 						kill(opconf->p->pid, SIGHUP);
 					else {
 						/* Binary changed, restart */
-						syslog(LOG_INFO,
+						audit_msg(LOG_INFO,
 					"Restarting %s since binary changed",
 							opconf->p->path);
 						kill(opconf->p->pid, SIGTERM);
@@ -278,7 +279,7 @@ static int reconfigure(void)
 	while ( (tpconf = plist_find_unchecked(&plugin_conf)) ) {
 		/* Anything not checked is something removed from the config */
 		tpconf->p->active = A_NO;
-		syslog(LOG_INFO, "Terminating %s because its now inactive",
+		audit_msg(LOG_INFO, "Terminating %s because its now inactive",
 				tpconf->p->path);
 		if (tpconf->p->type == S_ALWAYS) {
 			kill(tpconf->p->pid, SIGTERM);
@@ -327,7 +328,7 @@ mem_out:
 	/* if no plugins - exit */
 	if (plist_count(&plugin_conf) == 0) {
 		// FIXME: need to stop the enqueue of events
-		syslog(LOG_NOTICE, "No plugins found, not dispatching events.");
+		audit_msg(LOG_NOTICE, "No plugins found, not dispatching events.");
 		free(config_file);
 		return 0;
 	}
@@ -337,7 +338,7 @@ mem_out:
 
 	/* Let the queue initialize */
 	init_queue(daemon_config.q_depth);
-	syslog(LOG_INFO, 
+	audit_msg(LOG_INFO, 
 	  "audit dispatcher initialized with q_depth=%d and %d active plugins",
 		daemon_config.q_depth, i);
 
@@ -355,7 +356,7 @@ static void *outbound_thread_main(void *arg)
 	/* Start event loop */
 	while (event_loop()) {
 		if (reconfigure() == 0) {
-			syslog(LOG_INFO,
+			audit_msg(LOG_INFO,
 		"After reconfigure, there are no active plugins, exiting");
 			break;
 		}
@@ -367,9 +368,6 @@ static void *outbound_thread_main(void *arg)
 	/* Cleanup builtin plugins */
 	destroy_af_unix();
 	destroy_syslog();
-
-	/* Give plugins 3 seconds to clear the queue */
-	sleep(3);
 
 	/* Release configs */
 	plist_first(&plugin_conf);
@@ -385,6 +383,7 @@ static void *outbound_thread_main(void *arg)
 	disp_free_config(&daemon_config);
 	free((void *)config_file);
 	config_file = NULL;
+	audit_msg(LOG_DEBUG, "Finished cleaning up dispatcher");
 	
 	return 0;
 }
@@ -541,14 +540,14 @@ static int event_loop(void)
 				rc = write_to_plugin(e, v, len, conf);
 				if (rc < 0 && errno == EPIPE) {
 					/* Child disappeared ? */
-					syslog(LOG_ERR,
+					audit_msg(LOG_ERR,
 					"plugin %s terminated unexpectedly", 
 								conf->p->path);
 					conf->p->pid = 0;
 					conf->p->restart_cnt++;
 					if (conf->p->restart_cnt >
 						daemon_config.max_restarts) {
-						syslog(LOG_ERR,
+						audit_msg(LOG_ERR,
 					"plugin %s has exceeded max_restarts",
 								conf->p->path);
 					}
@@ -558,7 +557,7 @@ static int event_loop(void)
 					if (!stop && start_one_plugin(conf)) {
 						rc = write_to_plugin(e, v, len,
 								     conf);
-						syslog(LOG_NOTICE,
+						audit_msg(LOG_NOTICE,
 						"plugin %s was restarted",
 							conf->p->path);
 						conf->p->active = A_YES;
@@ -573,6 +572,7 @@ static int event_loop(void)
 		if (hup)
 			break;
 	}
+	audit_msg(LOG_DEBUG, "Dispatcher event loop exit");
 	if (stop)
 		return 0;
 	else
@@ -644,12 +644,7 @@ void libdisp_reconfigure(const char *config_dir)
 /* Used during startup and something failed */
 void libdisp_shutdown(void)
 {
-	if (config_file) {
-		plist_clear(&plugin_conf);
-
-		disp_free_config(&daemon_config);
-		free((void *)config_file);
-		config_file = NULL;
-	}
+	stop = 1;
+	libdisp_nudge_queue();
 }
 
