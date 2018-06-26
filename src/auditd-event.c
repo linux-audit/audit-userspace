@@ -119,7 +119,8 @@ void shutdown_events(void)
 	pthread_join(flush_thread, NULL);
 
 	free((void *)format_buf);
-	fclose(log_file);
+	if (log_file)
+		fclose(log_file);
 	auparse_destroy_ext(NULL, AUPARSE_DESTROY_ALL);
 }
 
@@ -156,6 +157,7 @@ int init_event(struct daemon_conf *conf)
 	if (format_buf == NULL) {
 		audit_msg(LOG_ERR, "No memory for formatting, exiting");
 		fclose(log_file);
+		log_file = NULL;
 		return 1;
 	}
 	init_flush_thread();
@@ -1003,6 +1005,7 @@ static void rotate_logs(unsigned int num_logs)
 			"rotating log file (%s)", strerror(errno));
 	}
 	fclose(log_file);
+	log_file = NULL;
 	
 	/* Rotate */
 	len = strlen(config->log_file) + 16;
@@ -1455,6 +1458,7 @@ static void reconfigure(struct auditd_event *e)
 
 	if (need_reopen) {
 		fclose(log_file);
+		log_file = NULL;
 		fix_disk_permissions();
 		if (open_audit_log()) {
 			int saved_errno = errno;
