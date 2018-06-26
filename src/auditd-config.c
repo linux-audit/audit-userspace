@@ -214,13 +214,6 @@ static const struct nv_list size_actions[] =
   { NULL,     0 }
 };
 
-static const struct nv_list qos_options[] =
-{
-  {"lossy",     QOS_NON_BLOCKING },
-  {"lossless",  QOS_BLOCKING },
-  { NULL,     0 }
-};
-
 static const struct nv_list node_name_formats[] =
 {
   {"none",      N_NONE },
@@ -275,7 +268,6 @@ const char *get_config_dir(void)
 void clear_config(struct daemon_conf *config)
 {
 	config->local_events = 1;
-	config->qos = QOS_NON_BLOCKING;
 	config->sender_uid = 0;
 	config->sender_pid = 0;
 	config->sender_ctx = NULL;
@@ -287,7 +279,6 @@ void clear_config(struct daemon_conf *config)
 	config->flush =  FT_NONE;
 	config->freq = 0;
 	config->num_logs = 0L;
-	config->dispatcher = NULL;
 	config->node_name_format = N_NONE;
 	config->node_name = NULL;
 	config->max_log_size = 0L;
@@ -696,88 +687,17 @@ static int num_logs_parser(struct nv_pair *nv, int line,
 static int qos_parser(struct nv_pair *nv, int line, 
 		struct daemon_conf *config)
 {
-	int i;
-
-	audit_msg(LOG_DEBUG, "qos_parser called with: %s", nv->value);
-	for (i=0; qos_options[i].name != NULL; i++) {
-		if (strcasecmp(nv->value, qos_options[i].name) == 0) {
-			config->qos = qos_options[i].option;
-			return 0;
-		}
-	}
-	audit_msg(LOG_ERR, "Option %s not found - line %d", nv->value, line);
-	return 1;
+	audit_msg(LOG_WARNING, "The disp_qos option is deprecated - line %d",
+			line);
+	return 0;
 }
 
 static int dispatch_parser(struct nv_pair *nv, int line,
 	struct daemon_conf *config)
 {
-	char *dir = NULL, *tdir;
-	int fd;
-	struct stat buf;
-
 	audit_msg(LOG_DEBUG, "dispatch_parser called with: %s", nv->value);
-	if (nv->value == NULL) {
-		config->dispatcher = NULL;
-		return 0;
-	}
-
-	/* get dir from name. */
-	tdir = strdup(nv->value);
-	if (tdir)
-		dir = dirname(tdir);
-	if (dir == NULL || strlen(dir) < 4) { //  '/var' is shortest dirname
-		audit_msg(LOG_ERR,
-			"The directory name: %s is too short - line %d",
-			dir, line);
-		free(tdir);
-		return 1;
-	}
-
-	free((void *)tdir);
-
-	/* Bypass the perms check if group is not root since
-	 * this will fail under normal circumstances */
-	if ((config->log_group != 0 && getuid() != 0) ||
-				(log_test == TEST_SEARCH)) 
-		goto bypass;
-
-	/* if the file exists, see that its regular, owned by root,
-	 * and not world anything */
-	fd = open(nv->value, O_RDONLY);
-	if (fd < 0) {
-		audit_msg(LOG_ERR, "Unable to open %s (%s)", nv->value,
-			strerror(errno));
-		return 1;
-	}
-	if (fstat(fd, &buf) < 0) {
-		audit_msg(LOG_ERR, "Unable to stat %s (%s)", nv->value,
-			strerror(errno));
-		close(fd);
-		return 1;
-	}
-	close(fd);
-	if (!S_ISREG(buf.st_mode)) {
-		audit_msg(LOG_ERR, "%s is not a regular file", nv->value);
-		return 1;
-	}
-	if (buf.st_uid != 0) {
-		audit_msg(LOG_ERR, "%s is not owned by root", nv->value);
-		return 1;
-	}
-	if ((buf.st_mode & (S_IRWXU|S_IRWXG|S_IRWXO)) !=
-			   (S_IRWXU|S_IRGRP|S_IXGRP) && 
-	    (buf.st_mode & (S_IRWXU|S_IRWXG|S_IRWXO)) !=
-			   (S_IRWXU|S_IRGRP|S_IXGRP|S_IROTH|S_IXOTH)) {
-		audit_msg(LOG_ERR, "%s permissions should be 0750 or 0755",
-				nv->value);
-		return 1;
-	}
-bypass:
-	free((void *)config->dispatcher);
-	config->dispatcher = strdup(nv->value);
-	if (config->dispatcher == NULL)
-		return 1;
+	audit_msg(LOG_WARNING, "The dispatcher option is deprecated - line %d",
+			line);
 	return 0;
 }
 
@@ -1769,7 +1689,6 @@ void free_config(struct daemon_conf *config)
 {
 	free((void *)config->sender_ctx);
 	free((void *)config->log_file);
-	free((void *)config->dispatcher);
 	free((void *)config->node_name);
 	free((void *)config->action_mail_acct);
 	free((void *)config->space_left_exe);

@@ -1355,65 +1355,7 @@ static void reconfigure(struct auditd_event *e)
 	}
 
 	/* Now look at audit dispatcher changes */
-	oconf->qos = nconf->qos; // dispatcher qos
-
-	// do the dispatcher app change
-	if (oconf->dispatcher || nconf->dispatcher) {
-		// none before, start new one
-		if (oconf->dispatcher == NULL) {
-			oconf->dispatcher = strdup(nconf->dispatcher);
-			if (oconf->dispatcher == NULL) {
-				int saved_errno = errno;
-				audit_msg(LOG_ERR,
-					"Could not allocate dispatcher memory"
-					" in reconfigure");
-				// Likely errors: ENOMEM
-				do_disk_error_action("reconfig", saved_errno);
-			}
-			if(init_dispatcher(oconf,1)) {//dispatcher & qos is used
-				int saved_errno = errno;
-				audit_msg(LOG_WARNING,
-					"Could not start dispatcher %s"
-					" in reconfigure", oconf->dispatcher);
-				// Likely errors: Socketpairs or exec perms
-				do_disk_error_action("reconfig", saved_errno);
-			}
-		} 
-		// have one, but none after this
-		else if (nconf->dispatcher == NULL) {
-			shutdown_dispatcher();
-			free((char *)oconf->dispatcher);
-			oconf->dispatcher = NULL;
-		} 
-		// they are different apps
-		else if (strcmp(oconf->dispatcher, nconf->dispatcher)) {
-			shutdown_dispatcher();
-			free((char *)oconf->dispatcher);
-			oconf->dispatcher = strdup(nconf->dispatcher);
-			if (oconf->dispatcher == NULL) {
-				int saved_errno = errno;
-				audit_msg(LOG_ERR,
-					"Could not allocate dispatcher memory"
-					" in reconfigure");
-				// Likely errors: ENOMEM
-				do_disk_error_action("reconfig", saved_errno);
-			}
-			if(init_dispatcher(oconf,1)) {// dispatcher& qos is used
-				int saved_errno = errno;
-				audit_msg(LOG_WARNING,
-					"Could not start dispatcher %s"
-					" in reconfigure", oconf->dispatcher);
-				// Likely errors: Socketpairs or exec perms
-				do_disk_error_action("reconfig", saved_errno);
-			}
-		}
-		// they are the same app - just signal it
-		else {
-			reconfigure_dispatcher(oconf);
-			free((char *)nconf->dispatcher);
-			nconf->dispatcher = NULL;
-		}
-	}
+	reconfigure_dispatcher();
 
 	// network listener
 	auditd_tcp_listen_reconfigure(nconf, oconf);
@@ -1558,9 +1500,6 @@ static void reconfigure(struct auditd_event *e)
 		if (logging_suspended == 0)
 			logging_suspended = saved_suspend;
 	}
-
-	/* This had to wait until now so the child exec has happened */
-	make_dispatcher_fd_private();
 
 	// Next document the results
 	srand(time(NULL));

@@ -1,5 +1,5 @@
 /* audispd-config.c -- 
- * Copyright 2007-08,2010,2014-15 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2007-08,2010,2014-15,2018 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -88,16 +88,6 @@ static const struct kw_pair keywords[] =
   { NULL,                      NULL,				0 }
 };
 
-static const struct nv_list node_name_formats[] =
-{
-  {"none",      N_NONE },
-  {"hostname",  N_HOSTNAME },
-  {"fqd",       N_FQD },
-  {"numeric",   N_NUMERIC },
-  {"user",      N_USER },
-  { NULL,  0 }
-};
-
 static const struct nv_list overflow_actions[] =
 {
   {"ignore",  O_IGNORE },
@@ -111,17 +101,14 @@ static const struct nv_list overflow_actions[] =
 /*
  * Set everything to its default value
 */
-void clear_config(daemon_conf_t *config)
+static void clear_config(daemon_conf_t *config)
 {
-	config->q_depth = 80;
+	config->q_depth = 180;
 	config->overflow_action = O_SYSLOG;
-	config->priority_boost = 4;
 	config->max_restarts = 10;
-	config->node_name_format = N_NONE;
-	config->name = NULL;
 }
 
-int load_config(daemon_conf_t *config, const char *file)
+int disp_load_config(daemon_conf_t *config, const char *file)
 {
 	int fd, rc, mode, lineno = 1;
 	struct stat st;
@@ -342,6 +329,8 @@ static int q_depth_parser(struct nv_pair *nv, int line,
 	const char *ptr = nv->value;
 	unsigned long i;
 
+	audit_msg(LOG_DEBUG, "q_depth_parser called with: %s", nv->value);
+
 	/* check that all chars are numbers */
 	for (i=0; ptr[i]; i++) {
 		if (!isdigit(ptr[i])) {
@@ -373,25 +362,14 @@ static int q_depth_parser(struct nv_pair *nv, int line,
 static int name_format_parser(struct nv_pair *nv, int line, 
 		daemon_conf_t *config)
 {
-	int i;
-
-	for (i=0; node_name_formats[i].name != NULL; i++) {
-		if (strcasecmp(nv->value, node_name_formats[i].name) == 0) {
-			config->node_name_format = node_name_formats[i].option;
-			return 0;
-		}
-	}
-	audit_msg(LOG_ERR, "Option %s not found - line %d", nv->value, line);
-	return 1;
+	audit_msg(LOG_WARNING, "name_format is deprecated - line %d", line);
+	return 0;
 }
 
 static int name_parser(struct nv_pair *nv, int line, 
 		daemon_conf_t *config)
 {
-	if (nv->value == NULL)
-		config->name = NULL;
-	else
-		config->name = strdup(nv->value);
+	audit_msg(LOG_WARNING, "name is deprecated - line %d", line);
 	return 0;
 }
 
@@ -399,6 +377,9 @@ static int overflow_action_parser(struct nv_pair *nv, int line,
 		daemon_conf_t *config)
 {
 	int i;
+
+	audit_msg(LOG_DEBUG, "overflow_action_parser called with: %s",
+		nv->value);
 
 	for (i=0; overflow_actions[i].name != NULL; i++) {
 		if (strcasecmp(nv->value, overflow_actions[i].name) == 0) {
@@ -411,45 +392,15 @@ static int overflow_action_parser(struct nv_pair *nv, int line,
 }
 
 static int priority_boost_parser(struct nv_pair *nv, int line,
-	struct daemon_conf *config)
+	struct disp_conf *config)
 {
-	const char *ptr = nv->value;
-	unsigned long i;
-
-	audit_msg(LOG_DEBUG, "priority_boost_parser called with: %s",
-       				nv->value);
-
-	/* check that all chars are numbers */
-	for (i=0; ptr[i]; i++) {
-		if (!isdigit(ptr[i])) {
-			audit_msg(LOG_ERR,
-				"Value %s should only be numbers - line %d",
-				nv->value, line);
-			return 1;
-		}
-	}
-	/* convert to unsigned int */
-	errno = 0;
-	i = strtoul(nv->value, NULL, 10);
-	if (errno) {
-		audit_msg(LOG_ERR,
-			"Error converting string to a number (%s) - line %d",
-			strerror(errno), line);
-		return 1;
-	}
-	/* Check its range */
-	if (i > INT_MAX) {
-		audit_msg(LOG_ERR,
-			"Error - converted number (%s) is too large - line %d",
-			nv->value, line);
-		return 1;
-	}
-	config->priority_boost = (unsigned int)i;
+	audit_msg(LOG_WARNING, "priority_boost is deprecated - line %d",
+			line);
 	return 0;
 }
 
 static int max_restarts_parser(struct nv_pair *nv, int line,
-	struct daemon_conf *config)
+	struct disp_conf *config)
 {
 	const char *ptr = nv->value;
 	unsigned long i;
@@ -489,6 +440,9 @@ static int max_restarts_parser(struct nv_pair *nv, int line,
 static int plugin_dir_parser(struct nv_pair *nv, int line, 
 		daemon_conf_t *config)
 {
+	audit_msg(LOG_DEBUG, "plugin_dir_parser called with: %s",
+		nv->value);
+
 	if (nv->value == NULL)
 		config->plugin_dir = NULL;
 	else {
@@ -512,20 +466,13 @@ static int plugin_dir_parser(struct nv_pair *nv, int line,
 static int sanity_check(daemon_conf_t *config, const char *file)
 {
 	/* Error checking */
-	if (config->node_name_format == N_USER && config->name == NULL) {
-		audit_msg(LOG_ERR, 
-	    "Error - node_name_format is user supplied but none given (%s)",
-			file);
-		return 1;
-	}
 	if (config->plugin_dir == NULL)
 		config->plugin_dir = strdup("/etc/audisp/plugins.d/");
 	return 0;
 }
 
-void free_config(daemon_conf_t *config)
+void disp_free_config(daemon_conf_t *config)
 {
-	free((void *)config->name);
 	free((void *)config->plugin_dir);
 }
 

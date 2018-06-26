@@ -1,5 +1,5 @@
 /* audispd.c --
- * Copyright 2007-08,2013,2016-17 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2007-08,2013,2016-18 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -46,34 +46,20 @@
 #include "libaudit.h"
 
 /* Global Data */
-volatile int stop = 0;
+extern volatile int stop;
 volatile int hup = 0;
 
 /* Local data */
 static daemon_conf_t daemon_config;
 static conf_llist plugin_conf;
-static int audit_fd;
-static pthread_t inbound_thread;
+static pthread_t outbound_thread;
 static char *config_file = NULL;
 
 /* Local function prototypes */
 static void signal_plugins(int sig);
 static int event_loop(void);
 static int safe_exec(plugin_conf_t *conf);
-static void *inbound_thread_main(void *arg);
-static void process_inbound_event(int fd);
-
-/*
- * Output a usage message and exit with an error.
- */
-static void usage(void)
-{
-	fprintf(stderr, "%s",
-		"Usage: audispd [options]\n"
-		"-c,--config_dir <config_dir_path>: Override default "
-			"configuration file path\n");
-	exit(2);
-}
+static void *outbound_thread_main(void *arg);
 
 static void release_memory_exit(int code)
 {
@@ -82,22 +68,10 @@ static void release_memory_exit(int code)
 }
 
 /*
- * SIGTERM handler
+ * Handle child plugins when they exit
  */
-static void term_handler( int sig )
+void plugin_child_handler(pid_t pid)
 {
-        stop = 1;
-}
-
-/*
- * SIGCHLD handler
- */
-static void child_handler( int sig )
-{
-	int status;
-	pid_t pid;
-	
-	pid = waitpid(-1, &status, WNOHANG);
 	if (pid > 0) {
 		// Mark the child pid as 0 in the configs
 		lnode *tpconf;
@@ -111,23 +85,6 @@ static void child_handler( int sig )
 			tpconf = plist_next(&plugin_conf);
 		}
 	}
-}
-
-/*
- * SIGHUP handler: re-read config
- */
-static void hup_handler( int sig )
-{
-	hup = 1;
-}
-
-/*
- * SIGALRM handler - help force exit when terminating daemon
- */
-static void alarm_handler( int sig )
-{
-	pthread_cancel(inbound_thread);
-	raise(SIGTERM);
 }
 
 static int count_dots(const char *s)
@@ -245,9 +202,6 @@ static int reconfigure(void)
 		/* We just fill these in because they are used by this
 		 * same thread when we return
 		 */
-		daemon_config.node_name_format = tdc.node_name_format;
-		free((char *)daemon_config.name);
-		daemon_config.name = tdc.name;
 	}
 
 	/* The idea for handling SIGHUP to children goes like this:
@@ -347,153 +301,59 @@ static int reconfigure(void)
 	return plist_count_active(&plugin_conf);
 }
 
-int main(int argc, char *argv[])
+int libdisp_init(const char *config_dir)
 {
-	extern char *optarg;
-	extern int optind;
-	static const struct option opts[] = {
-		{"config_dir", required_argument, NULL, 'c'},
-		{NULL, 0, NULL, 0}
-	};
-	lnode *conf;
-	struct sigaction sa;
 	int i;
 
-	while ((i = getopt_long(argc, argv, "i:c:", opts, NULL)) != -1) {
-		switch (i) {
-			case 'c':
-				if (asprintf(&config_file, "%s/audispd.conf",
-						optarg) < 0) {
+	if (config_dir) {
+		if (asprintf(&config_file, "%s/audispd.conf", config_dir) < 0){
 mem_out:
-					printf(
-					"Failed allocating memory, exiting\n");
-					release_memory_exit(1);
-				}
-				break;
-			default:
-				usage();
+			printf(	"Failed allocating memory, exiting\n");
+			release_memory_exit(1);
 		}
 	}
-
-	/* check for trailing command line following options */
-	if (optind < argc)
-		usage();
 
 	if (config_file == NULL)
 		config_file = strdup("/etc/audisp/audispd.conf");
 	if (config_file == NULL)
 		goto mem_out;
 
-	set_aumessage_mode(MSG_SYSLOG, DBG_NO);
-
-	/* Clear any procmask set by libev */
-	sigfillset (&sa.sa_mask);
-	sigprocmask (SIG_UNBLOCK, &sa.sa_mask, 0);
-
-	/* Register sighandlers */
-	sa.sa_flags = 0;
-	sigemptyset(&sa.sa_mask);
-	/* Ignore all signals by default */
-	sa.sa_handler = SIG_IGN;
-	for (i=1; i<NSIG; i++)
-		sigaction(i, &sa, NULL);
-	/* Set handler for the ones we care about */
-	sa.sa_handler = term_handler;
-	sigaction(SIGTERM, &sa, NULL);
-	sa.sa_handler = hup_handler;
-	sigaction(SIGHUP, &sa, NULL);
-	sa.sa_handler = alarm_handler;
-	sigaction(SIGALRM, &sa, NULL);
-	sa.sa_handler = child_handler;
-	sigaction(SIGCHLD, &sa, NULL);
-	setsid();
-
-	audit_fd = dup(0);
-	if (audit_fd < 0) {
-		syslog(LOG_ERR, "Failed setting up input(%s, %d), exiting",
-				strerror(errno), audit_fd);
-		release_memory_exit(1);
-	}
-
-	/* Make all descriptors point to dev null */
-	i = open("/dev/null", O_RDWR);
-	if (i >= 0) {
-		if (dup2(0, i) < 0 || dup2(1, i) < 0 || dup2(2, i) < 0) {
-			syslog(LOG_ERR, "Failed duping /dev/null %s, exiting",
-					strerror(errno));
-			release_memory_exit(1);
-		}
-		close(i);
-	} else {
-		syslog(LOG_ERR, "Failed opening /dev/null %s, exiting",
-					strerror(errno));
-		close(audit_fd);
-		release_memory_exit(1);
-	}
-	if (fcntl(audit_fd, F_SETFD, FD_CLOEXEC) < 0) {
-		syslog(LOG_ERR, "Failed protecting input %s, exiting",
-					strerror(errno));
-		close(audit_fd);
-		release_memory_exit(1);
-	}
-
 	/* init the daemon's config */
-	if (load_config(&daemon_config, config_file)) {
-		close(audit_fd);
+	if (disp_load_config(&daemon_config, config_file))
 		release_memory_exit(6);
-	}
 
 	load_plugin_conf(&plugin_conf);
 
 	/* if no plugins - exit */
 	if (plist_count(&plugin_conf) == 0) {
-		syslog(LOG_NOTICE, "No plugins found, exiting");
-		close(audit_fd);
-		release_memory_exit(0);
+		// FIXME: need to stop the enqueue of events
+		syslog(LOG_NOTICE, "No plugins found, not dispatching events.");
+		free(config_file);
+		return 0;
 	}
 
 	/* Plugins are started with the auditd priority */
 	i = start_plugins(&plugin_conf);
 
-	/* Now boost priority to make sure we are getting time slices */
-	if (daemon_config.priority_boost != 0) {
-		int rc;
-
-		errno = 0;
-		rc = nice((int)-daemon_config.priority_boost);
-		if (rc == -1 && errno) {
-			syslog(LOG_ERR, "Cannot change priority (%s)",
-					strerror(errno));
-			/* Stay alive as this is better than stopping */
-		}
-	}
-
 	/* Let the queue initialize */
 	init_queue(daemon_config.q_depth);
 	syslog(LOG_INFO, 
-		"audispd initialized with q_depth=%d and %d active plugins",
+	  "audit dispatcher initialized with q_depth=%d and %d active plugins",
 		daemon_config.q_depth, i);
 
-	/* Tell it to poll the audit fd */
-	if (add_event(audit_fd, process_inbound_event) < 0) {
-		syslog(LOG_ERR, "Cannot add event, exiting");
-		close(audit_fd);
-		close(i);
-		release_memory_exit(1);
-	}
+	/* Create outbound thread */
+	pthread_create(&outbound_thread, NULL, outbound_thread_main, NULL);
+	pthread_detach(outbound_thread);
+	return 0;
+}
 
-	/* Create inbound thread */
-	pthread_create(&inbound_thread, NULL, inbound_thread_main, NULL); 
-
-	// Block these signals on main thread so poll(2) wakes up
-	sigemptyset (&sa.sa_mask);
-	sigaddset(&sa.sa_mask, SIGHUP);
-	sigaddset(&sa.sa_mask, SIGTERM);
-	pthread_sigmask(SIG_BLOCK, &sa.sa_mask, NULL);
+/* outbound thread - dequeue data to plugins */
+static void *outbound_thread_main(void *arg)
+{
+	lnode *conf;
 
 	/* Start event loop */
 	while (event_loop()) {
-		hup = 0;
 		if (reconfigure() == 0) {
 			syslog(LOG_INFO,
 		"After reconfigure, there are no active plugins, exiting");
@@ -508,9 +368,8 @@ mem_out:
 	destroy_af_unix();
 	destroy_syslog();
 
-	/* Give it 5 seconds to clear the queue */
-	alarm(5);
-	pthread_join(inbound_thread, NULL);
+	/* Give plugins 3 seconds to clear the queue */
+	sleep(3);
 
 	/* Release configs */
 	plist_first(&plugin_conf);
@@ -523,8 +382,9 @@ mem_out:
 
 	/* Cleanup the queue */
 	destroy_queue();
-	free_config(&daemon_config);
+	disp_free_config(&daemon_config);
 	free((void *)config_file);
+	config_file = NULL;
 	
 	return 0;
 }
@@ -609,85 +469,6 @@ static int write_to_plugin(event_t *e, const char *string, size_t string_len,
 /* Returns 0 on stop, and 1 on HUP */
 static int event_loop(void)
 {
-	char *name = NULL, tmp_name[255];
-
-	/* Get the host name representation */
-	switch (daemon_config.node_name_format)
-	{
-		case N_NONE:
-			break;
-		case N_HOSTNAME:
-			if (gethostname(tmp_name, sizeof(tmp_name))) {
-				syslog(LOG_ERR, "Unable to get machine name");
-				name = strdup("?");
-			} else
-				name = strdup(tmp_name);
-			break;
-		case N_USER:
-			if (daemon_config.name)
-				name = strdup(daemon_config.name);
-			else {
-				syslog(LOG_ERR, "User defined name missing");
-				name = strdup("?");
-			}
-			break;
-		case N_FQD:
-			if (gethostname(tmp_name, sizeof(tmp_name))) {
-				syslog(LOG_ERR, "Unable to get machine name");
-				name = strdup("?");
-			} else {
-				int rc;
-				struct addrinfo *ai;
-				struct addrinfo hints;
-
-				memset(&hints, 0, sizeof(hints));
-				hints.ai_flags = AI_ADDRCONFIG | AI_CANONNAME;
-				hints.ai_socktype = SOCK_STREAM;
-
-				rc = getaddrinfo(tmp_name, NULL, &hints, &ai);
-				if (rc != 0) {
-					syslog(LOG_ERR,
-					"Cannot resolve hostname %s (%s)",
-					tmp_name, gai_strerror(rc));
-					name = strdup("?");
-					break;
-				}
-				name = strdup(ai->ai_canonname);
-				freeaddrinfo(ai);
-			}
-			break;
-		case N_NUMERIC:
-			if (gethostname(tmp_name, sizeof(tmp_name))) {
-				syslog(LOG_ERR, "Unable to get machine name");
-				name = strdup("?");
-			} else {
-				int rc;
-				struct addrinfo *ai;
-				struct addrinfo hints;
-
-				memset(&hints, 0, sizeof(hints));
-				hints.ai_flags = AI_ADDRCONFIG | AI_PASSIVE;
-				hints.ai_socktype = SOCK_STREAM;
-
-				rc = getaddrinfo(tmp_name, NULL, &hints, &ai);
-				if (rc != 0) {
-					syslog(LOG_ERR,
-					"Cannot resolve hostname %s (%s)",
-					tmp_name, gai_strerror(rc));
-					name = strdup("?");
-					break;
-				}
-				inet_ntop(ai->ai_family,
-						ai->ai_family == AF_INET ?
-		(void *) &((struct sockaddr_in *)ai->ai_addr)->sin_addr :
-		(void *) &((struct sockaddr_in6 *)ai->ai_addr)->sin6_addr,
-						tmp_name, INET6_ADDRSTRLEN);
-				freeaddrinfo(ai);
-				name = strdup(tmp_name);
-			}
-			break;
-	}
-
 	/* Figure out the format for the af_unix socket */
 	while (stop == 0) {
 		event_t *e;
@@ -700,7 +481,6 @@ static int event_loop(void)
 		e = dequeue();
 		if (e == NULL) {
 			if (hup) {
-				free(name);
 				return 1;
 			}
 			continue;
@@ -715,11 +495,7 @@ static int event_loop(void)
 		}
 		// Protocol 1 is not formatted
 		if (e->hdr.ver == AUDISP_PROTOCOL_VER) {
-			if (daemon_config.node_name_format != N_NONE) {
-			    len = asprintf(&v, "node=%s type=%s msg=%.*s\n", 
-					name, type, e->hdr.size, e->data);
-			} else
-				len = asprintf(&v, "type=%s msg=%.*s\n", 
+			len = asprintf(&v, "type=%s msg=%.*s\n", 
 					type, e->hdr.size, e->data);
 		// Protocol 2 events are already formatted
 		} else if (e->hdr.ver == AUDISP_PROTOCOL_VER2) {
@@ -797,7 +573,6 @@ static int event_loop(void)
 		if (hup)
 			break;
 	}
-	free(name);
 	if (stop)
 		return 0;
 	else
@@ -841,95 +616,40 @@ int remove_event(int fd)
 	return 0;
 }
 
-/* inbound thread - enqueue inbound data to intermediate table */
-static void *inbound_thread_main(void *arg)
+/* returns > 0 if plugins and 0 if none */
+int libdisp_active(void)
 {
-	while (stop == 0) {
-		int rc;
-		if (hup)
-			nudge_queue();
-		do {
-			rc = poll(pfd, pfd_cnt, 20000); /* 20 sec */
-		} while (rc < 0 && errno == EAGAIN && stop == 0 && hup == 0);
-		if (rc == 0)
-			continue;
-
-		/* Event readable... */
-		if (rc > 0) {
-			/* Figure out the fd that is ready and call */
-			int i = 0;
-			while (i < pfd_cnt) {
-				if (pfd[i].revents & POLLIN) 
-					pfd_cb[i](pfd[i].fd);
-				i++;
-			}
-		} 
-	}
-	/* make sure event loop wakes up */
-	nudge_queue();
-	return NULL;
+	// If there's no plugins, the other thread is dead
+	return plist_count(&plugin_conf);
 }
 
-static void process_inbound_event(int fd)
+/* returns 0 on success and -1 on error */
+int libdisp_enqueue(event_t *e)
 {
-	int rc;
-	struct iovec vec;
-	event_t *e = malloc(sizeof(event_t));
-	if (e == NULL) 
-		return;
-	memset(e, 0, sizeof(event_t));
+	return enqueue(e, &daemon_config);
+}
 
-	/* Get header first. It is fixed size */
-	vec.iov_base = &e->hdr;
-	vec.iov_len = sizeof(struct audit_dispatcher_header);
-	do {
-		rc = readv(fd, &vec, 1);
-	} while (rc < 0 && errno == EINTR);
+void libdisp_nudge_queue(void)
+{
+	// Only nudge if there is something to nudge
+	if (plist_count(&plugin_conf))
+		nudge_queue();
+}
 
-	if (rc <= 0) {
-		if (rc == 0)
-			stop = 1; // End of File
-		free(e);
-		return;
-	}
+void libdisp_reconfigure(const char *config_dir)
+{
+	// FIXME: Need to start thread if its dead and we now have plugins
+}
 
-	if (rc > 0) {
-		/* Sanity check */
-		if ((e->hdr.ver != AUDISP_PROTOCOL_VER &&
-				e->hdr.ver != AUDISP_PROTOCOL_VER2)) {
-			syslog(LOG_ERR,
-				"Unknown dispatcher protocol %u, exiting",
-					e->hdr.ver);
-			free(e);
-			exit(1);
-		}
-		if (e->hdr.hlen != sizeof(e->hdr)) {
-			syslog(LOG_ERR,
-				    "Header length mismatch %u %lu, exiting",
-					e->hdr.hlen, sizeof(e->hdr));
-			free(e);
-			exit(1);
-		}
-		if (e->hdr.size > MAX_AUDIT_MESSAGE_LENGTH) {
-			syslog(LOG_ERR,	"Header size mismatch %d, exiting",
-					e->hdr.size);
-			free(e);
-			exit(1);
-		}
+/* Used during startup and something failed */
+void libdisp_shutdown(void)
+{
+	if (config_file) {
+		plist_clear(&plugin_conf);
 
-		/* Next payload */
-		vec.iov_base = e->data;
-		vec.iov_len = e->hdr.size;
-		do {
-			rc = readv(fd, &vec, 1);
-		} while (rc < 0 && errno == EINTR);
-
-		if (rc > 0)
-			enqueue(e, &daemon_config);
-		else {
-			if (rc == 0)
-				stop = 1; // End of File
-			free(e);
-		}
+		disp_free_config(&daemon_config);
+		free((void *)config_file);
+		config_file = NULL;
 	}
 }
+

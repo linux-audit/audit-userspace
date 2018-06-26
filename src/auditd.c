@@ -203,7 +203,6 @@ static void cont_handler(struct ev_loop *loop, struct ev_signal *sig,
 	strftime(buf, sizeof(buf), "%x %X", localtime(&now));
 	fprintf(f, "time = %s\n", buf);
 	write_logging_state(f);
-	fprintf(f, "dispatcher pid = %d\n", dispatcher_pid());
 	fclose(f);
 }
 
@@ -231,7 +230,7 @@ static int extract_type(const char *str)
 
 void distribute_event(struct auditd_event *e)
 {
-	int attempt = 0, route = 1, proto;
+	int route = 1, proto;
 
 	if (config.log_format == LF_ENRICHED)
 		proto = AUDISP_PROTOCOL_VER2;
@@ -259,17 +258,13 @@ void distribute_event(struct auditd_event *e)
 	else
 		route = 0; // Don't DAEMON_RECONFIG events until after enqueue
 
-	/* Make first attempt to send to plugins */
-	if (route && dispatch_event(&e->reply, attempt, proto) == 1)
-		attempt++; /* Failed sending, retry after writing to disk */
+	/* First send to plugins */
+	if (route)
+		dispatch_event(&e->reply, proto);
 
 	/* End of Event is for realtime interface - skip local logging of it */
 	if (e->reply.type != AUDIT_EOE)
 		handle_event(e); /* Write to local disk */
-
-	/* Last chance to send...maybe the pipe is empty now. */
-	if ((attempt && route) || (e->reply.type == AUDIT_DAEMON_RECONFIG))
-		dispatch_event(&e->reply, attempt, proto);
 
 	/* Free msg and event memory */
 	cleanup_event(e);
@@ -756,6 +751,7 @@ int main(int argc, char *argv[])
 	if (resolve_node(&config)) {
 		if (pidfile)
 			unlink(pidfile);
+		shutdown_dispatcher();
 		tell_parent(FAILURE);
 		free_config(&config);
 		return 1;
@@ -766,15 +762,13 @@ int main(int argc, char *argv[])
         	audit_msg(LOG_ERR, "Cannot open reconfig socket");
 		if (pidfile)
 			unlink(pidfile);
+		shutdown_dispatcher();
 		tell_parent(FAILURE);
 		free_config(&config);
 		return 1;
 	}
 	fcntl(pipefds[0], F_SETFD, FD_CLOEXEC);
 	fcntl(pipefds[1], F_SETFD, FD_CLOEXEC);
-
-	/* This had to wait until now so the child exec has happened */
-	make_dispatcher_fd_private();
 
 	/* Write message to log that we are alive */
 	{
@@ -786,6 +780,7 @@ int main(int argc, char *argv[])
 		if (uname(&ubuf) != 0) {
 			if (pidfile)
 				unlink(pidfile);
+			shutdown_dispatcher();
 			tell_parent(FAILURE);
 			close_pipes();
 			free_config(&config);
@@ -987,7 +982,6 @@ int main(int argc, char *argv[])
 	// Give DAEMON_END event a little time to be sent in case
 	// of remote logging
 	usleep(10000); // 10 milliseconds
-	shutdown_dispatcher();
 
 	// Tear down IO watchers Part 3
 	ev_signal_stop(loop, &sigchld_watcher);

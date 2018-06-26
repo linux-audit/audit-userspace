@@ -21,7 +21,7 @@
 #   Rickard E. (Rik) Faith <faith@redhat.com>
 #
 
-SUBDIRS = lib auparse src/libev src audisp tools bindings init.d \
+SUBDIRS = lib auparse audisp src/libev src tools bindings init.d \
 	m4 docs rules
 EXTRA_DIST = ChangeLog AUTHORS NEWS README INSTALL audit.spec \
         COPYING COPYING.LIB \

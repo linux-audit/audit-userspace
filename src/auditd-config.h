@@ -1,5 +1,5 @@
 /* auditd-config.h -- 
- * Copyright 2004-2009,2014,2016 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2004-2009,2014,2016,2018 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -36,7 +36,6 @@ typedef enum { FA_IGNORE, FA_SYSLOG, FA_ROTATE, FA_EMAIL, FA_EXEC, FA_SUSPEND,
 		FA_SINGLE, FA_HALT } failure_action_t;
 typedef enum { SZ_IGNORE, SZ_SYSLOG, SZ_SUSPEND, SZ_ROTATE, 
 		SZ_KEEP_LOGS } size_action;
-typedef enum { QOS_NON_BLOCKING, QOS_BLOCKING } qos_t;
 typedef enum { TEST_AUDITD, TEST_SEARCH } log_test_t;
 typedef enum { N_NONE, N_HOSTNAME, N_FQD, N_NUMERIC, N_USER } node_t;
 
@@ -44,7 +43,6 @@ struct daemon_conf
 {
 	daemon_t daemonize;
 	unsigned int local_events;
-	qos_t qos;		/* use blocking/non-blocking sockets */
 	uid_t sender_uid;	/* the uid for sender of sighup */
 	pid_t sender_pid;	/* the pid for sender of sighup */
 	const char *sender_ctx;	/* the context for the sender of sighup */
@@ -56,7 +54,6 @@ struct daemon_conf
 	flush_technique flush;
 	unsigned int freq;
 	unsigned int num_logs;
-	const char *dispatcher;
 	node_t node_name_format;
 	const char *node_name;
 	unsigned long max_log_size;

@@ -23,7 +23,7 @@
 CONFIG_CLEAN_FILES = *.rej *.orig
 AUTOMAKE_OPTIONS = no-dependencies
 SUBDIRS = test
-AM_CPPFLAGS = -I${top_srcdir} -I${top_srcdir}/lib -I${top_srcdir}/src/libev -I${top_srcdir}/auparse
+AM_CPPFLAGS = -I${top_srcdir} -I${top_srcdir}/lib -I${top_srcdir}/src/libev -I${top_srcdir}/auparse -I${top_srcdir}/audisp
 sbin_PROGRAMS = auditd auditctl aureport ausearch autrace
 AM_CFLAGS = -D_GNU_SOURCE -Wno-pointer-sign
 noinst_HEADERS = auditd-config.h auditd-event.h auditd-listen.h ausearch-llist.h ausearch-options.h auditctl-llist.h aureport-options.h ausearch-parse.h aureport-scan.h ausearch-lookup.h ausearch-int.h auditd-dispatch.h ausearch-string.h ausearch-nvpair.h ausearch-common.h ausearch-avc.h ausearch-time.h ausearch-lol.h auditctl-listing.h ausearch-checkpt.h
@@ -34,8 +34,8 @@ auditd_SOURCES += auditd-listen.c
 endif
 auditd_CFLAGS = -fPIE -DPIE -g -D_REENTRANT -D_GNU_SOURCE -fno-strict-aliasing -pthread -Wno-pointer-sign
 auditd_LDFLAGS = -pie -Wl,-z,relro -Wl,-z,now
-auditd_DEPENDENCIES = libev/libev.a
-auditd_LDADD = @LIBWRAP_LIBS@ -Llibev -lev -L${top_builddir}/lib -laudit -L${top_builddir}/auparse -lauparse -lpthread -lrt -lm $(gss_libs)
+auditd_DEPENDENCIES = libev/libev.a ${top_builddir}/audisp/libdisp.a
+auditd_LDADD = @LIBWRAP_LIBS@ -Llibev -lev -L${top_builddir}/audisp -ldisp -L${top_builddir}/lib -laudit -L${top_builddir}/auparse -lauparse -lpthread -lrt -lm $(gss_libs)
 
 auditctl_SOURCES = auditctl.c auditctl-llist.c delete_all.c auditctl-listing.c
 auditctl_CFLAGS = -fPIE -DPIE -g -D_GNU_SOURCE

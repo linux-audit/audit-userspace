@@ -87,7 +87,7 @@ static void change_runlevel(const char *level)
 	exit(1);
 }
 
-static void do_overflow_action(struct daemon_conf *config)
+static void do_overflow_action(struct disp_conf *config)
 {
         switch (config->overflow_action)
         {
@@ -107,17 +107,17 @@ static void do_overflow_action(struct daemon_conf *config)
                         break;
                 case O_SUSPEND:
                         syslog(LOG_ALERT,
-                            "Audispd is suspending event processing due to overflowing its queue.");
+                            "Auditd is suspending event processing due to overflowing its queue.");
                         processing_suspended = 1;
                         break;
                 case O_SINGLE:
                         syslog(LOG_ALERT,
-                                "Audisp is now changing the system to single user mode due to overflowing its queue");
+                                "Auditd is now changing the system to single user mode due to overflowing its queue");
                         change_runlevel(SINGLE);
                         break;
                 case O_HALT:
                         syslog(LOG_ALERT,
-                                "Audispd is now halting the system due to overflowing its queue");
+                                "Auditd is now halting the system due to overflowing its queue");
                         change_runlevel(HALT);
                         break;
                 default:
@@ -126,13 +126,14 @@ static void do_overflow_action(struct daemon_conf *config)
         }
 }
 
-void enqueue(event_t *e, struct daemon_conf *config)
+/* returns 0 on success and -1 on error */
+int enqueue(event_t *e, struct disp_conf *config)
 {
 	unsigned int n, retry_cnt = 0;
 
 	if (processing_suspended) {
 		free(e);
-		return;
+		return 0;
 	}
 
 retry:
@@ -140,7 +141,7 @@ retry:
 	if (retry_cnt > 3) {
 		do_overflow_action(config);
 		free(e);
-		return;
+		return -1;
 	}
 	pthread_mutex_lock(&queue_lock);
 
@@ -160,6 +161,7 @@ retry:
 		retry_cnt++;
 		goto retry;
 	}
+	return 0;
 }
 
 event_t *dequeue(void)

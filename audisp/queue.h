@@ -23,19 +23,13 @@
 #ifndef QUEUE_HEADER
 #define QUEUE_HEADER
 
-#include "libaudit.h"
+#include "libdisp.h"
 #include "audispd-config.h"
-
-typedef struct event
-{
-	struct audit_dispatcher_header hdr;
-	char data[MAX_AUDIT_MESSAGE_LENGTH];
-} event_t;
 
 
 void reset_suspended(void);
 int init_queue(unsigned int size);
-void enqueue(event_t *e, struct daemon_conf *config);
+int enqueue(event_t *e, struct disp_conf *config);
 event_t *dequeue(void);
 void nudge_queue(void);
 void increase_queue_depth(unsigned int size);
