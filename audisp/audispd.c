@@ -352,6 +352,17 @@ mem_out:
 static void *outbound_thread_main(void *arg)
 {
 	lnode *conf;
+	sigset_t sigs;
+
+	/* This is a worker thread. Don't handle signals. */
+	sigemptyset(&sigs);
+	sigaddset(&sigs, SIGTERM);
+	sigaddset(&sigs, SIGHUP);
+	sigaddset(&sigs, SIGUSR1);
+	sigaddset(&sigs, SIGUSR2);
+	sigaddset(&sigs, SIGCHLD);
+	sigaddset(&sigs, SIGCONT);
+	pthread_sigmask(SIG_SETMASK, &sigs, NULL);
 
 	/* Start event loop */
 	while (event_loop()) {
