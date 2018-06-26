@@ -1,4 +1,5 @@
 2.8.5
+- Fix segfault on shutdown
 
 2.8.4
 - Generate checkpoint file even when not results are returned (Burn Alting)
@@ -10,7 +11,6 @@
 - Fix aureport summary time range reporting
 - Allow unlimited retries on startup for remote logging
 - Add queue_depth to remote logging stats and increase default queue_depth size
-- Fix segfault on shutdown
 
 2.8.3
 - Correct msg function name in lru debug code
