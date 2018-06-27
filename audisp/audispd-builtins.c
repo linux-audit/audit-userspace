@@ -263,6 +263,7 @@ void destroy_af_unix(void)
 		free(path);
 		path = NULL;
 	}
+	syslog(LOG_INFO, "af_unix plugin terminated");
 }
 
 static void init_syslog(const plugin_conf_t *conf)
@@ -324,8 +325,6 @@ static void init_syslog(const plugin_conf_t *conf)
 		}
 	}
 	syslog(LOG_INFO, "syslog plugin initialized");
-	if (facility != LOG_USER)
-		openlog("audispd", 0, facility);
 	syslog_started = 1;
 }
 
@@ -352,5 +351,6 @@ void send_syslog(const char *s, uint32_t ver)
 void destroy_syslog(void)
 {
 	syslog_started = 0;
+	syslog(LOG_INFO, "syslog plugin terminated");
 }
 
