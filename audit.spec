@@ -169,7 +169,7 @@ fi
 
 %files libs-devel
 %defattr(-,root,root,-)
-%doc contrib/skeleton.c contrib/plugin
+%doc contrib/plugin
 %{_libdir}/libaudit.so
 %{_libdir}/libauparse.so
 %dir %{_prefix}/lib/golang/src/pkg/redhat.com/audit
