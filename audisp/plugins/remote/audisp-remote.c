@@ -452,7 +452,6 @@ int main(int argc, char *argv[])
 {
 	struct sigaction sa;
 	struct queue *queue;
-	int rc;
 	size_t q_len;
 
 	/* Register sighandlers */

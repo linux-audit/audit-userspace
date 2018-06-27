@@ -98,7 +98,7 @@ static int create_af_unix_socket(const char *path, int mode)
 	}
 	memset(&addr, 0, sizeof(addr));
 	addr.sun_family = AF_UNIX;
-	strcpy(&addr.sun_path[0], path);
+	snprintf(&addr.sun_path[0], 108, "%.107s", path);
 	len = sizeof(addr);
 	rc = bind(sock, (const struct sockaddr *)&addr,	len);
 	if (rc < 0) {
@@ -325,6 +325,8 @@ static void init_syslog(const plugin_conf_t *conf)
 		}
 	}
 	syslog(LOG_INFO, "syslog plugin initialized");
+	if (facility != LOG_USER)
+		openlog("audispd", 0, facility);
 	syslog_started = 1;
 }
 
