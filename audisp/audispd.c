@@ -51,6 +51,7 @@ static volatile int stop = 0;
 volatile int disp_hup = 0;
 
 /* Local data */
+#define DEFAULT_CONFIG_FILE "/etc/audisp/audispd.conf"
 static daemon_conf_t daemon_config;
 static conf_llist plugin_conf;
 static pthread_t outbound_thread;
@@ -61,12 +62,6 @@ static void signal_plugins(int sig);
 static int event_loop(void);
 static int safe_exec(plugin_conf_t *conf);
 static void *outbound_thread_main(void *arg);
-
-static void release_memory_exit(int code)
-{
-	free(config_file);
-	exit(code);
-}
 
 /*
  * Handle child plugins when they exit
@@ -305,26 +300,38 @@ static int reconfigure(void)
 	return plist_count_active(&plugin_conf);
 }
 
-int libdisp_init(const char *config_dir)
+static int build_conf_file(const char *config_dir)
 {
-	int i;
-
-	if (config_dir) {
+	if (config_file == NULL && config_dir) {
 		if (asprintf(&config_file, "%s/audispd.conf", config_dir) < 0){
 mem_out:
-			printf(	"Failed allocating memory, exiting\n");
-			release_memory_exit(1);
+			audit_msg(LOG_ERR,
+				"Failed building config file name, exiting\n");
+			return 1;
 		}
 	}
 
 	if (config_file == NULL)
-		config_file = strdup("/etc/audisp/audispd.conf");
+		config_file = strdup(DEFAULT_CONFIG_FILE);
 	if (config_file == NULL)
 		goto mem_out;
+	return 0;
+}
+
+/* Return 0 on success and 1 on failure */
+int libdisp_init(const char *config_dir)
+{
+	int i;
+
+	if (build_conf_file(config_dir))
+		return 1;
 
 	/* init the daemon's config */
-	if (disp_load_config(&daemon_config, config_file))
-		release_memory_exit(6);
+	if (disp_load_config(&daemon_config, config_file)) {
+		free(config_file);
+		config_file = NULL;
+		return 1;
+	}
 
 	load_plugin_conf(&plugin_conf);
 
@@ -333,6 +340,7 @@ mem_out:
 		// FIXME: need to stop the enqueue of events
 		audit_msg(LOG_NOTICE, "No plugins found, not dispatching events.");
 		free(config_file);
+		config_file = NULL;
 		return 0;
 	}
 
@@ -653,8 +661,14 @@ void libdisp_nudge_queue(void)
 
 void libdisp_reconfigure(const char *config_dir)
 {
-	disp_hup = 1;
-	nudge_queue();
+	// If the dispatcher thread is dead, start a new one
+	if (plist_count(&plugin_conf) == 0)
+		libdisp_init(config_dir);
+	else if (build_conf_file(config_dir) == 0) {
+			// Otherwise we do a reconfigure
+			disp_hup = 1;
+			nudge_queue();
+	}
 }
 
 /* Used during startup and something failed */
