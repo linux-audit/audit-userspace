@@ -47,7 +47,6 @@ int dispatcher_pid(void)
 
 void dispatcher_reaped(void)
 {
-	audit_msg(LOG_INFO, "dispatcher %d reaped", pid);
 	pid = 0;
 	shutdown_dispatcher();
 }
