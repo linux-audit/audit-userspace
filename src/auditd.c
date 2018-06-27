@@ -384,7 +384,7 @@ static int become_daemon(void)
 	if (do_fork) {
 		if (pipe(init_pipe) || 
 				fcntl(init_pipe[0], F_SETFD, FD_CLOEXEC) ||
-				fcntl(init_pipe[0], F_SETFD, FD_CLOEXEC))
+				fcntl(init_pipe[1], F_SETFD, FD_CLOEXEC))
 			return -1;
 		pid = fork();
 	} else
@@ -428,7 +428,9 @@ static int become_daemon(void)
 			break;
 		default:
 			/* Wait for the child to say its done */
-			rc = read(init_pipe[0], &status, sizeof(status));
+			do {
+				rc = read(init_pipe[0], &status,sizeof(status));
+			} while (rc < 0 && errno == EINTR);
 			if (rc < 0)
 				return -1;
 

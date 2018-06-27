@@ -16,6 +16,7 @@
 - Add queue_depth to remote logging stats and increase default queue_depth size
 - Fix segfault on shutdown
 - Merge auditd and audispd code
+- Close on execute init_pipe fd (#1587995)
 
 2.8.3
 - Correct msg function name in LRU debug code
