@@ -566,6 +566,7 @@ void reconfig_ready(void)
 {
 	const char *msg = "ready\n";
 	write(pipefds[1], msg, strlen(msg));
+	reconfigure_dispatcher();
 }
 
 static void close_pipes(void)

@@ -1354,9 +1354,6 @@ static void reconfigure(struct auditd_event *e)
 		oconf->node_name = nconf->node_name;
 	}
 
-	/* Now look at audit dispatcher changes */
-	reconfigure_dispatcher();
-
 	// network listener
 	auditd_tcp_listen_reconfigure(nconf, oconf);
 
@@ -1518,7 +1515,6 @@ static void reconfigure(struct auditd_event *e)
 	"%s op=reconfigure state=changed auid=%u pid=%d subj=%s res=success",
 		date, uid, pid, ctx );
 	e->reply.message = e->reply.msg.data;
-	audit_msg(LOG_NOTICE, "%s", e->reply.message);
 	free((char *)ctx);
 }
 

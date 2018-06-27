@@ -178,6 +178,10 @@ event_t *dequeue(void)
 	n = q_last%q_depth;
 	if (q[n] == NULL) {
 		pthread_cond_wait(&queue_nonempty, &queue_lock);
+		if (disp_hup) {
+			pthread_mutex_unlock(&queue_lock);
+			return NULL;
+		}
 		n = q_last%q_depth;
 	}
 

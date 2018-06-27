@@ -219,7 +219,6 @@ static int reconfigure(void)
 	 * 7) If no change, send sighup to non-builtins and mark done
 	 * 8) Finally, scan real list for unchecked, terminate and deactivate
 	 */
-	audit_msg(LOG_INFO, "Starting reconfigure");
 	load_plugin_conf(&tmp_plugin);
 	plist_mark_all_unchecked(&plugin_conf);
 
