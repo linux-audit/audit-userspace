@@ -273,7 +273,7 @@ void clear_config(struct daemon_conf *config)
 	config->sender_ctx = NULL;
 	config->write_logs = 1;
 	config->log_file = strdup("/var/log/audit/audit.log");
-	config->log_format = LF_RAW;
+	config->log_format = LF_ENRICHED;
 	config->log_group = 0;
 	config->priority_boost = 4;
 	config->flush =  FT_NONE;
