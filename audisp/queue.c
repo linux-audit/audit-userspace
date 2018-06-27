@@ -34,7 +34,7 @@ static unsigned int q_next, q_last, q_depth, processing_suspended;
 static const char *SINGLE = "1";
 static const char *HALT = "0";
 static int queue_full_warning = 0;
-extern volatile int hup;
+extern volatile int disp_hup;
 #define QUEUE_FULL_LIMIT 5
 
 void reset_suspended(void)
@@ -171,7 +171,7 @@ event_t *dequeue(void)
 
 	// Wait until its got something in it
 	pthread_mutex_lock(&queue_lock);
-	if (hup) {
+	if (disp_hup) {
 		pthread_mutex_unlock(&queue_lock);
 		return NULL;
 	}

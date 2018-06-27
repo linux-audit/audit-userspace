@@ -48,7 +48,7 @@
 
 /* Global Data */
 static volatile int stop = 0;
-volatile int hup = 0;
+volatile int disp_hup = 0;
 
 /* Local data */
 static daemon_conf_t daemon_config;
@@ -199,10 +199,14 @@ static int reconfigure(void)
 			daemon_config.q_depth = tdc.q_depth;
 		}
 		daemon_config.overflow_action = tdc.overflow_action;
+		daemon_config.max_restarts = tdc.max_restarts;
+		// We do not allow changing dirs on reconfigure
+		if (daemon_config.plugin_dir && tdc.plugin_dir &&
+			    strcmp(daemon_config.plugin_dir, tdc.plugin_dir))
+			audit_msg(LOG_WARNING,
+			 "Changing plugin_dir on reconfigure is not supported");
+		free(tdc.plugin_dir);
 		reset_suspended();
-		/* We just fill these in because they are used by this
-		 * same thread when we return
-		 */
 	}
 
 	/* The idea for handling SIGHUP to children goes like this:
@@ -371,6 +375,7 @@ static void *outbound_thread_main(void *arg)
 		"After reconfigure, there are no active plugins, exiting");
 			break;
 		}
+		disp_hup = 0;
 	}
 
 	/* Tell plugins we are going down */
@@ -490,7 +495,7 @@ static int event_loop(void)
 		/* This is where we block until we have an event */
 		e = dequeue();
 		if (e == NULL) {
-			if (hup) {
+			if (disp_hup) {
 				return 1;
 			}
 			continue;
@@ -580,7 +585,7 @@ static int event_loop(void)
 		/* Done with the memory...release it */
 		free(v);
 		free(e);
-		if (hup)
+		if (disp_hup)
 			break;
 	}
 	audit_msg(LOG_DEBUG, "Dispatcher event loop exit");
@@ -649,7 +654,8 @@ void libdisp_nudge_queue(void)
 
 void libdisp_reconfigure(const char *config_dir)
 {
-	// FIXME: Need to start thread if its dead and we now have plugins
+	disp_hup = 1;
+	nudge_queue();
 }
 
 /* Used during startup and something failed */
