@@ -32,15 +32,12 @@
 #include <cap-ng.h>
 #endif
 #include "libaudit.h"
+#include "audit-fgets.h"
 
 /* Global Data */
 static volatile int stop = 0;
 static volatile int hup = 0;
 static int priority;
-
-/* Local declarations */
-static void handle_event(auparse_state_t *au,
-		auparse_cb_event_t cb_event_type, void *user_data);
 
 /*
  * SIGTERM handler
@@ -63,59 +60,59 @@ static void reload_config(void)
 	hup = 0;
 }
 
-static int init_syslog(int argc, char *argv[])
+static int init_syslog(int argc, const char *argv[])
 {
 	int i, facility = LOG_USER;
 	priority = LOG_INFO;
 
 	for (i = 1; i < argc; i++) {
 		if (argv[i]) {
-			if (strcasecmp(conf->args[i], "LOG_DEBUG") == 0)
+			if (strcasecmp(argv[i], "LOG_DEBUG") == 0)
 				priority = LOG_DEBUG;
-			else if (strcasecmp(conf->args[i], "LOG_INFO") == 0)
+			else if (strcasecmp(argv[i], "LOG_INFO") == 0)
 				priority = LOG_INFO;
-			else if (strcasecmp(conf->args[i], "LOG_NOTICE") == 0)
+			else if (strcasecmp(argv[i], "LOG_NOTICE") == 0)
 				priority = LOG_NOTICE;
-			else if (strcasecmp(conf->args[i], "LOG_WARNING") == 0)
+			else if (strcasecmp(argv[i], "LOG_WARNING") == 0)
 				priority = LOG_WARNING;
-			else if (strcasecmp(conf->args[i], "LOG_ERR") == 0)
+			else if (strcasecmp(argv[i], "LOG_ERR") == 0)
 				priority = LOG_ERR;
-			else if (strcasecmp(conf->args[i], "LOG_CRIT") == 0)
+			else if (strcasecmp(argv[i], "LOG_CRIT") == 0)
 				priority = LOG_CRIT;
-			else if (strcasecmp(conf->args[i], "LOG_ALERT") == 0)
+			else if (strcasecmp(argv[i], "LOG_ALERT") == 0)
 				priority = LOG_ALERT;
-			else if (strcasecmp(conf->args[i], "LOG_EMERG") == 0)
+			else if (strcasecmp(argv[i], "LOG_EMERG") == 0)
 				priority = LOG_EMERG;
-			else if (strcasecmp(conf->args[i], "LOG_LOCAL0") == 0)
+			else if (strcasecmp(argv[i], "LOG_LOCAL0") == 0)
 				facility = LOG_LOCAL0;
-			else if (strcasecmp(conf->args[i], "LOG_LOCAL1") == 0)
+			else if (strcasecmp(argv[i], "LOG_LOCAL1") == 0)
 				facility = LOG_LOCAL1;
-			else if (strcasecmp(conf->args[i], "LOG_LOCAL2") == 0)
+			else if (strcasecmp(argv[i], "LOG_LOCAL2") == 0)
 				facility = LOG_LOCAL2;
-			else if (strcasecmp(conf->args[i], "LOG_LOCAL3") == 0)
+			else if (strcasecmp(argv[i], "LOG_LOCAL3") == 0)
 				facility = LOG_LOCAL3;
-			else if (strcasecmp(conf->args[i], "LOG_LOCAL4") == 0)
+			else if (strcasecmp(argv[i], "LOG_LOCAL4") == 0)
 				facility = LOG_LOCAL4;
-			else if (strcasecmp(conf->args[i], "LOG_LOCAL5") == 0)
+			else if (strcasecmp(argv[i], "LOG_LOCAL5") == 0)
 				facility = LOG_LOCAL5;
-			else if (strcasecmp(conf->args[i], "LOG_LOCAL6") == 0)
+			else if (strcasecmp(argv[i], "LOG_LOCAL6") == 0)
 				facility = LOG_LOCAL6;
-			else if (strcasecmp(conf->args[i], "LOG_LOCAL7") == 0)
+			else if (strcasecmp(argv[i], "LOG_LOCAL7") == 0)
 				facility = LOG_LOCAL7;
-			else if (strcasecmp(conf->args[i], "LOG_AUTH") == 0)
+			else if (strcasecmp(argv[i], "LOG_AUTH") == 0)
 				facility = LOG_AUTH;
-			else if (strcasecmp(conf->args[i], "LOG_AUTHPRIV") == 0)
+			else if (strcasecmp(argv[i], "LOG_AUTHPRIV") == 0)
 				facility = LOG_AUTHPRIV;
-			else if (strcasecmp(conf->args[i], "LOG_DAEMON") == 0)
+			else if (strcasecmp(argv[i], "LOG_DAEMON") == 0)
 				facility = LOG_DAEMON;
-			else if (strcasecmp(conf->args[i], "LOG_SYSLOG") == 0)
+			else if (strcasecmp(argv[i], "LOG_SYSLOG") == 0)
 				facility = LOG_SYSLOG;
-			else if (strcasecmp(conf->args[i], "LOG_USER") == 0)
+			else if (strcasecmp(argv[i], "LOG_USER") == 0)
 				facility = LOG_USER;
 			else {
 				syslog(LOG_ERR,
 					"Unknown log priority/facility %s",
-					conf->args[i]);
+					argv[i]);
 				return 1;
 			}
 		}
@@ -139,7 +136,7 @@ int main(int argc, char *argv[])
 	char tmp[MAX_AUDIT_MESSAGE_LENGTH+1];
 	struct sigaction sa;
 
-	if (init_syslog(int argc, char *argv[]))
+	if (init_syslog(argc, argv))
 		return 1;
 
 	/* Register sighandlers */
@@ -159,7 +156,6 @@ int main(int argc, char *argv[])
 
 	do {
 		fd_set read_mask;
-		struct timeval tv;
 		int retval = -1;
 
 		/* Load configuration */
@@ -183,7 +179,7 @@ int main(int argc, char *argv[])
 						MAX_AUDIT_MESSAGE_LENGTH));
 			}
 		}
-		if (audit_fgets_feof(stdin))
+		if (audit_fgets_eof())
 			break;
 	} while (stop == 0);
 

@@ -25,7 +25,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
-#include "remote-fgets.h"
+#include "audit-fgets.h"
 
 #define BUF_SIZE 8192
 static char buffer[2*BUF_SIZE+1] = { 0 };
