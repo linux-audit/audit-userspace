@@ -32,6 +32,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <stdio_ext.h>
+#include "common.h"
 
 //#define LOL_EVENTS_DEBUG01	1	// add debug for list of list event
 					// processing

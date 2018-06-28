@@ -28,6 +28,7 @@
 #include "libaudit.h"
 #include "ellist.h"
 #include "interpret.h"
+#include "common.h"
 
 static const char key_sep[2] = { AUDIT_KEY_SEPARATOR, 0 };
 

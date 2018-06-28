@@ -29,7 +29,7 @@
 #include <stdio.h>
 #include "ausearch-common.h"
 #include "auditd-config.h"
-#include "private.h"
+#include "common.h"
 
 #define ARRAY_LIMIT 80
 static int ready = 0;

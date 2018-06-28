@@ -25,7 +25,7 @@ EXTRA_DIST = expression-design.txt
 CLEANFILES = $(BUILT_SOURCES)
 CONFIG_CLEAN_FILES = *.loT *.rej *.orig
 AM_CFLAGS = -fPIC -DPIC -D_GNU_SOURCE -g ${DEBUG} -Wno-pointer-sign -Wno-enum-compare -Wno-switch
-AM_CPPFLAGS = -I. -I${top_srcdir} -I${top_srcdir}/src -I${top_srcdir}/lib
+AM_CPPFLAGS = -I. -I${top_srcdir} -I${top_srcdir}/src -I${top_srcdir}/lib -I${top_srcdir}/common
 LIBS =
 
 pkgconfigdir = $(libdir)/pkgconfig
@@ -35,7 +35,7 @@ DISTCLEANFILES = $(pkgconfig_DATA)
 lib_LTLIBRARIES = libauparse.la
 include_HEADERS = auparse.h auparse-defs.h
 libauparse_la_SOURCES = lru.c interpret.c nvlist.c ellist.c		\
-	auparse.c auditd-config.c message.c data_buf.c strsplit.c	\
+	auparse.c auditd-config.c message.c data_buf.c 			\
 	auparse-defs.h	auparse-idata.h data_buf.h 			\
 	nvlist.h auparse.h ellist.h					\
 	internal.h lru.h rnode.h interpret.h				\
@@ -45,15 +45,12 @@ libauparse_la_SOURCES = lru.c interpret.c nvlist.c ellist.c		\
 	normalize_record_map.h normalize_syscall_map.h
 nodist_libauparse_la_SOURCES = $(BUILT_SOURCES)
 
-libauparse_la_LIBADD = ${top_builddir}/lib/libaudit.la
-libauparse_la_DEPENDENCIES = $(libauparse_la_SOURCES) ${top_builddir}/config.h
+libauparse_la_LIBADD = ${top_builddir}/lib/libaudit.la ${top_builddir}/common/libaucommon.a
+libauparse_la_DEPENDENCIES = $(libauparse_la_SOURCES) ${top_builddir}/config.h ${top_builddir}/common/libaucommon.a
 libauparse_la_LDFLAGS = -Wl,-z,relro
 
 message.c:
 	cp ${top_srcdir}/lib/message.c .
-
-strsplit.c:
-	cp ${top_srcdir}/lib/strsplit.c .
 
 BUILT_SOURCES = accesstabs.h captabs.h clocktabs.h clone-flagtabs.h \
 	epoll_ctls.h famtabs.h fcntl-cmdtabs.h \

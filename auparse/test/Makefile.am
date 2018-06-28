@@ -30,17 +30,17 @@ AM_CPPFLAGS = -I${top_srcdir}/auparse -I${top_srcdir}/lib
 
 lookup_test_SOURCES = lookup_test.c
 lookup_test_LDADD = ${top_builddir}/auparse/libauparse.la \
-	${top_builddir}/lib/libaudit.la
+	${top_builddir}/lib/libaudit.la ${top_builddir}/common/libaucommon.a
 
 auparse_test_SOURCES = auparse_test.c
 auparse_test_LDFLAGS = -static
 auparse_test_LDADD = ${top_builddir}/auparse/libauparse.la \
-	${top_builddir}/lib/libaudit.la
+	${top_builddir}/lib/libaudit.la ${top_builddir}/common/libaucommon.a
 
 auparselol_test_SOURCES = auparselol_test.c
 auparselol_test_LDFLAGS = -static
 auparselol_test_LDADD = ${top_builddir}/auparse/libauparse.la \
-	${top_builddir}/lib/libaudit.la
+	${top_builddir}/lib/libaudit.la ${top_builddir}/common/libaucommon.a
 
 drop_srcdir = sed 's,$(srcdir)/test,test,'
 

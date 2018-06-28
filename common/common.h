@@ -1,5 +1,5 @@
 /* audit-fgets.h -- a replacement for glibc's fgets
- * Copyright 2011 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2018 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -24,10 +24,16 @@
 #define AUDIT_FGETS_HEADER
 
 #include <sys/types.h>
+#include "dso.h"
+AUDIT_HIDDEN_START
 
 int audit_fgets_eof(void);
 int audit_fgets_more(size_t blen);
 int audit_fgets(char *buf, size_t blen, int fd);
 
+char *audit_strsplit_r(char *s, char **savedpp);
+char *audit_strsplit(char *s);
+
+AUDIT_HIDDEN_END
 #endif
 

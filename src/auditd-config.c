@@ -37,7 +37,7 @@
 #include <limits.h>	/* INT_MAX */
 #include "auditd-config.h"
 #include "libaudit.h"
-#include "private.h"
+#include "common.h"
 
 #define TCP_PORT_MAX 65535
 

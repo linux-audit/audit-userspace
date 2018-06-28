@@ -58,6 +58,7 @@
 #endif
 #include "auparse-defs.h"
 #include "gen_tables.h"
+#include "common.h"
 
 #if !HAVE_DECL_ADDR_NO_RANDOMIZE
 # define ADDR_NO_RANDOMIZE       0x0040000

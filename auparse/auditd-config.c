@@ -33,6 +33,7 @@
 #include <libgen.h>
 #include <dirent.h>
 #include <ctype.h>
+#include "common.h"
 
 /* Local prototypes */
 struct _pair
