@@ -1,5 +1,5 @@
 # Makefile.am --
-# Copyright 2007-08,2018 Red Hat Inc., Durham, North Carolina.
+# Copyright 2018 Red Hat Inc., Durham, North Carolina.
 # All Rights Reserved.
 #
 # This library is free software; you can redistribute it and/or
@@ -18,12 +18,26 @@
 #
 # Authors:
 #   Steve Grubb <sgrubb@redhat.com>
-#
+# 
 
 CONFIG_CLEAN_FILES = *.loT *.rej *.orig
+EXTRA_DIST = syslog.conf
+AM_CPPFLAGS = -I${top_srcdir} -I${top_srcdir}/lib 
+prog_confdir = $(sysconfdir)/audisp
+plugin_confdir=$(prog_confdir)/plugins.d
+plugin_conf = syslog.conf
+sbin_PROGRAMS = audisp-syslog
+noinst_HEADERS = audit-fgets.h
 
-SUBDIRS = builtins remote syslog
-if ENABLE_ZOS_REMOTE
-SUBDIRS += zos-remote
-endif
+audisp_syslog_SOURCES = audisp-syslog.c audit-fgets.c
+audisp_syslog_CFLAGS = -fPIE -DPIE -g -D_GNU_SOURCE -Wundef
+audisp_syslog_LDFLAGS = -pie -Wl,-z,relro -Wl,-z,now
+audisp_syslog_LDADD = $(CAPNG_LDADD)
+
+install-data-hook:
+	mkdir -p -m 0750 ${DESTDIR}${plugin_confdir}
+	$(INSTALL_DATA) -D -m 640 ${srcdir}/$(plugin_conf) ${DESTDIR}${plugin_confdir}
+
+uninstall-hook:
+	rm ${DESTDIR}${plugin_confdir}/$(plugin_conf)
 

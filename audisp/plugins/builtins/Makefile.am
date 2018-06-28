@@ -21,7 +21,7 @@
 #
 
 CONFIG_CLEAN_FILES = *.rej *.orig
-CONF_FILES = af_unix.conf syslog.conf
+CONF_FILES = af_unix.conf
 EXTRA_DIST = $(CONF_FILES)
 plugin_confdir=$(sysconfdir)/audisp/plugins.d
 

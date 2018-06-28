@@ -17,6 +17,7 @@
 - Fix segfault on shutdown
 - Merge auditd and audispd code
 - Close on execute init_pipe fd (#1587995)
+- Breakout audisp syslog plugin to be standalone program
 
 2.8.3
 - Correct msg function name in LRU debug code
