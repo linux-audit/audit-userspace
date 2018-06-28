@@ -32,8 +32,6 @@ void stop_builtin(plugin_conf_t *conf);
 void send_af_unix_string(const char *s, unsigned int len);
 void send_af_unix_binary(event_t *e);
 void destroy_af_unix(void);
-void send_syslog(const char *s, uint32_t ver);
-void destroy_syslog(void);
 
 typedef void (*poll_callback_ptr)(int fd);
 int add_event(int fd, poll_callback_ptr cb);
