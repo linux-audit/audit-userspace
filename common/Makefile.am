@@ -24,7 +24,7 @@ CONFIG_CLEAN_FILES = *.rej *.orig
 AM_CPPFLAGS = -D_GNU_SOURCE -fPIC -DPIC -I${top_srcdir} -I${top_srcdir}/lib
 
 noinst_HEADERS = common.h
-libaucommon_a_DEPENDENCIES = ${top_srcdir}/config.h
+libaucommon_a_DEPENDENCIES = ../config.h
 libaucommon_a_SOURCES = audit-fgets.c strsplit.c
 noinst_LIBRARIES = libaucommon.a
 
