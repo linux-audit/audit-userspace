@@ -22,17 +22,17 @@
 
 CONFIG_CLEAN_FILES = *.loT *.rej *.orig
 EXTRA_DIST = syslog.conf
-AM_CPPFLAGS = -I${top_srcdir} -I${top_srcdir}/lib 
+AM_CPPFLAGS = -I${top_srcdir} -I${top_srcdir}/lib -I${top_srcdir}/common 
 prog_confdir = $(sysconfdir)/audisp
 plugin_confdir=$(prog_confdir)/plugins.d
 plugin_conf = syslog.conf
 sbin_PROGRAMS = audisp-syslog
-noinst_HEADERS = audit-fgets.h
 
-audisp_syslog_SOURCES = audisp-syslog.c audit-fgets.c
+audisp_syslog_DEPENDENCIES = ${top_builddir}/common/libaucommon.a
+audisp_syslog_SOURCES = audisp-syslog.c
 audisp_syslog_CFLAGS = -fPIE -DPIE -g -D_GNU_SOURCE -Wundef
 audisp_syslog_LDFLAGS = -pie -Wl,-z,relro -Wl,-z,now
-audisp_syslog_LDADD = $(CAPNG_LDADD)
+audisp_syslog_LDADD = $(CAPNG_LDADD) -L${top_builddir}/common -laucommon
 
 install-data-hook:
 	mkdir -p -m 0750 ${DESTDIR}${plugin_confdir}

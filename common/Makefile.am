@@ -1,5 +1,5 @@
-# Makefile.am -- 
-# Copyright 2004-08,2015-16 Red Hat Inc., Durham, North Carolina.
+# Makefile.am-- 
+# Copyright 2018 Red Hat Inc., Durham, North Carolina.
 # All Rights Reserved.
 #
 # This program is free software; you can redistribute it and/or modify
@@ -18,18 +18,12 @@
 #
 # Authors:
 #   Steve Grubb <sgrubb@redhat.com>
-#   Rickard E. (Rik) Faith <faith@redhat.com>
 #
 
-SUBDIRS = common lib auparse audisp src/libev src tools bindings init.d \
-	m4 docs rules
-EXTRA_DIST = ChangeLog AUTHORS NEWS README INSTALL audit.spec \
-        COPYING COPYING.LIB \
-	contrib/avc_snap contrib/plugin/Makefile \
-	contrib/plugin/audisp-example.c \
-	contrib/plugin/audisp-example.conf
-CONFIG_CLEAN_FILES = debug*.list config/*
+CONFIG_CLEAN_FILES = *.rej *.orig
+AM_CPPFLAGS = -D_GNU_SOURCE -fPIC -DPIC -I${top_srcdir}
 
-clean-generic:
-	rm -rf autom4te*.cache 
-	rm -f *.rej *.orig *.lang
+noinst_HEADERS = common.h
+libaucommon_a_SOURCES = audit-fgets.c
+noinst_LIBRARIES = libaucommon.a
+

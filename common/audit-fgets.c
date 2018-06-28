@@ -1,4 +1,4 @@
-/* remote-fgets.c --
+/* audit-fgets.c --
  * Copyright 2011 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
@@ -25,7 +25,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
-#include "remote-fgets.h"
+#include "common.h"
 
 #define BUF_SIZE 8192
 static char buffer[2*BUF_SIZE+1] = { 0 };
@@ -33,7 +33,7 @@ static char *current = buffer;
 static char *const eptr = buffer+(2*BUF_SIZE);
 static int eof = 0;
 
-int remote_fgets_eof(void)
+int audit_fgets_eof(void)
 {
 	return eof;
 }
@@ -42,7 +42,7 @@ int remote_fgets_eof(void)
  * and ready to process. If we have a newline or enough
  * bytes we return 1 for success. Otherwise 0 meaning that
  * there is not enough to process without blocking. */
-int remote_fgets_more(size_t blen)
+int audit_fgets_more(size_t blen)
 {
 	char *ptr = strchr(buffer, '\n');
 	assert(blen != 0);
@@ -51,7 +51,7 @@ int remote_fgets_more(size_t blen)
 	return 0;
 }
 
-int remote_fgets(char *buf, size_t blen, int fd)
+int audit_fgets(char *buf, size_t blen, int fd)
 {
 	int complete = 0;
 	size_t line_len;

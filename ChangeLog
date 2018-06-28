@@ -18,6 +18,7 @@
 - Merge auditd and audispd code
 - Close on execute init_pipe fd (#1587995)
 - Breakout audisp syslog plugin to be standalone program
+- Create a common internal library to reduce code
 
 2.8.3
 - Correct msg function name in LRU debug code

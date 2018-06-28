@@ -32,7 +32,7 @@
 #include <cap-ng.h>
 #endif
 #include "libaudit.h"
-#include "audit-fgets.h"
+#include "common.h"
 
 /* Global Data */
 static volatile int stop = 0;

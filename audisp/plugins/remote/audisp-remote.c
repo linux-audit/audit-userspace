@@ -52,7 +52,7 @@
 #include "private.h"
 #include "remote-config.h"
 #include "queue.h"
-#include "remote-fgets.h"
+#include "common.h"
 
 #define CONFIG_FILE "/etc/audisp/audisp-remote.conf"
 #define BUF_SIZE 32
@@ -551,7 +551,7 @@ int main(int argc, char *argv[])
 		// See if input fd is also set
 		if (FD_ISSET(ifd, &rfd)) {
 			do {
-				if (remote_fgets(event, sizeof(event), ifd)) {
+				if (audit_fgets(event, sizeof(event), ifd)) {
 					if (!transport_ok && remote_ended && 
 						config.remote_ending_action ==
 								 FA_RECONNECT) {
@@ -583,9 +583,9 @@ int main(int argc, char *argv[])
 						else
 							queue_error();
 					}
-				} else if (remote_fgets_eof())
+				} else if (audit_fgets_eof())
 					stop = 1;
-			} while (remote_fgets_more(sizeof(event)));
+			} while (audit_fgets_more(sizeof(event)));
 		}
 		// See if output fd is also set
 		if (sock >= 0 && FD_ISSET(sock, &wfd)) {
