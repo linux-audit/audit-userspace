@@ -244,7 +244,6 @@ fi
 %config(noreplace) %attr(640,root,root) /etc/audit/audit-stop.rules
 %config(noreplace) %attr(640,root,root) /etc/audisp/audispd.conf
 %config(noreplace) %attr(640,root,root) /etc/audisp/plugins.d/af_unix.conf
-%config(noreplace) %attr(640,root,root) /etc/audisp/plugins.d/syslog.conf
 
 %files -n audispd-plugins
 %attr(644,root,root) %{_mandir}/man8/audispd-zos-remote.8.gz
@@ -254,7 +253,9 @@ fi
 %attr(750,root,root) /sbin/audispd-zos-remote
 %config(noreplace) %attr(640,root,root) /etc/audisp/audisp-remote.conf
 %config(noreplace) %attr(640,root,root) /etc/audisp/plugins.d/au-remote.conf
+%config(noreplace) %attr(640,root,root) /etc/audisp/plugins.d/syslog.conf
 %attr(750,root,root) /sbin/audisp-remote
+%attr(750,root,root) /sbin/audisp-syslog
 %attr(700,root,root) %dir %{_var}/spool/audit
 %attr(644,root,root) %{_mandir}/man5/audisp-remote.conf.5.gz
 %attr(644,root,root) %{_mandir}/man8/audisp-remote.8.gz
