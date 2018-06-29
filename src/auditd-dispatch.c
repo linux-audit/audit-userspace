@@ -59,7 +59,7 @@ void shutdown_dispatcher(void)
 
 void reconfigure_dispatcher(const struct daemon_conf *config)
 {
-	libdisp_reconfigure(get_config_dir());
+	libdisp_reconfigure(config);
 }
 
 /* Returns -1 on err, 0 on success */

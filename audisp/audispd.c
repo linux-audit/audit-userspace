@@ -114,7 +114,7 @@ static void load_plugin_conf(conf_llist *plugin)
 			if (e->d_name[0] == '.' || count_dots(e->d_name) > 1)
 				continue;
 
-			snprintf(fname, sizeof(fname), "%s%s",
+			snprintf(fname, sizeof(fname), "%s/%s",
 				daemon_config.plugin_dir, e->d_name);
 
 			clear_pconfig(&config);
@@ -380,6 +380,7 @@ static void *outbound_thread_main(void *arg)
 
 	/* Cleanup the queue */
 	destroy_queue();
+	free(daemon_config.plugin_dir);
 	audit_msg(LOG_DEBUG, "Finished cleaning up dispatcher");
 	
 	return 0;
