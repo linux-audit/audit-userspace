@@ -1,5 +1,5 @@
 /* queue.c --
- * Copyright 2007,2013,2015 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2007,2013,2015,2018 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -31,6 +31,7 @@ static volatile event_t **q;
 static pthread_mutex_t queue_lock;
 static pthread_cond_t queue_nonempty;
 static unsigned int q_next, q_last, q_depth, processing_suspended;
+static unsigned int currently_used, max_used;
 static const char *SINGLE = "1";
 static const char *HALT = "0";
 static int queue_full_warning = 0;
@@ -50,6 +51,8 @@ int init_queue(unsigned int size)
 	processing_suspended = 0;
 	q_next = 0;
 	q_last = 0;
+	currently_used = 0;
+	max_used = 0;
 	q_depth = size;
 	q = malloc(q_depth * sizeof(event_t *));
 	if (q == NULL)
@@ -150,6 +153,9 @@ retry:
 	if (q[n] == NULL) {
 		q[n] = e;
 		q_next = (n+1) % q_depth;
+		currently_used++;
+		if (currently_used > max_used)
+			max_used = currently_used;
 		pthread_cond_signal(&queue_nonempty);
 		pthread_mutex_unlock(&queue_lock);
 	} else {
@@ -193,6 +199,7 @@ event_t *dequeue(void)
 	} else
 		e = NULL;
 
+	currently_used--;
 	pthread_mutex_unlock(&queue_lock);
 
 	// Process the event
@@ -218,6 +225,12 @@ void increase_queue_depth(unsigned int size)
 		q_depth = size;
 	}
 	pthread_mutex_unlock(&queue_lock);
+}
+
+void write_queue_state(FILE *f)
+{
+	fprintf(f, "current queue depth = %u\n", currently_used);
+	fprintf(f, "max queue depth used = %u\n", max_used);
 }
 
 void destroy_queue(void)

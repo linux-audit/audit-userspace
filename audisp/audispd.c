@@ -641,6 +641,13 @@ void libdisp_reconfigure(const struct daemon_conf *c)
 	}
 }
 
+void libdisp_write_queue_state(FILE *f)
+{
+	fprintf(f, "Number of active plugins = %u\n",
+			plist_count(&plugin_conf));
+	write_queue_state(f);
+}
+
 /* Used during startup and something failed */
 void libdisp_shutdown(void)
 {

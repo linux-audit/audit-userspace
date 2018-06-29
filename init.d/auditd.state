@@ -14,6 +14,7 @@ printf "Getting auditd internal state: "
 killproc $prog -CONT
 RETVAL=$?
 echo -e "\n"
+sleep 1
 if [ $? -eq 0 ] ; then
 	if [ -e $state_file ] ; then
 		cat $state_file

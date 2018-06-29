@@ -21,6 +21,7 @@
 - Create a common internal library to reduce code
 - Move all audispd config files under /etc/audit/
 - Move audispd.conf settings into auditd.conf
+- Add queue depth statistics to internal state dump report
 
 2.8.3
 - Correct msg function name in LRU debug code

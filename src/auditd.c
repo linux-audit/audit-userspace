@@ -204,6 +204,7 @@ static void cont_handler(struct ev_loop *loop, struct ev_signal *sig,
 	strftime(buf, sizeof(buf), "%x %X", localtime(&now));
 	fprintf(f, "time = %s\n", buf);
 	write_logging_state(f);
+	libdisp_write_queue_state(f);
 	fclose(f);
 }
 
