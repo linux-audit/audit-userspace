@@ -22,7 +22,7 @@
 
 CONFIG_CLEAN_FILES = *.rej *.orig
 EXTRA_DIST = auditd.init auditd.service auditd.sysconfig auditd.conf \
-	auditd.cron libaudit.conf audispd.conf auditd.condrestart \
+	auditd.cron libaudit.conf auditd.condrestart \
 	auditd.reload auditd.restart auditd.resume \
 	auditd.rotate auditd.state auditd.stop \
 	audit-stop.rules augenrules
