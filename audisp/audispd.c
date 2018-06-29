@@ -317,6 +317,7 @@ int libdisp_init(const struct daemon_conf *c)
 
 	/* If no plugins - exit */
 	if (plist_count(&plugin_conf) == 0) {
+		free(daemon_config.plugin_dir);
 		audit_msg(LOG_NOTICE,
 			"No plugins found, not dispatching events");
 		return 0;
@@ -380,7 +381,6 @@ static void *outbound_thread_main(void *arg)
 
 	/* Cleanup the queue */
 	destroy_queue();
-	free(daemon_config.plugin_dir);
 	audit_msg(LOG_DEBUG, "Finished cleaning up dispatcher");
 	
 	return 0;

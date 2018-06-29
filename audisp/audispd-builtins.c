@@ -244,19 +244,24 @@ void send_af_unix_binary(event_t *e)
 
 void destroy_af_unix(void)
 {
+	int did_something = 0;
 	if (conn >= 0) {
 		close(conn);
 		conn = -1;
+		did_something = 1;
 	}
 	if (sock >= 0) {
 		close(sock);
 		sock = -1;
+		did_something = 1;
 	}
 	if (path) {
 		unlink(path);
 		free(path);
 		path = NULL;
+		did_something = 1;
 	}
-	syslog(LOG_INFO, "af_unix plugin terminated");
+	if (did_something)
+		syslog(LOG_INFO, "af_unix plugin terminated");
 }
 
