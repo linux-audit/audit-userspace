@@ -37,7 +37,7 @@ endif
 
 auditdir = $(sysconfdir)/audit
 auditrdir = $(auditdir)/rules.d
-dist_audit_DATA = auditd.conf audispd.conf audit-stop.rules
+dist_audit_DATA = auditd.conf audit-stop.rules
 sbin_SCRIPTS = augenrules
 
 install-data-hook:
