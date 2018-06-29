@@ -46,6 +46,7 @@
 #include "libaudit.h"
 #include "private.h"
 #include "errormsg.h"
+#include "common.h"
 
 /* #defines for the audit failure query  */
 #define CONFIG_FILE "/etc/libaudit.conf"

@@ -42,6 +42,7 @@
 #include "libaudit.h"
 #include "auditctl-listing.h"
 #include "private.h"
+#include "common.h"
 
 /* This define controls the size of the line that we will request when
  * reading in rules from a file.
