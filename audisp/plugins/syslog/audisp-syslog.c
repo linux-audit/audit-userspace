@@ -117,7 +117,9 @@ static int init_syslog(int argc, const char *argv[])
 			}
 		}
 	}
-	syslog(LOG_INFO, "syslog plugin initialized");
+	syslog(LOG_INFO,
+		"syslog plugin initialized with facility %d and priority %d",
+		facility, priority);
 	if (facility != LOG_USER)
 		openlog("audispd", 0, facility);
 	return 0;
@@ -182,11 +184,6 @@ int main(int argc, char *argv[])
 		if (audit_fgets_eof())
 			break;
 	} while (stop == 0);
-
-	if (stop)
-		printf("audisp-syslog is exiting on stop request\n");
-	else
-		printf("audisp-syslog is exiting on stdin EOF\n");
 
 	return 0;
 }
