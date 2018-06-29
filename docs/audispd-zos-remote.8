@@ -36,14 +36,14 @@ section below for more information about the resulting SMF record format.
 
 .BR audispd (8)
 must be configured to start the plugin. This is done by a configuration file usually located at
-.IR /etc/audisp/plugins.d/audispd\-zos\-remote.conf ,
+.IR /etc/audit/plugins.d/audispd\-zos\-remote.conf ,
 but multiple instances can be spawned by having multiple configuration files in
-.I /etc/audisp/plugins.d
+.I /etc/audit/plugins.d
 for the same plugin executable (see
 .BR audispd (8)).
 
 Each instance needs a configuration file, located by default at
-.IR /etc/audisp/zos\-remote.conf .
+.IR /etc/audit/zos\-remote.conf .
 Check
 .BR zos\-remote.conf (5)
 for details about the plugin configuration.
@@ -51,7 +51,7 @@ for details about the plugin configuration.
 .SH OPTIONS
 .IP config-file
 Use an alternate configuration file instead of
-.IR /etc/audisp/zos\-remote.conf .
+.IR /etc/audit/zos\-remote.conf .
 
 .SH SIGNALS
 .B audispd\-zos\-remote
@@ -232,8 +232,8 @@ don't have access to the IRR.LDAP.REMOTE.AUDIT FACILITY Class profile. See
 The plugin currently does remote auditing in a best-effort basis, and will dischard events in case the z/OS server cannot be contacted (network failures) or in any other case that event submission fails. 
 
 .SH FILES
-/etc/audisp/plugins.d/audispd\-zos\-remote.conf
-/etc/audisp/zos\-remote.conf
+/etc/audit/plugins.d/audispd\-zos\-remote.conf
+/etc/audit/zos\-remote.conf
 .SH "SEE ALSO"
 .BR auditd (8),
 .BR zos\-remote.conf (5).

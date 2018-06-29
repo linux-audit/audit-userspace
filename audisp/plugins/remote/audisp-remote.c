@@ -54,7 +54,7 @@
 #include "queue.h"
 #include "common.h"
 
-#define CONFIG_FILE "/etc/audisp/audisp-remote.conf"
+#define CONFIG_FILE "/etc/audit/audisp-remote.conf"
 #define BUF_SIZE 32
 
 /* MAX_AUDIT_MESSAGE_LENGTH, aligned to 4 KB so that an average q_append() only

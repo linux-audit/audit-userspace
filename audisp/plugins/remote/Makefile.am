@@ -23,7 +23,7 @@
 CONFIG_CLEAN_FILES = *.loT *.rej *.orig
 EXTRA_DIST = au-remote.conf audisp-remote.conf notes.txt $(man_MANS)
 AM_CPPFLAGS = -I${top_srcdir} -I${top_srcdir}/lib -I${top_srcdir}/common
-prog_confdir = $(sysconfdir)/audisp
+prog_confdir = $(sysconfdir)/audit
 prog_conf = audisp-remote.conf
 plugin_confdir=$(prog_confdir)/plugins.d
 plugin_conf = au-remote.conf

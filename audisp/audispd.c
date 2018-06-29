@@ -51,7 +51,7 @@ static volatile int stop = 0;
 volatile int disp_hup = 0;
 
 /* Local data */
-#define DEFAULT_CONFIG_FILE "/etc/audisp/audispd.conf"
+#define DEFAULT_CONFIG_FILE "/etc/audit/audispd.conf"
 static daemon_conf_t daemon_config;
 static conf_llist plugin_conf;
 static pthread_t outbound_thread;

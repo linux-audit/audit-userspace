@@ -101,7 +101,7 @@ behavior.
 make CFLAGS="%{optflags}" %{?_smp_mflags}
 
 %install
-mkdir -p $RPM_BUILD_ROOT/{sbin,etc/audispd/plugins.d,etc/audit/rules.d}
+mkdir -p $RPM_BUILD_ROOT/{sbin,etc/audit/plugins.d,etc/audit/rules.d}
 mkdir -p $RPM_BUILD_ROOT/%{_mandir}/{man5,man8}
 mkdir -p $RPM_BUILD_ROOT/%{_lib}
 mkdir -p $RPM_BUILD_ROOT/%{_libdir}/audit
@@ -236,24 +236,23 @@ fi
 %attr(-,root,-) %dir %{_var}/log/audit
 %attr(750,root,root) %dir /etc/audit
 %attr(750,root,root) %dir /etc/audit/rules.d
-%attr(750,root,root) %dir /etc/audisp
-%attr(750,root,root) %dir /etc/audisp/plugins.d
+%attr(750,root,root) %dir /etc/audit/plugins.d
 %config(noreplace) %attr(640,root,root) /etc/audit/auditd.conf
 %ghost %config(noreplace) %attr(640,root,root) /etc/audit/rules.d/audit.rules
 %ghost %config(noreplace) %attr(640,root,root) /etc/audit/audit.rules
 %config(noreplace) %attr(640,root,root) /etc/audit/audit-stop.rules
-%config(noreplace) %attr(640,root,root) /etc/audisp/audispd.conf
-%config(noreplace) %attr(640,root,root) /etc/audisp/plugins.d/af_unix.conf
+%config(noreplace) %attr(640,root,root) /etc/audit/audispd.conf
+%config(noreplace) %attr(640,root,root) /etc/audit/plugins.d/af_unix.conf
 
 %files -n audispd-plugins
 %attr(644,root,root) %{_mandir}/man8/audispd-zos-remote.8.gz
 %attr(644,root,root) %{_mandir}/man5/zos-remote.conf.5.gz
-%config(noreplace) %attr(640,root,root) /etc/audisp/plugins.d/audispd-zos-remote.conf
-%config(noreplace) %attr(640,root,root) /etc/audisp/zos-remote.conf
+%config(noreplace) %attr(640,root,root) /etc/audit/plugins.d/audispd-zos-remote.conf
+%config(noreplace) %attr(640,root,root) /etc/audit/zos-remote.conf
 %attr(750,root,root) /sbin/audispd-zos-remote
-%config(noreplace) %attr(640,root,root) /etc/audisp/audisp-remote.conf
-%config(noreplace) %attr(640,root,root) /etc/audisp/plugins.d/au-remote.conf
-%config(noreplace) %attr(640,root,root) /etc/audisp/plugins.d/syslog.conf
+%config(noreplace) %attr(640,root,root) /etc/audit/audisp-remote.conf
+%config(noreplace) %attr(640,root,root) /etc/audit/plugins.d/au-remote.conf
+%config(noreplace) %attr(640,root,root) /etc/audit/plugins.d/syslog.conf
 %attr(750,root,root) /sbin/audisp-remote
 %attr(750,root,root) /sbin/audisp-syslog
 %attr(700,root,root) %dir %{_var}/spool/audit

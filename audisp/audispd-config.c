@@ -467,7 +467,7 @@ static int sanity_check(daemon_conf_t *config, const char *file)
 {
 	/* Error checking */
 	if (config->plugin_dir == NULL)
-		config->plugin_dir = strdup("/etc/audisp/plugins.d/");
+		config->plugin_dir = strdup("/etc/audit/plugins.d/");
 	return 0;
 }
 

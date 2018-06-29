@@ -27,8 +27,6 @@ EXTRA_DIST = auditd.init auditd.service auditd.sysconfig auditd.conf \
 	auditd.rotate auditd.state auditd.stop \
 	audit-stop.rules augenrules
 libconfig = libaudit.conf
-dispconfig = audispd.conf
-dispconfigdir = $(sysconfdir)/audisp
 if ENABLE_SYSTEMD
 initdir = /usr/lib/systemd/system
 legacydir = $(libexecdir)/initscripts/legacy-actions/auditd
@@ -39,11 +37,10 @@ endif
 
 auditdir = $(sysconfdir)/audit
 auditrdir = $(auditdir)/rules.d
-dist_audit_DATA = auditd.conf audit-stop.rules
+dist_audit_DATA = auditd.conf audispd.conf audit-stop.rules
 sbin_SCRIPTS = augenrules
 
 install-data-hook:
-	$(INSTALL_DATA) -D -m 640 ${srcdir}/${dispconfig} ${DESTDIR}${dispconfigdir}
 	$(INSTALL_DATA) -D -m 640 ${srcdir}/${libconfig} ${DESTDIR}${sysconfdir}
 if ENABLE_SYSTEMD
 else
@@ -69,7 +66,6 @@ endif
 
 
 uninstall-hook:
-	rm ${DESTDIR}${dispconfigdir}/${dispconfig}
 	rm ${DESTDIR}${sysconfdir}/${libconfig}
 if ENABLE_SYSTEMD
 	rm ${DESTDIR}${initdir}/auditd.service
