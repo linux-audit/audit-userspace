@@ -40,11 +40,11 @@
 #include <getopt.h>
 
 #include "libaudit.h"
-#include "libdisp.h"
 #include "auditd-event.h"
 #include "auditd-config.h"
 #include "auditd-dispatch.h"
 #include "auditd-listen.h"
+#include "libdisp.h"
 #include "private.h"
 
 #include "ev.h"
@@ -566,7 +566,6 @@ void reconfig_ready(void)
 {
 	const char *msg = "ready\n";
 	write(pipefds[1], msg, strlen(msg));
-	reconfigure_dispatcher();
 }
 
 static void close_pipes(void)
@@ -743,7 +742,7 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	if (init_dispatcher(&config, config_dir_set)) {
+	if (init_dispatcher(&config)) {
 		if (pidfile)
 			unlink(pidfile);
 		tell_parent(FAILURE);

@@ -24,11 +24,7 @@
 #ifndef AUDISPD_CONFIG_H
 #define AUDISPD_CONFIG_H
 
-#include "libaudit.h"
-
-typedef enum { O_IGNORE, O_SYSLOG, O_SUSPEND, O_SINGLE,
-		O_HALT } overflow_action_t;
-typedef enum { N_NONE, N_HOSTNAME, N_FQD, N_NUMERIC, N_USER } node_t;
+#include "auditd-config.h"
 
 typedef struct disp_conf
 {
@@ -37,10 +33,6 @@ typedef struct disp_conf
 	unsigned int max_restarts;
 	char *plugin_dir;
 } daemon_conf_t;
-
-void disp_clear_config(daemon_conf_t *config);
-int  disp_load_config(daemon_conf_t *config, const char *file);
-void disp_free_config(daemon_conf_t *config);
 
 #endif
 

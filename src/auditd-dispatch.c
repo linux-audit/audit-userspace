@@ -47,9 +47,9 @@ void dispatcher_reaped(void)
 }
 
 /* This function returns 1 on error & 0 on success */
-int init_dispatcher(const struct daemon_conf *config, int config_dir_set)
+int init_dispatcher(const struct daemon_conf *config)
 {
-	return libdisp_init(config_dir_set ? get_config_dir() : NULL);
+	return libdisp_init(config);
 }
 
 void shutdown_dispatcher(void)
@@ -57,7 +57,7 @@ void shutdown_dispatcher(void)
 	libdisp_shutdown();
 }
 
-void reconfigure_dispatcher(void)
+void reconfigure_dispatcher(const struct daemon_conf *config)
 {
 	libdisp_reconfigure(get_config_dir());
 }

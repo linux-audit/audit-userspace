@@ -1360,6 +1360,17 @@ static void reconfigure(struct auditd_event *e)
 	// distribute network events	
 	oconf->distribute_network_events = nconf->distribute_network_events;
 
+	// Dispatcher items
+	oconf->q_depth = nconf->q_depth;
+	oconf->overflow_action = nconf->overflow_action;
+	oconf->max_restarts = nconf->max_restarts;
+	if (oconf->plugin_dir != nconf->plugin_dir ||
+		(oconf->plugin_dir && nconf->plugin_dir &&
+		strcmp(oconf->plugin_dir, nconf->plugin_dir) != 0)) {
+		free(oconf->plugin_dir);
+		oconf->plugin_dir = nconf->plugin_dir;
+	}
+
 	/* At this point we will work on the items that are related to 
 	 * a single log file. */
 
@@ -1497,6 +1508,8 @@ static void reconfigure(struct auditd_event *e)
 		if (logging_suspended == 0)
 			logging_suspended = saved_suspend;
 	}
+
+	reconfigure_dispatcher(oconf);
 
 	// Next document the results
 	srand(time(NULL));

@@ -2,6 +2,7 @@
 #define LIBDISP_HEADERS
 
 #include "libaudit.h"
+#include "auditd-config.h"
 
 typedef struct event
 {
@@ -10,9 +11,9 @@ typedef struct event
 } event_t;
 
 
-int libdisp_init(const char *config_dir);
+int libdisp_init(const struct daemon_conf *config);
 void libdisp_shutdown(void);
-void libdisp_reconfigure(const char *config_dir);
+void libdisp_reconfigure(const struct daemon_conf *config);
 void plugin_child_handler(pid_t pid);
 int libdisp_enqueue(event_t *e);
 int libdisp_active(void);

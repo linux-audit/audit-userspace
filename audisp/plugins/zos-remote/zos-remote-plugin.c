@@ -438,7 +438,7 @@ int main(int argc, char *argv[])
         /* 
          * the main program accepts a single (optional) argument:
          * it's configuration file (this is NOT the plugin configuration
-         * usually located at /etc/audisp/plugin.d)
+         * usually located at /etc/audit/plugins.d)
          * We use the default (def_config_file) if no arguments are given
          */
         if (argc == 1) {

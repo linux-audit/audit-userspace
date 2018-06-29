@@ -38,6 +38,8 @@ typedef enum { SZ_IGNORE, SZ_SYSLOG, SZ_SUSPEND, SZ_ROTATE,
 		SZ_KEEP_LOGS } size_action;
 typedef enum { TEST_AUDITD, TEST_SEARCH } log_test_t;
 typedef enum { N_NONE, N_HOSTNAME, N_FQD, N_NUMERIC, N_USER } node_t;
+typedef enum { O_IGNORE, O_SYSLOG, O_SUSPEND, O_SINGLE,
+		O_HALT } overflow_action_t;
 
 struct daemon_conf
 {
@@ -81,6 +83,12 @@ struct daemon_conf
 	const char *krb5_principal;
 	const char *krb5_key_file;
 	int distribute_network_events;
+	// Dispatcher config
+	unsigned int q_depth;
+	overflow_action_t overflow_action;
+	unsigned int max_restarts;
+	char *plugin_dir;
+	const char *config_dir;
 };
 
 void set_allow_links(int allow);

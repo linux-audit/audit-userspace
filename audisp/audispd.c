@@ -38,8 +38,8 @@
 #include <sys/uio.h>
 #include <getopt.h>
 
-#include "audispd-config.h"
 #include "audispd-pconfig.h"
+#include "audispd-config.h"
 #include "audispd-llist.h"
 #include "audispd-builtins.h"
 #include "queue.h"
@@ -51,11 +51,10 @@ static volatile int stop = 0;
 volatile int disp_hup = 0;
 
 /* Local data */
-#define DEFAULT_CONFIG_FILE "/etc/audit/audispd.conf"
 static daemon_conf_t daemon_config;
 static conf_llist plugin_conf;
 static pthread_t outbound_thread;
-static char *config_file = NULL;
+static int need_queue_depth_change = 0;
 
 /* Local function prototypes */
 static void signal_plugins(int sig);
@@ -179,30 +178,35 @@ static int start_plugins(conf_llist *plugin)
 	return active;
 }
 
+static void copy_config(const struct daemon_conf *c)
+{
+	if (c->q_depth > daemon_config.q_depth)
+		need_queue_depth_change = 1;
+
+	daemon_config.q_depth = c->q_depth;
+	daemon_config.overflow_action = c->overflow_action;
+	daemon_config.max_restarts = c->max_restarts;
+	if (daemon_config.plugin_dir == NULL)
+		daemon_config.plugin_dir = 
+				c->plugin_dir ? strdup(c->plugin_dir) : NULL;
+	else if (daemon_config.plugin_dir && c->plugin_dir && 
+		strcmp(daemon_config.plugin_dir, c->plugin_dir)) {
+		free(daemon_config.plugin_dir);
+		daemon_config.plugin_dir = strdup(c->plugin_dir);
+	} // else c->plugin_dir is NULL or they are the same
+	  // Either way, let's leave them alone.
+}
+
 static int reconfigure(void)
 {
-	int rc;
-	daemon_conf_t tdc;
 	conf_llist tmp_plugin;
 	lnode *tpconf;
 
-	/* Read new daemon config */
-	rc = disp_load_config(&tdc, config_file);
-	if (rc == 0) {
-		if (tdc.q_depth > daemon_config.q_depth) {
-			increase_queue_depth(tdc.q_depth);
-			daemon_config.q_depth = tdc.q_depth;
-		}
-		daemon_config.overflow_action = tdc.overflow_action;
-		daemon_config.max_restarts = tdc.max_restarts;
-		// We do not allow changing dirs on reconfigure
-		if (daemon_config.plugin_dir && tdc.plugin_dir &&
-			    strcmp(daemon_config.plugin_dir, tdc.plugin_dir))
-			audit_msg(LOG_WARNING,
-			 "Changing plugin_dir on reconfigure is not supported");
-		free(tdc.plugin_dir);
-		reset_suspended();
+	if (need_queue_depth_change) {
+		need_queue_depth_change = 0;
+		increase_queue_depth(daemon_config.q_depth);
 	}
+	reset_suspended();
 
 	/* The idea for handling SIGHUP to children goes like this:
 	 * 1) load the current config in temp list
@@ -300,47 +304,21 @@ static int reconfigure(void)
 	return plist_count_active(&plugin_conf);
 }
 
-static int build_conf_file(const char *config_dir)
-{
-	if (config_file == NULL && config_dir) {
-		if (asprintf(&config_file, "%s/audispd.conf", config_dir) < 0){
-mem_out:
-			audit_msg(LOG_ERR,
-				"Failed building config file name, exiting\n");
-			return 1;
-		}
-	}
-
-	if (config_file == NULL)
-		config_file = strdup(DEFAULT_CONFIG_FILE);
-	if (config_file == NULL)
-		goto mem_out;
-	return 0;
-}
-
 /* Return 0 on success and 1 on failure */
-int libdisp_init(const char *config_dir)
+int libdisp_init(const struct daemon_conf *c)
 {
 	int i;
 
-	if (build_conf_file(config_dir))
-		return 1;
+	/* Init the dispatcher's config */
+	copy_config(c);
 
-	/* init the daemon's config */
-	if (disp_load_config(&daemon_config, config_file)) {
-		free(config_file);
-		config_file = NULL;
-		return 1;
-	}
-
+	/* Load all plugin configs */
 	load_plugin_conf(&plugin_conf);
 
-	/* if no plugins - exit */
+	/* If no plugins - exit */
 	if (plist_count(&plugin_conf) == 0) {
-		// FIXME: need to stop the enqueue of events
-		audit_msg(LOG_NOTICE, "No plugins found, not dispatching events.");
-		free(config_file);
-		config_file = NULL;
+		audit_msg(LOG_NOTICE,
+			"No plugins found, not dispatching events");
 		return 0;
 	}
 
@@ -402,9 +380,6 @@ static void *outbound_thread_main(void *arg)
 
 	/* Cleanup the queue */
 	destroy_queue();
-	disp_free_config(&daemon_config);
-	free((void *)config_file);
-	config_file = NULL;
 	audit_msg(LOG_DEBUG, "Finished cleaning up dispatcher");
 	
 	return 0;
@@ -501,9 +476,8 @@ static int event_loop(void)
 		/* This is where we block until we have an event */
 		e = dequeue();
 		if (e == NULL) {
-			if (disp_hup) {
+			if (disp_hup)
 				return 1;
-			}
 			continue;
 		}
 
@@ -654,13 +628,13 @@ void libdisp_nudge_queue(void)
 		nudge_queue();
 }
 
-void libdisp_reconfigure(const char *config_dir)
+void libdisp_reconfigure(const struct daemon_conf *c)
 {
 	// If the dispatcher thread is dead, start a new one
 	if (plist_count(&plugin_conf) == 0)
-		libdisp_init(config_dir);
-	else if (build_conf_file(config_dir) == 0) {
-			// Otherwise we do a reconfigure
+		libdisp_init(c);
+	else { // Otherwise we do a reconfigure
+			copy_config(c);
 			disp_hup = 1;
 			nudge_queue();
 	}

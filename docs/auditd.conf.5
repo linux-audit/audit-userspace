@@ -299,6 +299,30 @@ The default is
 .I distribute_network
 If set to "yes", network originating events will be distributed to the audit
 dispatcher for processing. The default is "no".
+.TP
+.I q_depth
+This is a numeric value that tells how big to make the internal queue of the audit event dispatcher. A bigger queue lets it handle a flood of events better, but could hold events that are not processed when the daemon is terminated. If you get messages in syslog about events getting dropped, increase this value. The default value is 180.
+.TP
+.I overflow_action
+This option determines how the daemon should react to overflowing its internal queue. When this happens, it means that more events are being received than it can get rid of. This error means that it is going to lose the current event its trying to dispatch. It has the following choices:
+.IR ignore ", " syslog ", " suspend ", " single ", and " halt ".
+If set to
+.IR ignore ,
+the audisp daemon does nothing.
+.I syslog
+means that it will issue a warning to syslog.
+.I suspend
+will cause the audisp daemon to stop processing events. The daemon will still be alive. The
+.I single
+option will cause the audisp daemon to put the computer system in single user mode.
+.I halt
+option will cause the audisp daemon to shutdown the computer system.
+.TP
+.I max_restarts
+This is a non-negative number that tells the audit event dispatcher how many times it can try to restart a crashed plugin. The default is 10.
+.TP
+.I plugin_dir
+This is the location that audispd will use to search for its plugin configuration files.
 
 .SH NOTES
 In a CAPP environment, the audit trail is considered so important that access to system resources must be denied if an audit trail cannot be created. In this environment, it would be suggested that /var/log/audit be on its own partition. This is to ensure that space detection is accurate and that no other process comes along and consumes part of it.

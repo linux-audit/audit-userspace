@@ -133,6 +133,14 @@ static int krb5_key_file_parser(struct nv_pair *nv, int line,
 		struct daemon_conf *config);
 static int distribute_network_parser(struct nv_pair *nv, int line,
 		struct daemon_conf *config);
+static int q_depth_parser(struct nv_pair *nv, int line,
+		struct daemon_conf *config);
+static int overflow_action_parser(struct nv_pair *nv, int line,
+		struct daemon_conf *config);
+static int max_restarts_parser(struct nv_pair *nv, int line,
+		struct daemon_conf *config);
+static int plugin_dir_parser(struct nv_pair *nv, int line,
+		struct daemon_conf *config);
 static int sanity_check(struct daemon_conf *config);
 
 static const struct kw_pair keywords[] = 
@@ -170,6 +178,10 @@ static const struct kw_pair keywords[] =
   {"krb5_principal",           krb5_principal_parser,           0 },
   {"krb5_key_file",            krb5_key_file_parser,            0 },
   {"distribute_network",       distribute_network_parser,       0 },
+  {"q_depth",                  q_depth_parser,                  0 },
+  {"overflow_action",          overflow_action_parser,          0 },
+  {"max_restarts",             max_restarts_parser,             0 },
+  {"plugin_dir",               plugin_dir_parser,               0 },
   { NULL,                      NULL,                            0 }
 };
 
@@ -230,6 +242,16 @@ static const struct nv_list yes_no_values[] =
   {"yes",  1 },
   {"no", 0 },
   { NULL,  0 }
+};
+
+static const struct nv_list overflow_actions[] =
+{
+  {"ignore",  O_IGNORE },
+  {"syslog",  O_SYSLOG },
+  {"suspend", O_SUSPEND },
+  {"single",  O_SINGLE },
+  {"halt",    O_HALT },
+  { NULL,     0 }
 };
 
 const char *email_command = "/usr/lib/sendmail";
@@ -307,6 +329,11 @@ void clear_config(struct daemon_conf *config)
 	config->krb5_principal = NULL;
 	config->krb5_key_file = NULL;
 	config->distribute_network_events = 0;
+	config->q_depth = 180;
+	config->overflow_action = O_SYSLOG;
+	config->max_restarts = 10;
+	config->plugin_dir = strdup("/etc/audit/plugins.d");
+	config->config_dir = NULL;
 }
 
 static log_test_t log_test = TEST_AUDITD;
@@ -1633,6 +1660,120 @@ static int distribute_network_parser(struct nv_pair *nv, int line,
 	return 1;
 }
 
+static int q_depth_parser(struct nv_pair *nv, int line,
+		struct daemon_conf *config)
+{
+	const char *ptr = nv->value;
+	unsigned long i;
+
+	audit_msg(LOG_DEBUG, "q_depth_parser called with: %s", nv->value);
+
+	/* check that all chars are numbers */
+	for (i=0; ptr[i]; i++) {
+		if (!isdigit(ptr[i])) {
+			audit_msg(LOG_ERR,
+				"Value %s should only be numbers - line %d",
+				nv->value, line);
+			return 1;
+		}
+	}
+
+	/* convert to unsigned long */
+	errno = 0;
+	i = strtoul(nv->value, NULL, 10);
+	if (errno) {
+		audit_msg(LOG_ERR,
+			"Error converting string to a number (%s) - line %d",
+			strerror(errno), line);
+		return 1;
+	}
+	if (i > 99999) {
+		audit_msg(LOG_ERR, "q_depth must be 99999 or less");
+		return 1;
+	}
+	config->q_depth = i;
+	return 0;
+}
+
+static int overflow_action_parser(struct nv_pair *nv, int line,
+		struct daemon_conf *config)
+{
+	int i;
+
+	audit_msg(LOG_DEBUG, "overflow_action_parser called with: %s",
+		nv->value);
+
+	for (i=0; overflow_actions[i].name != NULL; i++) {
+		if (strcasecmp(nv->value, overflow_actions[i].name) == 0) {
+			config->overflow_action = overflow_actions[i].option;
+			return 0;
+		}
+	}
+	audit_msg(LOG_ERR, "Option %s not found - line %d", nv->value, line);
+	return 1;
+}
+
+static int max_restarts_parser(struct nv_pair *nv, int line,
+	struct daemon_conf *config)
+{
+	const char *ptr = nv->value;
+	unsigned long i;
+
+	audit_msg(LOG_DEBUG, "max_restarts_parser called with: %s",
+				nv->value);
+
+	/* check that all chars are numbers */
+	for (i=0; ptr[i]; i++) {
+		if (!isdigit(ptr[i])) {
+			audit_msg(LOG_ERR,
+				"Value %s should only be numbers - line %d",
+				nv->value, line);
+			return 1;
+		}
+	}
+	/* convert to unsigned int */
+	errno = 0;
+	i = strtoul(nv->value, NULL, 10);
+	if (errno) {
+		audit_msg(LOG_ERR,
+			"Error converting string to a number (%s) - line %d",
+			strerror(errno), line);
+		return 1;
+	}
+	/* Check its range */
+	if (i > INT_MAX) {
+		audit_msg(LOG_ERR,
+			"Error - converted number (%s) is too large - line %d",
+			nv->value, line);
+		return 1;
+	}
+	config->max_restarts = (unsigned int)i;
+	return 0;
+}
+
+static int plugin_dir_parser(struct nv_pair *nv, int line,
+		struct daemon_conf *config)
+{
+	audit_msg(LOG_DEBUG, "plugin_dir_parser called with: %s", nv->value);
+
+	if (nv->value == NULL)
+		config->plugin_dir = NULL;
+	else {
+		size_t len = strlen(nv->value);
+		free(config->plugin_dir);
+		config->plugin_dir = malloc(len + 2);
+		if (config->plugin_dir) {
+			strcpy(config->plugin_dir, nv->value);
+			if (config->plugin_dir[len - 1] != '/')
+				config->plugin_dir[len] = '/';
+			config->plugin_dir[len + 1] = 0;
+		}
+	}
+	return 0;
+}
+
+
+
 /*
  * This function is where we do the integrated check of the audit config
  * options. At this point, all fields have been read. Returns 0 if no
@@ -1658,6 +1799,7 @@ static int sanity_check(struct daemon_conf *config)
 		audit_msg(LOG_WARNING, 
            "Warning - freq is non-zero and incremental flushing not selected.");
 	}
+	config->config_dir = config_dir;
 	return 0;
 }
 
@@ -1698,8 +1840,10 @@ void free_config(struct daemon_conf *config)
         free((void *)config->disk_error_exe);
         free((void *)config->krb5_principal);
         free((void *)config->krb5_key_file);
+	free((void *)config->plugin_dir);
         free((void *)config_dir);
         free(config_file);
+	config->config_dir = NULL;
 }
 
 int resolve_node(struct daemon_conf *config)
