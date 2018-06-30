@@ -101,18 +101,18 @@ static void do_overflow_action(struct disp_conf *config)
                 case O_SYSLOG:
 			if (queue_full_warning < QUEUE_FULL_LIMIT) {
 				syslog(LOG_ERR,
-					"queue is full - dropping event");
+				  "queue to plugins is full - dropping event");
 				queue_full_warning++;
 				if (queue_full_warning == QUEUE_FULL_LIMIT)
 					syslog(LOG_ERR,
-						"audispd queue full reporting "
+						"auditd queue full reporting "
 						"limit reached - ending "
 						"dropped event notifications");
 			}
                         break;
                 case O_SUSPEND:
                         syslog(LOG_ALERT,
-                            "Auditd is suspending event processing due to overflowing its queue.");
+                            "Auditd is suspending event passing to plugins due to overflowing its queue.");
                         processing_suspended = 1;
                         break;
                 case O_SINGLE:
@@ -237,6 +237,11 @@ void write_queue_state(FILE *f)
 	fprintf(f, "queueu overflow detected = %s\n",overflowed ? "yes" : "no");
 	fprintf(f, "queueing suspended = %s\n",
 				processing_suspended ? "yes" : "no");
+}
+
+void resume_queue(void)
+{
+	processing_suspended = 0;
 }
 
 void destroy_queue(void)

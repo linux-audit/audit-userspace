@@ -20,5 +20,6 @@ int libdisp_enqueue(event_t *e);
 int libdisp_active(void);
 void libdisp_nudge_queue(void);
 void libdisp_write_queue_state(FILE *f);
+void libdisp_resume(void);
 
 #endif

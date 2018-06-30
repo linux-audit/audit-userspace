@@ -651,6 +651,11 @@ void libdisp_write_queue_state(FILE *f)
 	write_queue_state(f);
 }
 
+void libdisp_resume(void)
+{
+	resume_queue();
+}
+
 /* Used during startup and something failed */
 void libdisp_shutdown(void)
 {

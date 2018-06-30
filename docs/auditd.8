@@ -48,7 +48,7 @@ causes auditd to immediately rotate the logs. It will consult the max_log_file_a
 
 .TP
 SIGUSR2
-causes auditd to attempt to resume logging. This is usually needed after logging has been suspended.
+causes auditd to attempt to resume logging and passing events to plugins. This is usually needed after logging has been suspended or the internal queue is overflowed. Either of these conditions depends on the applicable configuration settings.
 .TP
 SIGCONT
 causes auditd to dump a report of internal state to /var/run/auditd.state.
@@ -62,6 +62,9 @@ causes auditd to dump a report of internal state to /var/run/auditd.state.
 .P
 .B /etc/audit/rules.d/
 - directory holding individual sets of rules to be compiled into one file by augenrules.
+.P
+.B /etc/audit/plugins.d/
+- directory holding individual plugin configuration files.
 .P
 .B /var/run/auditd.state
 - report about internal state.

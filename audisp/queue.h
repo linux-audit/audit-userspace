@@ -1,5 +1,5 @@
 /* queue.h --
- * Copyright 2007 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2007,2018 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -35,6 +35,7 @@ event_t *dequeue(void);
 void nudge_queue(void);
 void increase_queue_depth(unsigned int size);
 void write_queue_state(FILE *f);
+void resume_queue(void);
 void destroy_queue(void);
 
 #endif
