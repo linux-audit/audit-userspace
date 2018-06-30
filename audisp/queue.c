@@ -59,7 +59,7 @@ int init_queue(unsigned int size)
 	if (q == NULL)
 		return -1;
 
-	for (i=0; i<q_depth; i++) 
+	for (i=0; i < q_depth; i++) 
 		q[i] = NULL;
 
 	/* Setup IPC mechanisms */
