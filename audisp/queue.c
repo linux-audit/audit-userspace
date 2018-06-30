@@ -31,7 +31,7 @@ static volatile event_t **q;
 static pthread_mutex_t queue_lock;
 static pthread_cond_t queue_nonempty;
 static unsigned int q_next, q_last, q_depth, processing_suspended;
-static unsigned int currently_used, max_used;
+static unsigned int currently_used, max_used, overflowed;
 static const char *SINGLE = "1";
 static const char *HALT = "0";
 static int queue_full_warning = 0;
@@ -53,6 +53,7 @@ int init_queue(unsigned int size)
 	q_last = 0;
 	currently_used = 0;
 	max_used = 0;
+	overflowed = 0;
 	q_depth = size;
 	q = malloc(q_depth * sizeof(event_t *));
 	if (q == NULL)
@@ -92,6 +93,7 @@ static void change_runlevel(const char *level)
 
 static void do_overflow_action(struct disp_conf *config)
 {
+	overflowed = 1;
         switch (config->overflow_action)
         {
                 case O_IGNORE:
@@ -232,6 +234,9 @@ void write_queue_state(FILE *f)
 	fprintf(f, "current queue depth = %u\n", currently_used);
 	fprintf(f, "max queue depth used = %u\n", max_used);
 	fprintf(f, "queue size = %u\n", q_depth);
+	fprintf(f, "queueu overflow detected = %s\n",overflowed ? "yes" : "no");
+	fprintf(f, "queueing suspended = %s\n",
+				processing_suspended ? "yes" : "no");
 }
 
 void destroy_queue(void)

@@ -76,6 +76,7 @@ static int fs_space_warning = 0;
 static int fs_admin_space_warning = 0;
 static int fs_space_left = 1;
 static int logging_suspended = 0;
+static unsigned int known_logs = 0;
 static const char *SINGLE = "1";
 static const char *HALT = "0";
 static char *format_buf = NULL;
@@ -99,13 +100,14 @@ void write_logging_state(FILE *f)
 	fprintf(f, "current log size = %lu KB\n", log_size/1024);
 	fprintf(f, "max log size = %lu KB\n",
 				config->max_log_size * (MEGABYTE/1024));
+	fprintf(f, "logs detected last rotate/shift = %u\n", known_logs);
 	fprintf(f, "space left on partition = %s\n",
 					fs_space_left ? "yes" : "no");
 	fprintf(f, "logging suspended = %s\n",
 					logging_suspended ? "yes" : "no");
-	fprintf(f, "file system space warning sent = %s\n",
+	fprintf(f, "file system space action performed = %s\n",
 					fs_space_warning ? "yes" : "no");
-	fprintf(f, "admin space warning sent = %s\n",
+	fprintf(f, "admin space action performed = %s\n",
 					fs_admin_space_warning ? "yes" : "no");
 	fprintf(f, "disk error detected = %s\n",
 					disk_err_warning ? "yes" : "no");
@@ -1033,6 +1035,7 @@ static void rotate_logs(unsigned int num_logs)
 	if (num_logs == 2) 
 		snprintf(oldname, len, "%s.1", config->log_file);
 
+	known_logs = 0;
 	for (i=num_logs - 1; i>1; i--) {
 		snprintf(oldname, len, "%s.%u", config->log_file, i-1);
 		snprintf(newname, len, "%s.%u", config->log_file, i);
@@ -1049,7 +1052,8 @@ static void rotate_logs(unsigned int num_logs)
 				do_disk_full_action();
 			} else
 				do_disk_error_action("rotate", saved_errno);
-		}
+		} else if (rc == 0 && known_logs == 0)
+			known_logs = i + 1;
 	}
 	free(newname);
 
@@ -1111,6 +1115,7 @@ static void shift_logs(void)
 			break;
 		num_logs++;
 	}
+	known_logs = num_logs;
 
 	/* Our last known file disappeared, start over... */
 	if (num_logs <= last_log && last_log > 1) {
