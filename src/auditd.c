@@ -260,13 +260,13 @@ void distribute_event(struct auditd_event *e)
 	else
 		route = 0; // Don't DAEMON_RECONFIG events until after enqueue
 
-	/* First send to plugins */
-	if (route)
-		dispatch_event(&e->reply, proto);
-
 	/* End of Event is for realtime interface - skip local logging of it */
 	if (e->reply.type != AUDIT_EOE)
 		handle_event(e); /* Write to local disk */
+
+	/* Next, send to plugins */
+	if (route)
+		dispatch_event(&e->reply, proto);
 
 	/* Free msg and event memory */
 	cleanup_event(e);
