@@ -1,5 +1,5 @@
 /* arm_table.h --
- * Copyright 2009-10,2013-17 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2009-10,2013-18 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -381,3 +381,4 @@ _S(394, "pkey_mprotect")
 _S(395, "pkey_alloc")
 _S(396, "pkey_free")
 _S(397, "statx")
+_S(398, "rseq")

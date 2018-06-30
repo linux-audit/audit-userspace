@@ -1655,7 +1655,7 @@ static const char *print_mount(const char *val)
 {
 	unsigned int mounts, i;
 	int cnt = 0;
-	char buf[334];
+	char buf[sizeof(mount_strings)+8];
 	char *out;
 
 	errno = 0;

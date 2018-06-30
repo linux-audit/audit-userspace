@@ -24,6 +24,7 @@
 - Add queue depth statistics to internal state dump report
 - Add network statistics to internal state dump report
 - SIGUSR now also restarts queue processing if its suspended
+- Update lookup tables for the 4.18 kernel
 
 2.8.3
 - Correct msg function name in LRU debug code
