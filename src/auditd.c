@@ -206,6 +206,9 @@ static void cont_handler(struct ev_loop *loop, struct ev_signal *sig,
 	fprintf(f, "process priority = %d\n", getpriority(PRIO_PROCESS, 0));
 	write_logging_state(f);
 	libdisp_write_queue_state(f);
+#ifdef USE_LISTENER
+	write_connection_state(f);
+#endif
 	fclose(f);
 }
 

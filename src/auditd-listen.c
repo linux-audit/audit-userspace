@@ -782,6 +782,23 @@ static int check_num_connections(struct sockaddr_storage *aaddr)
 	return 0;
 }
 
+void write_connection_state(FILE *f)
+{
+	unsigned int num = 0, act = 0;
+	struct ev_tcp *client = client_chain;
+
+	while (client) {
+		if (client->client_active)
+			act++;
+		num++;
+		client = client->next;
+	}
+	fprintf(f, "listening for network connections = %s\n",
+		nlsocks ? "yes" : "no");
+	fprintf(f, "active connections = %u\n", act);
+	fprintf(f, "total connections = %u\n", num);		
+}
+
 static void auditd_tcp_listen_handler( struct ev_loop *loop,
 	struct ev_io *_io, int revents)
 {

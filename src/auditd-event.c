@@ -97,6 +97,7 @@ int dispatch_network_events(void)
 
 void write_logging_state(FILE *f)
 {
+	fprintf(f, "writing to logs = %s\n", config->write_logs ? "yes" : "no");
 	fprintf(f, "current log size = %lu KB\n", log_size/1024);
 	fprintf(f, "max log size = %lu KB\n",
 				config->max_log_size * (MEGABYTE/1024));
