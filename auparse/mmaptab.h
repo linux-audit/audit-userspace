@@ -1,5 +1,5 @@
 /* mmaptab.h --
- * Copyright 2012-13 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2012-13,2018 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -36,4 +36,4 @@ _S(0x08000, "MAP_POPULATE"	)
 _S(0x10000, "MAP_NONBLOCK"	)
 _S(0x20000, "MAP_STACK"		)
 _S(0x40000, "MAP_HUGETLB"	)
-
+_S(0x80000, "MAP_SYNC"		)

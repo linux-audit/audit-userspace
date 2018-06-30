@@ -1,5 +1,5 @@
 /* s390_table.h --
- * Copyright 2005-17 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2005-18 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -376,3 +376,5 @@ _S(375, "copy_file_range")
 _S(376, "preadv2")
 _S(377, "pwritev2")
 _S(379, "statx")
+_S(380, "s390_sthyi")
+_S(381, "kexec_file_load")

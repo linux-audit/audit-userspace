@@ -1,5 +1,5 @@
 /* nfprototab.h --
- * Copyright 2011-14 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2011-14,2018 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -25,6 +25,7 @@ _S(0,	"unspecified"	)
 _S(1,	"inet"		)
 _S(2,	"ipv4"		)
 _S(3,	"arp"		)
+_S(5,	"netdev"	)
 _S(7,	"bridge"	)
 _S(10,	"ipv6"		)
 _S(12,	"decnet"	)

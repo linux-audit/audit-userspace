@@ -1,5 +1,5 @@
 /* ip6optnametab.h --
- * Copyright 2013-16 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2013-16,2018 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -87,5 +87,6 @@ _S(74, "IPV6_ORIGDSTADDR")
 _S(75, "IPV6_TRANSPARENT")
 _S(76, "IPV6_UNICAST_IF")
 _S(77, "IPV6_RECVFRAGSIZE")
+_S(78, "IPV6_FREEBIND")
 _S(80, "IP6T_SO_ORIGINAL_DST")
 

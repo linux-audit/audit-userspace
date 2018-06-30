@@ -1,5 +1,5 @@
 /* tcpoptnametab.h --
- * Copyright 2013-14 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2013-14,2018 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -53,3 +53,7 @@ _S(29, "TCP_REPAIR_WINDOW")
 _S(30, "TCP_FASTOPEN_CONNECT")
 _S(31, "TCP_ULP")
 _S(32, "TCP_MD5SIG_EXT")
+_S(33, "TCP_FASTOPEN_KEY")
+_S(34, "TCP_FASTOPEN_NO_COOKIE")
+_S(35, "TCP_ZEROCOPY_RECEIVE")
+_S(36, "TCP_INQ")

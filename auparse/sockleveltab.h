@@ -1,5 +1,5 @@
 /* sockleveltab.h --
- * Copyright 2013-15 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2013-15,2018 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -56,3 +56,4 @@ _S(279, "SOL_ALG")
 _S(280, "SOL_NFC")
 _S(281, "SOL_KCM")
 _S(282, "SOL_TLS")
+_S(283, "SOL_XDP")
