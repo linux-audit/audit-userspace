@@ -1,6 +1,7 @@
 2.8.5
 - Fix segfault on shutdown
 - Fix hang on startup (#1587995)
+- Add sleep to script to dump state so file is ready when needed
 
 2.8.4
 - Generate checkpoint file even when not results are returned (Burn Alting)
