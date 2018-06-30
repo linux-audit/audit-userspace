@@ -96,7 +96,9 @@ int dispatch_network_events(void)
 
 void write_logging_state(FILE *f)
 {
-	fprintf(f, "current log size = %lu\n", log_size);
+	fprintf(f, "current log size = %lu KB\n", log_size/1024);
+	fprintf(f, "max log size = %lu KB\n",
+				config->max_log_size * (MEGABYTE/1024));
 	fprintf(f, "space left on partition = %s\n",
 					fs_space_left ? "yes" : "no");
 	fprintf(f, "logging suspended = %s\n",

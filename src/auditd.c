@@ -203,6 +203,7 @@ static void cont_handler(struct ev_loop *loop, struct ev_signal *sig,
 	time_t now = time(0);
 	strftime(buf, sizeof(buf), "%x %X", localtime(&now));
 	fprintf(f, "time = %s\n", buf);
+	fprintf(f, "process priority = %d\n", getpriority(PRIO_PROCESS, 0));
 	write_logging_state(f);
 	libdisp_write_queue_state(f);
 	fclose(f);
