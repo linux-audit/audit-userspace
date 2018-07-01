@@ -1,6 +1,6 @@
 /*
  * normalize_record_map.h
- * Copyright (c) 2016-17 Red Hat Inc., Durham, North Carolina.
+ * Copyright (c) 2016-18 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -63,6 +63,7 @@ _S(AUDIT_MAC_CHECK, "mac-permission")
 _S(AUDIT_ACCT_LOCK, "locked-account")
 _S(AUDIT_ACCT_UNLOCK, "unlocked-account")
 _S(AUDIT_USER_DEVICE, "configured-device")
+_S(AUDIT_SOFTWARE_UPDATE, "installed-software")
 _S(AUDIT_DAEMON_START, "started-audit")
 _S(AUDIT_DAEMON_END, "shutdown-audit")
 _S(AUDIT_DAEMON_ABORT, "aborted-auditd-startup")

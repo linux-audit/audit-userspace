@@ -1,6 +1,6 @@
 /*
  * normalize-internal.h
- * Copyright (c) 2016-17 Red Hat Inc., Durham, North Carolina.
+ * Copyright (c) 2016-18 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -96,6 +96,7 @@
 #define NORM_WHAT_MEMORY	20
 #define NORM_WHAT_KEYSTROKES	21
 #define NORM_WHAT_DEVICE	22
+#define NORM_WHAT_SOFTWARE	23
 
 // This enum is used to map events to what kind they are
 #define NORM_EVTYPE_UNKNOWN		0

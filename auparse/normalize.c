@@ -910,6 +910,7 @@ static const char *normalize_determine_evkind(int type)
 		case AUDIT_NETFILTER_CFG:
 		case AUDIT_FEATURE_CHANGE ... AUDIT_REPLACE:
 		case AUDIT_USER_DEVICE:
+		case AUDIT_SOFTWARE_UPDATE:
 			kind = NORM_EVTYPE_CONFIG;
 			break;
 		case AUDIT_SECCOMP:
@@ -1187,6 +1188,11 @@ static value_t find_simple_object(auparse_state_t *au, int type)
 			f = auparse_find_field(au, "device");
 			D.thing.what = NORM_WHAT_KEYSTROKES;
 			break;
+		case AUDIT_SOFTWARE_UPDATE:
+			auparse_first_record(au);
+			f = auparse_find_field(au, "sw");
+			D.thing.what = NORM_WHAT_SOFTWARE;
+			break;
 		case AUDIT_VIRT_MACHINE_ID:
 			f = auparse_find_field(au, "vm");
 			D.thing.what = NORM_WHAT_VM;
@@ -1286,6 +1292,9 @@ static value_t find_simple_obj_secondary(auparse_state_t *au, int type)
 		case AUDIT_CRYPTO_SESSION:
 			f = auparse_find_field(au, "rport");
 			break;
+		case AUDIT_SOFTWARE_UPDATE:
+			f = auparse_find_field(au, "sw_type");
+			break;
 		default:
 			break;
 	}
@@ -1310,6 +1319,9 @@ static value_t find_simple_obj_primary2(auparse_state_t *au, int type)
 			break;
 		case AUDIT_VIRT_RESOURCE:
 			f = auparse_find_field(au, "vm");
+			break;
+		case AUDIT_SOFTWARE_UPDATE:
+			f = auparse_find_field(au, "root_dir");
 			break;
 		default:
 			break;
@@ -1628,6 +1640,10 @@ map:
 	if (D.opt == NORM_OPT_ALL) {
 		if (type == AUDIT_USER_DEVICE) {
 			add_obj_attr(au, "uuid", 0);
+		} else if (type == AUDIT_SOFTWARE_UPDATE) {
+			auparse_first_record(au);
+			add_obj_attr(au, "key_enforce", 0);
+			add_obj_attr(au, "gpg_res", 0);
 		}
 	}
 

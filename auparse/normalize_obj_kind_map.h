@@ -1,6 +1,6 @@
 /*
  * normalize_obj_kind_map.h
- * Copyright (c) 2016-17 Red Hat Inc., Durham, North Carolina.
+ * Copyright (c) 2016-18 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -45,4 +45,5 @@ _S(NORM_WHAT_MAC_CONFIG, "mac-config")
 _S(NORM_WHAT_MEMORY, "memory")
 _S(NORM_WHAT_KEYSTROKES, "keystrokes")
 _S(NORM_WHAT_DEVICE, "device")
+_S(NORM_WHAT_SOFTWARE, "software")
 //_S(, "")
