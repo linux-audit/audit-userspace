@@ -26,6 +26,7 @@
 - SIGUSR now also restarts queue processing if its suspended
 - Update lookup tables for the 4.18 kernel
 - Add auparse_normalizer support for SOFTWARE_UPDATE event
+- Add 30-ospp-v42.rules to meet new Common Criteria requirements
 
 2.8.3
 - Correct msg function name in LRU debug code
