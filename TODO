@@ -1,10 +1,10 @@
 Future roadmap (subject to change):
 ===================================
 3.0
-* Support TLS PSK as remote logging transport
 * Container support
 
 3.1
+* Support TLS PSK as remote logging transport
 * Performance improvements for auparse (Memory management)
 * Basic HIDS based on reactive audit component
 * Support multiple time streams when searching
