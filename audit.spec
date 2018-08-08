@@ -212,6 +212,7 @@ fi
 %attr(644,root,root) %{_mandir}/man7/audit.rules.7.gz
 %attr(644,root,root) %{_mandir}/man5/auditd.conf.5.gz
 %attr(644,root,root) %{_mandir}/man5/ausearch-expression.5.gz
+%attr(644,root,root) %{_mandir}/man5/auditd-plugins.5.gz
 %attr(755,root,root) /sbin/auditctl
 %attr(755,root,root) /sbin/auditd
 %attr(755,root,root) /sbin/ausearch
