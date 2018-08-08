@@ -1,5 +1,5 @@
 /* audisp-remote.c --
- * Copyright 2008-2012,2016 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2008-2012,2016,2018 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -98,8 +98,11 @@ static int ar_write (int, const void *, int);
    credentials.  These are the ones we talk to the server with.  */
 gss_ctx_id_t my_context;
 
+#define KEYTAB_NAME "/etc/audisp/audisp-remote.key"
+#define CCACHE_NAME "MEMORY:audisp-remote"
+
 #define REQ_FLAGS GSS_C_MUTUAL_FLAG | GSS_C_REPLAY_FLAG | GSS_C_INTEG_FLAG | GSS_C_CONF_FLAG
-#define USE_GSS (config.enable_krb5)
+#define USE_GSS (config.transport == T_KRB5)
 #endif
 
 /* Compile-time expression verification */
@@ -741,9 +744,6 @@ static void gss_failure (const char *msg, int major_status, int minor_status)
 		syslog (LOG_ERR, "krb5 error: %s in %s\n", krb5_get_error_message (kcontext, x), f); \
 		return -1; }
 
-#define KEYTAB_NAME "/etc/audisp/audisp-remote.key"
-#define CCACHE_NAME "MEMORY:audisp-remote"
-
 /* Each time we connect to the server, we negotiate a set of credentials and
    a security context. To do this, we need our own credentials first. For
    other Kerberos applications, the user will have called kinit (or otherwise
@@ -969,7 +969,7 @@ static int negotiate_credentials (void)
 #endif
 	return 0;
 }
-#endif
+#endif // USE_GSSAPI
 
 static int stop_sock(void)
 {
@@ -991,6 +991,10 @@ static int stop_transport(void)
 	{
 		case T_TCP:
 			rc = stop_sock();
+			break;
+		case T_KRB5:
+			// FIXME: shutdown kerberos
+			rc = -1;
 			break;
 		default:
 			rc = -1;
@@ -1112,7 +1116,7 @@ next_try:
 
 #ifdef USE_GSSAPI
 	if (USE_GSS) {
-		if (negotiate_credentials ()) {
+		if (negotiate_credentials()) {
 			rc = ET_PERMANENT;
 			goto out;
 		}
@@ -1313,7 +1317,7 @@ static int recv_msg_gss (unsigned char *header, char *msg, uint32_t *mlen)
 	free (utok.value);
 	return 0;
 }
-#endif
+#endif // USE_GSSAPI
 
 static int send_msg_tcp (unsigned char *header, const char *msg, uint32_t mlen)
 {

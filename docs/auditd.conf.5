@@ -1,4 +1,4 @@
-.TH AUDITD.CONF: "5" "June 2018" "Red Hat" "System Administration Utilities"
+.TH AUDITD.CONF: "5" "August 2018" "Red Hat" "System Administration Utilities"
 .SH NAME
 auditd.conf \- audit daemon configuration file
 .SH DESCRIPTION
@@ -277,9 +277,20 @@ for this parameter. You will also need to set the local_port option in the audis
 .I tcp_client_max_idle
 This parameter indicates the number of seconds that a client may be idle (i.e. no data from them at all) before auditd complains. This is used to close inactive connections if the client machine has a problem where it cannot shutdown the connection cleanly. Note that this is a global setting, and must be higher than any individual client heartbeat_timeout setting, preferably by a factor of two.  The default is zero, which disables this check.
 .TP
+.I transport
+If set to
+.IR TCP ",
+only clear text tcp connections will be used. If set to
+.IR KRB5 ",
+then Kerberos 5 will be used for authentication and encryption. The default value is TCP.
+.TP
 .I enable_krb5
-If set to "yes", Kerberos 5 will be used for authentication and
-encryption.  The default is "no".
+This option is deprecated. Use the
+.IR transport
+option above instead. If set to "yes", Kerberos 5 will be used for
+authentication and encryption.  The default is "no". If this option is set
+to "yes" and it follows the transport option, it will override the transport
+setting. This would be the normal expected behavior for backwards compatibility.
 .TP
 .I krb5_principal
 This is the principal for this server.  The default is "auditd".

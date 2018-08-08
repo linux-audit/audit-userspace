@@ -81,15 +81,15 @@ static struct ev_io tcp_listen_watcher;
 static struct ev_periodic periodic_watcher;
 static int min_port, max_port, max_per_addr;
 static int use_libwrap = 1;
-#ifdef USE_GSSAPI
-/* This is used to hold our own private key.  */
-static gss_cred_id_t server_creds;
-static char *my_service_name, *my_gss_realm;
-static int use_gss = 0;
+static int transport = T_TCP;
 static char msgbuf[MAX_AUDIT_MESSAGE_LENGTH + 1];
-#endif
-
 static struct ev_tcp *client_chain = NULL;
+#ifdef USE_GSSAPI
+/* This is our global credentials */
+static gss_cred_id_t server_creds; // This is used to hold our own private key
+static char *my_service_name, *my_gss_realm;
+#define USE_GSS (transport == T_KRB5)
+#endif
 
 static char *sockaddr_to_string(struct sockaddr_storage *addr)
 {
@@ -494,7 +494,7 @@ static void client_ack(void *ack_data, const unsigned char *header,
 {
 	ev_tcp *io = (ev_tcp *)ack_data;
 #ifdef USE_GSSAPI
-	if (use_gss) {
+	if (USE_GSS) {
 		OM_uint32 major_status, minor_status;
 		gss_buffer_desc utok, etok;
 		int rc, mlen;
@@ -623,7 +623,7 @@ more_messages:
 #ifdef USE_GSSAPI
 	/* If we're using GSS at all, everything will be encrypted,
 	   one record per token.  */
-	if (use_gss) {
+	if (USE_GSS) {
 		gss_buffer_desc utok, etok;
 		io->bufptr += r;
 		uint32_t len;
@@ -893,7 +893,7 @@ static void auditd_tcp_listen_handler( struct ev_loop *loop,
 	memcpy(&client->addr, &aaddr, sizeof (struct sockaddr_storage));
 
 #ifdef USE_GSSAPI
-	if (use_gss && negotiate_credentials (client)) {
+	if (USE_GSS && negotiate_credentials (client)) {
 		shutdown(afd, SHUT_RDWR);
 		close(afd);
 		free(client->remote_name);
@@ -959,6 +959,7 @@ int auditd_tcp_listen_init(struct ev_loop *loop, struct daemon_conf *config)
 	int one = 1, rc;
 	int prefer_ipv6 = 0;
 
+	transport = config->transport;
 	ev_periodic_init(&periodic_watcher, periodic_handler,
 			  0, config->tcp_client_max_idle, NULL);
 	periodic_watcher.data = config;
@@ -1073,14 +1074,13 @@ next_try:
 			config->tcp_max_per_addr);
 
 #ifdef USE_GSSAPI
-	if (config->enable_krb5) {
+	if (USE_GSS) {
 		const char *princ = config->krb5_principal;
 		const char *key_file;
 		struct stat st;
 
 		if (!princ)
 			princ = "auditd";
-		use_gss = 1;
 		/* This may fail, but we don't care.  */
 		unsetenv ("KRB5_KTNAME");
 		if (config->krb5_key_file)
@@ -1120,14 +1120,12 @@ void auditd_tcp_listen_uninit(struct ev_loop *loop, struct daemon_conf *config)
 	ev_io_stop(loop, &tcp_listen_watcher);
 	while (nlsocks >= 0) {
 		nlsocks--;
-		close (listen_socket[nlsocks]);
+		close(listen_socket[nlsocks]);
 	}
 
 #ifdef USE_GSSAPI
-	if (use_gss) {
-		use_gss = 0;
+	if (USE_GSS)
 		gss_release_cred(&status, &server_creds);
-	}
 #endif
 
 	while (client_chain) {
@@ -1141,6 +1139,7 @@ void auditd_tcp_listen_uninit(struct ev_loop *loop, struct daemon_conf *config)
 
 	if (config->tcp_client_max_idle)
 		ev_periodic_stop(loop, &periodic_watcher);
+	transport = T_TCP;
 }
 
 static void periodic_reconfigure(struct daemon_conf *config)

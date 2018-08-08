@@ -27,6 +27,7 @@
 - Update lookup tables for the 4.18 kernel
 - Add auparse_normalizer support for SOFTWARE_UPDATE event
 - Add 30-ospp-v42.rules to meet new Common Criteria requirements
+- Deprecate enable_krb and replace with transport config opt for remote logging
 
 2.8.3
 - Correct msg function name in LRU debug code

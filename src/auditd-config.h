@@ -40,6 +40,7 @@ typedef enum { TEST_AUDITD, TEST_SEARCH } log_test_t;
 typedef enum { N_NONE, N_HOSTNAME, N_FQD, N_NUMERIC, N_USER } node_t;
 typedef enum { O_IGNORE, O_SYSLOG, O_SUSPEND, O_SINGLE,
 		O_HALT } overflow_action_t;
+typedef enum { T_TCP, T_TLS, T_KRB5, T_LABELED } transport_t;
 
 struct daemon_conf
 {
@@ -79,7 +80,7 @@ struct daemon_conf
 	unsigned long tcp_client_min_port;
 	unsigned long tcp_client_max_port;
 	unsigned long tcp_client_max_idle;
-	int enable_krb5;
+	int transport;
 	const char *krb5_principal;
 	const char *krb5_key_file;
 	int distribute_network_events;

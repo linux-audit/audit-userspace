@@ -1,5 +1,5 @@
 # Makefile.am --
-# Copyright 2008-2009,2011,2015 Red Hat Inc., Durham, North Carolina.
+# Copyright 2008-2009,2011,2015,2018 Red Hat Inc., Durham, North Carolina.
 # All Rights Reserved.
 #
 # This library is free software; you can redistribute it and/or
@@ -36,8 +36,8 @@ TESTS = $(check_PROGRAMS)
 audisp_remote_DEPENDENCIES = ${top_builddir}/common/libaucommon.a
 audisp_remote_SOURCES = audisp-remote.c remote-config.c queue.c
 audisp_remote_CFLAGS = -fPIE -DPIE -g -D_REENTRANT -D_GNU_SOURCE -Wundef
-audisp_remote_LDFLAGS = -pie -Wl,-z,relro -Wl,-z,now $(gss_libs)
-audisp_remote_LDADD = $(CAPNG_LDADD) -L${top_builddir}/common -laucommon
+audisp_remote_LDFLAGS = -pie -Wl,-z,relro -Wl,-z,now
+audisp_remote_LDADD = $(CAPNG_LDADD) $(gss_libs) -L${top_builddir}/common -laucommon
 
 test_queue_SOURCES = queue.c test-queue.c
 
