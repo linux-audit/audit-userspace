@@ -293,7 +293,7 @@ static void au_check_events(auparse_state_t *au, time_t sec)
 				r->type >= AUDIT_FIRST_ANOM_MSG ||
 				r->type == AUDIT_KERNEL ||
 				(r->type >= AUDIT_MAC_UNLBL_ALLOW &&
-                                 r-type <= AUDIT_MAC_CALIPSO_DEL)) {
+                                 r->type <= AUDIT_MAC_CALIPSO_DEL)) {
                                 // If known to be 1 record event, we are done
 				cur->status = EBS_COMPLETE;
 				au->au_ready++;
