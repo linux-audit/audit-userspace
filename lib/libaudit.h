@@ -216,10 +216,11 @@ extern "C" {
 
 #define AUDIT_LAST_CRYPTO_MSG		2499
 
+/* Events for both VMs and container orchestration software */
 #define AUDIT_FIRST_VIRT_MSG		2500
-#define AUDIT_VIRT_CONTROL		2500 /* Start, Pause, Stop VM */
+#define AUDIT_VIRT_CONTROL		2500 /* Start,Pause,Stop VM/container */
 #define AUDIT_VIRT_RESOURCE		2501 /* Resource assignment */
-#define AUDIT_VIRT_MACHINE_ID		2502 /* Binding of label to VM */
+#define AUDIT_VIRT_MACHINE_ID		2502 /* Binding of label to VM/cont */
 #define AUDIT_VIRT_INTEGRITY_CHECK	2503 /* Guest integrity results */
 #define AUDIT_VIRT_CREATE		2504 /* Creation of guest image */
 #define AUDIT_VIRT_DESTROY		2505 /* Destruction of guest image */
