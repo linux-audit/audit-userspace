@@ -285,14 +285,16 @@ static int reconfigure(void)
 				/* If active and no state change, sighup it */
 				if (opconf->p->type == S_ALWAYS && 
 						opconf->p->active == A_YES) {
-					if (opconf->p->inode==tpconf->p->inode)
-						kill(opconf->p->pid, SIGHUP);
-					else {
+					if (opconf->p->inode==tpconf->p->inode){
+						if (opconf->p->pid)
+						  kill(opconf->p->pid, SIGHUP);
+					} else {
 						/* Binary changed, restart */
 						syslog(LOG_INFO,
 					"Restarting %s since binary changed",
 							opconf->p->path);
-						kill(opconf->p->pid, SIGTERM);
+						if (opconf->p->pid)
+						  kill(opconf->p->pid, SIGTERM);
 						usleep(50000); // 50 msecs
 						close(opconf->p->plug_pipe[1]);
 						opconf->p->plug_pipe[1] = -1;
@@ -327,7 +329,8 @@ static int reconfigure(void)
 		syslog(LOG_INFO, "Terminating %s because its now inactive",
 				tpconf->p->path);
 		if (tpconf->p->type == S_ALWAYS) {
-			kill(tpconf->p->pid, SIGTERM);
+			if (tpconf->p->pid)
+				kill(tpconf->p->pid, SIGTERM);
 			close(tpconf->p->plug_pipe[1]);
 		} else
 			stop_builtin(tpconf->p);

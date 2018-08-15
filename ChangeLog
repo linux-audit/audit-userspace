@@ -4,6 +4,7 @@
 - Add sleep to script to dump state so file is ready when needed
 - Add auparse_normalizer support for SOFTWARE_UPDATE event
 - Mark netlabel events as simple events so that get processed quicker
+- When audispd is reconfiguring, only SIGHUP plugins with valid pid (#1614833)
 
 2.8.4
 - Generate checkpoint file even when not results are returned (Burn Alting)
