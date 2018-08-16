@@ -70,6 +70,13 @@ int lookup_time(const char *name)
 
 }
 
+/* static void print_time(struct tm *d)
+{
+	char outstr[200];
+	strftime(outstr, sizeof(outstr), "%c", d);
+	printf("%s\n", outstr);
+} */
+
 static void clear_tm(struct tm *t)
 {
         t->tm_sec = 0;         /* seconds */
@@ -221,6 +228,8 @@ static void replace_date(struct tm *t1, struct tm *t2)
         t1->tm_mon = t2->tm_mon;	/* month */
         t1->tm_year = t2->tm_year;	/* year */
         t1->tm_isdst = t2->tm_isdst;	/* daylight savings time */
+	t1->tm_wday = t2->tm_wday;	/* Day of Week */
+	t1->tm_yday = t2->tm_yday;	/* Day of Year */
 }
 
 static int lookup_and_set_time(const char *da, struct tm *d)
@@ -262,13 +271,6 @@ static int lookup_and_set_time(const char *da, struct tm *d)
 	} else
 		return -1;
 }
-
-/* static void print_time(struct tm *d)
-{
-	char outstr[200];
-	strftime(outstr, sizeof(outstr), "%c", d);
-	printf("%s\n", outstr);
-} */
 
 int ausearch_time_start(const char *da, const char *ti)
 {
