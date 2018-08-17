@@ -129,6 +129,11 @@ Report about Virtualization events
 .BR \-x ,\  \-\-executable
 Report about executables
 
+.SH NOTE
+The boot time option is a convenience function and has limitations. The time it calculates is based on time now minus /proc/uptime. If after boot the system clock has been adjusted, perhaps by ntp, then the calculation may be wrong. In that case you'll need to fully specify the time. You can check the time it would use by running:
+
+date -d "`cut \-f1 \-d. /proc/uptime` seconds ago"
+
 .SH "SEE ALSO"
 .BR ausearch (8),
 .BR auditd (8).

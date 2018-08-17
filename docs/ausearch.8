@@ -225,6 +225,11 @@ checkpoint processing error
 .TP
 12
 checkpoint event not found in matching log file
+.SH NOTE
+The boot time option is a convenience function and has limitations. The time it calculates is based on time now minus /proc/uptime. If after boot the system clock has been adjusted, perhaps by ntp, then the calculation may be wrong. In that case you'll need to fully specify the time. You can check the time it would use by running:
+
+date -d "`cut \-f1 \-d. /proc/uptime` seconds ago"
+
 .SH "SEE ALSO"
 .BR auditd (8),
 .BR pam_loginuid (8).
