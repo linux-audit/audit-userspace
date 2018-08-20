@@ -30,6 +30,7 @@
 - Deprecate enable_krb and replace with transport config opt for remote logging
 - Mark netlabel events as simple events so that get processed quicker
 - When auditd is reconfiguring, only SIGHUP plugins with valid pid (#1614833)
+- In aureport, fix segfault in file report
 
 2.8.3
 - Correct msg function name in LRU debug code
