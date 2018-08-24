@@ -8,6 +8,7 @@
 - Add 30-ospp-v42.rules to meet new Common Criteria requirements
 - Update lookup tables for the 4.18 kernel
 - In aureport, fix segfault in file report
+- Add auparse_normalizer support for labeled networking events
 
 2.8.4
 - Generate checkpoint file even when not results are returned (Burn Alting)
