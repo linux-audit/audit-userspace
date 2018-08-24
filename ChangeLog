@@ -9,6 +9,7 @@
 - Update lookup tables for the 4.18 kernel
 - In aureport, fix segfault in file report
 - Add auparse_normalizer support for labeled networking events
+- Fix memory leak in audisp-remote plugin when using krb5 transport. (#1622194)
 
 2.8.4
 - Generate checkpoint file even when not results are returned (Burn Alting)
