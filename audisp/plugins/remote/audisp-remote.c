@@ -1282,12 +1282,14 @@ static int recv_msg_gss (unsigned char *header, char *msg, uint32_t *mlen)
 	if (major_status != GSS_S_COMPLETE) {
 		gss_failure("decrypting message", major_status, minor_status);
 		free (utok.value);
+		free (etok.value);
 		return -1;
 	}
 
 	if (utok.length < AUDIT_RMW_HEADER_SIZE) {
 		sync_error_handler ("message too short");
 		free (utok.value);
+		free (etok.value);
 		return -1;
 	}
 	memcpy (header, utok.value, AUDIT_RMW_HEADER_SIZE);
@@ -1295,6 +1297,7 @@ static int recv_msg_gss (unsigned char *header, char *msg, uint32_t *mlen)
 	if (! AUDIT_RMW_IS_MAGIC (header, AUDIT_RMW_HEADER_SIZE)) {
 		sync_error_handler ("bad magic number");
 		free (utok.value);
+		free (etok.value);
 		return -1;
 	}
 
@@ -1303,6 +1306,7 @@ static int recv_msg_gss (unsigned char *header, char *msg, uint32_t *mlen)
 	if (rlen > MAX_AUDIT_MESSAGE_LENGTH) {
 		sync_error_handler ("message too long");
 		free (utok.value);
+		free (etok.value);
 		return -1;
 	}
 
@@ -1311,6 +1315,7 @@ static int recv_msg_gss (unsigned char *header, char *msg, uint32_t *mlen)
 	*mlen = rlen;
 
 	free (utok.value);
+	free (etok.value);
 	return 0;
 }
 #endif
