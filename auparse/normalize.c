@@ -123,7 +123,7 @@ static unsigned int set_subject_what(auparse_state_t *au)
 
 check:
 	if (uid == NORM_ACCT_PRIV)
-		D.actor.what = strdup("priviliged-acct");
+		D.actor.what = strdup("privileged-acct");
 	else if ((unsigned)uid == NORM_ACCT_UNSET)
 		D.actor.what = strdup("unset-acct");
 	else if (uid < NORM_ACCT_MAX_SYS)
@@ -1579,6 +1579,49 @@ map:
 
 		// Object type
 		D.thing.what = NORM_WHAT_SERVICE;
+
+		// Results
+		set_results(au, 0);
+		return 0;
+	}
+
+	// Labeled networking events are atypical
+	if (type >= AUDIT_MAC_UNLBL_ALLOW && type <= AUDIT_LAST_SELINUX) {
+		// Subject - primary
+		set_prime_subject(au, "auid", 0);
+
+		// We don't have a secondary subject, so set it to auid
+		set_subject_what(au);
+
+		// Session
+		add_session(au, 0);
+
+		// Subject attrs
+		add_subj_attr(au, "subj", 0);
+
+		// action
+		if (type == AUDIT_MAC_UNLBL_ALLOW) {
+			f = auparse_find_field(au, "unlbl_accept");
+			if (f) {
+			    if (auparse_get_field_int(au) == 1)
+			      act = "is-allowing-unlabeled-network-traffic";
+			    else
+			      act = "is-disallowing-unlabeled-network-traffic";
+			} else
+				auparse_first_record(au);
+		} else
+			act = normalize_record_map_i2s(type);
+
+		if (act)
+			D.action = strdup(act);
+
+		if (type == AUDIT_MAC_MAP_ADD || type == AUDIT_MAC_MAP_DEL) {
+			if (set_prime_object(au, "nlbl_domain", 0))
+				auparse_first_record(au);
+		}
+
+		// Object type
+		D.thing.what = NORM_WHAT_MAC_CONFIG;
 
 		// Results
 		set_results(au, 0);
