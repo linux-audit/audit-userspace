@@ -32,7 +32,7 @@
 - When auditd is reconfiguring, only SIGHUP plugins with valid pid (#1614833)
 - In aureport, fix segfault in file report
 - Add auparse_normalizer support for labeled networking events
-- Fix memory leak in audisp-remote plugin when using krb5 transport.
+- Fix memory leak in audisp-remote plugin when using krb5 transport. (#1622194)
 
 2.8.3
 - Correct msg function name in LRU debug code
