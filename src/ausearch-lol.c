@@ -206,7 +206,7 @@ static void check_events(lol *lo, time_t sec)
 		lolnode *cur = &lo->array[i];
 		if (cur->status == L_BUILDING) {
 			// If 2 seconds have elapsed, we are done
-			if (cur->l->e.sec + 2 < sec) { 
+			if (cur->l->e.sec + 2 <= sec) { 
 				cur->status = L_COMPLETE;
 				ready++;
 			} else if (cur->l->e.type == AUDIT_PROCTITLE ||

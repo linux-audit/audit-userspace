@@ -283,7 +283,7 @@ static void au_check_events(auparse_state_t *au, time_t sec)
                         if ((r = aup_list_get_cur(cur->l)) == NULL)
 				continue;
                         // If 2 seconds have elapsed, we are done
-                        if (cur->l->e.sec + 2 < sec) {
+                        if (cur->l->e.sec + 2 <= sec) {
                                 cur->status = EBS_COMPLETE;
 				au->au_ready++;
                         } else if ( // FIXME: Check this v remains true
