@@ -312,7 +312,6 @@ void terminate_all_events(lol *lo)
 			ready++;
 		}
 	}
-//printf("maxi = %d\n",lo->maxi);
 }
 
 /* Search the list for any event that is ready to go. The caller
@@ -329,6 +328,13 @@ llist* get_ready_event(lol *lo)
 		if (cur->status == L_COMPLETE) {
 			cur->status = L_EMPTY;
 			ready--;
+			if (i == lo->maxi) {
+				lolnode *ptr = cur;
+				while (ptr->status == L_EMPTY && lo->maxi > 0) {
+					lo->maxi--;
+					ptr = &lo->array[lo->maxi];
+				}
+			}
 			return cur->l;
 		}
 	}
