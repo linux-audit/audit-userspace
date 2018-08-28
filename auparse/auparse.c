@@ -234,6 +234,7 @@ static event_list_t *au_get_ready_event(auparse_state_t *au, int is_test)
 {
         int i;
 	au_lol *lol = au->au_lo;
+	au_lolnode *lowest = NULL;
 	
 	if (au->au_ready == 0) {
 		//if (debug) printf("No events ready\n");
@@ -242,28 +243,36 @@ static event_list_t *au_get_ready_event(auparse_state_t *au, int is_test)
 
         for (i=0; i<=lol->maxi; i++) {
                 au_lolnode *cur = &(lol->array[i]);
-                if (cur->status == EBS_COMPLETE) {
-			/*
-			 * If we are just testing for a complete event, return
-			 */
-			if (is_test)
-				return cur->l;
-			/*
-			 * Otherwise set it status to empty and accept the
-			 * caller will take custody of the memory
-			 */
-                        cur->status = EBS_EMPTY;
-			au->au_ready--;
-			if (i == lol->maxi) {
-				au_lolnode *ptr = cur;
-				while (ptr->status==EBS_EMPTY && lol->maxi>0) {
-					lol->maxi--;
-					ptr = &lol->array[lol->maxi];
-				}
-			}
-                        return cur->l;
-                }
+		if (cur->status == EBS_EMPTY)
+			continue;
+		/*
+		 * If we are just testing for a complete event, return
+		 */
+		if (is_test && cur->status == EBS_COMPLETE)
+			return cur->l;
+		if (lowest == NULL)
+			lowest = cur;
+		else if (auparse_timestamp_compare(&(lowest->l->e),
+							 &(cur->l->e)) == 1)
+			lowest = cur;
         }
+
+	if (lowest && lowest->status == EBS_COMPLETE) {
+		/*
+		 * Otherwise set it status to empty and accept the
+		 * caller will take custody of the memory
+		 */
+		lowest->status = EBS_EMPTY;
+		au->au_ready--;
+		if (lowest == &lol->array[lol->maxi]) {
+			au_lolnode *ptr = lowest;
+			while (ptr->status == EBS_EMPTY && lol->maxi > 0) {
+				lol->maxi--;
+				ptr = &lol->array[lol->maxi];
+			}
+		}
+		return lowest->l;
+	}
 
         return NULL;
 }

@@ -11,6 +11,7 @@
 - Add auparse_normalizer support for labeled networking events
 - Fix memory leak in audisp-remote plugin when using krb5 transport. (#1622194)
 - Event aging is off by a second
+- In ausearch/auparse, correct event ordering to process oldest first
 
 2.8.4
 - Generate checkpoint file even when not results are returned (Burn Alting)
