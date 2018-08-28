@@ -242,12 +242,11 @@ static event_list_t *au_get_ready_event(auparse_state_t *au, int is_test)
 	}
 
         for (i=0; i<=lol->maxi; i++) {
+		// Look for the event with the lowest timestamp
                 au_lolnode *cur = &(lol->array[i]);
 		if (cur->status == EBS_EMPTY)
 			continue;
-		/*
-		 * If we are just testing for a complete event, return
-		 */
+		// If we are just testing for a complete event, return
 		if (is_test && cur->status == EBS_COMPLETE)
 			return cur->l;
 		if (lowest == NULL)
@@ -258,12 +257,10 @@ static event_list_t *au_get_ready_event(auparse_state_t *au, int is_test)
         }
 
 	if (lowest && lowest->status == EBS_COMPLETE) {
-		/*
-		 * Otherwise set it status to empty and accept the
-		 * caller will take custody of the memory
-		 */
 		lowest->status = EBS_EMPTY;
 		au->au_ready--;
+		// Try to consolidate the array so that we iterate
+		// over a smaller portion next time
 		if (lowest == &lol->array[lol->maxi]) {
 			au_lolnode *ptr = lowest;
 			while (ptr->status == EBS_EMPTY && lol->maxi > 0) {

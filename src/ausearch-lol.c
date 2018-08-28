@@ -346,6 +346,7 @@ llist* get_ready_event(lol *lo)
 		return NULL;
 
 	for (i=0; i<=lo->maxi; i++) {
+		// Look for the event with the lowest time stamp
 		lolnode *cur = &lo->array[i];
 		if (cur->status == L_EMPTY)
 			continue;
@@ -358,6 +359,8 @@ llist* get_ready_event(lol *lo)
 	if (lowest && lowest->status == L_COMPLETE) {
 		lowest->status = L_EMPTY;
 		ready--;
+		// Try to consolidate the array so that we iterate
+		// over a smaller portion next time
 		if (lowest == &lo->array[lo->maxi]) {
 			lolnode *ptr = lowest;
 			while (ptr->status == L_EMPTY && lo->maxi > 0) {
