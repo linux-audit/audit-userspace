@@ -255,6 +255,13 @@ static event_list_t *au_get_ready_event(auparse_state_t *au, int is_test)
 			 */
                         cur->status = EBS_EMPTY;
 			au->au_ready--;
+			if (i == lol->maxi) {
+				au_lolnode *ptr = cur;
+				while (ptr->status==EBS_EMPTY && lol->maxi>0) {
+					lol->maxi--;
+					ptr = &lol->array[lol->maxi];
+				}
+			}
                         return cur->l;
                 }
         }
