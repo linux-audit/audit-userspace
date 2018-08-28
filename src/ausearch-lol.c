@@ -131,6 +131,27 @@ static int inline events_are_equal(event *e1, event *e2)
 	return 1;
 }
 
+// Returns -1 if e1 < e2, 0 if equal, and 1 if e1 > e2
+static int compare_event_time(event *e1, event *e2)
+{
+	if (e1->sec != e2->sec) {
+		if (e1->sec > e2->sec)
+			return 1;
+		return -1;
+	}
+	if (e1->milli != e2->milli) {
+		if (e1->milli > e2->milli)
+			return 1;
+		return -1;
+	}
+	if (e1->serial != e2->serial) {
+		if (e1->serial > e2->serial)
+			return 1;
+		return -1;
+	}
+	return 0;
+}
+
 /*
  * This function will look at the line and pick out pieces of it.
  */
@@ -319,24 +340,32 @@ void terminate_all_events(lol *lo)
 llist* get_ready_event(lol *lo)
 {
 	int i;
+	lolnode *lowest = NULL;
 
 	if (ready == 0)
 		return NULL;
 
 	for (i=0; i<=lo->maxi; i++) {
 		lolnode *cur = &lo->array[i];
-		if (cur->status == L_COMPLETE) {
-			cur->status = L_EMPTY;
-			ready--;
-			if (i == lo->maxi) {
-				lolnode *ptr = cur;
-				while (ptr->status == L_EMPTY && lo->maxi > 0) {
-					lo->maxi--;
-					ptr = &lo->array[lo->maxi];
-				}
+		if (cur->status == L_EMPTY)
+			continue;
+		if (lowest == NULL)
+			lowest = cur;
+		else if (compare_event_time(&(lowest->l->e), &(cur->l->e)) == 1)
+			lowest = cur;
+	}
+
+	if (lowest && lowest->status == L_COMPLETE) {
+		lowest->status = L_EMPTY;
+		ready--;
+		if (lowest == &lo->array[lo->maxi]) {
+			lolnode *ptr = lowest;
+			while (ptr->status == L_EMPTY && lo->maxi > 0) {
+				lo->maxi--;
+				ptr = &lo->array[lo->maxi];
 			}
-			return cur->l;
 		}
+		return lowest->l;
 	}
 
 	return NULL;
