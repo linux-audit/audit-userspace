@@ -21,7 +21,6 @@
 #
 
 CONFIG_CLEAN_FILES = *.loT *.rej *.orig *.cur
-AUTOMAKE_OPTIONS = no-dependencies
 check_PROGRAMS = auparse_test auparselol_test lookup_test
 dist_check_SCRIPTS = auparse_test.py
 EXTRA_DIST = auparse_test.ref auparse_test.ref.py test.log test2.log test3.log auditd_raw.sed

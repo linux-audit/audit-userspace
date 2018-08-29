@@ -22,7 +22,6 @@
 
 SUBDIRS = plugins 
 CONFIG_CLEAN_FILES = *.rej *.orig
-AUTOMAKE_OPTIONS = no-dependencies
 AM_CPPFLAGS = -D_GNU_SOURCE -fPIC -DPIC -I${top_srcdir} -I${top_srcdir}/lib -I${top_srcdir}/src
 LIBS = -L${top_builddir}/lib -laudit 
 LDADD = -lpthread
