@@ -22,7 +22,6 @@
 
 SUBDIRS = plugins 
 CONFIG_CLEAN_FILES = *.rej *.orig
-AUTOMAKE_OPTIONS = no-dependencies
 AM_CPPFLAGS = -I${top_srcdir} -I${top_srcdir}/lib
 sbin_PROGRAMS = audispd
 noinst_HEADERS = audispd-config.h audispd-pconfig.h audispd-llist.h \

@@ -21,7 +21,6 @@
 # 
 
 CONFIG_CLEAN_FILES = *.loT *.rej *.orig
-AUTOMAKE_OPTIONS = no-dependencies
 EXTRA_DIST = $(man_MANS)
 AM_CPPFLAGS = -I${top_srcdir} -I${top_srcdir}/auparse
 LIBS = -L${top_builddir}/auparse -lauparse

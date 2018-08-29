@@ -23,7 +23,6 @@
 
 AM_CPPFLAGS = -I${top_srcdir} -I${top_srcdir}/lib -I${top_srcdir}/auparse
 CONFIG_CLEAN_FILES = *.rej *.orig
-AUTOMAKE_OPTIONS = no-dependencies
 EXTRA_DIST = zos-remote.conf audispd-zos-remote.conf
 LIBS = -L${top_builddir}/auparse -lauparse
 LDADD = -lpthread -lldap -llber $(CAPNG_LDADD) 
