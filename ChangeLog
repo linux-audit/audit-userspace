@@ -35,6 +35,7 @@
 - Fix memory leak in audisp-remote plugin when using krb5 transport. (#1622194)
 - In ausearch/auparse, event aging is off by a second
 - In ausearch/auparse, correct event ordering to process oldest first
+- Migrate auparse python test to python3
 
 2.8.3
 - Correct msg function name in LRU debug code

@@ -52,9 +52,9 @@ check: auparse_test auparselol_test lookup_test
 	./auparselol_test -f test3.log --check | sort > auparse_test.cur
 	sed -f $(top_srcdir)/auparse/test/auditd_raw.sed test3.log | sort > auparse_test.raw
 	diff -u auparse_test.raw auparse_test.cur
-if HAVE_PYTHON
-	cp ${top_builddir}/bindings/swig/python/.libs/_audit.so ${top_builddir}/bindings/swig/python
-	PYTHONPATH=${top_builddir}/bindings/python/python2/.libs/:${top_builddir}/bindings/swig/python:${top_builddir}/bindings/swig/python/.libs \
+if USE_PYTHON3
+	cp ${top_builddir}/bindings/swig/python3/.libs/_audit.so ${top_builddir}/bindings/swig/python3
+	PYTHONPATH=${top_builddir}/bindings/python/python3/.libs/:${top_builddir}/bindings/swig/python3:${top_builddir}/bindings/swig/python3/.libs \
 	LD_LIBRARY_PATH=${top_builddir}/auparse/.libs \
 		srcdir=$(srcdir) $(srcdir)/auparse_test.py \
 		| $(drop_srcdir) > auparse_test.cur
@@ -74,24 +74,24 @@ memcheck: auparse_test
 	valgrind --leak-check=yes --show-reachable=yes ./auparse_test 
 
 pycheck: auparse_test.py
-if HAVE_PYTHON
-	PYTHONPATH=${top_builddir}/bindings/python/python2/.libs/:${top_builddir}/bindings/swig/python:${top_builddir}/bindings/swig/python/.libs \
+if USE_PYTHON3
+	PYTHONPATH=${top_builddir}/bindings/python/python3/.libs/:${top_builddir}/bindings/swig/python3:${top_builddir}/bindings/swig/python3/.libs \
 	LD_LIBRARY_PATH=${top_builddir}/auparse/.libs \
 		srcdir=$(srcdir) $(srcdir)/auparse_test.py
 endif
 
 pydiffcheck: auparse_test.py 
-if HAVE_PYTHON
-	PYTHONPATH=${top_builddir}/bindings/python/python2/.libs/:${top_builddir}/bindings/swig/python:${top_builddir}/bindings/swig/python/.libs \
+if USE_PYTHON3
+	PYTHONPATH=${top_builddir}/bindings/python/python3/.libs/:${top_builddir}/bindings/swig/python3:${top_builddir}/bindings/swig/python3/.libs \
 	LD_LIBRARY_PATH=${top_builddir}/auparse/.libs \
 		srcdir=$(srcdir) $(srcdir)/auparse_test.py \
 		| $(drop_srcdir) > auparse_test.cur
-	diff $(srcdir)/auparse_test.ref auparse_test.cur
+	diff -u $(srcdir)/auparse_test.ref.py auparse_test.cur
 endif
 
 pymemcheck: auparse_test.py
-if HAVE_PYTHON
-	PYTHONPATH=${top_builddir}/bindings/python/python2/.libs/:${top_builddir}/bindings/swig/python:${top_builddir}/bindings/swig/python/.libs \
+if USE_PYTHON3
+	PYTHONPATH=${top_builddir}/bindings/python/python3/.libs/:${top_builddir}/bindings/swig/python3:${top_builddir}/bindings/swig/python3/.libs \
 	LD_LIBRARY_PATH=${top_builddir}/auparse/.libs srcdir=$(srcdir) valgrind --leak-check=yes --show-reachable=yes python $(srcdir)/auparse_test.py
 
 ${top_builddir}/bindings/python/build/*/auparse.so: ${top_srcdir}/bindings/python/auparse_python.c
@@ -101,7 +101,7 @@ endif
 clean-generic:
 	$(RM) *.cur
 	$(RM) auparse_test.raw
-if HAVE_PYTHON
-	$(RM) ${top_builddir}/bindings/swig/python/_audit.so
+if USE_PYTHON3
+	$(RM) ${top_builddir}/bindings/swig/python3/_audit.so
 endif
 	test "$(top_srcdir)" = "$(top_builddir)" || $(RM) test*.log
