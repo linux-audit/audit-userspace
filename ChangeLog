@@ -12,6 +12,7 @@
 - Fix memory leak in audisp-remote plugin when using krb5 transport. (#1622194)
 - Event aging is off by a second
 - In ausearch/auparse, correct event ordering to process oldest first
+- auparse_reset was not clearing everything it should
 
 2.8.4
 - Generate checkpoint file even when not results are returned (Burn Alting)
