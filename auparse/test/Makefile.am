@@ -44,7 +44,7 @@ auparselol_test_LDADD = ${top_builddir}/auparse/libauparse.la \
 
 drop_srcdir = sed 's,$(srcdir)/test,test,'
 
-check: auparse_test auparselol_test lookup_test
+check-local: auparse_test auparselol_test lookup_test
 	test "$(top_srcdir)" = "$(top_builddir)" || \
 			cp $(top_srcdir)/auparse/test/test*.log .
 	LC_ALL=C \
