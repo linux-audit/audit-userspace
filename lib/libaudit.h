@@ -278,6 +278,14 @@ extern "C" {
 #define AUDIT_FANOTIFY		1331 /* Fanotify access decision */
 #endif
 
+#ifndef AUDIT_MAC_CALIPSO_ADD
+#define AUDIT_MAC_CALIPSO_ADD	1418 /* NetLabel: add CALIPSO DOI entry */
+#endif
+
+#ifndef AUDIT_MAC_CALIPSO_DEL
+#define AUDIT_MAC_CALIPSO_DEL	1419 /* NetLabel: del CALIPSO DOI entry */
+#endif
+
 #ifndef AUDIT_ANOM_LINK
 #define AUDIT_ANOM_LINK		1702 /* Suspicious use of file links */
 #endif
