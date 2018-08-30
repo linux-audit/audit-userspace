@@ -684,6 +684,9 @@ int auparse_reset(auparse_state_t *au)
 		au_lol_clear(au->au_lo, 1);
 
 	au->parse_state = EVENT_EMPTY;
+	au->au_ready = 0;
+	au->le = NULL;
+
 	switch (au->source)
 	{
 		case AUSOURCE_LOGS:
