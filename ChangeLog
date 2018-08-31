@@ -37,6 +37,7 @@
 - In ausearch/auparse, correct event ordering to process oldest first
 - Migrate auparse python test to python3
 - auparse_reset was not clearing everything it should
+- Add support for AUDIT_MAC_CALIPSO_ADD, AUDIT_MAC_CALIPSO_DEL events
 
 2.8.3
 - Correct msg function name in LRU debug code
