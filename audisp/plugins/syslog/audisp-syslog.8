@@ -7,13 +7,14 @@ audisp-syslog \- plugin to push audit events into syslog
 .SH DESCRIPTION
 \fBaudisp-syslog\fP is a plugin for the audit event dispatcher that wraps audit events back around to syslog. It can be passed two options which set the facility and level that all events are logged with. Valid facilities are LOG_LOCAL0 through 7, LOG_AUTH, LOG_AUTHPRIV, LOG_DAEMON, LOG_SYSLOG, and LOG_USER. Valid levels are LOG_DEBUG through LOG_EMERG. Setting these options is done in the /etc/audit/syslog.conf file on the args line.
 
-If you are aggregating multiple machines, you should set the name_format to something meaningful and the log_format to enriched in the audit event stream in auditd.conf. This way you can tell where the event came from and have the user name and groups resolved on the locally before it is sent off of the machine.
+If you are aggregating multiple machines, you should edit auditd.conf to set the name_format to something meaningful and the log_format to enriched. This way you can tell where the event came from and have the user name and groups resolved locally before it is sent off of the machine.
 
 .SH FILES
 /etc/audit/syslog.conf
 /etc/audit/auditd.conf
 .SH "SEE ALSO"
-.BR auditd.conf(8) ,
-.BR syslog(3) .
+.BR auditd.conf(8),
+.BR auditd-plugins(5),
+.BR syslog(3).
 .SH AUTHOR
 Steve Grubb
