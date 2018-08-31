@@ -13,6 +13,7 @@
 - Event aging is off by a second
 - In ausearch/auparse, correct event ordering to process oldest first
 - auparse_reset was not clearing everything it should
+- Add support for AUDIT_MAC_CALIPSO_ADD, AUDIT_MAC_CALIPSO_DEL events
 
 2.8.4
 - Generate checkpoint file even when not results are returned (Burn Alting)
