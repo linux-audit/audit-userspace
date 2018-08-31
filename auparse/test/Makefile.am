@@ -55,6 +55,7 @@ check-local: auparse_test auparselol_test lookup_test
 if USE_PYTHON3
 	cp ${top_builddir}/bindings/swig/python3/.libs/_audit.so ${top_builddir}/bindings/swig/python3
 	PYTHONPATH=${top_builddir}/bindings/python/python3/.libs/:${top_builddir}/bindings/swig/python3:${top_builddir}/bindings/swig/python3/.libs \
+	PYTHONDONTWRITEBYTECODE=1 \
 	LD_LIBRARY_PATH=${top_builddir}/auparse/.libs \
 		srcdir=$(srcdir) $(srcdir)/auparse_test.py \
 		| $(drop_srcdir) > auparse_test.cur
@@ -76,6 +77,7 @@ memcheck: auparse_test
 pycheck: auparse_test.py
 if USE_PYTHON3
 	PYTHONPATH=${top_builddir}/bindings/python/python3/.libs/:${top_builddir}/bindings/swig/python3:${top_builddir}/bindings/swig/python3/.libs \
+	PYTHONDONTWRITEBYTECODE=1 \
 	LD_LIBRARY_PATH=${top_builddir}/auparse/.libs \
 		srcdir=$(srcdir) $(srcdir)/auparse_test.py
 endif
@@ -83,6 +85,7 @@ endif
 pydiffcheck: auparse_test.py 
 if USE_PYTHON3
 	PYTHONPATH=${top_builddir}/bindings/python/python3/.libs/:${top_builddir}/bindings/swig/python3:${top_builddir}/bindings/swig/python3/.libs \
+	PYTHONDONTWRITEBYTECODE=1 \
 	LD_LIBRARY_PATH=${top_builddir}/auparse/.libs \
 		srcdir=$(srcdir) $(srcdir)/auparse_test.py \
 		| $(drop_srcdir) > auparse_test.cur
