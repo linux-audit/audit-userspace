@@ -337,7 +337,7 @@ static int remote_server_ending_handler (const char *message)
 	stop_transport();
 	remote_ended = 1;
 	return do_action ("remote server is going down", message,
-			  LOG_NOTICE,
+			  LOG_WARN,
 			  config.remote_ending_action,
 			  config.remote_ending_exe);
 }
