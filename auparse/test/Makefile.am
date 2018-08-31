@@ -92,6 +92,7 @@ endif
 pymemcheck: auparse_test.py
 if USE_PYTHON3
 	PYTHONPATH=${top_builddir}/bindings/python/python3/.libs/:${top_builddir}/bindings/swig/python3:${top_builddir}/bindings/swig/python3/.libs \
+	PYTHONDONTWRITEBYTECODE=1 \
 	LD_LIBRARY_PATH=${top_builddir}/auparse/.libs srcdir=$(srcdir) valgrind --leak-check=yes --show-reachable=yes python $(srcdir)/auparse_test.py
 
 ${top_builddir}/bindings/python/build/*/auparse.so: ${top_srcdir}/bindings/python/auparse_python.c
