@@ -257,6 +257,7 @@ fi
 %attr(700,root,root) %dir %{_var}/spool/audit
 %attr(644,root,root) %{_mandir}/man5/audisp-remote.conf.5.gz
 %attr(644,root,root) %{_mandir}/man8/audisp-remote.8.gz
+%attr(644,root,root) %{_mandir}/man8/audisp-syslog.8.gz
 
 
 %changelog

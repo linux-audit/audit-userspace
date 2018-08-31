@@ -21,12 +21,13 @@
 # 
 
 CONFIG_CLEAN_FILES = *.loT *.rej *.orig
-EXTRA_DIST = syslog.conf
+EXTRA_DIST = syslog.conf $(man_MANS)
 AM_CPPFLAGS = -I${top_srcdir} -I${top_srcdir}/lib -I${top_srcdir}/common 
 prog_confdir = $(sysconfdir)/audit
 plugin_confdir=$(prog_confdir)/plugins.d
 plugin_conf = syslog.conf
 sbin_PROGRAMS = audisp-syslog
+man_MANS = audisp-syslog.8
 
 audisp_syslog_DEPENDENCIES = ${top_builddir}/common/libaucommon.a
 audisp_syslog_SOURCES = audisp-syslog.c
