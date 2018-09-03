@@ -3088,5 +3088,5 @@ unknown:
 			}
 		}
 	}
-	return out;
+	return (char *)out;
 }

@@ -597,6 +597,7 @@ static int setopt(int count, int lineno, char *vars[])
 				audit_msg(LOG_ERR,
 					"Only -k or -i options are allowed");
 				retval = -1;
+				break;
 			}
 		} else if (count == 4) {
 			if (vars[optind] && strcmp(vars[optind], "-k") == 0) { 
