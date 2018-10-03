@@ -1,5 +1,5 @@
 /* aureport-options.c - parse commandline options and configure aureport
- * Copyright 2005-08,2010-11,2014 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2005-08,2010-11,2014,2018 Red Hat Inc., Durham, North Carolina.
  * Copyright (c) 2011 IBM Corp.
  * All Rights Reserved.
  *
@@ -85,7 +85,8 @@ enum {  R_INFILE, R_TIME_END, R_TIME_START, R_VERSION, R_SUMMARY, R_LOG_TIMES,
 	R_AVCS, R_SYSCALLS, R_PIDS, R_EVENTS, R_ACCT_MODS,  
 	R_INTERPRET, R_HELP, R_ANOMALY, R_RESPONSE, R_SUMMARY_DET, R_CRYPTO,
 	R_MAC, R_FAILED, R_SUCCESS, R_ADD, R_DEL, R_AUTH, R_NODE, R_IN_LOGS,
-	R_KEYS, R_TTY, R_NO_CONFIG, R_COMM, R_VIRT, R_INTEG, R_ESCAPE };
+	R_KEYS, R_TTY, R_NO_CONFIG, R_COMM, R_VIRT, R_INTEG, R_ESCAPE,
+	R_DEBUG };
 
 static struct nv_pair optiontab[] = {
 	{ R_AUTH, "-au" },
@@ -98,6 +99,7 @@ static struct nv_pair optiontab[] = {
 	{ R_CONFIGS, "--config" },
 	{ R_CRYPTO, "-cr" },
 	{ R_CRYPTO, "--crypto" },
+	{ R_DEBUG, "--debug" },
 	{ R_DEL, "--delete" },
 	{ R_EVENTS, "-e" },
 	{ R_EVENTS, "--event" },
@@ -730,6 +732,9 @@ int check_params(int count, char *vars[])
 			break;
 		case R_DEL:
 			event_conf_act = C_DEL;
+			break;
+		case R_DEBUG:
+			event_debug = 1;
 			break;
 		case R_IN_LOGS:
 			force_logs = 1;
