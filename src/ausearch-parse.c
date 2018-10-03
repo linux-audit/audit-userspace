@@ -1,6 +1,6 @@
 /*
 * ausearch-parse.c - Extract interesting fields and check for match
-* Copyright (c) 2005-08,2011,2013-14 Red Hat Inc., Durham, North Carolina.
+* Copyright (c) 2005-08,2011,2013-14,2018 Red Hat Inc., Durham, North Carolina.
 * Copyright (c) 2011 IBM Corp. 
 * All Rights Reserved. 
 *
@@ -102,7 +102,8 @@ int extract_search_items(llist *l)
 				ret = parse_path(n, s);
 				break;
 			case AUDIT_USER:
-			case AUDIT_FIRST_USER_MSG...AUDIT_LAST_USER_MSG:
+			case AUDIT_FIRST_USER_MSG...AUDIT_USER_END:
+			case AUDIT_USER_CHAUTHTOK...AUDIT_LAST_USER_MSG:
 			case AUDIT_FIRST_USER_MSG2...AUDIT_LAST_USER_MSG2:
 				ret = parse_user(n, s);
 				break;
@@ -136,6 +137,7 @@ int extract_search_items(llist *l)
 				avc_parse_path(n, s);
 				break;
 			case AUDIT_AVC:
+			case AUDIT_USER_AVC:
 				ret = parse_avc(n, s);
 				break;
 			case AUDIT_NETFILTER_PKT:
@@ -1865,6 +1867,20 @@ static int parse_avc(const lnode *n, search_items *s)
 		*term = 0;
 		an.avc_perm = strdup(str);
 		*term = ' ';
+	}
+
+	// User AVC's are not formatted like a kernel AVC
+	if (n->type == AUDIT_USER_AVC) {
+		rc = parse_user(n, s);
+		if (rc > 20)
+			rc = 0;
+		if (audit_avc_init(s) == 0) {
+			alist_append(s->avc, &an);
+		} else {
+			rc = 10;
+			goto err;
+		}
+		return rc;
 	}
 
 	// get pid
