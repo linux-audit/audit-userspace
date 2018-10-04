@@ -1013,7 +1013,7 @@ int auditd_tcp_listen_init(struct ev_loop *loop, struct daemon_conf *config)
 				 runp->ai_socktype, runp->ai_protocol);
 		if (listen_socket[nlsocks] < 0) {
         		audit_msg(LOG_ERR, "Cannot create %s listener socket",
-				runp->ai_famil == AF_INET ? "IPv4" : "IPv6");
+				runp->ai_family == AF_INET ? "IPv4" : "IPv6");
 			goto next_try;
 		}
 
