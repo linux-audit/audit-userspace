@@ -18,6 +18,7 @@
  *
  * Authors:
  *     Steve Grubb <sgrubb@redhat.com>
+ *     David Abdurachmanov <david.abdurachmanov@gmail.com>
  */
 
 #include "config.h"
@@ -61,7 +62,8 @@ static int insert_rule(int audit_fd, const char *field)
 	memset(rule, 0, sizeof(struct audit_rule_data));
 	if (threat) {
 		rc = 0;
-		if (machine != MACH_AARCH64) {
+		if (machine != MACH_AARCH64 && machine != MACH_RISCV64 &&
+		    machine != MACH_RISCV32) {
 			rc |= audit_rule_syscallbyname_data(rule, "open");
 			rc |= audit_rule_syscallbyname_data(rule, "creat");
 			rc |= audit_rule_syscallbyname_data(rule, "rename");

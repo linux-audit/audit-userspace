@@ -18,6 +18,7 @@
  *
  * Authors:
  *      Steve Grubb <sgrubb@redhat.com>
+ *      David Abdurachmanov <david.abdurachmanov@gmail.com>
  */
 
 _S(MACH_X86,     "i386"   )
@@ -44,4 +45,8 @@ _S(MACH_ARM,   "armv7l")
 #endif
 #ifdef WITH_AARCH64
 _S(MACH_AARCH64,   "aarch64"  )
+#endif
+#ifdef WITH_RISCV
+_S(MACH_RISCV32,   "riscv32")
+_S(MACH_RISCV64,   "riscv64")
 #endif

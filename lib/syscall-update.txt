@@ -8,6 +8,7 @@ arch/s390/kernel/syscalls/syscall.tbl
 arch/x86/entry/syscalls/syscall_32.tbl
 arch/x86/entry/syscalls/syscall_64.tbl
 include/uapi/asm-generic/unistd.h  (aarch64)
+include/uapi/asm-generic/unistd.h  (riscv32, riscv64)
 
 For src/ausearch-lookup.c:
 Inspect include/linux/net.h for socketcall updates
@@ -16,5 +17,9 @@ Inspect include/linux/ipc.h for ipccall updates
 For adding new arches, the following might be useful to get a first pass file:
 
 cat unistd.h | grep '^#define __NR_' | tr -d ')' | tr 'NR+' ' ' | awk '{ printf "_S(%s, \"%s\")\n", $6, $3 }; '
+
+On newer kernels (4.19+):
+
+cat unistd.h | grep '^#define __NR_' | sed 's/__NR_//g' | awk '{ printf "_S(%s, \"%s\")\n", $3, $2 }; '
 
 it will still need hand editing

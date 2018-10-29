@@ -20,6 +20,7 @@
  *      Steve Grubb <sgrubb@redhat.com>
  *      Rickard E. (Rik) Faith <faith@redhat.com>
  *      Richard Guy Briggs <rgb@redhat.com>
+ *      David Abdurachmanov <david.abdurachmanov@gmail.com>
  */
 
 #include "config.h"
@@ -1337,6 +1338,8 @@ int audit_determine_machine(const char *arch)
 		machine = MACH_S390;
 	else if (bits == ~__AUDIT_ARCH_64BIT && machine == MACH_AARCH64)
 		machine = MACH_ARM;
+	else if (bits == ~__AUDIT_ARCH_64BIT && machine == MACH_RISCV64)
+		machine = MACH_RISCV32;
 
 	/* Check for errors - return -6 
 	 * We don't allow 32 bit machines to specify 64 bit. */
@@ -1370,10 +1373,17 @@ int audit_determine_machine(const char *arch)
 				return -6; // Deadcode - just incase of mistake
 			break;
 #endif
+#ifdef WITH_RISCV
+		case MACH_RISCV32:
+			if (bits == __AUDIT_ARCH_64BIT)
+				return -6;
+			break;
+#endif
 		case MACH_86_64:   /* fallthrough */
 		case MACH_PPC64:   /* fallthrough */
 		case MACH_PPC64LE: /* fallthrough */
 		case MACH_S390X:   /* fallthrough */
+		case MACH_RISCV64: /* fallthrough */
 			break;
 		default:
 			return -6;

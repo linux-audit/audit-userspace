@@ -19,6 +19,7 @@
  * Authors:
  *	Steve Grubb <sgrubb@redhat.com>
  *	Rickard E. (Rik) Faith <faith@redhat.com>
+ *	David Abdurachmanov <david.abdurachmanov@gmail.com>
  */
 #ifndef _LIBAUDIT_H_
 #define _LIBAUDIT_H_
@@ -436,6 +437,17 @@ extern "C" {
 #ifndef EM_AARCH64
 #define EM_AARCH64 183
 #endif
+#ifndef EM_RISCV
+#define EM_RISCV 243
+#endif
+
+#ifndef AUDIT_ARCH_RISCV32
+#define AUDIT_ARCH_RISCV32	(EM_RISCV|__AUDIT_ARCH_LE)
+#endif
+
+#ifndef AUDIT_ARCH_RISCV64
+#define AUDIT_ARCH_RISCV64	(EM_RISCV|__AUDIT_ARCH_64BIT|__AUDIT_ARCH_LE)
+#endif
 
 #ifndef AUDIT_ARCH_AARCH64
 #define AUDIT_ARCH_AARCH64	(EM_AARCH64|__AUDIT_ARCH_64BIT|__AUDIT_ARCH_LE)
@@ -536,7 +548,9 @@ typedef enum {
 	MACH_ALPHA,
 	MACH_ARM,
 	MACH_AARCH64,
-	MACH_PPC64LE
+	MACH_PPC64LE,
+	MACH_RISCV32,
+	MACH_RISCV64
 } machine_t;
 
 /* These are the valid audit failure tunable enum values */
