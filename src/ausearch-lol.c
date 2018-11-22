@@ -277,7 +277,7 @@ int lol_add_record(lol *lo, char *buff)
 			if (n.tlen > MAX_AUDIT_MESSAGE_LENGTH)
 				n.tlen = MAX_AUDIT_MESSAGE_LENGTH;
 		} else
-			n.tlen = MAX_AUDIT_MESSAGE_LENGTH;
+			n.tlen = n.mlen;
 		fmt = LF_ENRICHED;
 	} else {
 		ptr = strrchr(n.message, 0x0a);
@@ -287,7 +287,7 @@ int lol_add_record(lol *lo, char *buff)
 			if (n.mlen > MAX_AUDIT_MESSAGE_LENGTH)
 				n.mlen = MAX_AUDIT_MESSAGE_LENGTH;
 		} else
-			n.mlen = MAX_AUDIT_MESSAGE_LENGTH;
+			n.mlen = strlen(n.message);
 		n.interp = NULL;
 		n.tlen = n.mlen;
 		fmt = LF_RAW;
