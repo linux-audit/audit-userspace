@@ -40,6 +40,7 @@
 - Add support for AUDIT_MAC_CALIPSO_ADD, AUDIT_MAC_CALIPSO_DEL events
 - In ausearch/report, lightly parse selinux portion of USER_AVC events
 - Add bpf syscall command argument interpretation to auparse
+- In ausearch/report, limit record size when malformed
 
 2.8.3
 - Correct msg function name in LRU debug code
