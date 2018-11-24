@@ -759,6 +759,17 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
+	/* Startup libev and dispatcher */
+	loop = ev_default_loop(EVFLAG_NOENV);
+	if (init_dispatcher(&config)) {
+		if (pidfile)
+			unlink(pidfile);
+		tell_parent(FAILURE);
+		free_config(&config);
+		ev_default_destroy();
+		return 1;
+	}
+
 	/* Get machine name ready for use */
 	if (resolve_node(&config)) {
 		if (pidfile)
@@ -766,6 +777,7 @@ int main(int argc, char *argv[])
 		shutdown_dispatcher();
 		tell_parent(FAILURE);
 		free_config(&config);
+		ev_default_destroy();
 		return 1;
 	}
 
@@ -777,6 +789,7 @@ int main(int argc, char *argv[])
 		shutdown_dispatcher();
 		tell_parent(FAILURE);
 		free_config(&config);
+		ev_default_destroy();
 		return 1;
 	}
 	fcntl(pipefds[0], F_SETFD, FD_CLOEXEC);
@@ -796,6 +809,7 @@ int main(int argc, char *argv[])
 			tell_parent(FAILURE);
 			close_pipes();
 			free_config(&config);
+			ev_default_destroy();
 			return 1;
 		}
 		if (getsubj(subj))
@@ -822,6 +836,7 @@ int main(int argc, char *argv[])
 			tell_parent(FAILURE);
 			close_pipes();
 			free_config(&config);
+			ev_default_destroy();
 			return 1;
 		}
 	}
@@ -832,6 +847,7 @@ int main(int argc, char *argv[])
 	/* let config manager init */
 	init_config_manager();
 
+	/* Depending on value of opt_startup (-s) set initial audit state */
 	if (opt_startup != startup_nochange && !opt_aggregate_only &&
 			(audit_is_enabled(fd) < 2) &&
 			audit_set_enabled(fd, (int)opt_startup) < 0) {
@@ -860,6 +876,7 @@ int main(int argc, char *argv[])
 		tell_parent(FAILURE);
 		close_pipes();
 		free_config(&config);
+		ev_default_destroy();
 		return 1;
 	}
 
@@ -888,20 +905,11 @@ int main(int argc, char *argv[])
 		tell_parent(FAILURE);
 		close_pipes();
 		free_config(&config);
+		ev_default_destroy();
 		return 1;
 	}
 
-	/* Depending on value of opt_startup (-s) set initial audit state */
-	loop = ev_default_loop (EVFLAG_NOENV);
-
-	if (init_dispatcher(&config)) {
-		if (pidfile)
-			unlink(pidfile);
-		tell_parent(FAILURE);
-		free_config(&config);
-		return 1;
-	}
-
+	/* Start up all the handlers */
 	if (!opt_aggregate_only) {
 		ev_io_init (&netlink_watcher, netlink_handler, fd, EV_READ);
 		ev_io_start (loop, &netlink_watcher);
