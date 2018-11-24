@@ -209,7 +209,8 @@ static void cont_handler(struct ev_loop *loop, struct ev_signal *sig,
 
 static int extract_type(const char *str)
 {
-	const char *ptr2, *ptr = str;
+	char tmp, *ptr2, *ptr = str;
+	int type;
 	if (*str == 'n') {
 		ptr = strchr(str+1, ' ');
 		if (ptr == NULL)
@@ -227,7 +228,16 @@ static int extract_type(const char *str)
 
 	// name is 1 past
 	str++;
-	return audit_name_to_msg_type(str);
+
+	// Save character & terminate string
+	tmp = *ptr2;
+	*ptr2 = 0;
+
+	type = audit_name_to_msg_type(str);
+
+	*ptr2 = tmp; // Restore character
+
+	return type;
 }
 
 void distribute_event(struct auditd_event *e)
