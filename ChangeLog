@@ -42,6 +42,7 @@
 - Add bpf syscall command argument interpretation to auparse
 - In ausearch/report, limit record size when malformed
 - Port af_unix plugin to libev
+- In auditd, fix extract_type function for network originating events
 
 2.8.3
 - Correct msg function name in LRU debug code
