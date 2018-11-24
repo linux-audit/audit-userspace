@@ -1,6 +1,6 @@
 /*
 * audispd-builtins.c - some common builtin plugins
-* Copyright (c) 2007,2010,2013 Red Hat Inc., Durham, North Carolina.
+* Copyright (c) 2007,2010,2013,2018 Red Hat Inc., Durham, North Carolina.
 * All Rights Reserved. 
 *
 * This software may be freely redistributed and/or modified under the
@@ -35,12 +35,17 @@
 #include <sys/uio.h> // writev
 #include <fcntl.h>
 #include <stdio.h>
+#include "ev.h"
 #include "audispd-pconfig.h"
 #include "audispd-builtins.h"
+
+// Global data
+extern struct ev_loop *loop;
 
 // Local data
 static volatile int sock = -1, conn = -1;
 static char *path = NULL;
+static struct ev_io af_unix_watcher;
 
 // Local prototypes
 static void init_af_unix(const plugin_conf_t *conf);
@@ -63,19 +68,35 @@ void stop_builtin(plugin_conf_t *conf)
 		syslog(LOG_ERR, "Unknown builtin %s", conf->path);
 }
 
-static void af_unix_accept(int fd)
+static int watching = 0;
+static void stop_watching(void)
+{
+	if (watching) {
+		ev_io_stop(loop, &af_unix_watcher);
+		watching = 0;
+	}
+}
+
+static void af_unix_accept(struct ev_loop *l, struct ev_io *_io, int revents)
 {
 	int cmd;
 
 	do {
-		conn = accept(fd, NULL, NULL);
+		conn = accept(_io->fd, NULL, NULL);
 	} while (conn < 0 && errno == EINTR);
 
 	// De-register since this is intended to be one listener
 	if (conn >= 0)
-		remove_event(fd);
+		stop_watching();
 	cmd = fcntl(conn, F_GETFD);
 	fcntl(conn, F_SETFD, cmd|FD_CLOEXEC);
+}
+
+static void start_watching(void)
+{
+	ev_io_init(&af_unix_watcher, af_unix_accept, sock, EV_READ);
+	ev_io_start(loop, &af_unix_watcher);
+	watching = 1;
 }
 
 static int create_af_unix_socket(const char *path, int mode)
@@ -122,8 +143,8 @@ static int create_af_unix_socket(const char *path, int mode)
 	// Make socket listening...won't block
 	(void)listen(sock, 5);
 
-	// Register socket with poll
-	add_event(sock, af_unix_accept);
+	// Register socket with libev
+	start_watching();
 	return 0;
 }
 
@@ -213,7 +234,8 @@ void send_af_unix_string(const char *s, unsigned int len)
 		if (rc < 0 && errno == EPIPE) {
 			close(conn);
 			conn = -1;
-			add_event(sock, af_unix_accept);
+			stop_watching();
+			start_watching();
 		}
 	} 
 }
@@ -237,7 +259,8 @@ void send_af_unix_binary(event_t *e)
 		if (rc < 0 && errno == EPIPE) {
 			close(conn);
 			conn = -1;
-			add_event(sock, af_unix_accept);
+			stop_watching();
+			start_watching();
 		}
 	} 
 }
@@ -250,10 +273,13 @@ void destroy_af_unix(void)
 		conn = -1;
 		did_something = 1;
 	}
+	stop_watching();
 	if (sock >= 0) {
+
 		close(sock);
 		sock = -1;
 		did_something = 1;
+		
 	}
 	if (path) {
 		unlink(path);

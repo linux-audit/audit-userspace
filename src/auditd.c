@@ -581,6 +581,7 @@ static void close_pipes(void)
 	close(pipefds[1]);
 }
 
+struct ev_loop *loop;
 int main(int argc, char *argv[])
 {
 	struct sigaction sa;
@@ -598,7 +599,6 @@ int main(int argc, char *argv[])
 	enum startup_state opt_startup = startup_enable;
 	extern char *optarg;
 	extern int optind;
-	struct ev_loop *loop;
 	struct ev_io netlink_watcher;
 	struct ev_io pipe_watcher;
 	struct ev_signal sigterm_watcher;
@@ -749,14 +749,6 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	if (init_dispatcher(&config)) {
-		if (pidfile)
-			unlink(pidfile);
-		tell_parent(FAILURE);
-		free_config(&config);
-		return 1;
-	}
-
 	/* Get machine name ready for use */
 	if (resolve_node(&config)) {
 		if (pidfile)
@@ -891,6 +883,14 @@ int main(int argc, char *argv[])
 
 	/* Depending on value of opt_startup (-s) set initial audit state */
 	loop = ev_default_loop (EVFLAG_NOENV);
+
+	if (init_dispatcher(&config)) {
+		if (pidfile)
+			unlink(pidfile);
+		tell_parent(FAILURE);
+		free_config(&config);
+		return 1;
+	}
 
 	if (!opt_aggregate_only) {
 		ev_io_init (&netlink_watcher, netlink_handler, fd, EV_READ);

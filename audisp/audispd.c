@@ -31,7 +31,6 @@
 #include <pthread.h>
 #include <dirent.h>
 #include <fcntl.h>
-#include <sys/poll.h>
 #include <netdb.h>
 #include <arpa/inet.h>
 #include <limits.h>
@@ -576,43 +575,6 @@ static int event_loop(void)
 		return 0;
 	else
 		return 1;
-}
-
-static struct pollfd pfd[4];
-static poll_callback_ptr pfd_cb[4];
-static volatile int pfd_cnt=0;
-int add_event(int fd, poll_callback_ptr cb)
-{
-	if (pfd_cnt > 3)
-		return -1;
-
-	pfd[pfd_cnt].fd = fd;
-	pfd[pfd_cnt].events = POLLIN;
-	pfd[pfd_cnt].revents = 0;
-	pfd_cb[pfd_cnt] = cb;
-	pfd_cnt++;
-	return 0;
-}
-
-int remove_event(int fd)
-{
-	int start, i;
-	if (pfd_cnt == 0)
-		return -1;
-
-	for (start=0; start < pfd_cnt; start++) {
-		if (pfd[start].fd == fd)
-			break;
-	}
-	for (i=start; i<(pfd_cnt-1); i++) {
-		pfd[i].events = pfd[i+1].events;
-		pfd[i].revents = pfd[i+1].revents;
-		pfd[i].fd = pfd[i+1].fd;
-		pfd_cb[i] = pfd_cb[i+1];
-	}
-
-	pfd_cnt--;
-	return 0;
 }
 
 /* returns > 0 if plugins and 0 if none */
