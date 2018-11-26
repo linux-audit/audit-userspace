@@ -674,7 +674,7 @@ int main(int argc, char *argv[])
 #ifndef DEBUG
 	/* Make sure we can do our job. Containers may not give you
 	 * capabilities, so we revert to a uid check for that case. */
-	if (!audit_can_control() || !audit_can_read()) {
+	if (!audit_can_control()) {
 		if (!config.local_events && geteuid() == 0)
 			;
 		else {
