@@ -270,7 +270,7 @@ void distribute_event(struct auditd_event *e)
 
 		}
 	} else if (e->reply.type != AUDIT_DAEMON_RECONFIG)
-		// All other events need formatting
+		// All other local events need formatting
 		format_event(e);
 	else
 		route = 0; // Don't DAEMON_RECONFIG events until after enqueue
@@ -281,7 +281,7 @@ void distribute_event(struct auditd_event *e)
 
 	/* Next, send to plugins */
 	if (route)
-		dispatch_event(&e->reply, proto);
+		dispatch_event(&e->reply, proto, e->ack_func ? 1 : 0);
 
 	/* Free msg and event memory */
 	cleanup_event(e);

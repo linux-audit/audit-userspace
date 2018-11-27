@@ -63,7 +63,7 @@ void reconfigure_dispatcher(const struct daemon_conf *config)
 }
 
 /* Returns -1 on err, 0 on success */
-int dispatch_event(const struct audit_reply *rep, int protocol_ver)
+int dispatch_event(const struct audit_reply *rep, int protocol_ver, int network)
 {
 	event_t *e;
 
@@ -78,10 +78,11 @@ int dispatch_event(const struct audit_reply *rep, int protocol_ver)
 	e->hdr.hlen = sizeof(struct audit_dispatcher_header);
 	e->hdr.type = rep->type;
 
-	if (protocol_ver == AUDISP_PROTOCOL_VER) {
+	// Network originating events have data at rep->message
+	if (protocol_ver == AUDISP_PROTOCOL_VER && !network) {
 		e->hdr.size = rep->msg.nlh.nlmsg_len;
 		memcpy(e->data, (void*)rep->msg.data, e->hdr.size);
-	} else if (protocol_ver == AUDISP_PROTOCOL_VER2) {
+	} else if (protocol_ver == AUDISP_PROTOCOL_VER2 || network) {
 		e->hdr.size = rep->len;
 		memcpy(e->data, (void*)rep->message, e->hdr.size);
 	} else {
