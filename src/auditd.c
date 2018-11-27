@@ -265,13 +265,14 @@ void distribute_event(struct auditd_event *e)
 
 		}
 	} else if (e->reply.type != AUDIT_DAEMON_RECONFIG)
-		// All other events need formatting
+		// All other local events need formatting
 		format_event(e);
 	else
 		route = 0; // Don't DAEMON_RECONFIG events until after enqueue
 
 	/* Make first attempt to send to plugins */
-	if (route && dispatch_event(&e->reply, attempt, proto) == 1)
+	if (route && dispatch_event(&e->reply, attempt, proto,
+						e->ack_func ? 1 : 0) == 1)
 		attempt++; /* Failed sending, retry after writing to disk */
 
 	/* End of Event is for realtime interface - skip local logging of it */
@@ -280,7 +281,7 @@ void distribute_event(struct auditd_event *e)
 
 	/* Last chance to send...maybe the pipe is empty now. */
 	if ((attempt && route) || (e->reply.type == AUDIT_DAEMON_RECONFIG))
-		dispatch_event(&e->reply, attempt, proto);
+		dispatch_event(&e->reply, attempt, proto, e->ack_func ? 1 : 0);
 
 	/* Free msg and event memory */
 	cleanup_event(e);

@@ -220,8 +220,12 @@ static void replace_event_msg(struct auditd_event *e, const char *buf)
 			e->reply.message = strndup(buf, MAX_AUDIT_MESSAGE_LENGTH-1);
 			len = MAX_AUDIT_MESSAGE_LENGTH;
 		}
-		e->reply.msg.nlh.nlmsg_len = e->reply.len;
-		e->reply.len = len;
+		// For network originating events, len should be used
+		if (e->ack_func) // V1 protocol msg size
+			e->reply.msg.nlh.nlmsg_len = len;
+		else
+			e->reply.msg.nlh.nlmsg_len = e->reply.len;
+		e->reply.len = len; // V2 protocol msg size
 	}
 }
 
