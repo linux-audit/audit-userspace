@@ -18,6 +18,7 @@
 - In ausearch/report, limit record size when malformed
 - In auditd, fix extract_type function for network originating events
 - In auditd, calculate right size and location for network originating events
+- Treat all network originating events as VER2 so dispatcher doesn't format it
 
 2.8.4
 - Generate checkpoint file even when not results are returned (Burn Alting)

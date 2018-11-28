@@ -36,6 +36,9 @@ struct auditd_event {
 	unsigned long sequence_id;
 };
 
+static inline int from_network(struct auditd_event *e) 
+{ if (e && e->ack_func) return 1; return 0; };
+
 #include "auditd-config.h"
 
 int dispatch_network_events(void);

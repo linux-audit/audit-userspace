@@ -256,13 +256,12 @@ void distribute_event(struct auditd_event *e)
 			route = 0;
 		else {	// We only need the original type if its being routed
 			e->reply.type = extract_type(e->reply.message);
-			char *p = strchr(e->reply.message,
-					AUDIT_INTERP_SEPARATOR);
-			if (p)
-				proto = AUDISP_PROTOCOL_VER2;
-			else
-				proto = AUDISP_PROTOCOL_VER;
 
+			// Treat everything from the network as VER2
+			// because they are already formatted. This is
+			// important when it gets to the dispatcher which
+			// can strip node= when its VER1.
+			proto = AUDISP_PROTOCOL_VER2;
 		}
 	} else if (e->reply.type != AUDIT_DAEMON_RECONFIG)
 		// All other local events need formatting
@@ -271,8 +270,7 @@ void distribute_event(struct auditd_event *e)
 		route = 0; // Don't DAEMON_RECONFIG events until after enqueue
 
 	/* Make first attempt to send to plugins */
-	if (route && dispatch_event(&e->reply, attempt, proto,
-						e->ack_func ? 1 : 0) == 1)
+	if (route && dispatch_event(&e->reply, attempt, proto) == 1)
 		attempt++; /* Failed sending, retry after writing to disk */
 
 	/* End of Event is for realtime interface - skip local logging of it */
@@ -281,7 +279,7 @@ void distribute_event(struct auditd_event *e)
 
 	/* Last chance to send...maybe the pipe is empty now. */
 	if ((attempt && route) || (e->reply.type == AUDIT_DAEMON_RECONFIG))
-		dispatch_event(&e->reply, attempt, proto, e->ack_func ? 1 : 0);
+		dispatch_event(&e->reply, attempt, proto);
 
 	/* Free msg and event memory */
 	cleanup_event(e);

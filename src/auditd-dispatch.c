@@ -1,5 +1,5 @@
 /* auditd-dispatch.c -- 
- * Copyright 2005-07,2013,2016-17 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2005-07,2013,2016-18 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -176,8 +176,7 @@ void reconfigure_dispatcher(const struct daemon_conf *config)
 }
 
 /* Returns -1 on err, 0 on success, and 1 if eagain occurred and not an err */
-int dispatch_event(const struct audit_reply *rep, int is_err, int protocol_ver,
-	int network)
+int dispatch_event(const struct audit_reply *rep, int is_err, int protocol_ver)
 {
 	int rc, count = 0;
 	struct iovec vec[2];
@@ -197,10 +196,10 @@ int dispatch_event(const struct audit_reply *rep, int is_err, int protocol_ver,
 
 	vec[0].iov_base = (void*)&hdr;
 	vec[0].iov_len = sizeof(hdr);
-	if (protocol_ver == AUDISP_PROTOCOL_VER && !network) {
+	if (protocol_ver == AUDISP_PROTOCOL_VER) {
 		hdr.size = rep->msg.nlh.nlmsg_len;
 		vec[1].iov_base = (void*)rep->msg.data;
-	} else if (protocol_ver == AUDISP_PROTOCOL_VER2 || network) {
+	} else if (protocol_ver == AUDISP_PROTOCOL_VER2) {
 		hdr.size = rep->len;
 		vec[1].iov_base = (void*)rep->message;
 	} else
