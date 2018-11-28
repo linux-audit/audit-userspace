@@ -261,8 +261,6 @@ void distribute_event(struct auditd_event *e)
 			route = 0;
 		else {	// We only need the original type if its being routed
 			e->reply.type = extract_type(e->reply.message);
-			char *p = strchr(e->reply.message,
-					AUDIT_INTERP_SEPARATOR);
 
 			// Treat everything from the network as VER2
 			// because they are already formatted. This is
