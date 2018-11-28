@@ -268,10 +268,15 @@ void distribute_event(struct auditd_event *e)
 			// can strip node= when its VER1.
 			proto = AUDISP_PROTOCOL_VER2;
 		}
-	} else if (e->reply.type != AUDIT_DAEMON_RECONFIG)
+	} else if (e->reply.type != AUDIT_DAEMON_RECONFIG) {
 		// All other local events need formatting
 		format_event(e);
-	else
+
+		// If the event has been formatted with node, upgrade
+		// to VER2 so that the dispatcher honors the formatting
+		if (config.node_name_format != N_NONE)
+			proto = AUDISP_PROTOCOL_VER2;
+	} else
 		route = 0; // Don't DAEMON_RECONFIG events until after enqueue
 
 	/* End of Event is for realtime interface - skip local logging of it */
