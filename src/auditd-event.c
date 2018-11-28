@@ -226,9 +226,7 @@ static void replace_event_msg(struct auditd_event *e, const char *buf)
 			len = MAX_AUDIT_MESSAGE_LENGTH;
 		}
 		// For network originating events, len should be used
-		if (e->ack_func) // V1 protocol msg size
-			e->reply.msg.nlh.nlmsg_len = len;
-		else
+		if (!from_network(e)) // V1 protocol msg size
 			e->reply.msg.nlh.nlmsg_len = e->reply.len;
 		e->reply.len = len; // V2 protocol msg size
 	}
@@ -504,7 +502,7 @@ struct auditd_event *create_event(char *msg, ack_func_type ack_func,
 	e->sequence_id = sequence_id;
 
 	/* Network originating events need things adjusted to mimic netlink. */
-	if (e->ack_func)
+	if (from_network(e))
 		replace_event_msg(e, msg);
 
 	return e;
@@ -574,7 +572,7 @@ void handle_event(struct auditd_event *e)
 static void send_ack(const struct auditd_event *e, int ack_type,
 			const char *msg)
 {
-	if (e->ack_func) {
+	if (from_network(e)) {
 		unsigned char header[AUDIT_RMW_HEADER_SIZE];
 
 		AUDIT_RMW_PACK_HEADER(header, 0, ack_type, strlen(msg),
