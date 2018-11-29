@@ -231,11 +231,12 @@ void increase_queue_depth(unsigned int size)
 
 void write_queue_state(FILE *f)
 {
-	fprintf(f, "current queue depth = %u\n", currently_used);
-	fprintf(f, "max queue depth used = %u\n", max_used);
-	fprintf(f, "queue size = %u\n", q_depth);
-	fprintf(f, "queue overflow detected = %s\n",overflowed ? "yes" : "no");
-	fprintf(f, "queueing suspended = %s\n",
+	fprintf(f, "current dispatcher queue depth = %u\n", currently_used);
+	fprintf(f, "max dispatcher queue depth used = %u\n", max_used);
+	fprintf(f, "dispatcher queue size = %u\n", q_depth);
+	fprintf(f, "dispatcher queue overflow detected = %s\n",
+				overflowed ? "yes" : "no");
+	fprintf(f, "dispatcher queueing suspended = %s\n",
 				processing_suspended ? "yes" : "no");
 }
 
