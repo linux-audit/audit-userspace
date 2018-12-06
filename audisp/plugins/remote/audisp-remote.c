@@ -456,6 +456,7 @@ int main(int argc, char *argv[])
 	struct sigaction sa;
 	struct queue *queue;
 	size_t q_len;
+	int connected_once = 0;
 
 	/* Register sighandlers */
 	sa.sa_flags = 0;
@@ -478,13 +479,6 @@ int main(int argc, char *argv[])
 	// ifd = open("test.log", O_RDONLY);
 	ifd = 0;
 	fcntl(ifd, F_SETFL, O_NONBLOCK);
-
-	// Since we have never connected to the remote system, we have to consider
-	// that it may be down. If the initial connection is successful we mark
-	// remote_ended as 0 since we know its up. Otherwise remote_ended stays 1 so
-	// we can retry is reconnect is the error action.
-	if (init_transport() == ET_SUCCESS)
-		remote_ended = 0;
 
 	// Start up the queue
 	queue = init_queue();
@@ -564,12 +558,15 @@ int main(int argc, char *argv[])
 			do {
 				if (audit_fgets(event, sizeof(event), ifd)) {
 					if (!transport_ok && remote_ended && 
-						config.remote_ending_action ==
-								 FA_RECONNECT) {
+						(config.remote_ending_action ==
+								FA_RECONNECT ||
+							!connected_once)) {
 						quiet = 1;
 						if (init_transport() ==
-								ET_SUCCESS)
+								ET_SUCCESS) {
 							remote_ended = 0;
+							connected_once = 1;
+						}
 						quiet = 0;
 					}
 					/* Strip out EOE records */
