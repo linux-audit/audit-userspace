@@ -476,6 +476,14 @@ int main(int argc, char *argv[])
 	ifd = 0;
 	fcntl(ifd, F_SETFL, O_NONBLOCK);
 
+	// Since we have never connected to the remote system, we have to consider
+	// that it may be down. If the initial connection is successful we mark
+	// remote_ended as 0 since we know its up. Otherwise remote_ended stays 1 so
+	// we can retry is reconnect is the error action.
+	if (init_transport() == ET_SUCCESS)
+		remote_ended = 0;
+
+	// Start up the queue
 	queue = init_queue();
 	if (queue == NULL) {
 		syslog(LOG_ERR, "Error initializing audit record queue: %m");
