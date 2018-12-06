@@ -47,6 +47,7 @@
 - Add 1 second delay to auditd stop command (#1643567)
 - Treat all network originating events as VER2 so dispatcher doesn't format it
 - If an event has a node name make it VER2 so dispatcher doesnt format it
+- In audisp-remote do an initial connection attempt (#1625156)
 
 2.8.3
 - Correct msg function name in LRU debug code
