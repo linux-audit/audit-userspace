@@ -47,16 +47,22 @@
 -a always,exit -F arch=b64 -S lchown,fchown,chown,fchownat -F exit=-EPERM -F auid>=1000 -F auid!=unset -F key=unsuccesful-perm-change
 
 ## User add delete modify. This is covered by pam. However, someone could
-## open a file and directly create a user, so we'll watch passwd for writes
+## open a file and directly create or modify a user, so we'll watch passwd and
+## shadow for writes
 -a always,exit -F arch=b32 -S open,openat,open_by_handle_at -F a2&03 -F path=/etc/passwd -F auid>=1000 -F auid!=unset -F key=user-modify
 -a always,exit -F arch=b64 -S open,openat,open_by_handle_at -F a2&03 -F path=/etc/passwd -F auid>=1000 -F auid!=unset -F key=user-modify
+-a always,exit -F arch=b32 -S open,openat,open_by_handle_at -F a2&03 -F path=/etc/shadow -F auid>=1000 -F auid!=unset -F key=user-modify
+-a always,exit -F arch=b64 -S open,openat,open_by_handle_at -F a2&03 -F path=/etc/shadow -F auid>=1000 -F auid!=unset -F key=user-modify
 
 ## User enable and disable. This is entirely handled by pam.
 
 ## Group add delete modify. This is covered by pam. However, someone could
-## open a file and directly create a user, so we'll watch group for writes
+## open a file and directly create or modify a user, so we'll watch group and
+## gshadow for writes
 -a always,exit -F arch=b32 -S open,openat,open_by_handle_at -F a2&03 -F path=/etc/group -F auid>=1000 -F auid!=unset -F key=group-modify
 -a always,exit -F arch=b64 -S open,openat,open_by_handle_at -F a2&03 -F path=/etc/group -F auid>=1000 -F auid!=unset -F key=group-modify
+-a always,exit -F arch=b32 -S open,openat,open_by_handle_at -F a2&03 -F path=/etc/gshadow -F auid>=1000 -F auid!=unset -F key=group-modify
+-a always,exit -F arch=b64 -S open,openat,open_by_handle_at -F a2&03 -F path=/etc/gshadow -F auid>=1000 -F auid!=unset -F key=group-modify
 
 ## Use of special rights for config changes. This would be use of setuid
 ## programs that relate to user accts. This is not all setuid apps because
