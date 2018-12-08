@@ -1839,8 +1839,10 @@ static int parse_avc(const lnode *n, search_items *s)
 	if (str) {
 		str += 5;
 		term = strchr(str, '{');
-		if (term == NULL)
-			return 1;
+		if (term == NULL) {
+			term = n->message;
+			goto other_avc;
+		}
 		if (event_success != S_UNSET) {
 			*term = 0;
 			// FIXME. Do not override syscall success if already
@@ -1869,6 +1871,7 @@ static int parse_avc(const lnode *n, search_items *s)
 		*term = ' ';
 	}
 
+other_avc:
 	// User AVC's are not formatted like a kernel AVC
 	if (n->type == AUDIT_USER_AVC) {
 		rc = parse_user(n, s);
