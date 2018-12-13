@@ -1836,7 +1836,7 @@ static int parse_avc(const lnode *n, search_items *s)
 
 	// get the avc message info.
 	str = strstr(term, "avc: ");
-	if (str && n->type == AUDIT_AVC) {
+	if (str) {
 		str += 5;
 		term = strchr(str, '{');
 		if (term == NULL) {
