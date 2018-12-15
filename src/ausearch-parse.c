@@ -40,7 +40,7 @@
 #include "ausearch-parse.h"
 #include "auparse-idata.h"
 
-#define NAME_OFFSET 36
+#define NAME_OFFSET 28
 static const char key_sep[2] = { AUDIT_KEY_SEPARATOR, 0 };
 
 static int parse_task_info(lnode *n, search_items *s);
@@ -714,6 +714,8 @@ static int common_path_parser(search_items *s, char *path)
 				sn.str = unescape(path);
 				*term = ' ';
 			}
+			if (sn.str == NULL)
+				return 7;
 			// Attempt to rebuild path if relative
 			if ((sn.str[0] == '.') && ((sn.str[1] == '.') ||
 				(sn.str[1] == '/')) && s->cwd) {

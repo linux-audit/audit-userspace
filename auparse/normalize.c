@@ -44,11 +44,11 @@
  * Both record and field are 0 based. Simple records are always 0. Compound
  * records start at 0 and go up.
  */
-#define UNSET 0xFFFF
-#define get_record(y) ((y >> 16) & 0x0000FFFF)
-#define set_record(y, x) (((x & 0x0000FFFF) << 16) | (y & 0x0000FFFF))
-#define get_field(y) (y & 0x0000FFFF)
-#define set_field(y, x) ((y & 0xFFFF0000) | (x & 0x0000FFFF))
+#define UNSET 0xFFFFU
+#define get_record(y) ((y >> 16) & 0x0000FFFFU)
+#define set_record(y, x) (((x & 0x0000FFFFU) << 16) | (y & 0x0000FFFFU))
+#define get_field(y) (y & 0x0000FFFFU)
+#define set_field(y, x) ((y & 0xFFFF0000U) | (x & 0x0000FFFFU))
 #define is_unset(y) (get_record(y) == UNSET)
 #define D au->norm_data
 
