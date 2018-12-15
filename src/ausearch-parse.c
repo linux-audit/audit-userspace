@@ -603,6 +603,8 @@ static int parse_syscall(lnode *n, search_items *s)
 				if (s->key) {
 					char *saved;
 					char *keyptr = unescape(str);
+					if (keyptr == NULL)
+						return 45;
 					char *kptr = strtok_r(keyptr,
 							key_sep, &saved);
 					while (kptr) {
@@ -1599,6 +1601,8 @@ static int parse_sockaddr(const lnode *n, search_items *s)
 			str += 6;
 			len = strlen(str)/2;
 			s->hostname = unescape(str);
+			if (s->hostname == NULL)
+				return 4;
 			saddr = (struct sockaddr *)s->hostname;
 			if (saddr->sa_family == AF_INET) {
 				if (len < sizeof(struct sockaddr_in)) {
@@ -2300,6 +2304,8 @@ static int parse_simple_message(const lnode *n, search_items *s)
 				if (s->key) {
 					char *saved;
 					char *keyptr = unescape(ptr);
+					if (keyptr == NULL)
+						return 8;
 					char *kptr = strtok_r(keyptr,
 						key_sep, &saved);
 					while (kptr) {
