@@ -330,8 +330,11 @@ int aup_list_append(event_list_t *l, char *record, int list_idx,
 
 	// Then parse the record up into nvlist
 	rc = parse_up_record(r);
-	if (r->cwd)
+	if (r->cwd) {
+		// Should never be 2 cwd records unless log is corrupted
+		free(l->cwd);
 		l->cwd = r->cwd;
+	}
 	return rc;
 }
 
