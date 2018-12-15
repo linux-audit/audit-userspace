@@ -1119,7 +1119,7 @@ void auditd_tcp_listen_uninit(struct ev_loop *loop, struct daemon_conf *config)
 #endif
 
 	ev_io_stop(loop, &tcp_listen_watcher);
-	while (nlsocks >= 0) {
+	while (nlsocks > 0) {
 		nlsocks--;
 		close(listen_socket[nlsocks]);
 	}
