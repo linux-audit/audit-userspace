@@ -135,7 +135,7 @@ This option should contain a valid email address or alias. The default address i
 .TP
 .I space_left
 This is a numeric value in megabytes that tells the audit daemon when
-to perform a configurable action because the system is starting to run low on disk space.
+to perform a configurable action because the system is starting to run low on disk space. You may also append a percent sign (e.g. 5%) to the number to have the audit daemon calculate the number based on the disk partition size.
 .TP
 .I space_left_action
 This parameter tells the system what action to take when the system has
@@ -166,7 +166,7 @@ option will cause the audit daemon to shutdown the computer system.
 This is a numeric value in megabytes that tells the audit daemon when
 to perform a configurable action because the system
 .B is running low
-on disk space. This should be considered the last chance to do something before running out of disk space. The numeric value for this parameter should be lower than the number for space_left.
+on disk space. This should be considered the last chance to do something before running out of disk space. The numeric value for this parameter should be lower than the number for space_left. You may also append a percent sign (e.g. 1%) to the number to have the audit daemon calculate the number based on the disk partition size.
 .TP
 .I admin_space_left_action
 This parameter tells the system what action to take when the system has

@@ -62,11 +62,13 @@ struct daemon_conf
 	unsigned long max_log_size;
 	size_action max_log_size_action;
 	unsigned long space_left;
+	unsigned int space_left_percent;
 	failure_action_t space_left_action;
 	const char *space_left_exe;
 	const char *action_mail_acct;
 	unsigned int verify_email;
 	unsigned long admin_space_left;
+	unsigned int admin_space_left_percent;
 	failure_action_t admin_space_left_action;
 	const char *admin_space_left_exe;
 	failure_action_t disk_full_action;
@@ -103,6 +105,7 @@ void clear_config(struct daemon_conf *config);
 const char *audit_lookup_format(int fmt);
 int create_log_file(const char *val);
 int resolve_node(struct daemon_conf *config);
+void setup_percentages(struct daemon_conf *config, int fd);
 
 void init_config_manager(void);
 #ifdef AUDITD_EVENT_H

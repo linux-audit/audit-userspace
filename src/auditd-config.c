@@ -35,6 +35,7 @@
 #include <libgen.h>
 #include <arpa/inet.h>
 #include <limits.h>	/* INT_MAX */
+#include <sys/vfs.h>
 #include "auditd-config.h"
 #include "libaudit.h"
 #include "private.h"
@@ -319,11 +320,13 @@ void clear_config(struct daemon_conf *config)
 	config->max_log_size = 0L;
 	config->max_log_size_action = SZ_IGNORE;
 	config->space_left = 0L;
+	config->space_left_percent = 0;
 	config->space_left_action = FA_IGNORE;
 	config->space_left_exe = NULL;
 	config->action_mail_acct = strdup("root");
 	config->verify_email = 1;
 	config->admin_space_left= 0L;
+	config->admin_space_left_percent = 0;
 	config->admin_space_left_action = FA_IGNORE;
 	config->admin_space_left_exe = NULL;
 	config->disk_full_action = FA_IGNORE;
@@ -929,21 +932,30 @@ static int freq_parser(struct nv_pair *nv, int line,
 static int space_left_parser(struct nv_pair *nv, int line, 
 		struct daemon_conf *config)
 {
-	const char *ptr = nv->value;
+	char *p, *ptr = (char *)nv->value;
 	unsigned long i;
+	int percent = 0;
 
 	audit_msg(LOG_DEBUG, "space_left_parser called with: %s", nv->value);
+	config->space_left_percent = 0;
 
 	/* check that all chars are numbers */
 	for (i=0; ptr[i]; i++) {
-		if (!isdigit(ptr[i])) {
+		if (!isdigit(ptr[i]) && ptr[i] != '%') {
 			audit_msg(LOG_ERR, 
-				"Value %s should only be numbers - line %d",
-				nv->value, line);
+			"Value %c %s should only be numbers or percent - line %d",
+				ptr[i],nv->value, line);
 			return 1;
 		}
 	}
 
+	/* Check for percent sign */
+	p = strchr(ptr, '%');
+	if (p) {
+		percent = 1;
+		*p = ' ';
+	}
+		
 	/* convert to unsigned long */
 	errno = 0;
 	i = strtoul(nv->value, NULL, 10);
@@ -953,7 +965,16 @@ static int space_left_parser(struct nv_pair *nv, int line,
 			strerror(errno), line);
 		return 1;
 	}
-	config->space_left = i;
+	if (percent) {
+		if (i > 99) {
+			audit_msg(LOG_ERR,
+			"Percentages should be less than 100 - line %d", line);
+			return 1;
+		}
+		config->space_left_percent = i;
+		config->space_left = 0L;
+	} else
+		config->space_left = i;
 	return 0;
 }
 
@@ -1137,22 +1158,31 @@ static int verify_email_parser(struct nv_pair *nv, int line,
 static int admin_space_left_parser(struct nv_pair *nv, int line, 
 		struct daemon_conf *config)
 {
-	const char *ptr = nv->value;
+	char *p, *ptr = (char *)nv->value;
 	unsigned long i;
+	int percent = 0;
 
 	audit_msg(LOG_DEBUG, "admin_space_left_parser called with: %s",
 							nv->value);
+	config->admin_space_left_percent = 0;
 
 	/* check that all chars are numbers */
 	for (i=0; ptr[i]; i++) {
-		if (!isdigit(ptr[i])) {
+		if (!isdigit(ptr[i]) && ptr[i] != '%') {
 			audit_msg(LOG_ERR, 
-				"Value %s should only be numbers - line %d",
-				nv->value, line);
+			"Value %c %s should only be numbers or percent - line %d",
+				ptr[i],nv->value, line);
 			return 1;
 		}
 	}
 
+	/* Check for percent sign */
+	p = strchr(ptr, '%');
+	if (p) {
+		percent = 1;
+		*p = ' ';
+	}
+		
 	/* convert to unsigned long */
 	errno = 0;
 	i = strtoul(nv->value, NULL, 10);
@@ -1162,7 +1192,16 @@ static int admin_space_left_parser(struct nv_pair *nv, int line,
 			strerror(errno), line);
 		return 1;
 	}
-	config->admin_space_left = i;
+	if (percent) {
+		if (i > 99) {
+			audit_msg(LOG_ERR,
+			"Percentages should be less than 100 - line %d", line);
+			return 1;
+		}
+		config->admin_space_left_percent = i;
+		config->admin_space_left = 0L;
+	} else
+		config->admin_space_left = i;
 	return 0;
 }
 
@@ -1803,7 +1842,50 @@ static int plugin_dir_parser(struct nv_pair *nv, int line,
 	return 0;
 }
 
+/*
+ * Query file system and calculate in MB the given percentage is.
+ * Returns 0 on error and a number otherwise.
+ */
+static unsigned long calc_percent(float percent, int fd)
+{
+	int rc;
+	struct statfs buf;
 
+	rc = fstatfs(fd, &buf);
+	if (rc == 0) {
+		unsigned long free_space;
+		// All blocks * percentage = free blocks threshold
+		fsblkcnt_t free_blocks = buf.f_blocks * (percent/100.0);
+		// That is then converted into megabytes and returned
+		free_space = (buf.f_bsize * free_blocks) / MEGABYTE;
+
+		return free_space;
+	}
+	return 0;
+}
+
+/*
+ * This function translates a percentage of disk space to the
+ * actual MB value for space left actions.
+ */
+void setup_percentages(struct daemon_conf *config, int fd)
+{
+	if (!config->write_logs)
+		return;
+	if (config->daemonize != D_BACKGROUND)
+		return;
+
+	if (config->space_left_percent)
+		config->space_left =
+			calc_percent(config->space_left_percent, fd);
+	if (config->admin_space_left_percent)
+		config->admin_space_left =
+			calc_percent(config->admin_space_left_percent, fd);
+	if (config->space_left <= config->admin_space_left)
+		audit_msg(LOG_ERR, 
+	    "Error - space_left(%lu) must be larger than admin_space_left(%lu)",
+		    config->space_left, config->admin_space_left);
+}
 
 /*
  * This function is where we do the integrated check of the audit config
@@ -1813,7 +1895,9 @@ static int plugin_dir_parser(struct nv_pair *nv, int line,
 static int sanity_check(struct daemon_conf *config)
 {
 	/* Error checking */
-	if (config->space_left <= config->admin_space_left) {
+	if (config->space_left_percent == 0 && 
+			config->admin_space_left_percent == 0 &&
+			config->space_left <= config->admin_space_left) {
 		audit_msg(LOG_ERR, 
 	    "Error - space_left(%lu) must be larger than admin_space_left(%lu)",
 		    config->space_left, config->admin_space_left);
