@@ -104,7 +104,7 @@ void write_logging_state(FILE *f)
 	fprintf(f, "logs detected last rotate/shift = %u\n", known_logs);
 	fprintf(f, "space left on partition = %s\n",
 					fs_space_left ? "yes" : "no");
-	if (config->daemonize != D_BACKGROUND && config->write_logs) {
+	if (config->daemonize == D_BACKGROUND && config->write_logs) {
 		int rc;
 		struct statfs buf;
 		rc = fstatfs(log_fd, &buf);
