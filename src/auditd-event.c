@@ -99,6 +99,19 @@ void write_logging_state(FILE *f)
 	fprintf(f, "current log size = %lu\n", log_size);
 	fprintf(f, "space left on partition = %s\n",
 					fs_space_left ? "yes" : "no");
+	if (config->daemonize != D_BACKGROUND && config->write_logs) {
+		int rc;
+		struct statfs buf;
+		rc = fstatfs(log_fd, &buf);
+		if (rc == 0) {
+			fprintf(f, "Logging partition free space %lu MB\n",
+				(buf.f_bavail * buf.f_bsize)/MEGABYTE);
+			fprintf(f, "space_left setting %lu MB\n",
+				config->space_left);
+			fprintf(f, "admin_space_left setting %lu MB\n",
+				config->admin_space_left);
+		}		
+	}
 	fprintf(f, "logging suspended = %s\n",
 					logging_suspended ? "yes" : "no");
 	fprintf(f, "file system space warning sent = %s\n",
@@ -135,6 +148,7 @@ int init_event(struct daemon_conf *conf)
 		fix_disk_permissions();
 		if (open_audit_log())
 			return 1;
+		setup_percentages(config, log_fd);
 	} else {
 		log_fd = 1; // stdout
 		log_file = fdopen(log_fd, "a");
@@ -1484,6 +1498,12 @@ static void reconfigure(struct auditd_event *e)
 		need_space_check = 1;
 	}
 
+	// space left percent
+	if (oconf->space_left_percent != nconf->space_left_percent) {
+		oconf->space_left_percent = nconf->space_left_percent;
+		need_space_check = 1;
+	}
+
 	// space left action
 	if (oconf->space_left_action != nconf->space_left_action) {
 		oconf->space_left_action = nconf->space_left_action;
@@ -1505,6 +1525,13 @@ static void reconfigure(struct auditd_event *e)
 	// admin space left
 	if (oconf->admin_space_left != nconf->admin_space_left) {
 		oconf->admin_space_left = nconf->admin_space_left;
+		need_space_check = 1;
+	}
+
+	// admin space left percent
+	if (oconf->admin_space_left_percent != nconf->admin_space_left_percent){
+		oconf->admin_space_left_percent =
+					nconf->admin_space_left_percent;
 		need_space_check = 1;
 	}
 
@@ -1551,6 +1578,7 @@ static void reconfigure(struct auditd_event *e)
 		 * having to call check_log_file_size to restore it. */
 		int saved_suspend = logging_suspended;
 
+		setup_percentages(oconf, log_fd);
 		fs_space_warning = 0;
 		fs_admin_space_warning = 0;
 		fs_space_left = 1;

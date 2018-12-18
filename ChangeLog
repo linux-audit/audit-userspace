@@ -20,6 +20,7 @@
 - In auditd, calculate right size and location for network originating events
 - Treat all network originating events as VER2 so dispatcher doesn't format it
 - In audisp-remote do an initial connection attempt (#1625156)
+- In auditd, allow expression of space left as a percentage (#1650670)
 
 2.8.4
 - Generate checkpoint file even when not results are returned (Burn Alting)
