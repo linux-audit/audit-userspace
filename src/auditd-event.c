@@ -96,7 +96,10 @@ int dispatch_network_events(void)
 
 void write_logging_state(FILE *f)
 {
+	fprintf(f, "writing to logs = %s\n", config->write_logs ? "yes" : "no");
 	fprintf(f, "current log size = %lu\n", log_size);
+	fprintf(f, "max log size = %lu KB\n",
+				config->max_log_size * (MEGABYTE/1024));
 	fprintf(f, "space left on partition = %s\n",
 					fs_space_left ? "yes" : "no");
 	if (config->daemonize == D_BACKGROUND && config->write_logs) {
