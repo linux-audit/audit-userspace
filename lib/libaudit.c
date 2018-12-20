@@ -1360,19 +1360,22 @@ int audit_determine_machine(const char *arch)
 #ifdef WITH_ARM
 		case MACH_ARM:
 			if (bits == __AUDIT_ARCH_64BIT)
-				return -6; // Deadcode - just incase of mistake
+				return -6; /* 32 bit only */
 			break;
 #endif
 #ifdef WITH_AARCH64
 		case MACH_AARCH64:
 			if (bits && bits != __AUDIT_ARCH_64BIT)
-				return -6; // Deadcode - just incase of mistake
+				return -6; /* 64 bit only */
 			break;
 #endif
 		case MACH_86_64:   /* fallthrough */
 		case MACH_PPC64:   /* fallthrough */
-		case MACH_PPC64LE: /* fallthrough */
 		case MACH_S390X:   /* fallthrough */
+			break;
+		case MACH_PPC64LE: /* 64 bit only */
+			if (bits && bits != __AUDIT_ARCH_64BIT)
+				return -6;
 			break;
 		default:
 			return -6;
