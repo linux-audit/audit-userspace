@@ -49,6 +49,7 @@
 - If an event has a node name make it VER2 so dispatcher doesnt format it
 - In audisp-remote do an initial connection attempt (#1625156)
 - In auditd, allow expression of space left as a percentage (#1650670)
+- On PPC64LE systems, only allow 64 bit rules
 
 2.8.3
 - Correct msg function name in LRU debug code
