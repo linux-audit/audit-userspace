@@ -24,7 +24,9 @@
 #ifndef AUDITD_LISTEN_H
 #define AUDITD_LISTEN_H
 
+#include "config.h"
 #include "ev.h"
+#include <stdio.h>
 
 #ifdef USE_LISTENER
 int auditd_tcp_listen_init ( struct ev_loop *loop, struct daemon_conf *config );
@@ -32,6 +34,7 @@ void auditd_tcp_listen_uninit ( struct ev_loop *loop,
 				struct daemon_conf *config );
 void auditd_tcp_listen_reconfigure ( struct daemon_conf *nconf,
 				     struct daemon_conf *oconf );
+void write_connection_state(FILE *f);
 #else
 static inline int auditd_tcp_listen_init ( struct ev_loop *loop,
 					   struct daemon_conf *config )

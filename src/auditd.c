@@ -204,6 +204,9 @@ static void cont_handler(struct ev_loop *loop, struct ev_signal *sig,
 	fprintf(f, "time = %s\n", buf);
 	write_logging_state(f);
 	fprintf(f, "dispatcher pid = %d\n", dispatcher_pid());
+#ifdef USE_LISTENER
+	write_connection_state(f);
+#endif
 	fclose(f);
 }
 
@@ -711,6 +714,8 @@ int main(int argc, char *argv[])
 		free_config(&config);
 		return 6;
 	}
+	if (config.daemonize == D_FOREGROUND)
+		config.write_logs = 0;
 
 	// This can only be set at start up
 	opt_aggregate_only = !config.local_events;
