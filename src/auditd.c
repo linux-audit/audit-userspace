@@ -718,6 +718,8 @@ int main(int argc, char *argv[])
 		free_config(&config);
 		return 6;
 	}
+	if (config.daemonize == D_FOREGROUND)
+		config.write_logs = 0;
 
 	// This can only be set at start up
 	opt_aggregate_only = !config.local_events;

@@ -98,15 +98,16 @@ int dispatch_network_events(void)
 void write_logging_state(FILE *f)
 {
 	fprintf(f, "writing to logs = %s\n", config->write_logs ? "yes" : "no");
-	fprintf(f, "current log size = %lu KB\n", log_size/1024);
-	fprintf(f, "max log size = %lu KB\n",
-				config->max_log_size * (MEGABYTE/1024));
-	fprintf(f, "logs detected last rotate/shift = %u\n", known_logs);
-	fprintf(f, "space left on partition = %s\n",
-					fs_space_left ? "yes" : "no");
 	if (config->daemonize == D_BACKGROUND && config->write_logs) {
 		int rc;
 		struct statfs buf;
+
+		fprintf(f, "current log size = %lu KB\n", log_size/1024);
+		fprintf(f, "max log size = %lu KB\n",
+				config->max_log_size * (MEGABYTE/1024));
+		fprintf(f,"logs detected last rotate/shift = %u\n", known_logs);
+		fprintf(f, "space left on partition = %s\n",
+					fs_space_left ? "yes" : "no");
 		rc = fstatfs(log_fd, &buf);
 		if (rc == 0) {
 			fprintf(f, "Logging partition free space %lu MB\n",
@@ -116,15 +117,15 @@ void write_logging_state(FILE *f)
 			fprintf(f, "admin_space_left setting %lu MB\n",
 				config->admin_space_left);
 		}		
-	}
-	fprintf(f, "logging suspended = %s\n",
+		fprintf(f, "logging suspended = %s\n",
 					logging_suspended ? "yes" : "no");
-	fprintf(f, "file system space action performed = %s\n",
+		fprintf(f, "file system space action performed = %s\n",
 					fs_space_warning ? "yes" : "no");
-	fprintf(f, "admin space action performed = %s\n",
+		fprintf(f, "admin space action performed = %s\n",
 					fs_admin_space_warning ? "yes" : "no");
-	fprintf(f, "disk error detected = %s\n",
+		fprintf(f, "disk error detected = %s\n",
 					disk_err_warning ? "yes" : "no");
+	}
 }
 
 void shutdown_events(void)
@@ -675,6 +676,9 @@ static void check_log_file_size(void)
 {
 	/* did we cross the size limit? */
 	off_t sz = log_size / MEGABYTE;
+
+	if (config->write_logs == 0)
+		return;
 
 	if (sz >= config->max_log_size && (config->daemonize == D_BACKGROUND)) {
 		switch (config->max_log_size_action)
@@ -1351,7 +1355,10 @@ static void reconfigure(struct auditd_event *e)
 	// log format
 	oconf->log_format = nconf->log_format;
 
-	if (oconf->write_logs != nconf->write_logs) {
+	// Only update this if we are in background mode since
+	// foreground mode writes to stderr.
+	if ((oconf->write_logs != nconf->write_logs) && 
+				(oconf->daemonize == D_BACKGROUND)) {
 		oconf->write_logs = nconf->write_logs;
 		need_reopen = 1;
 	}
