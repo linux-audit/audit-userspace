@@ -126,7 +126,7 @@ EV_CPP(extern "C" {)
 # ifdef _WIN32
 #  define EV_CHILD_ENABLE 0
 # else
-#  define EV_CHILD_ENABLE EV_FEATURE_WATCHERS
+#  define EV_CHILD_ENABLE 0
 #endif
 #endif
 
@@ -192,7 +192,7 @@ struct ev_loop;
 #endif
 
 /* EV_INLINE is used for functions in header files */
-#if __STDC_VERSION__ >= 199901L || __GNUC__ >= 3
+#if defined (__STDC_VERSION__) &&  __STDC_VERSION__ >= 199901L || __GNUC__ >= 3
 # define EV_INLINE static inline
 #else
 # define EV_INLINE static
