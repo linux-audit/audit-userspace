@@ -529,15 +529,16 @@ void handle_event(struct auditd_event *e)
 {
 	if (e->reply.type == AUDIT_DAEMON_RECONFIG && e->ack_func == NULL) {
 		reconfigure(e);
-		if (config->write_logs == 0)
+		if (config->write_logs == 0 && config->daemonize == D_BACKGROUND)
                         return;
                 format_event(e);
 	} else if (e->reply.type == AUDIT_DAEMON_ROTATE) {
 		rotate_logs_now();
-		if (config->write_logs == 0)
+		if (config->write_logs == 0 && config->daemonize == D_BACKGROUND)
 			return;
 	}
-	if (!logging_suspended && config->write_logs) {
+	if (!logging_suspended && (config->write_logs ||
+					config->daemonize == D_FOREGROUND)) {
 		write_to_log(e);
 
 		/* See if we need to flush to disk manually */
@@ -578,7 +579,7 @@ void handle_event(struct auditd_event *e)
 				}
 			}
 		}
-	} else if (!config->write_logs)
+	} else if (!config->write_logs && config->daemonize == D_BACKGROUND)
 		send_ack(e, AUDIT_RMW_TYPE_ACK, "");
 	else if (logging_suspended)
 		send_ack(e,AUDIT_RMW_TYPE_DISKERROR,"remote logging suspended");
