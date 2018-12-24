@@ -138,6 +138,8 @@ int main(int argc, char *argv[])
 			case S_IFREG:
 			default:
 				rc = process_file(user_file);
+				if (checkpt_filename)
+					(void)set_ChkPtFileDetails(user_file); /* we deal with failures via checkpt_failure later */
 				break;
 		}
 	} else if (force_logs)
