@@ -52,6 +52,7 @@
 - On PPC64LE systems, only allow 64 bit rules (#1462178)
 - Make some parts of auditd state report optional based on config
 - Update to libev-4.25
+- Fix ausearch when checkpointing a single file (Burn Alting)
 
 2.8.3
 - Correct msg function name in LRU debug code
