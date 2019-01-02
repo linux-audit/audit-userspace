@@ -25,6 +25,7 @@
 - Make some parts of auditd state report optional based on config
 - Fix ausearch when checkpointing a single file (Burn Alting)
 - Fix scripting in 31-privileged.rules wrt filecap (#1662516)
+- In ausearch, do not checkpt if stdin is input source
 
 2.8.4
 - Generate checkpoint file even when not results are returned (Burn Alting)
