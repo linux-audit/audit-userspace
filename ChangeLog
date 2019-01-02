@@ -54,6 +54,7 @@
 - Update to libev-4.25
 - Fix ausearch when checkpointing a single file (Burn Alting)
 - Fix scripting in 31-privileged.rules wrt filecap (#1662516)
+- In ausearch, do not checkpt if stdin is input source
 
 2.8.3
 - Correct msg function name in LRU debug code

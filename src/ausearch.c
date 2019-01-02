@@ -139,19 +139,23 @@ int main(int argc, char *argv[])
 			default:
 				rc = process_file(user_file);
 				if (checkpt_filename)
-					(void)set_ChkPtFileDetails(user_file); /* we deal with failures via checkpt_failure later */
+					/* we deal with failures via
+					 * checkpt_failure later */
+					(void)set_ChkPtFileDetails(user_file);
 				break;
 		}
 	} else if (force_logs)
 		rc = process_logs();
-	else if (is_pipe(0))
+	else if (is_pipe(0)) {
 		rc = process_stdin();
-	else
+		goto skip_checkpt; // Don't overwrite chkpt when reading a pipe
+	} else
 		rc = process_logs();
 
 	/* Generate a checkpoint if required */
 	if (checkpt_filename) {
-		/* Providing haven't failed and have sucessfully read data records, save a checkpoint */
+		/* Providing haven't failed and have sucessfully read data
+		 *  records, save a checkpoint */
 		if (!checkpt_failure && (rc == 0))
 			save_ChkPt(checkpt_filename);
 		free_ChkPtMemory();
@@ -168,6 +172,7 @@ int main(int argc, char *argv[])
 		}
 	}
 
+skip_checkpt:
 	lol_clear(&lo);
 	ilist_clear(event_type);
 	free(event_type);
