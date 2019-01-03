@@ -148,6 +148,9 @@ int main(int argc, char *argv[])
 		rc = process_logs();
 	else if (is_pipe(0)) {
 		rc = process_stdin();
+		if (checkpt_filename)
+	       	        fprintf(stderr,
+			    "Warning - checkpointing stdin is not supported");
 		goto skip_checkpt; // Don't overwrite chkpt when reading a pipe
 	} else
 		rc = process_logs();
