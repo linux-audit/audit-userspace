@@ -26,6 +26,7 @@
 - Fix ausearch when checkpointing a single file (Burn Alting)
 - Fix scripting in 31-privileged.rules wrt filecap (#1662516)
 - In ausearch, do not checkpt if stdin is input source
+- In libev, remove __cold__ attribute for functions to allow proper hardening
 
 2.8.4
 - Generate checkpoint file even when not results are returned (Burn Alting)
