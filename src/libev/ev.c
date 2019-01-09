@@ -901,7 +901,7 @@ typedef int ecb_bool;
 #if ECB_GCC_VERSION(4,3)
   #define ecb_artificial ecb_attribute ((__artificial__))
   #define ecb_hot        ecb_attribute ((__hot__))
-  #define ecb_cold       ecb_attribute ((__cold__))
+  #define ecb_cold
 #else
   #define ecb_artificial
   #define ecb_hot
