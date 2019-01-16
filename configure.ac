@@ -213,6 +213,16 @@ AC_ARG_ENABLE(zos-remote,
 			      [Disable audisp ZOS remote plugin])],
 	      enable_zos_remote=$enableval,
 	      enable_zos_remote=yes)
+if test $enable_zos_remote = yes; then
+	AC_CHECK_HEADER(lber.h, ldap_headers=yes, ldap_headers=no)
+	AC_CHECK_LIB(lber, ber_free, LDAP_LDADD=-llber)
+	if test x$LDAP_LDADD = x ; then
+		AC_MSG_ERROR(zos remote support was requested but the openldap library was not found)
+	fi
+	if test $ldap_headers = no ; then
+		AC_MSG_ERROR(openldap libraries found but headers are missing)
+	fi
+fi
 AM_CONDITIONAL(ENABLE_ZOS_REMOTE, test "x$enable_zos_remote" != "xno")
 AC_MSG_RESULT($enable_zos_remote)
 
