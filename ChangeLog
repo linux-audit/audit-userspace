@@ -56,6 +56,7 @@
 - Fix scripting in 31-privileged.rules wrt filecap (#1662516)
 - In ausearch, do not checkpt if stdin is input source
 - In libev, remove __cold__ attribute for functions to allow proper hardening
+- Add tests to configure.ac for openldap support
 
 2.8.3
 - Correct msg function name in LRU debug code
