@@ -17,7 +17,7 @@ Documentation=man:auditd(8) https://github.com/linux-audit/audit-documentation
 
 [Service]
 Type=forking
-PIDFile=/var/run/auditd.pid
+PIDFile=/run/auditd.pid
 ExecStart=/sbin/auditd
 ## To not use augenrules, copy this file to /etc/systemd/system/auditd.service
 ## and comment/delete the next line and uncomment the auditctl line.
