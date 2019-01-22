@@ -29,6 +29,7 @@
 - In libev, remove __cold__ attribute for functions to allow proper hardening
 - Add tests to configure.ac for openldap support
 - Make systemd support files use /run rather than /var/run (Christian Hesse)
+- Fix minor memory leak in auditd kerberos credentials code
 
 2.8.4
 - Generate checkpoint file even when not results are returned (Burn Alting)

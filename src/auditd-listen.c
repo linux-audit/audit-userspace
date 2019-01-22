@@ -1107,7 +1107,11 @@ next_try:
 			}
 		}
 
-		server_acquire_creds(princ, &server_creds);
+		if (server_acquire_creds(princ, &server_creds)) {
+			free(my_service_name);
+			my_service_name = NULL;
+			return -1;
+		}
 	}
 #endif
 
@@ -1130,6 +1134,8 @@ void auditd_tcp_listen_uninit(struct ev_loop *loop, struct daemon_conf *config)
 	if (use_gss) {
 		use_gss = 0;
 		gss_release_cred(&status, &server_creds);
+		free(my_service_name);
+		my_service_name = NULL;
 	}
 #endif
 
