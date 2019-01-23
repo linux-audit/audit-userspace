@@ -1448,7 +1448,7 @@ int audit_rule_fieldpair_data(struct audit_rule_data **rulep, const char *pair,
 	if ((field = audit_name_to_field(f)) < 0) 
 		return -EAU_FIELDUNKNOWN;
 
-	/* Exclude filter can be used only with MSGTYPE and cred fields */
+	/* Exclude filter can be used only with MSGTYPE, cred and EXE fields */
 	if (flags == AUDIT_FILTER_EXCLUDE) {
 		uint32_t features = audit_get_features();
 		if ((features & AUDIT_FEATURE_BITMAP_EXCLUDE_EXTEND) == 0) {
@@ -1466,6 +1466,7 @@ int audit_rule_fieldpair_data(struct audit_rule_data **rulep, const char *pair,
 				case AUDIT_SUBJ_TYPE:
 				case AUDIT_SUBJ_SEN:
 				case AUDIT_SUBJ_CLR:
+				case AUDIT_EXE:
 					break;
 				default:
 					return -EAU_MSGTYPECREDEXCLUDE;

@@ -59,6 +59,7 @@
 - Add tests to configure.ac for openldap support
 - Make systemd support files use /run rather than /var/run (Christian Hesse)
 - Fix minor memory leak in auditd kerberos credentials code
+- Allow exclude and user filter by executable name (Ondrej Mosnacek)
 
 2.8.3
 - Correct msg function name in LRU debug code
