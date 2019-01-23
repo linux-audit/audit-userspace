@@ -32,6 +32,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <stdio_ext.h>
+#include "common.h"
 
 //#define LOL_EVENTS_DEBUG01	1	// add debug for list of list event
 					// processing
@@ -234,6 +235,7 @@ static event_list_t *au_get_ready_event(auparse_state_t *au, int is_test)
 {
         int i;
 	au_lol *lol = au->au_lo;
+	au_lolnode *lowest = NULL;
 	
 	if (au->au_ready == 0) {
 		//if (debug) printf("No events ready\n");
@@ -241,22 +243,34 @@ static event_list_t *au_get_ready_event(auparse_state_t *au, int is_test)
 	}
 
         for (i=0; i<=lol->maxi; i++) {
+		// Look for the event with the lowest timestamp
                 au_lolnode *cur = &(lol->array[i]);
-                if (cur->status == EBS_COMPLETE) {
-			/*
-			 * If we are just testing for a complete event, return
-			 */
-			if (is_test)
-				return cur->l;
-			/*
-			 * Otherwise set it status to empty and accept the
-			 * caller will take custody of the memory
-			 */
-                        cur->status = EBS_EMPTY;
-			au->au_ready--;
-                        return cur->l;
-                }
+		if (cur->status == EBS_EMPTY)
+			continue;
+		// If we are just testing for a complete event, return
+		if (is_test && cur->status == EBS_COMPLETE)
+			return cur->l;
+		if (lowest == NULL)
+			lowest = cur;
+		else if (auparse_timestamp_compare(&(lowest->l->e),
+							 &(cur->l->e)) == 1)
+			lowest = cur;
         }
+
+	if (lowest && lowest->status == EBS_COMPLETE) {
+		lowest->status = EBS_EMPTY;
+		au->au_ready--;
+		// Try to consolidate the array so that we iterate
+		// over a smaller portion next time
+		if (lowest == &lol->array[lol->maxi]) {
+			au_lolnode *ptr = lowest;
+			while (ptr->status == EBS_EMPTY && lol->maxi > 0) {
+				lol->maxi--;
+				ptr = &lol->array[lol->maxi];
+			}
+		}
+		return lowest->l;
+	}
 
         return NULL;
 }
@@ -283,7 +297,7 @@ static void au_check_events(auparse_state_t *au, time_t sec)
                         if ((r = aup_list_get_cur(cur->l)) == NULL)
 				continue;
                         // If 2 seconds have elapsed, we are done
-                        if (cur->l->e.sec + 2 < sec) {
+                        if (cur->l->e.sec + 2 <= sec) {
                                 cur->status = EBS_COMPLETE;
 				au->au_ready++;
                         } else if ( // FIXME: Check this v remains true
@@ -291,7 +305,9 @@ static void au_check_events(auparse_state_t *au, time_t sec)
 				r->type == AUDIT_EOE || 
 				r->type < AUDIT_FIRST_EVENT ||
 				r->type >= AUDIT_FIRST_ANOM_MSG ||
-				r->type == AUDIT_KERNEL) {
+				r->type == AUDIT_KERNEL ||
+				(r->type >= AUDIT_MAC_UNLBL_ALLOW &&
+                                 r->type <= AUDIT_MAC_CALIPSO_DEL)) {
                                 // If known to be 1 record event, we are done
 				cur->status = EBS_COMPLETE;
 				au->au_ready++;
@@ -668,6 +684,9 @@ int auparse_reset(auparse_state_t *au)
 		au_lol_clear(au->au_lo, 1);
 
 	au->parse_state = EVENT_EMPTY;
+	au->au_ready = 0;
+	au->le = NULL;
+
 	switch (au->source)
 	{
 		case AUSOURCE_LOGS:

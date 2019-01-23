@@ -1,5 +1,5 @@
 # Makefile.am --
-# Copyright 2008-2009,2011,2015 Red Hat Inc., Durham, North Carolina.
+# Copyright 2008-2009,2011,2015,2018 Red Hat Inc., Durham, North Carolina.
 # All Rights Reserved.
 #
 # This library is free software; you can redistribute it and/or
@@ -22,21 +22,22 @@
 
 CONFIG_CLEAN_FILES = *.loT *.rej *.orig
 EXTRA_DIST = au-remote.conf audisp-remote.conf notes.txt $(man_MANS)
-AM_CPPFLAGS = -I${top_srcdir} -I${top_srcdir}/lib 
-prog_confdir = $(sysconfdir)/audisp
+AM_CPPFLAGS = -I${top_srcdir} -I${top_srcdir}/lib -I${top_srcdir}/common
+prog_confdir = $(sysconfdir)/audit
 prog_conf = audisp-remote.conf
 plugin_confdir=$(prog_confdir)/plugins.d
 plugin_conf = au-remote.conf
 sbin_PROGRAMS = audisp-remote
-noinst_HEADERS = remote-config.h queue.h remote-fgets.h
+noinst_HEADERS = remote-config.h queue.h
 man_MANS = audisp-remote.8 audisp-remote.conf.5
 check_PROGRAMS = test-queue
 TESTS = $(check_PROGRAMS)
 
-audisp_remote_SOURCES = audisp-remote.c remote-config.c queue.c remote-fgets.c
+audisp_remote_DEPENDENCIES = ${top_builddir}/common/libaucommon.a
+audisp_remote_SOURCES = audisp-remote.c remote-config.c queue.c
 audisp_remote_CFLAGS = -fPIE -DPIE -g -D_REENTRANT -D_GNU_SOURCE -Wundef
-audisp_remote_LDFLAGS = -pie -Wl,-z,relro -Wl,-z,now $(gss_libs)
-audisp_remote_LDADD = $(CAPNG_LDADD)
+audisp_remote_LDFLAGS = -pie -Wl,-z,relro -Wl,-z,now
+audisp_remote_LDADD = $(CAPNG_LDADD) $(gss_libs) -L${top_builddir}/common -laucommon
 
 test_queue_SOURCES = queue.c test-queue.c
 

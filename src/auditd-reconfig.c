@@ -96,6 +96,7 @@ static void *config_thread_main(void *arg)
 	sigaddset(&sigs, SIGHUP);
 	sigaddset(&sigs, SIGUSR1);
 	sigaddset(&sigs, SIGUSR2);
+	sigaddset(&sigs, SIGCONT);
 	pthread_sigmask(SIG_SETMASK, &sigs, NULL);
 
 	if (load_config(&new_config, TEST_AUDITD) == 0) {

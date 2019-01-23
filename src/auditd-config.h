@@ -1,5 +1,5 @@
 /* auditd-config.h -- 
- * Copyright 2004-2009,2014,2016 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2004-2009,2014,2016,2018 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -36,15 +36,16 @@ typedef enum { FA_IGNORE, FA_SYSLOG, FA_ROTATE, FA_EMAIL, FA_EXEC, FA_SUSPEND,
 		FA_SINGLE, FA_HALT } failure_action_t;
 typedef enum { SZ_IGNORE, SZ_SYSLOG, SZ_SUSPEND, SZ_ROTATE, 
 		SZ_KEEP_LOGS } size_action;
-typedef enum { QOS_NON_BLOCKING, QOS_BLOCKING } qos_t;
 typedef enum { TEST_AUDITD, TEST_SEARCH } log_test_t;
 typedef enum { N_NONE, N_HOSTNAME, N_FQD, N_NUMERIC, N_USER } node_t;
+typedef enum { O_IGNORE, O_SYSLOG, O_SUSPEND, O_SINGLE,
+		O_HALT } overflow_action_t;
+typedef enum { T_TCP, T_TLS, T_KRB5, T_LABELED } transport_t;
 
 struct daemon_conf
 {
 	daemon_t daemonize;
 	unsigned int local_events;
-	qos_t qos;		/* use blocking/non-blocking sockets */
 	uid_t sender_uid;	/* the uid for sender of sighup */
 	pid_t sender_pid;	/* the pid for sender of sighup */
 	const char *sender_ctx;	/* the context for the sender of sighup */
@@ -56,17 +57,18 @@ struct daemon_conf
 	flush_technique flush;
 	unsigned int freq;
 	unsigned int num_logs;
-	const char *dispatcher;
 	node_t node_name_format;
 	const char *node_name;
 	unsigned long max_log_size;
 	size_action max_log_size_action;
 	unsigned long space_left;
+	unsigned int space_left_percent;
 	failure_action_t space_left_action;
 	const char *space_left_exe;
 	const char *action_mail_acct;
 	unsigned int verify_email;
 	unsigned long admin_space_left;
+	unsigned int admin_space_left_percent;
 	failure_action_t admin_space_left_action;
 	const char *admin_space_left_exe;
 	failure_action_t disk_full_action;
@@ -80,10 +82,16 @@ struct daemon_conf
 	unsigned long tcp_client_min_port;
 	unsigned long tcp_client_max_port;
 	unsigned long tcp_client_max_idle;
-	int enable_krb5;
+	int transport;
 	const char *krb5_principal;
 	const char *krb5_key_file;
 	int distribute_network_events;
+	// Dispatcher config
+	unsigned int q_depth;
+	overflow_action_t overflow_action;
+	unsigned int max_restarts;
+	char *plugin_dir;
+	const char *config_dir;
 };
 
 void set_allow_links(int allow);
@@ -97,6 +105,7 @@ void clear_config(struct daemon_conf *config);
 const char *audit_lookup_format(int fmt);
 int create_log_file(const char *val);
 int resolve_node(struct daemon_conf *config);
+void setup_percentages(struct daemon_conf *config, int fd);
 
 void init_config_manager(void);
 #ifdef AUDITD_EVENT_H

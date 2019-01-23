@@ -1,6 +1,6 @@
 /*
 * ausearch-parse.c - Extract interesting fields and check for match
-* Copyright (c) 2005-08,2011,2013-14 Red Hat Inc., Durham, North Carolina.
+* Copyright (c) 2005-08,2011,2013-14,2018 Red Hat Inc., Durham, North Carolina.
 * Copyright (c) 2011 IBM Corp. 
 * All Rights Reserved. 
 *
@@ -40,7 +40,7 @@
 #include "ausearch-parse.h"
 #include "auparse-idata.h"
 
-#define NAME_OFFSET 36
+#define NAME_OFFSET 28
 static const char key_sep[2] = { AUDIT_KEY_SEPARATOR, 0 };
 
 static int parse_task_info(lnode *n, search_items *s);
@@ -102,7 +102,8 @@ int extract_search_items(llist *l)
 				ret = parse_path(n, s);
 				break;
 			case AUDIT_USER:
-			case AUDIT_FIRST_USER_MSG...AUDIT_LAST_USER_MSG:
+			case AUDIT_FIRST_USER_MSG...AUDIT_USER_END:
+			case AUDIT_USER_CHAUTHTOK...AUDIT_LAST_USER_MSG:
 			case AUDIT_FIRST_USER_MSG2...AUDIT_LAST_USER_MSG2:
 				ret = parse_user(n, s);
 				break;
@@ -136,6 +137,7 @@ int extract_search_items(llist *l)
 				avc_parse_path(n, s);
 				break;
 			case AUDIT_AVC:
+			case AUDIT_USER_AVC:
 				ret = parse_avc(n, s);
 				break;
 			case AUDIT_NETFILTER_PKT:
@@ -601,6 +603,8 @@ static int parse_syscall(lnode *n, search_items *s)
 				if (s->key) {
 					char *saved;
 					char *keyptr = unescape(str);
+					if (keyptr == NULL)
+						return 45;
 					char *kptr = strtok_r(keyptr,
 							key_sep, &saved);
 					while (kptr) {
@@ -710,6 +714,8 @@ static int common_path_parser(search_items *s, char *path)
 				sn.str = unescape(path);
 				*term = ' ';
 			}
+			if (sn.str == NULL)
+				return 7;
 			// Attempt to rebuild path if relative
 			if ((sn.str[0] == '.') && ((sn.str[1] == '.') ||
 				(sn.str[1] == '/')) && s->cwd) {
@@ -1597,6 +1603,8 @@ static int parse_sockaddr(const lnode *n, search_items *s)
 			str += 6;
 			len = strlen(str)/2;
 			s->hostname = unescape(str);
+			if (s->hostname == NULL)
+				return 4;
 			saddr = (struct sockaddr *)s->hostname;
 			if (saddr->sa_family == AF_INET) {
 				if (len < sizeof(struct sockaddr_in)) {
@@ -1837,8 +1845,10 @@ static int parse_avc(const lnode *n, search_items *s)
 	if (str) {
 		str += 5;
 		term = strchr(str, '{');
-		if (term == NULL)
-			return 1;
+		if (term == NULL) {
+			term = n->message;
+			goto other_avc;
+		}
 		if (event_success != S_UNSET) {
 			*term = 0;
 			// FIXME. Do not override syscall success if already
@@ -1865,6 +1875,21 @@ static int parse_avc(const lnode *n, search_items *s)
 		*term = 0;
 		an.avc_perm = strdup(str);
 		*term = ' ';
+	}
+
+other_avc:
+	// User AVC's are not formatted like a kernel AVC
+	if (n->type == AUDIT_USER_AVC) {
+		rc = parse_user(n, s);
+		if (rc > 20)
+			rc = 0;
+		if (audit_avc_init(s) == 0) {
+			alist_append(s->avc, &an);
+		} else {
+			rc = 10;
+			goto err;
+		}
+		return rc;
 	}
 
 	// get pid
@@ -2281,6 +2306,8 @@ static int parse_simple_message(const lnode *n, search_items *s)
 				if (s->key) {
 					char *saved;
 					char *keyptr = unescape(ptr);
+					if (keyptr == NULL)
+						return 8;
 					char *kptr = strtok_r(keyptr,
 						key_sep, &saved);
 					while (kptr) {

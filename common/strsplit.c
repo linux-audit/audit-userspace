@@ -22,8 +22,7 @@
  */
 
 #include <string.h>
-#include "libaudit.h"
-#include "private.h"
+#include "common.h"
 
 char *audit_strsplit_r(char *s, char **savedpp)
 {

@@ -1,6 +1,6 @@
 /*
 * interpret.c - Lookup values to something more readable
-* Copyright (c) 2007-09,2011-16 Red Hat Inc., Durham, North Carolina.
+* Copyright (c) 2007-09,2011-16,2018 Red Hat Inc., Durham, North Carolina.
 * All Rights Reserved. 
 *
 * This library is free software; you can redistribute it and/or
@@ -58,6 +58,7 @@
 #endif
 #include "auparse-defs.h"
 #include "gen_tables.h"
+#include "common.h"
 
 #if !HAVE_DECL_ADDR_NO_RANDOMIZE
 # define ADDR_NO_RANDOMIZE       0x0040000
@@ -118,6 +119,7 @@
 #include "ioctlreqtabs.h"
 #include "inethooktabs.h"
 #include "netactiontabs.h"
+#include "bpftabs.h"
 
 typedef enum { AVC_UNSET, AVC_DENIED, AVC_GRANTED } avc_t;
 typedef enum { S_UNSET=-1, S_FAILED, S_SUCCESS } success_t;
@@ -1654,7 +1656,7 @@ static const char *print_mount(const char *val)
 {
 	unsigned int mounts, i;
 	int cnt = 0;
-	char buf[334];
+	char buf[sizeof(mount_strings)+8];
 	char *out;
 
 	errno = 0;
@@ -2169,6 +2171,28 @@ static const char *print_exit_syscall(const char *val)
 	return out;
 }
 
+static const char *print_bpf(const char *val)
+{
+	unsigned int cmd;
+	char *out;
+	const char *str;
+
+	errno = 0;
+	cmd = strtoul(val, NULL, 16);
+	if (errno) {
+		if (asprintf(&out, "conversion error(%s)", val) < 0)
+			out = NULL;
+		return out;
+	}
+	str = bpf_i2s(cmd);
+	if (str == NULL) {
+		if (asprintf(&out, "unknown-bpf-cmd(%s)", val) < 0)
+			out = NULL;
+		return out;
+	} else
+		return strdup(str);
+}
+
 static const char *print_a0(const char *val, const idata *id)
 {
 	char *out;
@@ -2251,6 +2275,8 @@ static const char *print_a0(const char *val, const idata *id)
 			return print_ipccall(val, 16);
 		else if (strncmp(sys, "exit", 4) == 0)
 			return print_exit_syscall(val);
+               	else if (strcmp(sys, "bpf") == 0)
+			return print_bpf(val);
 	}
 	if (asprintf(&out, "0x%s", val) < 0)
 			out = NULL;
@@ -3087,5 +3113,5 @@ unknown:
 			}
 		}
 	}
-	return out;
+	return (char *)out;
 }

@@ -131,10 +131,6 @@ extern int audit_send_user_message(int fd, int type, hide_t hide_err,
 
 AUDIT_HIDDEN_END
 
-// strsplit.c
-char *audit_strsplit_r(char *s, char **savedpp);
-char *audit_strsplit(char *s);
-
 // libaudit.c
 extern int _audit_permadded;
 extern int _audit_archadded;

@@ -76,6 +76,7 @@ static int fs_space_warning = 0;
 static int fs_admin_space_warning = 0;
 static int fs_space_left = 1;
 static int logging_suspended = 0;
+static unsigned int known_logs = 0;
 static const char *SINGLE = "1";
 static const char *HALT = "0";
 static char *format_buf = NULL;
@@ -96,17 +97,35 @@ int dispatch_network_events(void)
 
 void write_logging_state(FILE *f)
 {
-	fprintf(f, "current log size = %lu\n", log_size);
-	fprintf(f, "space left on partition = %s\n",
+	fprintf(f, "writing to logs = %s\n", config->write_logs ? "yes" : "no");
+	if (config->daemonize == D_BACKGROUND && config->write_logs) {
+		int rc;
+		struct statfs buf;
+
+		fprintf(f, "current log size = %lu KB\n", log_size/1024);
+		fprintf(f, "max log size = %lu KB\n",
+				config->max_log_size * (MEGABYTE/1024));
+		fprintf(f,"logs detected last rotate/shift = %u\n", known_logs);
+		fprintf(f, "space left on partition = %s\n",
 					fs_space_left ? "yes" : "no");
-	fprintf(f, "logging suspended = %s\n",
+		rc = fstatfs(log_fd, &buf);
+		if (rc == 0) {
+			fprintf(f, "Logging partition free space %lu MB\n",
+				(buf.f_bavail * buf.f_bsize)/MEGABYTE);
+			fprintf(f, "space_left setting %lu MB\n",
+				config->space_left);
+			fprintf(f, "admin_space_left setting %lu MB\n",
+				config->admin_space_left);
+		}		
+		fprintf(f, "logging suspended = %s\n",
 					logging_suspended ? "yes" : "no");
-	fprintf(f, "file system space warning sent = %s\n",
+		fprintf(f, "file system space action performed = %s\n",
 					fs_space_warning ? "yes" : "no");
-	fprintf(f, "admin space warning sent = %s\n",
+		fprintf(f, "admin space action performed = %s\n",
 					fs_admin_space_warning ? "yes" : "no");
-	fprintf(f, "disk error detected = %s\n",
+		fprintf(f, "disk error detected = %s\n",
 					disk_err_warning ? "yes" : "no");
+	}
 }
 
 void shutdown_events(void)
@@ -119,7 +138,8 @@ void shutdown_events(void)
 	pthread_join(flush_thread, NULL);
 
 	free((void *)format_buf);
-	fclose(log_file);
+	if (log_file)
+		fclose(log_file);
 	auparse_destroy_ext(NULL, AUPARSE_DESTROY_ALL);
 }
 
@@ -134,6 +154,7 @@ int init_event(struct daemon_conf *conf)
 		fix_disk_permissions();
 		if (open_audit_log())
 			return 1;
+		setup_percentages(config, log_fd);
 	} else {
 		log_fd = 1; // stdout
 		log_file = fdopen(log_fd, "a");
@@ -156,6 +177,7 @@ int init_event(struct daemon_conf *conf)
 	if (format_buf == NULL) {
 		audit_msg(LOG_ERR, "No memory for formatting, exiting");
 		fclose(log_file);
+		log_file = NULL;
 		return 1;
 	}
 	init_flush_thread();
@@ -218,8 +240,10 @@ static void replace_event_msg(struct auditd_event *e, const char *buf)
 			e->reply.message = strndup(buf, MAX_AUDIT_MESSAGE_LENGTH-1);
 			len = MAX_AUDIT_MESSAGE_LENGTH;
 		}
-		e->reply.msg.nlh.nlmsg_len = e->reply.len;
-		e->reply.len = len;
+		// For network originating events, len should be used
+		if (!from_network(e)) // V1 protocol msg size
+			e->reply.msg.nlh.nlmsg_len = e->reply.len;
+		e->reply.len = len; // V2 protocol msg size
 	}
 }
 
@@ -493,7 +517,7 @@ struct auditd_event *create_event(char *msg, ack_func_type ack_func,
 	e->sequence_id = sequence_id;
 
 	/* Network originating events need things adjusted to mimic netlink. */
-	if (e->ack_func)
+	if (from_network(e))
 		replace_event_msg(e, msg);
 
 	return e;
@@ -505,15 +529,16 @@ void handle_event(struct auditd_event *e)
 {
 	if (e->reply.type == AUDIT_DAEMON_RECONFIG && e->ack_func == NULL) {
 		reconfigure(e);
-		if (config->write_logs == 0)
+		if (config->write_logs == 0 && config->daemonize == D_BACKGROUND)
                         return;
                 format_event(e);
 	} else if (e->reply.type == AUDIT_DAEMON_ROTATE) {
 		rotate_logs_now();
-		if (config->write_logs == 0)
+		if (config->write_logs == 0 && config->daemonize == D_BACKGROUND)
 			return;
 	}
-	if (!logging_suspended && config->write_logs) {
+	if (!logging_suspended && (config->write_logs ||
+					config->daemonize == D_FOREGROUND)) {
 		write_to_log(e);
 
 		/* See if we need to flush to disk manually */
@@ -554,7 +579,7 @@ void handle_event(struct auditd_event *e)
 				}
 			}
 		}
-	} else if (!config->write_logs)
+	} else if (!config->write_logs && config->daemonize == D_BACKGROUND)
 		send_ack(e, AUDIT_RMW_TYPE_ACK, "");
 	else if (logging_suspended)
 		send_ack(e,AUDIT_RMW_TYPE_DISKERROR,"remote logging suspended");
@@ -563,7 +588,7 @@ void handle_event(struct auditd_event *e)
 static void send_ack(const struct auditd_event *e, int ack_type,
 			const char *msg)
 {
-	if (e->ack_func) {
+	if (from_network(e)) {
 		unsigned char header[AUDIT_RMW_HEADER_SIZE];
 
 		AUDIT_RMW_PACK_HEADER(header, 0, ack_type, strlen(msg),
@@ -652,6 +677,9 @@ static void check_log_file_size(void)
 {
 	/* did we cross the size limit? */
 	off_t sz = log_size / MEGABYTE;
+
+	if (config->write_logs == 0)
+		return;
 
 	if (sz >= config->max_log_size && (config->daemonize == D_BACKGROUND)) {
 		switch (config->max_log_size_action)
@@ -1003,6 +1031,7 @@ static void rotate_logs(unsigned int num_logs)
 			"rotating log file (%s)", strerror(errno));
 	}
 	fclose(log_file);
+	log_file = NULL;
 	
 	/* Rotate */
 	len = strlen(config->log_file) + 16;
@@ -1028,6 +1057,7 @@ static void rotate_logs(unsigned int num_logs)
 	if (num_logs == 2) 
 		snprintf(oldname, len, "%s.1", config->log_file);
 
+	known_logs = 0;
 	for (i=num_logs - 1; i>1; i--) {
 		snprintf(oldname, len, "%s.%u", config->log_file, i-1);
 		snprintf(newname, len, "%s.%u", config->log_file, i);
@@ -1044,7 +1074,8 @@ static void rotate_logs(unsigned int num_logs)
 				do_disk_full_action();
 			} else
 				do_disk_error_action("rotate", saved_errno);
-		}
+		} else if (rc == 0 && known_logs == 0)
+			known_logs = i + 1;
 	}
 	free(newname);
 
@@ -1106,6 +1137,7 @@ static void shift_logs(void)
 			break;
 		num_logs++;
 	}
+	known_logs = num_logs;
 
 	/* Our last known file disappeared, start over... */
 	if (num_logs <= last_log && last_log > 1) {
@@ -1324,7 +1356,10 @@ static void reconfigure(struct auditd_event *e)
 	// log format
 	oconf->log_format = nconf->log_format;
 
-	if (oconf->write_logs != nconf->write_logs) {
+	// Only update this if we are in background mode since
+	// foreground mode writes to stderr.
+	if ((oconf->write_logs != nconf->write_logs) && 
+				(oconf->daemonize == D_BACKGROUND)) {
 		oconf->write_logs = nconf->write_logs;
 		need_reopen = 1;
 	}
@@ -1351,72 +1386,22 @@ static void reconfigure(struct auditd_event *e)
 		oconf->node_name = nconf->node_name;
 	}
 
-	/* Now look at audit dispatcher changes */
-	oconf->qos = nconf->qos; // dispatcher qos
-
-	// do the dispatcher app change
-	if (oconf->dispatcher || nconf->dispatcher) {
-		// none before, start new one
-		if (oconf->dispatcher == NULL) {
-			oconf->dispatcher = strdup(nconf->dispatcher);
-			if (oconf->dispatcher == NULL) {
-				int saved_errno = errno;
-				audit_msg(LOG_ERR,
-					"Could not allocate dispatcher memory"
-					" in reconfigure");
-				// Likely errors: ENOMEM
-				do_disk_error_action("reconfig", saved_errno);
-			}
-			if(init_dispatcher(oconf,1)) {//dispatcher & qos is used
-				int saved_errno = errno;
-				audit_msg(LOG_WARNING,
-					"Could not start dispatcher %s"
-					" in reconfigure", oconf->dispatcher);
-				// Likely errors: Socketpairs or exec perms
-				do_disk_error_action("reconfig", saved_errno);
-			}
-		} 
-		// have one, but none after this
-		else if (nconf->dispatcher == NULL) {
-			shutdown_dispatcher();
-			free((char *)oconf->dispatcher);
-			oconf->dispatcher = NULL;
-		} 
-		// they are different apps
-		else if (strcmp(oconf->dispatcher, nconf->dispatcher)) {
-			shutdown_dispatcher();
-			free((char *)oconf->dispatcher);
-			oconf->dispatcher = strdup(nconf->dispatcher);
-			if (oconf->dispatcher == NULL) {
-				int saved_errno = errno;
-				audit_msg(LOG_ERR,
-					"Could not allocate dispatcher memory"
-					" in reconfigure");
-				// Likely errors: ENOMEM
-				do_disk_error_action("reconfig", saved_errno);
-			}
-			if(init_dispatcher(oconf,1)) {// dispatcher& qos is used
-				int saved_errno = errno;
-				audit_msg(LOG_WARNING,
-					"Could not start dispatcher %s"
-					" in reconfigure", oconf->dispatcher);
-				// Likely errors: Socketpairs or exec perms
-				do_disk_error_action("reconfig", saved_errno);
-			}
-		}
-		// they are the same app - just signal it
-		else {
-			reconfigure_dispatcher(oconf);
-			free((char *)nconf->dispatcher);
-			nconf->dispatcher = NULL;
-		}
-	}
-
 	// network listener
 	auditd_tcp_listen_reconfigure(nconf, oconf);
 
 	// distribute network events	
 	oconf->distribute_network_events = nconf->distribute_network_events;
+
+	// Dispatcher items
+	oconf->q_depth = nconf->q_depth;
+	oconf->overflow_action = nconf->overflow_action;
+	oconf->max_restarts = nconf->max_restarts;
+	if (oconf->plugin_dir != nconf->plugin_dir ||
+		(oconf->plugin_dir && nconf->plugin_dir &&
+		strcmp(oconf->plugin_dir, nconf->plugin_dir) != 0)) {
+		free(oconf->plugin_dir);
+		oconf->plugin_dir = nconf->plugin_dir;
+	}
 
 	/* At this point we will work on the items that are related to 
 	 * a single log file. */
@@ -1455,6 +1440,7 @@ static void reconfigure(struct auditd_event *e)
 
 	if (need_reopen) {
 		fclose(log_file);
+		log_file = NULL;
 		fix_disk_permissions();
 		if (open_audit_log()) {
 			int saved_errno = errno;
@@ -1475,6 +1461,12 @@ static void reconfigure(struct auditd_event *e)
 	// space left
 	if (oconf->space_left != nconf->space_left) {
 		oconf->space_left = nconf->space_left;
+		need_space_check = 1;
+	}
+
+	// space left percent
+	if (oconf->space_left_percent != nconf->space_left_percent) {
+		oconf->space_left_percent = nconf->space_left_percent;
 		need_space_check = 1;
 	}
 
@@ -1499,6 +1491,13 @@ static void reconfigure(struct auditd_event *e)
 	// admin space left
 	if (oconf->admin_space_left != nconf->admin_space_left) {
 		oconf->admin_space_left = nconf->admin_space_left;
+		need_space_check = 1;
+	}
+
+	// admin space left percent
+	if (oconf->admin_space_left_percent != nconf->admin_space_left_percent){
+		oconf->admin_space_left_percent =
+					nconf->admin_space_left_percent;
 		need_space_check = 1;
 	}
 
@@ -1545,6 +1544,7 @@ static void reconfigure(struct auditd_event *e)
 		 * having to call check_log_file_size to restore it. */
 		int saved_suspend = logging_suspended;
 
+		setup_percentages(oconf, log_fd);
 		fs_space_warning = 0;
 		fs_admin_space_warning = 0;
 		fs_space_left = 1;
@@ -1555,8 +1555,7 @@ static void reconfigure(struct auditd_event *e)
 			logging_suspended = saved_suspend;
 	}
 
-	/* This had to wait until now so the child exec has happened */
-	make_dispatcher_fd_private();
+	reconfigure_dispatcher(oconf);
 
 	// Next document the results
 	srand(time(NULL));
@@ -1575,7 +1574,6 @@ static void reconfigure(struct auditd_event *e)
 	"%s op=reconfigure state=changed auid=%u pid=%d subj=%s res=success",
 		date, uid, pid, ctx );
 	e->reply.message = e->reply.msg.data;
-	audit_msg(LOG_NOTICE, "%s", e->reply.message);
 	free((char *)ctx);
 }
 

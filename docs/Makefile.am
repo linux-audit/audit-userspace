@@ -1,5 +1,5 @@
 # Makefile.am --
-# Copyright 2004-09,2012,2014-17 Red Hat Inc., Durham, North Carolina.
+# Copyright 2004-09,2012,2014-18 Red Hat Inc., Durham, North Carolina.
 # All Rights Reserved.
 #
 # This program is free software; you can redistribute it and/or modify
@@ -25,7 +25,8 @@ CONFIG_CLEAN_FILES = *.rej *.orig
 EXTRA_DIST = $(man_MANS)
 
 man_MANS = audit_add_rule_data.3 audit_add_watch.3 auditctl.8 auditd.8 \
-auditd.conf.5 audit_delete_rule_data.3 audit_detect_machine.3 \
+auditd.conf.5 auditd-plugins.5 \
+audit_delete_rule_data.3 audit_detect_machine.3 \
 audit_encode_nv_string.3 audit_getloginuid.3 \
 audit_get_reply.3 audit_get_session.3 \
 audit_log_acct_message.3 audit_log_user_avc_message.3 \
@@ -58,7 +59,7 @@ ausearch_add_expression.3 ausearch_add_timestamp_item.3 ausearch_add_regex.3 \
 ausearch_add_timestamp_item_ex.3 ausearch_clear.3 \
 ausearch_next_event.3 ausearch_set_stop.3 \
 autrace.8 get_auditfail_action.3 set_aumessage_mode.3 \
-audispd.8 audispd.conf.5 audispd-zos-remote.8 libaudit.conf.5 \
+audispd-zos-remote.8 libaudit.conf.5 \
 augenrules.8 audit_set_backlog_wait_time.3 \
 zos-remote.conf.5 
 

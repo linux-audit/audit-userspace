@@ -56,7 +56,7 @@ volatile int stop = 0;
 volatile int hup = 0;
 volatile ZOS_REMOTE zos_remote_inst;
 static plugin_conf_t conf;
-static const char *def_config_file = "/etc/audisp/zos-remote.conf";
+static const char *def_config_file = "/etc/audit/zos-remote.conf";
 static pthread_t submission_thread;
 pid_t mypid = 0;
 
@@ -438,7 +438,7 @@ int main(int argc, char *argv[])
         /* 
          * the main program accepts a single (optional) argument:
          * it's configuration file (this is NOT the plugin configuration
-         * usually located at /etc/audisp/plugin.d)
+         * usually located at /etc/audit/plugins.d)
          * We use the default (def_config_file) if no arguments are given
          */
         if (argc == 1) {

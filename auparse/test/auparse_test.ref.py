@@ -19,21 +19,6 @@ event 1 has 1 records
         auid=848 (unknown(848))
 
 event 2 has 1 records
-    record 1 of type 1112(USER_LOGIN) has 10 fields
-    line=3 file=None
-    event time: 1143146623.879:146, host=(null)
-        type=USER_LOGIN (USER_LOGIN)
-        pid=2027 (2027)
-        uid=0 (root)
-        auid=848 (unknown(848))
-        uid=848 (unknown(848))
-        exe="/bin/login" (/bin/login)
-        hostname=? (?)
-        addr=? (?)
-        terminal=tty3 (tty3)
-        res=success (success)
-
-event 3 has 1 records
     record 1 of type 1300(SYSCALL) has 24 fields
     line=2 file=None
     event time: 1143146623.875:143, host=(null)
@@ -61,6 +46,21 @@ event 3 has 1 records
         comm="login" (login)
         exe="/bin/login" (/bin/login)
         subj=system_u:system_r:local_login_t:s0-s0:c0.c255 (system_u:system_r:local_login_t:s0-s0:c0.c255)
+
+event 3 has 1 records
+    record 1 of type 1112(USER_LOGIN) has 10 fields
+    line=3 file=None
+    event time: 1143146623.879:146, host=(null)
+        type=USER_LOGIN (USER_LOGIN)
+        pid=2027 (2027)
+        uid=0 (root)
+        auid=848 (unknown(848))
+        uid=848 (unknown(848))
+        exe="/bin/login" (/bin/login)
+        hostname=? (?)
+        addr=? (?)
+        terminal=tty3 (tty3)
+        res=success (success)
 
 Test 2 Done
 
@@ -552,9 +552,9 @@ auid exists...which is correct
 Testing BUFFER_ARRAY, stop on field
 Found auid = 848
 Testing BUFFER_ARRAY, stop on record
-Found type = USER_LOGIN
+Found type = SYSCALL
 Testing BUFFER_ARRAY, stop on event
-Found type = USER_LOGIN
+Found type = SYSCALL
 Testing test.log, stop on field
 Found auid = 4294967295
 Testing test.log, stop on record
@@ -585,21 +585,6 @@ event 1 has 1 records
         auid=848 (unknown(848))
 
 event 2 has 1 records
-    record 1 of type 1112(USER_LOGIN) has 10 fields
-    line=3 file=None
-    event time: 1143146623.879:146, host=(null)
-        type=USER_LOGIN (USER_LOGIN)
-        pid=2027 (2027)
-        uid=0 (root)
-        auid=848 (unknown(848))
-        uid=848 (unknown(848))
-        exe="/bin/login" (/bin/login)
-        hostname=? (?)
-        addr=? (?)
-        terminal=tty3 (tty3)
-        res=success (success)
-
-event 3 has 1 records
     record 1 of type 1300(SYSCALL) has 24 fields
     line=2 file=None
     event time: 1143146623.875:143, host=(null)
@@ -627,6 +612,21 @@ event 3 has 1 records
         comm="login" (login)
         exe="/bin/login" (/bin/login)
         subj=system_u:system_r:local_login_t:s0-s0:c0.c255 (system_u:system_r:local_login_t:s0-s0:c0.c255)
+
+event 3 has 1 records
+    record 1 of type 1112(USER_LOGIN) has 10 fields
+    line=3 file=None
+    event time: 1143146623.879:146, host=(null)
+        type=USER_LOGIN (USER_LOGIN)
+        pid=2027 (2027)
+        uid=0 (root)
+        auid=848 (unknown(848))
+        uid=848 (unknown(848))
+        exe="/bin/login" (/bin/login)
+        hostname=? (?)
+        addr=? (?)
+        terminal=tty3 (tty3)
+        res=success (success)
 
 Test 9 Done
 

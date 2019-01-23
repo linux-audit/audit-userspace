@@ -21,9 +21,9 @@
 #
 
 CONFIG_CLEAN_FILES = *.rej *.orig
-CONF_FILES = af_unix.conf syslog.conf
+CONF_FILES = af_unix.conf
 EXTRA_DIST = $(CONF_FILES)
-plugin_confdir=$(sysconfdir)/audisp/plugins.d
+plugin_confdir=$(sysconfdir)/audit/plugins.d
 
 install-data-hook:
 	mkdir -p -m 0750 ${DESTDIR}${plugin_confdir}

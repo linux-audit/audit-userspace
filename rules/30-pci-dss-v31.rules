@@ -41,8 +41,8 @@
 ##   ausearch --start today -m user_auth,user_chauthtok -i
 
 ## 10.2.5.b All elevation of privileges is logged
--a always,exit -F arch=b64 -S setuid -Fa0=0 -F exe=/usr/bin/su -F key=10.2.5.b-elevated-privs-session
--a always,exit -F arch=b32 -S setuid -Fa0=0 -F exe=/usr/bin/su -F key=10.2.5.b-elevated-privs-session
+-a always,exit -F arch=b64 -S setuid -F a0=0 -F exe=/usr/bin/su -F key=10.2.5.b-elevated-privs-session
+-a always,exit -F arch=b32 -S setuid -F a0=0 -F exe=/usr/bin/su -F key=10.2.5.b-elevated-privs-session
 -a always,exit -F arch=b64 -S setresuid -F a0=0 -F exe=/usr/bin/sudo -F key=10.2.5.b-elevated-privs-session
 -a always,exit -F arch=b32 -S setresuid -F a0=0 -F exe=/usr/bin/sudo -F key=10.2.5.b-elevated-privs-session
 -a always,exit -F arch=b64 -S execve -C uid!=euid -F euid=0 -F key=10.2.5.b-elevated-privs-setuid
@@ -89,7 +89,7 @@
 
 ## 10.5.1 Limit viewing of audit trails to those with a job-related need.
 ## The audit daemon by default limits viewing of the auit trail to root.
-## If someone that is not an admin has a job realted need to see logs, then
+## If someone that is not an admin has a job related need to see logs, then
 ## create a unique group for people with this need and set the log_group 
 ## configuration item in auditd.conf
 

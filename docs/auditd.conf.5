@@ -1,4 +1,4 @@
-.TH AUDITD.CONF: "5" "April 2016" "Red Hat" "System Administration Utilities"
+.TH AUDITD.CONF: "5" "August 2018" "Red Hat" "System Administration Utilities"
 .SH NAME
 auditd.conf \- audit daemon configuration file
 .SH DESCRIPTION
@@ -28,7 +28,7 @@ The log format describes how the information should be stored on disk. There are
 .IR RAW ,
 the audit records will be stored in a format exactly as the kernel sends it. The
 .IR ENRICHED
-option will resolve all uid, gid, syscall, architecture, and socket address information before writing the event to disk. This aids in making sense of events created on one system but reported/analized on another system.
+option will resolve all uid, gid, syscall, architecture, and socket address information before writing the event to disk. This aids in making sense of events created on one system but reported/analyzed on another system.
 The 
 .I NOLOG
 option is now deprecated. If you were setting this format, now you should set
@@ -77,12 +77,6 @@ as the
 .I max_log_file_action.
 If the number is < 2, logs are not rotated. This number must be 999 or less.
 The default is 0 - which means no rotation. As you increase the number of log files being rotated, you may need to adjust the kernel backlog setting upwards since it takes more time to rotate the files. This is typically done in /etc/audit/audit.rules. If log rotation is configured to occur, the daemon will check for excess logs and remove them in effort to keep disk space available. The excess log check is only done on startup and when a reconfigure results in a space check.
-.TP
-.I disp_qos
-This option controls whether you want blocking/lossless or non-blocking/lossy communication between the audit daemon and the dispatcher. There is a 128k buffer between the audit daemon and dispatcher. This is good enough for most uses. If lossy is chosen, incoming events going to the dispatcher are discarded when this queue is full. (Events are still written to disk if log_format is not nolog.) Otherwise the auditd daemon will wait for the queue to have an empty spot before logging to disk. The risk is that while the daemon is waiting for network IO, an event is not being recorded to disk. Valid values are: lossy and lossless. Lossy is the default value.
-.TP
-.I dispatcher
-The dispatcher is a program that is started by the audit daemon when it starts up. It will pass a copy of all audit events to that application's stdin. Make sure you trust the application that you add to this line since it runs with root privileges.
 .TP
 .I name_format
 This option controls how computer node names are inserted into the audit event stream. It has the following choices:
@@ -141,7 +135,7 @@ This option should contain a valid email address or alias. The default address i
 .TP
 .I space_left
 This is a numeric value in megabytes that tells the audit daemon when
-to perform a configurable action because the system is starting to run low on disk space.
+to perform a configurable action because the system is starting to run low on disk space. You may also append a percent sign (e.g. 5%) to the number to have the audit daemon calculate the number based on the disk partition size.
 .TP
 .I space_left_action
 This parameter tells the system what action to take when the system has
@@ -172,7 +166,7 @@ option will cause the audit daemon to shutdown the computer system.
 This is a numeric value in megabytes that tells the audit daemon when
 to perform a configurable action because the system
 .B is running low
-on disk space. This should be considered the last chance to do something before running out of disk space. The numeric value for this parameter should be lower than the number for space_left.
+on disk space. This should be considered the last chance to do something before running out of disk space. The numeric value for this parameter should be lower than the number for space_left. You may also append a percent sign (e.g. 1%) to the number to have the audit daemon calculate the number based on the disk partition size.
 .TP
 .I admin_space_left_action
 This parameter tells the system what action to take when the system has
@@ -283,9 +277,20 @@ for this parameter. You will also need to set the local_port option in the audis
 .I tcp_client_max_idle
 This parameter indicates the number of seconds that a client may be idle (i.e. no data from them at all) before auditd complains. This is used to close inactive connections if the client machine has a problem where it cannot shutdown the connection cleanly. Note that this is a global setting, and must be higher than any individual client heartbeat_timeout setting, preferably by a factor of two.  The default is zero, which disables this check.
 .TP
+.I transport
+If set to
+.IR TCP ",
+only clear text tcp connections will be used. If set to
+.IR KRB5 ",
+then Kerberos 5 will be used for authentication and encryption. The default value is TCP.
+.TP
 .I enable_krb5
-If set to "yes", Kerberos 5 will be used for authentication and
-encryption.  The default is "no".
+This option is deprecated. Use the
+.IR transport
+option above instead. If set to "yes", Kerberos 5 will be used for
+authentication and encryption.  The default is "no". If this option is set
+to "yes" and it follows the transport option, it will override the transport
+setting. This would be the normal expected behavior for backwards compatibility.
 .TP
 .I krb5_principal
 This is the principal for this server.  The default is "auditd".
@@ -305,6 +310,30 @@ The default is
 .I distribute_network
 If set to "yes", network originating events will be distributed to the audit
 dispatcher for processing. The default is "no".
+.TP
+.I q_depth
+This is a numeric value that tells how big to make the internal queue of the audit event dispatcher. A bigger queue lets it handle a flood of events better, but could hold events that are not processed when the daemon is terminated. If you get messages in syslog about events getting dropped, increase this value. The default value is 400.
+.TP
+.I overflow_action
+This option determines how the daemon should react to overflowing its internal queue. When this happens, it means that more events are being received than it can pass along to child processes. This error means that it is going to lose the current event that it's trying to dispatch. This option has the following choices:
+.IR ignore ", " syslog ", " suspend ", " single ", and " halt ".
+If set to
+.IR ignore ,
+the audit daemon does nothing.
+.I syslog
+means that it will issue a warning to syslog.
+.I suspend
+will cause the audit daemon to stop sending events to child processes. The daemon will still be alive. The
+.I single
+option will cause the audit daemon to put the computer system in single user mode.
+.I halt
+option will cause the audit daemon to shutdown the computer system.
+.TP
+.I max_restarts
+This is a non-negative number that tells the audit event dispatcher how many times it can try to restart a crashed plugin. The default is 10.
+.TP
+.I plugin_dir
+This is the location that auditd will use to search for its plugin configuration files.
 
 .SH NOTES
 In a CAPP environment, the audit trail is considered so important that access to system resources must be denied if an audit trail cannot be created. In this environment, it would be suggested that /var/log/audit be on its own partition. This is to ensure that space detection is accurate and that no other process comes along and consumes part of it.
@@ -333,7 +362,8 @@ Audit daemon configuration file
 
 .SH "SEE ALSO"
 .BR auditd (8),
-.BR audisp\-remote.conf (5).
+.BR audisp\-remote.conf (5),
+.BR auditd\-plugins (5).
 
 .SH AUTHOR
 Steve Grubb

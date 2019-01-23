@@ -23,13 +23,12 @@
 
 AM_CPPFLAGS = -I${top_srcdir} -I${top_srcdir}/lib -I${top_srcdir}/auparse
 CONFIG_CLEAN_FILES = *.rej *.orig
-AUTOMAKE_OPTIONS = no-dependencies
 EXTRA_DIST = zos-remote.conf audispd-zos-remote.conf
 LIBS = -L${top_builddir}/auparse -lauparse
 LDADD = -lpthread -lldap -llber $(CAPNG_LDADD) 
-dispatcher_confdir = $(sysconfdir)/audisp
-plugin_confdir=$(dispatcher_confdir)/plugins.d
+plugin_confdir=$(sysconfdir)/audit
 plugin_conf = zos-remote.conf
+dispatcher_confdir = $(plugin_confdir)/plugins.d
 dispatcher_conf = audispd-zos-remote.conf
 sbin_PROGRAMS = audispd-zos-remote
 
@@ -43,10 +42,10 @@ audispd_zos_remote_LDFLAGS = -pie -Wl,-z,relro -Wl,-z,now
 install-data-hook:
 	mkdir -p -m 0750 ${DESTDIR}${plugin_confdir}
 	$(INSTALL_DATA) -D -m 640 ${srcdir}/$(plugin_conf) \
-	    ${DESTDIR}${dispatcher_confdir}
-	$(INSTALL_DATA) -D -m 640 ${srcdir}/$(dispatcher_conf) \
 	    ${DESTDIR}${plugin_confdir}
+	$(INSTALL_DATA) -D -m 640 ${srcdir}/$(dispatcher_conf) \
+	    ${DESTDIR}${dispatcher_confdir}
 
 uninstall-hook:
-	rm ${DESTDIR}${plugin_confdir}/$(dispatcher_conf)
-	rm ${DESTDIR}${dispatcher_confdir}/$(plugin_conf)
+	rm ${DESTDIR}${plugin_confdir}/$(plugin_conf)
+	rm ${DESTDIR}${dispatcher_confdir}/$(dispatcher_conf)

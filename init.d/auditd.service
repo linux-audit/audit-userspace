@@ -1,19 +1,23 @@
 [Unit]
 Description=Security Auditing Service
 DefaultDependencies=no
-## If auditd.conf has tcp_listen_port enabled, copy this file to
-## /etc/systemd/system/auditd.service and add network-online.target
-## to the next line so it waits for the network to start before launching.
+## If auditd is sending or recieving remote logging, copy this file to
+## /etc/systemd/system/auditd.service and comment out the first After and
+## uncomment the second so that network-online.target is part of After.
+## then comment the first Before and uncomment the second Before to remove
+## sysinit.target from "Before".
 After=local-fs.target systemd-tmpfiles-setup.service
-Conflicts=shutdown.target
+##After=network-online.target local-fs.target systemd-tmpfiles-setup.service
 Before=sysinit.target shutdown.target
+##Before=shutdown.target
+Conflicts=shutdown.target
 RefuseManualStop=yes
 ConditionKernelCommandLine=!audit=0
 Documentation=man:auditd(8) https://github.com/linux-audit/audit-documentation
 
 [Service]
 Type=forking
-PIDFile=/var/run/auditd.pid
+PIDFile=/run/auditd.pid
 ExecStart=/sbin/auditd
 ## To not use augenrules, copy this file to /etc/systemd/system/auditd.service
 ## and comment/delete the next line and uncomment the auditctl line.

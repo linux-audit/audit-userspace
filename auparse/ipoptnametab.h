@@ -1,5 +1,5 @@
 /* ipoptnametab.h --
- * Copyright 2013,2015 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2013,2015,2018 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -45,6 +45,8 @@ _S(20, "IP_ORIGDSTADDR")
 _S(21, "IP_MINTTL")
 _S(22, "IP_NODEFRAG")
 _S(23, "IP_CHECKSUM")
+_S(24, "IP_BIND_ADDRESS_NO_PORT")
+_S(25, "IP_RECVFRAGSIZE")
 _S(32, "IP_MULTICAST_IF")
 _S(33, "IP_MULTICAST_TTL")
 _S(34, "IP_MULTICAST_LOOP")

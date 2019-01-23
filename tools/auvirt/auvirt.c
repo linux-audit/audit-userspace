@@ -340,7 +340,7 @@ int extract_virt_fields(auparse_state_t *au, const char **p_uuid,
 error:
 	if (debug) {
 		fprintf(stderr, "Failed to get field \"%s\" for record "
-				"%ld.%03u:%lu\n", field ? field : "",
+				"%ld.%03u:%lu\n", field,
 				auparse_get_time(au),
 				auparse_get_milli(au),
 				auparse_get_serial(au));
@@ -1273,16 +1273,16 @@ const char *get_time_period(struct event *event)
 		hours = (secs / 3600) % 24;
 		days  = secs / 86400;
 		if (days) {
-			i += sprintf(buf + i, "(%d+%02d:%02d)", days, hours,
+			sprintf(buf + i, "(%d+%02d:%02d)", days, hours,
 					mins);
 		} else {
-			i += sprintf(buf + i, "(%02d:%02d)", hours, mins);
+			sprintf(buf + i, "(%02d:%02d)", hours, mins);
 		}
 	} else {
 		if (!event->success &&
 		    event->type != ET_AVC &&
 		    event->type != ET_ANOM) {
-			i += sprintf(buf + i, " - failed");
+			sprintf(buf + i, " - failed");
 		}
 	}
 	return buf;

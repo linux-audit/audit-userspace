@@ -1,5 +1,5 @@
 /* remote-config.c -- 
- * Copyright 2008,2009,2011,2015-16 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2008,2009,2011,2015-16,2018 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -139,6 +139,9 @@ static const struct kw_pair keywords[] =
 static const struct nv_list transport_words[] =
 {
   {"tcp",  T_TCP  },
+#ifdef USE_GSSAPI
+  {"krb5", T_KRB5 },
+#endif
   { NULL,  0 }
 };
 
@@ -220,7 +223,6 @@ void clear_config(remote_conf_t *config)
 #undef IA
 	config->overflow_action = OA_SYSLOG;
 
-	config->enable_krb5 = 0;
 	config->krb5_principal = NULL;
 	config->krb5_client_name = NULL;
 	config->krb5_key_file = NULL;
@@ -685,7 +687,8 @@ static int enable_krb5_parser(struct nv_pair *nv, int line,
 
 	for (i=0; enable_krb5_values[i].name != NULL; i++) {
 		if (strcasecmp(nv->value, enable_krb5_values[i].name) == 0) {
-			config->enable_krb5 = enable_krb5_values[i].option;
+			if (enable_krb5_values[i].option == 1)
+				config->transport = T_KRB5;
 			return 0;
 		}
 	}

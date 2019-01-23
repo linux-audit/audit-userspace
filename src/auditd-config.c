@@ -1,5 +1,5 @@
 /* auditd-config.c -- 
- * Copyright 2004-2011,2013-14,2016 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2004-2011,2013-14,2016,2018 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -35,9 +35,11 @@
 #include <libgen.h>
 #include <arpa/inet.h>
 #include <limits.h>	/* INT_MAX */
+#include <sys/vfs.h>
 #include "auditd-config.h"
 #include "libaudit.h"
 #include "private.h"
+#include "common.h"
 
 #define TCP_PORT_MAX 65535
 
@@ -124,6 +126,8 @@ static int tcp_client_ports_parser(struct nv_pair *nv, int line,
 		struct daemon_conf *config);
 static int tcp_client_max_idle_parser(struct nv_pair *nv, int line,
 		struct daemon_conf *config);
+static int transport_parser(struct nv_pair *nv, int line,
+		struct daemon_conf *config);
 static int enable_krb5_parser(struct nv_pair *nv, int line,
 		struct daemon_conf *config);
 static int krb5_principal_parser(struct nv_pair *nv, int line,
@@ -131,6 +135,14 @@ static int krb5_principal_parser(struct nv_pair *nv, int line,
 static int krb5_key_file_parser(struct nv_pair *nv, int line,
 		struct daemon_conf *config);
 static int distribute_network_parser(struct nv_pair *nv, int line,
+		struct daemon_conf *config);
+static int q_depth_parser(struct nv_pair *nv, int line,
+		struct daemon_conf *config);
+static int overflow_action_parser(struct nv_pair *nv, int line,
+		struct daemon_conf *config);
+static int max_restarts_parser(struct nv_pair *nv, int line,
+		struct daemon_conf *config);
+static int plugin_dir_parser(struct nv_pair *nv, int line,
 		struct daemon_conf *config);
 static int sanity_check(struct daemon_conf *config);
 
@@ -165,10 +177,15 @@ static const struct kw_pair keywords[] =
   {"use_libwrap",              use_libwrap_parser,              0 },
   {"tcp_client_ports",         tcp_client_ports_parser,         0 },
   {"tcp_client_max_idle",      tcp_client_max_idle_parser,      0 },
+  {"transport",                transport_parser,                0 },
   {"enable_krb5",              enable_krb5_parser,              0 },
   {"krb5_principal",           krb5_principal_parser,           0 },
   {"krb5_key_file",            krb5_key_file_parser,            0 },
   {"distribute_network",       distribute_network_parser,       0 },
+  {"q_depth",                  q_depth_parser,                  0 },
+  {"overflow_action",          overflow_action_parser,          0 },
+  {"max_restarts",             max_restarts_parser,             0 },
+  {"plugin_dir",               plugin_dir_parser,               0 },
   { NULL,                      NULL,                            0 }
 };
 
@@ -214,13 +231,6 @@ static const struct nv_list size_actions[] =
   { NULL,     0 }
 };
 
-static const struct nv_list qos_options[] =
-{
-  {"lossy",     QOS_NON_BLOCKING },
-  {"lossless",  QOS_BLOCKING },
-  { NULL,     0 }
-};
-
 static const struct nv_list node_name_formats[] =
 {
   {"none",      N_NONE },
@@ -235,6 +245,25 @@ static const struct nv_list yes_no_values[] =
 {
   {"yes",  1 },
   {"no", 0 },
+  { NULL,  0 }
+};
+
+static const struct nv_list overflow_actions[] =
+{
+  {"ignore",  O_IGNORE },
+  {"syslog",  O_SYSLOG },
+  {"suspend", O_SUSPEND },
+  {"single",  O_SINGLE },
+  {"halt",    O_HALT },
+  { NULL,     0 }
+};
+
+static const struct nv_list transport_words[] =
+{
+  {"tcp",  T_TCP  },
+#ifdef USE_GSSAPI
+  {"krb5", T_KRB5 },
+#endif
   { NULL,  0 }
 };
 
@@ -275,29 +304,29 @@ const char *get_config_dir(void)
 void clear_config(struct daemon_conf *config)
 {
 	config->local_events = 1;
-	config->qos = QOS_NON_BLOCKING;
 	config->sender_uid = 0;
 	config->sender_pid = 0;
 	config->sender_ctx = NULL;
 	config->write_logs = 1;
 	config->log_file = strdup("/var/log/audit/audit.log");
-	config->log_format = LF_RAW;
+	config->log_format = LF_ENRICHED;
 	config->log_group = 0;
 	config->priority_boost = 4;
 	config->flush =  FT_NONE;
 	config->freq = 0;
 	config->num_logs = 0L;
-	config->dispatcher = NULL;
 	config->node_name_format = N_NONE;
 	config->node_name = NULL;
 	config->max_log_size = 0L;
 	config->max_log_size_action = SZ_IGNORE;
 	config->space_left = 0L;
+	config->space_left_percent = 0;
 	config->space_left_action = FA_IGNORE;
 	config->space_left_exe = NULL;
 	config->action_mail_acct = strdup("root");
 	config->verify_email = 1;
 	config->admin_space_left= 0L;
+	config->admin_space_left_percent = 0;
 	config->admin_space_left_action = FA_IGNORE;
 	config->admin_space_left_exe = NULL;
 	config->disk_full_action = FA_IGNORE;
@@ -311,10 +340,15 @@ void clear_config(struct daemon_conf *config)
 	config->tcp_client_min_port = 0;
 	config->tcp_client_max_port = TCP_PORT_MAX;
 	config->tcp_client_max_idle = 0;
-	config->enable_krb5 = 0;
+	config->transport = T_TCP;
 	config->krb5_principal = NULL;
 	config->krb5_key_file = NULL;
 	config->distribute_network_events = 0;
+	config->q_depth = 400;
+	config->overflow_action = O_SYSLOG;
+	config->max_restarts = 10;
+	config->plugin_dir = strdup("/etc/audit/plugins.d");
+	config->config_dir = NULL;
 }
 
 static log_test_t log_test = TEST_AUDITD;
@@ -696,88 +730,17 @@ static int num_logs_parser(struct nv_pair *nv, int line,
 static int qos_parser(struct nv_pair *nv, int line, 
 		struct daemon_conf *config)
 {
-	int i;
-
-	audit_msg(LOG_DEBUG, "qos_parser called with: %s", nv->value);
-	for (i=0; qos_options[i].name != NULL; i++) {
-		if (strcasecmp(nv->value, qos_options[i].name) == 0) {
-			config->qos = qos_options[i].option;
-			return 0;
-		}
-	}
-	audit_msg(LOG_ERR, "Option %s not found - line %d", nv->value, line);
-	return 1;
+	audit_msg(LOG_WARNING, "The disp_qos option is deprecated - line %d",
+			line);
+	return 0;
 }
 
 static int dispatch_parser(struct nv_pair *nv, int line,
 	struct daemon_conf *config)
 {
-	char *dir = NULL, *tdir;
-	int fd;
-	struct stat buf;
-
 	audit_msg(LOG_DEBUG, "dispatch_parser called with: %s", nv->value);
-	if (nv->value == NULL) {
-		config->dispatcher = NULL;
-		return 0;
-	}
-
-	/* get dir from name. */
-	tdir = strdup(nv->value);
-	if (tdir)
-		dir = dirname(tdir);
-	if (dir == NULL || strlen(dir) < 4) { //  '/var' is shortest dirname
-		audit_msg(LOG_ERR,
-			"The directory name: %s is too short - line %d",
-			dir, line);
-		free(tdir);
-		return 1;
-	}
-
-	free((void *)tdir);
-
-	/* Bypass the perms check if group is not root since
-	 * this will fail under normal circumstances */
-	if ((config->log_group != 0 && getuid() != 0) ||
-				(log_test == TEST_SEARCH)) 
-		goto bypass;
-
-	/* if the file exists, see that its regular, owned by root,
-	 * and not world anything */
-	fd = open(nv->value, O_RDONLY);
-	if (fd < 0) {
-		audit_msg(LOG_ERR, "Unable to open %s (%s)", nv->value,
-			strerror(errno));
-		return 1;
-	}
-	if (fstat(fd, &buf) < 0) {
-		audit_msg(LOG_ERR, "Unable to stat %s (%s)", nv->value,
-			strerror(errno));
-		close(fd);
-		return 1;
-	}
-	close(fd);
-	if (!S_ISREG(buf.st_mode)) {
-		audit_msg(LOG_ERR, "%s is not a regular file", nv->value);
-		return 1;
-	}
-	if (buf.st_uid != 0) {
-		audit_msg(LOG_ERR, "%s is not owned by root", nv->value);
-		return 1;
-	}
-	if ((buf.st_mode & (S_IRWXU|S_IRWXG|S_IRWXO)) !=
-			   (S_IRWXU|S_IRGRP|S_IXGRP) && 
-	    (buf.st_mode & (S_IRWXU|S_IRWXG|S_IRWXO)) !=
-			   (S_IRWXU|S_IRGRP|S_IXGRP|S_IROTH|S_IXOTH)) {
-		audit_msg(LOG_ERR, "%s permissions should be 0750 or 0755",
-				nv->value);
-		return 1;
-	}
-bypass:
-	free((void *)config->dispatcher);
-	config->dispatcher = strdup(nv->value);
-	if (config->dispatcher == NULL)
-		return 1;
+	audit_msg(LOG_WARNING, "The dispatcher option is deprecated - line %d",
+			line);
 	return 0;
 }
 
@@ -969,21 +932,30 @@ static int freq_parser(struct nv_pair *nv, int line,
 static int space_left_parser(struct nv_pair *nv, int line, 
 		struct daemon_conf *config)
 {
-	const char *ptr = nv->value;
+	char *p, *ptr = (char *)nv->value;
 	unsigned long i;
+	int percent = 0;
 
 	audit_msg(LOG_DEBUG, "space_left_parser called with: %s", nv->value);
+	config->space_left_percent = 0;
 
 	/* check that all chars are numbers */
 	for (i=0; ptr[i]; i++) {
-		if (!isdigit(ptr[i])) {
+		if (!isdigit(ptr[i]) && ptr[i] != '%') {
 			audit_msg(LOG_ERR, 
-				"Value %s should only be numbers - line %d",
-				nv->value, line);
+			"Value %c %s should only be numbers or percent - line %d",
+				ptr[i],nv->value, line);
 			return 1;
 		}
 	}
 
+	/* Check for percent sign */
+	p = strchr(ptr, '%');
+	if (p) {
+		percent = 1;
+		*p = ' ';
+	}
+		
 	/* convert to unsigned long */
 	errno = 0;
 	i = strtoul(nv->value, NULL, 10);
@@ -993,7 +965,16 @@ static int space_left_parser(struct nv_pair *nv, int line,
 			strerror(errno), line);
 		return 1;
 	}
-	config->space_left = i;
+	if (percent) {
+		if (i > 99) {
+			audit_msg(LOG_ERR,
+			"Percentages should be less than 100 - line %d", line);
+			return 1;
+		}
+		config->space_left_percent = i;
+		config->space_left = 0L;
+	} else
+		config->space_left = i;
 	return 0;
 }
 
@@ -1177,22 +1158,31 @@ static int verify_email_parser(struct nv_pair *nv, int line,
 static int admin_space_left_parser(struct nv_pair *nv, int line, 
 		struct daemon_conf *config)
 {
-	const char *ptr = nv->value;
+	char *p, *ptr = (char *)nv->value;
 	unsigned long i;
+	int percent = 0;
 
 	audit_msg(LOG_DEBUG, "admin_space_left_parser called with: %s",
 							nv->value);
+	config->admin_space_left_percent = 0;
 
 	/* check that all chars are numbers */
 	for (i=0; ptr[i]; i++) {
-		if (!isdigit(ptr[i])) {
+		if (!isdigit(ptr[i]) && ptr[i] != '%') {
 			audit_msg(LOG_ERR, 
-				"Value %s should only be numbers - line %d",
-				nv->value, line);
+			"Value %c %s should only be numbers or percent - line %d",
+				ptr[i],nv->value, line);
 			return 1;
 		}
 	}
 
+	/* Check for percent sign */
+	p = strchr(ptr, '%');
+	if (p) {
+		percent = 1;
+		*p = ' ';
+	}
+		
 	/* convert to unsigned long */
 	errno = 0;
 	i = strtoul(nv->value, NULL, 10);
@@ -1202,7 +1192,16 @@ static int admin_space_left_parser(struct nv_pair *nv, int line,
 			strerror(errno), line);
 		return 1;
 	}
-	config->admin_space_left = i;
+	if (percent) {
+		if (i > 99) {
+			audit_msg(LOG_ERR,
+			"Percentages should be less than 100 - line %d", line);
+			return 1;
+		}
+		config->admin_space_left_percent = i;
+		config->admin_space_left = 0L;
+	} else
+		config->admin_space_left = i;
 	return 0;
 }
 
@@ -1640,6 +1639,24 @@ static int tcp_client_max_idle_parser(struct nv_pair *nv, int line,
 #endif
 }
 
+static int transport_parser(struct nv_pair *nv, int line,
+	struct daemon_conf *config)
+{
+	int i;
+
+	audit_msg(LOG_DEBUG, "transport_parser called with: %s",
+		nv->value);
+
+	for (i=0; transport_words[i].name != NULL; i++) {
+		if (strcasecmp(nv->value, transport_words[i].name) == 0) {
+			config->transport = transport_words[i].option;
+			return 0;
+		}
+	}
+	audit_msg(LOG_ERR, "Option %s not found - line %d", nv->value, line);
+	return 1;
+}
+
 static int enable_krb5_parser(struct nv_pair *nv, int line,
 	struct daemon_conf *config)
 {
@@ -1656,7 +1673,8 @@ static int enable_krb5_parser(struct nv_pair *nv, int line,
 
 	for (i=0; yes_no_values[i].name != NULL; i++) {
 		if (strcasecmp(nv->value, yes_no_values[i].name) == 0) {
-			config->enable_krb5 = yes_no_values[i].option;
+			if (yes_no_values[i].option == 1)
+				config->transport = T_KRB5;
 			return 0;
 		}
 	}
@@ -1712,6 +1730,163 @@ static int distribute_network_parser(struct nv_pair *nv, int line,
 	return 1;
 }
 
+static int q_depth_parser(struct nv_pair *nv, int line,
+		struct daemon_conf *config)
+{
+	const char *ptr = nv->value;
+	unsigned long i;
+
+	audit_msg(LOG_DEBUG, "q_depth_parser called with: %s", nv->value);
+
+	/* check that all chars are numbers */
+	for (i=0; ptr[i]; i++) {
+		if (!isdigit(ptr[i])) {
+			audit_msg(LOG_ERR,
+				"Value %s should only be numbers - line %d",
+				nv->value, line);
+			return 1;
+		}
+	}
+
+	/* convert to unsigned long */
+	errno = 0;
+	i = strtoul(nv->value, NULL, 10);
+	if (errno) {
+		audit_msg(LOG_ERR,
+			"Error converting string to a number (%s) - line %d",
+			strerror(errno), line);
+		return 1;
+	}
+	if (i > 99999) {
+		audit_msg(LOG_ERR, "q_depth must be 99999 or less");
+		return 1;
+	}
+	config->q_depth = i;
+	return 0;
+}
+
+static int overflow_action_parser(struct nv_pair *nv, int line,
+		struct daemon_conf *config)
+{
+	int i;
+
+	audit_msg(LOG_DEBUG, "overflow_action_parser called with: %s",
+		nv->value);
+
+	for (i=0; overflow_actions[i].name != NULL; i++) {
+		if (strcasecmp(nv->value, overflow_actions[i].name) == 0) {
+			config->overflow_action = overflow_actions[i].option;
+			return 0;
+		}
+	}
+	audit_msg(LOG_ERR, "Option %s not found - line %d", nv->value, line);
+	return 1;
+}
+
+static int max_restarts_parser(struct nv_pair *nv, int line,
+	struct daemon_conf *config)
+{
+	const char *ptr = nv->value;
+	unsigned long i;
+
+	audit_msg(LOG_DEBUG, "max_restarts_parser called with: %s",
+				nv->value);
+
+	/* check that all chars are numbers */
+	for (i=0; ptr[i]; i++) {
+		if (!isdigit(ptr[i])) {
+			audit_msg(LOG_ERR,
+				"Value %s should only be numbers - line %d",
+				nv->value, line);
+			return 1;
+		}
+	}
+	/* convert to unsigned int */
+	errno = 0;
+	i = strtoul(nv->value, NULL, 10);
+	if (errno) {
+		audit_msg(LOG_ERR,
+			"Error converting string to a number (%s) - line %d",
+			strerror(errno), line);
+		return 1;
+	}
+	/* Check its range */
+	if (i > INT_MAX) {
+		audit_msg(LOG_ERR,
+			"Error - converted number (%s) is too large - line %d",
+			nv->value, line);
+		return 1;
+	}
+	config->max_restarts = (unsigned int)i;
+	return 0;
+}
+
+static int plugin_dir_parser(struct nv_pair *nv, int line,
+		struct daemon_conf *config)
+{
+	audit_msg(LOG_DEBUG, "plugin_dir_parser called with: %s", nv->value);
+
+	if (nv->value == NULL)
+		config->plugin_dir = NULL;
+	else {
+		size_t len = strlen(nv->value);
+		free(config->plugin_dir);
+		config->plugin_dir = malloc(len + 2);
+		if (config->plugin_dir) {
+			strcpy(config->plugin_dir, nv->value);
+			if (config->plugin_dir[len - 1] != '/')
+				config->plugin_dir[len] = '/';
+			config->plugin_dir[len + 1] = 0;
+		}
+	}
+	return 0;
+}
+
+/*
+ * Query file system and calculate in MB the given percentage is.
+ * Returns 0 on error and a number otherwise.
+ */
+static unsigned long calc_percent(float percent, int fd)
+{
+	int rc;
+	struct statfs buf;
+
+	rc = fstatfs(fd, &buf);
+	if (rc == 0) {
+		unsigned long free_space;
+		// All blocks * percentage = free blocks threshold
+		fsblkcnt_t free_blocks = buf.f_blocks * (percent/100.0);
+		// That is then converted into megabytes and returned
+		free_space = (buf.f_bsize * free_blocks) / MEGABYTE;
+
+		return free_space;
+	}
+	return 0;
+}
+
+/*
+ * This function translates a percentage of disk space to the
+ * actual MB value for space left actions.
+ */
+void setup_percentages(struct daemon_conf *config, int fd)
+{
+	if (!config->write_logs)
+		return;
+	if (config->daemonize != D_BACKGROUND)
+		return;
+
+	if (config->space_left_percent)
+		config->space_left =
+			calc_percent(config->space_left_percent, fd);
+	if (config->admin_space_left_percent)
+		config->admin_space_left =
+			calc_percent(config->admin_space_left_percent, fd);
+	if (config->space_left <= config->admin_space_left)
+		audit_msg(LOG_ERR, 
+	    "Error - space_left(%lu) must be larger than admin_space_left(%lu)",
+		    config->space_left, config->admin_space_left);
+}
+
 /*
  * This function is where we do the integrated check of the audit config
  * options. At this point, all fields have been read. Returns 0 if no
@@ -1720,7 +1895,9 @@ static int distribute_network_parser(struct nv_pair *nv, int line,
 static int sanity_check(struct daemon_conf *config)
 {
 	/* Error checking */
-	if (config->space_left <= config->admin_space_left) {
+	if (config->space_left_percent == 0 && 
+			config->admin_space_left_percent == 0 &&
+			config->space_left <= config->admin_space_left) {
 		audit_msg(LOG_ERR, 
 	    "Error - space_left(%lu) must be larger than admin_space_left(%lu)",
 		    config->space_left, config->admin_space_left);
@@ -1737,6 +1914,7 @@ static int sanity_check(struct daemon_conf *config)
 		audit_msg(LOG_WARNING, 
            "Warning - freq is non-zero and incremental flushing not selected.");
 	}
+	config->config_dir = config_dir;
 	return 0;
 }
 
@@ -1769,7 +1947,6 @@ void free_config(struct daemon_conf *config)
 {
 	free((void *)config->sender_ctx);
 	free((void *)config->log_file);
-	free((void *)config->dispatcher);
 	free((void *)config->node_name);
 	free((void *)config->action_mail_acct);
 	free((void *)config->space_left_exe);
@@ -1778,8 +1955,10 @@ void free_config(struct daemon_conf *config)
         free((void *)config->disk_error_exe);
         free((void *)config->krb5_principal);
         free((void *)config->krb5_key_file);
+	free((void *)config->plugin_dir);
         free((void *)config_dir);
         free(config_file);
+	config->config_dir = NULL;
 }
 
 int resolve_node(struct daemon_conf *config)

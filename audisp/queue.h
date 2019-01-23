@@ -1,5 +1,5 @@
 /* queue.h --
- * Copyright 2007 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2007,2018 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -23,22 +23,19 @@
 #ifndef QUEUE_HEADER
 #define QUEUE_HEADER
 
-#include "libaudit.h"
+#include <stdio.h>
+#include "libdisp.h"
 #include "audispd-config.h"
-
-typedef struct event
-{
-	struct audit_dispatcher_header hdr;
-	char data[MAX_AUDIT_MESSAGE_LENGTH];
-} event_t;
 
 
 void reset_suspended(void);
 int init_queue(unsigned int size);
-void enqueue(event_t *e, struct daemon_conf *config);
+int enqueue(event_t *e, struct disp_conf *config);
 event_t *dequeue(void);
 void nudge_queue(void);
 void increase_queue_depth(unsigned int size);
+void write_queue_state(FILE *f);
+void resume_queue(void);
 void destroy_queue(void);
 
 #endif

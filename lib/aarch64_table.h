@@ -1,5 +1,5 @@
 /* aarch64_table.h --
- * Copyright 2013-17 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2013-18 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -295,3 +295,5 @@ _S(287, "pwritev2")
 _S(288, "pkey_mprotect")
 _S(289, "pkey_alloc")
 _S(290, "pkey_free")
+_S(291, "statx")
+_S(292, "io_pgetevents")

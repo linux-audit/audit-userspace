@@ -1,4 +1,4 @@
-.TH AUDITCTL: "8" "Jan 2017" "Red Hat" "System Administration Utilities"
+.TH AUDITCTL: "8" "Aug 2018" "Red Hat" "System Administration Utilities"
 .SH NAME
 auditctl \- a utility to assist controlling the kernel's audit system
 .SH SYNOPSIS
@@ -239,7 +239,7 @@ User ID. May be numeric or the user account name.
 .RE
 .TP
 .BI \-k\  key
-Set a filter key on an audit rule. The filter key is an arbitrary string of text that can be up to 31 bytes long. It can uniquely identify the audit records produced by a rule. Typical use is for when you have several rules that together satisfy a security requirement. The key value can be searched on with ausearch so that no matter which rule triggered the event, you can find its results. The key can also be used on delete all (\-D) and list rules (\-l) to select rules with a specific key. You may have more than one key on a rule if you want to be able to search logged events in multiple ways or if you have an audispd plugin that uses a key to aid its analysis.
+Set a filter key on an audit rule. The filter key is an arbitrary string of text that can be up to 31 bytes long. It can uniquely identify the audit records produced by a rule. Typical use is for when you have several rules that together satisfy a security requirement. The key value can be searched on with ausearch so that no matter which rule triggered the event, you can find its results. The key can also be used on delete all (\-D) and list rules (\-l) to select rules with a specific key. You may have more than one key on a rule if you want to be able to search logged events in multiple ways or if you have an auditd plugin that uses a key to aid its analysis.
 .TP
 \fB\-p\fP [\fBr\fP|\fBw\fP|\fBx\fP|\fBa\fP]
 Describe the permission access type that a file system watch will trigger on. \fBr\fP=read, \fBw\fP=write, \fBx\fP=execute, \fBa\fP=attribute change. These permissions are not the standard file permissions, but rather the kind of syscall that would do this kind of thing. The read & write syscalls are omitted from this set since they would overwhelm the logs. But rather for reads or writes, the open flags are looked at to see what permission was requested.
@@ -316,7 +316,7 @@ To see if an admin is accessing other user's files:
 
 .SH FILES
 .TP
-.I /etc/audit/audit.rules
+.I /etc/audit/audit.rules /etc/audit/audit-stop.rules
 
 .SH "SEE ALSO"
 .BR audit.rules (7),

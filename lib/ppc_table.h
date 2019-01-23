@@ -1,5 +1,5 @@
 /* ppc_table.h --
- * Copyright 2005-09,2011-17 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2005-09,2011-18 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -385,4 +385,7 @@ _S(380, "preadv2")
 _S(381, "pwritev2")
 _S(382, "kexec_file_load")
 _S(383, "statx")
-
+_S(384, "pkey_alloc")
+_S(385, "pkey_free")
+_S(386, "pkey_mprotect")
+_S(387, "rseq")

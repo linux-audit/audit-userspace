@@ -48,7 +48,10 @@ causes auditd to immediately rotate the logs. It will consult the max_log_file_a
 
 .TP
 SIGUSR2
-causes auditd to attempt to resume logging. This is usually needed after logging has been suspended.
+causes auditd to attempt to resume logging and passing events to plugins. This is usually needed after logging has been suspended or the internal queue is overflowed. Either of these conditions depends on the applicable configuration settings.
+.TP
+SIGCONT
+causes auditd to dump a report of internal state to /var/run/auditd.state.
 
 .SH FILES
 .B /etc/audit/auditd.conf
@@ -59,15 +62,21 @@ causes auditd to attempt to resume logging. This is usually needed after logging
 .P
 .B /etc/audit/rules.d/
 - directory holding individual sets of rules to be compiled into one file by augenrules.
+.P
+.B /etc/audit/plugins.d/
+- directory holding individual plugin configuration files.
+.P
+.B /var/run/auditd.state
+- report about internal state.
 
 .SH NOTES
 A boot param of audit=1 should be added to ensure that all processes that run before the audit daemon starts is marked as auditable by the kernel. Not doing that will make a few processes impossible to properly audit.
 
-The audit daemon can receive audit events from other audit daemons via the audisp\-remote audispd plugin. The audit daemon may be linked with tcp_wrappers to control which machines can connect. If this is the case, you can add an entry to hosts.allow and deny.
+The audit daemon can receive audit events from other audit daemons via the audisp\-remote plugin. The audit daemon may be linked with tcp_wrappers to control which machines can connect. If this is the case, you can add an entry to hosts.allow and deny.
 
 .SH "SEE ALSO"
 .BR auditd.conf (5),
-.BR audispd (8),
+.BR auditd\-plugins (5),
 .BR ausearch (8),
 .BR aureport (8),
 .BR auditctl (8),

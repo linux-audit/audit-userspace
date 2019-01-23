@@ -216,10 +216,11 @@ extern "C" {
 
 #define AUDIT_LAST_CRYPTO_MSG		2499
 
+/* Events for both VMs and container orchestration software */
 #define AUDIT_FIRST_VIRT_MSG		2500
-#define AUDIT_VIRT_CONTROL		2500 /* Start, Pause, Stop VM */
+#define AUDIT_VIRT_CONTROL		2500 /* Start,Pause,Stop VM/container */
 #define AUDIT_VIRT_RESOURCE		2501 /* Resource assignment */
-#define AUDIT_VIRT_MACHINE_ID		2502 /* Binding of label to VM */
+#define AUDIT_VIRT_MACHINE_ID		2502 /* Binding of label to VM/cont */
 #define AUDIT_VIRT_INTEGRITY_CHECK	2503 /* Guest integrity results */
 #define AUDIT_VIRT_CREATE		2504 /* Creation of guest image */
 #define AUDIT_VIRT_DESTROY		2505 /* Destruction of guest image */
@@ -276,6 +277,14 @@ extern "C" {
 
 #ifndef AUDIT_FANOTIFY
 #define AUDIT_FANOTIFY		1331 /* Fanotify access decision */
+#endif
+
+#ifndef AUDIT_MAC_CALIPSO_ADD
+#define AUDIT_MAC_CALIPSO_ADD	1418 /* NetLabel: add CALIPSO DOI entry */
+#endif
+
+#ifndef AUDIT_MAC_CALIPSO_DEL
+#define AUDIT_MAC_CALIPSO_DEL	1419 /* NetLabel: del CALIPSO DOI entry */
 #endif
 
 #ifndef AUDIT_ANOM_LINK

@@ -40,8 +40,6 @@ void auparse_msg(auparse_state_t *au, int priority, const char *fmt, ...)
 
 void set_aup_message_mode(auparse_state_t *au, message_t mode,
 		debug_message_t debug); 
-char *audit_strsplit_r(char *s, char **savedpp);
-char *audit_strsplit(char *s);
 
 AUDIT_HIDDEN_END
 

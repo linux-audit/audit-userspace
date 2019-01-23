@@ -11,6 +11,54 @@
 - Add support for not equal operator in audit by executable (Ondrej Mosnacek)
 - Hide lru symbols in auparse
 - Add systemd process protections
+- Fix aureport summary time range reporting
+- Allow unlimited retries on startup for remote logging
+- Add queue_depth to remote logging stats and increase default queue_depth size
+- Fix segfault on shutdown
+- Merge auditd and audispd code
+- Close on execute init_pipe fd (#1587995)
+- Breakout audisp syslog plugin to be standalone program
+- Create a common internal library to reduce code
+- Move all audispd config files under /etc/audit/
+- Move audispd.conf settings into auditd.conf
+- Add queue depth statistics to internal state dump report
+- Add network statistics to internal state dump report
+- SIGUSR now also restarts queue processing if its suspended
+- Update lookup tables for the 4.18 kernel
+- Add auparse_normalizer support for SOFTWARE_UPDATE event
+- Add 30-ospp-v42.rules to meet new Common Criteria requirements
+- Deprecate enable_krb and replace with transport config opt for remote logging
+- Mark netlabel events as simple events so that get processed quicker
+- When auditd is reconfiguring, only SIGHUP plugins with valid pid (#1614833)
+- In aureport, fix segfault in file report
+- Add auparse_normalizer support for labeled networking events
+- Fix memory leak in audisp-remote plugin when using krb5 transport. (#1622194)
+- In ausearch/auparse, event aging is off by a second
+- In ausearch/auparse, correct event ordering to process oldest first
+- Migrate auparse python test to python3
+- auparse_reset was not clearing everything it should
+- Add support for AUDIT_MAC_CALIPSO_ADD, AUDIT_MAC_CALIPSO_DEL events
+- In ausearch/report, lightly parse selinux portion of USER_AVC events
+- Add bpf syscall command argument interpretation to auparse
+- In ausearch/report, limit record size when malformed
+- Port af_unix plugin to libev
+- In auditd, fix extract_type function for network originating events
+- In auditd, calculate right size and location for network originating events
+- Add 1 second delay to auditd stop command (#1643567)
+- Treat all network originating events as VER2 so dispatcher doesn't format it
+- If an event has a node name make it VER2 so dispatcher doesnt format it
+- In audisp-remote do an initial connection attempt (#1625156)
+- In auditd, allow expression of space left as a percentage (#1650670)
+- On PPC64LE systems, only allow 64 bit rules (#1462178)
+- Make some parts of auditd state report optional based on config
+- Update to libev-4.25
+- Fix ausearch when checkpointing a single file (Burn Alting)
+- Fix scripting in 31-privileged.rules wrt filecap (#1662516)
+- In ausearch, do not checkpt if stdin is input source
+- In libev, remove __cold__ attribute for functions to allow proper hardening
+- Add tests to configure.ac for openldap support
+- Make systemd support files use /run rather than /var/run (Christian Hesse)
+- Fix minor memory leak in auditd kerberos credentials code
 - Allow exclude and user filter by executable name (Ondrej Mosnacek)
 
 2.8.3

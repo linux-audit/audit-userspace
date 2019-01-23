@@ -33,6 +33,7 @@
 #include <libgen.h>
 #include <dirent.h>
 #include <ctype.h>
+#include "common.h"
 
 /* Local prototypes */
 struct _pair
@@ -73,7 +74,6 @@ static const struct kw_pair keywords[] =
 void clear_config(struct daemon_conf *config)
 {
 	config->local_events = 1;
-	config->qos = QOS_NON_BLOCKING;
 	config->sender_uid = 0;
 	config->sender_pid = 0;
 	config->sender_ctx = NULL;
@@ -85,7 +85,6 @@ void clear_config(struct daemon_conf *config)
 	config->flush =  FT_NONE;
 	config->freq = 0;
 	config->num_logs = 0L;
-	config->dispatcher = NULL;
 	config->node_name_format = N_NONE;
 	config->node_name = NULL;
 	config->max_log_size = 0L;

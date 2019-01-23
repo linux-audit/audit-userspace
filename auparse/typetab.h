@@ -1,5 +1,5 @@
 /* typetab.h --
- * Copyright 2007-09,2011-12,2014-17 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2007-09,2011-12,2014-18 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -140,4 +140,5 @@ _S(AUPARSE_TYPE_MACPROTO,	"macproto"	)
 _S(AUPARSE_TYPE_ESCAPED,	"invalid_context")
 _S(AUPARSE_TYPE_IOCTL_REQ,	"ioctlcmd"	)
 _S(AUPARSE_TYPE_FANOTIFY,	"resp"		)
-
+_S(AUPARSE_TYPE_ESCAPED,	"sw"		)
+_S(AUPARSE_TYPE_ESCAPED,	"root_dir"	)

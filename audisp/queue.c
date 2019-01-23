@@ -1,5 +1,5 @@
 /* queue.c --
- * Copyright 2007,2013,2015 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2007,2013,2015,2018 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -31,10 +31,11 @@ static volatile event_t **q;
 static pthread_mutex_t queue_lock;
 static pthread_cond_t queue_nonempty;
 static unsigned int q_next, q_last, q_depth, processing_suspended;
+static unsigned int currently_used, max_used, overflowed;
 static const char *SINGLE = "1";
 static const char *HALT = "0";
 static int queue_full_warning = 0;
-extern volatile int hup;
+extern volatile int disp_hup;
 #define QUEUE_FULL_LIMIT 5
 
 void reset_suspended(void)
@@ -50,12 +51,15 @@ int init_queue(unsigned int size)
 	processing_suspended = 0;
 	q_next = 0;
 	q_last = 0;
+	currently_used = 0;
+	max_used = 0;
+	overflowed = 0;
 	q_depth = size;
 	q = malloc(q_depth * sizeof(event_t *));
 	if (q == NULL)
 		return -1;
 
-	for (i=0; i<q_depth; i++) 
+	for (i=0; i < q_depth; i++) 
 		q[i] = NULL;
 
 	/* Setup IPC mechanisms */
@@ -87,8 +91,9 @@ static void change_runlevel(const char *level)
 	exit(1);
 }
 
-static void do_overflow_action(struct daemon_conf *config)
+static void do_overflow_action(struct disp_conf *config)
 {
+	overflowed = 1;
         switch (config->overflow_action)
         {
                 case O_IGNORE:
@@ -96,28 +101,28 @@ static void do_overflow_action(struct daemon_conf *config)
                 case O_SYSLOG:
 			if (queue_full_warning < QUEUE_FULL_LIMIT) {
 				syslog(LOG_ERR,
-					"queue is full - dropping event");
+				  "queue to plugins is full - dropping event");
 				queue_full_warning++;
 				if (queue_full_warning == QUEUE_FULL_LIMIT)
 					syslog(LOG_ERR,
-						"audispd queue full reporting "
+						"auditd queue full reporting "
 						"limit reached - ending "
 						"dropped event notifications");
 			}
                         break;
                 case O_SUSPEND:
                         syslog(LOG_ALERT,
-                            "Audispd is suspending event processing due to overflowing its queue.");
+                            "Auditd is suspending event passing to plugins due to overflowing its queue.");
                         processing_suspended = 1;
                         break;
                 case O_SINGLE:
                         syslog(LOG_ALERT,
-                                "Audisp is now changing the system to single user mode due to overflowing its queue");
+                                "Auditd is now changing the system to single user mode due to overflowing its queue");
                         change_runlevel(SINGLE);
                         break;
                 case O_HALT:
                         syslog(LOG_ALERT,
-                                "Audispd is now halting the system due to overflowing its queue");
+                                "Auditd is now halting the system due to overflowing its queue");
                         change_runlevel(HALT);
                         break;
                 default:
@@ -126,13 +131,14 @@ static void do_overflow_action(struct daemon_conf *config)
         }
 }
 
-void enqueue(event_t *e, struct daemon_conf *config)
+/* returns 0 on success and -1 on error */
+int enqueue(event_t *e, struct disp_conf *config)
 {
 	unsigned int n, retry_cnt = 0;
 
 	if (processing_suspended) {
 		free(e);
-		return;
+		return 0;
 	}
 
 retry:
@@ -140,7 +146,7 @@ retry:
 	if (retry_cnt > 3) {
 		do_overflow_action(config);
 		free(e);
-		return;
+		return -1;
 	}
 	pthread_mutex_lock(&queue_lock);
 
@@ -149,6 +155,9 @@ retry:
 	if (q[n] == NULL) {
 		q[n] = e;
 		q_next = (n+1) % q_depth;
+		currently_used++;
+		if (currently_used > max_used)
+			max_used = currently_used;
 		pthread_cond_signal(&queue_nonempty);
 		pthread_mutex_unlock(&queue_lock);
 	} else {
@@ -160,6 +169,7 @@ retry:
 		retry_cnt++;
 		goto retry;
 	}
+	return 0;
 }
 
 event_t *dequeue(void)
@@ -169,13 +179,17 @@ event_t *dequeue(void)
 
 	// Wait until its got something in it
 	pthread_mutex_lock(&queue_lock);
-	if (hup) {
+	if (disp_hup) {
 		pthread_mutex_unlock(&queue_lock);
 		return NULL;
 	}
 	n = q_last%q_depth;
 	if (q[n] == NULL) {
 		pthread_cond_wait(&queue_nonempty, &queue_lock);
+		if (disp_hup) {
+			pthread_mutex_unlock(&queue_lock);
+			return NULL;
+		}
 		n = q_last%q_depth;
 	}
 
@@ -187,6 +201,7 @@ event_t *dequeue(void)
 	} else
 		e = NULL;
 
+	currently_used--;
 	pthread_mutex_unlock(&queue_lock);
 
 	// Process the event
@@ -212,6 +227,22 @@ void increase_queue_depth(unsigned int size)
 		q_depth = size;
 	}
 	pthread_mutex_unlock(&queue_lock);
+}
+
+void write_queue_state(FILE *f)
+{
+	fprintf(f, "current plugin queue depth = %u\n", currently_used);
+	fprintf(f, "max plugin queue depth used = %u\n", max_used);
+	fprintf(f, "plugin queue size = %u\n", q_depth);
+	fprintf(f, "plugin queue overflow detected = %s\n",
+				overflowed ? "yes" : "no");
+	fprintf(f, "plugin queueing suspended = %s\n",
+				processing_suspended ? "yes" : "no");
+}
+
+void resume_queue(void)
+{
+	processing_suspended = 0;
 }
 
 void destroy_queue(void)

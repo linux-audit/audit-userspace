@@ -10,7 +10,7 @@ prog="auditd"
 . /etc/init.d/functions
 
 printf "Stopping logging: "
-killproc $prog -TERM
+killproc -d 1 $prog -TERM
 RETVAL=$?
 echo
 exit $RETVAL

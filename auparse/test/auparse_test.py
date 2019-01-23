@@ -1,6 +1,4 @@
-#!/usr/bin/env python
-
-from __future__ import print_function
+#!/usr/bin/env python3
 
 import os
 srcdir = os.getenv('srcdir')
@@ -8,11 +6,11 @@ srcdir = os.getenv('srcdir')
 buf = ["type=LOGIN msg=audit(1143146623.787:142): login pid=2027 uid=0 old auid=4294967295 new auid=848\ntype=SYSCALL msg=audit(1143146623.875:143): arch=c000003e syscall=188 success=yes exit=0 a0=7fffffa9a9f0 a1=3958d11333 a2=5131f0 a3=20 items=1 pid=2027 auid=848 uid=0 gid=0 euid=0 suid=0 fsuid=0 egid=0 sgid=0 fsgid=0 tty=tty3 comm=\"login\" exe=\"/bin/login\" subj=system_u:system_r:local_login_t:s0-s0:c0.c255\n",
 "type=USER_LOGIN msg=audit(1143146623.879:146): user pid=2027 uid=0 auid=848 msg=\'uid=848: exe=\"/bin/login\" (hostname=?, addr=?, terminal=tty3 res=success)\'\n",
 ]
-files = [srcdir + "/test.log", srcdir + "/test2.log"]
+files = ["%s%s" % (srcdir,"/test.log"), "%s%s" % (srcdir,"/test2.log")]
 
 import sys
 import time
-load_path = '../../bindings/python/build/lib.linux-i686-2.4'
+load_path = '../../bindings/python/python3'
 if False:
     sys.path.insert(0, load_path)
 
@@ -30,11 +28,11 @@ def walk_test(au):
     event_cnt = 1
 
     au.reset()
-    while True:
-        if not au.first_record():
-            print("Error getting first record")
-            sys.exit(1)
+    if not au.first_record():
+        print("Error getting first record")
+        sys.exit(1)
 
+    while True:
         print("event %d has %d records" % (event_cnt, au.get_num_records()))
 
         record_cnt = 1
@@ -164,7 +162,6 @@ print("Test 1 Done\n")
 
 # Reset, now lets go to beginning and walk the list manually */
 print("Starting Test 2, walk events, records, and fields...")
-au.reset()
 walk_test(au)
 print("Test 2 Done\n")
 
@@ -176,7 +173,8 @@ light_test(au);
 print("Test 3 Done\n")
 
 print("Starting Test 4, walk events, records of 1 file...")
-au = auparse.AuParser(auparse.AUSOURCE_FILE, srcdir + "/test.log");
+file1 = "%s%s" % (srcdir,"/test.log")
+au = auparse.AuParser(auparse.AUSOURCE_FILE, file1);
 walk_test(au); 
 print("Test 4 Done\n")
 

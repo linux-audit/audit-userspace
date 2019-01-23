@@ -109,7 +109,7 @@ Flush output on every line. Most useful when stdout is connected to a pipe and t
 .BR \-m ,\  \-\-message \ \fImessage-type\fP\ |\ \fIcomma-sep-message-type-list\fP
 Search for an event matching the given \fImessage type\fP. (Message types are also known as record types.) You may also enter a \fIcomma separated list of message types\fP or multiple individual message types each with its own \fI-m\fP option. There is an \fBALL\fP message type that doesn't exist in the actual logs. It allows you to get all messages in the system. The list of valid messages types is long. The program will display the list whenever no message type is passed with this parameter. The message type can be either text or numeric. If you enter a list, there can be only commas and no spaces separating the list.
 .TP
-.BR \-n ,\  \-\-node \
+.BR \-n ,\  \-\-node
 Search for events originating from a specific machine. Multiple nodes are allowed, and if any nodes match, the event is matched. This search uses the node field in audit events. Also see the \-\-host command which search for events related to host information in the audit trail.
 .TP
 .BR \-o ,\  \-\-object \ \fISE-Linux-context-string\fP
@@ -225,6 +225,11 @@ checkpoint processing error
 .TP
 12
 checkpoint event not found in matching log file
+.SH NOTE
+The boot time option is a convenience function and has limitations. The time it calculates is based on time now minus /proc/uptime. If after boot the system clock has been adjusted, perhaps by ntp, then the calculation may be wrong. In that case you'll need to fully specify the time. You can check the time it would use by running:
+
+date -d "`cut \-f1 \-d. /proc/uptime` seconds ago"
+
 .SH "SEE ALSO"
 .BR auditd (8),
 .BR pam_loginuid (8).

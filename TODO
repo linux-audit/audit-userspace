@@ -1,18 +1,17 @@
 Future roadmap (subject to change):
 ===================================
 3.0
-* Support TLS PSK as remote logging transport
-* Performance improvements for auparse (Memory management)
-* In audispd, look into non-blocking handling of write to plugins
-* Look at pulling audispd into auditd
 * Container support
 
 3.1
+* Support TLS PSK as remote logging transport
+* Performance improvements for auparse (Memory management)
 * Basic HIDS based on reactive audit component
+* Support multiple time streams when searching
+* In audispd, look into non-blocking handling of write to plugins
 * Add rule verify to detect mismatch between in-kernel and on-disk rules
 * If auparse input is a pipe timeout events by wall clock
 * Fix audit.pc.in to use Requires.private
-* Support multiple time streams when searching
 
 3.1.1
 * Add keywords for time: month-ago

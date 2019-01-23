@@ -1,5 +1,5 @@
 /* audisp-remote.c --
- * Copyright 2008-2012,2016 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2008-2012,2016,2018 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -52,9 +52,9 @@
 #include "private.h"
 #include "remote-config.h"
 #include "queue.h"
-#include "remote-fgets.h"
+#include "common.h"
 
-#define CONFIG_FILE "/etc/audisp/audisp-remote.conf"
+#define CONFIG_FILE "/etc/audit/audisp-remote.conf"
 #define BUF_SIZE 32
 
 /* MAX_AUDIT_MESSAGE_LENGTH, aligned to 4 KB so that an average q_append() only
@@ -73,7 +73,8 @@ static volatile int suspend = 0;
 static volatile int dump = 0;
 static volatile int transport_ok = 0;
 static volatile int sock=-1;
-static volatile int remote_ended = 0, quiet = 0;
+// We start with remote_ended true so it retries on startup
+static volatile int remote_ended = 1, quiet = 0;
 static int ifd;
 remote_conf_t config;
 static int warned = 0;
@@ -97,8 +98,11 @@ static int ar_write (int, const void *, int);
    credentials.  These are the ones we talk to the server with.  */
 gss_ctx_id_t my_context;
 
+#define KEYTAB_NAME "/etc/audisp/audisp-remote.key"
+#define CCACHE_NAME "MEMORY:audisp-remote"
+
 #define REQ_FLAGS GSS_C_MUTUAL_FLAG | GSS_C_REPLAY_FLAG | GSS_C_INTEG_FLAG | GSS_C_CONF_FLAG
-#define USE_GSS (config.enable_krb5)
+#define USE_GSS (config.transport == T_KRB5)
 #endif
 
 /* Compile-time expression verification */
@@ -140,11 +144,12 @@ static void user1_handler( int sig )
 static void dump_stats(struct queue *queue)
 {
 	syslog(LOG_INFO,
-		"suspend=%s, remote_ended=%s, transport_ok=%s, queue_size=%zu",
+		"suspend=%s, remote_ended=%s, transport_ok=%s, queued_items=%zu, queue_depth=%u",
 		suspend ? "yes" : "no",
 		remote_ended ? "yes" : "no",
 		transport_ok ? "yes" : "no",
-		q_queue_length(queue));
+		q_queue_length(queue),
+		config.queue_depth);
 	dump = 0;
 }
 
@@ -335,7 +340,7 @@ static int remote_server_ending_handler (const char *message)
 	stop_transport();
 	remote_ended = 1;
 	return do_action ("remote server is going down", message,
-			  LOG_NOTICE,
+			  LOG_WARNING,
 			  config.remote_ending_action,
 			  config.remote_ending_exe);
 }
@@ -450,8 +455,8 @@ int main(int argc, char *argv[])
 {
 	struct sigaction sa;
 	struct queue *queue;
-	int rc;
 	size_t q_len;
+	int connected_once = 0;
 
 	/* Register sighandlers */
 	sa.sa_flags = 0;
@@ -475,11 +480,7 @@ int main(int argc, char *argv[])
 	ifd = 0;
 	fcntl(ifd, F_SETFL, O_NONBLOCK);
 
-	/* We fail here if the transport can't be initialized because of some
-	 * permanent (i.e. operator) problem, such as misspelled host name. */
-	rc = init_transport();
-	if (rc == ET_PERMANENT)
-		return 1;
+	// Start up the queue
 	queue = init_queue();
 	if (queue == NULL) {
 		syslog(LOG_ERR, "Error initializing audit record queue: %m");
@@ -555,14 +556,17 @@ int main(int argc, char *argv[])
 		// See if input fd is also set
 		if (FD_ISSET(ifd, &rfd)) {
 			do {
-				if (remote_fgets(event, sizeof(event), ifd)) {
+				if (audit_fgets(event, sizeof(event), ifd)) {
 					if (!transport_ok && remote_ended && 
-						config.remote_ending_action ==
-								 FA_RECONNECT) {
+						(config.remote_ending_action ==
+								FA_RECONNECT ||
+							!connected_once)) {
 						quiet = 1;
 						if (init_transport() ==
-								ET_SUCCESS)
+								ET_SUCCESS) {
 							remote_ended = 0;
+							connected_once = 1;
+						}
 						quiet = 0;
 					}
 					/* Strip out EOE records */
@@ -587,9 +591,9 @@ int main(int argc, char *argv[])
 						else
 							queue_error();
 					}
-				} else if (remote_fgets_eof())
+				} else if (audit_fgets_eof())
 					stop = 1;
-			} while (remote_fgets_more(sizeof(event)));
+			} while (audit_fgets_more(sizeof(event)));
 		}
 		// See if output fd is also set
 		if (sock >= 0 && FD_ISSET(sock, &wfd)) {
@@ -744,9 +748,6 @@ static void gss_failure (const char *msg, int major_status, int minor_status)
 #define KCHECK(x,f) if (x) { \
 		syslog (LOG_ERR, "krb5 error: %s in %s\n", krb5_get_error_message (kcontext, x), f); \
 		return -1; }
-
-#define KEYTAB_NAME "/etc/audisp/audisp-remote.key"
-#define CCACHE_NAME "MEMORY:audisp-remote"
 
 /* Each time we connect to the server, we negotiate a set of credentials and
    a security context. To do this, we need our own credentials first. For
@@ -973,7 +974,7 @@ static int negotiate_credentials (void)
 #endif
 	return 0;
 }
-#endif
+#endif // USE_GSSAPI
 
 static int stop_sock(void)
 {
@@ -995,6 +996,10 @@ static int stop_transport(void)
 	{
 		case T_TCP:
 			rc = stop_sock();
+			break;
+		case T_KRB5:
+			// FIXME: shutdown kerberos
+			rc = -1;
 			break;
 		default:
 			rc = -1;
@@ -1116,7 +1121,7 @@ next_try:
 
 #ifdef USE_GSSAPI
 	if (USE_GSS) {
-		if (negotiate_credentials ()) {
+		if (negotiate_credentials()) {
 			rc = ET_PERMANENT;
 			goto out;
 		}
@@ -1286,12 +1291,14 @@ static int recv_msg_gss (unsigned char *header, char *msg, uint32_t *mlen)
 	if (major_status != GSS_S_COMPLETE) {
 		gss_failure("decrypting message", major_status, minor_status);
 		free (utok.value);
+		free (etok.value);
 		return -1;
 	}
 
 	if (utok.length < AUDIT_RMW_HEADER_SIZE) {
 		sync_error_handler ("message too short");
 		free (utok.value);
+		free (etok.value);
 		return -1;
 	}
 	memcpy (header, utok.value, AUDIT_RMW_HEADER_SIZE);
@@ -1299,6 +1306,7 @@ static int recv_msg_gss (unsigned char *header, char *msg, uint32_t *mlen)
 	if (! AUDIT_RMW_IS_MAGIC (header, AUDIT_RMW_HEADER_SIZE)) {
 		sync_error_handler ("bad magic number");
 		free (utok.value);
+		free (etok.value);
 		return -1;
 	}
 
@@ -1307,6 +1315,7 @@ static int recv_msg_gss (unsigned char *header, char *msg, uint32_t *mlen)
 	if (rlen > MAX_AUDIT_MESSAGE_LENGTH) {
 		sync_error_handler ("message too long");
 		free (utok.value);
+		free (etok.value);
 		return -1;
 	}
 
@@ -1315,9 +1324,10 @@ static int recv_msg_gss (unsigned char *header, char *msg, uint32_t *mlen)
 	*mlen = rlen;
 
 	free (utok.value);
+	free (etok.value);
 	return 0;
 }
-#endif
+#endif // USE_GSSAPI
 
 static int send_msg_tcp (unsigned char *header, const char *msg, uint32_t mlen)
 {

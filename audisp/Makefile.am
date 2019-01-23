@@ -1,5 +1,5 @@
 # Makefile.am-- 
-# Copyright 2007,2011,2015-16 Red Hat Inc., Durham, North Carolina.
+# Copyright 2007,2011,2015-16,2018 Red Hat Inc., Durham, North Carolina.
 # All Rights Reserved.
 #
 # This program is free software; you can redistribute it and/or modify
@@ -22,19 +22,14 @@
 
 SUBDIRS = plugins 
 CONFIG_CLEAN_FILES = *.rej *.orig
-AUTOMAKE_OPTIONS = no-dependencies
-AM_CPPFLAGS = -I${top_srcdir} -I${top_srcdir}/lib
-sbin_PROGRAMS = audispd
-noinst_HEADERS = audispd-config.h audispd-pconfig.h audispd-llist.h \
-	queue.h audispd-builtins.h
+AM_CPPFLAGS = -D_GNU_SOURCE -fPIC -DPIC -I${top_srcdir} -I${top_srcdir}/lib -I${top_srcdir}/src -I${top_srcdir}/src/libev
 LIBS = -L${top_builddir}/lib -laudit 
 LDADD = -lpthread
-AM_CFLAGS = -D_REENTRANT 
 
-audispd_SOURCES = audispd.c audispd-config.c audispd-pconfig.c \
-	audispd-llist.c queue.c audispd-builtins.c
-audispd_CFLAGS = -fPIE -DPIE -g -D_GNU_SOURCE
-audispd_LDFLAGS = -pie -Wl,-z,relro -Wl,-z,now
+noinst_HEADERS = audispd-pconfig.h audispd-llist.h audispd-config.h \
+	queue.h audispd-builtins.h libdisp.h
+libdisp_a_SOURCES = audispd.c audispd-pconfig.c queue.c \
+	audispd-llist.c audispd-builtins.c
+libdisp_a_CFLAGS = -fno-strict-aliasing
+noinst_LIBRARIES = libdisp.a
 
-install-exec-hook:
-	chmod 0750 $(DESTDIR)$(sbindir)/audispd

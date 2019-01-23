@@ -26,7 +26,7 @@ CONFIG_CLEAN_FILES = *.loT *.rej *.orig
 EXTRA_DIST = syscall-update.txt
 VERSION_INFO = 1:0
 AM_CFLAGS = -fPIC -DPIC -D_GNU_SOURCE
-AM_CPPFLAGS = -I. -I${top_srcdir} -I${top_srcdir}/auparse
+AM_CPPFLAGS = -I. -I${top_srcdir} -I${top_srcdir}/auparse -I${top_srcdir}/common
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = audit.pc
@@ -34,11 +34,12 @@ DISTCLEANFILES = $(pkgconfig_DATA)
 
 lib_LTLIBRARIES = libaudit.la
 include_HEADERS = libaudit.h
+
 libaudit_la_SOURCES = libaudit.c message.c netlink.c \
 	lookup_table.c audit_logging.c deprecated.c \
-	strsplit.c dso.h private.h errormsg.h
-libaudit_la_LIBADD = $(CAPNG_LDADD)
-libaudit_la_DEPENDENCIES = $(libaudit_la_SOURCES) ../config.h
+	dso.h private.h errormsg.h
+libaudit_la_LIBADD = $(CAPNG_LDADD) ${top_builddir}/common/libaucommon.a
+libaudit_la_DEPENDENCIES = $(libaudit_la_SOURCES) ../config.h ${top_builddir}/common/libaucommon.a
 libaudit_la_LDFLAGS = -Wl,-z,relro -version-info $(VERSION_INFO)
 nodist_libaudit_la_SOURCES = $(BUILT_SOURCES)
 

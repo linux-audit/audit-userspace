@@ -1,5 +1,5 @@
 /* audispd-config.h -- 
- * Copyright 2007-08 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2007-08,2018 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -24,26 +24,15 @@
 #ifndef AUDISPD_CONFIG_H
 #define AUDISPD_CONFIG_H
 
-#include "libaudit.h"
+#include "auditd-config.h"
 
-typedef enum { O_IGNORE, O_SYSLOG, O_SUSPEND, O_SINGLE,
-		O_HALT } overflow_action_t;
-typedef enum { N_NONE, N_HOSTNAME, N_FQD, N_NUMERIC, N_USER } node_t;
-
-typedef struct daemon_conf
+typedef struct disp_conf
 {
 	unsigned int q_depth;
 	overflow_action_t overflow_action;
-	unsigned int priority_boost;
 	unsigned int max_restarts;
-	node_t node_name_format;
-	const char *name;
 	char *plugin_dir;
 } daemon_conf_t;
-
-void clear_config(daemon_conf_t *config);
-int  load_config(daemon_conf_t *config, const char *file);
-void free_config(daemon_conf_t *config);
 
 #endif
 

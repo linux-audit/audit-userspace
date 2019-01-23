@@ -44,11 +44,11 @@
  * Both record and field are 0 based. Simple records are always 0. Compound
  * records start at 0 and go up.
  */
-#define UNSET 0xFFFF
-#define get_record(y) ((y >> 16) & 0x0000FFFF)
-#define set_record(y, x) (((x & 0x0000FFFF) << 16) | (y & 0x0000FFFF))
-#define get_field(y) (y & 0x0000FFFF)
-#define set_field(y, x) ((y & 0xFFFF0000) | (x & 0x0000FFFF))
+#define UNSET 0xFFFFU
+#define get_record(y) ((y >> 16) & 0x0000FFFFU)
+#define set_record(y, x) (((x & 0x0000FFFFU) << 16) | (y & 0x0000FFFFU))
+#define get_field(y) (y & 0x0000FFFFU)
+#define set_field(y, x) ((y & 0xFFFF0000U) | (x & 0x0000FFFFU))
 #define is_unset(y) (get_record(y) == UNSET)
 #define D au->norm_data
 
@@ -123,7 +123,7 @@ static unsigned int set_subject_what(auparse_state_t *au)
 
 check:
 	if (uid == NORM_ACCT_PRIV)
-		D.actor.what = strdup("priviliged-acct");
+		D.actor.what = strdup("privileged-acct");
 	else if ((unsigned)uid == NORM_ACCT_UNSET)
 		D.actor.what = strdup("unset-acct");
 	else if (uid < NORM_ACCT_MAX_SYS)
@@ -910,6 +910,7 @@ static const char *normalize_determine_evkind(int type)
 		case AUDIT_NETFILTER_CFG:
 		case AUDIT_FEATURE_CHANGE ... AUDIT_REPLACE:
 		case AUDIT_USER_DEVICE:
+		case AUDIT_SOFTWARE_UPDATE:
 			kind = NORM_EVTYPE_CONFIG;
 			break;
 		case AUDIT_SECCOMP:
@@ -1187,6 +1188,11 @@ static value_t find_simple_object(auparse_state_t *au, int type)
 			f = auparse_find_field(au, "device");
 			D.thing.what = NORM_WHAT_KEYSTROKES;
 			break;
+		case AUDIT_SOFTWARE_UPDATE:
+			auparse_first_record(au);
+			f = auparse_find_field(au, "sw");
+			D.thing.what = NORM_WHAT_SOFTWARE;
+			break;
 		case AUDIT_VIRT_MACHINE_ID:
 			f = auparse_find_field(au, "vm");
 			D.thing.what = NORM_WHAT_VM;
@@ -1286,6 +1292,9 @@ static value_t find_simple_obj_secondary(auparse_state_t *au, int type)
 		case AUDIT_CRYPTO_SESSION:
 			f = auparse_find_field(au, "rport");
 			break;
+		case AUDIT_SOFTWARE_UPDATE:
+			f = auparse_find_field(au, "sw_type");
+			break;
 		default:
 			break;
 	}
@@ -1310,6 +1319,9 @@ static value_t find_simple_obj_primary2(auparse_state_t *au, int type)
 			break;
 		case AUDIT_VIRT_RESOURCE:
 			f = auparse_find_field(au, "vm");
+			break;
+		case AUDIT_SOFTWARE_UPDATE:
+			f = auparse_find_field(au, "root_dir");
 			break;
 		default:
 			break;
@@ -1573,6 +1585,49 @@ map:
 		return 0;
 	}
 
+	// Labeled networking events are atypical
+	if (type >= AUDIT_MAC_UNLBL_ALLOW && type <= AUDIT_LAST_SELINUX) {
+		// Subject - primary
+		set_prime_subject(au, "auid", 0);
+
+		// We don't have a secondary subject, so set it to auid
+		set_subject_what(au);
+
+		// Session
+		add_session(au, 0);
+
+		// Subject attrs
+		add_subj_attr(au, "subj", 0);
+
+		// action
+		if (type == AUDIT_MAC_UNLBL_ALLOW) {
+			f = auparse_find_field(au, "unlbl_accept");
+			if (f) {
+			    if (auparse_get_field_int(au) == 1)
+			      act = "is-allowing-unlabeled-network-traffic";
+			    else
+			      act = "is-disallowing-unlabeled-network-traffic";
+			} else
+				auparse_first_record(au);
+		} else
+			act = normalize_record_map_i2s(type);
+
+		if (act)
+			D.action = strdup(act);
+
+		if (type == AUDIT_MAC_MAP_ADD || type == AUDIT_MAC_MAP_DEL) {
+			if (set_prime_object(au, "nlbl_domain", 0))
+				auparse_first_record(au);
+		}
+
+		// Object type
+		D.thing.what = NORM_WHAT_MAC_CONFIG;
+
+		// Results
+		set_results(au, 0);
+		return 0;
+	}
+
 	// This is for events that follow:
 	// uid, auid, ses, res, find_simple_object
 	//
@@ -1628,6 +1683,10 @@ map:
 	if (D.opt == NORM_OPT_ALL) {
 		if (type == AUDIT_USER_DEVICE) {
 			add_obj_attr(au, "uuid", 0);
+		} else if (type == AUDIT_SOFTWARE_UPDATE) {
+			auparse_first_record(au);
+			add_obj_attr(au, "key_enforce", 0);
+			add_obj_attr(au, "gpg_res", 0);
 		}
 	}
 

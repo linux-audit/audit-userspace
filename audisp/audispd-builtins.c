@@ -1,6 +1,6 @@
 /*
 * audispd-builtins.c - some common builtin plugins
-* Copyright (c) 2007,2010,2013 Red Hat Inc., Durham, North Carolina.
+* Copyright (c) 2007,2010,2013,2018 Red Hat Inc., Durham, North Carolina.
 * All Rights Reserved. 
 *
 * This software may be freely redistributed and/or modified under the
@@ -34,17 +34,21 @@
 #include <sys/stat.h>
 #include <sys/uio.h> // writev
 #include <fcntl.h>
+#include <stdio.h>
+#include "ev.h"
 #include "audispd-pconfig.h"
 #include "audispd-builtins.h"
 
+// Global data
+extern struct ev_loop *loop;
+
 // Local data
 static volatile int sock = -1, conn = -1;
-static int syslog_started = 0, priority;
 static char *path = NULL;
+static struct ev_io af_unix_watcher;
 
 // Local prototypes
 static void init_af_unix(const plugin_conf_t *conf);
-static void init_syslog(const plugin_conf_t *conf);
 
 
 void start_builtin(plugin_conf_t *conf)
@@ -52,9 +56,6 @@ void start_builtin(plugin_conf_t *conf)
 	if (strcasecmp("builtin_af_unix", conf->path) == 0) {
 		conf->type = S_AF_UNIX;
 		init_af_unix(conf);
-	} else if (strcasecmp("builtin_syslog", conf->path) == 0) {
-		conf->type = S_SYSLOG;
-		init_syslog(conf);
 	} else
 		syslog(LOG_ERR, "Unknown builtin %s", conf->path);
 }
@@ -63,25 +64,39 @@ void stop_builtin(plugin_conf_t *conf)
 {
 	if (conf->type == S_AF_UNIX)
 		destroy_af_unix();
-	else if (conf->type == S_SYSLOG)
-		destroy_syslog();
 	else
 		syslog(LOG_ERR, "Unknown builtin %s", conf->path);
 }
 
-static void af_unix_accept(int fd)
+static int watching = 0;
+static void stop_watching(void)
+{
+	if (watching) {
+		ev_io_stop(loop, &af_unix_watcher);
+		watching = 0;
+	}
+}
+
+static void af_unix_accept(struct ev_loop *l, struct ev_io *_io, int revents)
 {
 	int cmd;
 
 	do {
-		conn = accept(fd, NULL, NULL);
+		conn = accept(_io->fd, NULL, NULL);
 	} while (conn < 0 && errno == EINTR);
 
 	// De-register since this is intended to be one listener
 	if (conn >= 0)
-		remove_event(fd);
+		stop_watching();
 	cmd = fcntl(conn, F_GETFD);
 	fcntl(conn, F_SETFD, cmd|FD_CLOEXEC);
+}
+
+static void start_watching(void)
+{
+	ev_io_init(&af_unix_watcher, af_unix_accept, sock, EV_READ);
+	ev_io_start(loop, &af_unix_watcher);
+	watching = 1;
 }
 
 static int create_af_unix_socket(const char *path, int mode)
@@ -98,7 +113,7 @@ static int create_af_unix_socket(const char *path, int mode)
 	}
 	memset(&addr, 0, sizeof(addr));
 	addr.sun_family = AF_UNIX;
-	strcpy(&addr.sun_path[0], path);
+	snprintf(&addr.sun_path[0], 108, "%.107s", path);
 	len = sizeof(addr);
 	rc = bind(sock, (const struct sockaddr *)&addr,	len);
 	if (rc < 0) {
@@ -128,8 +143,8 @@ static int create_af_unix_socket(const char *path, int mode)
 	// Make socket listening...won't block
 	(void)listen(sock, 5);
 
-	// Register socket with poll
-	add_event(sock, af_unix_accept);
+	// Register socket with libev
+	start_watching();
 	return 0;
 }
 
@@ -219,7 +234,8 @@ void send_af_unix_string(const char *s, unsigned int len)
 		if (rc < 0 && errno == EPIPE) {
 			close(conn);
 			conn = -1;
-			add_event(sock, af_unix_accept);
+			stop_watching();
+			start_watching();
 		}
 	} 
 }
@@ -243,114 +259,35 @@ void send_af_unix_binary(event_t *e)
 		if (rc < 0 && errno == EPIPE) {
 			close(conn);
 			conn = -1;
-			add_event(sock, af_unix_accept);
+			stop_watching();
+			start_watching();
 		}
 	} 
 }
 
 void destroy_af_unix(void)
 {
+	int did_something = 0;
 	if (conn >= 0) {
 		close(conn);
 		conn = -1;
+		did_something = 1;
 	}
+	stop_watching();
 	if (sock >= 0) {
+
 		close(sock);
 		sock = -1;
+		did_something = 1;
+		
 	}
 	if (path) {
 		unlink(path);
 		free(path);
 		path = NULL;
+		did_something = 1;
 	}
-}
-
-static void init_syslog(const plugin_conf_t *conf)
-{
-	int i, facility = LOG_USER;
-	priority = LOG_INFO;
-
-	for (i = 1; i<3; i++) {
-		if (conf->args[i]) {
-			if (strcasecmp(conf->args[i], "LOG_DEBUG") == 0)
-				priority = LOG_DEBUG;
-			else if (strcasecmp(conf->args[i], "LOG_INFO") == 0)
-				priority = LOG_INFO;
-			else if (strcasecmp(conf->args[i], "LOG_NOTICE") == 0)
-				priority = LOG_NOTICE;
-			else if (strcasecmp(conf->args[i], "LOG_WARNING") == 0)
-				priority = LOG_WARNING;
-			else if (strcasecmp(conf->args[i], "LOG_ERR") == 0)
-				priority = LOG_ERR;
-			else if (strcasecmp(conf->args[i], "LOG_CRIT") == 0)
-				priority = LOG_CRIT;
-			else if (strcasecmp(conf->args[i], "LOG_ALERT") == 0)
-				priority = LOG_ALERT;
-			else if (strcasecmp(conf->args[i], "LOG_EMERG") == 0)
-				priority = LOG_EMERG;
-			else if (strcasecmp(conf->args[i], "LOG_LOCAL0") == 0)
-				facility = LOG_LOCAL0;
-			else if (strcasecmp(conf->args[i], "LOG_LOCAL1") == 0)
-				facility = LOG_LOCAL1;
-			else if (strcasecmp(conf->args[i], "LOG_LOCAL2") == 0)
-				facility = LOG_LOCAL2;
-			else if (strcasecmp(conf->args[i], "LOG_LOCAL3") == 0)
-				facility = LOG_LOCAL3;
-			else if (strcasecmp(conf->args[i], "LOG_LOCAL4") == 0)
-				facility = LOG_LOCAL4;
-			else if (strcasecmp(conf->args[i], "LOG_LOCAL5") == 0)
-				facility = LOG_LOCAL5;
-			else if (strcasecmp(conf->args[i], "LOG_LOCAL6") == 0)
-				facility = LOG_LOCAL6;
-			else if (strcasecmp(conf->args[i], "LOG_LOCAL7") == 0)
-				facility = LOG_LOCAL7;
-			else if (strcasecmp(conf->args[i], "LOG_AUTH") == 0)
-				facility = LOG_AUTH;
-			else if (strcasecmp(conf->args[i], "LOG_AUTHPRIV") == 0)
-				facility = LOG_AUTHPRIV;
-			else if (strcasecmp(conf->args[i], "LOG_DAEMON") == 0)
-				facility = LOG_DAEMON;
-			else if (strcasecmp(conf->args[i], "LOG_SYSLOG") == 0)
-				facility = LOG_SYSLOG;
-			else if (strcasecmp(conf->args[i], "LOG_USER") == 0)
-				facility = LOG_USER;
-			else {
-				syslog(LOG_ERR, 
-					"Unknown log priority/facility %s",
-					conf->args[i]);
-				syslog_started = 0;
-				return;
-			}
-		}
-	}
-	syslog(LOG_INFO, "syslog plugin initialized");
-	if (facility != LOG_USER)
-		openlog("audispd", 0, facility);
-	syslog_started = 1;
-}
-
-void send_syslog(const char *s, uint32_t ver)
-{
-	if (syslog_started) {
-		if (ver == AUDISP_PROTOCOL_VER2) {
-			char *ptr = strdup(s);
-			if (ptr) {
-				char *c = strchr(ptr, AUDIT_INTERP_SEPARATOR);
-				if (c)
-					*c = ' ';
-				syslog(priority, "%s", ptr);
-				free(ptr);
-				return;
-			}
-		}
-		// Everything should fall through except success because
-		// something is better than nothing.
-		syslog(priority, "%s", s);
-	}
-}
-
-void destroy_syslog(void)
-{
-	syslog_started = 0;
+	if (did_something)
+		syslog(LOG_INFO, "af_unix plugin terminated");
 }
 
