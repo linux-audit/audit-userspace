@@ -1,4 +1,4 @@
-.TH AUDIT.RULES: "7" "Aug 2014" "Red Hat" "System Administration Utilities"
+.TH AUDIT.RULES: "7" "Jan 2019" "Red Hat" "System Administration Utilities"
 .SH NAME
 audit.rules \- a set of rules loaded in the kernel audit system
 .SH DESCRIPTION
@@ -170,6 +170,13 @@ The following rule shows how to audit failed access to files due to permission p
 .B \-a always,exit \-F arch=b32 \-S open \-S openat \-F exit=\-EPERM \-k access
 .B \-a always,exit \-F arch=b64 \-S open \-S openat \-F exit=\-EACCES \-k access
 .B \-a always,exit \-F arch=b64 \-S open \-S openat \-F exit=\-EPERM \-k access
+.fi
+
+.SH HARD WIRED EVENTS
+If auditing is enabled, then you can get any event that is not caused by syscall or file watch rules (because you don't have any rules loaded). So, that means, any event from 1100-1299, 1326, 1328, 1331 and higher can be emitted. The reason that there are a number of events that are hardwired is because they are required by regulatory compliance and are sent automatically as a convenience. (For example, logon/logoff is a mandatory event in all security guidance.) If you don't want this, you can use the exclude filter to drop events that you do not want.
+
+.nf
+.B \-a always,exclude -F msgtype=CRED_REFR
 .fi
 
 .SH "SEE ALSO"
