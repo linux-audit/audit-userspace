@@ -39,9 +39,10 @@
 #define _GNU_SOURCE
 #include <stdio.h>
 #include <signal.h>
-#include <string.h>
 #include <sys/select.h>
 #include <errno.h>
+#include <unistd.h>
+#include <fcntl.h>
 #include "libaudit.h"
 #include "auparse.h"
 
@@ -77,7 +78,7 @@ static void reload_config(void)
 
 int main(int argc, char *argv[])
 {
-	char tmp[MAX_AUDIT_MESSAGE_LENGTH+1];
+	char tmp[MAX_AUDIT_MESSAGE_LENGTH];
 	struct sigaction sa;
 
 	/* Register sighandlers */
@@ -88,6 +89,8 @@ int main(int argc, char *argv[])
 	sigaction(SIGTERM, &sa, NULL);
 	sa.sa_handler = hup_handler;
 	sigaction(SIGHUP, &sa, NULL);
+	/* Set STDIN non-blocking */
+	fcntl(0, F_SETFL, O_NONBLOCK);
 
 	/* Initialize the auparse library */
 	au = auparse_init(AUSOURCE_FEED, 0);
@@ -100,6 +103,7 @@ int main(int argc, char *argv[])
 		fd_set read_mask;
 		struct timeval tv;
 		int retval = -1;
+		int read_size = 0;
 
 		/* Load configuration */
 		if (hup) {
@@ -121,14 +125,12 @@ int main(int argc, char *argv[])
 		} while (retval == -1 && errno == EINTR && !hup && !stop);
 
 		/* Now the event loop */
-		 if (!stop && !hup && retval > 0) {
-			if (fgets_unlocked(tmp, MAX_AUDIT_MESSAGE_LENGTH,
-				stdin)) {
-				auparse_feed(au, tmp, strnlen(tmp,
-						MAX_AUDIT_MESSAGE_LENGTH));
+		if (!stop && !hup && retval > 0) {
+			while ((read_size = read(0, tmp, MAX_AUDIT_MESSAGE_LENGTH)) > 0) {
+				auparse_feed(au, tmp, strnlen(tmp, read_size));
 			}
 		}
-		if (feof(stdin))
+		if (read_size == 0) /* check eof */
 			break;
 	} while (stop == 0);
 
