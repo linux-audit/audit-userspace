@@ -58,7 +58,7 @@ static void do_disk_error_action(const char *func, int err);
 static void fix_disk_permissions(void);
 static void check_excess_logs(void); 
 static void rotate_logs_now(void);
-static void rotate_logs(unsigned int num_logs);
+static void rotate_logs(unsigned int num_logs, unsigned int keep_logs);
 static void shift_logs(void);
 static int  open_audit_log(void);
 static void change_runlevel(const char *level);
@@ -699,7 +699,7 @@ static void check_log_file_size(void)
 				if (config->num_logs > 1) {
 					audit_msg(LOG_NOTICE,
 					    "Audit daemon rotating log files");
-					rotate_logs(0);
+					rotate_logs(0, 0);
 				}
 				break;
 			case SZ_KEEP_LOGS:
@@ -780,7 +780,7 @@ static void do_space_left_action(int admin)
 			if (config->num_logs > 1) {
 				audit_msg(LOG_NOTICE,
 					"Audit daemon rotating log files");
-				rotate_logs(0);
+				rotate_logs(0, 0);
 			}
 			break;
 		case FA_EMAIL:
@@ -845,7 +845,7 @@ static void do_disk_full_action(void)
 			if (config->num_logs > 1) {
 				audit_msg(LOG_NOTICE,
 					"Audit daemon rotating log files");
-				rotate_logs(0);
+				rotate_logs(0, 0);
 			}
 			break;
 		case FA_EXEC:
@@ -931,7 +931,7 @@ static void rotate_logs_now(void)
 	if (config->max_log_size_action == SZ_KEEP_LOGS) 
 		shift_logs();
 	else
-		rotate_logs(0);
+		rotate_logs(0, 0);
 }
 
 /* Check for and remove excess logs so that we don't run out of room */
@@ -1004,18 +1004,19 @@ static void fix_disk_permissions(void)
 	free(path);
 }
  
-static void rotate_logs(unsigned int num_logs)
+static void rotate_logs(unsigned int num_logs, unsigned int keep_logs)
 {
 	int rc;
 	unsigned int len, i;
 	char *oldname, *newname;
 
-	/* Check that log rotation is enabled in the configuration file. There is
-	 * no need to check for max_log_size_action == SZ_ROTATE because this could be
-	 * invoked externally by receiving a USR1 signal, independently on
-	 *  the action parameter. */
-	if (config->num_logs < 2){
-		audit_msg(LOG_NOTICE, "Log rotation disabled (num_logs < 2), skipping");
+	/* Check that log rotation is enabled in the configuration file. There
+	 * is no need to check for max_log_size_action == SZ_ROTATE because
+	 * this could be invoked externally by receiving a USR1 signal,
+	 * independently on the action parameter. */
+	if (config->num_logs < 2 && !keep_logs){
+		audit_msg(LOG_NOTICE,
+			"Log rotation disabled (num_logs < 2), skipping");
 		return;
 	}
 
@@ -1153,7 +1154,7 @@ static void shift_logs(void)
 		audit_msg(LOG_INFO, "Next log to use will be %s", name);
 	}
 	last_log = num_logs;
-	rotate_logs(num_logs+1);
+	rotate_logs(num_logs+1, 1);
 	free(name);
 }
 
