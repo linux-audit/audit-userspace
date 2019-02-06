@@ -604,7 +604,7 @@ int check_params(int count, char *vars[])
 					int t = lookup_time(optarg);
 					if (t >= 0) {
 						if (ausearch_time_end(optarg,
-								NULL) != 0)
+							"00:00:00") != 0)
 							retval = -1;
 					} else if ( (strchr(optarg, ':')) == NULL) {
 						/* Only have date */
