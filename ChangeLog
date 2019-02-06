@@ -61,6 +61,7 @@
 - Fix minor memory leak in auditd kerberos credentials code
 - Allow exclude and user filter by executable name (Ondrej Mosnacek)
 - Fix auditd regression where keep_logs is limited by rotate_logs 2 file test
+- In ausearch/report fix --end to use midnight time instead of now (#1671338)
 
 2.8.3
 - Correct msg function name in LRU debug code
