@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 #
 # auditd        This starts and stops auditd
 #
@@ -39,7 +39,7 @@ if [ "$1" = "status" ] ; then
 fi
 
 # Check that we are root ... so non-root users stop here
-test $EUID = 0  ||  exit 4
+test $(id -u) = 0  ||  exit 4
 
 # Check config
 test -f /etc/sysconfig/auditd && . /etc/sysconfig/auditd
@@ -136,7 +136,7 @@ state(){
 	printf "Getting auditd internal state: "	
 	killproc $prog -CONT
 	RETVAL=$?
-	echo -e "\n"
+	printf "\n"
 	if [ $? -eq 0 ] ; then
 		if [ -e $state_file ] ; then
 			cat $state_file
