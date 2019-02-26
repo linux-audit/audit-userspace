@@ -1,6 +1,6 @@
 /*
 * interpret.c - Lookup values to something more readable
-* Copyright (c) 2007-09,2011-16,2018 Red Hat Inc., Durham, North Carolina.
+* Copyright (c) 2007-09,2011-16,2018-19 Red Hat Inc., Durham, North Carolina.
 * All Rights Reserved. 
 *
 * This library is free software; you can redistribute it and/or
@@ -855,6 +855,13 @@ err_out:
 		return print_escaped(id->val);
 }
 
+// rawmemchr is faster. Let's use it if we have it.
+#ifdef HAVE_RAWMEMCHR
+#define STRCHR rawmemchr
+#else
+#define STRCHR strchr
+#endif
+
 static const char *print_proctitle(const char *val)
 {
 	char *out = (char *)print_escaped(val);
@@ -865,7 +872,7 @@ static const char *print_proctitle(const char *val)
 		// Proctitle has arguments separated by NUL bytes
 		// We need to write over the NUL bytes with a space
 		// so that we can see the arguments
-		while ((ptr  = rawmemchr(ptr, '\0'))) {
+		while ((ptr  = STRCHR(ptr, '\0'))) {
 			if (ptr >= end)
 				break;
 			*ptr = ' ';

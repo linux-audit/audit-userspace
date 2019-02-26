@@ -1,5 +1,5 @@
 /* auparse.c --
- * Copyright 2006-08,2012-17 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2006-08,2012-19 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -1118,6 +1118,16 @@ static int str2event(char *s, au_event_t *e)
 		e->serial = 0;
 	return 0;
 }
+
+#ifndef HAVE_STRNDUPA
+static inline char *strndupa(const char *old, size_t n)
+{
+	size_t len = strnlen(old, n);
+	char *tmp = alloca(len + 1);
+	tmp[len] = 0;
+	return memcpy(tmp, old, len);
+}
+#endif
 
 /* Returns 0 on success and 1 on error */
 static int extract_timestamp(const char *b, au_event_t *e)

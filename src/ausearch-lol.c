@@ -1,6 +1,6 @@
 /*
 * ausearch-lol.c - linked list of linked lists library
-* Copyright (c) 2008,2010,2014,2016 Red Hat Inc., Durham, North Carolina.
+* Copyright (c) 2008,2010,2014,2016,2019 Red Hat Inc., Durham, North Carolina.
 * All Rights Reserved. 
 *
 * This software may be freely redistributed and/or modified under the
@@ -151,6 +151,16 @@ static int compare_event_time(event *e1, event *e2)
 	}
 	return 0;
 }
+
+#ifndef HAVE_STRNDUPA
+static inline char *strndupa(const char *old, size_t n)
+{
+	size_t len = strnlen(old, n);
+	char *tmp = alloca(len + 1);
+	tmp[len] = 0;
+	return memcpy(tmp, old, len);
+}
+#endif
 
 /*
  * This function will look at the line and pick out pieces of it.

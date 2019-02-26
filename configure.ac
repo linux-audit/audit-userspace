@@ -1,7 +1,7 @@
 dnl
 define([AC_INIT_NOTICE],
 [### Generated automatically using autoconf version] AC_ACVERSION [
-### Copyright 2005-18 Steve Grubb <sgrubb@redhat.com>
+### Copyright 2005-19 Steve Grubb <sgrubb@redhat.com>
 ###
 ### Permission is hereby granted, free of charge, to any person obtaining a
 ### copy of this software and associated documentation files (the "Software"),
@@ -72,6 +72,18 @@ dnl; posix_fallocate is used in audisp-remote
 AC_CHECK_FUNCS([posix_fallocate])
 dnl; signalfd is needed for libev
 AC_CHECK_FUNC([signalfd], [], [ AC_MSG_ERROR([The signalfd system call is necessary for auditd]) ])
+dnl; check if rawmemchr is available
+AC_CHECK_FUNCS([rawmemchr])
+dnl; check if strndupa is available
+AC_LINK_IFELSE(
+  [AC_LANG_SOURCE(
+    [[
+      #define _GNU_SOURCE
+      #include <string.h>
+      int main() { (void) strndupa("test", 10); return 0; }]])],
+ [AC_DEFINE(HAVE_STRNDUPA, 1, [Let us know if we have it or not])],
+ []
+)
 
 ALLWARNS=""
 ALLDEBUG="-g"
