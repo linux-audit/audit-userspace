@@ -82,6 +82,9 @@ Add a rule to the user message filter list. This list is used by the kernel to f
 .TP
 .B exclude
 Add a rule to the event type exclusion filter list. This list is used to filter events that you do not want to see. For example, if you do not want to see any avc messages, you would using this list to record that. Events can be excluded by process ID, user ID, group ID, login user ID, message type, subject context, or executable name. The action is ignored and uses its default of "never".
+.TP
+.B filesystem
+Add a rule that will be applied to a whole filesystem. The filesystem must be identified with a fstype field. Normally this filter is used to exclude any events for a whole filesystem such as tracefs or debugfs.
 .RE
 
 The following describes the valid \fIactions\fP for the rule:
