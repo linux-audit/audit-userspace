@@ -266,6 +266,6 @@ fi
 
 
 %changelog
-* Tue Jun 19 2018 Steve Grubb <sgrubb@redhat.com> 2.8.5-1
+* Fri Mar 01 2019 Steve Grubb <sgrubb@redhat.com> 2.8.5-1
 - New upstream maintenance release
 
