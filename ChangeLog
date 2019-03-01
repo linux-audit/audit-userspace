@@ -1,3 +1,5 @@
+2.8.6
+
 2.8.5
 - Fix segfault on shutdown
 - Fix hang on startup (#1587995)
