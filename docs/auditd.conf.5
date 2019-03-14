@@ -134,8 +134,23 @@ or the default value of yes will be used.
 This option should contain a valid email address or alias. The default address is root. If the email address is not local to the machine, you must make sure you have email properly configured on your machine and network. Also, this option requires that /usr/lib/sendmail exists on the machine.
 .TP
 .I space_left
-This is a numeric value in megabytes that tells the audit daemon when
-to perform a configurable action because the system is starting to run low on disk space. You may also append a percent sign (e.g. 5%) to the number to have the audit daemon calculate the number based on the disk partition size.
+If the free space in the filesystem containing
+.IR log_file
+drops below this value, the audit daemon takes the action specified by
+.IR space_left_action .
+If the value of
+.IR space_left
+is specified as a whole number, it is interpreted as an absolute size in megabytes (MiB).  If the value is specified as a number between 1 and 99 followed by a percentage sign (e.g., 5%), the audit daemon calculates the absolute size in megabytes based on the size of the filesystem containing
+.IR log_file .
+(E.g., if the filesystem containing
+.IR log_file
+is 2 gigabytes in size, and
+.IR space_left
+is set to 25%, then the audit daemon sets 
+.IR space_left
+to approxiatemly 500 megabytes.  Note that this calculation is performed when the audit daemon starts, so if you resize the filesystem containing
+.IR log_file
+while the audit daemon is running, you should send the audit daemon SIGHUP to re-read the configuration file and recalculate the correct percentage.
 .TP
 .I space_left_action
 This parameter tells the system what action to take when the system has
