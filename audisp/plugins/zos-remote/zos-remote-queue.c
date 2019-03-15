@@ -28,7 +28,7 @@
 #include <pthread.h>
 #include <syslog.h>
 #ifndef HAVE_PTHREAD_YIELD
-#include <time.h>
+#include <sched.h>
 #endif
 #include "zos-remote-log.h"
 
@@ -83,12 +83,7 @@ retry:
 #ifdef HAVE_PTHREAD_YIELD
         pthread_yield(); /* Let dequeue thread run to clear queue */
 #else
-	{
-	struct timespec ts;
-	ts.tv_sec = 0;
-	ts.tv_nsec = 500 * 1000; // 500 microseconds
-	nanosleep(&ts, NULL); /* Let other thread try to log it. */
-	}
+	sched_yield();
 #endif
         retry_cnt++;
         goto retry;
