@@ -84,6 +84,9 @@ AC_LINK_IFELSE(
  [AC_DEFINE(HAVE_STRNDUPA, 1, [Let us know if we have it or not])],
  []
 )
+dnl; pthread_yield is used in zos-remote
+AC_SEARCH_LIBS(pthread_yield, pthread, 
+	[AC_DEFINE(HAVE_PTHREAD_YIELD, 1, [Define to 1 if we have pthread_yield])], [])
 
 ALLWARNS=""
 ALLDEBUG="-g"

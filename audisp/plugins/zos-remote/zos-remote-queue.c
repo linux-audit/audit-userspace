@@ -27,6 +27,9 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <syslog.h>
+#ifndef HAVE_PTHREAD_YIELD
+#include <time.h>
+#endif
 #include "zos-remote-log.h"
 
 static volatile BerElement **q;
@@ -77,7 +80,16 @@ retry:
         pthread_mutex_unlock(&queue_lock);
     } else {
         pthread_mutex_unlock(&queue_lock);
+#ifdef HAVE_PTHREAD_YIELD
         pthread_yield(); /* Let dequeue thread run to clear queue */
+#else
+	{
+	struct timespec ts;
+	ts.tv_sec = 0;
+	ts.tv_nsec = 500 * 1000; // 500 microseconds
+	nanosleep(&ts, NULL); /* Let other thread try to log it. */
+	}
+#endif
         retry_cnt++;
         goto retry;
     }
