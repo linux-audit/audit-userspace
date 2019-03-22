@@ -33,6 +33,26 @@ MemoryDenyWriteExecute=true
 LockPersonality=true
 ProtectControlGroups=true
 ProtectKernelModules=true
+CapabilityBoundingSet=CAP_AUDIT_CONTROL CAP_SYS_NICE CAP_SYS_ADMIN
+DeviceAllow=/dev/null rw
+DevicePolicy=strict
+IPAddressDeny=any
+LimitMEMLOCK=0
+PrivateDevices=yes
+PrivateNetwork=yes
+PrivateTmp=yes
+ProtectHome=yes
+ProtectKernelTunables=yes
+ProtectSystem=strict
+ReadOnlyPaths=/
+ReadWritePaths=/proc/self /run /tmp /var/log/audit
+RestrictAddressFamilies=AF_UNIX AF_NETLINK
+RestrictNamespaces=yes
+RestrictRealtime=yes
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+SystemCallFilter=~@clock @cpu-emulation @debug @module @mount @obsolete @raw-io @reboot @swap memfd_create mincore mlock mlockall personality
+UMask=0077
 
 [Install]
 WantedBy=multi-user.target
