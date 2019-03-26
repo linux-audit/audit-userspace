@@ -260,23 +260,6 @@ static event_list_t *au_get_ready_event(auparse_state_t *au, int is_test)
 	if (lowest && lowest->status == EBS_COMPLETE) {
 		lowest->status = EBS_EMPTY;
 		au->au_ready--;
-		// Try to consolidate the array so that we iterate
-		// over a smaller portion next time
-		if (lowest == &lol->array[lol->maxi]) {
-			au_lolnode *ptr = lowest;
-			while (ptr->status == EBS_EMPTY && lol->maxi > 0) {
-				lol->maxi--;
-				if (ptr->l) {
-					aup_list_clear(ptr->l);
-					free(ptr->l);
-					ptr->l = NULL;
-					au->le = NULL;	// this should crash
-							// usage of au->le
-							// until reset
-				}
-				ptr = &lol->array[lol->maxi];
-			}
-		}
 		return lowest->l;
 	}
 
