@@ -265,6 +265,14 @@ static event_list_t *au_get_ready_event(auparse_state_t *au, int is_test)
 			au_lolnode *ptr = lowest;
 			while (ptr->status == EBS_EMPTY && lol->maxi > 0) {
 				lol->maxi--;
+				if (ptr->l) {
+					aup_list_clear(ptr->l);
+					free(ptr->l);
+					ptr->l = NULL;
+					au->le = NULL;	// this should crash
+							// usage of au->le
+							// until reset
+				}
 				ptr = &lol->array[lol->maxi];
 			}
 		}

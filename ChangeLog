@@ -1,4 +1,5 @@
 2.8.6
+- Fix memleak in auparse caused by corrected event ordering 
 
 2.8.5
 - Fix segfault on shutdown
