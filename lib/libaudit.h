@@ -142,6 +142,9 @@ extern "C" {
 #define AUDIT_INTEGRITY_PCR		1804 /* PCR invalidation msgs */
 #define AUDIT_INTEGRITY_RULE		1805 /* Policy rule */
 #endif
+#ifndef AUDIT_INTEGRITY_EVM_XATTR
+#define AUDIT_INTEGRITY_EVM_XATTR	1806 /* New EVM-covered xattr */
+#endif
 
 #define AUDIT_FIRST_ANOM_MSG		2100
 #define AUDIT_LAST_ANOM_MSG		2199
