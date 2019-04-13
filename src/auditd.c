@@ -131,7 +131,7 @@ static void hup_handler( struct ev_loop *loop, struct ev_signal *sig, int revent
 	rc = audit_request_signal_info(fd);
 	if (rc < 0)
 		send_audit_event(AUDIT_DAEMON_CONFIG, 
-			 "op=hup-info auid=-1 pid=-1 subj=? res=failed");
+	  "op=hup-info state=request-siginfo auid=-1 pid=-1 subj=? res=failed");
 	else
 		hup_info_requested = 1;
 }
