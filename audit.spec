@@ -152,6 +152,9 @@ fi
 
 %preun
 %systemd_preun auditd.service
+if [ $1 -eq 0 ]; then
+   /sbin/service auditd stop > /dev/null 2>&1
+fi
 
 %postun libs -p /sbin/ldconfig
 
