@@ -282,6 +282,14 @@ extern "C" {
 #define AUDIT_FANOTIFY		1331 /* Fanotify access decision */
 #endif
 
+#ifndef AUDIT_TIME_INJOFFSET
+#define AUDIT_TIME_INJOFFSET	1332 /* Timekeeping offset injected */
+#endif
+
+#ifndef AUDIT_TIME_ADJNTPVAL
+#define AUDIT_TIME_ADJNTPVAL	1333 /* NTP value adjustment */
+#endif
+
 #ifndef AUDIT_MAC_CALIPSO_ADD
 #define AUDIT_MAC_CALIPSO_ADD	1418 /* NetLabel: add CALIPSO DOI entry */
 #endif
