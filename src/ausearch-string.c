@@ -118,6 +118,9 @@ int slist_add_if_uniq(slist *l, const char *str)
 	snode sn;
         register snode *cur;
 
+	if (str == NULL)
+		return -1;
+
        	cur = l->head;
 	while (cur) {
 		if (strcmp(str, cur->str) == 0) {

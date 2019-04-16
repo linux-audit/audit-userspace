@@ -49,7 +49,7 @@ static int parse_dir(const lnode *n, search_items *s);
 static int common_path_parser(search_items *s, char *path);
 static int avc_parse_path(const lnode *n, search_items *s);
 static int parse_path(const lnode *n, search_items *s);
-static int parse_user(const lnode *n, search_items *s);
+static int parse_user(const lnode *n, search_items *s, anode *avc);
 static int parse_obj(const lnode *n, search_items *s);
 static int parse_login(const lnode *n, search_items *s);
 static int parse_daemon1(const lnode *n, search_items *s);
@@ -105,7 +105,7 @@ int extract_search_items(llist *l)
 			case AUDIT_FIRST_USER_MSG...AUDIT_USER_END:
 			case AUDIT_USER_CHAUTHTOK...AUDIT_LAST_USER_MSG:
 			case AUDIT_FIRST_USER_MSG2...AUDIT_LAST_USER_MSG2:
-				ret = parse_user(n, s);
+				ret = parse_user(n, s, NULL);
 				break;
 			case AUDIT_SOCKADDR:
 				ret = parse_sockaddr(n, s);
@@ -830,7 +830,7 @@ static int parse_obj(const lnode *n, search_items *s)
 	return 0;
 }
 
-static int parse_user(const lnode *n, search_items *s)
+static int parse_user(const lnode *n, search_items *s, anode *avc)
 {
 	char *ptr, *str, *term, saved, *mptr;
 
@@ -915,7 +915,10 @@ static int parse_user(const lnode *n, search_items *s)
 			if (term == NULL)
 				return 12;
 			*term = 0;
-			if (audit_avc_init(s) == 0) {
+			if (avc) {
+				avc->scontext = strdup(str);
+				*term = ' ';
+			} else if (audit_avc_init(s) == 0) {
 				anode an;
 
 				anode_init(&an);
@@ -924,6 +927,31 @@ static int parse_user(const lnode *n, search_items *s)
 				*term = ' ';
 			} else
 				return 13;
+		}
+	}
+	// optionally get tcontext
+	if (avc && event_object) {
+		// USER_AVC tcontext
+		str = strstr(term, "tcontext=");
+		if (str != NULL) {
+			str += 9;
+			term = strchr(str, ' ');
+			if (term) {
+				*term = 0;
+				avc->tcontext = strdup(str);
+				*term = ' ';
+			}
+		}
+		// Grab tclass if it exists
+		str = strstr(term, "tclass=");
+		if (str) {
+			str += 7;
+			term = strchr(str, ' ');
+			if (term) {
+				*term = 0;
+				avc->avc_class = strdup(str);
+				*term = ' ';
+			}
 		}
 	}
 	// optionally get gid
@@ -1880,7 +1908,7 @@ static int parse_avc(const lnode *n, search_items *s)
 other_avc:
 	// User AVC's are not formatted like a kernel AVC
 	if (n->type == AUDIT_USER_AVC) {
-		rc = parse_user(n, s);
+		rc = parse_user(n, s, &an);
 		if (rc > 20)
 			rc = 0;
 		if (audit_avc_init(s) == 0) {
