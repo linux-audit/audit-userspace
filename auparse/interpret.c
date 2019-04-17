@@ -312,6 +312,16 @@ static void key_escape(char *orig, char *dest, auparse_esc_t escape_mode)
 	}
 }
 
+static int is_int_string(const char *str)
+{
+	while (*str) {
+		if (!isdigit(*str))
+			return 0;
+		str++;
+	}
+	return 1;
+}
+
 static int is_hex_string(const char *str)
 {
 	while (*str) {
@@ -444,7 +454,6 @@ int load_interpretation_list(const char *buffer)
 				*ptr = 0;
 			} else
 				tmp = 0;
-
 			n.val = strdup(val);
 			nvlist_append(&il, &n);
 			nvlist_interp_fixup(&il);
@@ -2876,6 +2885,19 @@ int auparse_interp_adjust_type(int rtype, const char *name, const char *val)
 		(rtype == AUDIT_ADD_GROUP || rtype == AUDIT_GRP_MGMT ||
 			rtype == AUDIT_DEL_GROUP))
 		type = AUPARSE_TYPE_GID;
+	else if (rtype == AUDIT_TRUSTED_APP) {
+		if (val[0] == '"')
+			type = AUPARSE_TYPE_ESCAPED;
+		else if (strcmp(name, "id") == 0)
+			type = lookup_type(name);
+		else if (is_int_string(val))
+			type = AUPARSE_TYPE_UNCLASSIFIED;
+		/* Check if we have string with only HEX symbols */
+		else if (is_hex_string(val))
+			type = AUPARSE_TYPE_ESCAPED;
+		else
+			type = AUPARSE_TYPE_UNCLASSIFIED;
+	}
 	else
 		type = lookup_type(name);
 
