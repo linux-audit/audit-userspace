@@ -454,6 +454,7 @@ int load_interpretation_list(const char *buffer)
 				*ptr = 0;
 			} else
 				tmp = 0;
+
 			n.val = strdup(val);
 			nvlist_append(&il, &n);
 			nvlist_interp_fixup(&il);
