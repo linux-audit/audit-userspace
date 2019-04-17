@@ -1,5 +1,8 @@
 2.8.6
-- Fix memleak in auparse caused by corrected event ordering 
+- Fix memleak in auparse caused by corrected event ordering
+- Make auditd conditional restart conditional again
+- Update ospp rules for new requirements
+- In ausearch/report, parse USER_AVC a little better
 
 2.8.5
 - Fix segfault on shutdown
