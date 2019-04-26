@@ -40,6 +40,7 @@
 #include <limits.h>	/* for PATH_MAX */
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <sys/socket.h> /* AF_MAX */
 #ifdef HAVE_LIBCAP_NG
 #include <cap-ng.h>
 #endif
@@ -1753,6 +1754,11 @@ int audit_rule_fieldpair_data(struct audit_rule_data **rulep, const char *pair,
 					strtol(v, NULL, 0);
 			else if (strcmp(v, "unset") == 0)
 				rule->values[rule->field_count] = 4294967295;
+			break;
+		case AUDIT_SADDR_FAM:
+			rule->values[rule->field_count] = strtoul(v, NULL, 0);
+			if (rule->values[rule->field_count] >= AF_MAX)
+				return -EAU_FIELDVALTOOBIG;
 			break;
 		case AUDIT_DEVMAJOR...AUDIT_INODE:
 		case AUDIT_SUCCESS:

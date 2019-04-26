@@ -356,6 +356,9 @@ extern "C" {
 #ifndef AUDIT_EXE
 #define AUDIT_EXE 112
 #endif
+#ifndef AUDIT_SADDR_FAM
+#define AUDIT_SADDR_FAM 113
+#endif
 
 #ifndef AUDIT_SESSIONID
 #define AUDIT_SESSIONID 25
