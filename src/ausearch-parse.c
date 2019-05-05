@@ -1,6 +1,6 @@
 /*
 * ausearch-parse.c - Extract interesting fields and check for match
-* Copyright (c) 2005-08,2011,2013-14,2018 Red Hat Inc., Durham, North Carolina.
+* Copyright (c) 2005-08,2011,2013-14,2018-19 Red Hat Inc., Durham, NC.
 * Copyright (c) 2011 IBM Corp. 
 * All Rights Reserved. 
 *
@@ -940,7 +940,8 @@ static int parse_user(const lnode *n, search_items *s, anode *avc)
 				*term = 0;
 				avc->tcontext = strdup(str);
 				*term = ' ';
-			}
+			} else
+				term = str;
 		}
 		// Grab tclass if it exists
 		str = strstr(term, "tclass=");
@@ -951,7 +952,8 @@ static int parse_user(const lnode *n, search_items *s, anode *avc)
 				*term = 0;
 				avc->avc_class = strdup(str);
 				*term = ' ';
-			}
+			} else
+				term = str;
 		}
 	}
 	// optionally get gid
