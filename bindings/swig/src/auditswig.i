@@ -41,6 +41,6 @@ typedef unsigned __u32;
 typedef unsigned uid_t;
 %include "/usr/include/linux/audit.h"
 #define __extension__ /*nothing*/
-#include <stdint.h>
+#include <stdint.i>
 %include "../lib/libaudit.h"
 
