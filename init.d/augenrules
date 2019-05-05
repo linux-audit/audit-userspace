@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # Script to concatenate rules files found in a base audit rules directory
 # to form a single /etc/audit/audit.rules file suitable for loading into
