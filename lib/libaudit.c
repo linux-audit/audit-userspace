@@ -674,6 +674,18 @@ int audit_request_signal_info(int fd)
 	return rc;
 }
 
+char *audit_format_signal_info(char *buf, int len, char *op, struct audit_reply *rep, char *res)
+{
+	if (rep->len == 24)
+		snprintf(buf, len, "op=%s auid=%u pid=%d res=%s", op,
+		 	rep->signal_info->uid, rep->signal_info->pid, res);
+	else
+		snprintf(buf, len, "op=%s auid=%u pid=%d subj=%s res=%s",
+		 	op, rep->signal_info->uid, rep->signal_info->pid,
+		 	rep->signal_info->ctx, res);
+	return buf;
+}
+
 int audit_update_watch_perms(struct audit_rule_data *rule, int perms)
 {
 	unsigned int i, done=0;

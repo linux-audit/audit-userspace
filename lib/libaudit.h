@@ -573,6 +573,7 @@ extern int  audit_setloginuid(uid_t uid);
 extern uint32_t audit_get_session(void);
 extern int  audit_detect_machine(void);
 extern int audit_determine_machine(const char *arch);
+extern char *audit_format_signal_info(char *buf, int len, char *op, struct audit_reply *rep, char *res);
 
 /* Translation functions */
 extern int        audit_name_to_field(const char *field);

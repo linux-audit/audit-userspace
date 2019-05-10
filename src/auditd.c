@@ -131,7 +131,7 @@ static void hup_handler( struct ev_loop *loop, struct ev_signal *sig, int revent
 	rc = audit_request_signal_info(fd);
 	if (rc < 0)
 		send_audit_event(AUDIT_DAEMON_CONFIG, 
-	  "op=hup-info state=request-siginfo auid=-1 pid=-1 subj=? res=failed");
+	  "op=reconfigure state=no-change auid=-1 pid=-1 subj=? res=failed");
 	else
 		hup_info_requested = 1;
 }
@@ -147,7 +147,7 @@ static void user1_handler(struct ev_loop *loop, struct ev_signal *sig,
 	rc = audit_request_signal_info(fd);
 	if (rc < 0)
 		send_audit_event(AUDIT_DAEMON_ROTATE, 
-			 "op=usr1-info auid=-1 pid=-1 subj=? res=failed");
+			 "op=rotate-logs auid=-1 pid=-1 subj=? res=failed");
 	else
 		usr1_info_requested = 1;
 }
@@ -515,45 +515,33 @@ static void netlink_handler(struct ev_loop *loop, struct ev_io *io,
 			break;
 		case AUDIT_SIGNAL_INFO:
 			if (hup_info_requested) {
+				char hup[MAX_AUDIT_MESSAGE_LENGTH];
 				audit_msg(LOG_DEBUG,
 				    "HUP detected, starting config manager");
 				reconfig_ev = cur_event;
 				if (start_config_manager(cur_event)) {
-					send_audit_event(
-						AUDIT_DAEMON_CONFIG, 
-				  "op=reconfigure state=no-change "
-				  "auid=-1 pid=-1 subj=? res=failed");
+					audit_format_signal_info(hup, sizeof(hup),
+								 "reconfigure state=no-change",
+								 &cur_event->reply,
+								 "failed");
+					send_audit_event(AUDIT_DAEMON_CONFIG, hup);
 				}
 				cur_event = NULL;
 				hup_info_requested = 0;
 			} else if (usr1_info_requested) {
 				char usr1[MAX_AUDIT_MESSAGE_LENGTH];
-				if (cur_event->reply.len == 24) {
-					snprintf(usr1, sizeof(usr1),
-					"op=rotate-logs auid=-1 pid=-1 subj=?");
-				} else {
-					snprintf(usr1, sizeof(usr1),
-				 "op=rotate-logs auid=%u pid=%d subj=%s",
-					 cur_event->reply.signal_info->uid, 
-					 cur_event->reply.signal_info->pid,
-					 cur_event->reply.signal_info->ctx);
-				}
+				audit_format_signal_info(usr1, sizeof(usr1),
+							 "rotate-logs",
+							 &cur_event->reply,
+							 "success");
 				send_audit_event(AUDIT_DAEMON_ROTATE, usr1);
 				usr1_info_requested = 0;
 			} else if (usr2_info_requested) {
 				char usr2[MAX_AUDIT_MESSAGE_LENGTH];
-				if (cur_event->reply.len == 24) {
-					snprintf(usr2, sizeof(usr2), 
-						"op=resume-logging auid=-1 "
-						"pid=-1 subj=? res=success");
-				} else {
-					snprintf(usr2, sizeof(usr2),
-						"op=resume-logging "
-					"auid=%u pid=%d subj=%s res=success",
-					 cur_event->reply.signal_info->uid, 
-					 cur_event->reply.signal_info->pid,
-					 cur_event->reply.signal_info->ctx);
-				}
+				audit_format_signal_info(usr2, sizeof(usr2),
+							 "resume-logging",
+							 &cur_event->reply,
+							 "success");
 				resume_logging();
 				libdisp_resume();
 				send_audit_event(AUDIT_DAEMON_RESUME, usr2); 
@@ -993,12 +981,8 @@ int main(int argc, char *argv[])
 		rc = get_reply(fd, &trep, rc);
 		if (rc > 0) {
 			char txt[MAX_AUDIT_MESSAGE_LENGTH];
-			snprintf(txt, sizeof(txt),
-				"op=terminate auid=%u "
-				"pid=%d subj=%s res=success",
-				 trep.signal_info->uid,
-				 trep.signal_info->pid, 
-				 trep.signal_info->ctx); 
+			audit_format_signal_info(txt, sizeof(txt), "terminate",
+						 &trep, "success");
 			send_audit_event(AUDIT_DAEMON_END, txt);
 		} 
 	} 

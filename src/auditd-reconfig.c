@@ -115,12 +115,9 @@ static void *config_thread_main(void *arg)
 	} else {
 		// need to send a failed event message
 		char txt[MAX_AUDIT_MESSAGE_LENGTH];
-		snprintf(txt, sizeof(txt),
-	    "op=reconfigure state=no-change auid=%u pid=%d subj=%s res=failed",
-			e->reply.signal_info->uid,
-			e->reply.signal_info->pid,
-			(e->reply.len > 24) ? 
-				e->reply.signal_info->ctx : "?");
+		audit_format_signal_info(txt, sizeof(txt),
+					 "reconfigure state=no-change",
+				         &e->reply, "failed");
 		// FIXME: need to figure out sending this
 		//send_audit_event(AUDIT_DAEMON_CONFIG, txt);
 		free_config(&new_config);
