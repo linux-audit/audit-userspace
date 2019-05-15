@@ -65,6 +65,7 @@
 - Add substitue functions for strndupa & rawmemchr
 - Fix memleak in auparse caused by corrected event ordering
 - Fix legacy reload script to reload audit rules when daemon is reloaded
+- In auditd, use standard template for DEAMON events (Richard Guy Briggs)
 
 2.8.3
 - Correct msg function name in LRU debug code

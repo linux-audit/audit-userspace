@@ -1572,7 +1572,7 @@ static void reconfigure(struct auditd_event *e)
 
 	e->reply.type = AUDIT_DAEMON_CONFIG;
 	e->reply.len = snprintf(e->reply.msg.data, MAX_AUDIT_MESSAGE_LENGTH-2, 
-	"%s op=reconfigure state=changed auid=%u pid=%d subj=%s res=success",
+	"%s: op=reconfigure state=changed auid=%u pid=%d subj=%s res=success",
 		date, uid, pid, ctx );
 	e->reply.message = e->reply.msg.data;
 	free((char *)ctx);
