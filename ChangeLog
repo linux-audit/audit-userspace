@@ -63,7 +63,8 @@
 - Fix auditd regression where keep_logs is limited by rotate_logs 2 file test
 - In ausearch/report fix --end to use midnight time instead of now (#1671338)
 - Add substitue functions for strndupa & rawmemchr
-- Fix memleak in auparse caused by corrected event ordering 
+- Fix memleak in auparse caused by corrected event ordering
+- Fix legacy reload script to reload audit rules when daemon is reloaded
 
 2.8.3
 - Correct msg function name in LRU debug code

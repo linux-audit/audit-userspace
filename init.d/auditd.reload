@@ -10,6 +10,7 @@ prog="auditd"
 . /etc/init.d/functions
 
 printf "Reconfiguring: "
+/sbin/augenrules --load
 killproc $prog -HUP
 RETVAL=$?
 echo
