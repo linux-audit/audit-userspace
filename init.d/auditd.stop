@@ -14,7 +14,8 @@ printf "Stopping logging: "
 killproc $prog -TERM
 RETVAL=$?
 if [ -n $pid ] ; then
-    tail --pid=$pid -f /dev/null
+    # Wait up to 20 seconds for auditd to shutdown
+    timeout 20 tail --pid=$pid -f /dev/null
 fi
 echo
 exit $RETVAL
