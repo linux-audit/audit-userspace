@@ -3,6 +3,7 @@
 - Make auditd conditional restart conditional again
 - Update ospp rules for new requirements
 - In ausearch/report, parse USER_AVC a little better
+- In aureport, fix segfault for malformed USER_CMD events
 
 2.8.5
 - Fix segfault on shutdown
