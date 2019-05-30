@@ -4,6 +4,7 @@
 - Update ospp rules for new requirements
 - In ausearch/report, parse USER_AVC a little better
 - In aureport, fix segfault for malformed USER_CMD events
+- Add exe field to audit_log_user_command in libaudit
 
 2.8.5
 - Fix segfault on shutdown

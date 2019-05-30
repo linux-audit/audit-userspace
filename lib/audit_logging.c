@@ -723,6 +723,7 @@ int audit_log_user_command(int audit_fd, int type, const char *command,
 	char commname[PATH_MAX*2];
 	char cwdname[PATH_MAX*2];
 	char ttyname[TTY_PATH];
+	static char exename[PATH_MAX*2] = "";
 	char format[64];
 	const char *success;
 	char *cmd;
@@ -741,6 +742,9 @@ int audit_log_user_command(int audit_fd, int type, const char *command,
 		tty = _get_tty(ttyname, TTY_PATH);
 	else if (*tty == 0)
 		tty = NULL;
+
+	if (exename[0] == 0)
+		_get_exename(exename, sizeof(exename));
 
 	/* Trim leading spaces */
 	while (*command == ' ')
@@ -790,11 +794,11 @@ int audit_log_user_command(int audit_fd, int type, const char *command,
 	else
 		p = stpcpy(p, "cmd=\"%s\" ");
 
-	strcpy(p, "terminal=%s res=%s");
+	strcpy(p, "exe=%s terminal=%s res=%s");
 
 	// now use the format string to make the event
 	snprintf(buf, sizeof(buf), format,
-			cwdname, commname,
+			cwdname, commname, exename,
 			tty ? tty : "?",
 			success
 		);
