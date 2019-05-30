@@ -630,10 +630,7 @@ void print_per_event_item(llist *l)
 			// terminal, host, exe, who, event
 			printf("%s %s ",
 				l->s.terminal, l->s.hostname);
-			if (l->s.exe)
-				safe_print_string(l->s.exe, 0);
-			else
-				fputs("(null)", stdout);
+			safe_print_string(l->s.exe, 0);
 			putchar(' ');
 			safe_print_string(aulookup_uid(l->s.loginuid, name,
 				sizeof(name)), 0);
