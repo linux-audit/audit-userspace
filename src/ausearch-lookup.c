@@ -460,7 +460,10 @@ void safe_print_string_n(const char *s, unsigned int len, int ret)
 
 void safe_print_string(const char *s, int ret)
 {
-	safe_print_string_n(s, strlen(s), ret);
+	if (s == NULL)
+		fputs("(null)", stdout);
+	else
+		safe_print_string_n(s, strlen(s), ret);
 }
 
 /* Represent c as a character within a quoted string, and append it to buf. */
