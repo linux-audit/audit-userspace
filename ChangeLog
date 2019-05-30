@@ -67,6 +67,7 @@
 - Fix legacy reload script to reload audit rules when daemon is reloaded
 - In auditd, use standard template for DEAMON events (Richard Guy Briggs)
 - In aureport, fix segfault for malformed USER_CMD events
+- Add exe field to audit_log_user_command in libaudit
 
 2.8.3
 - Correct msg function name in LRU debug code
