@@ -730,7 +730,10 @@ static void check_space_left(void)
         		if (buf.f_bavail < blocks) {
 				if (fs_space_warning == 0) {
 					do_space_left_action(0);
-					fs_space_warning = 1;
+					// Allow unlimited rotation
+					if (config->space_left_action !=
+								FA_ROTATE)
+						fs_space_warning = 1;
 				}
 			} else if (fs_space_warning &&
 					config->space_left_action == FA_SYSLOG){
@@ -741,7 +744,10 @@ static void check_space_left(void)
         		if (buf.f_bavail < blocks) {
 				if (fs_admin_space_warning == 0) {
 					do_space_left_action(1);
-					fs_admin_space_warning = 1;
+					// Allow unlimited rotation
+					if (config->admin_space_left_action !=
+								FA_ROTATE)
+						fs_admin_space_warning = 1;
 				}
 			} else if (fs_admin_space_warning &&
 				config->admin_space_left_action == FA_SYSLOG) {

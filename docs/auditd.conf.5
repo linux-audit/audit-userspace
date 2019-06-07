@@ -166,7 +166,7 @@ will cause the audit daemon to stop writing records to the disk. The daemon will
 .I single
 option will cause the audit daemon to put the computer system in single user mode. The
 .I halt
-option will cause the audit daemon to shutdown the computer system.
+option will cause the audit daemon to shutdown the computer system. Except for rotate, it will perform this action just one time.
 .TP
 .I admin_space_left
 This is a numeric value in megabytes that tells the audit daemon when
@@ -198,7 +198,8 @@ will cause the audit daemon to stop writing records to the disk. The daemon will
 .I single
 option will cause the audit daemon to put the computer system in single user mode. The
 .I halt
-option will cause the audit daemon to shutdown the computer system.
+option will cause the audit daemon to shutdown the computer system. Except for r
+otate, it will perform this action just one time.
 .TP
 .I disk_full_action
 This parameter tells the system what action to take when the system has
