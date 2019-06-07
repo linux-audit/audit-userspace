@@ -31,9 +31,6 @@ _S(MACH_PPC64LE, "ppc64le")
 _S(MACH_PPC,     "ppc"    )
 _S(MACH_S390X,   "s390x"  )
 _S(MACH_S390,    "s390"   )
-#ifdef WITH_ALPHA
-_S(MACH_ALPHA,   "alpha"  )
-#endif
 #ifdef WITH_ARM
 _S(MACH_ARM,   "armeb"  )
 _S(MACH_ARM,   "arm"  )

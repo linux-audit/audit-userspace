@@ -307,18 +307,6 @@ fi
 ],WARNS="$ALLWARNS")
 
 withval=""
-AC_MSG_CHECKING(whether to include alpha processor support)
-AC_ARG_WITH(alpha,
-AS_HELP_STRING([--with-alpha],[enable Alpha processor support]),
-use_alpha=$withval,
-use_alpha=no)
-if test x$use_alpha != xno ; then
-      AC_DEFINE(WITH_ALPHA,1,[Define if you want to enable Alpha processor support.])
-fi
-AM_CONDITIONAL(USE_ALPHA, test x$use_alpha = xyes)
-AC_MSG_RESULT($use_alpha)
-
-withval=""
 AC_MSG_CHECKING(whether to include arm eabi processor support)
 AC_ARG_WITH(arm,
 AS_HELP_STRING([--with-arm],[enable Arm eabi processor support]),

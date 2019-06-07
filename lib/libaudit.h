@@ -547,7 +547,7 @@ typedef enum {
 	MACH_PPC,
 	MACH_S390X,
 	MACH_S390,
-	MACH_ALPHA,
+	MACH_ALPHA,	// Deprecated but has to stay
 	MACH_ARM,
 	MACH_AARCH64,
 	MACH_PPC64LE

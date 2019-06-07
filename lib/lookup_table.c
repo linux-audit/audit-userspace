@@ -35,9 +35,6 @@
 #include "private.h"
 
 #ifndef NO_TABLES
-#ifdef WITH_ALPHA
-#include "alpha_tables.h"
-#endif
 #ifdef WITH_ARM
 #include "arm_tables.h"
 #endif
@@ -75,9 +72,6 @@ static const struct int_transtab elftab[] = {
     { MACH_PPC,     AUDIT_ARCH_PPC    },
     { MACH_S390X,   AUDIT_ARCH_S390X  },
     { MACH_S390,    AUDIT_ARCH_S390   },
-#ifdef WITH_ALPHA
-    { MACH_ALPHA,   AUDIT_ARCH_ALPHA  },
-#endif
 #ifdef WITH_ARM
     { MACH_ARM,   AUDIT_ARCH_ARM  },
 #endif
@@ -134,11 +128,6 @@ int audit_name_to_syscall(const char *sc, int machine)
 		case MACH_S390:
 			found = s390_syscall_s2i(sc, &res);
 			break;
-#ifdef WITH_ALPHA
-	        case MACH_ALPHA:
-			found = alpha_syscall_s2i(sc, &res);
-			break;
-#endif
 #ifdef WITH_ARM
 	        case MACH_ARM:
 			found = arm_syscall_s2i(sc, &res);
@@ -177,10 +166,6 @@ const char *audit_syscall_to_name(int sc, int machine)
 			return s390x_syscall_i2s(sc);
 		case MACH_S390:
 			return s390_syscall_i2s(sc);
-#ifdef WITH_ALPHA
-	        case MACH_ALPHA:
-			return alpha_syscall_i2s(sc);
-#endif
 #ifdef WITH_ARM
 	        case MACH_ARM:
 			return arm_syscall_i2s(sc);

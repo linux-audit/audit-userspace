@@ -118,24 +118,6 @@ gen_id(char *dest)
 		}							\
 	} while (0)
 
-#ifdef WITH_ALPHA
-static void
-test_alpha_table(void)
-{
-	static const struct entry t[] = {
-#include "../alpha_table.h"
-	};
-
-	printf("Testing alpha_table...\n");
-#define I2S(I) audit_syscall_to_name((I), MACH_ALPHA)
-#define S2I(S) audit_name_to_syscall((S), MACH_ALPHA)
-	TEST_I2S(0);
-	TEST_S2I(-1);
-#undef I2S
-#undef S2I
-}
-#endif
-
 #ifdef WITH_ARM
 static void
 test_arm_table(void)
@@ -418,9 +400,6 @@ main(void)
 	// This is only for preventing collisions in s2i tests.
 	// If collisions are found in future, change the number. 
 	srand(3);
-#ifdef WITH_ALPHA
-	test_alpha_table();
-#endif
 #ifdef WITH_ARM
 	test_arm_table();
 #endif
