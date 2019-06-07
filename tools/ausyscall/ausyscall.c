@@ -70,6 +70,9 @@ int main(int argc, char *argv[])
 			fputs("Alpha processor support is deprecated\n",
 					stderr);
 			exit(1);
+		} else if (strcmp("ia64", argv[i]) == 0) {
+			fputs("IA64 processor support is deprecated\n",
+					stderr);
 #ifndef WITH_ARM
 		} else if (strcmp("arm", argv[i]) == 0) {
 			fputs("Arm eabi processor support is not enabled\n",

@@ -70,7 +70,7 @@
 - In aureport, fix segfault for malformed USER_CMD events
 - Add exe field to audit_log_user_command in libaudit
 - In auditctl support filter on socket address families (Richard Guy Briggs)
-- Deprecate support for Alpha processors
+- Deprecate support for Alpha & IA64 processors
 
 2.8.3
 - Correct msg function name in LRU debug code

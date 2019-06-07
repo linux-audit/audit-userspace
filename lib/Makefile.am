@@ -44,7 +44,7 @@ libaudit_la_LDFLAGS = -Wl,-z,relro -version-info $(VERSION_INFO)
 nodist_libaudit_la_SOURCES = $(BUILT_SOURCES)
 
 BUILT_SOURCES = actiontabs.h errtabs.h fieldtabs.h flagtabs.h \
-	fstypetabs.h ftypetabs.h i386_tables.h ia64_tables.h machinetabs.h \
+	fstypetabs.h ftypetabs.h i386_tables.h machinetabs.h \
 	msg_typetabs.h optabs.h ppc_tables.h s390_tables.h \
 	s390x_tables.h x86_64_tables.h
 if USE_ARM
@@ -55,7 +55,7 @@ BUILT_SOURCES += aarch64_tables.h
 endif
 noinst_PROGRAMS = gen_actiontabs_h gen_errtabs_h gen_fieldtabs_h \
 	gen_flagtabs_h gen_fstypetabs_h gen_ftypetabs_h gen_i386_tables_h \
-	gen_ia64_tables_h gen_machinetabs_h gen_msg_typetabs_h \
+	gen_machinetabs_h gen_msg_typetabs_h \
 	gen_optabs_h gen_ppc_tables_h gen_s390_tables_h \
 	gen_s390x_tables_h gen_x86_64_tables_h
 if USE_ARM
@@ -185,19 +185,6 @@ gen_i386_tables_h$(BUILD_EXEEXT): LDFLAGS=$(LDFLAGS_FOR_BUILD)
 i386_tables.h: gen_i386_tables_h Makefile
 	./gen_i386_tables_h --duplicate-ints --lowercase --i2s --s2i \
 		i386_syscall > $@
-
-gen_ia64_tables_h_SOURCES = gen_tables.c gen_tables.h ia64_table.h
-gen_ia64_tables_h_CFLAGS = '-DTABLE_H="ia64_table.h"'
-$(gen_ia64_tables_h_OBJECTS): CC=$(CC_FOR_BUILD)
-$(gen_ia64_tables_h_OBJECTS): CFLAGS=$(CFLAGS_FOR_BUILD)
-$(gen_ia64_tables_h_OBJECTS): CPPFLAGS=$(CPPFLAGS_FOR_BUILD)
-$(gen_ia64_tables_h_OBJECTS): LDFLAGS=$(LDFLAGS_FOR_BUILD)
-gen_ia64_tables_h$(BUILD_EXEEXT): CC=$(CC_FOR_BUILD)
-gen_ia64_tables_h$(BUILD_EXEEXT): CFLAGS=$(CFLAGS_FOR_BUILD)
-gen_ia64_tables_h$(BUILD_EXEEXT): CPPFLAGS=$(CPPFLAGS_FOR_BUILD)
-gen_ia64_tables_h$(BUILD_EXEEXT): LDFLAGS=$(LDFLAGS_FOR_BUILD)
-ia64_tables.h: gen_ia64_tables_h Makefile
-	./gen_ia64_tables_h --lowercase --i2s --s2i ia64_syscall > $@
 
 gen_machinetabs_h_SOURCES = gen_tables.c gen_tables.h machinetab.h
 gen_machinetabs_h_CFLAGS = '-DTABLE_H="machinetab.h"'

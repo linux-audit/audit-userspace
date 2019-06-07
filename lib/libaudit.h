@@ -542,7 +542,7 @@ struct audit_dispatcher_header {
 typedef enum {
 	MACH_X86=0,
 	MACH_86_64,
-	MACH_IA64,
+	MACH_IA64,	// Deprecated but has to stay
 	MACH_PPC64,
 	MACH_PPC,
 	MACH_S390X,

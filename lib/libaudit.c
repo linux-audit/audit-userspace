@@ -1314,7 +1314,7 @@ int audit_rule_interfield_comp_data(struct audit_rule_data **rulep,
 }
 
 int audit_determine_machine(const char *arch)
-{	// What do we want? i686, x86_64, ia64 or b64, b32
+{	// What do we want? i686, x86_64 or b64, b32
 	int machine;
 	unsigned int bits = 0;
 
@@ -1357,10 +1357,6 @@ int audit_determine_machine(const char *arch)
 	{
 		case MACH_X86:
 			if (bits == __AUDIT_ARCH_64BIT)
-				return -6;
-			break;
-		case MACH_IA64:
-			if (bits == ~__AUDIT_ARCH_64BIT)
 				return -6;
 			break;
 		case MACH_PPC:

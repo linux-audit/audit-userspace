@@ -171,22 +171,6 @@ test_i386_table(void)
 }
 
 static void
-test_ia64_table(void)
-{
-	static const struct entry t[] = {
-#include "../ia64_table.h"
-	};
-
-	printf("Testing ia64_table...\n");
-#define I2S(I) audit_syscall_to_name((I), MACH_IA64)
-#define S2I(S) audit_name_to_syscall((S), MACH_IA64)
-	TEST_I2S(0);
-	TEST_S2I(-1);
-#undef I2S
-#undef S2I
-}
-
-static void
 test_ppc_table(void)
 {
 	static const struct entry t[] = {
@@ -407,7 +391,6 @@ main(void)
 	test_aarch64_table();
 #endif
 	test_i386_table();
-	test_ia64_table();
 	test_ppc_table();
 	test_s390_table();
 	test_s390x_table();
