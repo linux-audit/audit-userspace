@@ -333,7 +333,7 @@ int aup_list_append(event_list_t *l, char *record, int list_idx,
 	rc = parse_up_record(r);
 	if (r->cwd) {
 		// Should never be 2 cwd records unless log is corrupted
-		free(l->cwd);
+		free((void *)l->cwd);
 		l->cwd = r->cwd;
 	}
 	return rc;

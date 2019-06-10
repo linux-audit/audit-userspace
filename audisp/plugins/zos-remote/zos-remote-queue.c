@@ -143,7 +143,7 @@ void destroy_queue(void)
     unsigned int i;
 
     for (i=0; i<q_depth; i++) {
-        ber_free(q[i], 1);
+        ber_free((BerElement *)q[i], 1);
     }
 
     free(q);
