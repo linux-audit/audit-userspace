@@ -72,6 +72,7 @@
 - In auditctl support filter on socket address families (Richard Guy Briggs)
 - Deprecate support for Alpha & IA64 processors
 - If space_left_action is rotate, allow it every time (#1718444)
+- In auparse, drop standalone EOE events
 
 2.8.3
 - Correct msg function name in LRU debug code
