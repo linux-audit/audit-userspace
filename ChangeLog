@@ -8,6 +8,7 @@
 - If space_left_action is rotate, allow it every time (#1718444)
 - Make legacy script wait for auditd to terminate (#1643567)
 - In auparse, drop standalone EOE events
+- Add milliseconds column for ausearch extra time csv format
 
 2.8.5
 - Fix segfault on shutdown

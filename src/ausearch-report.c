@@ -417,7 +417,7 @@ static void csv_event(auparse_state_t *au,
 		printf( "NODE,EVENT,DATE,TIME,%sSERIAL_NUM,EVENT_KIND,"
 			"SESSION,SUBJ_PRIME,SUBJ_SEC,SUBJ_KIND,%sACTION,"
 			"RESULT,OBJ_PRIME,OBJ_SEC,%s%sOBJ_KIND,HOW%s\n",
-		    extra_time ? "YEAR,MONTH,DAY,WEEKDAY,HOUR,GMT_OFFSET," : "",
+	     extra_time ? "YEAR,MONTH,DAY,WEEKDAY,HOUR,MILLI,GMT_OFFSET," : "",
 			extra_labels ? "SUBJ_LABEL," : "",
 			extra_obj2 ? "OBJ2," : "",
 			extra_labels ? "OBJ_LABEL," : "",
@@ -496,6 +496,9 @@ static void csv_event(auparse_state_t *au,
 			strftime(tmp, sizeof(tmp), "%k", tv);
 			printf("%s", tmp);
 		}
+		putchar(',');
+		// MILLISECOND
+		printf("%u", auparse_get_milli(au));
 		putchar(',');
 		if (tv) {
 			char sign = tv->tm_gmtoff >= 0 ? '+' : '-';
