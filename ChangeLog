@@ -6,6 +6,7 @@
 - In aureport, fix segfault for malformed USER_CMD events
 - Add exe field to audit_log_user_command in libaudit
 - If space_left_action is rotate, allow it every time (#1718444)
+- Make legacy script wait for auditd to terminate (#1643567)
 
 2.8.5
 - Fix segfault on shutdown
