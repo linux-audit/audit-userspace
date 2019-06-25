@@ -74,6 +74,7 @@
 - If space_left_action is rotate, allow it every time (#1718444)
 - In auparse, drop standalone EOE events
 - Add milliseconds column for ausearch extra time csv format
+- Fix aureport first event reporting when no start given
 
 2.8.3
 - Correct msg function name in LRU debug code

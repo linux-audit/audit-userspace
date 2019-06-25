@@ -213,6 +213,12 @@ static int extract_timestamp(const char *b, event *e)
 					}
 					return 0;
 				} else {
+					// If no start time, any event is 1st
+					if (very_first_event.sec == 0 &&
+							start_time == 0) {
+						very_first_event.sec = e->sec;
+						very_first_event.milli = e->milli;
+					}
 					if (tnode)
 						e->node = strdup(tnode);
 					e->type = audit_name_to_msg_type(ttype);
