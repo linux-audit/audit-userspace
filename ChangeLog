@@ -10,6 +10,7 @@
 - In auparse, drop standalone EOE events
 - Add milliseconds column for ausearch extra time csv format
 - Fix aureport first event reporting when no start given
+- In audisp-remote, add new config item for startup connection errors
 
 2.8.5
 - Fix segfault on shutdown

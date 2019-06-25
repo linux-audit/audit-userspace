@@ -69,6 +69,8 @@ typedef struct remote_conf
 	failure_action_t queue_error_action;
 	const char *queue_error_exe;
 	overflow_action_t overflow_action;
+	const char *startup_failure_exe;
+	failure_action_t startup_failure_action;
 } remote_conf_t;
 
 void clear_config(remote_conf_t *config);

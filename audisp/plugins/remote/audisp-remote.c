@@ -367,6 +367,14 @@ static void queue_error(void)
 		  config.queue_error_exe);
 }
 
+static int startup_failure_handler(const char *message)
+{
+	return do_action("startup network failure", message,
+			  LOG_WARNING,
+			  config.startup_failure_action,
+			  config.startup_failure_exe);
+}
+
 static void send_heartbeat (void)
 {
 	relay_event (NULL, 0);
@@ -563,6 +571,9 @@ int main(int argc, char *argv[])
 								ET_SUCCESS) {
 							remote_ended = 0;
 							connected_once = 1;
+						} else if (!connected_once) {
+							startup_failure_handler(
+			"First attempt at connecting to server unsuccessful");
 						}
 						quiet = 0;
 					}
