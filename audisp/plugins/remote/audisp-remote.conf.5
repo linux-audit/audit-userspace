@@ -162,6 +162,21 @@ option will cause the remote logging app to put the computer system in single us
 .I halt
 option will cause the remote logging app to shutdown the computer system.
 .TP
+.I startup_failure_action
+This parameter tells the system what action to take whenever there is an error connecting to the remote system during startup. Typically, this is benign as the plugin's default behavior is to attempt reconnecting until it succeeds. But there may be times when you want to do something different. Valid values are
+.IR ignore ", " syslog ", " exec ", " warn_once ", and " warn_once_continue " .
+If set to
+.IR ignore ,
+the remote logging app does nothing.
+.I Syslog
+means that it will issue a warning to syslog.
+.I exec
+/path-to-script will execute the script. You cannot pass parameters to the script.
+.I warn_once
+is like syslog execept that only one message is put in syslog until an event is successfully transferred.
+.I warn_once_continue
+is like warn_once except it ignores the problem. This is the default.
+.TP
 .I enable_krb5
 This option is deprecated. Use the
 .IR transport
