@@ -1,8 +1,9 @@
 Future roadmap (subject to change):
 ===================================
 3.0
-* Container support
 * If searching user/group doesn't map to uid/gid, do translated string search
+* audisp-remote, add config to say what home network is so laptops don't try if their not on a network that can reach the server.
+* Container support
 
 3.1
 * Support TLS PSK as remote logging transport
