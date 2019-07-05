@@ -17,8 +17,8 @@ BuildRequires: systemd
 
 Requires: %{name}-libs = %{version}-%{release}
 Requires(post): systemd-units systemd-sysv chkconfig coreutils
-Requires(preun): systemd-units
-Requires(postun): systemd-units coreutils
+Requires(preun): systemd-units initscripts
+Requires(postun): systemd-units coreutils initscript
 
 %description
 The audit package contains the user space utilities for
