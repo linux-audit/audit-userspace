@@ -16,9 +16,9 @@ BuildRequires: kernel-headers >= 2.6.29
 BuildRequires: systemd
 
 Requires: %{name}-libs = %{version}-%{release}
-Requires(post): systemd-units systemd-sysv chkconfig coreutils
-Requires(preun): systemd-units initscripts
-Requires(postun): systemd-units coreutils initscript
+Requires(post): systemd coreutils
+Requires(preun): systemd initscripts
+Requires(postun): systemd coreutils initscript
 
 %description
 The audit package contains the user space utilities for

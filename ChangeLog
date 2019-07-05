@@ -76,6 +76,7 @@
 - Add milliseconds column for ausearch extra time csv format
 - Fix aureport first event reporting when no start given
 - In audisp-remote, add new config item for startup connection errors
+- Remove dependency on chkconfig
 
 2.8.3
 - Correct msg function name in LRU debug code
