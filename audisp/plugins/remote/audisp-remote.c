@@ -1013,11 +1013,8 @@ static int stop_transport(void)
 	switch (config.transport)
 	{
 		case T_TCP:
-			rc = stop_sock();
-			break;
 		case T_KRB5:
-			// FIXME: shutdown kerberos
-			rc = -1;
+			rc = stop_sock();
 			break;
 		default:
 			rc = -1;
@@ -1160,6 +1157,7 @@ static int init_transport(void)
 	switch (config.transport)
 	{
 		case T_TCP:
+		case T_KRB5:
 			rc = init_sock();
 			// We set this so that it will retry the connection
 			if (rc == ET_TEMPORARY)
@@ -1607,6 +1605,7 @@ static int relay_event(const char *s, size_t len)
 	switch (config.transport)
 	{
 		case T_TCP:
+		case T_KRB5:
 			rc = relay_sock(s, len);
 			break;
 		default:
