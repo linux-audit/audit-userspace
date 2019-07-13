@@ -1,5 +1,5 @@
 /* audisp-remote.c --
- * Copyright 2008-2012,2016,2018 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2008-2012,2016,2018,2019 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -98,7 +98,7 @@ static int ar_write (int, const void *, int);
    credentials.  These are the ones we talk to the server with.  */
 gss_ctx_id_t my_context;
 
-#define KEYTAB_NAME "/etc/audisp/audisp-remote.key"
+#define KEYTAB_NAME "/etc/audit/audisp-remote.key"
 #define CCACHE_NAME "MEMORY:audisp-remote"
 
 #define REQ_FLAGS GSS_C_MUTUAL_FLAG | GSS_C_REPLAY_FLAG | GSS_C_INTEG_FLAG | GSS_C_CONF_FLAG
