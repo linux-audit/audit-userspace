@@ -15,7 +15,7 @@ killproc $prog -TERM
 RETVAL=$?
 if [ -n "$pid" ] ; then
     # Wait up to 20 seconds for auditd to shutdown
-    timeout 20 tail --pid=$pid -f /dev/null
+    timeout 20 tail --pid="$pid" -f /dev/null
 fi
 echo
 exit $RETVAL
