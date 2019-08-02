@@ -24,7 +24,7 @@ CONFIG_CLEAN_FILES = *.loT *.rej *.orig
 EXTRA_DIST = src/auditswig.i
 
 SUBDIRS = src
-if HAVE_PYTHON
+if USE_PYTHON2
 SUBDIRS += python
 endif
 if USE_PYTHON3

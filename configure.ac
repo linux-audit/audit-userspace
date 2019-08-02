@@ -103,34 +103,51 @@ if test x"$GCC" = x"yes"; then
     esac
 fi
 
-AC_MSG_CHECKING(whether to create python bindings)
-AC_ARG_WITH(python,
-AS_HELP_STRING([--with-python],[enable building python bindings]),
-use_python=$withval,
-use_python=auto)
-if test "x$use_python" = xno ; then
-	python_found="no"
+withval=""
+AC_MSG_CHECKING(whether to create python2 bindings)
+AC_ARG_WITH(python2,
+AS_HELP_STRING([--with-python2],[enable building python2 bindings]),
+use_python2=$withval,
+use_python2=auto)
+if test "x$use_python2" = xno ; then
 	AC_MSG_RESULT(no)
 else
-AC_MSG_RESULT(testing)
-AM_PATH_PYTHON
-PYINCLUDEDIR=`python${am_cv_python_version} -c "from distutils import sysconfig; print(sysconfig.get_config_var('INCLUDEPY'))"`
-if test -f ${PYINCLUDEDIR}/Python.h ; then
-	python_found="yes"
-	AC_SUBST(PYINCLUDEDIR)
-	pybind_dir="python"
-	AC_SUBST(pybind_dir)
-	AC_MSG_NOTICE(Python bindings will be built)
-else
-	python_found="no"
-	if test "x$use_python" = xyes ; then
-		AC_MSG_ERROR([Python explicitly requested and python headers were not found])
+	AC_MSG_RESULT(investigating)
+	AC_PATH_PROG([use_python2], [python2-config], [no])
+	if test "x$use_python2" = xno ; then
+		if test "x$withval" = xyes ; then
+			echo "Python2 bindings were selected but python2-config was not found."
+			echo "Please ensure that it's installed or pass --without-python2 to ./configure"
+			exit 1
+		fi
+		echo "Python2 bindings will NOT be built"
 	else
-		AC_MSG_WARN("Python headers not found - python bindings will not be made")
+	echo "Python2 bindings WILL be built"
+	use_python2=yes
+	AC_PATH_PROG([PYTHON2], [python2], [no])
+	if test "x$PYTHON2" = "xno" ; then
+		echo "The python2 program was not found in the search path. Please ensure"
+		echo "that it is installed and its directory is included in the search path or"
+		echo "pass --without-python2 to ./configure."
+		exit 1
+	fi
+	PYTHON2_CFLAGS=`python2-config --cflags 2> /dev/null`
+	PYTHON2_LIBS=`python2-config --libs 2> /dev/null`
+	PYTHON2_INCLUDES=`python2-config --includes 2> /dev/null`
+	AC_SUBST([PYTHON2_PREFIX], ['${prefix}'])
+	AC_SUBST([PYTHON2_EXEC_PREFIX], ['${exec_prefix}'])
+	PYTHON2_DIR=`$PYTHON2 -c "import distutils.sysconfig; \
+	print(distutils.sysconfig.get_python_lib(0,0,prefix='$PYTHON2_PREFIX'))"`
+	PYTHON2_EXECDIR=`$PYTHON2 -c "import distutils.sysconfig; \
+	print(distutils.sysconfig.get_python_lib(1,0,prefix='$PYTHON2_EXEC_PREFIX'))"`
+	AC_SUBST(PYTHON2_CFLAGS)
+	AC_SUBST(PYTHON2_LIBS)
+	AC_SUBST(PYTHON2_INCLUDES)
+	AC_SUBST(python2dir, $PYTHON2_DIR)
+	AC_SUBST(py2execdir, $PYTHON2_EXECDIR)
 	fi
 fi
-fi
-AM_CONDITIONAL(HAVE_PYTHON, test ${python_found} = "yes")
+AM_CONDITIONAL(USE_PYTHON2, test ${use_python2} = "yes")
 
 withval=""
 AC_MSG_CHECKING(whether to create python3 bindings)

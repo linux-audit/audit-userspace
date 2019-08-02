@@ -21,12 +21,12 @@
 #
 CONFIG_CLEAN_FILES = *.loT *.rej *.orig
 AM_CFLAGS = -fPIC -DPIC -fno-strict-aliasing
-AM_CPPFLAGS = -I. -I$(top_builddir) -I${top_srcdir}/lib -I@PYINCLUDEDIR@
+AM_CPPFLAGS = -I. -I$(top_builddir) -I${top_srcdir}/lib @PYTHON2_INCLUDES@
 SWIG_FLAGS = -python
-SWIG_INCLUDES = -I. -I$(top_builddir) -I${top_srcdir}/lib -I@PYINCLUDEDIR@
-pyexec_PYTHON = audit.py
-pyexec_LTLIBRARIES = _audit.la
-pyexec_SOLIBRARIES = _audit.so
+SWIG_INCLUDES = -I. -I$(top_builddir) -I${top_srcdir}/lib @PYTHON2_INCLUDES@
+py2exec_PYTHON2 = audit.py
+py2exec_LTLIBRARIES = _audit.la
+py2exec_SOLIBRARIES = _audit.so
 _audit_la_CFLAGS = -shared
 _audit_la_LDFLAGS = -module -avoid-version -Wl,-z,relro
 _audit_la_HEADERS: $(top_builddir)/config.h 

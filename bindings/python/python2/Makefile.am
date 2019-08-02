@@ -23,9 +23,9 @@
 
 CONFIG_CLEAN_FILES = *.loT *.rej *.orig
 AM_CFLAGS = -fPIC -DPIC -fno-strict-aliasing
-AM_CPPFLAGS = -I$(top_builddir) -I@PYINCLUDEDIR@
+AM_CPPFLAGS = -I$(top_builddir) @PYTHON2_INCLUDES@
 
-pyexec_LTLIBRARIES = auparse.la
+py2exec_LTLIBRARIES = auparse.la
 
 auparse_la_SOURCES = $(top_srcdir)/bindings/python/auparse_python.c
 auparse_la_CPPFLAGS = -I$(top_srcdir)/auparse $(AM_CPPFLAGS)
