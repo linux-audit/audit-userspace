@@ -205,7 +205,7 @@ else
 	fi
     ])
 fi
-AM_CONDITIONAL(HAVE_GOLANG, test ${golang_found} = "yes")
+AM_CONDITIONAL(HAVE_GOLANG, test "x${golang_found}" = "xyes")
 
 #auditd listener
 AC_MSG_CHECKING(whether to include auditd network listener support)
