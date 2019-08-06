@@ -113,6 +113,21 @@ if test "x$use_python" = xno ; then
 	AC_MSG_RESULT(no)
 else
 AC_MSG_RESULT(testing)
+
+# Try to find a versioned Python2 interpreter,
+# if not explicitly specified by the user.
+if test "x$PYTHON" = "x"; then
+  AC_MSG_CHECKING([for versioned Python2 interpreter])
+  AC_MSG_RESULT([])
+  for python2 in python2 python2.7 python2.6 python2.5 python2.4 python2.3 python2.2 python2.1 python2.0; do
+    AC_PATH_PROG([PYTHON], [$python2])
+    if test "x$PYTHON" != "x"; then
+      break;
+    fi
+  done
+fi
+
+# Setup Python2 with the interpreter found previously.
 AM_PATH_PYTHON
 PYINCLUDEDIR=`python${am_cv_python_version} -c "from distutils import sysconfig; print(sysconfig.get_config_var('INCLUDEPY'))"`
 if test -f ${PYINCLUDEDIR}/Python.h ; then
@@ -205,7 +220,7 @@ else
 	fi
     ])
 fi
-AM_CONDITIONAL(HAVE_GOLANG, test ${golang_found} = "yes")
+AM_CONDITIONAL(HAVE_GOLANG, test "x${golang_found}" = "xyes")
 
 #auditd listener
 AC_MSG_CHECKING(whether to include auditd network listener support)
