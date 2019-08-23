@@ -11,6 +11,7 @@
 - Add milliseconds column for ausearch extra time csv format
 - Fix aureport first event reporting when no start given
 - In audisp-remote, add new config item for startup connection errors
+- In auditd, correctly set FD_CLOEXEC flag on fd to the dispatcher
 
 2.8.5
 - Fix segfault on shutdown
