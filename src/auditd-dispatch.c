@@ -59,7 +59,7 @@ static int set_flags(int fn, int flags)
 	if (fn == -1)
 		return 0;
 
-	if (flags == O_NONBLOCK) {
+	if (flags != FD_CLOEXEC) { /* O_NONBLOCK */
 		if ((fl = fcntl(fn, F_GETFL, 0)) < 0) {
 			audit_msg(LOG_ERR,"fcntl failed. Cannot get flags (%s)",
 				strerror(errno));
@@ -69,7 +69,7 @@ static int set_flags(int fn, int flags)
 		fl |= flags;
 
 		return fcntl(fn, F_SETFL, fl);
-	} else // FD_CLOEXEC
+	} else /* FD_CLOEXEC */
 		return fcntl(fn, F_SETFD, flags);
 }
 
