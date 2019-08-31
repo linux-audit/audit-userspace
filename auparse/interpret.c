@@ -277,7 +277,7 @@ static void escape(const char *s, char *dest, unsigned int len,
 	}
 }
 
-static void key_escape(char *orig, char *dest, auparse_esc_t escape_mode)
+static void key_escape(const char *orig, char *dest, auparse_esc_t escape_mode)
 {
 	const char *optr = orig;
 	char *str, *dptr = dest, tmp;
@@ -3056,7 +3056,7 @@ unknown:
 		} else {
 			// We have multiple keys. Need to look at each one.
 			unsigned int cnt = 0;
-			char *ptr = out;
+			char *ptr = (char *)out;
 
  			while (*ptr) {
 				unsigned int klen = str - ptr;

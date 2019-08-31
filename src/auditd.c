@@ -212,7 +212,7 @@ static void cont_handler(struct ev_loop *loop, struct ev_signal *sig,
 
 static int extract_type(const char *str)
 {
-	char tmp, *ptr2, *ptr = str;
+	char tmp, *ptr2, *ptr = (char *)str;
 	int type;
 	if (*str == 'n') {
 		ptr = strchr(str+1, ' ');
