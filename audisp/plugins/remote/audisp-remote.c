@@ -991,14 +991,14 @@ static int stop_sock(void)
 {
 	
 	if (sock >= 0) {
-		if (USE_GSS) {
 #ifdef USE_GSSAPI
+		if (USE_GSS) {
 			OM_uint32 minor_status;
 			gss_delete_sec_context(&minor_status, &my_context,
 						GSS_C_NO_BUFFER);
 			my_context = GSS_C_NO_CONTEXT;
-#endif
 		}
+#endif
 		shutdown(sock, SHUT_RDWR);
 		close(sock);
 	}
