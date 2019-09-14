@@ -145,7 +145,7 @@ rm -f rules/Makefile*
 # Copy default rules into place on new installation
 files=`ls /etc/audit/rules.d/ 2>/dev/null | wc -w`
 if [ "$files" -eq 0 ] ; then
-	cp %{datadir}/%{name}/rules/10-base-config.rules /etc/audit/rules.d/audit.rules
+	cp %{_datadir}/%{name}/rules/10-base-config.rules /etc/audit/rules.d/audit.rules
 	chmod 0600 /etc/audit/rules.d/audit.rules
 fi
 %systemd_post auditd.service
