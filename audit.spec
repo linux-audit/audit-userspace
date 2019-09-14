@@ -202,6 +202,7 @@ fi
 %files
 %license COPYING
 %doc README ChangeLog rules init.d/auditd.cron
+%attr(644,root,root) %{_datadir}/%{name}/rules/*
 %attr(644,root,root) %{_mandir}/man8/auditctl.8.gz
 %attr(644,root,root) %{_mandir}/man8/auditd.8.gz
 %attr(644,root,root) %{_mandir}/man8/aureport.8.gz

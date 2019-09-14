@@ -1,5 +1,5 @@
 # Makefile.am --
-# Copyright 2016-18 Red Hat Inc., Durham, North Carolina.
+# Copyright 2016-19 Red Hat Inc.
 # All Rights Reserved.
 #
 # This program is free software; you can redistribute it and/or modify
@@ -31,4 +31,7 @@ EXTRA_DIST = 10-base-config.rules 10-no-audit.rules 11-loginuid.rules \
 40-local.rules 41-containers.rules 42-injection.rules 43-module-load.rules \
 70-einval.rules 71-networking.rules \
 99-finalize.rules README-rules
+
+rulesdir = $(datadir)/audit/rules
+dist_rules_DATA = $(EXTRA_DIST)
  
