@@ -136,8 +136,6 @@ touch -r ./audit.spec $RPM_BUILD_ROOT/usr/share/man/man5/libaudit.conf.5.gz
 
 %check
 make check
-# Get rid of make files that they don't get packaged.
-rm -f rules/Makefile*
 
 %post libs -p /sbin/ldconfig
 
@@ -145,7 +143,7 @@ rm -f rules/Makefile*
 # Copy default rules into place on new installation
 files=`ls /etc/audit/rules.d/ 2>/dev/null | wc -w`
 if [ "$files" -eq 0 ] ; then
-	cp %{_datadir}/%{name}/rules/10-base-config.rules /etc/audit/rules.d/audit.rules
+	cp %{_datadir}/%{name}/sample-rules/10-base-config.rules /etc/audit/rules.d/audit.rules
 	chmod 0600 /etc/audit/rules.d/audit.rules
 fi
 %systemd_post auditd.service
@@ -202,7 +200,7 @@ fi
 %files
 %license COPYING
 %doc README ChangeLog rules init.d/auditd.cron
-%attr(644,root,root) %{_datadir}/%{name}/rules/*
+%attr(644,root,root) %{_datadir}/%{name}/sample-rules/*
 %attr(644,root,root) %{_mandir}/man8/auditctl.8.gz
 %attr(644,root,root) %{_mandir}/man8/auditd.8.gz
 %attr(644,root,root) %{_mandir}/man8/aureport.8.gz
