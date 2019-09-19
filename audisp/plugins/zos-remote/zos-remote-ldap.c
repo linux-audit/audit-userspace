@@ -195,7 +195,7 @@ static int _zos_remote_init(ZOS_REMOTE *zos_remote)
         if (zos_remote->port == 0 || zos_remote->port == LDAP_PORT)
                 rc = asprintf(&uri, "ldap://%s", zos_remote->server);
         else
-                rc = asprintf(&uri, "ldap://%s:%d", zos_remote->server,
+                rc = asprintf(&uri, "ldap://%s:%u", zos_remote->server,
                               zos_remote->port);
 
         if (rc == -1) {

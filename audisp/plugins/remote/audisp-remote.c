@@ -1102,7 +1102,7 @@ static int init_sock(void)
 			if (bind(sock,  ai2->ai_addr, ai2->ai_addrlen)) {
 				if (!quiet)
 					syslog(LOG_ERR,
-				       "Cannot bind local socket to port %d",
+				       "Cannot bind local socket to port %u",
 						config.local_port);
 				stop_sock();
 				freeaddrinfo(ai2);
