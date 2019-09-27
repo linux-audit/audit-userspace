@@ -127,7 +127,7 @@ int main(int argc, char *argv[])
 		/* Now the event loop */
 		if (!stop && !hup && retval > 0) {
 			while ((read_size = read(0, tmp, MAX_AUDIT_MESSAGE_LENGTH)) > 0) {
-				auparse_feed(au, tmp, strnlen(tmp, read_size));
+				auparse_feed(au, tmp, read_size);
 			}
 		}
 		if (read_size == 0) /* check eof */
