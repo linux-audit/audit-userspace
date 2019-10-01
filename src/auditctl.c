@@ -86,8 +86,8 @@ static int reset_vars(void)
 	exclude = 0;
 	multiple = 0;
 
-	audit_rule_data_free(rule_new);
-	rule_new = audit_rule_data_create();
+	audit_rule_free_data(rule_new);
+	rule_new = audit_rule_create_data();
 	if (fd < 0) {
 		if ((fd = audit_open()) < 0) {
 			audit_msg(LOG_ERR, "Cannot open netlink audit socket");

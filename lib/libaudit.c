@@ -1786,18 +1786,18 @@ int audit_rule_fieldpair_data(struct audit_rule_data **rulep, const char *pair,
 	return 0;
 }
 
-struct audit_rule_data *audit_rule_crete(void)
+struct audit_rule_data *audit_rule_create_data(void)
 {
 	struct audit_rule_data *rule;
 
 	rule = malloc(sizeof(*rule));
 	if (rule != NULL) {
-		audit_rule_init(rule);
+		audit_rule_init_data(rule);
 	}
 	return rule;
 }
 
-void audit_rule_init(struct audit_rule_data *rule)
+void audit_rule_init_data(struct audit_rule_data *rule)
 {
 	memset(rule, 0, sizeof(*rule));
 }

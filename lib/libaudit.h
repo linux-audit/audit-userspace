@@ -672,9 +672,9 @@ extern int audit_log_user_command(int audit_fd, int type, const char *command,
 
 /* Rule-building helper functions */
 /* Heap-allocates and initializes an audit_rule_data */
-extern struct audit_rule_data *audit_rule_crete(void);
+extern struct audit_rule_data *audit_rule_create_data(void);
 /* Initializes an existing audit_rule_data struct */
-extern void audit_rule_init(struct audit_rule_data *rule);
+extern void audit_rule_init_data(struct audit_rule_data *rule);
 extern int audit_rule_syscall_data(struct audit_rule_data *rule, int scall);
 extern int audit_rule_syscallbyname_data(struct audit_rule_data *rule,
                                           const char *scall);

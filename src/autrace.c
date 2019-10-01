@@ -52,13 +52,12 @@ static int insert_rule(int audit_fd, const char *field)
 	int rc;
 	int flags = AUDIT_FILTER_EXIT;
 	int action = AUDIT_ALWAYS;
-	struct audit_rule_data *rule = malloc(sizeof(struct audit_rule_data));
+	struct audit_rule_data *rule = audit_rule_create_data();
 	int machine = audit_detect_machine();
 	char *t_field = NULL;
 
 	if (rule == NULL)
 		goto err;
-	memset(rule, 0, sizeof(struct audit_rule_data));
 	if (threat) {
 		rc = 0;
 		if (machine != MACH_AARCH64) {
