@@ -335,7 +335,7 @@ AuParser_init(AuParser *self, PyObject *args, PyObject *kwds)
         }
     } break;
     case AUSOURCE_FILE: {
-        char *filename = NULL;
+        const char *filename = NULL;
 
         if (!PYSTR_CHECK(source)) {
             PyErr_SetString(PyExc_ValueError, "source must be a string when source_type is AUSOURCE_FILE");

@@ -638,12 +638,12 @@ extern int audit_make_equivalent(int fd, const char *mount_point,
 				const char *subtree);
 
 /* AUDIT_ADD_RULE */
-extern int  audit_add_rule_data(int fd, struct audit_rule_data *rule,
-                                int flags, int action);
+extern int audit_add_rule_data(int fd, struct audit_rule_data *rule,
+                               int flags, int action);
 
 /* AUDIT_DEL_RULE */
-extern int  audit_delete_rule_data(int fd, struct audit_rule_data *rule,
-                                   int flags, int action);
+extern int audit_delete_rule_data(int fd, struct audit_rule_data *rule,
+                                  int flags, int action);
 
 /* The following are for standard formatting of messages */
 extern int audit_value_needs_encoding(const char *str, unsigned int len);
@@ -671,16 +671,21 @@ extern int audit_log_user_command(int audit_fd, int type, const char *command,
         const char *tty, int result);
 
 /* Rule-building helper functions */
-extern int  audit_rule_syscall_data(struct audit_rule_data *rule, int scall);
-extern int  audit_rule_syscallbyname_data(struct audit_rule_data *rule,
+/* Heap-allocates and initializes an audit_rule_data */
+extern struct audit_rule_data *audit_rule_create_data(void);
+/* Initializes an existing audit_rule_data struct */
+extern void audit_rule_init_data(struct audit_rule_data *rule);
+extern int audit_rule_syscall_data(struct audit_rule_data *rule, int scall);
+extern int audit_rule_syscallbyname_data(struct audit_rule_data *rule,
                                           const char *scall);
 /* Note that the following function takes a **, where audit_rule_fieldpair()
  * takes just a *.  That structure may need to be reallocated as a result of
  * adding new fields */
-extern int  audit_rule_fieldpair_data(struct audit_rule_data **rulep,
+extern int audit_rule_fieldpair_data(struct audit_rule_data **rulep,
                                       const char *pair, int flags);
 extern int audit_rule_interfield_comp_data(struct audit_rule_data **rulep,
 					 const char *pair, int flags);
+/* Deallocates the audit_rule_rule object, and any associated resources */
 extern void audit_rule_free_data(struct audit_rule_data *rule);
 
 /* Capability testing functions */
