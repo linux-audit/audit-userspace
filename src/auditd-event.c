@@ -1012,8 +1012,8 @@ static void fix_disk_permissions(void)
  
 static void rotate_logs(unsigned int num_logs, unsigned int keep_logs)
 {
-	int rc;
-	unsigned int len, i;
+	int rc, i;
+	unsigned int len;
 	char *oldname, *newname;
 
 	/* Check that log rotation is enabled in the configuration file. There
@@ -1065,7 +1065,7 @@ static void rotate_logs(unsigned int num_logs, unsigned int keep_logs)
 		snprintf(oldname, len, "%s.1", config->log_file);
 
 	known_logs = 0;
-	for (i=num_logs - 1; i>1; i--) {
+	for (i=(int)num_logs - 1; i>1; i--) {
 		snprintf(oldname, len, "%s.%u", config->log_file, i-1);
 		snprintf(newname, len, "%s.%u", config->log_file, i);
 		/* if the old file exists */
