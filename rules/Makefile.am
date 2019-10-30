@@ -27,6 +27,14 @@ EXTRA_DIST = 10-base-config.rules 10-no-audit.rules 11-loginuid.rules \
 20-dont-audit.rules 21-no32bit.rules 22-ignore-chrony.rules \
 23-ignore-filesystems.rules \
 30-nispom.rules 30-stig.rules 30-pci-dss-v31.rules 30-ospp-v42.rules \
+30-ospp-v42-1-create-failed.rules 30-ospp-v42-1-create-success.rules \
+30-ospp-v42-2-modify-failed.rules 30-ospp-v42-2-modify-success.rules \
+30-ospp-v42-3-access-failed.rules 30-ospp-v42-3-access-success.rules \
+30-ospp-v42-4-delete-failed.rules 30-ospp-v42-4-delete-success.rules \
+30-ospp-v42-5-perm-change-failed.rules \
+30-ospp-v42-5-perm-change-success.rules \
+30-ospp-v42-6-owner-change-failed.rules \
+30-ospp-v42-6-owner-change-success.rules \
 31-privileged.rules 32-power-abuse.rules \
 40-local.rules 41-containers.rules 42-injection.rules 43-module-load.rules \
 70-einval.rules 71-networking.rules \

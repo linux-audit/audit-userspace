@@ -78,6 +78,7 @@
 - In audisp-remote, add new config item for startup connection errors
 - Remove dependency on chkconfig
 - Install rules to /usr/share/audit/sample-rules/
+- Split up ospp rules to make SCAP scanning easier (#1746018)
 
 2.8.3
 - Correct msg function name in LRU debug code
