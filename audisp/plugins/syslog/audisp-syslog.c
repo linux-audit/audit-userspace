@@ -28,16 +28,19 @@
 #include <sys/select.h>
 #include <errno.h>
 #include <syslog.h>
+#include <stdlib.h>
 #ifdef HAVE_LIBCAP_NG
 #include <cap-ng.h>
 #endif
 #include "libaudit.h"
 #include "common.h"
+#include "auparse.h"
 
 /* Global Data */
 static volatile int stop = 0;
 static volatile int hup = 0;
 static int priority;
+static int interpret = 0;
 
 /*
  * SIGTERM handler
@@ -109,6 +112,8 @@ static int init_syslog(int argc, const char *argv[])
 				facility = LOG_SYSLOG;
 			else if (strcasecmp(argv[i], "LOG_USER") == 0)
 				facility = LOG_USER;
+			else if (strcasecmp(argv[i], "interpret") == 0)
+				interpret = 1;
 			else {
 				syslog(LOG_ERR,
 					"Unknown log priority/facility %s",
@@ -125,12 +130,79 @@ static int init_syslog(int argc, const char *argv[])
 	return 0;
 }
 
+static char *record = NULL;
 static inline void write_syslog(char *s)
 {
-	char *c = strchr(s, AUDIT_INTERP_SEPARATOR);
-	if (c)
-		*c = ' ';
-	syslog(priority, "%s", s);
+	if (interpret) {
+		int rc, header = 0;
+		char *mptr, tbuf[64];
+
+		// Setup record buffer
+		if (record == NULL)
+			record = malloc(MAX_AUDIT_MESSAGE_LENGTH);
+		if (record == NULL)
+			return;
+
+		auparse_state_t *au = auparse_init(AUSOURCE_BUFFER, s);
+		if (au == NULL)
+			return;
+		rc = auparse_first_record(au);
+
+		// AUDIT_EOE has no fields - drop it
+		if (auparse_get_num_fields(au) == 0)
+			return;
+
+		// Now iterate over the fields and print each one
+		mptr = record;
+		while (rc > 0) {
+			int ftype = auparse_get_field_type(au);
+			const char *fname = auparse_get_field_name(au);
+			const char *fval; 
+			switch (ftype) {
+				case AUPARSE_TYPE_ESCAPED_FILE:
+					fval = auparse_interpret_realpath(au);
+					break;
+				case AUPARSE_TYPE_SOCKADDR:
+					fval =
+					    auparse_interpret_sock_address(au);
+					if (fval == NULL)
+					    fval =
+					      auparse_interpret_sock_family(au);
+					break;
+				default:
+					fval = auparse_interpret_field(au);
+					break;
+			}
+
+			mptr = stpcpy(mptr, fname ? fname : "?");
+			mptr = stpcpy(mptr, "=");
+			mptr = stpcpy(mptr, fval ? fval : "?");
+			mptr = stpcpy(mptr, " ");
+			rc = auparse_next_field(au);
+			if (!header && strcmp(fname, "type") == 0) {
+				mptr = stpcpy(mptr, "msg=audit(");
+
+				time_t t = auparse_get_time(au);
+				struct tm *tv = localtime(&t);
+				if (tv)
+					strftime(tbuf, sizeof(tbuf),
+								"%x %T", tv);
+				else
+					strcpy(tbuf, "?");
+				mptr = stpcpy(mptr, tbuf);
+				mptr = stpcpy(mptr, ") : ");
+				header = 1;
+			}
+		}
+		// Record is complete, dump it to syslog
+		syslog(priority, "%s", record);
+		auparse_destroy(au);
+	} else {
+		char *c = strchr(s, AUDIT_INTERP_SEPARATOR);
+		if (c)
+			*c = ' ';
+		syslog(priority, "%s", s);
+	}
 }
 
 int main(int argc, char *argv[])
@@ -185,6 +257,7 @@ int main(int argc, char *argv[])
 			break;
 	} while (stop == 0);
 
+	free(record);
 	return 0;
 }
 

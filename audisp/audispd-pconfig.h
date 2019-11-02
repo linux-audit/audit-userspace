@@ -26,7 +26,7 @@
 
 #include <sys/types.h>
 #include "libaudit.h"
-#define MAX_PLUGIN_ARGS 2
+#define MAX_PLUGIN_ARGS 3
 
 typedef enum { A_NO, A_YES } active_t;
 typedef enum { D_UNSET, D_IN, D_OUT } direction_t;

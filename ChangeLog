@@ -79,6 +79,7 @@
 - Remove dependency on chkconfig
 - Install rules to /usr/share/audit/sample-rules/
 - Split up ospp rules to make SCAP scanning easier (#1746018)
+- In audisp-syslog, support interpreting records (#1497279)
 
 2.8.3
 - Correct msg function name in LRU debug code
