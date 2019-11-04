@@ -33,7 +33,7 @@ audisp_syslog_DEPENDENCIES = ${top_builddir}/common/libaucommon.a
 audisp_syslog_SOURCES = audisp-syslog.c
 audisp_syslog_CFLAGS = -fPIE -DPIE -g -D_GNU_SOURCE -Wundef
 audisp_syslog_LDFLAGS = -pie -Wl,-z,relro -Wl,-z,now
-audisp_syslog_LDADD = $(CAPNG_LDADD) -L${top_builddir}/common -laucommon -lauparse
+audisp_syslog_LDADD = $(CAPNG_LDADD) -L${top_builddir}/common -laucommon -L${top_builddir}/auparse -lauparse
 
 install-data-hook:
 	mkdir -p -m 0750 ${DESTDIR}${plugin_confdir}
