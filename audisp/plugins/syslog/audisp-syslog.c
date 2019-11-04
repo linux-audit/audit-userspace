@@ -149,8 +149,10 @@ static inline void write_syslog(char *s)
 		rc = auparse_first_record(au);
 
 		// AUDIT_EOE has no fields - drop it
-		if (auparse_get_num_fields(au) == 0)
+		if (auparse_get_num_fields(au) == 0) {
+			auparse_destroy(au);
 			return;
+		}
 
 		// Now iterate over the fields and print each one
 		mptr = record;

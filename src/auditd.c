@@ -225,6 +225,8 @@ static int extract_type(const char *str)
 
 	// ptr should be at 't'
 	ptr2 = strchr(ptr, ' ');
+	if (ptr2 == NULL)
+		return -1; // Malformed - bomb out
 
 	// find =
 	str = strchr(ptr, '=');
