@@ -181,7 +181,7 @@ static inline void write_syslog(char *s)
 			mptr = stpcpy(mptr, fval ? fval : "?");
 			mptr = stpcpy(mptr, " ");
 			rc = auparse_next_field(au);
-			if (!header && strcmp(fname, "type") == 0) {
+			if (!header && fname && strcmp(fname, "type") == 0) {
 				mptr = stpcpy(mptr, "msg=audit(");
 
 				time_t t = auparse_get_time(au);

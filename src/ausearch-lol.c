@@ -324,8 +324,11 @@ int lol_add_record(lol *lo, char *buff)
 	}
 
 	// Eat standalone EOE, main event was already marked complete
-	if (e.type == AUDIT_EOE)
+	if (e.type == AUDIT_EOE) {
+		free((char *)e.node);
+		free(n.message);
 		return 0;
+	}
 
 	// Create new event and fill it in
 	l = malloc(sizeof(llist));
