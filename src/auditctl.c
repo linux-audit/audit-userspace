@@ -809,6 +809,7 @@ static int setopt(int count, int lineno, char *vars[])
 			retval = -1;
 		} else {
 			const char*s = optarg;
+			char *umsg;
 			while (*s) {
 				if (*s < 32) {
 					audit_msg(LOG_ERR,
@@ -817,11 +818,18 @@ static int setopt(int count, int lineno, char *vars[])
 				}
 				s++;
 			}
+			if (asprintf(&umsg, "text=%s", optarg) < 0) {
+				audit_msg(LOG_ERR, "Can't create user event");
+				return -1;
+			}
 			if (audit_log_user_message( fd, AUDIT_USER,
-					optarg, NULL, NULL, NULL, 1) <= 0)
-			retval = -1;
-		else
-			return -2;  // success - no reply for this
+					umsg, NULL, NULL, NULL, 1) <= 0)
+				retval = -1;
+			else {
+				free(umsg);
+				return -2;  // success - no reply for this
+			}
+			free(umsg);
 		}
 		break;
 	case 'R':
