@@ -290,6 +290,10 @@ extern "C" {
 #define AUDIT_TIME_ADJNTPVAL	1333 /* NTP value adjustment */
 #endif
 
+#ifndef AUDIT_BPF
+#define AUDIT_BPF		1334 /* BPF load/unload */
+#endif
+
 #ifndef AUDIT_MAC_CALIPSO_ADD
 #define AUDIT_MAC_CALIPSO_ADD	1418 /* NetLabel: add CALIPSO DOI entry */
 #endif
