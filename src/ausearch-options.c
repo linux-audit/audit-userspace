@@ -225,7 +225,7 @@ static void usage(void)
 	"\t-su,--subject <SE Linux context> search based on context of the Subject\n"
 	"\t-sv,--success <Success Value>\tsearch based on syscall or event\n\t\t\t\t\tsuccess value\n"
 	"\t-te,--end [end date] [end time]\tending date & time for search\n"
-	"\t-ts,--start [start date] [start time]\tstarting data & time for search\n"
+	"\t-ts,--start [start date] [start time]\tstarting date & time for search\n"
 	"\t-tm,--terminal <TerMinal>\tsearch based on terminal\n"
 	"\t-ua,--uid-all <all User id>\tsearch based on All user id's\n"
 	"\t-ue,--uid-effective <effective User id>  search based on Effective\n\t\t\t\t\tuser id\n"
