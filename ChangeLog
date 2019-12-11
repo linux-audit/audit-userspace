@@ -81,6 +81,7 @@
 - Split up ospp rules to make SCAP scanning easier (#1746018)
 - In audisp-syslog, support interpreting records (#1497279)
 - Audit USER events now sends msg as name value pair
+- Add support for AUDIT_BPF event
 
 2.8.3
 - Correct msg function name in LRU debug code
