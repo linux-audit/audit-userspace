@@ -334,8 +334,10 @@ int main(int argc, char **argv)
     size_t size = 0;
     DataBuf buf;
     char *data;
+    int rc;
 
-    assert(databuf_init(&buf, size, DATABUF_FLAG_STRING));
+    rc = databuf_init(&buf, size, DATABUF_FLAG_STRING);
+    assert(rc);
     databuf_print(&buf, 1, "after init size=%d", size);
 
 #if 1

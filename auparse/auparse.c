@@ -346,7 +346,7 @@ void print_list_t(event_list_t *l)
 		printf("\n");
 		return;
 	}
-	printf("0x%X: %ld.%3.3u:%lu %s", l, l->e.sec, l->e.milli,
+	printf("0x%p: %ld.%3.3u:%lu %s", l, l->e.sec, l->e.milli,
 			l->e.serial, l->e.host ? l->e.host : "");
 	printf(" cnt=%u", l->cnt);
 	for (r = l->head; r != NULL; r = r->next) {
@@ -384,10 +384,10 @@ void print_lol(char *label, au_lol *lol)
 {
 	int  i;
 
-	printf("%s 0x%X: a: 0x%X, %d, %d\n", label, lol, lol->array,
+	printf("%s 0x%p: a: 0x%p, %d, %d\n", label, lol, lol->array,
 					lol->maxi, lol->limit);
 	if (debug > 1) for (i = 0; i <= lol->maxi; i++) {
-		printf("{%2d 0x%X %c } ", i, (&lol->array[i]),
+		printf("{%2d 0x%p %c } ", i, (&lol->array[i]),
 					lol_status(lol->array[i].status));
 		print_list_t(lol->array[i].l);
 	}

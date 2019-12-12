@@ -62,7 +62,7 @@ auparse_callback(auparse_state_t * au, auparse_cb_event_t cb_event_type,
             return;             /* If no first record, then no event ! */
 
         if (!(flags & F_CHECK))
-            printf("event=%d records=%d\n", *event_cnt,
+            printf("event=%d records=%u\n", *event_cnt,
                    auparse_get_num_records(au));
         do {
             const au_event_t *e = auparse_get_timestamp(au);
@@ -94,7 +94,7 @@ auparse_callback(auparse_state_t * au, auparse_cb_event_t cb_event_type,
                 continue;
             }
 
-            printf("fields=%d\t", auparse_get_num_fields(au));
+            printf("fields=%u\t", auparse_get_num_fields(au));
             printf("type=%d (%s) ", auparse_get_type(au),
                    auparse_get_type_name(au));
             printf("event_tid=%u.%3.3u:%lu ",

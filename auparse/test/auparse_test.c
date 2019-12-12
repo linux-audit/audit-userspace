@@ -28,16 +28,16 @@ static void walk_test(auparse_state_t *au)
 						strerror(errno));
 			exit(1);
 		}
-		printf("event %d has %d records\n", event_cnt,
+		printf("event %d has %u records\n", event_cnt,
 						auparse_get_num_records(au));
 		record_cnt = 1;
 		do {
-			printf("    record %d of type %d(%s) has %d fields\n",
+			printf("    record %d of type %d(%s) has %u fields\n",
 				record_cnt, 
 				auparse_get_type(au),
 				audit_msg_type_to_name(auparse_get_type(au)),
 				auparse_get_num_fields(au));
-			printf("    line=%d file=%s\n",
+			printf("    line=%u file=%s\n",
 				auparse_get_line_number(au),
 				auparse_get_filename(au) ?
 					auparse_get_filename(au) : "None");
@@ -72,15 +72,15 @@ void light_test(auparse_state_t *au)
 			puts("Error getting first record");
 			exit(1);
 		}
-		printf("event has %d records\n", auparse_get_num_records(au));
+		printf("event has %u records\n", auparse_get_num_records(au));
 		record_cnt = 1;
 		do {
-			printf("    record %d of type %d(%s) has %d fields\n",
+			printf("    record %d of type %d(%s) has %u fields\n",
 				record_cnt, 
 				auparse_get_type(au),
 				audit_msg_type_to_name(auparse_get_type(au)),
 				auparse_get_num_fields(au));
-			printf("    line=%d file=%s\n",
+			printf("    line=%u file=%s\n",
 				auparse_get_line_number(au),
 				auparse_get_filename(au) ?
 					auparse_get_filename(au) : "None");
@@ -228,16 +228,16 @@ static void auparse_callback(auparse_state_t *au, auparse_cb_event_t cb_event_ty
 			printf("can't get first record\n");
 			return;
 		}
-		printf("event %d has %d records\n", *event_cnt,
+		printf("event %d has %u records\n", *event_cnt,
 					auparse_get_num_records(au));
 		record_cnt = 1;
 		do {
-			printf("    record %d of type %d(%s) has %d fields\n",
+			printf("    record %d of type %d(%s) has %u fields\n",
 				record_cnt, 
 				auparse_get_type(au),
 				audit_msg_type_to_name(auparse_get_type(au)),
 				auparse_get_num_fields(au));
-			printf("    line=%d file=%s\n",
+			printf("    line=%u file=%s\n",
 				auparse_get_line_number(au),
 				auparse_get_filename(au) ?
 					auparse_get_filename(au) : "None");
