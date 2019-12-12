@@ -101,7 +101,7 @@ const char *audit_field_to_name(int field)
 
 int audit_name_to_syscall(const char *sc, int machine)
 {
-	int res, found = 0;
+	int res = -1, found = 0;
 
 	switch (machine)
 	{
