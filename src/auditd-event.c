@@ -1066,8 +1066,8 @@ static void rotate_logs(unsigned int num_logs, unsigned int keep_logs)
 
 	known_logs = 0;
 	for (i=(int)num_logs - 1; i>1; i--) {
-		snprintf(oldname, len, "%s.%u", config->log_file, i-1);
-		snprintf(newname, len, "%s.%u", config->log_file, i);
+		snprintf(oldname, len, "%s.%d", config->log_file, i-1);
+		snprintf(newname, len, "%s.%d", config->log_file, i);
 		/* if the old file exists */
 		rc = rename(oldname, newname);
 		if (rc == -1 && errno != ENOENT) {

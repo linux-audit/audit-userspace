@@ -827,7 +827,7 @@ static void auditd_tcp_listen_handler( struct ev_loop *loop,
 	        	audit_msg(LOG_ERR, "TCP connection from %s rejected",
 					sockaddr_to_addr(&aaddr));
 			snprintf(emsg, sizeof(emsg),
-				"op=wrap addr=%s port=%d res=no",
+				"op=wrap addr=%s port=%u res=no",
 				sockaddr_to_string(&aaddr),
 				sockaddr_to_port(&aaddr));
 			send_audit_event(AUDIT_DAEMON_ACCEPT, emsg);
@@ -843,7 +843,7 @@ static void auditd_tcp_listen_handler( struct ev_loop *loop,
         	audit_msg(LOG_ERR, "TCP connection from %s rejected",
 				sockaddr_to_addr(&aaddr));
 		snprintf(emsg, sizeof(emsg),
-			"op=port addr=%s port=%d res=no",
+			"op=port addr=%s port=%u res=no",
 			sockaddr_to_string(&aaddr),
 			sockaddr_to_port(&aaddr));
 		send_audit_event(AUDIT_DAEMON_ACCEPT, emsg);
@@ -857,7 +857,7 @@ static void auditd_tcp_listen_handler( struct ev_loop *loop,
         	audit_msg(LOG_ERR, "Too many connections from %s - rejected",
 				sockaddr_to_addr(&aaddr));
 		snprintf(emsg, sizeof(emsg),
-			"op=dup addr=%s port=%d res=no",
+			"op=dup addr=%s port=%u res=no",
 			sockaddr_to_string(&aaddr),
 			sockaddr_to_port(&aaddr));
 		send_audit_event(AUDIT_DAEMON_ACCEPT, emsg);
@@ -877,7 +877,7 @@ static void auditd_tcp_listen_handler( struct ev_loop *loop,
 	if (client == NULL) {
         	audit_msg(LOG_CRIT, "Unable to allocate TCP client data");
 		snprintf(emsg, sizeof(emsg),
-			"op=alloc addr=%s port=%d res=no",
+			"op=alloc addr=%s port=%u res=no",
 			sockaddr_to_string(&aaddr),
 			sockaddr_to_port(&aaddr));
 		send_audit_event(AUDIT_DAEMON_ACCEPT, emsg);
@@ -915,7 +915,7 @@ static void auditd_tcp_listen_handler( struct ev_loop *loop,
 
 	/* And finally log that we accepted the connection */
 	snprintf(emsg, sizeof(emsg),
-		"addr=%s port=%d res=success", sockaddr_to_string(&aaddr),
+		"addr=%s port=%u res=success", sockaddr_to_string(&aaddr),
 		sockaddr_to_port(&aaddr));
 	send_audit_event(AUDIT_DAEMON_ACCEPT, emsg);
 }
@@ -977,7 +977,7 @@ int auditd_tcp_listen_init(struct ev_loop *loop, struct daemon_conf *config)
 	hints.ai_flags = AI_PASSIVE | AI_ADDRCONFIG;
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_family = AF_UNSPEC;
-	snprintf(local, sizeof(local), "%ld", config->tcp_listen_port);
+	snprintf(local, sizeof(local), "%lu", config->tcp_listen_port);
 
 	rc = getaddrinfo(NULL, local, &hints, &ai);
 	if (rc) {
