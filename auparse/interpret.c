@@ -683,7 +683,7 @@ static const char *print_arch(const char *val, unsigned int machine)
 	if (ptr)
 	        return strdup(ptr);
 	else {
-		if (asprintf(&out, "unknown-machine-type(%d)", machine) < 0)
+		if (asprintf(&out, "unknown-machine-type(%u)", machine) < 0)
 			out = NULL;
                 return out;
 	}
