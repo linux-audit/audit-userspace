@@ -22,6 +22,6 @@ For example, if you wanted to set a system up in the STIG configuration, copy
 rules 10-base-config, 30-stig, 31-privileged, and 99-finalize. You can add
 more if you like.
 
-Once you have the rules in the rules.d directory, you can load then by running
+Once you have the rules in the rules.d directory, you can load them by running
 augenrules --load
 
