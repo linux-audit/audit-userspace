@@ -294,6 +294,10 @@ extern "C" {
 #define AUDIT_BPF		1334 /* BPF load/unload */
 #endif
 
+#ifndef AUDIT_EVENT_LISTENER
+#define AUDIT_EVENT_LISTENER		1335 /* audit mcast sock join/part */
+#endif
+
 #ifndef AUDIT_MAC_CALIPSO_ADD
 #define AUDIT_MAC_CALIPSO_ADD	1418 /* NetLabel: add CALIPSO DOI entry */
 #endif
