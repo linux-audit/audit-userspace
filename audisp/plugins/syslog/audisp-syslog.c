@@ -207,7 +207,7 @@ static inline void write_syslog(char *s)
 	}
 }
 
-int main(int argc, char *argv[])
+int main(int argc, const char *argv[])
 {
 	char tmp[MAX_AUDIT_MESSAGE_LENGTH+1];
 	struct sigaction sa;
