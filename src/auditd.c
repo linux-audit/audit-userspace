@@ -507,13 +507,15 @@ static void netlink_handler(struct ev_loop *loop, struct ev_io *io,
 	if (audit_get_reply(fd, &cur_event->reply, 
 			    GET_REPLY_NONBLOCKING, 0) > 0) {
 		switch (cur_event->reply.type)
-		{	/* For now dont process these */
+		{	/* Don't process these */
 		case NLMSG_NOOP:
 		case NLMSG_DONE:
 		case NLMSG_ERROR:
 		case AUDIT_GET: /* Or these */
-		case AUDIT_LIST_RULES:
+		case AUDIT_WATCH_INS...AUDIT_WATCH_LIST:
+		case AUDIT_ADD_RULE...AUDIT_GET_FEATURE:
 		case AUDIT_FIRST_DAEMON...AUDIT_LAST_DAEMON:
+		case AUDIT_REPLACE:
 			break;
 		case AUDIT_SIGNAL_INFO:
 			if (hup_info_requested) {
