@@ -173,7 +173,7 @@ int extract_search_items(llist *l)
 			case AUDIT_MMAP:
 			case AUDIT_NETFILTER_CFG:
 			case AUDIT_PROCTITLE:
-			case AUDIT_KERN_MODULE...AUDIT_BPF
+			case AUDIT_REPLACE...AUDIT_BPF
 				// Nothing to parse
 				break;
 			case AUDIT_TTY:
