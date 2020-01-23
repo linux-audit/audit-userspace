@@ -1,6 +1,6 @@
 /*
 * ausearch-parse.c - Extract interesting fields and check for match
-* Copyright (c) 2005-08,2011,2013-14,2018-19 Red Hat Inc., Durham, NC.
+* Copyright (c) 2005-08,2011,2013-14,2018-20 Red Hat
 * Copyright (c) 2011 IBM Corp. 
 * All Rights Reserved. 
 *
@@ -173,7 +173,7 @@ int extract_search_items(llist *l)
 			case AUDIT_MMAP:
 			case AUDIT_NETFILTER_CFG:
 			case AUDIT_PROCTITLE:
-			case AUDIT_KERN_MODULE:
+			case AUDIT_KERN_MODULE...AUDIT_BPF
 				// Nothing to parse
 				break;
 			case AUDIT_TTY:
