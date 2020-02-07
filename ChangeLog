@@ -83,6 +83,7 @@
 - Audit USER events now sends msg as name value pair
 - Add support for AUDIT_BPF event
 - Auditd should not process AUDIT_REPLACE events
+- Update syscall tables to the 5.5 kernel
 
 2.8.3
 - Correct msg function name in LRU debug code

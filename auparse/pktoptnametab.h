@@ -1,5 +1,5 @@
 /* pktoptnametab.h --
- * Copyright 2013-14 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2013-14,2020 Red Hat Inc.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -42,3 +42,4 @@ _S(19, "PACKET_TX_HAS_OFF")
 _S(20, "PACKET_QDISC_BYPASS")
 _S(21, "PACKET_ROLLOVER_STATS")
 _S(22, "PACKET_FANOUT_DATA")
+_S(23, "PACKET_IGNORE_OUTGOING")

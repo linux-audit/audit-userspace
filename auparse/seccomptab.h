@@ -1,5 +1,5 @@
 /* seccomptab.h --
- * Copyright 2012-13,2018 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2012-13,2018,2020 Red Hat Inc.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -26,6 +26,7 @@ _S(0x80000000U,	"kill-process")
 _S(0x00000000U,	"kill"	)
 _S(0x00030000U,	"trap"	)
 _S(0x00050000U,	"errno"	)
+_S(0x7fc00000U, "user-notify")
 _S(0x7ff00000U,	"trace"	)
 _S(0x7ffc0000U,	"log"	)
 _S(0x7fff0000U,	"allow"	)

@@ -1,5 +1,5 @@
 /* mounttab.h --
- * Copyright 2012-13,2018 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2012-13,2018,2020 Red Hat Inc.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -18,7 +18,7 @@
  *
  * Authors:
  *      Steve Grubb <sgrubb@redhat.com>
- * Location: include/uapi/linux/fs.h
+ * Location: include/uapi/linux/mount.h
  * NOTE: When updating this table, update interpret.c:print_mount()
  */
 

@@ -1,5 +1,5 @@
 /* prctl-opt-tab.h --
- * Copyright 2013-16,2018 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2013-16,2018,2020 Red Hat Inc.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -66,5 +66,10 @@ _S(44, "PR_MPX_DISABLE_MANAGEMENT")
 _S(45, "PR_SET_FP_MODE")
 _S(46, "PR_GET_FP_MODE")
 _S(47, "PR_CAP_AMBIENT")
+_S(50, "PR_SVE_SET_VL")
+_S(51, "PR_SVE_GET_VL")
 _S(52, "PR_GET_SPECULATION_CTRL")
 _S(53, "PR_SET_SPECULATION_CTRL")
+_S(54, "PR_PAC_RESET_KEYS")
+_S(55, "PR_SET_TAGGED_ADDR_CTRL")
+_S(56, "PR_GET_TAGGED_ADDR_CTRL")

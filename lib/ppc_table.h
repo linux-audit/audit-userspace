@@ -1,5 +1,5 @@
 /* ppc_table.h --
- * Copyright 2005-09,2011-18 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2005-09,2011-20 Red Hat Inc.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -18,7 +18,6 @@
  *
  * Authors:
  *      Steve Grubb <sgrubb@redhat.com>
- *      Note from include/powerpc/unistd.h
  */
 
 _S(1, "exit")
@@ -389,3 +388,4 @@ _S(384, "pkey_alloc")
 _S(385, "pkey_free")
 _S(386, "pkey_mprotect")
 _S(387, "rseq")
+

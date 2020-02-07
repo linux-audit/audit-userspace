@@ -1,5 +1,5 @@
 /* s390_table.h --
- * Copyright 2005-18 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2005-20 Red Hat Inc.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -378,3 +378,20 @@ _S(377, "pwritev2")
 _S(379, "statx")
 _S(380, "s390_sthyi")
 _S(381, "kexec_file_load")
+_S(382, "io_pgetevents")
+_S(383, "rseq")
+_S(384, "pkey_mprotect")
+_S(385, "pkey_alloc")
+_S(386, "pkey_free")
+_S(424, "pidfd_send_signal")
+_S(425, "io_uring_setup")
+_S(426, "io_uring_enter")
+_S(427, "io_uring_register")
+_S(428, "open_tree")
+_S(429, "move_mount")
+_S(430, "fsopen")
+_S(431, "fsconfig")
+_S(432, "fsmount")
+_S(433, "fspick")
+_S(434, "pidfd_open")
+_S(435, "clone3")

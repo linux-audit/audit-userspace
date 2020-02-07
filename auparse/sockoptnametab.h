@@ -1,5 +1,5 @@
 /* sockoptnametab.h --
- * Copyright 2013-16 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2013-16,2020 Red Hat Inc.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -82,6 +82,14 @@ _S(57, "SO_COOKIE")
 _S(58, "SCM_TIMESTAMPING_PKTINFO")
 _S(59, "SO_PEERGROUPS")
 _S(60, "SO_ZEROCOPY")
+_S(61, "SO_TXTIME")
+_S(62, "SO_BINDTOIFINDEX")
+_S(63, "SO_TIMESTAMP_NEW")
+_S(64, "SO_TIMESTAMPNS_NEW")
+_S(65, "SO_TIMESTAMPING_NEW")
+_S(66, "SO_RCVTIMEO_NEW")
+_S(67, "SO_SNDTIMEO_NEW")
+_S(68, "SO_DETACH_REUSEPORT_BPF")
 
 // PPC has these different
 _S(116, "SO_RCVLOWAT")

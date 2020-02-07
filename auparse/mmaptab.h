@@ -1,5 +1,5 @@
 /* mmaptab.h --
- * Copyright 2012-13,2018 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2012-13,2018,2020 Red Hat Inc.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -18,22 +18,23 @@
  *
  * Authors:
  *      Steve Grubb <sgrubb@redhat.com>
- * Location: include/uapi/asm-generic/mman.h  >0x100
- *           include/uapi/asm-generic/mman-common.h < 0x100
+ * Location: include/uapi/asm-generic/mman-common.h
  */
 
-_S(0x00001, "MAP_SHARED"	)
-_S(0x00002, "MAP_PRIVATE"	)
-_S(0x00010, "MAP_FIXED"		)
-_S(0x00020, "MAP_ANONYMOUS"	)
-_S(0x00040, "MAP_32BIT"		)
-_S(0x00100, "MAP_GROWSDOWN"	)
-_S(0x00800, "MAP_DENYWRITE"	)
-_S(0x01000, "MAP_EXECUTABLE"	)
-_S(0x02000, "MAP_LOCKED"	)
-_S(0x04000, "MAP_NORESERVE"	)
-_S(0x08000, "MAP_POPULATE"	)
-_S(0x10000, "MAP_NONBLOCK"	)
-_S(0x20000, "MAP_STACK"		)
-_S(0x40000, "MAP_HUGETLB"	)
-_S(0x80000, "MAP_SYNC"		)
+_S(0x0000001, "MAP_SHARED"	)
+_S(0x0000002, "MAP_PRIVATE"	)
+_S(0x0000010, "MAP_FIXED"	)
+_S(0x0000020, "MAP_ANONYMOUS"	)
+_S(0x0000040, "MAP_32BIT"	)
+_S(0x0000100, "MAP_GROWSDOWN"	)
+_S(0x0000800, "MAP_DENYWRITE"	)
+_S(0x0001000, "MAP_EXECUTABLE"	)
+_S(0x0002000, "MAP_LOCKED"	)
+_S(0x0004000, "MAP_NORESERVE"	)
+_S(0x0008000, "MAP_POPULATE"	)
+_S(0x0010000, "MAP_NONBLOCK"	)
+_S(0x0020000, "MAP_STACK"	)
+_S(0x0040000, "MAP_HUGETLB"	)
+_S(0x0080000, "MAP_SYNC"	)
+_S(0x0100000, "MAP_FIXED_NOREPLACE")
+_S(0x4000000, "MAP_UNINITIALIZED")

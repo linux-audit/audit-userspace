@@ -1,5 +1,5 @@
 /* bpftab.h --
- * Copyright 2018 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2018-20 Red Hat Inc.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -42,4 +42,6 @@ _S(17, "BPF_RAW_TRACEPOINT_OPEN")
 _S(18, "BPF_BTF_LOAD")
 _S(19, "BPF_BTF_GET_FD_BY_ID")
 _S(20, "BPF_TASK_FD_QUERY")
-
+_S(21, "BPF_MAP_LOOKUP_AND_DELETE_ELEM")
+_S(22, "BPF_MAP_FREEZE")
+_S(23, "BPF_BTF_GET_NEXT_ID")
