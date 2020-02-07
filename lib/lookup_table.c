@@ -46,6 +46,9 @@
 #include "s390_tables.h"
 #include "s390x_tables.h"
 #include "x86_64_tables.h"
+#include "mips_n64_tables.h"
+#include "mips_n32_tables.h"
+#include "mips_o32_tables.h"
 #include "errtabs.h"
 #include "fstypetabs.h"
 #include "ftypetabs.h"
@@ -75,6 +78,15 @@ static const struct int_transtab elftab[] = {
 #endif
 #ifdef WITH_AARCH64
     { MACH_AARCH64, AUDIT_ARCH_AARCH64},
+#endif
+#if __BYTE_ORDER__ && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+	{ MACH_MIPS,    AUDIT_ARCH_MIPS     },
+	{ MACH_MIPS64,  AUDIT_ARCH_MIPS64   },
+	{ MACH_MIPS64_N32,  AUDIT_ARCH_MIPS64_N32   },
+#else /* both little and big endian use same ABI */
+	{ MACH_MIPS,    AUDIT_ARCH_MIPSEL     },
+	{ MACH_MIPS64,  AUDIT_ARCH_MIPSEL64   },
+	{ MACH_MIPS64_N32,  AUDIT_ARCH_MIPS64EL_N32   },
 #endif
 };
 #define AUDIT_ELF_NAMES (sizeof(elftab)/sizeof(elftab[0]))
@@ -133,6 +145,15 @@ int audit_name_to_syscall(const char *sc, int machine)
 			found = aarch64_syscall_s2i(sc, &res);
 			break;
 #endif
+		case MACH_MIPS:
+			found = mips_o32_syscall_s2i(sc, &res);
+			break;
+		case MACH_MIPS64:
+			found = mips_n64_syscall_s2i(sc, &res);
+			break;
+		case MACH_MIPS64_N32:
+			found = mips_n32_syscall_s2i(sc, &res);
+			break;
 #endif
 		default:
 			return -1;
@@ -167,6 +188,12 @@ const char *audit_syscall_to_name(int sc, int machine)
 	        case MACH_AARCH64:
 			return aarch64_syscall_i2s(sc);
 #endif
+		case MACH_MIPS:
+			return mips_o32_syscall_i2s(sc);
+		case MACH_MIPS64:
+			return mips_n64_syscall_i2s(sc);
+		case MACH_MIPS64_N32:
+			return mips_n32_syscall_i2s(sc);
 	}
 #endif
 	return NULL;

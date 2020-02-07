@@ -116,7 +116,10 @@ static int print_arch(unsigned int value, int op)
 				(unsigned)value);
 	else {
 		if (interpret == 0) {
-			if (__AUDIT_ARCH_64BIT & _audit_elf)
+			if (__AUDIT_ARCH_ALT & _audit_elf)
+				printf(" -F arch%sn32",
+						audit_operator_to_symbol(op));
+			else if (__AUDIT_ARCH_64BIT & _audit_elf)
 				printf(" -F arch%sb64",
 						audit_operator_to_symbol(op));
 			else

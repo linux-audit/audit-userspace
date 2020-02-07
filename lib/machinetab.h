@@ -41,3 +41,5 @@ _S(MACH_ARM,   "armv7l")
 #ifdef WITH_AARCH64
 _S(MACH_AARCH64,   "aarch64"  )
 #endif
+_S(MACH_MIPS64,  "mips64" )
+_S(MACH_MIPS,    "mips" )

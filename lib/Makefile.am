@@ -46,7 +46,8 @@ nodist_libaudit_la_SOURCES = $(BUILT_SOURCES)
 BUILT_SOURCES = actiontabs.h errtabs.h fieldtabs.h flagtabs.h \
 	fstypetabs.h ftypetabs.h i386_tables.h machinetabs.h \
 	msg_typetabs.h optabs.h ppc_tables.h s390_tables.h \
-	s390x_tables.h x86_64_tables.h
+	s390x_tables.h x86_64_tables.h mips_n64_tables.h mips_n32_tables.h \
+	mips_o32_tables.h
 if USE_ARM
 BUILT_SOURCES += arm_tables.h
 endif
@@ -57,7 +58,8 @@ noinst_PROGRAMS = gen_actiontabs_h gen_errtabs_h gen_fieldtabs_h \
 	gen_flagtabs_h gen_fstypetabs_h gen_ftypetabs_h gen_i386_tables_h \
 	gen_machinetabs_h gen_msg_typetabs_h \
 	gen_optabs_h gen_ppc_tables_h gen_s390_tables_h \
-	gen_s390x_tables_h gen_x86_64_tables_h
+	gen_s390x_tables_h gen_x86_64_tables_h gen_mips_n64_tables_h \
+	gen_mips_n32_tables_h gen_mips_o32_tables_h
 if USE_ARM
 noinst_PROGRAMS += gen_arm_tables_h
 endif
@@ -277,3 +279,42 @@ gen_x86_64_tables_h$(BUILD_EXEEXT): CPPFLAGS=$(CPPFLAGS_FOR_BUILD)
 gen_x86_64_tables_h$(BUILD_EXEEXT): LDFLAGS=$(LDFLAGS_FOR_BUILD)
 x86_64_tables.h: gen_x86_64_tables_h Makefile
 	./gen_x86_64_tables_h --lowercase --i2s --s2i x86_64_syscall > $@
+
+gen_mips_n64_tables_h_SOURCES = gen_tables.c gen_tables.h mips_n64_table.h
+gen_mips_n64_tables_h_CFLAGS = '-DTABLE_H="mips_n64_table.h"'
+$(gen_mips_n64_tables_h_OBJECTS): CC=$(CC_FOR_BUILD)
+$(gen_mips_n64_tables_h_OBJECTS): CFLAGS=$(CFLAGS_FOR_BUILD)
+$(gen_mips_n64_tables_h_OBJECTS): CPPFLAGS=$(CPPFLAGS_FOR_BUILD)
+$(gen_mips_n64_tables_h_OBJECTS): LDFLAGS=$(LDFLAGS_FOR_BUILD)
+gen_mips_n64_tables_h$(BUILD_EXEEXT): CC=$(CC_FOR_BUILD)
+gen_mips_n64_tables_h$(BUILD_EXEEXT): CFLAGS=$(CFLAGS_FOR_BUILD)
+gen_mips_n64_tables_h$(BUILD_EXEEXT): CPPFLAGS=$(CPPFLAGS_FOR_BUILD)
+gen_mips_n64_tables_h$(BUILD_EXEEXT): LDFLAGS=$(LDFLAGS_FOR_BUILD)
+mips_n64_tables.h: gen_mips_n64_tables_h Makefile
+	./gen_mips_n64_tables_h --lowercase --i2s --s2i mips_n64_syscall > $@
+
+gen_mips_n32_tables_h_SOURCES = gen_tables.c gen_tables.h mips_n32_table.h
+gen_mips_n32_tables_h_CFLAGS = '-DTABLE_H="mips_n32_table.h"'
+$(gen_mips_n32_tables_h_OBJECTS): CC=$(CC_FOR_BUILD)
+$(gen_mips_n32_tables_h_OBJECTS): CFLAGS=$(CFLAGS_FOR_BUILD)
+$(gen_mips_n32_tables_h_OBJECTS): CPPFLAGS=$(CPPFLAGS_FOR_BUILD)
+$(gen_mips_n32_tables_h_OBJECTS): LDFLAGS=$(LDFLAGS_FOR_BUILD)
+gen_mips_n32_tables_h$(BUILD_EXEEXT): CC=$(CC_FOR_BUILD)
+gen_mips_n32_tables_h$(BUILD_EXEEXT): CFLAGS=$(CFLAGS_FOR_BUILD)
+gen_mips_n32_tables_h$(BUILD_EXEEXT): CPPFLAGS=$(CPPFLAGS_FOR_BUILD)
+gen_mips_n32_tables_h$(BUILD_EXEEXT): LDFLAGS=$(LDFLAGS_FOR_BUILD)
+mips_n32_tables.h: gen_mips_n32_tables_h Makefile
+	./gen_mips_n32_tables_h --lowercase --i2s --s2i mips_n32_syscall > $@
+
+gen_mips_o32_tables_h_SOURCES = gen_tables.c gen_tables.h mips_o32_table.h
+gen_mips_o32_tables_h_CFLAGS = '-DTABLE_H="mips_o32_table.h"'
+$(gen_mips_o32_tables_h_OBJECTS): CC=$(CC_FOR_BUILD)
+$(gen_mips_o32_tables_h_OBJECTS): CFLAGS=$(CFLAGS_FOR_BUILD)
+$(gen_mips_o32_tables_h_OBJECTS): CPPFLAGS=$(CPPFLAGS_FOR_BUILD)
+$(gen_mips_o32_tables_h_OBJECTS): LDFLAGS=$(LDFLAGS_FOR_BUILD)
+gen_mips_o32_tables_h$(BUILD_EXEEXT): CC=$(CC_FOR_BUILD)
+gen_mips_o32_tables_h$(BUILD_EXEEXT): CFLAGS=$(CFLAGS_FOR_BUILD)
+gen_mips_o32_tables_h$(BUILD_EXEEXT): CPPFLAGS=$(CPPFLAGS_FOR_BUILD)
+gen_mips_o32_tables_h$(BUILD_EXEEXT): LDFLAGS=$(LDFLAGS_FOR_BUILD)
+mips_o32_tables.h: gen_mips_o32_tables_h Makefile
+	./gen_mips_o32_tables_h --lowercase --i2s --s2i mips_o32_syscall > $@
