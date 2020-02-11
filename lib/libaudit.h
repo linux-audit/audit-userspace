@@ -306,6 +306,10 @@ extern "C" {
 #define AUDIT_ANOM_LINK		1702 /* Suspicious use of file links */
 #endif
 
+#ifndef AUDIT_ANOM_CREAT
+#define AUDIT_ANOM_CREAT            1703 /* Suspicious file creation */
+#endif
+
 /* This is related to the filterkey patch */
 #define AUDIT_KEY_SEPARATOR 0x01
 
