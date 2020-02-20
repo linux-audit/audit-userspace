@@ -585,7 +585,7 @@ int libdisp_active(void)
 }
 
 /* returns 0 on success and -1 on error */
-int libdisp_enqueue(event_t *e)
+int libdisp_enqueue(empty_event_t *e)
 {
 	return enqueue(e, &daemon_config);
 }

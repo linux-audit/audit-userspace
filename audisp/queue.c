@@ -26,8 +26,9 @@
 #include <unistd.h>
 #include <syslog.h>
 #include "queue.h"
+#include <string.h>
 
-static volatile event_t **q;
+static volatile empty_event_t **q;
 static pthread_mutex_t queue_lock;
 static pthread_cond_t queue_nonempty;
 static unsigned int q_next, q_last, q_depth, processing_suspended;
@@ -55,7 +56,7 @@ int init_queue(unsigned int size)
 	max_used = 0;
 	overflowed = 0;
 	q_depth = size;
-	q = malloc(q_depth * sizeof(event_t *));
+	q = malloc(q_depth * sizeof(empty_event_t *));
 	if (q == NULL)
 		return -1;
 
@@ -132,7 +133,7 @@ static void do_overflow_action(struct disp_conf *config)
 }
 
 /* returns 0 on success and -1 on error */
-int enqueue(event_t *e, struct disp_conf *config)
+int enqueue(empty_event_t *e, struct disp_conf *config)
 {
 	unsigned int n, retry_cnt = 0;
 
@@ -195,9 +196,20 @@ event_t *dequeue(void)
 
 	// OK, grab the next event
 	if (q[n] != NULL) {
-		e = (event_t *)q[n];
+		empty_event_t *to_expand = (empty_event_t *)q[n];
 		q[n] = NULL;
 		q_last = (n+1) % q_depth;
+
+		e = realloc(to_expand, sizeof(event_t));
+		if (e == NULL) {
+			free(to_expand);
+			to_expand = NULL;
+		}
+		else {
+			to_expand = NULL;
+			uint32_t evt_size = e->hdr.size;
+			memset(&e->data[evt_size], 0, MAX_AUDIT_MESSAGE_LENGTH - evt_size);
+		}
 	} else
 		e = NULL;
 
@@ -220,7 +232,7 @@ void increase_queue_depth(unsigned int size)
 		unsigned int i;
 		void *tmp_q;
 
-		tmp_q = realloc(q, size * sizeof(event_t *));
+		tmp_q = realloc(q, size * sizeof(empty_event_t *));
 		q = tmp_q;
 		for (i=q_depth; i<size; i++)
 			q[i] = NULL;
