@@ -84,6 +84,7 @@
 - Add support for AUDIT_BPF event
 - Auditd should not process AUDIT_REPLACE events
 - Update syscall tables to the 5.5 kernel
+- Improve personality interpretation by using PERS_MASK
 
 2.8.3
 - Correct msg function name in LRU debug code

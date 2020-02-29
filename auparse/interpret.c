@@ -1610,7 +1610,7 @@ static const char *print_personality(const char *val)
                 return out;
         }
 
-	pers2 = pers & ~ADDR_NO_RANDOMIZE;
+	pers2 = pers & PER_MASK;
 	s = person_i2s(pers2);
 	if (s != NULL) {
 		if (pers & ADDR_NO_RANDOMIZE) {
