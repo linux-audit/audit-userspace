@@ -1,6 +1,6 @@
 /*
 * ausearch-parse.h - Header file for ausearch-llist.c
-* Copyright (c) 2005 Red Hat Inc., Durham, North Carolina.
+* Copyright (c) 2005,2020 Red Hat
 * All Rights Reserved.
 *
 * This software may be freely redistributed and/or modified under the
@@ -29,6 +29,7 @@
 #include "ausearch-llist.h"
 
 int extract_search_items(llist *l);
+void lookup_uid_destroy_list(void);
 
 #endif
 

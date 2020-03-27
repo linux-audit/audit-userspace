@@ -1,6 +1,6 @@
 /*
- * ausearch.c - main file for ausearch utility 
- * Copyright 2005-08,2010,2013,2014 Red Hat Inc., Durham, North Carolina.
+ * ausearch.c - main file for ausearch utility
+ * Copyright 2005-08,2010,2013,2014,2020 Red Hat
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -43,6 +43,7 @@
 #include "ausearch-lookup.h"
 #include "auparse.h"
 #include "ausearch-checkpt.h"
+#include "ausearch-parse.h"
 
 
 static FILE *log_fd = NULL;
@@ -177,6 +178,7 @@ int main(int argc, char *argv[])
 
 skip_checkpt:
 	lol_clear(&lo);
+	lookup_uid_destroy_list();
 	ilist_clear(event_type);
 	free(event_type);
 	free(user_file);

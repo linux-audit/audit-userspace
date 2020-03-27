@@ -39,6 +39,7 @@
 #include "ausearch-lookup.h"
 #include "ausearch-parse.h"
 #include "auparse-idata.h"
+#include "ausearch-nvpair.h"
 
 #define NAME_OFFSET 28
 static const char key_sep[2] = { AUDIT_KEY_SEPARATOR, 0 };
@@ -198,6 +199,8 @@ int extract_search_items(llist *l)
 /*
  * returns malloc'ed buffer on success and NULL on failure
  */
+static nvlist uid_nvl;
+static int uid_list_created=0;
 static const char *lookup_uid(const char *field, uid_t uid)
 {
 	const char *value;
@@ -208,13 +211,36 @@ static const char *lookup_uid(const char *field, uid_t uid)
 		return strdup("root");
 	else if (uid == -1)
 		return strdup("unset");
-	else {
+
+	if (uid_list_created == 0) {
+		nvlist_create(&uid_nvl);
+		nvlist_clear(&uid_nvl);
+		uid_list_created = 1;
+	}
+
+	if (nvlist_find_val(&uid_nvl, uid)) {
+		return strdup(uid_nvl.cur->name);
+	} else {
 		struct passwd *pw;
 		pw = getpwuid(uid);
-		if (pw)
+		if (pw) {
+			nvnode nv;
+			nv.name = strdup(pw->pw_name);
+			nv.val = uid;
+			nvlist_append(&uid_nvl, &nv);
 			return strdup(pw->pw_name);
+		}
 	}
 	return NULL;
+}
+
+void lookup_uid_destroy_list(void)
+{
+	if (uid_list_created == 0)
+		return;
+
+	nvlist_clear(&uid_nvl);
+	uid_list_created = 0;
 }
 
 static int parse_task_info(lnode *n, search_items *s)

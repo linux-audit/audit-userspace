@@ -1,6 +1,6 @@
 /*
- * aureport.c - main file for aureport utility 
- * Copyright 2005-08, 2010,11,2013 Red Hat Inc., Durham, North Carolina.
+ * aureport.c - main file for aureport utility
+ * Copyright 2005-08, 2010,11,2013,2020 Red Hat
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -42,6 +42,7 @@
 #include "ausearch-lol.h"
 #include "ausearch-lookup.h"
 #include "auparse-idata.h"
+#include "ausearch-parse.h"
 
 
 extern event very_first_event;
@@ -131,6 +132,7 @@ int main(int argc, char *argv[])
 		print_wrap_up();
 	destroy_counters();
 	aulookup_destroy_uid_list();
+	lookup_uid_destroy_list();
 	free(user_file);
 	return 0;
 }
