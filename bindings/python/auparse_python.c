@@ -374,7 +374,7 @@ AuParser_init(AuParser *self, PyObject *args, PyObject *kwds)
             PyErr_SetString(PyExc_ValueError, "source must be a sequence when source_type is AUSOURCE_FILE_ARRAY");
             return -1;
         }
-        
+
         if ((self->au = auparse_init(source_type, files)) == NULL) {
             PyErr_SetFromErrno(PyExc_IOError);
             PyMem_Del(files);
@@ -383,7 +383,7 @@ AuParser_init(AuParser *self, PyObject *args, PyObject *kwds)
         PyMem_Del(files);
     } break;
     case AUSOURCE_BUFFER: {
-        char *buf;
+        const char *buf;
         if ((buf = PYSTR_ASSTRING(source)) == NULL) return -1;
         if ((self->au = auparse_init(source_type, buf)) == NULL) {
             PyErr_SetFromErrno(PyExc_EnvironmentError);
@@ -417,7 +417,7 @@ AuParser_init(AuParser *self, PyObject *args, PyObject *kwds)
             PyErr_SetString(PyExc_ValueError, "source must be a sequence when source_type is AUSOURCE_FILE_ARRAY");
             return -1;
         }
-        
+
         if ((self->au = auparse_init(source_type, buffers)) == NULL) {
             PyErr_SetFromErrno(PyExc_EnvironmentError);
             PyMem_Del(buffers);
