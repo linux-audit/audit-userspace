@@ -231,7 +231,7 @@ static int recv_token(int s, gss_buffer_t tok)
 	       | lenbuf[3]);
 	if (len > MAX_AUDIT_MESSAGE_LENGTH) {
 		audit_msg(LOG_ERR,
-			"GSS-API error: event length excedes MAX_AUDIT_LENGTH");
+			"GSS-API error: event length exceeds MAX_AUDIT_LENGTH");
 		return -1;
 	}
 	tok->length = len;
