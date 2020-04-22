@@ -9,7 +9,7 @@ audisp-syslog \- plugin to push audit events into syslog
 
 If it is desired that events are interpreted, add the word
 .B interpret
-to the args line. This will cause all events to be interpeted. The drawback to this approach is that naive parsers can be tricked by an adversary that has the ability to name files, processes, or other user controlled objects.
+to the args line. This will cause all events to be interpreted. The drawback to this approach is that naive parsers can be tricked by an adversary that has the ability to name files, processes, or other user controlled objects.
 
 If you are aggregating multiple machines, you should edit auditd.conf to set the name_format to something meaningful and the log_format to enriched. This way you can tell where the event came from and have the user name and groups resolved locally before it is sent off of the machine.
 

@@ -154,7 +154,7 @@ match.
 There are many other ways to define logging in RACF. Please refer to the server documentation for more details.
 
 .SH SMF Mapping
-The ITDS Remote Audit service will cut SMF records of type 83 subtype 4 everytime it processes a request. This plugin will issue a remote audit request for every incoming Linux Audit record (meaning that one Linux record will map to one SMF record), and fill this type's records with the following:
+The ITDS Remote Audit service will cut SMF records of type 83 subtype 4 every time it processes a request. This plugin will issue a remote audit request for every incoming Linux Audit record (meaning that one Linux record will map to one SMF record), and fill this type's records with the following:
 .SS Link Value
 The Linux event serial number, encoded in network-byte order hexadecimal representation. Records within the same Event share the same Link Value.
 .SS Violation
