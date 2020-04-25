@@ -1,7 +1,7 @@
 /*
  * lru.c - LRU cache implementation
- * Copyright (c) 2016,2017 Red Hat Inc., Durham, North Carolina.
- * All Rights Reserved. 
+ * Copyright (c) 2016-17,20 Red Hat Inc.
+ * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -31,7 +31,7 @@
 #ifdef DEBUG
 #include <syslog.h>
 #endif
- 
+
 // Local declarations
 static void dequeue(Queue *queue);
 
@@ -44,13 +44,13 @@ static QNode *new_QNode(void)
 	temp->str = NULL;
 	temp->id = (unsigned int)-1;
 	temp->uses = 1;	// Setting to 1 because its being used
- 
+
 	// Initialize prev and next as NULL
 	temp->prev = temp->next = NULL;
- 
+
 	return temp;
 }
- 
+
 static Hash *create_hash(unsigned int hsize)
 {
 	unsigned int i;
@@ -64,11 +64,11 @@ static Hash *create_hash(unsigned int hsize)
 		free(hash);
 		return NULL;
 	}
- 
+
 	// Initialize all hash entries as empty
 	for (i = 0; i < hsize; i++)
 		hash->array[i] = NULL;
- 
+
 	return hash;
 }
 
@@ -77,7 +77,7 @@ static void destroy_hash(Hash *hash)
 	free(hash->array);
 	free(hash);
 }
- 
+
 #ifdef DEBUG
 static void dump_queue_stats(const Queue *q)
 {
@@ -94,19 +94,19 @@ static Queue *create_queue(unsigned int qsize, const char *name)
 	Queue *queue = malloc(sizeof(Queue));
 	if (queue == NULL)
 		return queue;
- 
+
 	// The queue is empty
 	queue->count = 0;
 	queue->hits = 0;
 	queue->misses = 0;
 	queue->evictions = 0;
 	queue->front = queue->end = NULL;
- 
+
 	// Number of slots that can be stored in memory
 	queue->total = qsize;
 
 	queue->name = name;
- 
+
 	return queue;
 }
 
@@ -121,12 +121,12 @@ static void destroy_queue(Queue *queue)
 
 	free(queue);
 }
- 
+
 static unsigned int are_all_slots_full(const Queue *queue)
 {
 	return queue->count == queue->total;
 }
- 
+
 static unsigned int queue_is_empty(const Queue *queue)
 {
 	return queue->end == NULL;
@@ -136,7 +136,14 @@ static unsigned int queue_is_empty(const Queue *queue)
 static void sanity_check_queue(Queue *q, const char *id)
 {
 	unsigned int i;
-	QNode *n = q->front;
+	QNode *n;
+
+	if (q == NULL) {
+		syslog(LOG_DEBUG, "%s - q is NULL", id);
+		abort();
+	}
+
+	n = q->front;
 	if (n == NULL)
 		return;
 
@@ -177,6 +184,9 @@ static void sanity_check_queue(Queue *q, const char *id)
 static void insert_before(Queue *queue, QNode *node, QNode *new_node)
 {
 	sanity_check_queue(queue, "1 insert_before");
+	if (queue == NULL || node == NULL || new_node == NULL)
+		return;
+
 	new_node->prev = node->prev;
 	new_node->next  = node;
 	if (node->prev == NULL)
@@ -190,6 +200,9 @@ static void insert_before(Queue *queue, QNode *node, QNode *new_node)
 static void insert_beginning(Queue *queue, QNode *new_node)
 {
 	sanity_check_queue(queue, "1 insert_beginning");
+	if (queue == NULL || new_node == NULL)
+		return;
+
 	if (queue->front == NULL) {
 		queue->front = new_node;
 		queue->end = new_node;
