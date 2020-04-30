@@ -26,4 +26,6 @@ SUBDIRS = builtins remote syslog
 if ENABLE_ZOS_REMOTE
 SUBDIRS += zos-remote
 endif
-
+if HAVE_PRELUDE
+SUBDIRS += prelude
+endif

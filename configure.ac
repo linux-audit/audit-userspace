@@ -357,6 +357,25 @@ fi
 AC_MSG_RESULT($use_apparmor)
 
 withval=""
+AC_MSG_CHECKING(whether to use prelude)
+AC_ARG_WITH(prelude,
+AS_HELP_STRING([--with-prelude],[enable prelude SIEM support]),
+use_prelude=$withval,
+use_prelude=no)
+AC_MSG_RESULT($use_prelude)
+if test x$use_prelude = xno ; then
+	have_prelude=no;
+else
+	AM_PATH_LIBPRELUDE(4.1.0, , AC_MSG_ERROR(Cannot find libprelude: Is libprelude-config in the path?), no)
+	CPPFLAGS="${CPPFLAGS} ${LIBPRELUDE_CFLAGS}"
+	LDFLAGS="${LDFLAGS} ${LIBPRELUDE_LDFLAGS}"
+	LDFLAGS="${LDFLAGS} ${LIBPRELUDE_LIBS}"
+	AC_DEFINE([PRELUDE], [1], [Libprelude support enabled])
+	have_prelude=yes;
+fi
+AM_CONDITIONAL(HAVE_PRELUDE, test x$have_prelude = xyes)
+
+withval=""
 AC_MSG_CHECKING(whether to use libwrap)
 AC_ARG_WITH(libwrap,
 [  --with-libwrap[=PATH]   Compile in libwrap (tcp_wrappers) support.],
@@ -405,7 +424,7 @@ AC_SUBST(DEBUG)
 AC_SUBST(LIBWRAP_LIBS)
 #AC_SUBST(libev_LIBS)
 
-AC_OUTPUT(Makefile common/Makefile lib/Makefile lib/audit.pc lib/test/Makefile auparse/Makefile auparse/test/Makefile auparse/auparse.pc src/Makefile src/libev/Makefile src/test/Makefile docs/Makefile rules/Makefile init.d/Makefile audisp/Makefile audisp/plugins/Makefile audisp/plugins/builtins/Makefile audisp/plugins/remote/Makefile audisp/plugins/zos-remote/Makefile audisp/plugins/syslog/Makefile bindings/Makefile bindings/python/Makefile bindings/python/python2/Makefile bindings/python/python3/Makefile bindings/golang/Makefile bindings/swig/Makefile bindings/swig/src/Makefile bindings/swig/python/Makefile bindings/swig/python3/Makefile tools/Makefile tools/aulast/Makefile tools/aulastlog/Makefile tools/ausyscall/Makefile tools/auvirt/Makefile m4/Makefile)
+AC_OUTPUT(Makefile common/Makefile lib/Makefile lib/audit.pc lib/test/Makefile auparse/Makefile auparse/test/Makefile auparse/auparse.pc src/Makefile src/libev/Makefile src/test/Makefile docs/Makefile rules/Makefile init.d/Makefile audisp/Makefile audisp/plugins/Makefile audisp/plugins/builtins/Makefile audisp/plugins/prelude/Makefile audisp/plugins/remote/Makefile audisp/plugins/zos-remote/Makefile audisp/plugins/syslog/Makefile bindings/Makefile bindings/python/Makefile bindings/python/python2/Makefile bindings/python/python3/Makefile bindings/golang/Makefile bindings/swig/Makefile bindings/swig/src/Makefile bindings/swig/python/Makefile bindings/swig/python3/Makefile tools/Makefile tools/aulast/Makefile tools/aulastlog/Makefile tools/ausyscall/Makefile tools/auvirt/Makefile m4/Makefile)
 
 echo .
 echo "
