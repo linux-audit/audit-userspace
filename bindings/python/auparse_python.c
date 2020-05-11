@@ -2202,43 +2202,16 @@ AUSOURCE_FEED:         None (data supplied via feed()\n\
 
 static PyTypeObject AuParserType = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    "auparse.AuParser",         /*tp_name*/
-    sizeof(AuParser),           /*tp_basicsize*/
-    0,                         /*tp_itemsize*/
-    (destructor)AuParser_dealloc, /*tp_dealloc*/
-    0,                         /*tp_print*/
-    0,                         /*tp_getattr*/
-    0,                         /*tp_setattr*/
-    0,                         /*tp_compare*/
-    0,                         /*tp_repr*/
-    0,                         /*tp_as_number*/
-    0,                         /*tp_as_sequence*/
-    0,                         /*tp_as_mapping*/
-    0,                         /*tp_hash */
-    0,                         /*tp_call*/
-    0,                         /*tp_str*/
-    0,                         /*tp_getattro*/
-    0,                         /*tp_setattro*/
-    0,                         /*tp_as_buffer*/
-    Py_TPFLAGS_DEFAULT,        /*tp_flags*/
-    AuParser_doc,              /* tp_doc */
-    0,		               /* tp_traverse */
-    0,		               /* tp_clear */
-    0,		               /* tp_richcompare */
-    0,		               /* tp_weaklistoffset */
-    0,		               /* tp_iter */
-    0,		               /* tp_iternext */
-    AuParser_methods,           /* tp_methods */
-    AuParser_members,                        /* tp_members */
-    AuParser_getseters,         /* tp_getset */
-    0,                         /* tp_base */
-    0,                         /* tp_dict */
-    0,                         /* tp_descr_get */
-    0,                         /* tp_descr_set */
-    0,                         /* tp_dictoffset */
-    (initproc)AuParser_init,  /* tp_init */
-    0,                         /* tp_alloc */
-    AuParser_new,              /* tp_new */
+    .tp_name = "auparse.AuParser",
+    .tp_basicsize = sizeof(AuParser),
+    .tp_dealloc = (destructor)AuParser_dealloc,
+    .tp_flags = Py_TPFLAGS_DEFAULT,
+    .tp_doc = AuParser_doc,
+    .tp_methods = AuParser_methods,
+    .tp_members = AuParser_members,
+    .tp_getset = AuParser_getseters,
+    .tp_init = (allocfunc)AuParser_init,
+    .tp_new = AuParser_new,
 };
 
 
