@@ -173,11 +173,11 @@ int extract_search_items(llist *l)
 			case AUDIT_BPRM_FCAPS:
 			case AUDIT_CAPSET:
 			case AUDIT_MMAP:
-			case AUDIT_NETFILTER_CFG:
 			case AUDIT_PROCTITLE:
 			case AUDIT_REPLACE...AUDIT_BPF:
 				// Nothing to parse
 				break;
+			case AUDIT_NETFILTER_CFG:
 			case AUDIT_EVENT_LISTENER:
 				ret = parse_yaasao(n, s);
 				break;
@@ -2596,7 +2596,7 @@ static int parse_yaasao(lnode *n, search_items *s)
 		} else
 			return 54;
 	}
-	// get uid if not already filled
+	// optionally get uid if not already filled
 	if ((s->uid == -1 && !s->tuid) && (event_uid != -1 || event_tuid)) {
 		str = strstr(term, "uid=");
 		if (str) {
@@ -2610,31 +2610,31 @@ static int parse_yaasao(lnode *n, search_items *s)
 			if (errno)
 				return 56;
 			*term = ' ';
-			if (s->tuid) free((void *)s->tuid);
-			s->tuid = lookup_uid("uid", s->uid);
 		} else
-			return 57;
+			s->uid = 0;
+		if (s->tuid) free((void *)s->tuid);
+		s->tuid = lookup_uid("uid", s->uid);
 	}
-	// get loginuid if not already filled
+	// optionally get loginuid if not already filled
 	if ((s->loginuid == -2 && !s->tauid) && (event_loginuid != -2 || event_tauid)) {
 		str = strstr(term, "auid=");
 		if (str) {
 			ptr = str + 5;
 			term = strchr(ptr, ' ');
 			if (term == NULL)
-				return 58;
+				return 57;
 			*term = 0;
 			errno = 0;
 			s->loginuid = strtoul(ptr, NULL, 10);
 			if (errno)
-				return 59;
+				return 58;
 			*term = ' ';
-			if (s->tauid) free((void *)s->tauid);
-			s->tauid = lookup_uid("auid", s->loginuid);
 		} else
-			return 60;
+			s->loginuid = (unsigned long)-1;
+		if (s->tauid) free((void *)s->tauid);
+		s->tauid = lookup_uid("auid", s->loginuid);
 	}
-	// get tty if not already filled
+	// optionally get tty if not already filled
 	if (!s->terminal && event_terminal) {
 		// dont do this search unless needed
 		str = strstr(term, "tty=");
@@ -2642,31 +2642,31 @@ static int parse_yaasao(lnode *n, search_items *s)
 			str += 4;
 			term = strchr(str, ' ');
 			if (term == NULL)
-				return 61;
+				return 59;
 			*term = 0;
 			if (s->terminal) // ANOM_NETLINK has one
 				free(s->terminal);
 			s->terminal = strdup(str);
 			*term = ' ';
 		} else
-			return 62;
+			s->terminal = strdup("(none)");
 	}
-	// get ses if not already filled
+	// optionally get ses if not already filled
 	if (s->session_id == -2 && event_session_id != -2 ) {
 		str = strstr(term, "ses=");
 		if (str) {
 			ptr = str + 4;
 			term = strchr(ptr, ' ');
 			if (term == NULL)
-				return 63;
+				return 60;
 			*term = 0;
 			errno = 0;
 			s->session_id = strtoul(ptr, NULL, 10);
 			if (errno)
-				return 64;
+				return 61;
 			*term = ' ';
 		} else
-			return 65
+			s->session_id = (unsigned long)-1;
 	}
 	// get subject if not already filled
 	if (!s->avc && event_subject) {
@@ -2676,7 +2676,7 @@ static int parse_yaasao(lnode *n, search_items *s)
 			str += 5;
 			term = strchr(str, ' ');
 			if (term == NULL)
-				return 66;
+				return 62;
 			*term = 0;
 			if (audit_avc_init(s) == 0) {
 				anode an;
@@ -2686,9 +2686,9 @@ static int parse_yaasao(lnode *n, search_items *s)
 				alist_append(s->avc, &an);
 				*term = ' ';
 			} else
-				return 67;
+				return 63;
 		} else
-			return 68;
+			return 64;
 	}
 	// get command line if not already filled
 	if (!s->comm && event_comm) {
@@ -2703,16 +2703,16 @@ static int parse_yaasao(lnode *n, search_items *s)
 				str++;
 				term = strchr(str, '"');
 				if (term == NULL)
-					return 69;
+					return 65;
 				*term = 0;
 				s->comm = strdup(str);
 				*term = '"';
 			} else 
 				s->comm = unescape(str);
 		} else
-			return 70;
+			return 66;
 	}
-	// get exe if not already filled
+	// optionally get exe if not already filled
 	if (!s->exe && event_exe) {
 		// dont do this search unless needed
 		str = strstr(n->message, "exe=");
@@ -2722,14 +2722,14 @@ static int parse_yaasao(lnode *n, search_items *s)
 				str++;
 				term = strchr(str, '"');
 				if (term == NULL)
-					return 71;
+					return 67;
 				*term = 0;
 				s->exe = strdup(str);
 				*term = '"';
 			} else 
 				s->exe = unescape(str);
 		} else
-			return 72;
+			s->exe = strdup("(null)");
 	}
 	return 0;
 }
