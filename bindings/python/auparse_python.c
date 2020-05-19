@@ -2221,7 +2221,7 @@ static PyTypeObject AuParserType = {
     .tp_methods = AuParser_methods,
     .tp_members = AuParser_members,
     .tp_getset = AuParser_getseters,
-    .tp_init = (allocfunc)AuParser_init,
+    .tp_init = (initproc)AuParser_init,
     .tp_new = AuParser_new,
 };
 
