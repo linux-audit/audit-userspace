@@ -1,3 +1,4 @@
+#define PY_SSIZE_T_CLEAN
 #include <Python.h>
 #include "structmember.h"
 
@@ -512,7 +513,7 @@ static PyObject *
 AuParser_feed(AuParser *self, PyObject *args)
 {
     char *data;
-    int data_len;
+    Py_ssize_t data_len;
     int result;
 
     if (!PyArg_ParseTuple(args, "s#:feed", &data, &data_len)) return NULL;
