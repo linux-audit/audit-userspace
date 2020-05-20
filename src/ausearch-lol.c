@@ -246,12 +246,14 @@ static void check_events(lol *lo, time_t sec)
 			if (cur->l->e.sec + 2 <= sec) { 
 				cur->status = L_COMPLETE;
 				ready++;
-			} else if (cur->l->e.type == AUDIT_PROCTITLE ||
-				    cur->l->e.type < AUDIT_FIRST_EVENT ||
-				    cur->l->e.type >= AUDIT_FIRST_ANOM_MSG ||
-				    cur->l->e.type == AUDIT_KERNEL ||
-				    (cur->l->e.type >= AUDIT_MAC_UNLBL_ALLOW &&
-				    cur->l->e.type <= AUDIT_MAC_CALIPSO_DEL)) {
+			} else if ( cur->l->e.type <  AUDIT_LOGIN            ||
+				   (cur->l->e.type >  AUDIT_LOGIN           &&
+				    cur->l->e.type <  AUDIT_FIRST_EVENT    ) ||
+				    cur->l->e.type == AUDIT_PROCTITLE        ||
+				   (cur->l->e.type >= AUDIT_MAC_UNLBL_ALLOW &&
+				    cur->l->e.type <= AUDIT_MAC_CALIPSO_DEL) ||
+				    cur->l->e.type == AUDIT_KERNEL           ||
+				    cur->l->e.type >= AUDIT_FIRST_ANOM_MSG     ) {
 				// If known to be 1 record event, we are done
 				cur->status = L_COMPLETE;
 				ready++;
