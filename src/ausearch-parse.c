@@ -1623,9 +1623,9 @@ static int parse_daemon2(const lnode *n, search_items *s)
 	}
 
 	if (event_success != S_UNSET) {
-		char *str = strstr(term, "res=");
+		str = strstr(term, "res=");
 		if (str) {
-			char *ptr, *term, saved;
+			char *ptr;
 
 			ptr = term = str + 4;
 			while (isalpha(*term))

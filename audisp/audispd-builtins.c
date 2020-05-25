@@ -99,7 +99,7 @@ static void start_watching(void)
 	watching = 1;
 }
 
-static int create_af_unix_socket(const char *path, int mode)
+static int create_af_unix_socket(const char *spath, int mode)
 {
 	struct sockaddr_un addr;
 	socklen_t len;
@@ -113,7 +113,7 @@ static int create_af_unix_socket(const char *path, int mode)
 	}
 	memset(&addr, 0, sizeof(addr));
 	addr.sun_family = AF_UNIX;
-	snprintf(&addr.sun_path[0], 108, "%.107s", path);
+	snprintf(&addr.sun_path[0], 108, "%.107s", spath);
 	len = sizeof(addr);
 	rc = bind(sock, (const struct sockaddr *)&addr,	len);
 	if (rc < 0) {
@@ -122,11 +122,11 @@ static int create_af_unix_socket(const char *path, int mode)
 		destroy_af_unix();
 		return -1;
 	}
-	if (mode != -1) { 
-		rc = chmod(path, mode);
+	if (mode != -1) {
+		rc = chmod(spath, mode);
 		if (rc < 0) {
 			syslog(LOG_ERR, "Couldn't chmod %s to %04o (%s)",
-				path, mode, strerror(errno));
+				spath, mode, strerror(errno));
 			destroy_af_unix();
 			return -1;
 		}

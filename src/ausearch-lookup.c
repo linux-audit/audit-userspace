@@ -433,13 +433,16 @@ static void escape(const char *s, unsigned int len)
 	switch (escape_mode)
 	{
 		case AUPARSE_ESC_RAW:
-			return;
+			break;
 		case AUPARSE_ESC_TTY:
-			return tty_escape(s, len);
+			tty_escape(s, len);
+			break;
 		case AUPARSE_ESC_SHELL:
-			return shell_escape(s, len);
+			shell_escape(s, len);
+			break;
 		case AUPARSE_ESC_SHELL_QUOTE:
-			return shell_quote_escape(s, len);
+			shell_quote_escape(s, len);
+			break;
 	}
 }
 

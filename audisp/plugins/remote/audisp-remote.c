@@ -692,7 +692,7 @@ static int recv_token(int s, gss_buffer_t tok)
 }
 
 /* Same here.  */
-int send_token(int s, gss_buffer_t tok)
+static int send_token(int s, gss_buffer_t tok)
 {
 	int ret;
 	unsigned char lenbuf[4];

@@ -382,7 +382,7 @@ static void print_rule(const struct audit_rule_data *r)
 				free(rkey);
 			} else if (field == AUDIT_PERM) {
 				char perms[5];
-				int val=r->values[i];
+				unsigned int val=r->values[i];
 				perms[0] = 0;
 				if (val & AUDIT_PERM_READ)
 					strcat(perms, "r");
@@ -482,7 +482,7 @@ void audit_print_init(void)
 	list_create(&l);
 }
 
-const char *get_enable(unsigned e)
+static const char *get_enable(unsigned e)
 {
 	switch (e)
 	{
@@ -497,7 +497,7 @@ const char *get_enable(unsigned e)
 	}
 }
 
-const char *get_failure(unsigned f)
+static const char *get_failure(unsigned f)
 {
 	switch (f)
 	{
@@ -515,11 +515,11 @@ const char *get_failure(unsigned f)
 /*
  * This function interprets the reply and prints it to stdout. It returns
  * 0 if no more should be read and 1 to indicate that more messages of this
- * type may need to be read. 
+ * type may need to be read.
  */
 int audit_print_reply(struct audit_reply *rep, int fd)
 {
-	_audit_elf = 0; 
+	_audit_elf = 0;
 
 	switch (rep->type) {
 		case NLMSG_NOOP:
@@ -540,9 +540,9 @@ int audit_print_reply(struct audit_reply *rep, int fd)
 				list_clear(&l);
 			}
 			break;
-		case NLMSG_ERROR: 
+		case NLMSG_ERROR:
 		        printf("NLMSG_ERROR %d (%s)\n",
-				-rep->error->error, 
+				-rep->error->error,
 				strerror(-rep->error->error));
 			printed = 1;
 			break;
@@ -571,7 +571,8 @@ int audit_print_reply(struct audit_reply *rep, int fd)
     defined(HAVE_STRUCT_AUDIT_STATUS_FEATURE_BITMAP)
 		case AUDIT_GET_FEATURE:
 			{
-			uint32_t mask = AUDIT_FEATURE_TO_MASK(AUDIT_FEATURE_LOGINUID_IMMUTABLE);
+			uint32_t mask = AUDIT_FEATURE_TO_MASK(
+					      AUDIT_FEATURE_LOGINUID_IMMUTABLE);
 			if (rep->features->mask & mask)
 				printf("loginuid_immutable %u %s\n",
 					!!(rep->features->features & mask),

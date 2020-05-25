@@ -79,7 +79,7 @@ static int listen_socket[N_SOCKS];
 static int nlsocks;
 static struct ev_io tcp_listen_watcher;
 static struct ev_periodic periodic_watcher;
-static int min_port, max_port, max_per_addr;
+static unsigned min_port, max_port, max_per_addr;
 static int use_libwrap = 1;
 static int transport = T_TCP;
 static char msgbuf[MAX_AUDIT_MESSAGE_LENGTH + 1];
@@ -257,7 +257,7 @@ static int recv_token(int s, gss_buffer_t tok)
 }
 
 /* Same here.  */
-int send_token(int s, gss_buffer_t tok)
+static int send_token(int s, gss_buffer_t tok)
 {
 	int ret;
 	unsigned char lenbuf[4];
@@ -330,7 +330,7 @@ static void gss_failure(const char *msg, int major_status, int minor_status)
 /* These are our private credentials, which come from a key file on
    our server.  They are aquired once, at program start.  */
 static int server_acquire_creds(const char *service_name,
-		gss_cred_id_t *server_creds)
+		gss_cred_id_t *lserver_creds)
 {
 	gss_buffer_desc name_buf;
 	gss_name_t server_name;
@@ -353,7 +353,7 @@ static int server_acquire_creds(const char *service_name,
 	major_status = gss_acquire_cred(&minor_status,
 					server_name, GSS_C_INDEFINITE,
 					GSS_C_NULL_OID_SET, GSS_C_ACCEPT,
-					server_creds, NULL, NULL);
+					lserver_creds, NULL, NULL);
 	if (major_status != GSS_S_COMPLETE) {
 		gss_failure("acquiring credentials",
 				major_status, minor_status);
@@ -695,7 +695,7 @@ more_messages:
 		/* See if we have enough bytes to extract the whole message.  */
 		if (io->bufptr < i)
 			return;
-		
+
 		/* We have an I-byte message in buffer. Send ACK */
 		client_message(io, i, io->buffer);
 
@@ -766,11 +766,11 @@ static int check_num_connections(struct sockaddr_storage *aaddr)
 
 		if (aaddr->ss_family == AF_INET)
 			rc = memcmp(&((struct sockaddr_in *)aaddr)->sin_addr,
-				&((struct sockaddr_in *)cl_addr)->sin_addr, 
+				&((struct sockaddr_in *)cl_addr)->sin_addr,
 				sizeof(struct in_addr));
 		else
 			rc = memcmp(&((struct sockaddr_in6 *)aaddr)->sin6_addr,
-				&((struct sockaddr_in6 *)cl_addr)->sin6_addr, 
+				&((struct sockaddr_in6 *)cl_addr)->sin6_addr,
 				sizeof(struct in6_addr));
 		if (rc == 0) {
 			num++;
@@ -797,7 +797,7 @@ void write_connection_state(FILE *f)
 			client = client->next;
 		}
 		fprintf(f, "active connections = %u\n", act);
-		fprintf(f, "total connections = %u\n", num);		
+		fprintf(f, "total connections = %u\n", num);
 	}
 }
 
@@ -815,7 +815,7 @@ static void auditd_tcp_listen_handler( struct ev_loop *loop,
 	aaddrlen = sizeof(aaddr);
 	afd = accept(_io->fd, (struct sockaddr *)&aaddr, &aaddrlen);
 	if (afd == -1) {
-        	audit_msg(LOG_ERR, "Unable to accept TCP connection");
+		audit_msg(LOG_ERR, "Unable to accept TCP connection");
 		return;
 	}
 
@@ -824,7 +824,7 @@ static void auditd_tcp_listen_handler( struct ev_loop *loop,
 		if (auditd_tcpd_check(afd)) {
 			shutdown(afd, SHUT_RDWR);
 			close(afd);
-	        	audit_msg(LOG_ERR, "TCP connection from %s rejected",
+			audit_msg(LOG_ERR, "TCP connection from %s rejected",
 					sockaddr_to_addr(&aaddr));
 			snprintf(emsg, sizeof(emsg),
 				"op=wrap addr=%s port=%u res=no",
@@ -840,7 +840,7 @@ static void auditd_tcp_listen_handler( struct ev_loop *loop,
 	 * will block attempts from unauthorized machines.  */
 	if (min_port > sockaddr_to_port(&aaddr) ||
 				sockaddr_to_port(&aaddr) > max_port) {
-        	audit_msg(LOG_ERR, "TCP connection from %s rejected",
+		audit_msg(LOG_ERR, "TCP connection from %s rejected",
 				sockaddr_to_addr(&aaddr));
 		snprintf(emsg, sizeof(emsg),
 			"op=port addr=%s port=%u res=no",
@@ -854,7 +854,7 @@ static void auditd_tcp_listen_handler( struct ev_loop *loop,
 
 	/* Make sure we don't have too many connections */
 	if (check_num_connections(&aaddr)) {
-        	audit_msg(LOG_ERR, "Too many connections from %s - rejected",
+		audit_msg(LOG_ERR, "Too many connections from %s - rejected",
 				sockaddr_to_addr(&aaddr));
 		snprintf(emsg, sizeof(emsg),
 			"op=dup addr=%s port=%u res=no",
@@ -920,7 +920,7 @@ static void auditd_tcp_listen_handler( struct ev_loop *loop,
 	send_audit_event(AUDIT_DAEMON_ACCEPT, emsg);
 }
 
-static void auditd_set_ports(int minp, int maxp, int max_p_addr)
+static void auditd_set_ports(unsigned minp, unsigned maxp, unsigned max_p_addr)
 {
 	min_port = minp;
 	max_port = maxp;

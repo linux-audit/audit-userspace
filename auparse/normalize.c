@@ -310,7 +310,7 @@ static void collect_own_obj2(auparse_state_t *au, const char *syscall)
 
 static void collect_id_obj2(auparse_state_t *au, const char *syscall)
 {
-	unsigned int limit, cnt = 1;;
+	unsigned int limit, cnt = 1;
 
 	if (strcmp(syscall, "setuid") == 0)
 		limit = 1;

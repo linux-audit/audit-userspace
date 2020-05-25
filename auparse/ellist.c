@@ -175,7 +175,7 @@ static int parse_up_record(rnode* r)
 				if (*n.val == '"')
 					nvlist_append(&r->nv, &n);
 				else {
-					char *key, *ptr, *saved2;
+					char *key, *ptr2, *saved2;
 
 					key = (char *)au_unescape(n.val);
 					if (key == NULL) {
@@ -183,14 +183,14 @@ static int parse_up_record(rnode* r)
 						nvlist_append(&r->nv, &n);
 						continue;
 					}
-					ptr = strtok_r(key, key_sep, &saved2);
+					ptr2 = strtok_r(key, key_sep, &saved2);
 					free(n.name);
 					free(n.val);
-					while (ptr) {
+					while (ptr2) {
 						n.name = strdup("key");
-						n.val = escape(ptr);
+						n.val = escape(ptr2);
 						nvlist_append(&r->nv, &n);
-						ptr = strtok_r(NULL,
+						ptr2 = strtok_r(NULL,
 							key_sep, &saved2);
 					}
 					free(key);

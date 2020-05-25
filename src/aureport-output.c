@@ -42,7 +42,7 @@ static void do_syscall_summary_output(slist *sptr);
 static void do_type_summary_output(ilist *sptr);
 
 /* Local Data */
-unsigned int line_item;
+static unsigned int line_item;
 
 
 void print_title(void)

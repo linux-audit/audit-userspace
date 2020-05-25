@@ -54,7 +54,7 @@ int audit_fgets_more(size_t blen)
 int audit_fgets(char *buf, size_t blen, int fd)
 {
 	int complete = 0;
-	size_t line_len;
+	size_t line_len = 0;
 	char *line_end = NULL;
 
 	assert(blen != 0);

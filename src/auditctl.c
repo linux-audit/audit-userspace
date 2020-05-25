@@ -59,7 +59,7 @@ extern int delete_all_rules(int fd);
 int list_requested = 0, interpret = 0;
 char key[AUDIT_MAX_KEY_LEN+1];
 const char key_sep[2] = { AUDIT_KEY_SEPARATOR, 0 };
-static int keylen;
+static unsigned int keylen;
 static int fd = -1;
 static int add = AUDIT_FILTER_UNSET, del = AUDIT_FILTER_UNSET, action = -1;
 static int ignore = 0, continue_error = 0;
@@ -68,7 +68,7 @@ static int multiple = 0;
 static struct audit_rule_data *rule_new = NULL;
 
 /*
- * This function will reset everything used for each loop when loading 
+ * This function will reset everything used for each loop when loading
  * a ruleset from a file.
  */
 static int reset_vars(void)
@@ -182,7 +182,7 @@ static int lookup_action(const char *str, int *act)
  * Returns 0 ok, 1 deprecated action, 2 rule error,
  * 3 multiple rule insert/delete
  */
-static int audit_rule_setup(char *opt, int *filter, int *act, int lineno)
+static int audit_rule_setup(char *opt, int *filter, int *act)
 {
 	int rc;
 	char *p;
@@ -352,7 +352,7 @@ static int equiv_parse(char *optarg, char **mp, char **sub)
 	return 0;
 }
 
-int audit_request_rule_list(int fd)
+static int audit_request_rule_list(void)
 {
 	if (audit_request_rules_list_data(fd) > 0) {
 		list_requested = 1;
@@ -362,7 +362,7 @@ int audit_request_rule_list(int fd)
 	return 0;
 }
 
-void check_rule_mismatch(int lineno, const char *option)
+static void check_rule_mismatch(int lineno, const char *option)
 {
 	struct audit_rule_data tmprule;
 	unsigned int old_audit_elf = _audit_elf;
@@ -393,7 +393,7 @@ void check_rule_mismatch(int lineno, const char *option)
 	}
 }
 
-int report_status(int fd)
+static int report_status(void)
 {
 	int retval;
 
@@ -415,7 +415,7 @@ int report_status(int fd)
 	return -2;
 }
 
-int parse_syscall(struct audit_rule_data *rule_new, const char *optarg)
+static int parse_syscall(const char *optarg)
 {
 	int retval = 0;
 	char *saved;
@@ -445,7 +445,7 @@ int parse_syscall(struct audit_rule_data *rule_new, const char *optarg)
 	return audit_rule_syscallbyname_data(rule_new, optarg);
 }
 
-struct option long_opts[] =
+static struct option long_opts[] =
 {
 #if defined(HAVE_DECL_AUDIT_FEATURE_VERSION) && \
     defined(HAVE_STRUCT_AUDIT_STATUS_FEATURE_BITMAP)
@@ -512,7 +512,7 @@ static int setopt(int count, int lineno, char *vars[])
 				break;
 			}
 		}
-		retval = report_status(fd);
+		retval = report_status();
 		break;
         case 'e':
 		if (optarg && ((strcmp(optarg, "0") == 0) ||
@@ -588,7 +588,7 @@ static int setopt(int count, int lineno, char *vars[])
 			retval = -1;
 			break;
 		}
-		if (count == 3) { 
+		if (count == 3) {
 			if (strcmp(vars[optind], "-i") == 0) {
 				interpret = 1;
 				count -= 1;
@@ -599,7 +599,7 @@ static int setopt(int count, int lineno, char *vars[])
 				break;
 			}
 		} else if (count == 4) {
-			if (vars[optind] && strcmp(vars[optind], "-k") == 0) { 
+			if (vars[optind] && strcmp(vars[optind], "-k") == 0) {
 				strncat(key, vars[3], keylen);
 				count -= 2;
 			} else {
@@ -609,7 +609,7 @@ static int setopt(int count, int lineno, char *vars[])
 				break;
 			}
 		}
-		if (audit_request_rule_list(fd)) {
+		if (audit_request_rule_list()) {
 			list_requested = 1;
 			retval = -2;
 		} else
@@ -617,22 +617,22 @@ static int setopt(int count, int lineno, char *vars[])
 		break;
         case 'a':
 		if (strstr(optarg, "task") && _audit_syscalladded) {
-			audit_msg(LOG_ERR, 
+			audit_msg(LOG_ERR,
 				"Syscall auditing requested for task list");
 			retval = -1;
 		} else {
-			rc = audit_rule_setup(optarg, &add, &action, lineno);
+			rc = audit_rule_setup(optarg, &add, &action);
 			if (rc == 3) {
 				audit_msg(LOG_ERR,
 		"Multiple rule insert/delete operations are not allowed\n");
 				retval = -1;
 			} else if (rc == 2) {
-				audit_msg(LOG_ERR, 
+				audit_msg(LOG_ERR,
 					"Append rule - bad keyword %s",
 					optarg);
 				retval = -1;
 			} else if (rc == 1) {
-				audit_msg(LOG_ERR, 
+				audit_msg(LOG_ERR,
 				    "Append rule - possible is deprecated");
 				return -3; /* deprecated - eat it */
 			} else
@@ -645,7 +645,7 @@ static int setopt(int count, int lineno, char *vars[])
 			   "Error: syscall auditing requested for task list");
 			retval = -1;
 		} else {
-			rc = audit_rule_setup(optarg, &add, &action, lineno);
+			rc = audit_rule_setup(optarg, &add, &action);
 			if (rc == 3) {
 				audit_msg(LOG_ERR,
 		"Multiple rule insert/delete operations are not allowed");
@@ -665,7 +665,7 @@ static int setopt(int count, int lineno, char *vars[])
 		}
 		break;
         case 'd': 
-		rc = audit_rule_setup(optarg, &del, &action, lineno);
+		rc = audit_rule_setup(optarg, &del, &action);
 		if (rc == 3) {
 			audit_msg(LOG_ERR,
 		"Multiple rule insert/delete operations are not allowed");
@@ -730,7 +730,7 @@ static int setopt(int count, int lineno, char *vars[])
 				_audit_elf = elf;
 			}
 		}
-		rc = parse_syscall(rule_new, optarg);
+		rc = parse_syscall(optarg);
 		switch (rc)
 		{
 			case 0:
@@ -842,13 +842,13 @@ static int setopt(int count, int lineno, char *vars[])
 			    "Wrong number of options for Delete all request");
 			retval = -1;
 			break;
-		} 
+		}
 		if (count == 4) {
-			if (strcmp(vars[optind], "-k") == 0) { 
+			if (strcmp(vars[optind], "-k") == 0) {
 				strncat(key, vars[3], keylen);
 				count -= 2;
 			} else {
-				audit_msg(LOG_ERR, 
+				audit_msg(LOG_ERR,
 					"Only the -k option is allowed");
 				retval = -1;
 				break;
@@ -856,7 +856,7 @@ static int setopt(int count, int lineno, char *vars[])
 		}
 		retval = delete_all_rules(fd);
 		if (retval == 0) {
-			(void)audit_request_rule_list(fd);
+			(void)audit_request_rule_list();
 			key[0] = 0;
 			retval = -2;
 		}
@@ -867,7 +867,7 @@ static int setopt(int count, int lineno, char *vars[])
 			audit_msg(LOG_ERR,
 				"watch option can't be given with a syscall");
 			retval = -1;
-		} else if (optarg) { 
+		} else if (optarg) {
 			add = AUDIT_FILTER_EXIT;
 			action = AUDIT_ALWAYS;
 			_audit_syscalladded = 1;
@@ -908,7 +908,7 @@ process_keys:
 			audit_msg(LOG_ERR, "key option exceeds size limit");
 			retval = -1;
 		} else {
-			if (strchr(optarg, AUDIT_KEY_SEPARATOR)) 
+			if (strchr(optarg, AUDIT_KEY_SEPARATOR))
 				audit_msg(LOG_ERR,
 				    "key %s has illegal character", optarg);
 			if (key[0]) { // Add the separator if we need to
@@ -1065,7 +1065,7 @@ static char *get_line(FILE *f, char *buf)
 }
 
 
-void preprocess(char *buf)
+static void preprocess(char *buf)
 {
 	unsigned int i = 0;
 	bool esc_ctx = false;
@@ -1184,7 +1184,7 @@ static int fileopt(const char *file)
 	/* Read until eof, lineno starts as 1 */
 	while (get_line(f, buf)) {
 		char *ptr, **fields;
-		int idx=0, nf = (strlen(buf)/3) + 3;
+		unsigned int idx=0, nf = (strlen(buf)/3) + 3;
 
 		/* Weed out blank lines */
 		while (buf[idx] == ' ')
@@ -1193,12 +1193,12 @@ static int fileopt(const char *file)
 			lineno++;
 			continue;
 		}
-		
+
 		preprocess(buf);
 		ptr = audit_strsplit(buf);
 		if (ptr == NULL)
 			break;
-		
+
 		/* allow comments */
 		if (ptr[0] == '#') {
 			lineno++;
@@ -1212,7 +1212,7 @@ static int fileopt(const char *file)
 		        postprocess(ptr);
 			fields[i++] = ptr;
 		}
-		
+
 		fields[i] = NULL;
 
 		/* Parse it */
@@ -1252,7 +1252,7 @@ static int fileopt(const char *file)
 }
 
 /* Return 1 if ready, 0 otherwise */
-static int is_ready(int fd)
+static int is_ready(void)
 {
 	if (audit_is_enabled(fd) == 2) {
 		audit_msg(LOG_ERR, "The audit system is in immutable mode,"
@@ -1291,7 +1291,7 @@ int main(int argc, char *argv[])
 		// to syslog where they will persist for later review
 		set_aumessage_mode(MSG_SYSLOG, DBG_NO);
 		fd = audit_open();
-		if (is_ready(fd) == 0)
+		if (is_ready() == 0)
 			return 0;
 		else if (fileopt(argv[2])) {
 			free(rule_new);
@@ -1316,7 +1316,7 @@ int main(int argc, char *argv[])
 
 	if (add != AUDIT_FILTER_UNSET || del != AUDIT_FILTER_UNSET) {
 		fd = audit_open();
-		if (is_ready(fd) == 0) {
+		if (is_ready() == 0) {
 			free(rule_new);
 			return 0;
 		}

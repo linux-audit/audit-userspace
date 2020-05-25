@@ -96,11 +96,11 @@ struct event {
 	/* Fields to print proof information: */
 	struct record_id proof[4];
 };
-list_t *events = NULL;
+static list_t *events = NULL;
 
 
 /* Auxiliary functions to allocate and to free events. */
-struct event *event_alloc(void)
+static struct event *event_alloc(void)
 {
 	struct event *event = malloc(sizeof(struct event));
 	if (event) {
@@ -115,7 +115,7 @@ struct event *event_alloc(void)
 	return event;
 }
 
-void event_free(struct event *event)
+static void event_free(struct event *event)
 {
 	if (event) {
 		free((void *)event->user);
@@ -140,7 +140,7 @@ void event_free(struct event *event)
 #define copy_str( str ) (str) ? strdup(str) : NULL
 
 
-void usage(FILE *output)
+static void usage(FILE *output)
 {
 	fprintf(output, "usage: auvirt [--stdin] [--all-events] [--summary] "
 			"[--start start-date [start-time]] "
@@ -150,7 +150,7 @@ void usage(FILE *output)
 }
 
 /* Parse and check command line arguments */
-int parse_args(int argc, char **argv)
+static int parse_args(int argc, char **argv)
 {
 	/* Based on http://www.ietf.org/rfc/rfc4122.txt */
 	const char *uuid_pattern = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-"
@@ -283,7 +283,7 @@ error:
 }
 
 /* Initialize an auparse_state_t with the correct log source. */
-auparse_state_t *init_auparse(void)
+static auparse_state_t *init_auparse(void)
 {
 	auparse_state_t *au = NULL;
 	if (stdin_flag) {
@@ -300,7 +300,7 @@ auparse_state_t *init_auparse(void)
 }
 
 /* Extract the most common fields from virtualization-related records. */
-int extract_virt_fields(auparse_state_t *au, const char **p_uuid,
+static int extract_virt_fields(auparse_state_t *au, const char **p_uuid,
 		const char **p_user, time_t *p_time, const char **p_name,
 		int *p_suc)
 {
@@ -351,7 +351,7 @@ error:
 }
 
 /* Return label and categories from a security context. */
-const char *get_seclevel(const char *seclabel)
+static const char *get_seclevel(const char *seclabel)
 {
 	/*
 	 * system_u:system_r:svirt_t:s0:c107,c434
@@ -369,7 +369,7 @@ const char *get_seclevel(const char *seclabel)
 	return NULL;
 }
 
-int add_proof(struct event *event, auparse_state_t *au)
+static int add_proof(struct event *event, auparse_state_t *au)
 {
 	if (!proof_flag)
 		return 0;
@@ -392,7 +392,7 @@ int add_proof(struct event *event, auparse_state_t *au)
 }
 
 // This returns -1 if we don't want the event and 0 if we do
-int filter_event(auparse_state_t *au)
+static int filter_event(auparse_state_t *au)
 {
 	extern time_t start_time, end_time;
 	time_t current = auparse_get_time(au);
@@ -429,7 +429,7 @@ int filter_event(auparse_state_t *au)
  * machine_id records are used to get the selinux context associated to a
  * guest.
  */
-int process_machine_id_event(auparse_state_t *au)
+static int process_machine_id_event(auparse_state_t *au)
 {
 	time_t time;
 	const char *seclevel, *model, *uuid, *name, *user = NULL;
@@ -474,7 +474,7 @@ int process_machine_id_event(auparse_state_t *au)
 	return 0;
 }
 
-int add_start_guest_event(auparse_state_t *au)
+static int add_start_guest_event(auparse_state_t *au)
 {
 	struct event *start;
 	time_t time;
@@ -532,7 +532,7 @@ int add_start_guest_event(auparse_state_t *au)
 	return 0;
 }
 
-int add_stop_guest_event(auparse_state_t *au)
+static int add_stop_guest_event(auparse_state_t *au)
 {
 	list_node_t *it;
 	struct event *stop, *start = NULL, *event = NULL;
@@ -610,7 +610,7 @@ int add_stop_guest_event(auparse_state_t *au)
 	return 0;
 }
 
-int process_control_event(auparse_state_t *au)
+static int process_control_event(auparse_state_t *au)
 {
 	const char *op;
 
@@ -646,7 +646,7 @@ static int is_resource(const char *res)
 	return 1;
 }
 
-int add_resource(auparse_state_t *au, const char *uuid, const char *user,
+static int add_resource(auparse_state_t *au, const char *uuid, const char *user,
 		time_t time, const char *name, int success, const char *reason,
 		const char *res_type, const char *res)
 {
@@ -692,7 +692,7 @@ int add_resource(auparse_state_t *au, const char *uuid, const char *user,
 	return 0;
 }
 
-int update_resource(auparse_state_t *au, const char *uuid, time_t time,
+static int update_resource(auparse_state_t *au, const char *uuid, time_t time,
 		int success, const char *res_type, const char *res)
 {
 	if (!is_resource(res) || !success)
@@ -715,7 +715,7 @@ int update_resource(auparse_state_t *au, const char *uuid, time_t time,
 	if (it == NULL) {
 		if (debug) {
 			fprintf(stderr, "Couldn't find the correlated resource"
-					" record to update for %s.\n", res_type);
+				" record to update for %s.\n", res_type);
 		}
 		return 0;
 	}
@@ -725,7 +725,7 @@ int update_resource(auparse_state_t *au, const char *uuid, time_t time,
 	return 0;
 }
 
-int process_resource_event(auparse_state_t *au)
+static int process_resource_event(auparse_state_t *au)
 {
 	time_t time;
 	const char *res_type, *uuid, *name, *user = NULL;
@@ -803,7 +803,7 @@ int process_resource_event(auparse_state_t *au)
 }
 
 /* Search for the last machine_id record with the given seclevel */
-struct event *get_machine_id_by_seclevel(const char *seclevel)
+static struct event *get_machine_id_by_seclevel(const char *seclevel)
 {
 	struct event *machine_id = NULL;
 	list_node_t *it;
@@ -823,7 +823,7 @@ struct event *get_machine_id_by_seclevel(const char *seclevel)
 }
 
 /* AVC records are correlated to guest through the selinux context. */
-int process_avc_selinux(auparse_state_t *au)
+static int process_avc_selinux(auparse_state_t *au)
 {
 	const char *seclevel, *user = NULL;
 	struct event *machine_id, *avc;
@@ -895,7 +895,7 @@ int process_avc_selinux(auparse_state_t *au)
 }
 
 #ifdef WITH_APPARMOR
-int process_avc_apparmor_source(auparse_state_t *au)
+static int process_avc_apparmor_source(auparse_state_t *au)
 {
 	time_t time = 0;
 	struct event *avc;
@@ -979,7 +979,7 @@ int process_avc_apparmor_source(auparse_state_t *au)
 	return 0;
 }
 
-int process_avc_apparmor_target(auparse_state_t *au)
+static int process_avc_apparmor_target(auparse_state_t *au)
 {
 	const char *user = NULL;
 	time_t time;
@@ -1090,7 +1090,7 @@ int process_avc_apparmor_target(auparse_state_t *au)
 }
 
 /* AVC records are correlated to guest through the apparmor path name. */
-int process_avc_apparmor(auparse_state_t *au)
+static int process_avc_apparmor(auparse_state_t *au)
 {
 	if (process_avc_apparmor_target(au))
 		return 1;
@@ -1099,7 +1099,7 @@ int process_avc_apparmor(auparse_state_t *au)
 }
 #endif
 
-int process_avc(auparse_state_t *au)
+static int process_avc(auparse_state_t *au)
 {
 	if (filter_event(au))
 		return 0;
@@ -1122,7 +1122,7 @@ int process_avc(auparse_state_t *au)
 
 /* This function tries to correlate an anomaly record to a guest using the qemu
  * pid or the selinux context. */
-int process_anom(auparse_state_t *au)
+static int process_anom(auparse_state_t *au)
 {
 	const char *user = NULL;
 	time_t time;
@@ -1233,7 +1233,7 @@ int process_anom(auparse_state_t *au)
 }
 
 /* Convert record type to a string */
-const char *get_rec_type(struct event *e)
+static const char *get_rec_type(struct event *e)
 {
 	static char buf[16];
 	if (e == NULL)
@@ -1259,7 +1259,7 @@ const char *get_rec_type(struct event *e)
 }
 
 /* Convert a time period to string */
-const char *get_time_period(struct event *event)
+static const char *get_time_period(struct event *event)
 {
 	size_t i = 0;
 	static char buf[128];
@@ -1288,7 +1288,7 @@ const char *get_time_period(struct event *event)
 	return buf;
 }
 
-void print_event(struct event *event)
+static void print_event(struct event *event)
 {
 	/* Auxiliary macro to convert NULL to "" */
 	#define N(str) ((str) ? str : "")
@@ -1353,7 +1353,7 @@ void print_event(struct event *event)
 }
 
 /* Print all events */
-void print_events(void)
+static void print_events(void)
 {
 	list_node_t *it;
 	for (it = events->head; it; it = it->next) {
@@ -1364,7 +1364,7 @@ void print_events(void)
 }
 
 /* Count and print summary */
-void print_summary(void)
+static void print_summary(void)
 {
 	/* Summary numbers */
 	time_t stime = 0, etime = 0;

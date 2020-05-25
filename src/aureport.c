@@ -128,7 +128,7 @@ int main(int argc, char *argv[])
 		destroy_counters();
 		aulookup_destroy_uid_list();
 		return 1;
-	} else 
+	} else
 		print_wrap_up();
 	destroy_counters();
 	aulookup_destroy_uid_list();
@@ -141,7 +141,8 @@ static int process_logs(void)
 {
 	struct daemon_conf config;
 	char *filename;
-	int len, num = 0;
+	size_t len;
+	int num = 0;
 
 	if (user_file && userfile_is_dir) {
 		char dirname[MAXPATHLEN];
@@ -156,7 +157,7 @@ static int process_logs(void)
 		fprintf(stderr, "NOTE - using logs in %s\n", config.log_file);
 	} else {
 		/* Load config so we know where logs are */
-       		if (load_config(&config, TEST_SEARCH))
+		if (load_config(&config, TEST_SEARCH))
 			fprintf(stderr, "NOTE - using built-in logs: %s\n",
 				config.log_file);
 	}

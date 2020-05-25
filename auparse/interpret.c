@@ -269,13 +269,16 @@ static void escape(const char *s, char *dest, unsigned int len,
 	switch (escape_mode)
 	{
 		case AUPARSE_ESC_RAW:
-			return;
+			break;
 		case AUPARSE_ESC_TTY:
-			return tty_escape(s, dest, len);
+			tty_escape(s, dest, len);
+			break;
 		case AUPARSE_ESC_SHELL:
-			return shell_escape(s, dest, len);
+			shell_escape(s, dest, len);
+			break;
 		case AUPARSE_ESC_SHELL_QUOTE:
-			return shell_quote_escape(s, dest, len);
+			shell_quote_escape(s, dest, len);
+			break;
 	}
 }
 
@@ -502,13 +505,10 @@ static const char *aulookup_success(int s)
 	{
 		default:
 			return success[0];
-			break;
 		case S_FAILED:
 			return success[1];
-			break;
 		case S_SUCCESS:
 			return success[2];
-			break;
 	}
 }
 
@@ -698,10 +698,10 @@ static const char *print_ipccall(const char *val, unsigned int base)
 	errno = 0;
 	a0 = strtol(val, NULL, base);
 	if (errno) {
-		char *out;
-		if (asprintf(&out, "conversion error(%s)", val) < 0)
-			out = NULL;
-		return out;
+		char *out2;
+		if (asprintf(&out2, "conversion error(%s)", val) < 0)
+			out2 = NULL;
+		return out2;
 	}
 	func = ipc_i2s(a0);
 	if (func)
@@ -722,10 +722,10 @@ static const char *print_socketcall(const char *val, unsigned int base)
 	errno = 0;
 	a0 = strtol(val, NULL, base);
 	if (errno) {
-		char *out;
-		if (asprintf(&out, "conversion error(%s)", val) < 0)
-			out = NULL;
-		return out;
+		char *out2;
+		if (asprintf(&out2, "conversion error(%s)", val) < 0)
+			out2 = NULL;
+		return out2;
 	}
 	func = sock_i2s(a0);
 	if (func)
@@ -1124,7 +1124,7 @@ static const char *print_sockaddr(const char *val)
                 case AF_LOCAL:
                         {
                                 const struct sockaddr_un *un =
-                                        (struct sockaddr_un *)saddr;
+                                        (const struct sockaddr_un *)saddr;
                                 if (un->sun_path[0])
 					rc = asprintf(&out,
 						"{ saddr_fam=%s path=%s }", str,
@@ -1157,7 +1157,7 @@ static const char *print_sockaddr(const char *val)
                 case AF_AX25:
                         {
                                 const struct sockaddr_ax25 *x =
-                                                (struct sockaddr_ax25 *)saddr;
+                                           (const struct sockaddr_ax25 *)saddr;
 				rc = asprintf(&out,
 					      "{ saddr_fam=%s call=%c%c%c%c%c%c%c }",
 					      str,
@@ -1173,7 +1173,7 @@ static const char *print_sockaddr(const char *val)
                 case AF_IPX:
                         {
                                 const struct sockaddr_ipx *ip =
-                                                (struct sockaddr_ipx *)saddr;
+                                            (const struct sockaddr_ipx *)saddr;
 				rc = asprintf(&out,
 					"{ saddr_fam=%s lport=%d ipx-net=%u }",
 					str, ip->sipx_port, ip->sipx_network);
@@ -1182,7 +1182,7 @@ static const char *print_sockaddr(const char *val)
                 case AF_ATMPVC:
                         {
                                 const struct sockaddr_atmpvc* at =
-                                        (struct sockaddr_atmpvc *)saddr;
+                                        (const struct sockaddr_atmpvc *)saddr;
 				rc = asprintf(&out, "{ saddr_fam=%s int=%d }", str,
 					      at->sap_addr.itf);
                         }
@@ -1190,7 +1190,7 @@ static const char *print_sockaddr(const char *val)
                 case AF_X25:
                         {
                                 const struct sockaddr_x25* x =
-                                        (struct sockaddr_x25 *)saddr;
+                                        (const struct sockaddr_x25 *)saddr;
 				rc = asprintf(&out, "{ saddr_fam=%s laddr=%.15s }",
 					      str, x->sx25_addr.x25_addr);
                         }
@@ -1217,7 +1217,7 @@ static const char *print_sockaddr(const char *val)
                 case AF_NETLINK:
                         {
                                 const struct sockaddr_nl *n =
-                                                (struct sockaddr_nl *)saddr;
+                                             (const struct sockaddr_nl *)saddr;
 				rc = asprintf(&out,
 					  "{ saddr_fam=%s nlnk-fam=%u nlnk-pid=%u }",
 					  str, n->nl_family, n->nl_pid);
@@ -2146,13 +2146,10 @@ static const char *aulookup_fanotify(unsigned s)
 	{
 		default:
 			return fanotify[0];
-			break;
 		case FAN_ALLOW:
 			return fanotify[1];
-			break;
 		case FAN_DENY:
 			return fanotify[2];
-			break;
 	}
 }
 
@@ -2162,7 +2159,7 @@ static const char *print_fanotify(const char *val)
 
 	if (isdigit(*val)) {
 	        errno = 0;
-        	res = strtoul(val, NULL, 10);
+		res = strtoul(val, NULL, 10);
 	        if (errno) {
 			char *out;
 			if (asprintf(&out, "conversion error(%s)", val) < 0)

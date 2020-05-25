@@ -30,7 +30,7 @@
 #include "auparse.h"
 #include "aulastlog-llist.h"
 
-void usage(void)
+static void usage(void)
 {
 	fprintf(stderr, "usage: aulastlog [--stdin] [--user name]\n");
 }
