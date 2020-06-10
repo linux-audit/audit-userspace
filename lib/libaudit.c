@@ -1324,6 +1324,9 @@ int audit_determine_machine(const char *arch)
 	} else if (strcasecmp("b32", arch) == 0) {
 		bits = ~__AUDIT_ARCH_64BIT;
 		machine = audit_detect_machine();
+	} else if (strcasecmp("n32", arch) == 0) {
+		bits = __AUDIT_ARCH_ALT;
+		machine =  audit_detect_machine();
 	} else { 
 		machine = audit_name_to_machine(arch);
 		if (machine < 0) {
@@ -1379,9 +1382,15 @@ int audit_determine_machine(const char *arch)
 				return -6; /* 64 bit only */
 			break;
 #endif
+		case MACH_MIPS:
+			if (bits == __AUDIT_ARCH_64BIT || bits == __AUDIT_ARCH_ALT)
+				return -6;
+			break;
 		case MACH_86_64:   /* fallthrough */
 		case MACH_PPC64:   /* fallthrough */
 		case MACH_S390X:   /* fallthrough */
+		case MACH_MIPS64:  /* fallthrough */
+		case MACH_MIPS64_N32: /* fallthrough */
 			break;
 		case MACH_PPC64LE: /* 64 bit only */
 			if (bits && bits != __AUDIT_ARCH_64BIT)

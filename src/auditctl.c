@@ -379,6 +379,9 @@ static void check_rule_mismatch(int lineno, const char *option)
 		case AUDIT_ARCH_S390X:
 			_audit_elf = AUDIT_ARCH_S390;
 			break;
+		case AUDIT_ARCH_MIPS64:
+			_audit_elf = AUDIT_ARCH_MIPS64;
+			break;
 	}
 	memset(&tmprule, 0, sizeof(struct audit_rule_data));
 	audit_rule_syscallbyname_data(&tmprule, option);
