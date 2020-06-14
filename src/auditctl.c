@@ -144,6 +144,10 @@ static void usage(void)
 #if defined(HAVE_STRUCT_AUDIT_STATUS_FEATURE_BITMAP)
      "    --reset-lost         Reset the lost record counter\n"
 #endif
+#if HAVE_DECL_AUDIT_VERSION_BACKLOG_WARN_TIME == 1 || \
+    HAVE_DECL_AUDIT_STATUS_BACKLOG_WARN_TIME == 1
+     "    --backlog_warn_time  Set the kernel backlog_warn_time\n"
+#endif
      );
 }
 
@@ -457,6 +461,10 @@ static struct option long_opts[] =
 #endif
 #if defined(HAVE_STRUCT_AUDIT_STATUS_FEATURE_BITMAP)
   {"reset-lost", 0, NULL, 3},
+#endif
+#if HAVE_DECL_AUDIT_VERSION_BACKLOG_WARN_TIME == 1 || \
+    HAVE_DECL_AUDIT_STATUS_BACKLOG_WARN_TIME == 1
+  {"backlog_warn_time", 1, NULL, 4},
 #endif
   {NULL, 0, NULL, 0}
 };
@@ -1006,6 +1014,34 @@ process_keys:
 			audit_number_to_errmsg(rc, long_opts[lidx].name);
 			retval = -1;
 		}
+		break;
+	case 4:
+#if HAVE_DECL_AUDIT_VERSION_BACKLOG_WARN_TIME == 1 || \
+    HAVE_DECL_AUDIT_STATUS_BACKLOG_WARN_TIME == 1
+		if (optarg && isdigit(optarg[0])) {
+			uint32_t bwt;
+			errno = 0;
+			bwt = strtoul(optarg,NULL,0);
+			if (errno) {
+				audit_msg(LOG_ERR,
+					"Error converting backlog_warn_time");
+				return -1;
+			}
+			if (audit_set_backlog_warn_time(fd, bwt) > 0)
+				audit_request_status(fd);
+			else
+				return -1;
+		} else {
+			audit_msg(LOG_ERR,
+			    "Backlog_warn_time must be a numeric value was %s",
+				optarg);
+			retval = -1;
+		}
+#else
+		audit_msg(LOG_ERR,
+			"backlog_warn_time is not supported on your kernel");
+		retval = -1;
+#endif
 		break;
         default: 
 		usage();

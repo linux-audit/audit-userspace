@@ -518,6 +518,25 @@ int audit_set_backlog_wait_time(int fd, uint32_t bwt)
 	return rc;
 }
 
+int audit_set_backlog_warn_time(int fd, uint32_t bwt)
+{
+	int rc = -1;
+#if HAVE_DECL_AUDIT_VERSION_BACKLOG_WARN_TIME == 1 || \
+    HAVE_DECL_AUDIT_STATUS_BACKLOG_WARN_TIME == 1
+	struct audit_status s;
+
+	memset(&s, 0, sizeof(s));
+	s.mask          = AUDIT_STATUS_BACKLOG_WARN_TIME;
+	s.backlog_warn_time = bwt;
+	rc = audit_send(fd, AUDIT_SET, &s, sizeof(s));
+	if (rc < 0)
+		audit_msg(audit_priority(errno),
+			"Error sending backlog warn time request (%s)",
+			strerror(-rc));
+#endif
+	return rc;
+}
+
 int audit_reset_lost(int fd)
 {
 	int rc;

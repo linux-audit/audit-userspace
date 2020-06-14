@@ -565,6 +565,12 @@ int audit_print_reply(struct audit_reply *rep, int fd)
 			printf("backlog_wait_time %u\n",
 				rep->status->backlog_wait_time);
 #endif
+#if HAVE_DECL_AUDIT_VERSION_BACKLOG_WARN_TIME == 1 || \
+    HAVE_DECL_AUDIT_STATUS_BACKLOG_WARN_TIME == 1
+
+			printf("backlog_warn_time %u\n",
+				rep->status->backlog_warn_time);
+#endif
 			printed = 1;
 			break;
 #if defined(HAVE_DECL_AUDIT_FEATURE_VERSION) && \
