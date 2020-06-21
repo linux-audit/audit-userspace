@@ -708,7 +708,7 @@ int audit_update_watch_perms(struct audit_rule_data *rule, int perms)
 		// If not check to see if we have room to add a field
 		if (rule->field_count >= (AUDIT_MAX_FIELDS - 1)) {
 			audit_msg(LOG_ERR,
-				  "Too many fields when adding permissions"
+				  "Too many fields when adding permissions");
 			return -2;
 		}
 
