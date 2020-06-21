@@ -1358,13 +1358,13 @@ int ausearch_next_event(auparse_state_t *au)
 				return 1;
 			} else if (rc < 0)
 				return rc;
-               	} while ((rc = auparse_next_record(au)) > 0);
+		} while ((rc = auparse_next_record(au)) > 0);
 		if (rc < 0)
 			return rc;
         } while ((rc = auparse_next_event(au)) > 0);
 	if (rc < 0)
 		return rc;
-	
+
 	return 0;
 }
 
@@ -1397,7 +1397,7 @@ static int au_auparse_next_event(auparse_state_t *au)
 		if (debug) printf("Creating lol array\n");
 #endif	/* LOL_EVENTS_DEBUG01 */
 		au_lol_create(au->au_lo);
-	}	
+	}
 
 	/*
 	 * First see if we have any empty events but with an allocated event
@@ -1407,7 +1407,10 @@ static int au_auparse_next_event(auparse_state_t *au)
 		au_lolnode *cur = &au->au_lo->array[i];
 		if (cur->status == EBS_EMPTY && cur->l) {
 #ifdef	LOL_EVENTS_DEBUG01
-			if (debug) {printf("Freeing at start "); print_list_t(cur->l);}
+			if (debug) {
+				printf("Freeing at start ");
+				print_list_t(cur->l);
+			}
 #endif	/* LOL_EVENTS_DEBUG01 */
 			aup_list_clear(cur->l);
 			free(cur->l);
@@ -1442,7 +1445,10 @@ static int au_auparse_next_event(auparse_state_t *au)
 			au_lolnode *cur = &au->au_lo->array[i];
 			if (cur->status == EBS_EMPTY && cur->l) {
 #ifdef	LOL_EVENTS_DEBUG01
-				if (debug) {printf("Freeing at loop"); print_list_t(cur->l);}
+				if (debug) {
+					printf("Freeing at loop");
+					print_list_t(cur->l);
+				}
 #endif	/* LOL_EVENTS_DEBUG01 */
 				aup_list_clear(cur->l);
 				free(cur->l);
@@ -1479,7 +1485,8 @@ static int au_auparse_next_event(auparse_state_t *au)
 				aup_list_first_field(l);
 				au->le = l;
 #ifdef	LOL_EVENTS_DEBUG01
-				if (debug) print_lol("eof termination",au->au_lo);
+				if (debug)
+					print_lol("eof termination", au->au_lo);
 #endif	/* LOL_EVENTS_DEBUG01 */
 				return 1;
 			}
@@ -1487,14 +1494,16 @@ static int au_auparse_next_event(auparse_state_t *au)
 		} else if (rc < 0) {
 #ifdef	LOL_EVENTS_DEBUG01
 			/* Straight error */
-			if (debug) printf("Error %d\n", rc);
+			if (debug)
+				printf("Error %d\n", rc);
 #endif	/* LOL_EVENTS_DEBUG01 */
 			return -1;
 		}
 		/* So we got a successful read ie rc > 0 */
 		if (extract_timestamp(au->cur_buf, &e)) {
 #ifdef	LOL_EVENTS_DEBUG01
-			if (debug) printf("Malformed line:%s\n", au->cur_buf);
+			if (debug)
+				printf("Malformed line:%s\n", au->cur_buf);
 #endif	/* LOL_EVENTS_DEBUG01 */
 			continue;
 		}
@@ -1508,7 +1517,8 @@ static int au_auparse_next_event(auparse_state_t *au)
 			if (cur->status == EBS_BUILDING) {
 				if (events_are_equal(&cur->l->e, &e)) {
 #ifdef	LOL_EVENTS_DEBUG01
-					if (debug) printf("Adding event to building event\n");
+					if (debug)
+						printf("Adding event to building event\n");
 #endif	/* LOL_EVENTS_DEBUG01 */
 					aup_list_append(cur->l, au->cur_buf,
 						au->list_idx, au->line_number);
@@ -1516,7 +1526,8 @@ static int au_auparse_next_event(auparse_state_t *au)
 					free((char *)e.host);
 					au_check_events(au,  e.sec);
 #ifdef	LOL_EVENTS_DEBUG01
-					if (debug) print_lol("building",au->au_lo);
+					if (debug)
+						print_lol("building",au->au_lo);
 #endif	/* LOL_EVENTS_DEBUG01 */
 					/* we built something, so break out */
 					built++;
@@ -1529,7 +1540,8 @@ static int au_auparse_next_event(auparse_state_t *au)
 
 		/* So create one */
 #ifdef	LOL_EVENTS_DEBUG01
-		if (debug) printf("First record in new event, initialize event\n");
+		if (debug)
+			printf("First record in new event, initialize event\n");
 #endif	/* LOL_EVENTS_DEBUG01 */
 		if ((l=(event_list_t *)malloc(sizeof(event_list_t))) == NULL) {
 			free((char *)e.host);
@@ -1631,7 +1643,7 @@ int auparse_node_compare(au_event_t *e1, au_event_t *e2)
 	// If both have a host, only a string compare can tell if they
 	// are the same. Otherwise, if only one of them have a host, they
 	// are definitely not the same. Its a boundary on daemon config.
-	if (e1->host && e2->host) 
+	if (e1->host && e2->host)
 		return strcmp(e1->host, e2->host);
 	else if (e1->host)
 		return 1;
@@ -1674,7 +1686,7 @@ unsigned int auparse_get_record_num(auparse_state_t *au)
 		return 0;
 
 	rnode *r = aup_list_get_cur(au->le);
-	if (r) 
+	if (r)
 		return r->item;
 
 	return 0;
@@ -1699,7 +1711,7 @@ int auparse_first_record(auparse_state_t *au)
 	free_interpretation_list();
 	load_interpretation_list(r->interp);
 	aup_list_first_field(au->le);
-	
+
 	return 1;
 }
 
@@ -1714,7 +1726,7 @@ int auparse_next_record(auparse_state_t *au)
 
 	free_interpretation_list();
 	// Its OK if au->le == NULL because get_cnt handles it
-	if (aup_list_get_cnt(au->le) == 0) { 
+	if (aup_list_get_cnt(au->le) == 0) {
 		int rc = auparse_first_record(au);
 		if (rc <= 0)
 			return rc;
@@ -1755,7 +1767,7 @@ int auparse_get_type(auparse_state_t *au)
 		return 0;
 
 	rnode *r = aup_list_get_cur(au->le);
-	if (r) 
+	if (r)
 		return r->type;
 	else
 		return 0;
@@ -1781,7 +1793,7 @@ unsigned int auparse_get_line_number(auparse_state_t *au)
 		return 0;
 
 	rnode *r = aup_list_get_cur(au->le);
-	if (r) 
+	if (r)
 		return r->line_number;
 	else
 		return 0;
@@ -1855,7 +1867,7 @@ const char *auparse_get_record_text(auparse_state_t *au)
 		return NULL;
 
 	rnode *r = aup_list_get_cur(au->le);
-	if (r) 
+	if (r)
 		return r->record;
 	else
 		return NULL;
@@ -1867,7 +1879,7 @@ const char *auparse_get_record_interpretations(auparse_state_t *au)
 		return NULL;
 
 	rnode *r = aup_list_get_cur(au->le);
-	if (r) 
+	if (r)
 		return r->interp;
 	else
 		return NULL;
@@ -1970,7 +1982,7 @@ const char *auparse_get_field_name(auparse_state_t *au)
 
 	if (au->le->e.sec) {
 		rnode *r = aup_list_get_cur(au->le);
-		if (r) 
+		if (r)
 			return nvlist_get_cur_name(&r->nv);
 	}
 	return NULL;
@@ -1984,7 +1996,7 @@ const char *auparse_get_field_str(auparse_state_t *au)
 
 	if (au->le->e.sec) {
 		rnode *r = aup_list_get_cur(au->le);
-		if (r) 
+		if (r)
 			return nvlist_get_cur_val(&r->nv);
 	}
 	return NULL;
@@ -2060,7 +2072,7 @@ static const char *auparse_interpret_sock_parts(auparse_state_t *au,
 		return NULL;
 
         if (au->le->e.sec) {
-        	rnode *r = aup_list_get_cur(au->le);
+		rnode *r = aup_list_get_cur(au->le);
 		if (r == NULL)
 			return NULL;
 		// This is limited to socket address fields
