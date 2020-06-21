@@ -1,5 +1,5 @@
 /* libaudit.c -- 
- * Copyright 2004-2009,2012,2014,2016-17 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2004-2009,2012,2014,2016-17,2020 Red Hat Inc.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -691,8 +691,11 @@ int audit_update_watch_perms(struct audit_rule_data *rule, int perms)
 {
 	unsigned int i, done=0;
 
-	if (rule->field_count < 1)
+	if (rule->field_count < 1) {
+		audit_msg(LOG_ERR,
+			 "Permissions should be preceeded by other fields");
 		return -1;
+	}
 
 	// First see if we have an entry we are updating
 	for (i=0; i< rule->field_count; i++) {
@@ -703,9 +706,12 @@ int audit_update_watch_perms(struct audit_rule_data *rule, int perms)
 	}
 	if (!done) {
 		// If not check to see if we have room to add a field
-		if (rule->field_count >= (AUDIT_MAX_FIELDS - 1))
+		if (rule->field_count >= (AUDIT_MAX_FIELDS - 1)) {
+			audit_msg(LOG_ERR,
+				  "Too many fields when adding permissions"
 			return -2;
-	
+		}
+
 		// Add the perm
 		rule->fields[rule->field_count] = AUDIT_PERM;
 		rule->fieldflags[rule->field_count] = AUDIT_EQUAL;
