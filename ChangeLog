@@ -87,6 +87,7 @@
 - Improve personality interpretation by using PERS_MASK
 - Speedup ausearch/report parsing RAW logging format by caching uid/name lookup
 - Change auparse python bindings to shared object (Issue #121)
+- Report backlog_wait_sum with auditctl -s
 
 2.8.3
 - Correct msg function name in LRU debug code

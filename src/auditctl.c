@@ -101,48 +101,51 @@ static void usage(void)
 {
     printf(
     "usage: auditctl [options]\n"
-     "    -a <l,a>            Append rule to end of <l>ist with <a>ction\n"
-     "    -A <l,a>            Add rule at beginning of <l>ist with <a>ction\n"
-     "    -b <backlog>        Set max number of outstanding audit buffers\n"
-     "                        allowed Default=64\n"
-     "    -c                  Continue through errors in rules\n"
-     "    -C f=f              Compare collected fields if available:\n"
-     "                        Field name, operator(=,!=), field name\n"
-     "    -d <l,a>            Delete rule from <l>ist with <a>ction\n"
-     "                        l=task,exit,user,exclude\n"
-     "                        a=never,always\n"
-     "    -D                  Delete all rules and watches\n"
-     "    -e [0..2]           Set enabled flag\n"
-     "    -f [0..2]           Set failure flag\n"
-     "                        0=silent 1=printk 2=panic\n"
-     "    -F f=v              Build rule: field name, operator(=,!=,<,>,<=,\n"
-     "                        >=,&,&=) value\n"
-     "    -h                  Help\n"
-     "    -i                  Ignore errors when reading rules from file\n"
-     "    -k <key>            Set filter key on audit rule\n"
-     "    -l                  List rules\n"
-     "    -m text             Send a user-space message\n"
-     "    -p [r|w|x|a]        Set permissions filter on watch\n"
-     "                        r=read, w=write, x=execute, a=attribute\n"
-     "    -q <mount,subtree>  make subtree part of mount point's dir watches\n"
-     "    -r <rate>           Set limit in messages/sec (0=none)\n"
-     "    -R <file>           read rules from file\n"
-     "    -s                  Report status\n"
-     "    -S syscall          Build rule: syscall name or number\n"
-     "    -t                  Trim directory watches\n"
-     "    -v                  Version\n"
-     "    -w <path>           Insert watch at <path>\n"
-     "    -W <path>           Remove watch at <path>\n"
+     "    -a <l,a>                          Append rule to end of <l>ist with <a>ction\n"
+     "    -A <l,a>                          Add rule at beginning of <l>ist with <a>ction\n"
+     "    -b <backlog>                      Set max number of outstanding audit buffers\n"
+     "                                      allowed Default=64\n"
+     "    -c                                Continue through errors in rules\n"
+     "    -C f=f                            Compare collected fields if available:\n"
+     "                                      Field name, operator(=,!=), field name\n"
+     "    -d <l,a>                          Delete rule from <l>ist with <a>ction\n"
+     "                                      l=task,exit,user,exclude\n"
+     "                                      a=never,always\n"
+     "    -D                                Delete all rules and watches\n"
+     "    -e [0..2]                         Set enabled flag\n"
+     "    -f [0..2]                         Set failure flag\n"
+     "                                      0=silent 1=printk 2=panic\n"
+     "    -F f=v                            Build rule: field name, operator(=,!=,<,>,<=,\n"
+     "                                      >=,&,&=) value\n"
+     "    -h                                Help\n"
+     "    -i                                Ignore errors when reading rules from file\n"
+     "    -k <key>                          Set filter key on audit rule\n"
+     "    -l                                List rules\n"
+     "    -m text                           Send a user-space message\n"
+     "    -p [r|w|x|a]                      Set permissions filter on watch\n"
+     "                                      r=read, w=write, x=execute, a=attribute\n"
+     "    -q <mount,subtree>                make subtree part of mount point's dir watches\n"
+     "    -r <rate>                         Set limit in messages/sec (0=none)\n"
+     "    -R <file>                         read rules from file\n"
+     "    -s                                Report status\n"
+     "    -S syscall                        Build rule: syscall name or number\n"
+     "    -t                                Trim directory watches\n"
+     "    -v                                Version\n"
+     "    -w <path>                         Insert watch at <path>\n"
+     "    -W <path>                         Remove watch at <path>\n"
 #if defined(HAVE_DECL_AUDIT_FEATURE_VERSION) && \
     defined(HAVE_STRUCT_AUDIT_STATUS_FEATURE_BITMAP)
-     "    --loginuid-immutable  Make loginuids unchangeable once set\n"
+     "    --loginuid-immutable              Make loginuids unchangeable once set\n"
 #endif
 #if HAVE_DECL_AUDIT_VERSION_BACKLOG_WAIT_TIME == 1 || \
     HAVE_DECL_AUDIT_STATUS_BACKLOG_WAIT_TIME == 1
-     "    --backlog_wait_time  Set the kernel backlog_wait_time\n"
+     "    --backlog_wait_time               Set the kernel backlog_wait_time\n"
 #endif
 #if defined(HAVE_STRUCT_AUDIT_STATUS_FEATURE_BITMAP)
-     "    --reset-lost         Reset the lost record counter\n"
+     "    --reset-lost                      Reset the lost record counter\n"
+#endif
+#if HAVE_DECL_AUDIT_STATUS_BACKLOG_WAIT_TIME_ACTUAL == 1
+     "    --reset_backlog_wait_time_actual  Reset the actual backlog wait time counter\n"
 #endif
      );
 }
@@ -457,6 +460,9 @@ static struct option long_opts[] =
 #endif
 #if defined(HAVE_STRUCT_AUDIT_STATUS_FEATURE_BITMAP)
   {"reset-lost", 0, NULL, 3},
+#endif
+#if HAVE_DECL_AUDIT_STATUS_BACKLOG_WAIT_TIME_ACTUAL == 1
+  {"reset_backlog_wait_time_actual", 0, NULL, 4},
 #endif
   {NULL, 0, NULL, 0}
 };
@@ -1006,6 +1012,21 @@ process_keys:
 			audit_number_to_errmsg(rc, long_opts[lidx].name);
 			retval = -1;
 		}
+		break;
+	case 4:
+#if HAVE_DECL_AUDIT_STATUS_BACKLOG_WAIT_TIME_ACTUAL == 1
+		if ((rc = audit_reset_backlog_wait_time_actual(fd)) >= 0) {
+			audit_msg(LOG_INFO, "backlog_wait_time_actual: %u", rc);
+			return -2;
+		} else {
+			audit_number_to_errmsg(rc, long_opts[lidx].name);
+			retval = -1;
+		}
+#else
+		audit_msg(LOG_ERR,
+			"reset_backlog_wait_time_actual is not supported on your kernel");
+		retval = -1;
+#endif
 		break;
         default: 
 		usage();
