@@ -1,5 +1,5 @@
 /* auditctl.c -- 
- * Copyright 2004-2017 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2004-2017,2020 Red Hat Inc.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -307,8 +307,10 @@ static int audit_setup_perms(struct audit_rule_data *rule, const char *opt)
 	unsigned int i, len, val = 0;
 
 	len = strlen(opt);
-	if (len > 4)
+	if (len > 4) {
+		audit_msg(LOG_ERR, "permission %s is too long", opt);
 		return -1;
+	}
 
 	for (i = 0; i < len; i++) {
 		switch (tolower(opt[i])) {
@@ -1417,15 +1419,15 @@ static int handle_request(int status)
 				}
 			}
 		} else {
-        		usage();
-	    		audit_close(fd);
+			usage();
+			audit_close(fd);
 			exit(1);
-	    	}
-		if (rc <= 0) 
+		}
+		if (rc <= 0)
 			status = -1;
 		else
 			status = 0;
-	} else 
+	} else
 		status = -1;
 
 	if (!list_requested)
@@ -1464,8 +1466,8 @@ static void get_reply(void)
 				i = 0;    /* reset timeout */
 				continue; /* This was an ack */
 			}
-			
-			if ((retval = audit_print_reply(&rep, fd)) == 0) 
+
+			if ((retval = audit_print_reply(&rep, fd)) == 0)
 				break;
 			else
 				i = 0; /* If getting more, reset timeout */
