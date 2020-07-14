@@ -1129,8 +1129,9 @@ void postprocess(char *buf)
 /*
  * This function reads the given file line by line and executes the rule.
  * It returns 0 if everything went OK, 1 if there are problems before reading
- * the file and -1 on error conditions after executing some of the rules.
- * It will abort reading the file if it encounters any problems.
+ * the file, 2 if the rules file doesn't exist and it should,  and -1 on
+ * error conditions after executing some of the rules. It will abort reading
+ * the file if it encounters any problems.
  */
 static int fileopt(const char *file)
 {
@@ -1147,8 +1148,8 @@ static int fileopt(const char *file)
 				file, strerror(errno));
                         return 1;
                 }
-		audit_msg(LOG_INFO, "file %s doesn't exist, skipping", file);
-                return 0;
+		audit_msg(LOG_ERR, "audit rules file %s doesn't exist", file);
+                return 2;
         }
         tfd = rc;
 

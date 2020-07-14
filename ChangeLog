@@ -88,6 +88,7 @@
 - Speedup ausearch/report parsing RAW logging format by caching uid/name lookup
 - Change auparse python bindings to shared object (Issue #121)
 - Add error messages for watch permissions
+- If audit rules file doesn't exist log error message instead of info message
 
 2.8.3
 - Correct msg function name in LRU debug code
