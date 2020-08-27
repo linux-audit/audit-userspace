@@ -201,6 +201,7 @@ extern "C" {
 #define AUDIT_USER_MAC_POLICY_LOAD	2310 /* Userspc daemon loaded policy */
 #define AUDIT_ROLE_MODIFY		2311 /* Admin modified a role */
 #define AUDIT_USER_MAC_CONFIG_CHANGE	2312 /* Change made to MAC policy */
+#define AUDIT_USER_MAC_STATUS		2313 /* Userspc daemon enforcing change */
 
 #define AUDIT_FIRST_CRYPTO_MSG		2400
 #define AUDIT_CRYPTO_TEST_USER		2400 /* Crypto test results */
