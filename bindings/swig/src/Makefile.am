@@ -1,5 +1,5 @@
 # Makefile.am --
-# Copyright 2015 Red Hat Inc., Durham, North Carolina.
+# Copyright 2015 Red Hat Inc.
 # All Rights Reserved.
 #
 # This library is free software; you can redistribute it and/or
@@ -21,6 +21,6 @@
 #
 
 EXTRA_DIST = auditswig.i
-SWIG_SOUIRCES = auditswig.i
+SWIG_SOURCES = auditswig.i
 CONFIG_CLEAN_FILES = *.loT *.rej *.orig
 
