@@ -1009,8 +1009,9 @@ process_keys:
 			retval = -1;
 		}
 		break;
-        default: 
-		usage();
+        default:
+		audit_msg(LOG_ERR,
+			  "Option %d on line %d is invalid", c, lineno);
 		retval = -1;
 		break;
         }
