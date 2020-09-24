@@ -1009,10 +1009,19 @@ process_keys:
 			retval = -1;
 		}
 		break;
-        default:
-		audit_msg(LOG_ERR,
-			  "Option %d on line %d is invalid", c, lineno);
+        default: {
+		char *bad_opt;
+		if (optind >= 2)
+			bad_opt = vars[optind -1];
+		else
+			bad_opt = " ";
+		if (lineno)
+			audit_msg(LOG_ERR,
+			    "Option %s on line %d is invalid", bad_opt, lineno);
+		else
+			audit_msg(LOG_ERR, "Option %s is invalid", bad_opt);
 		retval = -1;
+		}
 		break;
         }
     }
