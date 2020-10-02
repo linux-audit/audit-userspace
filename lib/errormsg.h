@@ -1,6 +1,6 @@
 /* errormsg.h --
  * Copyright 2008 FUJITSU Inc.
- * Copyright 2012-17 Red Hat
+ * Copyright 2012-17,2020 Red Hat
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -30,6 +30,7 @@ struct msg_tab {
      * 0: don't output field string
      * 1: output field string before error message
      * 2: output field string after error message
+     * 3: print nothing
      */
     int position;
     const char	*cvalue;
@@ -71,6 +72,8 @@ struct msg_tab {
 #define EAU_FILTERNOSUPPORT	35
 #define EAU_FSTYPEUNKNOWN	36
 #define EAU_FIELDVALTOOBIG	37
+#define EAU_PRINT_NOTHING	38
+
 static const struct msg_tab err_msgtab[] = {
     { -EAU_OPMISSING,		2, "-F missing operation for" },
     { -EAU_FIELDUNKNOWN,	2, "-F unknown field:" },
@@ -109,5 +112,6 @@ static const struct msg_tab err_msgtab[] = {
     { -EAU_FILTERNOSUPPORT,	1, "filter is not supported by the kernel" },
     { -EAU_FSTYPEUNKNOWN,	2, "file system type is unknown for field:" },
     { -EAU_FIELDVALTOOBIG,	2, "value is too large for field:" },
+    { -EAU_PRINT_NOTHING,	3, "" },
 };
 #endif

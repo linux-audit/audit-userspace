@@ -1545,7 +1545,7 @@ int audit_rule_fieldpair_data(struct audit_rule_data **rulep, const char *pair,
 					&rule->values[rule->field_count])) {
 					audit_msg(LOG_ERR, "Unknown user: %s",
 						v);
-					return -2;
+					return -EAU_PRINT_NOTHING;
 				}
 			}
 			break;
@@ -1562,7 +1562,7 @@ int audit_rule_fieldpair_data(struct audit_rule_data **rulep, const char *pair,
 					&rule->values[rule->field_count])) {
 					audit_msg(LOG_ERR, "Unknown group: %s",
 						v);
-					return -2;
+					return -EAU_PRINT_NOTHING;
 				}
 			}
 			break;

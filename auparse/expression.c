@@ -1,6 +1,6 @@
 /*
 * expression.c - Expression parsing and handling
-* Copyright (C) 2008,2014,2016 Red Hat Inc., Durham, North Carolina.
+* Copyright (C) 2008,2014,2016 Red Hat Inc.
 * All Rights Reserved.
 *
 * This library is free software; you can redistribute it and/or
@@ -137,9 +137,14 @@ parser_realloc(struct parsing *p, void *ptr, size_t size)
 {
 	void *res;
 
+	if (size == 0) {
+		free(ptr);
+		return NULL;
+	}
 	res = realloc(ptr, size);
-	if (res != NULL || size == 0)
+	if (res)
 		return res;
+
 	free(ptr);
 	*p->error = strdup("Out of memory");
 	return NULL;

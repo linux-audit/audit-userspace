@@ -1030,9 +1030,19 @@ process_keys:
 		retval = -1;
 #endif
 		break;
-        default: 
-		usage();
+        default: {
+		char *bad_opt;
+		if (optind >= 2)
+			bad_opt = vars[optind -1];
+		else
+			bad_opt = " ";
+		if (lineno)
+			audit_msg(LOG_ERR,
+			    "Option %s on line %d is invalid", bad_opt, lineno);
+		else
+			audit_msg(LOG_ERR, "Option %s is invalid", bad_opt);
 		retval = -1;
+		}
 		break;
         }
     }
@@ -1150,8 +1160,9 @@ void postprocess(char *buf)
 /*
  * This function reads the given file line by line and executes the rule.
  * It returns 0 if everything went OK, 1 if there are problems before reading
- * the file and -1 on error conditions after executing some of the rules.
- * It will abort reading the file if it encounters any problems.
+ * the file, 2 if the rules file doesn't exist and it should,  and -1 on
+ * error conditions after executing some of the rules. It will abort reading
+ * the file if it encounters any problems.
  */
 static int fileopt(const char *file)
 {
@@ -1168,8 +1179,8 @@ static int fileopt(const char *file)
 				file, strerror(errno));
                         return 1;
                 }
-		audit_msg(LOG_INFO, "file %s doesn't exist, skipping", file);
-                return 0;
+		audit_msg(LOG_ERR, "audit rules file %s doesn't exist", file);
+                return 2;
         }
         tfd = rc;
 
