@@ -518,7 +518,7 @@ int main(int argc, char *argv[])
                 auparse_add_callback(au, push_event, NULL, NULL);  /* 4 */
 
                 /* main loop */
-		rc = -1;
+		rc = 0;
                 while (hup == 0 && stop == 0) {
                         fd_set rfds;
                         struct timeval tv;
