@@ -443,7 +443,8 @@ int main(int argc, char *argv[])
          */
         if (argc == 1) {
                 cpath = def_config_file;
-                log_warn("No configuration file specified - using default (%s)", cpath);
+                log_warn("No configuration file specified - using default (%s)",
+			 cpath);
         } else if (argc == 2) {
                 cpath = argv[1];
                 log_info("Using configuration file: %s", cpath);
@@ -454,10 +455,10 @@ int main(int argc, char *argv[])
 
         /* initialize record counter */
         conf.counter = 1;
-        
+
         /* initialize configuration with default values */
         plugin_clear_config(&conf);
-        
+
         /* initialize the submission queue */
         if (init_queue(conf.q_depth) != 0) {
                 log_err("Error - Can't initialize event queue. Aborting");
@@ -478,16 +479,16 @@ int main(int argc, char *argv[])
         }
 
         do {
-                
+
                 hup = 0;        /* don't flush unless hup == 1 */
-                
-                /* 
-                 * initialization is done in 4 steps: 
+        
+                /*
+                 * initialization is done in 4 steps:
                  */
-                
-                /* 
+        
+                /*
                  * load configuration and
-                 * increase queue depth if needed 
+                 * increase queue depth if needed
                  */
                 rc = plugin_load_config(&conf, cpath);
                 if (rc != 0) {
@@ -502,15 +503,15 @@ int main(int argc, char *argv[])
                         log_err("Error - exiting due to auparse init errors");
                         return -1;
                 }
-                
-                /* 
+
+                /*
                  * Block signals for everyone,
-                 * Initialize submission thread, and 
+                 * Initialize submission thread, and
                  * Unblock signals for this thread
                  */
                 sigfillset(&ss);
                 pthread_sigmask(SIG_BLOCK, &ss, NULL);
-                pthread_create(&submission_thread, NULL, 
+                pthread_create(&submission_thread, NULL,
                                submission_thread_main, NULL);
                 pthread_sigmask(SIG_UNBLOCK, &ss, NULL);           /* 3 */
 
@@ -524,7 +525,7 @@ int main(int argc, char *argv[])
                         struct timeval tv;
 
 			if (rc == 0 && auparse_feed_has_data(au))
-				auparse_feed_age_events(au);                         
+				auparse_feed_age_events(au);
 
                         FD_ZERO(&rfds);
                         FD_SET(0, &rfds);
@@ -571,9 +572,9 @@ int main(int argc, char *argv[])
                 pthread_join(submission_thread, NULL);             /* 3 */
                 alarm(0);                   /* cancel any pending alarm */
                 auparse_destroy(au);                               /* 2 */
-                plugin_free_config(&conf);                                /* 1 */
+                plugin_free_config(&conf);                         /* 1 */
         } while (hup && stop == 0);
-        
+
         /* destroy queue before leaving */
         destroy_queue();
 
