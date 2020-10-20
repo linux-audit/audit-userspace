@@ -102,7 +102,7 @@ int main(int argc, char *argv[])
 	do {
 		fd_set read_mask;
 		struct timeval tv;
-		int retval = -1;
+		int retval = 0;
 		int read_size = 0;
 
 		/* Load configuration */
