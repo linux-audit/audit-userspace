@@ -150,14 +150,14 @@ If you are not getting events on syscall rules that you think you should, try ru
 If you get a warning from auditctl saying, "32/64 bit syscall mismatch in line XX, you should specify an arch". This means that you specified a syscall rule on a bi-arch system where the syscall has a different syscall number for the 32 and 64 bit interfaces. This means that on one of those interfaces you are likely auditing the wrong syscall. To solve the problem, re-write the rule as two rules specifying the intended arch for each rule. For example,
 
 .nf
-\-always,exit \-S openat \-k access
+\-a always,exit \-S openat \-k access
 .fi
 
 would be rewritten as
 
 .nf
-\-always,exit \-F arch=b32 \-S openat \-k access
-\-always,exit \-F arch=b64 \-S openat \-k access
+\-a always,exit \-F arch=b32 \-S openat \-k access
+\-a always,exit \-F arch=b64 \-S openat \-k access
 .fi
 
 If you get a warning that says, "entry rules deprecated, changing to exit rule". This means that you have a rule intended for the entry filter, but that filter is no longer available. Auditctl moved your rule to the exit filter so that it's not lost. But to solve this so that you do not get the warning any more, you need to change the offending rule from entry to exit.
