@@ -567,8 +567,12 @@ int audit_print_reply(struct audit_reply *rep, int fd)
 #endif
 #if HAVE_DECL_AUDIT_STATUS_BACKLOG_WAIT_TIME_ACTUAL == 1
 
-			printf("backlog_wait_time_actual %u\n",
-				rep->status->backlog_wait_time_actual);
+			// A newer userspace may have been compiled on new headers
+			// and run on an older kernel.
+			if (rep->len == NLMSG_LENGTH(sizeof(struct audit_status))) {
+			  printf("backlog_wait_time_actual %u\n",
+				  rep->status->backlog_wait_time_actual);
+			}
 #endif
 			printed = 1;
 			break;
