@@ -90,6 +90,7 @@
 - Add error messages for watch permissions
 - If audit rules file doesn't exist log error message instead of info message
 - Revise error message for unmatched options in auditctl
+- In audisp-remote, fixup remote endpoint disappearin in ascii format
 
 2.8.3
 - Correct msg function name in LRU debug code

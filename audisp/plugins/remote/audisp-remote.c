@@ -534,7 +534,7 @@ int main(int argc, char *argv[])
 				FD_SET(sock, &wfd);
 		}
 
-		if (config.heartbeat_timeout > 0) {
+		if (config.format==F_MANAGED && config.heartbeat_timeout>0) {
 			tv.tv_sec = config.heartbeat_timeout;
 			tv.tv_usec = 0;
 			n = select(fds, &rfd, &wfd, NULL, &tv);
@@ -547,10 +547,12 @@ int main(int argc, char *argv[])
 			/* We attempt a hearbeat if select fails, which
 			 * may give us more heartbeats than we need. This
 			 * is safer than too few heartbeats.  */
-			quiet = 1;
-			send_heartbeat();
-			quiet = 0;
-			continue;
+			if (config.format == F_MANAGED) {
+				quiet = 1;
+				send_heartbeat();
+				quiet = 0;
+				continue;
+			}
 		}
 
 		// See if we got a shutdown message from the server
@@ -1245,6 +1247,7 @@ static int relay_sock_ascii(const char *s, size_t len)
 	rc = ar_write(sock, s, len);
 	if (rc <= 0) {
 		stop = 1;
+		stop_transport();
 		syslog(LOG_ERR,"Connection to %s closed unexpectedly - exiting",
 		       config.remote_server);
 		return -1;
@@ -1446,6 +1449,21 @@ static int check_message_managed(void)
 	return 0;
 }
 
+/* If this gets called, it most likely means that the remote end died.
+ * We need to try a read to get the EPIPE so that we can close out the
+ * connection. */
+static int check_message_ascii(void)
+{
+	int rc;
+	char buf[64];
+
+	rc = ar_read(sock, buf, sizeof(buf));
+	if (rc < 0 || remote_ended)
+		stop = 1;
+
+	return 0;
+}
+
 /* This is to check for async notification like server is shutting down */
 static int check_message(void)
 {
@@ -1456,9 +1474,9 @@ static int check_message(void)
 		case F_MANAGED:
 			rc = check_message_managed();
 			break;
-/*		case F_ASCII:
+		case F_ASCII:
 			rc = check_message_ascii();
-			break; */
+			break;
 		default:
 			rc = -1;
 			break;
