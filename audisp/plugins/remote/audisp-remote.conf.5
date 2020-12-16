@@ -59,7 +59,13 @@ the remote end, and to receive status messages from the remote server.
 If
 .I ascii
 is given instead, each message is a simple ASCII text line with no
-overhead at all.  If
+overhead at all. The
+.I ascii
+format is a very simplistic protocol. If there are any network problems, it
+willcause audisp-remote to exit. Auditd may or may not restart it on next
+event. If something more robust is needed, use the
+.I managed
+format. If
 .I mode
 is set to \fIforward\fP,
 .I format
