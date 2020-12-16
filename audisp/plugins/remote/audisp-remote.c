@@ -1,5 +1,5 @@
 /* audisp-remote.c --
- * Copyright 2008-2012,2016,2018,2019 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2008-2012,2016,2018,2019-20 Red Hat Inc.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -204,7 +204,7 @@ static void change_runlevel(const char *level)
 
 	pid = fork();
 	if (pid < 0) {
-		syslog(LOG_ALERT, 
+		syslog(LOG_ALERT,
 		       "audisp-remote failed to fork switching runlevels");
 		return;
 	}
@@ -226,7 +226,7 @@ static void safe_exec(const char *exe, const char *message)
 	int pid;
 
 	if (exe == NULL) {
-		syslog(LOG_ALERT,  
+		syslog(LOG_ALERT,
 			"Safe_exec passed NULL for program to execute");
 		return;
 	}
@@ -513,7 +513,7 @@ int main(int argc, char *argv[])
 		int n, fds = ifd + 1;
 
 		/* Load configuration */
-		if (hup) 
+		if (hup)
 			reload_config();
 
 		if (dump)
@@ -567,7 +567,7 @@ int main(int argc, char *argv[])
 		if (FD_ISSET(ifd, &rfd)) {
 			do {
 				if (audit_fgets(event, sizeof(event), ifd)) {
-					if (!transport_ok && remote_ended && 
+					if (!transport_ok && remote_ended &&
 						(config.remote_ending_action ==
 								FA_RECONNECT ||
 							!connected_once)) {
@@ -990,7 +990,6 @@ static int negotiate_credentials (void)
 
 static int stop_sock(void)
 {
-	
 	if (sock >= 0) {
 #ifdef USE_GSSAPI
 		if (USE_GSS) {
@@ -1271,7 +1270,7 @@ static int send_msg_gss (unsigned char *header, const char *msg, uint32_t mlen)
 	utok.value = malloc (utok.length);
 
 	memcpy (utok.value, header, AUDIT_RMW_HEADER_SIZE);
-	
+
 	if (msg != NULL && mlen > 0)
 		memcpy (utok.value+AUDIT_RMW_HEADER_SIZE, msg, mlen);
 

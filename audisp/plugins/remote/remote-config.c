@@ -651,7 +651,7 @@ static int format_parser(struct nv_pair *nv, int line,
 		}
 	}
 	syslog(LOG_ERR, "Option %s not found - line %d", nv->value, line);
- 	return 1;
+	return 1;
 }
 
 static int network_retry_time_parser(struct nv_pair *nv, int line,

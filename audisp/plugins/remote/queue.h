@@ -35,7 +35,7 @@ enum {
 	// Other flags for use with Q_IN_FILE 
 	Q_CREAT = 1 << 2,	// Create the queue if it does not exist
 	Q_EXCL = 1 << 3,	// With Q_CREAT, don't open an existing queue
-	Q_SYNC = 1 << 4, 	// fdatasync() after each operation
+	Q_SYNC = 1 << 4,	// fdatasync() after each operation
 	Q_RESIZE = 1 << 5,	// resize the queue if needed
 };
 
