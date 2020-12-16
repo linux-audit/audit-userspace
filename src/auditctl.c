@@ -135,8 +135,7 @@ static void usage(void)
      "    -v                                Version\n"
      "    -w <path>                         Insert watch at <path>\n"
      "    -W <path>                         Remove watch at <path>\n"
-#if defined(HAVE_DECL_AUDIT_FEATURE_VERSION) && \
-    defined(HAVE_STRUCT_AUDIT_STATUS_FEATURE_BITMAP)
+#if defined(HAVE_DECL_AUDIT_FEATURE_VERSION)
      "    --loginuid-immutable              Make loginuids unchangeable once set\n"
 #endif
 #if HAVE_DECL_AUDIT_VERSION_BACKLOG_WAIT_TIME == 1 || \
@@ -533,8 +532,7 @@ static int parse_syscall(const char *optarg)
 
 static struct option long_opts[] =
 {
-#if defined(HAVE_DECL_AUDIT_FEATURE_VERSION) && \
-    defined(HAVE_STRUCT_AUDIT_STATUS_FEATURE_BITMAP)
+#if defined(HAVE_DECL_AUDIT_FEATURE_VERSION)
   {"loginuid-immutable", 0, NULL, 1},
 #endif
 #if HAVE_DECL_AUDIT_VERSION_BACKLOG_WAIT_TIME == 1 || \

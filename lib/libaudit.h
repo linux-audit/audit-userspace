@@ -514,7 +514,7 @@ struct audit_reply {
 	struct nlmsgerr         *error;
 	struct audit_sig_info   *signal_info;
 	struct daemon_conf      *conf;
-#ifdef AUDIT_FEATURE_BITMAP_ALL
+#ifdef AUDIT_FEATURE_VERSION
 	struct audit_features	*features;
 #endif
 	};
