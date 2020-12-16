@@ -92,6 +92,7 @@
 - Revise error message for unmatched options in auditctl
 - In audisp-remote, fixup remote endpoint disappearin in ascii format
 - Add backlog_wait_time_actual reporting / resetting to auditctl (Max Englander)
+- In auditctl, add support for sending a signal to auditd
 
 2.8.3
 - Correct msg function name in LRU debug code

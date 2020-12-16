@@ -39,6 +39,7 @@
 #include <errno.h>
 #include <libgen.h>	/* For basename */
 #include <limits.h>	/* PATH_MAX */
+#include <signal.h>
 #include "libaudit.h"
 #include "auditctl-listing.h"
 #include "private.h"
@@ -129,6 +130,7 @@ static void usage(void)
      "    -R <file>                         read rules from file\n"
      "    -s                                Report status\n"
      "    -S syscall                        Build rule: syscall name or number\n"
+     "    --signal <signal>                 Send the specified signal to the daemon"
      "    -t                                Trim directory watches\n"
      "    -v                                Version\n"
      "    -w <path>                         Insert watch at <path>\n"
@@ -398,6 +400,85 @@ static void check_rule_mismatch(int lineno, const char *option)
 	}
 }
 
+
+static int send_signal(const char *optarg)
+{
+	int signal = 0, retval, i;
+	int timeout = 40; /* loop has delay of .1 - so this is 4 seconds */
+	struct audit_reply rep;
+
+	fd_set read_mask;
+	FD_ZERO(&read_mask);
+	FD_SET(fd, &read_mask);
+
+	if (strcasecmp(optarg, "TERM") == 0)
+		signal = SIGTERM;
+	else if (strcasecmp(optarg, "HUP") == 0)
+		signal = SIGHUP;
+	else if (strcasecmp(optarg, "USR1") == 0)
+		signal = SIGUSR1;
+	else if (strcasecmp(optarg, "USR2") == 0)
+		signal = SIGUSR2;
+	else if (strcasecmp(optarg, "CONT") == 0)
+		signal = SIGCONT;
+
+	if (signal == 0) {
+		audit_msg(LOG_ERR, "%s is an unsupported signal", optarg);
+		return -1;
+	}
+
+	// Request status so that we can find the pid
+	retval = audit_request_status(fd);
+	if (retval == -1) {
+		if (errno == ECONNREFUSED)
+			audit_msg(LOG_INFO, "The audit system is disabled");
+		return -1;
+	}
+
+	// Receive the netlink info
+	for (i = 0; i < timeout; i++) {
+		struct timeval t;
+
+		t.tv_sec  = 0;
+		t.tv_usec = 100000; /* .1 second */
+		do {
+			retval = select(fd+1, &read_mask, NULL, NULL, &t);
+		} while (retval < 0 && errno == EINTR);
+
+		// We'll try to read just in case
+		retval = audit_get_reply(fd, &rep, GET_REPLY_NONBLOCKING, 0);
+		if (retval > 0) {
+			if (rep.type == NLMSG_ERROR && rep.error->error == 0) {
+				i = 0;    /* reset timeout */
+				continue; /* This was an ack */
+			}
+
+			if (rep.type == NLMSG_NOOP) {
+				i = 0; /* If getting more, reset timeout */
+				continue;
+			} else if (rep.type == NLMSG_DONE)
+				break;
+			else if (rep.type == AUDIT_GET) {
+				if (rep.status->pid == 0) {
+					audit_msg(LOG_INFO,
+						"Auditd is not running");
+					return -2;
+				}
+				retval = kill(rep.status->pid, signal);
+				if (retval < 0) {
+					audit_msg(LOG_WARNING,
+				        "Failed sending signal to auditd (%s)",
+						 strerror(errno));
+					return -1;
+				} else
+					return -2;
+			}
+		}
+	}
+	audit_msg(LOG_WARNING, "Failed sending signal to auditd (timeout)");
+	return -1;
+}
+
 static int report_status(void)
 {
 	int retval;
@@ -466,6 +547,7 @@ static struct option long_opts[] =
 #if HAVE_DECL_AUDIT_STATUS_BACKLOG_WAIT_TIME_ACTUAL == 1
   {"reset_backlog_wait_time_actual", 0, NULL, 4},
 #endif
+  {"signal", 1, NULL, 5},
   {NULL, 0, NULL, 0}
 };
 
@@ -1029,6 +1111,9 @@ process_keys:
 			"reset_backlog_wait_time_actual is not supported on your kernel");
 		retval = -1;
 #endif
+		break;
+	case 5:
+		retval = send_signal(optarg);
 		break;
         default: {
 		char *bad_opt;
