@@ -1,4 +1,3 @@
-%{!?python_sitearch: %define python_sitearch %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib(1)")}
 
 Summary: User space tools for kernel auditing
 Name: audit
@@ -8,10 +7,9 @@ License: GPLv2+
 Group: System Environment/Daemons
 URL: http://people.redhat.com/sgrubb/audit/
 Source0: http://people.redhat.com/sgrubb/audit/%{name}-%{version}.tar.gz
-BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
-BuildRequires: gcc
+BuildRequires: gcc swig
 BuildRequires: golang
-BuildRequires: tcp_wrappers-devel krb5-devel libcap-ng-devel
+BuildRequires: krb5-devel libcap-ng-devel
 BuildRequires: kernel-headers >= 2.6.29
 BuildRequires: systemd
 
@@ -92,11 +90,11 @@ behavior.
 %setup -q
 
 %build
-%configure --sbindir=/sbin --libdir=/%{_lib} --with-python=yes \
-	   --with-python3=yes --enable-tcp=yes \
-	   --with-golang --with-libwrap \
-	   --enable-gssapi-krb5=yes --enable-zos-remote \
-	   --with-libcap-ng=yes --enable-systemd
+%configure --sbindir=/sbin --libdir=/%{_lib} --with-python=no \
+	   --with-python3=yes \
+	   --enable-gssapi-krb5=yes --with-arm --with-aarch64 \
+	   --with-libcap-ng=yes --enable-zos-remote \
+	   --enable-systemd
 
 make CFLAGS="%{optflags}" %{?_smp_mflags}
 
@@ -110,9 +108,6 @@ mkdir -p $RPM_BUILD_ROOT/%{_var}/spool/audit
 make DESTDIR=$RPM_BUILD_ROOT install
 
 mkdir -p $RPM_BUILD_ROOT/%{_libdir}
-# This winds up in the wrong place when libtool is involved
-mv $RPM_BUILD_ROOT/%{_lib}/libaudit.a $RPM_BUILD_ROOT%{_libdir}
-mv $RPM_BUILD_ROOT/%{_lib}/libauparse.a $RPM_BUILD_ROOT%{_libdir}
 curdir=`pwd`
 cd $RPM_BUILD_ROOT/%{_libdir}
 LIBNAME=`basename \`ls $RPM_BUILD_ROOT/%{_lib}/libaudit.so.1.*.*\``
@@ -136,8 +131,8 @@ touch -r ./audit.spec $RPM_BUILD_ROOT/usr/share/man/man5/libaudit.conf.5.gz
 
 %check
 make check
-
-%post libs -p /sbin/ldconfig
+# Get rid of make files so that they don't get packaged.
+rm -f rules/Makefile*
 
 %post
 # Copy default rules into place on new installation
@@ -173,8 +168,6 @@ fi
 %doc contrib/plugin
 %{_libdir}/libaudit.so
 %{_libdir}/libauparse.so
-%dir %{_prefix}/lib/golang/src/pkg/redhat.com/audit
-%{_prefix}/lib/golang/src/pkg/redhat.com/audit/audit.go
 %{_includedir}/libaudit.h
 %{_includedir}/auparse.h
 %{_includedir}/auparse-defs.h
@@ -246,8 +239,6 @@ fi
 %config(noreplace) %attr(640,root,root) /etc/audit/plugins.d/af_unix.conf
 
 %files -n audispd-plugins
-%attr(644,root,root) %{_mandir}/man8/audispd-zos-remote.8.gz
-%attr(644,root,root) %{_mandir}/man5/zos-remote.conf.5.gz
 %config(noreplace) %attr(640,root,root) /etc/audit/plugins.d/audispd-zos-remote.conf
 %config(noreplace) %attr(640,root,root) /etc/audit/zos-remote.conf
 %attr(750,root,root) /sbin/audispd-zos-remote
@@ -257,12 +248,14 @@ fi
 %attr(750,root,root) /sbin/audisp-remote
 %attr(750,root,root) /sbin/audisp-syslog
 %attr(700,root,root) %dir %{_var}/spool/audit
+%attr(644,root,root) %{_mandir}/man8/audispd-zos-remote.8.gz
+%attr(644,root,root) %{_mandir}/man5/zos-remote.conf.5.gz
 %attr(644,root,root) %{_mandir}/man5/audisp-remote.conf.5.gz
 %attr(644,root,root) %{_mandir}/man8/audisp-remote.8.gz
 %attr(644,root,root) %{_mandir}/man8/audisp-syslog.8.gz
 
 
 %changelog
-* Sat Mar 10 2018 Steve Grubb <sgrubb@redhat.com> 3.0-1
+* Wed Dec 16 2020 Steve Grubb <sgrubb@redhat.com> 3.0-1
 - New upstream release
 
