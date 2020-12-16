@@ -1,5 +1,5 @@
 /* audispd.c --
- * Copyright 2007-08,2013,2016-18 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2007-08,2013,2016-18 Red Hat Inc.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -124,7 +124,7 @@ static void load_plugin_conf(conf_llist *plugin)
 				else
 					free_pconfig(&config);
 			} else
-				audit_msg(LOG_ERR, 
+				audit_msg(LOG_ERR,
 					"Skipping %s plugin due to errors",
 					e->d_name);
 		}
@@ -186,9 +186,9 @@ static void copy_config(const struct daemon_conf *c)
 	daemon_config.overflow_action = c->overflow_action;
 	daemon_config.max_restarts = c->max_restarts;
 	if (daemon_config.plugin_dir == NULL)
-		daemon_config.plugin_dir = 
+		daemon_config.plugin_dir =
 				c->plugin_dir ? strdup(c->plugin_dir) : NULL;
-	else if (daemon_config.plugin_dir && c->plugin_dir && 
+	else if (daemon_config.plugin_dir && c->plugin_dir &&
 		strcmp(daemon_config.plugin_dir, c->plugin_dir)) {
 		free(daemon_config.plugin_dir);
 		daemon_config.plugin_dir = strdup(c->plugin_dir);
@@ -224,7 +224,7 @@ static int reconfigure(void)
 	tpconf = plist_get_cur(&tmp_plugin);
 	while (tpconf && tpconf->p) {
 		lnode *opconf;
-		
+
 		opconf = plist_find_name(&plugin_conf, tpconf->p->name);
 		if (opconf == NULL) {
 			/* We have a new service */
@@ -239,7 +239,7 @@ static int reconfigure(void)
 		} else {
 			if (opconf->p->active == tpconf->p->active) {
 				/* If active and no state change, sighup it */
-				if (opconf->p->type == S_ALWAYS && 
+				if (opconf->p->type == S_ALWAYS &&
 						opconf->p->active == A_YES) {
 					if (opconf->p->inode==tpconf->p->inode){
 						if (opconf->p->pid)
@@ -294,7 +294,7 @@ static int reconfigure(void)
 		tpconf->p->pid = 0;
 		tpconf->p->checked = 1;
 	}
-	
+
 	/* Release memory from temp config */
 	plist_first(&tmp_plugin);
 	tpconf = plist_get_cur(&tmp_plugin);
@@ -331,7 +331,7 @@ int libdisp_init(const struct daemon_conf *c)
 
 	/* Let the queue initialize */
 	init_queue(daemon_config.q_depth);
-	audit_msg(LOG_INFO, 
+	audit_msg(LOG_INFO,
 	  "audit dispatcher initialized with q_depth=%d and %d active plugins",
 		daemon_config.q_depth, i);
 
@@ -387,7 +387,7 @@ static void *outbound_thread_main(void *arg)
 	free(daemon_config.plugin_dir);
 	daemon_config.plugin_dir = NULL;
 	audit_msg(LOG_DEBUG, "Finished cleaning up dispatcher");
-	
+
 	return 0;
 }
 
@@ -405,7 +405,7 @@ static int safe_exec(plugin_conf_t *conf)
 		conf->pid = pid;
 		return 0;	/* Parent...normal exit */
 	}
-	if (pid < 0) { 
+	if (pid < 0) {
 		close(conf->plug_pipe[0]);
 		close(conf->plug_pipe[1]);
 		conf->pid = 0;
@@ -496,7 +496,7 @@ static int event_loop(void)
 		}
 		// Protocol 1 is not formatted
 		if (e->hdr.ver == AUDISP_PROTOCOL_VER) {
-			len = asprintf(&v, "type=%s msg=%.*s\n", 
+			len = asprintf(&v, "type=%s msg=%.*s\n",
 					type, e->hdr.size, e->data);
 		// Protocol 2 events are already formatted
 		} else if (e->hdr.ver == AUDISP_PROTOCOL_VER2) {
@@ -539,7 +539,7 @@ static int event_loop(void)
 				if (rc < 0 && errno == EPIPE) {
 					/* Child disappeared ? */
 					audit_msg(LOG_ERR,
-					"plugin %s terminated unexpectedly", 
+					"plugin %s terminated unexpectedly",
 								conf->p->path);
 					conf->p->pid = 0;
 					conf->p->restart_cnt++;
@@ -559,7 +559,7 @@ static int event_loop(void)
 						"plugin %s was restarted",
 							conf->p->path);
 						conf->p->active = A_YES;
-					} 
+					}
 				}
 			}
 		} while (!stop && (conf = plist_next(&plugin_conf)));

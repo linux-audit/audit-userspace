@@ -1,7 +1,7 @@
 /*
 * audispd-llist.c - Minimal linked list library
-* Copyright (c) 2007,2013 Red Hat Inc., Durham, North Carolina.
-* All Rights Reserved. 
+* Copyright (c) 2007,2013 Red Hat Inc.
+* All Rights Reserved.
 *
 * This software may be freely redistributed and/or modified under the
 * terms of the GNU General Public License as published by the Free
@@ -15,7 +15,7 @@
 *
 * You should have received a copy of the GNU General Public License
 * along with this program; see the file COPYING. If not, write to the
-* Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor 
+* Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor
 * Boston, MA 02110-1335, USA.
 *
 * Authors:
@@ -37,7 +37,7 @@ void plist_create(conf_llist *l)
 void plist_last(conf_llist *l)
 {
         register lnode* node;
-	
+
 	if (l->head == NULL)
 		return;
 
@@ -77,7 +77,7 @@ void plist_append(conf_llist *l, plugin_conf_t *p)
 
 	if (p) {
 		void *pp = malloc(sizeof(struct plugin_conf));
-		if (pp) 
+		if (pp)
 			memcpy(pp, p, sizeof(struct plugin_conf));
 		newnode->p = pp;
 	} else
