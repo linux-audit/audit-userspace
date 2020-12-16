@@ -91,6 +91,7 @@
 - If audit rules file doesn't exist log error message instead of info message
 - Revise error message for unmatched options in auditctl
 - In audisp-remote, fixup remote endpoint disappearin in ascii format
+- Add backlog_wait_time_actual reporting / resetting to auditctl (Max Englander)
 
 2.8.3
 - Correct msg function name in LRU debug code
