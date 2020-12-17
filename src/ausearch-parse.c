@@ -62,6 +62,7 @@ static int parse_kernel_anom(const lnode *n, search_items *s);
 static int parse_simple_message(const lnode *n, search_items *s);
 static int parse_tty(const lnode *n, search_items *s);
 static int parse_pkt(const lnode *n, search_items *s);
+static int parse_kernel(lnode *n, search_items *s);
 
 
 static int audit_avc_init(search_items *s)
@@ -172,10 +173,13 @@ int extract_search_items(llist *l)
 			case AUDIT_BPRM_FCAPS:
 			case AUDIT_CAPSET:
 			case AUDIT_MMAP:
-			case AUDIT_NETFILTER_CFG:
 			case AUDIT_PROCTITLE:
 			case AUDIT_REPLACE...AUDIT_BPF:
 				// Nothing to parse
+				break;
+			case AUDIT_NETFILTER_CFG:
+			case AUDIT_EVENT_LISTENER:
+				ret = parse_kernel(n, s);
 				break;
 			case AUDIT_TTY:
 				ret = parse_tty(n, s);
@@ -2565,6 +2569,168 @@ static int parse_pkt(const lnode *n, search_items *s)
 		}
 	}
 
+	return 0;
+}
+
+// parse Yet Another Audit Subject Attributes Order
+// /pid.*uid.*auid.*tty.*ses.*subj.*comm.*exe
+static int parse_kernel(lnode *n, search_items *s)
+{
+	char *ptr, *str, *term;
+	term = n->message;
+
+	// get pid if not already filled
+	if (event_pid != -1 && s->pid == -1) {
+		str = strstr(term, " pid=");
+		if (str) {
+			ptr = str + 5;
+			term = strchr(ptr, ' ');
+			if (term == NULL)
+				return 52;
+			*term = 0;
+			errno = 0;
+			s->pid = strtoul(ptr, NULL, 10);
+			if (errno)
+				return 53;
+			*term = ' ';
+		} else
+			return 54;
+	}
+	// optionally get uid if not already filled
+	if ((s->uid == -1 && !s->tuid) && (event_uid != -1 || event_tuid)) {
+		str = strstr(term, "uid=");
+		if (str) {
+			ptr = str + 4;
+			term = strchr(ptr, ' ');
+			if (term == NULL)
+				return 55;
+			*term = 0;
+			errno = 0;
+			s->uid = strtoul(ptr, NULL, 10);
+			if (errno)
+				return 56;
+			*term = ' ';
+		} else
+			s->uid = 0;
+		if (s->tuid) free((void *)s->tuid);
+		s->tuid = lookup_uid("uid", s->uid);
+	}
+	// optionally get loginuid if not already filled
+	if ((s->loginuid == -2 && !s->tauid) && (event_loginuid != -2 || event_tauid)) {
+		str = strstr(term, "auid=");
+		if (str) {
+			ptr = str + 5;
+			term = strchr(ptr, ' ');
+			if (term == NULL)
+				return 57;
+			*term = 0;
+			errno = 0;
+			s->loginuid = strtoul(ptr, NULL, 10);
+			if (errno)
+				return 58;
+			*term = ' ';
+		} else
+			s->loginuid = (unsigned long)-1;
+		if (s->tauid) free((void *)s->tauid);
+		s->tauid = lookup_uid("auid", s->loginuid);
+	}
+	// optionally get tty if not already filled
+	if (!s->terminal && event_terminal) {
+		// dont do this search unless needed
+		str = strstr(term, "tty=");
+		if (str) {
+			str += 4;
+			term = strchr(str, ' ');
+			if (term == NULL)
+				return 59;
+			*term = 0;
+			if (s->terminal) // ANOM_NETLINK has one
+				free(s->terminal);
+			s->terminal = strdup(str);
+			*term = ' ';
+		} else
+			s->terminal = strdup("(none)");
+	}
+	// optionally get ses if not already filled
+	if (s->session_id == -2 && event_session_id != -2 ) {
+		str = strstr(term, "ses=");
+		if (str) {
+			ptr = str + 4;
+			term = strchr(ptr, ' ');
+			if (term == NULL)
+				return 60;
+			*term = 0;
+			errno = 0;
+			s->session_id = strtoul(ptr, NULL, 10);
+			if (errno)
+				return 61;
+			*term = ' ';
+		} else
+			s->session_id = (unsigned long)-1;
+	}
+	// get subject if not already filled
+	if (!s->avc && event_subject) {
+		// scontext
+		str = strstr(term, "subj=");
+		if (str) {
+			str += 5;
+			term = strchr(str, ' ');
+			if (term == NULL)
+				return 62;
+			*term = 0;
+			if (audit_avc_init(s) == 0) {
+				anode an;
+
+				anode_init(&an);
+				an.scontext = strdup(str);
+				alist_append(s->avc, &an);
+				*term = ' ';
+			} else
+				return 63;
+		} else
+			return 64;
+	}
+	// get command line if not already filled
+	if (!s->comm && event_comm) {
+		// dont do this search unless needed
+		str = strstr(term, "comm=");
+		if (str) {
+			/* Make the syscall one override */
+			if (s->comm)
+				free(s->comm);
+			str += 5;
+			if (*str == '"') {
+				str++;
+				term = strchr(str, '"');
+				if (term == NULL)
+					return 65;
+				*term = 0;
+				s->comm = strdup(str);
+				*term = '"';
+			} else 
+				s->comm = unescape(str);
+		} else
+			return 66;
+	}
+	// optionally get exe if not already filled
+	if (!s->exe && event_exe) {
+		// dont do this search unless needed
+		str = strstr(n->message, "exe=");
+		if (str) {
+			str += 4;
+			if (*str == '"') {
+				str++;
+				term = strchr(str, '"');
+				if (term == NULL)
+					return 67;
+				*term = 0;
+				s->exe = strdup(str);
+				*term = '"';
+			} else 
+				s->exe = unescape(str);
+		} else
+			s->exe = strdup("(null)");
+	}
 	return 0;
 }
 
