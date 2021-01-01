@@ -29,7 +29,7 @@ plugin_conf = syslog.conf
 sbin_PROGRAMS = audisp-syslog
 man_MANS = audisp-syslog.8
 
-audisp_syslog_DEPENDENCIES = ${top_builddir}/common/libaucommon.a
+audisp_syslog_DEPENDENCIES = ${top_builddir}/common/libaucommon.la
 audisp_syslog_SOURCES = audisp-syslog.c
 audisp_syslog_CFLAGS = -fPIE -DPIE -g -D_GNU_SOURCE -Wundef
 audisp_syslog_LDFLAGS = -pie -Wl,-z,relro -Wl,-z,now
