@@ -45,8 +45,8 @@ libauparse_la_SOURCES = lru.c interpret.c nvlist.c ellist.c		\
 	normalize_record_map.h normalize_syscall_map.h
 nodist_libauparse_la_SOURCES = $(BUILT_SOURCES)
 
-libauparse_la_LIBADD = ${top_builddir}/lib/libaudit.la ${top_builddir}/common/libaucommon.a
-libauparse_la_DEPENDENCIES = $(libauparse_la_SOURCES) ${top_builddir}/config.h ${top_builddir}/common/libaucommon.a
+libauparse_la_LIBADD = ${top_builddir}/lib/libaudit.la ${top_builddir}/common/libaucommon.la
+libauparse_la_DEPENDENCIES = $(libauparse_la_SOURCES) ${top_builddir}/config.h ${top_builddir}/common/libaucommon.la
 libauparse_la_LDFLAGS = -Wl,-z,relro
 
 message.c:
