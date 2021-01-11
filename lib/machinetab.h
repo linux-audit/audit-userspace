@@ -37,7 +37,9 @@ _S(MACH_ARM,   "armv5tejl")
 _S(MACH_ARM,   "armv5tel")
 _S(MACH_ARM,   "armv6l")
 _S(MACH_ARM,   "armv7l")
+_S(MACH_ARM,   "armv7b")
 #endif
 #ifdef WITH_AARCH64
 _S(MACH_AARCH64,   "aarch64"  )
+_S(MACH_AARCH64,   "aarch64_be"  )
 #endif
