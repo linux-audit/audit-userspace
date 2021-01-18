@@ -1,5 +1,5 @@
-/* s390x_table.h --
- * Copyright 2005-06,2008-20 Red Hat Inc.
+/* s390x_table.h --  64 bit
+ * Copyright 2005-06,2008-21 Red Hat Inc.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -359,3 +359,10 @@ _S(432, "fsmount")
 _S(433, "fspick")
 _S(434, "pidfd_open")
 _S(435, "clone3")
+_S(436, "close_range")
+_S(437, "openat2")
+_S(438, "pidfd_getfd")
+_S(439, "faccessat2")
+_S(440, "process_madvise")
+_S(441, "epoll_pwait2")
+
