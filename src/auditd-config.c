@@ -144,6 +144,8 @@ static int max_restarts_parser(struct nv_pair *nv, int line,
 		struct daemon_conf *config);
 static int plugin_dir_parser(struct nv_pair *nv, int line,
 		struct daemon_conf *config);
+static int eoe_timeout_parser(struct nv_pair *nv, int line,
+		struct daemon_conf *config);
 static int sanity_check(struct daemon_conf *config);
 
 static const struct kw_pair keywords[] = 
@@ -186,6 +188,7 @@ static const struct kw_pair keywords[] =
   {"overflow_action",          overflow_action_parser,          0 },
   {"max_restarts",             max_restarts_parser,             0 },
   {"plugin_dir",               plugin_dir_parser,               0 },
+  {"end_of_event_timeout",     eoe_timeout_parser,              0 },
   { NULL,                      NULL,                            0 }
 };
 
@@ -349,6 +352,7 @@ void clear_config(struct daemon_conf *config)
 	config->max_restarts = 10;
 	config->plugin_dir = strdup("/etc/audit/plugins.d");
 	config->config_dir = NULL;
+	config->end_of_event_timeout = EOE_TIMEOUT;
 }
 
 static log_test_t log_test = TEST_AUDITD;
@@ -1846,6 +1850,37 @@ static int plugin_dir_parser(struct nv_pair *nv, int line,
 	return 0;
 }
 
+static int eoe_timeout_parser(struct nv_pair *nv, int line,
+		struct daemon_conf *config)
+{
+	const char *ptr = nv->value;
+	unsigned long i;
+
+	audit_msg(LOG_DEBUG, "eoe_timeout_parser called with: %s", nv->value);
+
+	/* check that all chars are numbers */
+	for (i=0; ptr[i]; i++) {
+		if (!isdigit(ptr[i])) {
+			audit_msg(LOG_ERR,
+				"Value %s should only be numbers - line %d",
+				nv->value, line);
+			return 1;
+		}
+	}
+
+	/* convert to unsigned long */
+	errno = 0;
+	i = strtoul(nv->value, NULL, 10);
+	if (errno) {
+		audit_msg(LOG_ERR,
+			"Error converting string to a number (%s) - line %d",
+			strerror(errno), line);
+		return 1;
+	}
+	config->end_of_event_timeout = i;
+	return 0;
+}
+
 /*
  * Query file system and calculate in MB the given percentage is.
  * Returns 0 on error and a number otherwise.
@@ -1961,7 +1996,9 @@ void free_config(struct daemon_conf *config)
         free((void *)config->krb5_key_file);
 	free((void *)config->plugin_dir);
         free((void *)config_dir);
-        free(config_file);
+        if (config_file != NULL)
+		free(config_file);
+        config_file = NULL;
 	config->config_dir = NULL;
 }
 

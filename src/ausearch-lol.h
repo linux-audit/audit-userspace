@@ -51,5 +51,7 @@ int lol_add_record(lol *lo, char *buff);
 void terminate_all_events(lol *lo);
 llist* get_ready_event(lol *lo);
 
+void setup_userspace_configitems();
+
 #endif
 

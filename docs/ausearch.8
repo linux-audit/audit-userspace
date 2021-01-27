@@ -49,6 +49,9 @@ outputting complete events.
 Should the file or the last checkpointed event not be found, one of a number of errors will result and ausearch will terminate. See \fBEXIT STATUS\fP for detail.
 
 .TP
+.BR \-\-eoe\-timeout \ \fIseconds\fP
+Set the end of event parsing timeout. See \fBend_of_event_timeout\fP in \fIauditd.conf(5)\fP for details. Note that setting this value will overide any configured value found in /etc/auditd/auditd.conf.
+.TP
 .BR \-e,\  \-\-exit \ \fIexit-code-or-errno\fP
 Search for an event based on the given syscall \fIexit code or errno\fP.
 .TP
@@ -232,4 +235,5 @@ date -d "`cut \-f1 \-d. /proc/uptime` seconds ago"
 
 .SH "SEE ALSO"
 .BR auditd (8),
+.BR auditd.conf (5),
 .BR pam_loginuid (8).

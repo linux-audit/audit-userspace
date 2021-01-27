@@ -35,6 +35,10 @@
 static int ready = 0;
 event very_first_event;
 
+// End of Event timeout value (in seconds). This is over-ridden by auditd-conf's end_of_event_timeout configuration item
+time_t eoe_timeout = EOE_TIMEOUT;
+
+
 void lol_create(lol *lo)
 {
 	int size = ARRAY_LIMIT * sizeof(lolnode);
@@ -242,8 +246,8 @@ static void check_events(lol *lo, time_t sec)
 	for(i=0;i<=lo->maxi; i++) {
 		lolnode *cur = &lo->array[i];
 		if (cur->status == L_BUILDING) {
-			// If 2 seconds have elapsed, we are done
-			if (cur->l->e.sec + 2 <= sec) { 
+			// If eoe_timeout seconds have elapsed, we are done
+			if (cur->l->e.sec + eoe_timeout <= sec) {
 				cur->status = L_COMPLETE;
 				ready++;
 			} else if (cur->l->e.type == AUDIT_PROCTITLE ||
@@ -397,4 +401,3 @@ llist* get_ready_event(lol *lo)
 
 	return NULL;
 }
-
