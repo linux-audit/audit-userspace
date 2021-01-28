@@ -29,10 +29,28 @@ ExecStartPost=-/sbin/augenrules --load
 #ExecStopPost=/sbin/auditctl -R /etc/audit/audit-stop.rules
 
 ### Security Settings ###
-MemoryDenyWriteExecute=true
+CapabilityBoundingSet=CAP_AUDIT_CONTROL CAP_AUDIT_READ CAP_SYS_NICE CAP_SYS_RESOURCE
 LockPersonality=true
+MemoryDenyWriteExecute=true
+PrivateDevices=true
+PrivateNetwork=true
+PrivateUsers=no
+ProtectClock=true
 ProtectControlGroups=true
+ProtectKernelLogs=true
 ProtectKernelModules=true
+ProtectKernelTunables=true
+ProtectHome=true
+ProtectHostname=true
+ProtectSystem=strict
+ReadOnlyPaths=/
+ReadWritePaths=/etc/audit /var/log/audit /run /tmp
+RestrictAddressFamilies=AF_NETLINK AF_UNIX
+RestrictNamespaces=true
+RestrictRealtime=true
+RestrictSUIDSGID=true
+SystemCallArchitectures=native
+SystemCallFilter=~@cpu-emulation @obsolete @raw-io @mount @module @debug @swap @clock @reboot
 
 [Install]
 WantedBy=multi-user.target
