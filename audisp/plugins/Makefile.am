@@ -1,5 +1,5 @@
 # Makefile.am --
-# Copyright 2007-08,2018 Red Hat Inc., Durham, North Carolina.
+# Copyright 2007-08,2018,2021 Red Hat Inc.
 # All Rights Reserved.
 #
 # This library is free software; you can redistribute it and/or
@@ -23,6 +23,9 @@
 CONFIG_CLEAN_FILES = *.loT *.rej *.orig
 
 SUBDIRS = builtins remote syslog
+if ENABLE_EXPERIMENTAL
+SUBDIRS += ids
+endif
 if ENABLE_ZOS_REMOTE
 SUBDIRS += zos-remote
 endif
