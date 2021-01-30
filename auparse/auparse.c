@@ -418,10 +418,7 @@ static void au_setup_userspace_configitems(auparse_state_t *au)
 	set_aumessage_mode(au, MSG_STDERR, DBG_NO);
 	aup_load_config(au, &config, TEST_SEARCH);
 
-	// Now over-ride the interal user space configuration items
-
-	if (config.end_of_event_timeout != EOE_TIMEOUT)
-		eoe_timeout = (time_t)config.end_of_event_timeout;
+	eoe_timeout = (time_t)config.end_of_event_timeout;
 
 	free_config(&config);
 }

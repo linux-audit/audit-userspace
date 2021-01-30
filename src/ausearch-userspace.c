@@ -31,10 +31,6 @@ void setup_userspace_configitems()
 	// Load the configuration file 
 	(void)load_config(&config, TEST_SEARCH);
 
-	// Now over-ride the interal user space configuration items
-
-	if (config.end_of_event_timeout != EOE_TIMEOUT)
-		eoe_timeout = (time_t)config.end_of_event_timeout;
-
+	eoe_timeout = (time_t)config.end_of_event_timeout;
 	free_config(&config);
 }
