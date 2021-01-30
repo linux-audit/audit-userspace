@@ -51,6 +51,7 @@ int lol_add_record(lol *lo, char *buff);
 void terminate_all_events(lol *lo);
 llist* get_ready_event(lol *lo);
 
+void lol_set_eoe_timeout(time_t new_eoe_tmo);
 void setup_userspace_configitems();
 
 #endif

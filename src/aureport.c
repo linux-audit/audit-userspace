@@ -64,7 +64,6 @@ extern int force_logs;
 /*
  * User space configuration items
  */
-extern time_t	eoe_timeout;
 extern time_t	arg_eoe_timeout;
 
 
@@ -106,7 +105,7 @@ int main(int argc, char *argv[])
 	 */
 	setup_userspace_configitems();
 	if (arg_eoe_timeout != 0) {
-		eoe_timeout = (time_t)arg_eoe_timeout;
+		lol_set_eoe_timeout(arg_eoe_timeout);
 	}
 
 	lol_create(&lo);

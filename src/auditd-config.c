@@ -1996,8 +1996,7 @@ void free_config(struct daemon_conf *config)
         free((void *)config->krb5_key_file);
 	free((void *)config->plugin_dir);
         free((void *)config_dir);
-        if (config_file != NULL)
-		free(config_file);
+	free(config_file);
         config_file = NULL;
 	config->config_dir = NULL;
 }

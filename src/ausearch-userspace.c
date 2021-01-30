@@ -18,6 +18,7 @@
 
 #include <stdio.h>
 #include "auditd-config.h"
+#include "ausearch-lol.h"
 
 // Set up userspace configuration items from auditd.conf
 // We load the daemon configuration file and update any internal user space configuration
@@ -26,11 +27,10 @@
 void setup_userspace_configitems()
 {
 	struct daemon_conf config;
-	extern time_t   eoe_timeout;
 
 	// Load the configuration file 
 	(void)load_config(&config, TEST_SEARCH);
 
-	eoe_timeout = (time_t)config.end_of_event_timeout;
+	lol_set_eoe_timeout((time_t)config.end_of_event_timeout);
 	free_config(&config);
 }

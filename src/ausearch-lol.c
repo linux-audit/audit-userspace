@@ -35,8 +35,8 @@
 static int ready = 0;
 event very_first_event;
 
-// End of Event timeout value (in seconds). This is over-ridden by auditd-conf's end_of_event_timeout configuration item
-time_t eoe_timeout = EOE_TIMEOUT;
+// End of Event timeout value (in seconds). This can be over-riden via configuration or command line argument.
+static time_t eoe_timeout = EOE_TIMEOUT;
 
 
 void lol_create(lol *lo)
@@ -400,4 +400,18 @@ llist* get_ready_event(lol *lo)
 	}
 
 	return NULL;
+}
+
+/*
+ * lol_set_eoe_timeout - set the end of event timeout to given value
+ *
+ * Args
+ * 	new_eoe_tmo - value
+ * Rtn
+ * 	void
+ */
+void
+lol_set_eoe_timeout(time_t new_eoe_tmo)
+{
+	eoe_timeout = new_eoe_tmo;
 }

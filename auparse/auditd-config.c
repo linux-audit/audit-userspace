@@ -359,8 +359,7 @@ static int eoe_timeout_parser(auparse_state_t *au, const char *val, int line,
 
 void free_config(struct daemon_conf *config)
 {
-	if (config->log_file != NULL)
-		free((void*)config->log_file);
+	free((void*)config->log_file);
 	config->log_file = NULL;
 }
 
