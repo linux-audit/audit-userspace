@@ -1,0 +1,26 @@
+#  This set of rules can trigger on events that might be considered recon
+
+-a always,exit -F auid>=1000 -F auid!=-1 -F perm=x -F path=/usr/bin/uname -F key=ids-recon
+-a always,exit -F auid>=1000 -F auid!=-1 -F perm=x -F path=/usr/bin/rpm -F key=ids-recon
+-a always,exit -F auid>=1000 -F auid!=-1 -F perm=x -F path=/usr/bin/yum -F key=ids-recon
+-a always,exit -F auid>=1000 -F auid!=-1 -F perm=x -F path=/usr/bin/dnf -F key=ids-recon
+-a always,exit -F auid>=1000 -F auid!=-1 -F perm=x -F path=/usr/bin/w -F key=ids-recon
+-a always,exit -F auid>=1000 -F auid!=-1 -F perm=x -F path=/usr/bin/who -F key=ids-recon
+-a always,exit -F auid>=1000 -F auid!=-1 -F perm=x -F path=/usr/bin/whoami -F key=ids-recon
+#-a always,exit -F auid>=1000 -F auid!=-1 -F perm=x -F path=/usr/bin/id -F key=ids-recon
+-a always,exit -F auid>=1000 -F auid!=-1 -F perm=x -F path=/usr/bin/netstat -F key=ids-recon
+-a always,exit -F auid>=1000 -F auid!=-1 -F perm=x -F path=/usr/bin/ss -F key=ids-recon
+-a always,exit -F auid>=1000 -F auid!=-1 -F perm=x -F path=/usr/bin/route -F key=ids-recon
+-a always,exit -F auid>=1000 -F auid!=-1 -F perm=x -F path=/usr/bin/ifconfig -F key=ids-recon
+-a always,exit -F auid>=1000 -F auid!=-1 -F perm=x -F path=/usr/bin/ip -F key=ids-recon
+-a always,exit -F auid>=1000 -F auid!=-1 -F perm=x -F path=/usr/bin/mount -F key=ids-recon
+-a always,exit -F auid>=1000 -F auid!=-1 -F perm=x -F path=/usr/bin/lsof -F key=ids-recon
+-a always,exit -F auid>=1000 -F auid!=-1 -F perm=x -F path=/usr/bin/df -F key=ids-recon
+-a always,exit -F auid>=1000 -F auid!=-1 -F perm=x -F path=/usr/bin/dig -F key=ids-recon
+-a always,exit -F auid>=1000 -F auid!=-1 -F perm=x -F path=/usr/bin/host -F key=ids-recon
+-a always,exit -F auid>=1000 -F auid!=-1 -F perm=x -F path=/usr/bin/last -F key=ids-recon
+-a always,exit -F auid>=1000 -F auid!=-1 -F perm=x -F path=/usr/bin/lastlog -F key=ids-recon
+-a always,exit -F auid>=1000 -F auid!=-1 -F perm=x -F path=/usr/bin/getent -F key=ids-recon
+-a always,exit -F auid>=1000 -F auid!=-1 -F perm=x -F path=/usr/bin/history -F key=ids-recon
+-a always,exit -F auid>=1000 -F auid!=-1 -F perm=x -F path=/usr/bin/watch -F key=ids-recon
+-a always,exit -F auid>=1000 -F auid!=-1 -F perm=x -F path=/usr/sbin/sestatus -F key=ids-recon

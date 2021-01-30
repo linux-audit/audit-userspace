@@ -1,0 +1,9 @@
+1) Start getting whitelisting in place
+2) verify timer services working correctly
+Test on live server
+3) Support IPv6
+4) Support nftables
+5) Patch auditctl for new ids rules
+6) Should we save state on shutdown and restore on start up?
+7) Develop ids rules for more coverage of ATT&CK
+8) More sophisticated models

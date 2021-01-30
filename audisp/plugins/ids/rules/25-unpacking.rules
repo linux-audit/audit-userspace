@@ -1,0 +1,12 @@
+# This rule triggers whenever someone runs a utility that unpacks or in some
+# instances, packs an archive
+
+-a always,exit -F perm=x -F path=/usr/bin/unzip -F auid>=1000 -F auid!=-1 -F key=ids-archive
+-a always,exit -F perm=x -F path=/usr/bin/tar -F auid>=1000 -F auid!=-1 -F key=ids-archive
+-a always,exit -F perm=x -F path=/usr/bin/bunzip -F auid>=1000 -F auid!=-1 -F key=ids-archive
+-a always,exit -F perm=x -F path=/usr/bin/zipgrep -F auid>=1000 -F auid!=-1 -F key=ids-archive
+-a always,exit -F perm=x -F path=/usr/bin/gzip -F auid>=1000 -F auid!=-1 -F key=ids-archive
+-a always,exit -F perm=x -F path=/usr/bin/gunzip -F auid>=1000 -F auid!=-1 -F key=ids-archive
+-a always,exit -F perm=x -F path=/usr/bin/zcat -F auid>=1000 -F auid!=-1 -F key=ids-archive
+-a always,exit -F perm=x -F path=/usr/bin/zgrep -F auid>=1000 -F auid!=-1 -F key=ids-archive
+-a always,exit -F perm=x -F path=/usr/bin/zless -F auid>=1000 -F auid!=-1 -F key=ids-archive
