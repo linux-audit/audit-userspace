@@ -1,0 +1,22 @@
+# This rule gets the connections of known data moving programs
+
+#-a always,exit -F arch=b64 -S connect,recvfrom -F auid>=1000 -F auid!=-1 -F exe=/usr/bin/awk -F key=ids-connections
+#-a always,exit -F arch=b64 -S connect,recvfrom -F auid>=1000 -F auid!=-1 -F exe=/usr/bin/bash -F key=ids-connections
+-a always,exit -F auid>=1000 -F auid!=-1 -F perm=x -F path=/usr/bin/curl -F key=ids-connections
+-a always,exit -F auid>=1000 -F auid!=-1 -F perm=x -F path=/usr/bin/elinks -F key=ids-connections
+-a always,exit -F auid>=1000 -F auid!=-1 -F perm=x -F path=/usr/bin/ftp -F key=ids-connections
+-a always,exit -F auid>=1000 -F auid!=-1 -F perm=x -F path=/usr/bin/git -F key=ids-connections
+-a always,exit -F auid>=1000 -F auid!=-1 -F perm=x -F path=/usr/bin/links -F key=ids-connections
+-a always,exit -F auid>=1000 -F auid!=-1 -F perm=x -F path=/usr/bin/lynx -F key=ids-connections
+-a always,exit -F auid>=1000 -F auid!=-1 -F perm=x -F path=/usr/bin/rsync -F key=ids-connections
+-a always,exit -F auid>=1000 -F auid!=-1 -F perm=x -F path=/usr/bin/scp -F key=ids-connections
+-a always,exit -F auid>=1000 -F auid!=-1 -F perm=x -F path=/usr/bin/sftp -F key=ids-connections
+-a always,exit -F auid>=1000 -F auid!=-1 -F perm=x -F path=/usr/bin/ssh -F key=ids-connections
+-a always,exit -F auid>=1000 -F auid!=-1 -F perm=x -F path=/usr/bin/w3m -F key=ids-connections
+-a always,exit -F auid>=1000 -F auid!=-1 -F perm=x -F path=/usr/bin/wget -F key=ids-connections
+-a always,exit -F auid>=1000 -F auid!=-1 -F perm=x -F path=/usr/bin/telnet -F key=ids-connections
+-a always,exit -F auid>=1000 -F auid!=-1 -F perm=x -F path=/usr/bin/nc -F key=ids-connections
+-a always,exit -F auid>=1000 -F auid!=-1 -F perm=x -F path=/usr/bin/ncat -F key=ids-connections
+-a always,exit -F auid>=1000 -F auid!=-1 -F perm=x -F path=/usr/bin/nmap -F key=ids-connections
+-a always,exit -F auid>=1000 -F auid!=-1 -F perm=x -F path=/usr/bin/nping -F key=ids-connections
+-a always,exit -F auid>=1000 -F auid!=-1 -F perm=x -F path=/usr/bin/ping -F key=ids-connections

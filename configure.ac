@@ -1,7 +1,7 @@
 dnl
 define([AC_INIT_NOTICE],
 [### Generated automatically using autoconf version] AC_ACVERSION [
-### Copyright 2005-20 Steve Grubb <sgrubb@redhat.com>
+### Copyright 2005-21 Steve Grubb <sgrubb@redhat.com>
 ###
 ### Permission is hereby granted, free of charge, to any person obtaining a
 ### copy of this software and associated documentation files (the "Software"),
@@ -238,7 +238,6 @@ AM_CONDITIONAL(ENABLE_LISTENER, test "x$enable_listener" != "xno")
 AC_MSG_RESULT($enable_listener)
 
 #audisp zos-remote plugin
-AC_MSG_CHECKING(whether to include audisp ZOS remote plugin)
 AC_ARG_ENABLE(zos-remote,
 	      [AS_HELP_STRING([--disable-zos-remote],
 			      [Disable audisp ZOS remote plugin])],
@@ -254,6 +253,8 @@ if test $enable_zos_remote = yes; then
 		AC_MSG_ERROR(openldap libraries found but headers are missing)
 	fi
 fi
+
+AC_MSG_CHECKING(whether to include audisp ZOS remote plugin)
 AM_CONDITIONAL(ENABLE_ZOS_REMOTE, test "x$enable_zos_remote" != "xno")
 AC_MSG_RESULT($enable_zos_remote)
 
@@ -280,6 +281,7 @@ fi
 AM_CONDITIONAL(ENABLE_GSSAPI, test x$want_gssapi_krb5 = xyes)
 
 #systemd
+AC_MSG_CHECKING(whether to enable systemd)
 AC_ARG_ENABLE(systemd,
 	[AS_HELP_STRING([--enable-systemd],[Enable systemd init scripts @<:@default=no@:>@])],
         [case "${enableval}" in
@@ -290,6 +292,21 @@ AC_ARG_ENABLE(systemd,
 	[want_systemd="no"]
 )
 AM_CONDITIONAL(ENABLE_SYSTEMD, test x$want_systemd = xyes)
+AC_MSG_RESULT($want_systemd)
+
+# ids
+AC_MSG_CHECKING(whether to enable experimental options)
+AC_ARG_ENABLE(experimental,
+	[AS_HELP_STRING([--enable-experimental],[Enable experimental audit components @<:@default=no@:>@])],
+        [case "${enableval}" in
+         yes) want_exper="yes" ;;
+          no) want_exper="no" ;;
+           *) AC_MSG_ERROR(bad value ${enableval} for --enable-experimental) ;;
+         esac],
+	[want_exper="no"]
+)
+AM_CONDITIONAL(ENABLE_EXPERIMENTAL, test x$want_exper = xyes)
+AC_MSG_RESULT($want_exper)
 
 # linux/fanotify.h
 AC_CHECK_HEADER(linux/fanotify.h, [ AC_DEFINE(USE_FANOTIFY, [],
@@ -406,7 +423,7 @@ AC_SUBST(DEBUG)
 AC_SUBST(LIBWRAP_LIBS)
 #AC_SUBST(libev_LIBS)
 
-AC_OUTPUT(Makefile common/Makefile lib/Makefile lib/audit.pc lib/test/Makefile auparse/Makefile auparse/test/Makefile auparse/auparse.pc src/Makefile src/libev/Makefile src/test/Makefile docs/Makefile rules/Makefile init.d/Makefile audisp/Makefile audisp/plugins/Makefile audisp/plugins/builtins/Makefile audisp/plugins/remote/Makefile audisp/plugins/zos-remote/Makefile audisp/plugins/syslog/Makefile bindings/Makefile bindings/python/Makefile bindings/python/python2/Makefile bindings/python/python3/Makefile bindings/golang/Makefile bindings/swig/Makefile bindings/swig/src/Makefile bindings/swig/python/Makefile bindings/swig/python3/Makefile tools/Makefile tools/aulast/Makefile tools/aulastlog/Makefile tools/ausyscall/Makefile tools/auvirt/Makefile m4/Makefile)
+AC_OUTPUT(Makefile common/Makefile lib/Makefile lib/audit.pc lib/test/Makefile auparse/Makefile auparse/test/Makefile auparse/auparse.pc src/Makefile src/libev/Makefile src/test/Makefile docs/Makefile rules/Makefile init.d/Makefile audisp/Makefile audisp/plugins/Makefile audisp/plugins/builtins/Makefile audisp/plugins/remote/Makefile audisp/plugins/zos-remote/Makefile audisp/plugins/syslog/Makefile audisp/plugins/ids/Makefile bindings/Makefile bindings/python/Makefile bindings/python/python2/Makefile bindings/python/python3/Makefile bindings/golang/Makefile bindings/swig/Makefile bindings/swig/src/Makefile bindings/swig/python/Makefile bindings/swig/python3/Makefile tools/Makefile tools/aulast/Makefile tools/aulastlog/Makefile tools/ausyscall/Makefile tools/auvirt/Makefile m4/Makefile)
 
 echo .
 echo "

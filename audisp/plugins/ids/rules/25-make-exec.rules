@@ -1,0 +1,10 @@
+# This rule triggers when someone makes an executable in specific directories
+
+-a exit,always -F arch=b64 -S chmod,fchmod -F dir=/home -F a1&0111 -F filetype=file -F auid>=1000 -F auid!=-1 -F key=ids-mkexec
+-a exit,always -F arch=b64 -S fchmodat -F dir=/home -F a2&0111 -F filetype=file -F auid>=1000 -F auid!=-1 -F key=ids-mkexec
+-a exit,always -F arch=b64 -S chmod,fchmod -F dir=/tmp -F a1&0111 -F filetype=file -F auid>=1000 -F auid!=-1 -F key=ids-mkexec
+-a exit,always -F arch=b64 -S fchmodat -F dir=/tmp -F a2&0111 -F filetype=file -F auid>=1000 -F auid!=-1 -F key=ids-mkexec
+-a exit,always -F arch=b64 -S chmod,fchmod -F dir=/var/tmp -F a1&0111 -F filetype=file -F auid>=1000 -F auid!=-1 -F key=ids-mkexec
+-a exit,always -F arch=b64 -S fchmodat -F dir=/var/tmp -F a2&0111 -F filetype=file -F auid>=1000 -F auid!=-1 -F key=ids-mkexec
+-a exit,always -F arch=b64 -S chmod,fchmod -F dir=/dev/shm -F a1&0111 -F filetype=file -F auid>=1000 -F auid!=-1 -F key=ids-mkexec
+-a exit,always -F arch=b64 -S fchmodat -F dir=/dev/shm -F a2&0111 -F filetype=file -F auid>=1000 -F auid!=-1 -F key=ids-mkexec
