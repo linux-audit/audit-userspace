@@ -63,6 +63,7 @@ long long event_exit = 0;
 int event_exit_is_set = 0;
 int event_ppid = -1, event_session_id = -2;
 int event_debug = 0, event_machine = -1;
+time_t	arg_eoe_timeout = (time_t)0;
 
 /* These are used by aureport */
 const char *dummy = "dummy";
@@ -86,7 +87,7 @@ enum {  R_INFILE, R_TIME_END, R_TIME_START, R_VERSION, R_SUMMARY, R_LOG_TIMES,
 	R_INTERPRET, R_HELP, R_ANOMALY, R_RESPONSE, R_SUMMARY_DET, R_CRYPTO,
 	R_MAC, R_FAILED, R_SUCCESS, R_ADD, R_DEL, R_AUTH, R_NODE, R_IN_LOGS,
 	R_KEYS, R_TTY, R_NO_CONFIG, R_COMM, R_VIRT, R_INTEG, R_ESCAPE,
-	R_DEBUG };
+	R_DEBUG, R_EOE_TMO };
 
 static struct nv_pair optiontab[] = {
 	{ R_AUTH, "-au" },
@@ -104,6 +105,7 @@ static struct nv_pair optiontab[] = {
 	{ R_EVENTS, "-e" },
 	{ R_EVENTS, "--event" },
 	{ R_ESCAPE, "--escape" },
+	{ R_EOE_TMO, "--eoe-timeout" },
 	{ R_FILES, "-f" },
 	{ R_FILES, "--file" },
 	{ R_FAILED, "--failed" },
@@ -175,6 +177,7 @@ static void usage(void)
 	"\t--comm\t\t\t\tCommands run report\n"
 	"\t-c,--config\t\t\tConfig change report\n"
 	"\t-cr,--crypto\t\t\tCrypto report\n"
+	"\t--eoe-timeout secs\t\tEnd of Event Timeout\n"
 	"\t-e,--event\t\t\tEvent report\n"
 	"\t-f,--file\t\t\tFile name report\n"
 	"\t--failed\t\t\tonly failed events in report\n"
@@ -750,9 +753,31 @@ int check_params(int count, char *vars[])
 			usage();
 			exit(0);
 			break;
+		case R_EOE_TMO:
+			if (!optarg) {
+				fprintf(stderr,
+					"Argument is required for %s\n",
+					vars[c]);
+				retval = -1;
+				break;
+			}
+			if (isdigit(optarg[0])) {
+				errno = 0;
+				arg_eoe_timeout = (time_t)strtoul(optarg, NULL, 10);
+				if (errno || arg_eoe_timeout == 0) {
+					fprintf(stderr,
+						"Illegal value for End of Event Timeout, was %s\n", optarg);
+					retval = -1;
+				}
+				c++;
+			} else {
+				fprintf(stderr,
+					"End of Event Timeout must be a numeric value, was %s\n", optarg);
+				retval = -1;
+			}
+			break;
 		default:
-			fprintf(stderr, "%s is an unsupported option\n", 
-				vars[c]);
+			fprintf(stderr, "%s is an unsupported option\n", vars[c]);
 			retval = -1;
 			break;
 		}

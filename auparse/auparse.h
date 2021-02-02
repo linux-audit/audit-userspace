@@ -67,6 +67,9 @@ int ausearch_add_regex(auparse_state_t *au, const char *expr);
 int ausearch_set_stop(auparse_state_t *au, austop_t where);
 void ausearch_clear(auparse_state_t *au);
 
+/* Function dealing with setting user space configuration items */
+int auparse_set_eoe_timeout (time_t new_tmo);
+
 /* Functions that are part of the auparse_normalize interface */
 
 // This causes the current event to become normalized.

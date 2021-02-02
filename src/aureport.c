@@ -61,6 +61,11 @@ static int get_event(llist **);
 extern char *user_file;
 extern int force_logs;
 
+/*
+ * User space configuration items
+ */
+extern time_t	arg_eoe_timeout;
+
 
 static int is_pipe(int fd)
 {
@@ -95,6 +100,14 @@ int main(int argc, char *argv[])
 	reset_counters();
 
 	print_title();
+	/*
+	 * We set up user space configuration items and THEN apply command line argument overides
+	 */
+	setup_userspace_configitems();
+	if (arg_eoe_timeout != 0) {
+		lol_set_eoe_timeout(arg_eoe_timeout);
+	}
+
 	lol_create(&lo);
 	if (user_file) {
 		struct stat sb;

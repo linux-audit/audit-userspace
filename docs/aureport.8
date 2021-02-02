@@ -24,6 +24,9 @@ Report about config changes
 .BR \-cr ,\  \-\-crypto
 Report about crypto events
 .TP
+.BR \-\-eoe\-timeout \ \fIseconds\fP
+Set the end of event parsing timeout. See \fBend_of_event_timeout\fP in \fIauditd.conf(5)\fP for details. Note that setting this value will overide any configured value found in /etc/auditd/auditd.conf.
+.TP
 .BR \-e ,\  \-\-event
 Report about events
 .TP
@@ -136,4 +139,5 @@ date -d "`cut \-f1 \-d. /proc/uptime` seconds ago"
 
 .SH "SEE ALSO"
 .BR ausearch (8),
-.BR auditd (8).
+.BR auditd (8),
+.BR auditd.conf (5).

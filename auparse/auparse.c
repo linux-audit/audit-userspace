@@ -41,6 +41,8 @@
 static int debug = 0;
 #endif
 
+static time_t	eoe_timeout = EOE_TIMEOUT;
+
 static void init_lib(void) __attribute__ ((constructor));
 static void init_lib(void)
 {
@@ -287,8 +289,8 @@ static void au_check_events(auparse_state_t *au, time_t sec)
                 if (cur->status == EBS_BUILDING) {
                         if ((r = aup_list_get_cur(cur->l)) == NULL)
 				continue;
-                        // If 2 seconds have elapsed, we are done
-                        if (cur->l->e.sec + 2 <= sec) {
+                        // If eoe_timeout seconds have elapsed, we are done
+                        if (cur->l->e.sec + eoe_timeout <= sec) {
                                 cur->status = EBS_COMPLETE;
 				au->au_ready++;
                         } else if ( // FIXME: Check this v remains true
@@ -398,6 +400,29 @@ void print_lol(char *label, au_lol *lol)
 
 
 /* General functions that affect operation of the library */
+
+/*
+ * au_setup_userspace_configitems - load userspace configuration items from auditd.conf
+ *
+ * Args:
+ *  au - pointer to auparseing state structure
+ *
+ * Rtns:
+ *      void
+ */
+static void au_setup_userspace_configitems(auparse_state_t *au)
+{
+	struct daemon_conf config;
+
+        /* Load config so we know where logs are */
+	set_aumessage_mode(au, MSG_STDERR, DBG_NO);
+	aup_load_config(au, &config, TEST_SEARCH);
+
+	eoe_timeout = (time_t)config.end_of_event_timeout;
+
+	free_config(&config);
+}
+
 auparse_state_t *auparse_init(ausource_t source, const void *b)
 {
 	char **tmp, **bb = (char **)b, *buf = (char *)b;
@@ -437,6 +462,7 @@ auparse_state_t *auparse_init(ausource_t source, const void *b)
 	au->callback = NULL;
 	au->callback_user_data = NULL;
 	au->callback_user_data_destroy = NULL;
+	au_setup_userspace_configitems(au);
 	switch (source)
 	{
 		case AUSOURCE_LOGS:
@@ -2123,3 +2149,18 @@ const char *auparse_interpret_sock_address(auparse_state_t *au)
 	return auparse_interpret_sock_parts(au, "laddr=");
 }
 
+/*
+ * auparse_set_eoe_timeout - set the end of event timeout value
+ *
+ * Args
+ *	new_tmo	- new timeout value
+ * Rtns
+ *	0	- correctly set
+ *	1	- failed to set
+ */
+int auparse_set_eoe_timeout (time_t new_tmo) {
+	if (new_tmo == 0)
+		return 1;
+	eoe_timeout = new_tmo;
+	return 0;
+}

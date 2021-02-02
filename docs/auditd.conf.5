@@ -350,7 +350,17 @@ This is a non-negative number that tells the audit event dispatcher how many tim
 .TP
 .I plugin_dir
 This is the location that auditd will use to search for its plugin configuration files.
-
+.TP
+.I end_of_event_timeout
+This is a non-negative number of seconds used by the userspace
+.I auparse()
+library routines and the
+.I aureport(8)
+,
+.I ausearch(8)
+utilities to consider an event is complete when parsing an event log stream. For an event stream being processed, if the time of the current event is over
+.I end_of_event_timeout
+seconds old, compared to co-located events, then the event is considered complete. See the NOTES section for more detail.
 .SH NOTES
 In a CAPP environment, the audit trail is considered so important that access to system resources must be denied if an audit trail cannot be created. In this environment, it would be suggested that /var/log/audit be on its own partition. This is to ensure that space detection is accurate and that no other process comes along and consumes part of it.
 .PP
@@ -370,6 +380,47 @@ Specifying a single allowed client port may make it difficult for the
 client to restart their audit subsystem, as it will be unable to
 recreate a connection with the same host addresses and ports until the
 connection closure TIME_WAIT state times out.
+
+.PP
+Auditd events are made up of one or more records. The auditd system cannot guarantee that the set of records that make up an event will occur atomically, that is the stream will have interleaved records of different events, IE
+.PP
+.RS
+.br
+event0_record0
+.br
+event1_record0
+.br
+event2_record0
+.br
+event1_record3
+.br
+event2_record1
+.br
+event1_record4
+.br
+event3_record0
+.br
+.RE
+.PP
+The auditd system does not guarantee that the records that make up an event will appear in order. Thus, when processing event streams, we need to maintain a list of events with their own list of records hence List of List (LOL) event processing.
+
+When processing an event stream we define the end of an event via
+.P
+.RS
+record type = AUDIT_EOE (audit end of event type record), or
+.br
+record type = AUDIT_PROCTITLE (we note the AUDIT_PROCTITLE is always the last record), or
+.br
+record type = AUDIT_KERNEL (kernel events are one record events), or
+.br
+record type < AUDIT_FIRST_EVENT (only single record events appear before this type), or
+.br
+record type >= AUDIT_FIRST_ANOM_MSG (only single record events appear after this type), or
+.br
+record type >= AUDIT_MAC_UNLBL_ALLOW && record type <= AUDIT_MAC_CALIPSO_DEL (these are also one record events), or
+.br
+for the stream being processed, the time of the event is over end_of_event_timeout seconds old.
+.RE
 
 .SH FILES
 .TP

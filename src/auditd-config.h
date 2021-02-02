@@ -29,6 +29,9 @@
 #define CONFIG_FILE "/etc/audit/auditd.conf"
 #define MEGABYTE 1048576UL
 
+// Define user space end of event timeout default (in seconds)
+#define	EOE_TIMEOUT	2L
+
 typedef enum { D_FOREGROUND, D_BACKGROUND } daemon_t;
 typedef enum { LF_RAW, LF_NOLOG, LF_ENRICHED } logging_formats;
 typedef enum { FT_NONE, FT_INCREMENTAL, FT_INCREMENTAL_ASYNC, FT_DATA, FT_SYNC } flush_technique;
@@ -92,6 +95,8 @@ struct daemon_conf
 	unsigned int max_restarts;
 	char *plugin_dir;
 	const char *config_dir;
+        // Userspace configuration items
+        unsigned long end_of_event_timeout;
 };
 
 void set_allow_links(int allow);

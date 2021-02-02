@@ -77,6 +77,7 @@ const char *event_object = NULL;
 const char *event_uuid = NULL;
 const char *event_vmname = NULL;
 ilist *event_type;
+time_t arg_eoe_timeout = (time_t)0;
 
 slist *event_node_list = NULL;
 
@@ -92,7 +93,7 @@ S_TIME_END, S_TIME_START, S_TERMINAL, S_ALL_UID, S_EFF_UID, S_UID, S_LOGINID,
 S_VERSION, S_EXACT_MATCH, S_EXECUTABLE, S_CONTEXT, S_SUBJECT, S_OBJECT,
 S_PPID, S_KEY, S_RAW, S_NODE, S_IN_LOGS, S_JUST_ONE, S_SESSION, S_EXIT,
 S_LINEBUFFERED, S_UUID, S_VMNAME, S_DEBUG, S_CHECKPOINT, S_ARCH, S_FORMAT,
-S_EXTRA_TIME, S_EXTRA_LABELS, S_EXTRA_KEYS, S_EXTRA_OBJ2, S_ESCAPE };
+S_EXTRA_TIME, S_EXTRA_LABELS, S_EXTRA_KEYS, S_EXTRA_OBJ2, S_ESCAPE, S_EOE_TMO };
 
 static struct nv_pair optiontab[] = {
 	{ S_EVENT, "-a" },
@@ -103,6 +104,7 @@ static struct nv_pair optiontab[] = {
 	{ S_CHECKPOINT, "--checkpoint" },
 	{ S_DEBUG, "--debug" },
 	{ S_EXIT, "-e" },
+	{ S_EOE_TMO, "--eoe-timeout" },
 	{ S_ESCAPE, "--escape" },
 	{ S_EXIT, "--exit" },
 	{ S_EXTRA_KEYS, "--extra-keys" },
@@ -200,6 +202,7 @@ static void usage(void)
 	"\t--checkpoint <checkpoint file>\tsearch from last complete event\n"
 	"\t--debug\t\t\tWrite malformed events that are skipped to stderr\n"
 	"\t-e,--exit  <Exit code or errno>\tsearch based on syscall exit code\n"
+	"\t--eoe-timeout secs\t\tEnd of Event timeout\n"
 	"\t-f,--file  <File name>\t\tsearch based on file name\n"
 	"\t--format [raw|default|interpret|csv|text] results format options\n"
 	"\t-ga,--gid-all <all Group id>\tsearch based on All group ids\n"
@@ -340,6 +343,26 @@ int check_params(int count, char *vars[])
 				fprintf(stderr, 
 			"Audit event id must be a numeric value, was %s\n",
 					optarg);
+				retval = -1;
+			}
+			break;
+		case S_EOE_TMO:
+			if (!optarg) {
+				fprintf(stderr, "Argument is required for %s\n", vars[c]);
+				retval = -1;
+				break;
+			}
+			if (isdigit(optarg[0])) {
+				errno = 0;
+				arg_eoe_timeout = (time_t)strtoul(optarg, NULL, 10);
+				if (errno || arg_eoe_timeout == 0) {
+					fprintf(stderr, "Illegal value for End of Event Timeout, was %s\n", optarg);
+					retval = -1;
+				}
+				c++;
+			} else {
+				fprintf(stderr,
+					"End of Event Timeout must be a numeric value, was %s\n", optarg);
 				retval = -1;
 			}
 			break;
