@@ -1,5 +1,6 @@
 3.0.1
 - Update syscall table to the 5.11 kernel
+- Add new --eoe-timeout option to ausearch and aureport (Burn Alting)
 
 3.0
 - Generate checkpoint file even when no results are returned (Burn Alting)

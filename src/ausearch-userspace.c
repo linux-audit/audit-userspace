@@ -16,15 +16,16 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+#include "config.h"
 #include <stdio.h>
 #include "auditd-config.h"
 #include "ausearch-lol.h"
 
 // Set up userspace configuration items from auditd.conf
-// We load the daemon configuration file and update any internal user space configuration
-// items if they are different to default
+// We load the daemon configuration file and update any internal user space
+// configuration items if they are different to default
 
-void setup_userspace_configitems()
+void setup_userspace_configitems(void)
 {
 	struct daemon_conf config;
 
