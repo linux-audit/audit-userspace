@@ -1,0 +1,55 @@
+.TH AUDISP-STATSD: "8" "February 2021" "Red Hat" "System Administration Utilities"
+.SH NAME
+audisp-statsd \- plugin to push audit metrics to a statsd service
+.SH SYNOPSIS
+.B audisp-statsd
+[ \fIOPTIONS\fP ]
+.SH DESCRIPTION
+\fBaudisp-statsd\fP is a plugin for the audit event dispatcher that pushes various audit metrics to a statsd service. Currently it collects the following metrics as gauges:
+.RS
+.TP
+.B backlog
+number of kernel events pending transfer to user space
+.TP
+.B lost
+number of kernel events dropped
+.TP
+.B free_space
+how much disk free space auditd sees in MB
+.TP
+.B plugin_current_depth
+number of events in auditd pending transfer to plugins
+.TP
+.B plugin_max_depth
+historical maximum number of events backlogged while pending transfer to plugins
+.RE
+as counters:
+.RS
+.TP
+.B events_total_count
+total number of events seen during interval
+.TP
+.B events_total_failed
+total number of events seen during interval with failed outcome
+.TP
+.B events_avc_count
+total number of AVC events seen during interval
+.TP
+.B events_fanotify_count
+total number of FANOTIFY events seen during interval
+.TP
+.B events_logins_success
+total number of successful login events seen during interval
+.TP
+.B events_logins_failed
+total number of failed login events seen during interval
+.RE
+
+.SH FILES
+/etc/audit/audisp-statsd.conf
+/etc/audit/plugins/au-statsd.conf
+.SH "SEE ALSO"
+.BR auditd.conf(8),
+.BR auditd-plugins(5),
+.SH AUTHOR
+Steve Grubb

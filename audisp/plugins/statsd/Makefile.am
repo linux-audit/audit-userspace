@@ -1,5 +1,5 @@
 # Makefile.am --
-# Copyright 2007-08,2018,2021 Red Hat Inc.
+# Copyright 2021 Steve Grubb.
 # All Rights Reserved.
 #
 # This library is free software; you can redistribute it and/or
@@ -19,14 +19,25 @@
 # Authors:
 #   Steve Grubb <sgrubb@redhat.com>
 #
-
 CONFIG_CLEAN_FILES = *.loT *.rej *.orig
+EXTRA_DIST = au-statsd.conf audisp-statsd.conf  $(man_MANS)
+AM_CPPFLAGS = -I${top_srcdir} -I${top_srcdir}/lib -I${top_srcdir}/auparse
+prog_confdir = $(sysconfdir)/audit
+prog_conf = audisp-statsd.conf
+plugin_confdir=$(prog_confdir)/plugins.d
+plugin_conf = au-statsd.conf
+sbin_PROGRAMS = audisp-statsd
+man_MANS = audisp-statsd.8
+audisp_statsd_SOURCES = audisp-statsd.c
+audisp_statsd_CFLAGS = -g -D_GNU_SOURCE
+audisp_statsd_LDADD = -L${top_builddir}/auparse -lauparse -L${top_builddir}/lib -laudit
 
-SUBDIRS = builtins remote syslog
-if ENABLE_EXPERIMENTAL
-SUBDIRS += ids statsd
-endif
-if ENABLE_ZOS_REMOTE
-SUBDIRS += zos-remote
-endif
+install-data-hook:
+	mkdir -p -m 0750 ${DESTDIR}${plugin_confdir}
+	$(INSTALL_DATA) -D -m 640 ${srcdir}/$(plugin_conf) ${DESTDIR}${plugin_confdir}
+	$(INSTALL_DATA) -D -m 640 ${srcdir}/$(prog_conf) ${DESTDIR}${prog_confdir}
+
+uninstall-hook:
+	rm ${DESTDIR}${plugin_confdir}/$(plugin_conf)
+	rm ${DESTDIR}${prog_confdir}/$(prog_conf)
 
