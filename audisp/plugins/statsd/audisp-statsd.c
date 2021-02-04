@@ -66,6 +66,8 @@ struct audit_report
 	unsigned int events_fanotify_count;
 	unsigned int events_logins_success;
 	unsigned int events_logins_failed;
+	unsigned int events_anomaly_count;
+	unsigned int events_response_count;
 };
 
 /* Global Data */
@@ -224,6 +226,8 @@ static void clear_report(void)
         r.events_fanotify_count = 0;
         r.events_logins_success = 0;
         r.events_logins_failed = 0;
+	r.events_anomaly_count = 0;
+	r.events_response_count = 0;
 }
 
 /*
@@ -295,12 +299,14 @@ static void send_statsd(void)
 	  "free_space:%u|g\nplugin_current_depth:%u|g\nplugin_max_depth:%u|g\n"
 	  "events_total_count:%u|c\nevents_total_failed:%u|c\n"
 	  "events_avc_count:%u|c\nevents_fanotify_count:%u|c\n"
-	  "events_logins_success:%u|c\nevents_logins_failed:%u|c\n",
+	  "events_logins_success:%u|c\nevents_logins_failed:%u|c\n"
+	  "events_anomaly_count:%u|c\nevents_response_count:%u|c\n",
 		r.lost, r.backlog,
 		r.free_space, r.plugin_current_depth, r.plugin_max_depth,
 		r.events_total_count, r.events_total_failed,
 		r.events_avc_count, r.events_fanotify_count,
-		r.events_logins_success, r.events_logins_failed);
+		r.events_logins_success, r.events_logins_failed,
+		r.events_anomaly_count, r.events_response_count);
 
 	if (len > 0 && len < (int)sizeof(message))
 		sendto(d.sock, message, len, 0, &d.addr, d.addrlen);
@@ -431,6 +437,8 @@ static void handle_event(auparse_state_t *au, auparse_cb_event_t cb_event_type,
 	//         r.events_fanotify_count;
 	//         r.events_logins_success;
 	//         r.events_logins_failed;
+	//         r.events_anomaly_count;
+	//         r.events_response_count
 	r.events_total_count++;
 	auparse_normalize(au, NORM_OPT_NO_ATTRS);
 	auparse_normalize_get_results(au);
@@ -458,6 +466,12 @@ static void handle_event(auparse_state_t *au, auparse_cb_event_t cb_event_type,
 			break;
                 case AUDIT_AVC:
 			r.events_avc_count++;
+			break;
+		case AUDIT_FIRST_ANOM_MSG...AUDIT_LAST_ANOM_MSG:
+			r.events_anomaly_count++;
+			break;
+		case AUDIT_FIRST_ANOM_RESP...AUDIT_LAST_ANOM_RESP:
+			r.events_response_count++;
 			break;
 	}
 }
