@@ -5,7 +5,7 @@ audisp-statsd \- plugin to push audit metrics to a statsd service
 .B audisp-statsd
 [ \fIOPTIONS\fP ]
 .SH DESCRIPTION
-\fBaudisp-statsd\fP is a plugin for the audit event dispatcher that pushes various audit metrics to a statsd service. Currently it collects the following metrics as gauges:
+\fBaudisp-statsd\fP is a plugin for the audit event dispatcher that pushes various audit metrics to a statsd service using UDP. Currently it collects the following metrics as gauges:
 .RS
 .TP
 .B backlog
@@ -43,6 +43,12 @@ total number of successful login events seen during interval
 .TP
 .B events_logins_failed
 total number of failed login events seen during interval
+.TP
+.B events_anamoly_count
+total number of anamoly events seen during interval
+.TP
+.B events_response_count
+total number of anamoly response events seen during interval
 .RE
 
 .SH FILES

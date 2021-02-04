@@ -39,14 +39,11 @@
 /* Global Definitions */
 #define STATE_REPORT "/var/run/auditd.state"
 #define CONFIG "/etc/audit/audisp-statsd.conf"
-#define UDP_TRANS 1
-#define TCP_TRANS 2
 
 struct daemon_config
 {
 	char address[65];
 	unsigned int port;
-	unsigned int transport;
 	unsigned int interval;
 	int sock;
 	struct sockaddr addr;
@@ -145,22 +142,6 @@ static int load_config(void)
 			sscanf(buf, "interval = %u", &d.interval);
 			status |= 0x04;
 			break;
-		case 't': {
-			char tmp[4];
-			sscanf(buf, "transport = %3s", tmp);
-			if (strcmp(tmp, "udp") == 0)
-				d.transport = UDP_TRANS;
-			else if (strcmp(tmp, "tcp") == 0) {
-				d.transport = TCP_TRANS;
-				syslog(LOG_WARNING,
-				       "Only udp is supported at the moment");
-			} else {
-				fprintf(stderr, "Invalid transport option\n");
-				return 1;
-			}
-			status |= 0x08;
-			}
-			break;
 		case 0:
 		case '#':
 			// Comments
@@ -170,7 +151,7 @@ static int load_config(void)
 			return 1;
 		}
 	}
-	if (status != 0x0F) {
+	if (status != 0x07) {
 		fprintf(stderr, "Not all config options specified\n");
 		return 1;
 	}
@@ -190,10 +171,7 @@ int make_socket(void)
 	// Resolve the remote host
 	memset(&hints, '\0', sizeof(hints));
 	hints.ai_flags = AI_ADDRCONFIG|AI_NUMERICSERV;
-	if (d.transport == 1)
-		hints.ai_socktype = SOCK_DGRAM;
-	else
-		hints.ai_socktype = SOCK_STREAM;
+	hints.ai_socktype = SOCK_DGRAM;
 
 	snprintf(port, sizeof(port), "%u", d.port);
 	rc = getaddrinfo(d.address, port, &hints, &ai);
