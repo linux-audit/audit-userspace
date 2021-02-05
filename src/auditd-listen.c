@@ -1125,7 +1125,7 @@ void auditd_tcp_listen_uninit(struct ev_loop *loop, struct daemon_conf *config)
 #endif
 	/* If the port isn't set, we didn't listen for connections. */
 	if (config->tcp_listen_port == 0)
-		return 0;
+		return;
 
 
 	ev_io_stop(loop, &tcp_listen_watcher);
