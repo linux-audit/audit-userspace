@@ -120,7 +120,12 @@ int aup_load_config(auparse_state_t *au, struct daemon_conf *config,
 	fd = open(CONFIG_FILE, O_RDONLY|O_NOFOLLOW);
 	if (fd < 0) {
 		if (errno != ENOENT) {
-			audit_msg(au, LOG_ERR, "Error opening config file (%s)", 
+			if (errno == EACCES) {
+				audit_msg(au, LOG_INFO,
+	"libauparse: Permission denied opening config file, using defaults");
+				return 0;
+			}
+			audit_msg(au, LOG_ERR, "Error opening config file (%s)",
 				strerror(errno));
 			return 1;
 		}
