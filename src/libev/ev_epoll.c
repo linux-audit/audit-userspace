@@ -99,9 +99,6 @@ epoll_modify (EV_P_ int fd, int oev, int nev)
   if (ecb_expect_true (errno == ENOENT))
     {
       /* if ENOENT then the fd went away, so try to do the right thing */
-      if (!nev)
-        goto dec_egen;
-
       if (!epoll_ctl (backend_fd, EPOLL_CTL_ADD, fd, &ev))
         return;
     }

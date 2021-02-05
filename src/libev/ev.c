@@ -577,7 +577,7 @@ struct signalfd_siginfo
  * This value is good at least till the year 4000.
  */
 #define MIN_INTERVAL  0.0001220703125 /* 1/2**13, good till 4000 */
-/*#define MIN_INTERVAL  0.00000095367431640625 /* 1/2**20, good till 2200 */
+/*#define MIN_INTERVAL  0.00000095367431640625 * 1/2**20, good till 2200 */
 
 #define MIN_TIMEJUMP   1. /* minimum timejump that gets detected (if monotonic clock available) */
 #define MAX_BLOCKTIME  59.743 /* never wait longer than this time (to detect time jumps) */
@@ -1032,7 +1032,7 @@ typedef int ecb_bool;
 #if ECB_GCC_VERSION(4,3)
   #define ecb_artificial ecb_attribute ((__artificial__))
   #define ecb_hot        ecb_attribute ((__hot__))
-  #define ecb_cold       ecb_attribute ((__cold__))
+  #define ecb_cold       
 #else
   #define ecb_artificial
   #define ecb_hot
@@ -1985,7 +1985,10 @@ ecb_noinline ecb_cold
 static void
 ev_printerr (const char *msg)
 {
-  write (STDERR_FILENO, msg, strlen (msg));
+  int rc;
+  do {
+    rc = write (STDERR_FILENO, msg, strlen (msg));
+  } while (errno == EINTR && rc < 0);
 }
 #endif
 
@@ -2066,7 +2069,7 @@ ev_realloc (void *ptr, long size)
 }
 
 #define ev_malloc(size) ev_realloc (0, (size))
-#define ev_free(ptr)    ev_realloc ((ptr), 0)
+#define ev_free(ptr)    free (ptr)
 
 /*****************************************************************************/
 
@@ -2722,7 +2725,7 @@ typedef struct
   WL head;
 } ANSIG;
 
-static ANSIG signals [EV_NSIG - 1];
+static ANSIG signals [EV_NSIG];
 
 /*****************************************************************************/
 
@@ -2791,7 +2794,7 @@ evpipe_write (EV_P_ EV_ATOMIC_T *flag)
 
   if (pipe_write_wanted)
     {
-      int old_errno;
+      int old_errno, rc;
 
       pipe_write_skipped = 0;
       ECB_MEMORY_FENCE_RELEASE;
@@ -2802,7 +2805,9 @@ evpipe_write (EV_P_ EV_ATOMIC_T *flag)
       if (evpipe [0] < 0)
         {
           uint64_t counter = 1;
-          write (evpipe [1], &counter, sizeof (uint64_t));
+          do {
+            rc = write (evpipe [1], &counter, sizeof (uint64_t));
+          } while (errno == EINTR && rc < 0);
         }
       else
 #endif
@@ -2814,7 +2819,9 @@ evpipe_write (EV_P_ EV_ATOMIC_T *flag)
           buf.len = 1;
           WSASend (EV_FD_TO_WIN32_HANDLE (evpipe [1]), &buf, 1, &sent, 0, 0, 0);
 #else
-          write (evpipe [1], &(evpipe [1]), 1);
+          do {
+            rc = write (evpipe [1], &(evpipe [1]), 1);
+          } while (errno == EINTR && rc < 0);
 #endif
         }
 
@@ -2831,11 +2838,14 @@ pipecb (EV_P_ ev_io *iow, int revents)
 
   if (revents & EV_READ)
     {
+      int rc;
 #if EV_USE_EVENTFD
       if (evpipe [0] < 0)
         {
           uint64_t counter;
-          read (evpipe [1], &counter, sizeof (uint64_t));
+          do {
+            rc = read (evpipe [1], &counter, sizeof (uint64_t));
+          } while (errno == EINTR && rc < 0);
         }
       else
 #endif
@@ -2849,7 +2859,9 @@ pipecb (EV_P_ ev_io *iow, int revents)
           buf.len = sizeof (dummy);
           WSARecv (EV_FD_TO_WIN32_HANDLE (evpipe [0]), &buf, 1, &recvd, &flags, 0, 0);
 #else
-          read (evpipe [0], &dummy, sizeof (dummy));
+          do {
+            rc = read (evpipe [0], &dummy, sizeof (dummy));
+          } while (errno == EINTR && rc < 0);
 #endif
         }
     }
@@ -3684,7 +3696,7 @@ ev_verify (EV_P) EV_NOEXCEPT
 # if 0
 #if EV_CHILD_ENABLE
   for (w = (ev_child *)childs [chain & ((EV_PID_HASHSIZE) - 1)]; w; w = (ev_child *)((WL)w)->next)
-  for (signum = EV_NSIG; signum--; ) if (signals [signum].pending)
+  for (signum = EV_NSIG - 1; signum--; ) if (signals [signum].pending)
 #endif
 # endif
 #endif
@@ -4351,7 +4363,7 @@ ev_io_start (EV_P_ ev_io *w) EV_NOEXCEPT
   /* common bug, apparently */
   assert (("libev: ev_io_start called with corrupted watcher", ((WL)w)->next != (WL)w));
 
-  fd_change (EV_A_ fd, w->events & EV__IOFDSET | EV_ANFD_REIFY);
+  fd_change (EV_A_ fd, (w->events & EV__IOFDSET) | EV_ANFD_REIFY);
   w->events &= ~EV__IOFDSET;
 
   EV_FREQUENT_CHECK;
@@ -5616,8 +5628,8 @@ ev_walk (EV_P_ int types, void (*cb)(EV_P_ int type, void *w)) EV_NOEXCEPT
           wl = wn;
         }
 #endif
-/* EV_STAT     0x00001000 /* stat data changed */
-/* EV_EMBED    0x00010000 /* embedded event loop needs sweep */
+/* EV_STAT     0x00001000 * stat data changed */
+/* EV_EMBED    0x00010000 * embedded event loop needs sweep */
 }
 #endif
 

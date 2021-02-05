@@ -295,7 +295,7 @@ iouring_sqe_submit (EV_P_ struct io_uring_sqe *sqe)
   EV_SQ_ARRAY [idx] = idx;
   ECB_MEMORY_FENCE_RELEASE;
   ++EV_SQ_VAR (tail);
-  /*ECB_MEMORY_FENCE_RELEASE; /* for the time being we assume this is not needed */
+  /*ECB_MEMORY_FENCE_RELEASE; * for the time being we assume this is not needed */
   ++iouring_to_submit;
 }
 
@@ -313,7 +313,7 @@ iouring_tfd_cb (EV_P_ struct ev_io *w, int revents)
 
 /* called for full and partial cleanup */
 ecb_cold
-static int
+static void
 iouring_internal_destroy (EV_P)
 {
   close (iouring_tfd);
