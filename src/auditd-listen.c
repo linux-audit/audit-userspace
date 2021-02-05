@@ -961,17 +961,17 @@ int auditd_tcp_listen_init(struct ev_loop *loop, struct daemon_conf *config)
 	int one = 1, rc;
 	int prefer_ipv6 = 0;
 
+	/* If the port is not set, that means we aren't going to
+	   listen for connections.  */
+	if (config->tcp_listen_port == 0)
+		return 0;
+
 	transport = config->transport;
 	ev_periodic_init(&periodic_watcher, periodic_handler,
 			  0, config->tcp_client_max_idle, NULL);
 	periodic_watcher.data = config;
 	if (config->tcp_client_max_idle)
 		ev_periodic_start(loop, &periodic_watcher);
-
-	/* If the port is not set, that means we aren't going to
-	  listen for connections.  */
-	if (config->tcp_listen_port == 0)
-		return 0;
 
 	memset(&hints, '\0', sizeof(hints));
 	hints.ai_flags = AI_PASSIVE | AI_ADDRCONFIG;
@@ -981,7 +981,7 @@ int auditd_tcp_listen_init(struct ev_loop *loop, struct daemon_conf *config)
 
 	rc = getaddrinfo(NULL, local, &hints, &ai);
 	if (rc) {
-        	audit_msg(LOG_ERR, "Cannot lookup addresses");
+		audit_msg(LOG_ERR, "Cannot lookup addresses");
 		return 1;
 	}
 
@@ -1123,6 +1123,10 @@ void auditd_tcp_listen_uninit(struct ev_loop *loop, struct daemon_conf *config)
 #ifdef USE_GSSAPI
 	OM_uint32 status;
 #endif
+	/* If the port isn't set, we didn't listen for connections. */
+	if (config->tcp_listen_port == 0)
+		return 0;
+
 
 	ev_io_stop(loop, &tcp_listen_watcher);
 	while (nlsocks > 0) {
