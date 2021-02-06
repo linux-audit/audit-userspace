@@ -74,7 +74,7 @@ static const struct kw_pair keywords[] =
 /*
  * Set everything to its default value
 */
-void clear_config(struct daemon_conf *config)
+void aup_clear_config(struct daemon_conf *config)
 {
 	config->local_events = 1;
 	config->sender_uid = 0;
@@ -113,7 +113,7 @@ int aup_load_config(auparse_state_t *au, struct daemon_conf *config,
 	FILE *f;
 	char buf[160];
 
-	clear_config(config);
+	aup_clear_config(config);
 	lt = lt;
 
 	/* open the file */
@@ -362,7 +362,7 @@ static int eoe_timeout_parser(auparse_state_t *au, const char *val, int line,
 	return 0;
 }
 
-void free_config(struct daemon_conf *config)
+void aup_free_config(struct daemon_conf *config)
 {
 	free((void*)config->log_file);
 	config->log_file = NULL;

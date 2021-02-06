@@ -192,9 +192,9 @@ struct opaque
 AUDIT_HIDDEN_START
 
 // auditd-config.c
-void clear_config(struct daemon_conf *config);
+void aup_clear_config(struct daemon_conf *config);
 int aup_load_config(auparse_state_t *au, struct daemon_conf *config, log_test_t lt);
-void free_config(struct daemon_conf *config);
+void aup_free_config(struct daemon_conf *config);
 
 // normalize.c
 void init_normalizer(normalize_data *d);

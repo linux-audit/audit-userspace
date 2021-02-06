@@ -75,7 +75,7 @@ static int setup_log_file_array(auparse_state_t *au)
 	filename = malloc(len);
 	if (!filename) {
 		fprintf(stderr, "No memory\n");
-		free_config(&config);
+		aup_free_config(&config);
 		return 1;
 	}
 	/* Find oldest log file */
@@ -89,7 +89,7 @@ static int setup_log_file_array(auparse_state_t *au)
 
 	if (num == 0) {
 		fprintf(stderr, "No log file\n");
-		free_config(&config);
+		aup_free_config(&config);
 		free(filename);
 		return 1;
 	}
@@ -113,7 +113,7 @@ static int setup_log_file_array(auparse_state_t *au)
 		else
 			break;
 	} while (1);
-	free_config(&config);
+	aup_free_config(&config);
 	free(filename);
 
 	// Terminate the list
@@ -420,7 +420,7 @@ static void au_setup_userspace_configitems(auparse_state_t *au)
 
 	eoe_timeout = (time_t)config.end_of_event_timeout;
 
-	free_config(&config);
+	aup_free_config(&config);
 }
 
 auparse_state_t *auparse_init(ausource_t source, const void *b)
