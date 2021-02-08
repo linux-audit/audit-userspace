@@ -85,6 +85,7 @@ static pthread_t flush_thread;
 static pthread_mutex_t flush_lock;
 static pthread_cond_t do_flush;
 static volatile int flush;
+static auparse_state_t *au = NULL;
 
 /* Local definitions */
 #define FORMAT_BUF_LEN (MAX_AUDIT_MESSAGE_LENGTH + _POSIX_HOST_NAME_MAX)
@@ -140,7 +141,7 @@ void shutdown_events(void)
 	free((void *)format_buf);
 	if (log_file)
 		fclose(log_file);
-	auparse_destroy_ext(NULL, AUPARSE_DESTROY_ALL);
+	auparse_destroy_ext(au, AUPARSE_DESTROY_ALL);
 }
 
 int init_event(struct daemon_conf *conf)
@@ -397,7 +398,6 @@ static const char *format_enrich(const struct audit_reply *rep)
 	} else {
 		int rc;
 		size_t mlen, len;
-		auparse_state_t *au;
 		char *message;
 		// Do raw format to get event started
 		format_raw(rep);
@@ -415,12 +415,16 @@ static const char *format_enrich(const struct audit_reply *rep)
 		format_buf[mlen] = 0;
 
 		// init auparse
-		au = auparse_init(AUSOURCE_BUFFER, message);
 		if (au == NULL) {
-			free(message);
-			return format_buf;
-		}
-		auparse_set_escape_mode(au, AUPARSE_ESC_RAW);
+			au = auparse_init(AUSOURCE_BUFFER, message);
+			if (au == NULL) {
+				free(message);
+				return format_buf;
+			}
+			auparse_set_escape_mode(au, AUPARSE_ESC_RAW);
+			auparse_set_eoe_timeout(config->end_of_event_timeout);
+		} else
+			auparse_new_buffer(au, message, mlen+1);
 		sep_done = 0;
 
 		// Loop over all fields while possible to add field
@@ -452,7 +456,6 @@ static const char *format_enrich(const struct audit_reply *rep)
 			rc = auparse_next_field(au);
 		}
 
-		auparse_destroy_ext(au, AUPARSE_DESTROY_COMMON);
 		free(message);
 	}
         return format_buf;
