@@ -215,11 +215,11 @@ const char *aulookup_uid(uid_t uid, char *buf, size_t size)
 
 	// Check the cache first
 	if (uid_list_created == 0) {
-		nvlist_create(&uid_nvl);
-		nvlist_clear(&uid_nvl);
+        search_list_create(&uid_nvl);
+        search_list_clear(&uid_nvl);
 		uid_list_created = 1;
 	}
-	rc = nvlist_find_val(&uid_nvl, uid);
+	rc = search_list_find_val(&uid_nvl, uid);
 	if (rc) {
 		name = uid_nvl.cur->name;
 	} else {
@@ -231,7 +231,7 @@ const char *aulookup_uid(uid_t uid, char *buf, size_t size)
 			nvnode nv;
 			nv.name = strdup(pw->pw_name);
 			nv.val = uid;
-			nvlist_append(&uid_nvl, &nv);
+            search_list_append(&uid_nvl, &nv);
 			name = uid_nvl.cur->name;
 		}
 	}
@@ -247,7 +247,7 @@ void aulookup_destroy_uid_list(void)
 	if (uid_list_created == 0)
 		return;
 
-	nvlist_clear(&uid_nvl); 
+    search_list_clear(&uid_nvl);
 	uid_list_created = 0;
 }
 

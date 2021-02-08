@@ -41,7 +41,7 @@ static void output_default(llist *l);
 static void output_interpreted(llist *l);
 static void output_interpreted_record(const lnode *n, const event *e);
 static void feed_auparse(llist *l, auparse_callback_ptr callback);
-static void interpret(char *name, char *val, int comma, int rtype);
+static void report_interpret(char *name, char *val, int comma, int rtype);
 static void csv_event(auparse_state_t *au,
 		auparse_cb_event_t cb_event_type, void *user_data);
 static void text_event(auparse_state_t *au,
@@ -311,7 +311,7 @@ no_print:
 		val = ptr;
 		
 		// print interpreted string
-		interpret(name, val, comma, n->type);
+		report_interpret(name, val, comma, n->type);
 	}
 	ausearch_free_interpretations();
 
@@ -325,7 +325,7 @@ no_print:
 	printf("\n");
 }
 
-static void interpret(char *name, char *val, int comma, int rtype)
+static void report_interpret(char *name, char *val, int comma, int rtype)
 {
 	int type;
 	idata id;

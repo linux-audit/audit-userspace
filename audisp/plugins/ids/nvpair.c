@@ -27,7 +27,7 @@
 #include "nvpair.h"
 
 
-void nvlist_create(nvlist *l)
+void nvpair_list_create(nvlist *l)
 {
 	l->head = NULL;
 	l->cur = NULL;
@@ -46,7 +46,7 @@ void nvlist_create(nvlist *l)
 	return l->cur;
 }*/
 
-void nvlist_append(nvlist *l, nvnode *node)
+void nvpair_list_append(nvlist *l, nvnode *node)
 {
 	nvnode* newnode = malloc(sizeof(nvnode));
 
@@ -72,7 +72,7 @@ void nvlist_append(nvlist *l, nvnode *node)
 	l->cnt++;
 }
 
-int nvlist_find_job(nvlist *l, time_t t)
+int nvpair_list_find_job(nvlist *l, time_t t)
 {
         nvnode* node = l->head;
 	l->prev = NULL;
@@ -90,7 +90,7 @@ int nvlist_find_job(nvlist *l, time_t t)
 	return 0;
 }
 
-void nvlist_delete_cur(nvlist *l)
+void nvpair_list_delete_cur(nvlist *l)
 {
 	if (l->cur == NULL)
 		return;
@@ -106,7 +106,7 @@ void nvlist_delete_cur(nvlist *l)
 	l->cnt--;
 }
 
-void nvlist_clear(nvlist* l)
+void nvpair_list_clear(nvlist* l)
 {
 	nvnode* nextnode;
 	nvnode* current;

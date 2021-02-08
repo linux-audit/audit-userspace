@@ -42,7 +42,7 @@ static volatile atomic_int halt = 0, locked = 0;
 
 void init_timer_services(void)
 {
-	nvlist_create(&jobs);
+	nvpair_list_create(&jobs);
 	pthread_create(&timer_thread, NULL, timer_thread_main, NULL);
 }
 
@@ -65,8 +65,8 @@ static void *timer_thread_main(void *arg __attribute__((unused)))
 		now += 5;
 rerun_jobs:
 		while (__sync_lock_test_and_set(&locked, 1));
-		while (!halt && nvlist_find_job(&jobs, now)) {
-			nvnode *j = nvlist_get_cur(&jobs);
+		while (!halt && nvpair_list_find_job(&jobs, now)) {
+			nvnode *j = nvpair_list_get_cur(&jobs);
 			switch (j->job) {
 				case UNLOCK_ACCOUNT:
 					unlock_account(j->arg);
@@ -79,7 +79,7 @@ rerun_jobs:
 				default:
 					break;
 			}
-			nvlist_delete_cur(&jobs);
+			nvpair_list_delete_cur(&jobs);
 		}
 		__sync_lock_release(&locked);
 
@@ -106,7 +106,7 @@ void add_timer_job(jobs_t job, const char *arg, unsigned long length)
 	node.expiration = time(NULL) + length;
 
 	while (__sync_lock_test_and_set(&locked, 1));
-	nvlist_append(&jobs, &node);
+	nvpair_list_append(&jobs, &node);
 	__sync_lock_release(&locked);
 }
 
@@ -116,7 +116,7 @@ void shutdown_timer_services(void)
 	pthread_cancel(timer_thread);
 
 	while (__sync_lock_test_and_set(&locked, 1));
-	nvlist_clear(&jobs);
+	nvpair_list_clear(&jobs);
 	__sync_lock_release(&locked);
 
 	pthread_join(timer_thread, NULL);
