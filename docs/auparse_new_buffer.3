@@ -1,0 +1,38 @@
+.TH "AUPARSE_NEW_BUFFER" "3" "Feb 2021" "Red Hat" "Linux Audit API"
+.SH NAME
+auparse_new_buffer \- replace the buffer in the parser
+.SH "SYNOPSIS"
+.B #include <auparse.h>
+.sp
+.nf
+int auparse_new_buffer(auparse_state_t *au, const char *data, size_t data_len);
+.fi
+
+.TP
+.I au
+The audit parse state
+.TP
+.I data
+a buffer of data to give to the parser, it is
+.I data_len
+bytes long. The data is copied in the parser, upon return the caller may free or reuse the data buffer.
+.TP
+.I data_len
+number of bytes in
+.I data
+
+.SH "DESCRIPTION"
+
+.I auparse_new_buffer
+replaces the data that the parser works on.
+.I auparse_init()
+must have been called with a source type of AUSOURCE_BUFFER.
+
+.SH "RETURN VALUE"
+
+Returns 1 if an error occurs; otherwise, 0 for success.
+
+.SH "SEE ALSO"
+
+.BR auparse_init (3)
+

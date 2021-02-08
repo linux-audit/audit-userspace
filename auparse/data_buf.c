@@ -210,10 +210,11 @@ int databuf_append(DataBuf *db, const char *src, size_t src_size)
     if (debug) databuf_print(db, 1, "databuf_append() size=%zd", src_size);
 #endif
     if ((new_size > db->alloc_size) ||
-        ((db->flags & DATABUF_FLAG_PRESERVE_HEAD) && !databuf_tail_available(db, src_size))) {
+        ((db->flags & DATABUF_FLAG_PRESERVE_HEAD) &&
+			!databuf_tail_available(db, src_size))) {
         /* not enough room, we must realloc */
         void *new_alloc;
-        
+
         databuf_shift_data_to_beginning(db);
         if ((new_alloc = realloc(db->alloc_ptr, new_size))) {
             db->alloc_ptr  = new_alloc;
@@ -241,6 +242,16 @@ int databuf_append(DataBuf *db, const char *src, size_t src_size)
 #endif
     DATABUF_VALIDATE(db);
     return 1;
+}
+
+int databuf_replace(DataBuf *db, const char *src, size_t src_size)
+{
+    DATABUF_VALIDATE(db);
+
+    if (src == NULL || src_size == 0) return 0;
+
+    db->len = 0;
+    return databuf_append(db, src, src_size);
 }
 
 static int databuf_strcat(DataBuf *db, const char *str)

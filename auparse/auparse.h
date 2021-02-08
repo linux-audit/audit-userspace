@@ -41,6 +41,7 @@ typedef void (*auparse_callback_ptr)(auparse_state_t *au,
 
 /* General functions that affect operation of the library */
 auparse_state_t *auparse_init(ausource_t source, const void *b);
+int auparse_new_buffer(auparse_state_t *au, const char *data, size_t data_len);
 int auparse_feed(auparse_state_t *au, const char *data, size_t data_len);
 void auparse_feed_age_events(auparse_state_t *au);
 int auparse_flush_feed(auparse_state_t *au);

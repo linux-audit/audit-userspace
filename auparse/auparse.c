@@ -626,6 +626,19 @@ static void consume_feed(auparse_state_t *au, int flush)
 	}
 }
 
+int auparse_new_buffer(auparse_state_t *au, const char *data, size_t data_len)
+{
+	if (au->source != AUSOURCE_BUFFER)
+		return 1;
+
+	auparse_reset(au);
+
+	if (databuf_replace(&au->databuf, data, data_len) < 0)
+		return 1;
+
+	return 0;
+}
+
 int auparse_feed(auparse_state_t *au, const char *data, size_t data_len)
 {
 	if (databuf_append(&au->databuf, data, data_len) < 0)

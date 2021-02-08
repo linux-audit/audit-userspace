@@ -1,5 +1,5 @@
 # Makefile.am --
-# Copyright 2004-09,2012,2014-18 Red Hat Inc., Durham, North Carolina.
+# Copyright 2004-09,2012,2014-18 Red Hat Inc.
 # All Rights Reserved.
 #
 # This program is free software; you can redistribute it and/or modify
@@ -32,7 +32,7 @@ audit_get_reply.3 audit_get_session.3 \
 audit_log_acct_message.3 audit_log_user_avc_message.3 \
 audit_log_user_command.3 audit_log_user_comm_message.3 \
 audit_log_user_message.3 audit_log_semanage_message.3 \
-audit_open.3 audit_request_rules_list_data.3 \
+auparse_new_buffer.3 audit_open.3 audit_request_rules_list_data.3 \
 audit_request_signal_info.3 audit_request_status.3 audit.rules.7 \
 audit_set_backlog_limit.3 audit_set_enabled.3 audit_set_failure.3 \
 audit_setloginuid.3 audit_set_pid.3 audit_set_rate_limit.3 \

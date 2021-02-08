@@ -76,6 +76,7 @@ void databuf_print(DataBuf *db, int print_data, char *fmt, ...)
 int databuf_init(DataBuf *db, size_t size, unsigned flags);
 void databuf_free(DataBuf *db);
 int databuf_append(DataBuf *db, const char *src, size_t src_size);
+int databuf_replace(DataBuf *db, const char *src, size_t src_size);
 int databuf_advance(DataBuf *db, size_t advance);
 int databuf_reset(DataBuf *db);
 
