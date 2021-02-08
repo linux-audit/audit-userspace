@@ -44,15 +44,15 @@ typedef struct {
   unsigned int cnt;	// How many items in this list
 } nvlist;
 
-void nvlist_create(nvlist *l);
-static inline void nvlist_first(nvlist *l) { l->cur = l->head; }
-nvnode *nvlist_next(nvlist *l);
-static inline nvnode *nvlist_get_cur(nvlist *l) { return l->cur; }
-void nvlist_append(nvlist *l, nvnode *node);
-void nvlist_clear(nvlist* l);
+void au_nvlist_create(nvlist *l);
+static inline void au_nvlist_first(nvlist *l) { l->cur = l->head; }
+nvnode *au_nvlist_next(nvlist *l);
+static inline nvnode *au_nvlist_get_cur(nvlist *l) { return l->cur; }
+void au_nvlist_append(nvlist *l, nvnode *node);
+void au_nvlist_clear(nvlist* l);
 
 /* Given a numeric index, find that record. */
-int nvlist_find_val(nvlist *l, long val);
+int au_nvlist_find_val(nvlist *l, long val);
 
 #endif
 

@@ -560,7 +560,7 @@ static const char *aulookup_uid(uid_t uid, char *buf, size_t size)
 	return buf;
 }
 
-void aulookup_destroy_uid_list(void)
+void interpret_aulookup_destroy_uid_list(void)
 {
 	if (uid_cache_created == 0)
 		return;
@@ -2856,7 +2856,7 @@ int lookup_type(const char *name)
  * This is the main entry point for the auparse library. Call chain is:
  * auparse_interpret_field -> nvlist_interp_cur_val -> interpret
  */
-const char *interpret(const rnode *r, auparse_esc_t escape_mode)
+const char *interpret_fn(const rnode *r, auparse_esc_t escape_mode)
 {
 	const nvlist *nv = &r->nv;
 	int type;

@@ -31,6 +31,7 @@ cscope.*
 .deps/
 audisp/audispd
 audisp/plugins/remote/audisp-remote
+audisp/plugins/syslog/audisp-syslog
 audisp/plugins/zos-remote/audispd-zos-remote
 auparse/*tabs.h
 auparse/normalize_*_maps.h

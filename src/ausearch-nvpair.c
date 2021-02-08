@@ -27,14 +27,14 @@
 #include "ausearch-nvpair.h"
 
 
-void nvlist_create(nvlist *l)
+void au_nvlist_create(nvlist *l)
 {
 	l->head = NULL;
 	l->cur = NULL;
 	l->cnt = 0;
 }
 
-nvnode *nvlist_next(nvlist *l)
+nvnode *au_nvlist_next(nvlist *l)
 {
 	if (l->cur == NULL)
 		return NULL;
@@ -42,7 +42,7 @@ nvnode *nvlist_next(nvlist *l)
 	return l->cur;
 }
 
-void nvlist_append(nvlist *l, nvnode *node)
+void au_nvlist_append(nvlist *l, nvnode *node)
 {
 	nvnode* newnode = malloc(sizeof(nvnode));
 
@@ -64,7 +64,7 @@ void nvlist_append(nvlist *l, nvnode *node)
 	l->cnt++;
 }
 
-int nvlist_find_val(nvlist *l, long val)
+int au_nvlist_find_val(nvlist *l, long val)
 {
         register nvnode* node = l->head;
 
@@ -79,7 +79,7 @@ int nvlist_find_val(nvlist *l, long val)
 	return 0;
 }
 
-void nvlist_clear(nvlist* l)
+void au_nvlist_clear(nvlist* l)
 {
 	nvnode* nextnode;
 	register nvnode* current;

@@ -976,7 +976,7 @@ static void auparse_destroy_common(auparse_state_t *au)
 
 void auparse_destroy(auparse_state_t *au)
 {
-	aulookup_destroy_uid_list();
+    interpret_aulookup_destroy_uid_list();
 	aulookup_destroy_gid_list();
 
 	auparse_destroy_common(au);

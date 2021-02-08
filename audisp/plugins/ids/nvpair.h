@@ -47,16 +47,16 @@ typedef struct {
   unsigned int cnt;	// How many items in this list
 } nvlist;
 
-void nvlist_create(nvlist *l);
+void nvpair_list_create(nvlist *l);
 static inline void nvlist_first(nvlist *l) { l->cur = l->head; }
 //nvnode *nvlist_next(nvlist *l);
-static inline nvnode *nvlist_get_cur(nvlist *l) { return l->cur; }
-void nvlist_append(nvlist *l, nvnode *node);
-void nvlist_delete_cur(nvlist *l);
-void nvlist_clear(nvlist* l);
+static inline nvnode *nvpair_list_get_cur(nvlist *l) { return l->cur; }
+void nvpair_list_append(nvlist *l, nvnode *node);
+void nvpair_list_delete_cur(nvlist *l);
+void nvpair_list_clear(nvlist* l);
 
 /* Given a time, find a job to run. */
-int nvlist_find_job(nvlist *l, time_t t);
+int nvpair_list_find_job(nvlist *l, time_t t);
 
 #endif
 

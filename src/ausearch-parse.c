@@ -217,12 +217,12 @@ static const char *lookup_uid(const char *field, uid_t uid)
 		return strdup("unset");
 
 	if (uid_list_created == 0) {
-		nvlist_create(&uid_nvl);
-		nvlist_clear(&uid_nvl);
+		au_nvlist_create(&uid_nvl);
+        au_nvlist_clear(&uid_nvl);
 		uid_list_created = 1;
 	}
 
-	if (nvlist_find_val(&uid_nvl, uid)) {
+	if (au_nvlist_find_val(&uid_nvl, uid)) {
 		return strdup(uid_nvl.cur->name);
 	} else {
 		struct passwd *pw;
@@ -231,7 +231,7 @@ static const char *lookup_uid(const char *field, uid_t uid)
 			nvnode nv;
 			nv.name = strdup(pw->pw_name);
 			nv.val = uid;
-			nvlist_append(&uid_nvl, &nv);
+            au_nvlist_append(&uid_nvl, &nv);
 			return strdup(pw->pw_name);
 		}
 	}
@@ -243,7 +243,7 @@ void lookup_uid_destroy_list(void)
 	if (uid_list_created == 0)
 		return;
 
-	nvlist_clear(&uid_nvl);
+    au_nvlist_clear(&uid_nvl);
 	uid_list_created = 0;
 }
 
