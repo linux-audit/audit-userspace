@@ -474,7 +474,6 @@ static int event_loop(void)
 	/* Figure out the format for the af_unix socket */
 	while (stop == 0) {
 		event_t *e;
-		const char *type;
 		char *v, *ptr, unknown[32];
 		unsigned int len;
 		lnode *conf;
@@ -487,15 +486,17 @@ static int event_loop(void)
 			continue;
 		}
 
-		/* Get the event formatted */
-		type = audit_msg_type_to_name(e->hdr.type);
-		if (type == NULL) {
-			snprintf(unknown, sizeof(unknown),
-				"UNKNOWN[%u]", e->hdr.type);
-			type = unknown;
-		}
 		// Protocol 1 is not formatted
 		if (e->hdr.ver == AUDISP_PROTOCOL_VER) {
+			const char *type;
+
+			/* Get the event formatted */
+			type = audit_msg_type_to_name(e->hdr.type);
+			if (type == NULL) {
+				snprintf(unknown, sizeof(unknown),
+					"UNKNOWN[%u]", e->hdr.type);
+				type = unknown;
+			}
 			len = asprintf(&v, "type=%s msg=%.*s\n",
 					type, e->hdr.size, e->data);
 		// Protocol 2 events are already formatted
