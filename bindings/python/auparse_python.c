@@ -665,6 +665,26 @@ AuParser_set_escape_mode(AuParser *self, PyObject *args)
 }
 
 /********************************
+ * auparse_set_eoe_timeout
+ ********************************/
+PyDoc_STRVAR(set_eoe_timeout_doc,
+"set_eoe_timeout(tmo) Set audit parser end of event timeout\n\
+\n\
+This function sets the timeout used to determine if an event is complete.\n\
+Returns None.\n\
+");
+static PyObject *
+AuParser_set_eoe_timeout(AuParser *self, PyObject *args)
+{
+    int tmo;
+
+    if (!PyArg_ParseTuple(args, "i", &tmo)) return NULL;
+    auparse_set_eoe_timeout(tmo);
+
+    Py_RETURN_NONE;
+}
+
+/********************************
  * auparse_reset
  ********************************/
 PyDoc_STRVAR(reset_doc,
@@ -2140,6 +2160,7 @@ static PyMethodDef AuParser_methods[] = {
     {"feed_age_events",   (PyCFunction)AuParser_feed_age_events,   METH_NOARGS,  feed_age_events_doc},
     {"add_callback",      (PyCFunction)AuParser_add_callback,      METH_VARARGS, add_callback_doc},
     {"set_escape_mode",   (PyCFunction)AuParser_set_escape_mode,   METH_VARARGS, set_escape_mode_doc},
+    {"set_eoe_timeout",   (PyCFunction)AuParser_set_eoe_timeout,   METH_VARARGS, set_eoe_timeout_doc},
     {"reset",             (PyCFunction)AuParser_reset,             METH_NOARGS,  reset_doc},
     {"search_add_expression", (PyCFunction)AuParser_search_add_expression, METH_VARARGS, search_add_expression_doc},
     {"search_add_item",   (PyCFunction)AuParser_search_add_item,   METH_VARARGS, search_add_item_doc},
