@@ -966,13 +966,6 @@ int auditd_tcp_listen_init(struct ev_loop *loop, struct daemon_conf *config)
 	if (config->tcp_listen_port == 0)
 		return 0;
 
-	transport = config->transport;
-	ev_periodic_init(&periodic_watcher, periodic_handler,
-			  0, config->tcp_client_max_idle, NULL);
-	periodic_watcher.data = config;
-	if (config->tcp_client_max_idle)
-		ev_periodic_start(loop, &periodic_watcher);
-
 	memset(&hints, '\0', sizeof(hints));
 	hints.ai_flags = AI_PASSIVE | AI_ADDRCONFIG;
 	hints.ai_socktype = SOCK_STREAM;
@@ -1071,6 +1064,14 @@ next_try:
 	if (nlsocks == 0)
 		return -1;
 
+	// Now that we have sockets, start the periodic timers
+	transport = config->transport;
+	ev_periodic_init(&periodic_watcher, periodic_handler,
+			  0, config->tcp_client_max_idle, NULL);
+	periodic_watcher.data = config;
+	if (config->tcp_client_max_idle)
+		ev_periodic_start(loop, &periodic_watcher);
+
 	use_libwrap = config->use_libwrap;
 	auditd_set_ports(config->tcp_client_min_port,
 			config->tcp_client_max_port,
@@ -1159,7 +1160,7 @@ void auditd_tcp_listen_uninit(struct ev_loop *loop, struct daemon_conf *config)
 static void periodic_reconfigure(struct daemon_conf *config)
 {
 	struct ev_loop *loop = ev_default_loop(EVFLAG_AUTO);
-	if (config->tcp_client_max_idle) {
+	if (config->tcp_listen_port && config->tcp_client_max_idle) {
 		ev_periodic_set(&periodic_watcher, ev_now(loop),
 				 config->tcp_client_max_idle, NULL);
 		ev_periodic_start(loop, &periodic_watcher);
