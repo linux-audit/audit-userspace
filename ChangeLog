@@ -4,6 +4,7 @@
 - Only enable periodic timers when listening on the network
 - Upgrade libev to 4.33
 - Add auparse_new_buffer function to auparse library
+- Use the select libev backend unless aggregating events
 
 3.0
 - Generate checkpoint file even when no results are returned (Burn Alting)

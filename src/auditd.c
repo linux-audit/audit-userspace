@@ -756,8 +756,17 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	/* Startup libev and dispatcher */
-	loop = ev_default_loop(EVFLAG_NOENV);
+	/* Startup libev. If we are not aggregating events, use the select
+	 * backend which is faster for small numbers of descriptors. This
+	 * will fallback to the epoll backend otherwise. */
+	{
+	int flags = EVFLAG_NOENV;
+	if (config.tcp_listen_port == 0)
+		flags |= EVBACKEND_SELECT;
+	loop = ev_default_loop(flags);
+	}
+
+	/* Startup dispatcher */
 	if (init_dispatcher(&config)) {
 		if (pidfile)
 			unlink(pidfile);
