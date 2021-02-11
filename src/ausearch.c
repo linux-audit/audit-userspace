@@ -52,6 +52,7 @@ static int found = 0;
 static int input_is_pipe = 0;
 static int timeout_interval = 3;	/* timeout in seconds */
 static int files_to_process = 0;	/* number of log files yet to process when reading multiple */
+static struct daemon_conf config;
 static int process_logs(void);
 static int process_log_fd(void);
 static int process_stdin(void);
@@ -72,7 +73,7 @@ extern void output_auparse_finish(void);
 /*
  * User space configuration items
  */
-extern time_t   arg_eoe_timeout;
+extern time_t arg_eoe_timeout;
 
 static int is_pipe(int fd)
 {
@@ -106,6 +107,20 @@ int main(int argc, char *argv[])
 	set_aumessage_mode(MSG_STDERR, DBG_NO);
 	(void) umask( umask( 077 ) | 027 );
 
+	/* Load config so we know where logs are and eoe_timeout */
+	if (load_config(&config, TEST_SEARCH))
+	        fprintf(stderr, "NOTE - using built-in logs: %s\n",
+				config.log_file);
+
+	/* Set timeout from the config file */
+	lol_set_eoe_timeout((time_t)config.end_of_event_timeout);
+
+	/*
+	 * If an override was specified on the command line, overide the config
+	 */
+	if (arg_eoe_timeout != 0)
+		lol_set_eoe_timeout((time_t)arg_eoe_timeout);
+
 	/* Load the checkpoint file if requested */
 	if (checkpt_filename) {
 		rc = load_ChkPt(checkpt_filename);
@@ -129,14 +144,6 @@ int main(int argc, char *argv[])
 			/* We will need to check */
 			have_chkpt_data++;
 		}
-	}
-	
-	/*
-	 * We set up user space configuration items and THEN apply command line argument overides
-	 */
-	setup_userspace_configitems();
-	if (arg_eoe_timeout != 0) {
-		lol_set_eoe_timeout((time_t)arg_eoe_timeout);
 	}
 
 	lol_create(&lo);
@@ -214,7 +221,6 @@ skip_checkpt:
 
 static int process_logs(void)
 {
-	struct daemon_conf config;
 	char *filename;
 	int len, num = 0;
 	int found_chkpt_file = -1;
@@ -231,14 +237,6 @@ static int process_logs(void)
 		free((void *)config.log_file);
 		config.log_file=strdup(dirname);
 		fprintf(stderr, "NOTE - using logs in %s\n", config.log_file);
-	}
-	else {
-		/* Load config so we know where logs are */
-        	if (load_config(&config, TEST_SEARCH)) {
-        	        fprintf(stderr,
-				"NOTE - using built-in logs: %s\n",
-				config.log_file);
-		}
 	}
 
 	/* for each file */

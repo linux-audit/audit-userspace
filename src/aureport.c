@@ -52,6 +52,7 @@ static lol lo;
 static int found = 0;
 static int files_to_process = 0; // Logs left when processing multiple
 static int userfile_is_dir = 0;
+static struct daemon_conf config;
 static int process_logs(void);
 static int process_log_fd(const char *filename);
 static int process_stdin(void);
@@ -64,7 +65,7 @@ extern int force_logs;
 /*
  * User space configuration items
  */
-extern time_t	arg_eoe_timeout;
+extern time_t arg_eoe_timeout;
 
 
 static int is_pipe(int fd)
@@ -99,11 +100,21 @@ int main(int argc, char *argv[])
 	very_first_event.sec = 0;
 	reset_counters();
 
-	print_title();
+	/* Load config so we know where logs are and eoe_timeout */
+        if (load_config(&config, TEST_SEARCH))
+		fprintf(stderr, "NOTE - using built-in logs: %s\n",
+				config.log_file);
+
+	/* Set timeout from the config file */
+	lol_set_eoe_timeout((time_t)config.end_of_event_timeout);
+
 	/*
-	 * We set up user space configuration items and THEN apply command line argument overides
+	 * If an override was specified on the command line, overide the config
 	 */
-	setup_userspace_configitems();
+	if (arg_eoe_timeout != 0)
+		lol_set_eoe_timeout((time_t)arg_eoe_timeout);
+
+	print_title();
 	if (arg_eoe_timeout != 0) {
 		lol_set_eoe_timeout(arg_eoe_timeout);
 	}
@@ -152,7 +163,6 @@ int main(int argc, char *argv[])
 
 static int process_logs(void)
 {
-	struct daemon_conf config;
 	char *filename;
 	size_t len;
 	int num = 0;
@@ -168,11 +178,6 @@ static int process_logs(void)
 		free((void *)config.log_file);
 		config.log_file=strdup(dirname);
 		fprintf(stderr, "NOTE - using logs in %s\n", config.log_file);
-	} else {
-		/* Load config so we know where logs are */
-		if (load_config(&config, TEST_SEARCH))
-			fprintf(stderr, "NOTE - using built-in logs: %s\n",
-				config.log_file);
 	}
 
 	/* for each file */
