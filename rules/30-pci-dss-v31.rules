@@ -25,6 +25,10 @@
 ## logging. The pam config below should be placed into su and sudo pam stacks.
 ## session   required pam_tty_audit.so disable=* enable=root
 
+## Watch for configuration changes to privilege escalation.
+-a always,exit -F path=/etc/sudoers -F perm=wa -F key=10.2.2-priv-config-changes
+-a always,exit -F dir=/etc/sudoers.d/ -F perm=wa -F key=10.2.2-priv-config-changes
+
 ## 10.2.3 Access to all audit trails.
 -a always,exit -F dir=/var/log/audit/ -F perm=r -F auid>=1000 -F auid!=unset -F key=10.2.3-access-audit-trail
 -a always,exit -F path=/usr/sbin/ausearch -F perm=x -F key=10.2.3-access-audit-trail
