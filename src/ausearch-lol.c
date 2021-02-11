@@ -1,7 +1,7 @@
 /*
 * ausearch-lol.c - linked list of linked lists library
-* Copyright (c) 2008,2010,2014,2016,2019 Red Hat Inc., Durham, North Carolina.
-* All Rights Reserved. 
+* Copyright (c) 2008,2010,2014,2016,2019,2021 Red Hat Inc.
+* All Rights Reserved.
 *
 * This software may be freely redistributed and/or modified under the
 * terms of the GNU General Public License as published by the Free
@@ -15,7 +15,7 @@
 *
 * You should have received a copy of the GNU General Public License
 * along with this program; see the file COPYING. If not, write to the
-* Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor 
+* Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor
 * Boston, MA 02110-1335, USA.
 *
 * Authors:
@@ -410,8 +410,13 @@ llist* get_ready_event(lol *lo)
  * Rtn
  * 	void
  */
-void
-lol_set_eoe_timeout(time_t new_eoe_tmo)
+void lol_set_eoe_timeout(time_t new_eoe_tmo)
 {
 	eoe_timeout = new_eoe_tmo;
 }
+
+time_t lol_get_eoe_timeout(void)
+{
+	return eoe_timeout;
+}
+

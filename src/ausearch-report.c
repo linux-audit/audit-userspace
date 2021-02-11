@@ -47,6 +47,8 @@ static void csv_event(auparse_state_t *au,
 static void text_event(auparse_state_t *au,
 		auparse_cb_event_t cb_event_type, void *user_data);
 
+extern time_t lol_get_eoe_timeout(void);
+
 /* The machine based on elf type */
 static unsigned long machine = -1;
 static int cur_syscall = -1;
@@ -776,7 +778,7 @@ static void text_event(auparse_state_t *au,
 
 /* This function will push an event into auparse. The callback arg will
  * perform all formatting for the intended report option. */
-static auparse_state_t *au;
+static auparse_state_t *au = NULL;
 static void feed_auparse(llist *l, auparse_callback_ptr callback)
 {
 	const lnode *n;
@@ -787,9 +789,12 @@ static void feed_auparse(llist *l, auparse_callback_ptr callback)
 		fprintf(stderr, "Error - no elements in record.");
 		return;
 	}
-	au = auparse_init(AUSOURCE_FEED, 0);
-	auparse_set_escape_mode(au, escape_mode);
-	auparse_add_callback(au, callback, NULL, NULL);
+	if (au == NULL) {
+		au = auparse_init(AUSOURCE_FEED, 0);
+		auparse_set_escape_mode(au, escape_mode);
+		auparse_set_eoe_timeout(lol_get_eoe_timeout());
+		auparse_add_callback(au, callback, NULL, NULL);
+	}
 	do {
 		// Records need to be terminated by a newline
 		// Temporarily replace it.
@@ -803,6 +808,11 @@ static void feed_auparse(llist *l, auparse_callback_ptr callback)
 	} while ((n=list_next(l)));
 
 	auparse_flush_feed(au);
-	auparse_destroy(au);
 }
 
+void output_auparse_finish(void)
+{
+	if (au)
+		auparse_destroy(au);
+	au = NULL;
+}

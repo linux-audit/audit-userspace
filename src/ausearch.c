@@ -67,6 +67,7 @@ static int userfile_is_dir = 0;
 extern int match(llist *l);
 extern void output_event(llist *l);
 extern void ausearch_free_interpretations(void);
+extern void output_auparse_finish(void);
 
 /*
  * User space configuration items
@@ -200,6 +201,7 @@ skip_checkpt:
 	free((char *)event_teuid);
 	free((char *)event_tauid);
 	auparse_destroy(NULL);
+	output_auparse_finish();
 	if (rc)
 		return rc;
 	if (!found) {
