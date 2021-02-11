@@ -1,7 +1,7 @@
 /*
 * ausearch-report.c - Format and output events
-* Copyright (c) 2005-09,2011-13,2016-17 Red Hat Inc., Durham, North Carolina.
-* All Rights Reserved. 
+* Copyright (c) 2005-09,2011-13,2016-17,2021 Red Hat
+* All Rights Reserved.
 *
 * This software may be freely redistributed and/or modified under the
 * terms of the GNU General Public License as published by the Free
@@ -15,7 +15,7 @@
 *
 * You should have received a copy of the GNU General Public License
 * along with this program; see the file COPYING. If not, write to the
-* Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor 
+* Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor
 * Boston, MA 02110-1335, USA.
 *
 * Authors:
@@ -74,7 +74,7 @@ void ausearch_free_interpretations(void)
 }
 
 /* This function branches to the correct output format */
-void output_record(llist *l)
+void output_event(llist *l)
 {
 	switch (report_format) {
 		case RPT_RAW:
@@ -776,7 +776,7 @@ static void text_event(auparse_state_t *au,
 
 /* This function will push an event into auparse. The callback arg will
  * perform all formatting for the intended report option. */
-static auparse_state_t *au; 
+static auparse_state_t *au;
 static void feed_auparse(llist *l, auparse_callback_ptr callback)
 {
 	const lnode *n;
