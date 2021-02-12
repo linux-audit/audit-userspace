@@ -273,12 +273,12 @@ static void send_statsd(void)
 	// Things pulled from kernel or auditd are gauges. Anything
 	// incremented (events) are counters.
 	len = snprintf(message, sizeof(message),
-	  "lost:%u|g\nbacklog:%u|g\n"
-	  "free_space:%u|g\nplugin_current_depth:%u|g\nplugin_max_depth:%u|g\n"
-	  "events_total_count:%u|c\nevents_total_failed:%u|c\n"
-	  "events_avc_count:%u|c\nevents_fanotify_count:%u|c\n"
-	  "events_logins_success:%u|c\nevents_logins_failed:%u|c\n"
-	  "events_anomaly_count:%u|c\nevents_response_count:%u|c\n",
+	  "kernel.lost:%u|g\nkernel.backlog:%u|g\n"
+	  "auditd.free_space:%u|g\nauditd.plugin_current_depth:%u|g\nauditd.plugin_max_depth:%u|g\n"
+	  "events.total_count:%u|c\nevents.total_failed:%u|c\n"
+	  "events.avc_count:%u|c\nevents.fanotify_count:%u|c\n"
+	  "events.logins_success:%u|c\nevents.logins_failed:%u|c\n"
+	  "events.anomaly_count:%u|c\nevents.response_count:%u|c\n",
 		r.lost, r.backlog,
 		r.free_space, r.plugin_current_depth, r.plugin_max_depth,
 		r.events_total_count, r.events_total_failed,
