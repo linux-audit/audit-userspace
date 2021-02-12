@@ -2630,7 +2630,7 @@ static int parse_kernel(lnode *n, search_items *s)
 				return 58;
 			*term = ' ';
 		} else
-			s->loginuid = (unsigned long)-1;
+			s->loginuid = (uid_t)-1;
 		if (s->tauid) free((void *)s->tauid);
 		s->tauid = lookup_uid("auid", s->loginuid);
 	}
@@ -2666,7 +2666,7 @@ static int parse_kernel(lnode *n, search_items *s)
 				return 61;
 			*term = ' ';
 		} else
-			s->session_id = (unsigned long)-1;
+			s->session_id = (uint32_t)-1;
 	}
 	// get subject if not already filled
 	if (!s->avc && event_subject) {
