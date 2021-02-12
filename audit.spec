@@ -256,6 +256,6 @@ fi
 
 
 %changelog
-* Wed Dec 16 2020 Steve Grubb <sgrubb@redhat.com> 3.0.1-1
+* Fri Feb 12 2021 Steve Grubb <sgrubb@redhat.com> 3.0.1-1
 - New upstream release
 
