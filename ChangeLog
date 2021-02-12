@@ -6,6 +6,7 @@
 - Add auparse_new_buffer function to auparse library
 - Use the select libev backend unless aggregating events
 - Add sudoers to some base audit rules
+- Update the auparse normalizer for some new syscalls and event types
 
 3.0
 - Generate checkpoint file even when no results are returned (Burn Alting)

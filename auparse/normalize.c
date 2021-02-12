@@ -1,5 +1,5 @@
 /* normalize.c --
- * Copyright 2016-18 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2016-18,2021 Red Hat Inc.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -514,6 +514,15 @@ static int set_program_obj(auparse_state_t *au)
 		D.thing.primary = set_field(D.thing.primary,
 				auparse_get_field_num(au));
 		return 0;
+	} else {
+		// Maybe its a BPF program?
+		auparse_first_record(au);
+		if (auparse_find_field(au, "prog-id")) {
+			D.thing.primary = set_record(0,
+					auparse_get_record_num(au));
+			D.thing.primary = set_field(D.thing.primary,
+					auparse_get_field_num(au));
+		}
 	}
 	return 1;
 }
@@ -561,6 +570,9 @@ static int normalize_syscall(auparse_state_t *au, const char *syscall)
 		} else if (ttype == AUDIT_FANOTIFY) {
 			tmp_objkind = NORM_AV;
 			break;
+		} else if (ttype == AUDIT_BPF) {
+			tmp_objkind = NORM_BPF;
+			break;
 		}
 		rc = auparse_next_record(au);
 	}
@@ -606,7 +618,7 @@ static int normalize_syscall(auparse_state_t *au, const char *syscall)
 			break;
 		case NORM_FILE_LDMOD:
 			act = "loaded-kernel-module";
-			D.thing.what = NORM_WHAT_FILE; 
+			D.thing.what = NORM_WHAT_FILE;
 			auparse_goto_record_num(au, 1);
 			set_prime_object(au, "name", 1);// FIXME:is this needed?
 			break;
@@ -847,6 +859,20 @@ static int normalize_syscall(auparse_state_t *au, const char *syscall)
 				D.how = strdup(syscall);
 			}
 			break;
+		case NORM_BPF:
+			auparse_first_record(au);
+			f = auparse_find_field(au, "op");
+			if (f) {
+				const char *str = auparse_get_field_str(au);
+				if (strcmp(str, "LOAD") == 0)
+					act = "loaded-bpf-program";
+				else
+					act = "unloaded-bpf-program";
+			} else
+				act = "bpf-program";
+			D.thing.what = NORM_WHAT_PROCESS;
+			set_program_obj(au);
+			break;
 		default:
 			{
 				const char *k;
@@ -871,7 +897,7 @@ static int normalize_syscall(auparse_state_t *au, const char *syscall)
 		act = "accessed-mac-policy-controlled-object";
 	else if (tmp_objkind == NORM_AV)
 		act = "accessed-policy-controlled-file";
-	
+
 	if (act)
 		D.action = strdup(act);
 
@@ -911,6 +937,7 @@ static const char *normalize_determine_evkind(int type)
 		case AUDIT_FEATURE_CHANGE ... AUDIT_REPLACE:
 		case AUDIT_USER_DEVICE:
 		case AUDIT_SOFTWARE_UPDATE:
+		case AUDIT_EVENT_LISTENER:
 			kind = NORM_EVTYPE_CONFIG;
 			break;
 		case AUDIT_SECCOMP:
@@ -919,6 +946,7 @@ static const char *normalize_determine_evkind(int type)
 		case AUDIT_TEST ... AUDIT_TRUSTED_APP:
 		case AUDIT_USER_CMD:
 		case AUDIT_CHUSER_ID:
+		case AUDIT_BPF:
 			kind = NORM_EVTYPE_USERSPACE;
 			break;
 		case AUDIT_USER_TTY:
@@ -1582,6 +1610,25 @@ map:
 
 		// Results
 		set_results(au, 0);
+		return 0;
+	}
+
+	// BPF events are atypical
+	if (type == AUDIT_BPF) {
+		auparse_first_record(au);
+		f = auparse_find_field(au, "op");
+		if (f) {
+			const char *str = auparse_get_field_str(au);
+			if (strcmp(str, "LOAD") == 0)
+				act = "loaded-bpf-program";
+			else
+				act = "unloaded-bpf-program";
+		} else
+			act = "bpf-program";
+
+		D.action = strdup(act);
+		D.thing.what = NORM_WHAT_PROCESS;
+		set_program_obj(au);
 		return 0;
 	}
 

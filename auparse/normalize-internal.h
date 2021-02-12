@@ -71,6 +71,7 @@
 #define NORM_SYSTEM_MEMORY	35
 #define NORM_SCHEDULER		36
 #define NORM_AV			37
+#define NORM_BPF		38
 
 // This enum is used to map what the system objects are
 #define NORM_WHAT_UNKNOWN	0

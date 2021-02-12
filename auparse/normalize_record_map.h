@@ -1,6 +1,6 @@
 /*
  * normalize_record_map.h
- * Copyright (c) 2016-18 Red Hat Inc., Durham, North Carolina.
+ * Copyright (c) 2016-18,2021 Red Hat Inc.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -84,6 +84,8 @@ _S(AUDIT_FEATURE_CHANGE, "changed-audit-feature")
 //_S(AUDIT_REPLACE,"")
 _S(AUDIT_KERN_MODULE, "loaded-kernel-module")
 _S(AUDIT_FANOTIFY, "accessed-policy-controlled-file")
+//_S(AUDIT_BPF, "")
+//_S(AUDIT_EVENT_LISTENER, "")
 _S(AUDIT_AVC, "accessed-mac-policy-controlled-object")
 _S(AUDIT_MAC_POLICY_LOAD, "loaded-selinux-policy")
 _S(AUDIT_MAC_STATUS, "changed-selinux-enforcement-to")
@@ -93,6 +95,7 @@ _S(AUDIT_MAC_MAP_ADD, "added-mac-network-domain-mapping-to")
 _S(AUDIT_MAC_MAP_DEL, "deleted-mac-network-domain-mapping-from")
 _S(AUDIT_ANOM_ABEND, "crashed-program")
 _S(AUDIT_ANOM_LINK, "used-suspcious-link")
+_S(AUDIT_ANOM_CREAT, "created-suspicious-file")
 //_S(AUDIT_INTEGRITY_DATA,"")
 //_S(AUDIT_INTEGRITY_METADATA,"")
 //_S(AUDIT_INTEGRITY_STATUS,"")
