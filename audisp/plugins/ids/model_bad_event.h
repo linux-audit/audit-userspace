@@ -1,7 +1,7 @@
 #ifndef MODEL_BAD_EVENT_HEADER 
 #define MODEL_BAD_EVENT_HEADER 
 
-#include <auparse.h>
+#include "auparse.h"
 #include "ids_config.h"
 
 unsigned int process_bad_event_model(auparse_state_t *au,

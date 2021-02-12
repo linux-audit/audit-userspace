@@ -28,11 +28,10 @@
 #include <string.h>
 #include <sys/select.h>
 #include <errno.h>
-#include <libaudit.h>
-#include <auparse.h>
 #include <stdarg.h>
 #include <sys/wait.h>
 #include <sys/stat.h> // umask
+#include "auparse.h"
 #include "common.h"
 #include "ids.h"
 #include "ids_config.h"

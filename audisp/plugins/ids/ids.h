@@ -8,7 +8,7 @@
 #ifndef IDS_HEADER
 #define IDS_HEADER
 
-#include <libaudit.h>
+#include "libaudit.h"
 #define DAEMON_SESSION "4294967295"
 
 extern int debug;
