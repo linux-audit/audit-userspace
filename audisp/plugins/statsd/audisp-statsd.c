@@ -46,7 +46,7 @@ struct daemon_config
 	unsigned int port;
 	unsigned int interval;
 	int sock;
-	struct sockaddr addr;
+	struct sockaddr_storage addr;
 	socklen_t addrlen;
 };
 
@@ -287,7 +287,7 @@ static void send_statsd(void)
 		r.events_anomaly_count, r.events_response_count);
 
 	if (len > 0 && len < (int)sizeof(message))
-		sendto(d.sock, message, len, 0, &d.addr, d.addrlen);
+		sendto(d.sock, message, len, 0, (struct sockaddr *)&d.addr, d.addrlen);
 }
 
 
