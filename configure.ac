@@ -86,8 +86,10 @@ AC_LINK_IFELSE(
  []
 )
 dnl; pthread_yield is used in zos-remote
+OLDLIBS="$LIBS"
 AC_SEARCH_LIBS(pthread_yield, pthread, 
 	[AC_DEFINE(HAVE_PTHREAD_YIELD, 1, [Define to 1 if we have pthread_yield])], [])
+LIBS="$OLDLIBS"
 
 ALLWARNS=""
 ALLDEBUG="-g"
