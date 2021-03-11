@@ -89,6 +89,7 @@ static int insert_rule(int audit_fd, const char *field)
 		rc |= audit_rule_syscallbyname_data(rule, "readlinkat");
 		rc |= audit_rule_syscallbyname_data(rule, "execve");
 		rc |= audit_rule_syscallbyname_data(rule, "name_to_handle_at");
+		rc |= audit_rule_syscallbyname_data(rule, "openat2");
 
 		if (machine != MACH_X86 && machine != MACH_S390X && 
 						machine != MACH_S390) {
