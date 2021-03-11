@@ -130,7 +130,7 @@ static void usage(void)
      "    -R <file>                         read rules from file\n"
      "    -s                                Report status\n"
      "    -S syscall                        Build rule: syscall name or number\n"
-     "    --signal <signal>                 Send the specified signal to the daemon"
+     "    --signal <signal>                 Send the specified signal to the daemon\n"
      "    -t                                Trim directory watches\n"
      "    -v                                Version\n"
      "    -w <path>                         Insert watch at <path>\n"
