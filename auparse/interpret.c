@@ -2542,6 +2542,8 @@ static const char *print_a2(const char *val, const idata *id)
 		} else if (*sys == 'o') {
 			if (strcmp(sys, "openat") == 0)
 				return print_open_flags(val);
+			if (strcmp(sys, "openat2") == 0)
+				goto normal;
 			if ((strcmp(sys, "open") == 0) && (id->a1 & O_CREAT))
 				return print_mode_short(val, 16);
 			if (strcmp(sys, "open_by_handle_at") == 0)
