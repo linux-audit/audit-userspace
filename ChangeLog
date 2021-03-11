@@ -1,6 +1,7 @@
 3.0.2
 - In audispd-statsd pluging, use struct sockaddr_storage (Ville Heikkinen)
 - Optionally interpret auid in auditctl -l
+- Update some syscall argument interpretations
 
 3.0.1
 - Update syscall table to the 5.11 kernel

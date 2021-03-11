@@ -1,7 +1,7 @@
 /*
 * interpret.c - Lookup values to something more readable
-* Copyright (c) 2007-09,2011-16,2018-19 Red Hat Inc., Durham, North Carolina.
-* All Rights Reserved. 
+* Copyright (c) 2007-09,2011-16,2018-21 Red Hat Inc.
+* All Rights Reserved.
 *
 * This library is free software; you can redistribute it and/or
 * modify it under the terms of the GNU Lesser General Public
@@ -2289,6 +2289,10 @@ static const char *print_a0(const char *val, const idata *id)
 			return print_dirfd(val);
 		else if (strcmp(sys, "openat") == 0)
 			return print_dirfd(val);
+		else if (strcmp(sys, "openat2") == 0)
+			return print_dirfd(val);
+		else if (strcmp(sys, "name_to_handle_at") == 0)
+			return print_dirfd(val);
 		else if (strcmp(sys, "ipccall") == 0)
 			return print_ipccall(val, 16);
 		else if (strncmp(sys, "exit", 4) == 0)
@@ -2423,6 +2427,8 @@ static const char *print_a2(const char *val, const idata *id)
 				return print_open_flags(val);
 			if ((strcmp(sys, "open") == 0) && (id->a1 & O_CREAT))
 				return print_mode_short(val, 16);
+			if (strcmp(sys, "open_by_handle_at") == 0)
+			    return print_open_flags(val);
 		} else if (*sys == 'f') {
 			if (strcmp(sys, "fchmodat") == 0)
 				return print_mode_short(val, 16);
