@@ -304,7 +304,11 @@ extern "C" {
 #endif
 
 #ifndef AUDIT_EVENT_LISTENER
-#define AUDIT_EVENT_LISTENER		1335 /* audit mcast sock join/part */
+#define AUDIT_EVENT_LISTENER	1335 /* audit mcast sock join/part */
+#endif
+
+#ifndef AUDIT_OPENAT2
+#define AUDIT_OPENAT2		1337 /* openat2 open_how flags */
 #endif
 
 #ifndef AUDIT_MAC_CALIPSO_ADD
