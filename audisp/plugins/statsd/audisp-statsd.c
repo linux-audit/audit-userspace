@@ -74,7 +74,7 @@ static int audit_fd = -1;
 static pid_t auditd_pid = 0;
 static auparse_state_t *au = NULL;
 static int timer_fd = -1;
-static char msg[MAX_AUDIT_MESSAGE_LENGTH];
+static char msg[MAX_AUDIT_MESSAGE_LENGTH + 1];
 static struct daemon_config d;
 static struct audit_report r;
 
@@ -148,9 +148,11 @@ static int load_config(void)
 			break;
 		default:
 			fprintf(stderr, "unknown option\n");
+			close(f);
 			return 1;
 		}
 	}
+	close(f);
 	if (status != 0x07) {
 		fprintf(stderr, "Not all config options specified\n");
 		return 1;

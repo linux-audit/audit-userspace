@@ -583,12 +583,12 @@ int check_params(int count, char *vars[])
 			break;
 		case S_INFILE:
 			if (!optarg) {
-				fprintf(stderr, 
+				fprintf(stderr,
 					"Argument is required for %s\n",
 					vars[c]);
 				retval = -1;
 			} else {
-				user_file = strdup(optarg);
+				user_file = strndup(optarg, PATH_MAX-1);
 				if (user_file == NULL)
 					retval = -1;
 				c++;
@@ -596,7 +596,7 @@ int check_params(int count, char *vars[])
 			break;
 		case S_MESSAGE_TYPE:
 	                if (!optarg) {
-				fprintf(stderr, 
+				fprintf(stderr,
 					"Argument is required for %s\n",
 					vars[c]);
         	                retval = -1;
