@@ -287,7 +287,7 @@ iouring_sqe_get (EV_P)
 }
 
 inline_size
-struct io_uring_sqe *
+void
 iouring_sqe_submit (EV_P_ struct io_uring_sqe *sqe)
 {
   unsigned idx = sqe - EV_SQES;
