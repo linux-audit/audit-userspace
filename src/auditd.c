@@ -311,8 +311,9 @@ int send_audit_event(int type, const char *str)
 
 	e->reply.type = type;
 	if (seq_num == 0) {
-		srand(time(NULL));
-		seq_num = rand()%10000;
+		// seq_num does not have to cryptographically secure
+		srandom(time(NULL));
+		seq_num = random()%10000;
 	} else
 		seq_num++;
 	// Write event into netlink area like normal events
