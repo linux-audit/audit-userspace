@@ -30,7 +30,7 @@ sbin_PROGRAMS = audisp-statsd
 man_MANS = audisp-statsd.8
 audisp_statsd_SOURCES = audisp-statsd.c
 audisp_statsd_CFLAGS = -g -D_GNU_SOURCE
-audisp_statsd_LDADD = -L${top_builddir}/auparse -lauparse -L${top_builddir}/lib -laudit
+audisp_statsd_LDADD = ${top_builddir}/auparse/libauparse.la ${top_builddir}/lib/libaudit.la
 
 install-data-hook:
 	mkdir -p -m 0750 ${DESTDIR}${plugin_confdir}
