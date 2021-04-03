@@ -2016,8 +2016,13 @@ int resolve_node(struct daemon_conf *config)
 				audit_msg(LOG_ERR,
 					"Unable to get machine name");
 				rc = -1;
-			} else
+			} else {
+				// Remove any spaces
+				char *p;
+				while ((p = strchr(tmp_name, ' ')))
+				       *p = '_';
 				config->node_name = strdup(tmp_name);
+			}
 			break;
 		case N_USER:
 			if (config->node_name == NULL) {
