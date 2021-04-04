@@ -24,6 +24,7 @@ EXTRA_DIST = README ev_epoll.c ev_poll.c ev_select.c ev_iouring.c ev_linuxaio.c 
 AM_CFLAGS = -fPIC -DPIC -g -fno-strict-aliasing ${DEBUG}
 
 noinst_HEADERS = ev.h ev_vars.h ev_wrap.h event.h
-noinst_LIBRARIES = libev.a
+noinst_LTLIBRARIES = libev.la
 
-libev_a_SOURCES = ev.c event.c
+libev_la_SOURCES = ev.c event.c
+libev_la_LDFLAGS = -no-undefined -static

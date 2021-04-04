@@ -23,7 +23,7 @@
 CONFIG_CLEAN_FILES = *.loT *.rej *.orig
 EXTRA_DIST = $(man_MANS)
 AM_CPPFLAGS = -I${top_srcdir} -I${top_srcdir}/lib -I${top_srcdir}/auparse
-LIBS = -L${top_builddir}/auparse -lauparse
+LIBS = ${top_builddir}/auparse/libauparse.la
 AM_CFLAGS = -D_GNU_SOURCE
 bin_PROGRAMS = aulast
 noinst_HEADERS = aulast-llist.h

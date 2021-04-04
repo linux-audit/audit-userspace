@@ -29,7 +29,7 @@ AM_CPPFLAGS = -I${top_srcdir} \
 		   -I${top_srcdir}/lib \
 		   -I${top_srcdir}/auparse \
 		   -I${top_srcdir}/src
-LIBS = -L${top_builddir}/auparse -lauparse
+LIBS = ${top_builddir}/auparse/libauparse.la
 AM_CFLAGS = -D_GNU_SOURCE
 bin_PROGRAMS = auvirt
 noinst_HEADERS = auvirt-list.h
