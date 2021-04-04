@@ -140,7 +140,7 @@ const char *nvlist_interp_cur_val(const rnode *r, auparse_esc_t escape_mode)
 	const nvlist *l = &r->nv;
 	if (l->cur->interp_val)
 		return l->cur->interp_val;
-	return interpret(r, escape_mode);
+	return do_interpret(r, escape_mode);
 }
 
 void nvlist_clear(nvlist* l)

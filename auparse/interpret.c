@@ -2860,9 +2860,9 @@ int lookup_type(const char *name)
 
 /*
  * This is the main entry point for the auparse library. Call chain is:
- * auparse_interpret_field -> nvlist_interp_cur_val -> interpret
+ * auparse_interpret_field -> nvlist_interp_cur_val -> do_interpret
  */
-const char *interpret(const rnode *r, auparse_esc_t escape_mode)
+const char *do_interpret(const rnode *r, auparse_esc_t escape_mode)
 {
 	const nvlist *nv = &r->nv;
 	int type;
