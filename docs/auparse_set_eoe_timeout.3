@@ -8,7 +8,7 @@ int auparse_set_eoe_timeout(time_t new_tmo)
 
 .SH "DESCRIPTION"
 
-auparse_set_eoe_timeout is used to set the end of event timeout value (seconds). The value should be a positive integer. If this function is called, it overides any setting in /etc/auditd.conf.
+auparse_set_eoe_timeout is used to set the end of event timeout value (seconds). The value should be a positive integer. If this function is called, it overrides any setting in /etc/auditd.conf.
 The function should be called after the \fIauparse_init()\fP function call.
 
 For details on the timeout, see the \fBend_of_event_timeout\fP configuration item description in \fIauditd.conf(5)\fP.

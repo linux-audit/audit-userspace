@@ -71,7 +71,7 @@ will wait up to 10 seconds if there are queued events to be delivered, dropping 
 
 .SH IBM z/OS ITDS Server and RACF configuration
 In order to use this plugin, you must have an IBM z/OS v1R8 (or higher) server with IBM Tivoli Directory Server (ITDS) configured for Remote Audit service. For more detailed information about how to configure the z/OS server for Remote Auditing, refer to
-.B z/OS V1R8.0-9.0 Intergrated Security Services Enterprise Identity Mapping (EIM) Guide and Reference
+.B z/OS V1R8.0-9.0 Integrated Security Services Enterprise Identity Mapping (EIM) Guide and Reference
 .nf
 .RI ( http://publibz.boulder.ibm.com/cgi\-bin/bookmgr_OS390/FRAMESET/EIMA1140/CCONTENTS?DT=20070827115119 ),
 chapter "2.0 - Working with remote services".
@@ -196,7 +196,7 @@ Also known as
 this list will bring all the field names and values in a
 .B fieldname=value
 format, as a type 114
-.RB ( "Appication specific Data" )
+.RB ( "Application specific Data" )
 relocate. The plug-in will try to interpret those fields (i.e.: use human-readable username
 .B root
 instead of numeric userid
@@ -222,14 +222,14 @@ No profile found for specified resource. There is no @LINUX Class configured or 
 The user ID associated with the ITDS doesn't have READ access to the IRR.AUDITX FACILITY Class profile. See
 .B IBM z/OS RACF Server configuration
 .TP
-.B UNSUF_AUTH - The user has unsuficient authority for the requested function
+.B UNSUF_AUTH - The user has unsufficient authority for the requested function
 The RACF user ID used to perform Remote Audit requests (as configured in
 .BR zos-remote.conf (5))
 don't have access to the IRR.LDAP.REMOTE.AUDIT FACILITY Class profile. See
 .B IBM z/OS RACF Server configuration
 
 .SH BUGS
-The plugin currently does remote auditing in a best-effort basis, and will dischard events in case the z/OS server cannot be contacted (network failures) or in any other case that event submission fails. 
+The plugin currently does remote auditing in a best-effort basis, and will discard events in case the z/OS server cannot be contacted (network failures) or in any other case that event submission fails. 
 
 .SH FILES
 /etc/audit/plugins.d/audispd\-zos\-remote.conf
