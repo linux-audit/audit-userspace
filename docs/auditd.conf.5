@@ -148,7 +148,7 @@ is 2 gigabytes in size, and
 .IR space_left
 is set to 25%, then the audit daemon sets 
 .IR space_left
-to approxiatemly 500 megabytes.  Note that this calculation is performed when the audit daemon starts, so if you resize the filesystem containing
+to approximately 500 megabytes.  Note that this calculation is performed when the audit daemon starts, so if you resize the filesystem containing
 .IR log_file
 while the audit daemon is running, you should send the audit daemon SIGHUP to re-read the configuration file and recalculate the correct percentage.
 .TP
@@ -207,8 +207,7 @@ will cause the audit daemon to stop writing records to the disk. The daemon will
 .I single
 option will cause the audit daemon to put the computer system in single user mode. The
 .I halt
-option will cause the audit daemon to shutdown the computer system. Except for r
-otate, it will perform this action just one time.
+option will cause the audit daemon to shutdown the computer system. Except for rotate, it will perform this action just one time.
 .TP
 .I disk_full_action
 This parameter tells the system what action to take when the system has
@@ -286,7 +285,7 @@ This parameter may be a single numeric value or two values separated
 by a dash (no spaces allowed).  It indicates which client ports are
 allowed for incoming connections.  If not specified, any port is
 allowed.  Allowed values are 1..65535.  For example, to require the
-client use a priviledged port, specify
+client use a privileged port, specify
 .I 1\-1023
 for this parameter. You will also need to set the local_port option in the audisp-remote.conf file. Making sure that clients send from a privileged port is a security feature to prevent log injection attacks by untrusted users.
 .TP
