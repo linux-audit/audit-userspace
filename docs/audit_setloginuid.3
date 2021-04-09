@@ -10,7 +10,7 @@ int audit_setloginuid(uid_t uid);
 
 This function sets the task attribute loginuid with the value of uid. The loginuid value may only be set by programs with the CAP_AUDIT_CONTROL capability. This normally means the root account.
 .sp
-The loginuid value is part of the task structure and is inheritted by child processes. It is used to track what account a user gained system access with. All system entry point programs should set this value right before changing to the uid of the user granted access so that audit events are properly attributed to the that user.
+The loginuid value is part of the task structure and is inherited by child processes. It is used to track what account a user gained system access with. All system entry point programs should set this value right before changing to the uid of the user granted access so that audit events are properly attributed to the that user.
 
 .SH "RETURN VALUE"
 
