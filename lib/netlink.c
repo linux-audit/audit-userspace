@@ -64,10 +64,10 @@ int audit_open(void)
 	}
 	if (fcntl(fd, F_SETFD, FD_CLOEXEC) == -1) {
 		saved_errno = errno;
-		close(fd);
 		audit_msg(LOG_ERR, 
 			"Error setting audit netlink socket CLOEXEC flag (%s)", 
 			strerror(errno));
+		close(fd);
 		errno = saved_errno;
 		return -1;
 	}
