@@ -19,9 +19,9 @@
 .el .ne 3
 .IP "\\$1" \\$2
 ..
-.TH "SET_MESSAGE_MODE" 3 "2004-12-01" "Linux 2.6" "Linux Programmer's Manual"
+.TH "SET_AUMESSAGE_MODE" 3 "2004-12-01" "Linux 2.6" "Linux Programmer's Manual"
 .SH NAME
-set_message_mode \- Sets the message mode
+set_aumessage_mode \- Sets the message mode
 .SH "SYNOPSIS"
 .ad l
 .hy 0
@@ -29,21 +29,25 @@ set_message_mode \- Sets the message mode
 #include <libaudit.h>
 .sp
 .HP 23
-void\ \fBset_message_mode\fR\ (message_t\ \fImode\fR);
+void\ \fBset_aumessage_mode\fR\ (message_t\ \fImode\fR, debug_message_t\ \fIdebug\fR);
 .ad
 .hy
 
 .SH "DESCRIPTION"
 
 .PP
-\fBset_message_mode\fR sets the location where informational messages are sent. If \fImode\fR=0 (default), then informational messages are sent to stderr. If \fImode\fR=1, then informational messages are sent to syslog.
+\fBset_aumessage_mode\fR sets the location where messages are sent and the output of the debug messages.
+
+If \fImode\fR=MSG_STDERR, then messages are sent to stderr. If \fImode\fR=MSG_SYSLOG, then messages are sent to syslog. If \fImode\fR=MSG_QUIET (default), then messages are not sent.
+
+If \fIdebug\fR=DBG_YES, then debug messages are output. If \fIdebug\fR=DBG_NO (default), then debug messages are not output.
 
 .SH "EXAMPLE"
 
 .nf
 
 /* Sample code */
-set_message_mode(MSG_SYSLOG)
+set_aumessage_mode(MSG_SYSLOG, DBG_YES)
 
 .fi
 
