@@ -30,7 +30,7 @@
 
 void reset_suspended(void);
 int init_queue(unsigned int size);
-int enqueue(event_t *e, struct disp_conf *config);
+int enqueue(empty_event_t *e, struct disp_conf *config);
 event_t *dequeue(void);
 void nudge_queue(void);
 void increase_queue_depth(unsigned int size);
