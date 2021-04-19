@@ -64,7 +64,7 @@ int ausearch_add_timestamp_item(auparse_state_t *au, const char *op, time_t sec,
 				unsigned milli, ausearch_rule_t how);
 int ausearch_add_timestamp_item_ex(auparse_state_t *au, const char *op,
 	time_t sec, unsigned milli, unsigned serial, ausearch_rule_t how);
-int ausearch_add_regex(auparse_state_t *au, const char *expr);
+int ausearch_add_regex(auparse_state_t *au, const char *regexp);
 int ausearch_set_stop(auparse_state_t *au, austop_t where);
 void ausearch_clear(auparse_state_t *au);
 
