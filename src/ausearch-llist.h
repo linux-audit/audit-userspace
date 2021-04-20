@@ -69,9 +69,9 @@ typedef struct
   char *acct;           // account used when uid is invalid
   char *uuid;           // virtual machine unique universal identifier
   char *vmname;         // virtual machine name
-  const char *tuid;	// interpretted uid
-  const char *teuid;	// interpretted euid
-  const char *tauid;	// interpretted auid
+  const char *tuid;	// interpreted uid
+  const char *teuid;	// interpreted euid
+  const char *tauid;	// interpreted auid
 } search_items;
 
 /* This is the node of the linked list. Any data elements that are per

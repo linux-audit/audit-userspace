@@ -164,7 +164,7 @@ static void dump_whole_record(auparse_state_t *au)
 }
 
 /* This function shows how to iterate through the fields of a record
- * and print its name and raw value and interpretted value. */
+ * and print its name and raw value and interpreted value. */
 static void dump_fields_of_record(auparse_state_t *au)
 {
 	printf("record type %d(%s) has %d fields\n", auparse_get_type(au),
