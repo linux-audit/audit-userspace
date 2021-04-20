@@ -29,7 +29,7 @@
 typedef struct _nvnode{
   char *name;           // The name string
   char *val;            // The value field
-  char *interp_val;     // The value field interpretted
+  char *interp_val;     // The value field interpreted
   unsigned int item;    // Which item of the same event
   struct _nvnode* next; // Next nvpair node pointer
 } nvnode;

@@ -109,7 +109,7 @@ int main(int argc, char *argv[])
 	lol_set_eoe_timeout((time_t)config.end_of_event_timeout);
 
 	/*
-	 * If an override was specified on the command line, overide the config
+	 * If an override was specified on the command line, override the config
 	 */
 	if (arg_eoe_timeout != 0)
 		lol_set_eoe_timeout((time_t)arg_eoe_timeout);

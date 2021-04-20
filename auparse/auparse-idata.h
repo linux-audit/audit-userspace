@@ -34,8 +34,8 @@ typedef struct _idata {
 	unsigned long long a0;	// arg 0 to the syscall
 	unsigned long long a1;	// arg 1 to the syscall
 	const char *cwd;	// The current working directory
-	const char *name;	// name of field being interpretted
-	const char *val;	// value of field being interpretted
+	const char *name;	// name of field being interpreted
+	const char *val;	// value of field being interpreted
 } idata;
 
 

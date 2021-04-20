@@ -69,7 +69,7 @@ static struct zos_remote_error zos_remote_errlist[] = {
         {ZOS_REMOTE_MAJOR_RACROUTE,     "RACROUTE - The R_auditx service returned an unexpected error"},
         {ZOS_REMOTE_MAJOR_VAL_ERR,      "VAL_ERR - Value error in request"},
         {ZOS_REMOTE_MAJOR_ENC_ERR,      "ENC_ERR - DER decoding error in request"},
-        {ZOS_REMOTE_MAJOR_UNSUF_AUTH,   "UNSUF_AUTH - The user has unsuficient authority for the requested function"},
+        {ZOS_REMOTE_MAJOR_UNSUF_AUTH,   "UNSUF_AUTH - The user has unsufficient authority for the requested function"},
         {ZOS_REMOTE_MAJOR_EMPTY,        "EMPTY - Empty request received - No items found within the ItemList"},
         {ZOS_REMOTE_MAJOR_INVALID_VER,  "INVALID_VER - Invalid RequestVersion"},
         {ZOS_REMOTE_MAJOR_INTERNAL_ERR, "INTERNAL_ERR - An internal error was encountered within the ICTX component"},
