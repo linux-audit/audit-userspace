@@ -34,7 +34,6 @@
 #include <string.h>
 #include <time.h>
 #include <errno.h>
-#include <string.h>
 #include <pthread.h>
 #include <lber.h>
 #include <netinet/in.h>

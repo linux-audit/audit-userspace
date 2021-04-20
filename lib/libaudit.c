@@ -38,7 +38,6 @@
 #include <sys/stat.h>
 #include <fcntl.h>	/* O_NOFOLLOW needs gnu defined */
 #include <limits.h>	/* for PATH_MAX */
-#include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/socket.h> /* AF_MAX */
 #ifdef HAVE_LIBCAP_NG
