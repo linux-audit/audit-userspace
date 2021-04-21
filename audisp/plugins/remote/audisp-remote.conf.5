@@ -16,7 +16,7 @@ This option is an unsigned integer that indicates what local port to
 connect from on the local machine.  If unspecified (the default) or
 set to the word
 .I any
-then any available unpriviledged port is used. This is a security mechanism to prevent untrusted user space apps from injecting events into the audit daemon. You should set it to an unused port < 1024 to ensure that only privileged users can bind to that port. Then also set the tcp_client_ports in the aggregating auditd.conf file to match the ports that clients are sending from.
+then any available unprivileged port is used. This is a security mechanism to prevent untrusted user space apps from injecting events into the audit daemon. You should set it to an unused port < 1024 to ensure that only privileged users can bind to that port. Then also set the tcp_client_ports in the aggregating auditd.conf file to match the ports that clients are sending from.
 .TP
 .I transport
 This parameter tells the remote logging app how to send events to the remote system. The valid options are
@@ -48,7 +48,7 @@ This option is an unsigned integer that determines how many records can be buffe
 .I forward
 mode of the
 .I mode
-option and internal queueing for temporary network outtages. The default depth is 2048.
+option and internal queueing for temporary network outages. The default depth is 2048.
 .TP
 .I format
 This parameter tells the remote logging app what data format will be
@@ -62,7 +62,7 @@ is given instead, each message is a simple ASCII text line with no
 overhead at all. The
 .I ascii
 format is a very simplistic protocol. If there are any network problems, it
-willcause audisp-remote to exit. Auditd may or may not restart it on next
+will cause audisp-remote to exit. Auditd may or may not restart it on next
 event. If something more robust is needed, use the
 .I managed
 format. If
@@ -108,9 +108,9 @@ means that it will issue a warning to syslog. If an event was sent, its dequeued
 .I exec
 /path-to-script will execute the script. You cannot pass parameters to the script. If an event was sent, its dequeued.
 .I warn_once_continue
-is like syslog execept that only one message is put in syslog until an event is successfully transferred.
+is like syslog except that only one message is put in syslog until an event is successfully transferred.
 .I warn_once
-is like warn_once_continue execept that the event is not dequeued.
+is like warn_once_continue except that the event is not dequeued.
 .I Suspend
 will cause the remote logging app to stop sending records to the remote system. The logging app will still be alive. If an event was sent, it is not dequeued. The
 .I single
@@ -179,7 +179,7 @@ means that it will issue a warning to syslog.
 .I exec
 /path-to-script will execute the script. You cannot pass parameters to the script.
 .I warn_once
-is like syslog execept that only one message is put in syslog until an event is successfully transferred.
+is like syslog except that only one message is put in syslog until an event is successfully transferred.
 .I warn_once_continue
 is like warn_once except it ignores the problem. This is the default.
 .TP
