@@ -177,6 +177,7 @@ static void usage(void)
 	"\t--comm\t\t\t\tCommands run report\n"
 	"\t-c,--config\t\t\tConfig change report\n"
 	"\t-cr,--crypto\t\t\tCrypto report\n"
+	"\t--debug\t\t\t\tWrite malformed events that are skipped to stderr\n"
 	"\t--eoe-timeout secs\t\tEnd of Event Timeout\n"
 	"\t-e,--event\t\t\tEvent report\n"
 	"\t--escape option\t\t\tEscape output\n"
