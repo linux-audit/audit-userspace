@@ -24,6 +24,9 @@ Report about config changes
 .BR \-cr ,\  \-\-crypto
 Report about crypto events
 .TP
+.BR \-\-debug
+Write malformed events that are skipped to stderr.
+.TP
 .BR \-\-eoe\-timeout \ \fIseconds\fP
 Set the end of event parsing timeout. See \fBend_of_event_timeout\fP in \fIauditd.conf(5)\fP for details. Note that setting this value will override any configured value found in /etc/auditd/auditd.conf.
 .TP
