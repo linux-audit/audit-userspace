@@ -145,7 +145,7 @@ static void usage(FILE *output)
 	fprintf(output, "usage: auvirt [--stdin] [--all-events] [--summary] "
 			"[--start start-date [start-time]] "
 			"[--end end-date [end-time]] [--file file-name] "
-			"[--show-uuid] [--proof] "
+			"[--show-uuid] [--proof] [--debug] "
 			"[--uuid uuid] [--vm vm-name]\n");
 }
 
