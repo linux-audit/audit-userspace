@@ -179,6 +179,7 @@ static void usage(void)
 	"\t-cr,--crypto\t\t\tCrypto report\n"
 	"\t--eoe-timeout secs\t\tEnd of Event Timeout\n"
 	"\t-e,--event\t\t\tEvent report\n"
+	"\t--escape option\t\t\tEscape output\n"
 	"\t-f,--file\t\t\tFile name report\n"
 	"\t--failed\t\t\tonly failed events in report\n"
 	"\t-h,--host\t\t\tRemote Host name report\n"
