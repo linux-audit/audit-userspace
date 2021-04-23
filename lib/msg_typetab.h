@@ -158,6 +158,7 @@ _S(AUDIT_INTEGRITY_HASH,             "INTEGRITY_HASH"                )
 _S(AUDIT_INTEGRITY_PCR,              "INTEGRITY_PCR"                 )
 _S(AUDIT_INTEGRITY_RULE,             "INTEGRITY_RULE"                )
 _S(AUDIT_INTEGRITY_EVM_XATTR,        "INTEGRITY_EVM_XATTR"           )
+_S(AUDIT_INTEGRITY_POLICY_RULE,      "INTEGRITY_POLICY_RULE"         )
 
 #ifdef WITH_APPARMOR
 _S(AUDIT_AA,                         "APPARMOR"                      )
@@ -167,6 +168,7 @@ _S(AUDIT_APPARMOR_DENIED,            "APPARMOR_DENIED"               )
 _S(AUDIT_APPARMOR_HINT,              "APPARMOR_HINT"                 )
 _S(AUDIT_APPARMOR_STATUS,            "APPARMOR_STATUS"               )
 _S(AUDIT_APPARMOR_ERROR,             "APPARMOR_ERROR"                )
+_S(AUDIT_APPARMOR_KILL,              "APPARMOR_KILL"                 )
 #endif
 _S(AUDIT_KERNEL,                     "KERNEL"                        )
 _S(AUDIT_ANOM_LOGIN_FAILURES,        "ANOM_LOGIN_FAILURES"           )
