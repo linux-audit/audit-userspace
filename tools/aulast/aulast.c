@@ -45,7 +45,8 @@ static char *cterm = NULL, *user = NULL;
 void usage(void)
 {
 	fprintf(stderr,
- "usage: aulast [--bad] [--stdin] [--proof] [--extract] [-f file] [--user name] [--tty tty]\n");
+ "usage: aulast [--bad] [--debug] [--stdin] [--proof] [--extract] [-f file] "
+ "[--user name] [--tty tty]\n");
 }
 
 /* This outputs a line of text reporting the login/out times */
