@@ -1,4 +1,4 @@
-# This rule supresses events that originate on the below file systems.
+# This rule suppresses events that originate on the below file systems.
 # Typically you would use this in conjunction with rules to monitor
 # kernel modules. The filesystem listed are known to cause hundreds of
 # path records during kernel module load. As an aside, if you do see the

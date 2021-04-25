@@ -1,4 +1,4 @@
-## This file contains the a sample audit configuration intended to
+## This file contains a sample audit configuration intended to
 ## meet the NISPOM Chapter 8 rules. This rule depends on having
 ## 10-base-config.rules & 99-finalize.rules installed.
 

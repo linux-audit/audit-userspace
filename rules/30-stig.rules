@@ -8,7 +8,7 @@
 ## 3) It is also assumed that 1000 represents the first usable user account. To
 ##    be sure, look at UID_MIN in /etc/login.defs.
 ## 4) If these rules generate too much spurious data for your tastes, limit the
-## the syscall file rules with a directory, like -F dir=/etc
+##    syscall file rules with a directory, like -F dir=/etc
 ## 5) You can search for the results on the key fields in the rules
 ##
 ##
