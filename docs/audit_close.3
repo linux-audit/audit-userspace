@@ -1,0 +1,27 @@
+.TH "AUDIT_CLOSE" "3" "Apr 2021" "Red Hat" "Linux Audit API"
+.SH NAME
+audit_close \- Close the audit netlink socket connection
+.SH "SYNOPSIS"
+.nf
+.B #include <libaudit.h>
+.PP
+.BI "void audit_close(int " fd );
+.fi
+.SH "DESCRIPTION"
+.BR audit_close ()
+closes the NETLINK_AUDIT socket that communicates with the kernel part of the Linux Audit Subsystem.
+.I fd
+must have been returned by
+.BR audit_open (3).
+
+.SH "RETURN VALUE"
+
+None.
+
+.SH "SEE ALSO"
+
+.BR audit_open (3),
+.BR netlink (7).
+
+.SH AUTHOR
+Steve Grubb
