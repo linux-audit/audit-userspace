@@ -124,6 +124,7 @@ extern "C" {
 #define AUDIT_APPARMOR_HINT		1504
 #define AUDIT_APPARMOR_STATUS		1505
 #define AUDIT_APPARMOR_ERROR		1506
+#define AUDIT_APPARMOR_KILL		1507
 #endif
 
 #define AUDIT_FIRST_KERN_CRYPTO_MSG	1600
@@ -144,6 +145,9 @@ extern "C" {
 #endif
 #ifndef AUDIT_INTEGRITY_EVM_XATTR
 #define AUDIT_INTEGRITY_EVM_XATTR	1806 /* New EVM-covered xattr */
+#endif
+#ifndef AUDIT_INTEGRITY_POLICY_RULE
+#define AUDIT_INTEGRITY_POLICY_RULE	1807 /* Integrity Policy rule */
 #endif
 
 #define AUDIT_FIRST_ANOM_MSG		2100
