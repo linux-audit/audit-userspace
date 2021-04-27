@@ -664,7 +664,7 @@ extern int audit_delete_rule_data(int fd, struct audit_rule_data *rule,
                                   int flags, int action);
 
 /* The following are for standard formatting of messages */
-extern int audit_value_needs_encoding(const char *str, unsigned int len);
+extern int audit_value_needs_encoding(const char *str, unsigned int size);
 extern char *audit_encode_value(char *final,const char *buf,unsigned int size);
 extern char *audit_encode_nv_string(const char *name, const char *value,
 	unsigned int vlen);
