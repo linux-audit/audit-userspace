@@ -836,7 +836,7 @@ static int negotiate_credentials (void)
 	if (gethostname(host_name, sizeof(host_name)) != 0) {
 		if (!quiet)
 			syslog (LOG_ERR,
-			"gethostname: host name longer than %u characters?",
+			"gethostname: host name longer than %lu characters?",
 				sizeof (host_name));
 		return -1;
 	}
