@@ -1,0 +1,27 @@
+.TH "AUDIT_VALUE_NEEDS_ENCODING" "3" "Apr 2021" "Red Hat" "Linux Audit API"
+.SH NAME
+audit_value_needs_encoding \- check a string to see if it needs encoding
+.SH "SYNOPSIS"
+.nf
+.B #include <libaudit.h>
+.PP
+.BI "int audit_value_needs_encoding(const char *" str ", unsigned int " size ");
+.fi
+.SH "DESCRIPTION"
+.BR audit_value_needs_encoding ()
+checks a string to see if it needs encoding. Specifically, this function checks if the string contains a space, a double-quote, or a control character.
+.I str
+is the string to check if encoding is needed.
+.I size
+is the length of str.
+
+.SH "RETURN VALUE"
+
+The return value if encoding is needed is 1. If not needed is 0.
+
+.SH "SEE ALSO"
+
+.BR audit_encode_nv_string (3).
+
+.SH AUTHOR
+Steve Grubb
