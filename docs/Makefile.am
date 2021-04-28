@@ -33,11 +33,13 @@ audit_get_reply.3 audit_get_session.3 \
 audit_log_acct_message.3 audit_log_user_avc_message.3 \
 audit_log_user_command.3 audit_log_user_comm_message.3 \
 audit_log_user_message.3 audit_log_semanage_message.3 \
-auparse_new_buffer.3 audit_open.3 audit_close.3 audit_request_rules_list_data.3 \
+auparse_new_buffer.3 audit_open.3 audit_close.3 \
+audit_request_rules_list_data.3 \
 audit_request_signal_info.3 audit_request_status.3 audit.rules.7 \
 audit_set_backlog_limit.3 audit_set_enabled.3 audit_set_failure.3 \
 audit_setloginuid.3 audit_set_pid.3 audit_set_rate_limit.3 \
-audit_update_watch_perms.3 auparse_add_callback.3 \
+audit_update_watch_perms.3 audit_value_needs_encoding.3 \
+auparse_add_callback.3 \
 auparse_destroy.3 auparse_feed.3 auparse_feed_age_events.3 \
 auparse_feed_has_data.3 auparse_find_field.3 \
 auparse_find_field_next.3 auparse_first_field.3 auparse_first_record.3 \
