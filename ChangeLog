@@ -3,6 +3,7 @@
 - Optionally interpret auid in auditctl -l
 - Update some syscall argument interpretations
 - In auditd, do not allow spaces in the hostname name format
+- Big documentation cleanup (MIZUTA Takeshi)
 
 3.0.1
 - Update syscall table to the 5.11 kernel
