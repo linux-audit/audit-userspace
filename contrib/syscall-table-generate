@@ -1,0 +1,98 @@
+#!/bin/sh
+#
+# Copyright (C) 2021 TDT AG <development@tdt.de>
+#
+# This is free software, licensed under the GNU General Public License v2.
+# See https://www.gnu.org/licenses/gpl-2.0.txt for more information.
+#
+
+usage() {
+	local status="$1"
+	local msg="$2"
+	if [ -n "$msg" ]; then
+		echo "$msg"
+		echo ""
+	fi
+	echo "Usage: $(basename "$0") <input-file> <output-file>"
+	echo "input-file:"
+	echo "   This is an input file from the github project"
+	echo "   https://github.com/hrw/syscalls-table.git"
+	echo "   The files are found in project subdirectory \"tables\","
+	echo "   and does have the following structure:"
+	echo "   <syscall_name><TAB><syscall_number>"
+	echo "   Only supported syscall does have a syscall number."
+	echo ""
+	echo "output-file:"
+	echo "    This generated syscall file is written to this file."
+	echo "    The file must exist on the system. Normaly this is the"
+	echo "    file found under \"libs\" of this project."
+	echo ""
+	exit "$status"
+}
+
+check_command() {
+	local cmd="$1"
+	local result
+
+	result="$(command -v $cmd)"
+	if [ -z "$result" ]; then
+		echo "\"$cmd\" not found"
+		exit 1
+	fi
+}
+
+check_commands() {
+	check_command "rm"
+	check_command "sed"
+	check_command "sort"
+	check_command "echo"
+	check_command "mktemp"
+	check_command "basename"
+	check_command "printf"
+}
+
+main() {
+	local input="$1"
+	local output="$2"
+
+	[ -f "$input" ] || {
+		echo "Input file does not exist"
+		usage 1
+	}
+
+	[ -f "$output" ] || {
+		echo "output file does not exist"
+		usage 1
+	}
+
+	check_shell_env
+
+	tempfile="$(mktemp)" || exit 1
+	sortfile="$(mktemp)" || exit 1
+	while read -r line; do
+		name="$(printf %s "$line" | cut  -f 1)"
+		number="$(printf %s "$line" | cut -f 2)"
+		if [ "$number" != "$name" ]; then
+			echo "$number $name" >> "${tempfile}"
+		else
+			echo "This syscall \"$name\" os not support on this architecture"
+		fi
+	done < "$input"
+
+	sort --key 1 --numeric-sort "${tempfile}" > "${sortfile}" || exit 1
+
+	sed -i '/_S/d' "$output"
+	sed -i '/^$/d' "$output"
+	echo "" >> "$output"
+	while read -r line; do
+		number="$(printf %s "$line" | cut -d' ' -f 1)"
+		name="$(printf %s "$line" | cut -d' ' -f 2)"
+		echo "Add Syscall $name($number) to file $output"
+		echo "_S($number, \"$name\")" >> "$output"
+	done < "${sortfile}"
+
+	rm -f "${tempfile}"
+	rm -f "${sortfile}"
+}
+
+main "$@"
