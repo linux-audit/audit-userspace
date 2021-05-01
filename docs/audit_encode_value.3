@@ -1,0 +1,36 @@
+.TH "AUDIT_ENCODE_VALUE" "3" "May 2021" "Red Hat" "Linux Audit API"
+.SH NAME
+audit_encode_value \- encode input string to ASCII code string
+.SH "SYNOPSIS"
+.nf
+.B #include <libaudit.h>
+.PP
+.BI "char *audit_encode_value(char *" final ", const char *" buf ", unsigned int " size ");
+.fi
+.SH "DESCRIPTION"
+.BR audit_encode_value ()
+encodes a string given by 
+.I buf
+to a ASCII code string.
+.I final
+is the hexadecimal string encoded to ASCII code.
+.I size
+is the length of the string given by
+.IR buf .
+
+e.g.: "foo bar" is encoded as "666F6F20626172". "\\1\\2\\3\\4" is encoded as "01020304".
+
+.SH "RETURN VALUE"
+
+Returns a encoded string same as
+.I final
+or, NULL on error.
+
+.SH "SEE ALSO"
+
+.BR audit_encode_nv_string (3),
+.BR audit_value_needs_encoding (3).
+
+.SH AUTHOR
+Steve Grubb
+
