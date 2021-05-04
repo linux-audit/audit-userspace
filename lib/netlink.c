@@ -28,12 +28,15 @@
 #include <fcntl.h>
 #include <time.h>
 #include <sys/poll.h>
+#include <pthread.h>
 #include "libaudit.h"
 #include "private.h"
 
 #ifndef NETLINK_AUDIT
 #define NETLINK_AUDIT 9
 #endif
+
+pthread_mutex_t sequence_lock = PTHREAD_MUTEX_INITIALIZER;
 
 static int adjust_reply(struct audit_reply *rep, int len);
 static int check_ack(int fd);
@@ -220,9 +223,13 @@ int __audit_send(int fd, int type, const void *data, unsigned int size, int *seq
 		return -errno;
 	}
 
+	pthread_mutex_lock(&sequence_lock);
+
 	if (++sequence < 0) 
 		sequence = 1;
 	*seq = sequence;
+
+	pthread_mutex_unlock(&sequence_lock);
 
 	memset(&req, 0, sizeof(req));
 	req.nlh.nlmsg_len = NLMSG_SPACE(size);
