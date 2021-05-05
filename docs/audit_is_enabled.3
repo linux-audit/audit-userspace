@@ -1,0 +1,27 @@
+.TH "AUDIT_IS_ENABLED" "3" "May 2021" "Red Hat" "Linux Audit API"
+.SH NAME
+audit_is_enabled \- judge whether auditing is enabled or not
+.SH "SYNOPSIS"
+.nf
+.B #include <libaudit.h>
+.PP
+.BI "int audit_is_enabled(int " fd ");
+.fi
+.SH "DESCRIPTION"
+.BR audit_is_enabled ()
+judges whether auditing is enabled or not.
+.I fd
+must have been returned by
+.BR audit_open (3).
+
+.SH "RETURN VALUE"
+
+This function will return 0 if auditing is NOT enabled and 1 if enabled, and -1 on error.
+
+.SH "SEE ALSO"
+
+.BR audit_set_enabled (3).
+
+.SH AUTHOR
+Steve Grubb
+
