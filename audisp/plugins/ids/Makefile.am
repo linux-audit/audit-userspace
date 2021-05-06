@@ -23,7 +23,7 @@
 CONFIG_CLEAN_FILES = *.loT *.rej *.orig
 EXTRA_DIST = audisp-ids.conf ids.conf TODO README.md
 SUBDIRS = rules
-AM_CPPFLAGS = -I${top_srcdir} -I${top_srcdir}/lib -I${top_srcdir}/common
+AM_CPPFLAGS = -I${top_srcdir} -I${top_srcdir}/lib -I${top_srcdir}/common -I${top_srcdir}/auparse
 prog_confdir = $(sysconfdir)/audit
 prog_conf = ids.conf
 plugin_confdir=$(prog_confdir)/plugins.d
