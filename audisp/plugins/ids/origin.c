@@ -151,8 +151,11 @@ int del_origin(unsigned int addr)
 				my_printf("origin: deleting unknown address");
 			return 1;
 		}
-	} else if (debug)
-		my_printf("origin: didn't find address");
+	} else {
+		if (debug)
+			my_printf("origin: didn't find address");
+		return 1;
+	}
 
 	// Now free any data pointed to by tmp2
 	free_origin(tmp2);

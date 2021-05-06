@@ -339,6 +339,11 @@ int main(void)
 	auparse_set_eoe_timeout(5);
 	auparse_add_callback(au, handle_event, NULL, NULL);
 	audit_fd = audit_open();
+	if (audit_fd < 0) {
+		close(d.sock);
+		syslog(LOG_ERR, "unable to open audit socket");
+		return 1;
+	}
 	auditd_pid = getppid();
 	fcntl(0, F_SETFL, O_NONBLOCK); /* Set STDIN non-blocking */
 	pfd[0].fd = 0;		// add stdin to the poll group

@@ -155,8 +155,12 @@ int del_account(const char *name)
 				my_printf("account: deleting unknown name");
 			return 1;
 		}
-	} else if (debug)
-		my_printf("account: didn't find name");
+	} else {
+		if (debug)
+			my_printf("account: didn't find name");
+
+		return 1;
+	}
 
 	// Now free any data pointed to by tmp2
 	free_account(tmp2);
