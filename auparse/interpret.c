@@ -1242,7 +1242,7 @@ static const char *print_flags(const char *val)
 {
         int flags, cnt = 0;
 	size_t i;
-	char *out, buf[sizeof(flag_strings)];
+	char *out, buf[sizeof(flag_strings)+FLAG_NUM_ENTRIES+1];
 
         errno = 0;
         flags = strtoul(val, NULL, 16);
@@ -1377,7 +1377,7 @@ static const char *print_open_flags(const char *val)
 	size_t i;
 	unsigned int flags;
 	int cnt = 0;
-	char *out, buf[sizeof(open_flag_strings)+8];
+	char *out, buf[sizeof(open_flag_strings)+OPEN_FLAG_NUM_ENTRIES+1];
 
 	errno = 0;
 	flags = strtoul(val, NULL, 16);
@@ -1414,8 +1414,8 @@ static const char *print_open_flags(const char *val)
 static const char *print_clone_flags(const char *val)
 {
 	unsigned int flags, i, clone_sig;
-	int cnt = 0;
-	char *out, buf[sizeof(clone_flag_strings)+16];// + 10 for signal name
+	int cnt = 0;                                  // + 10 for signal name
+	char *out, buf[sizeof(clone_flag_strings)+CLONE_FLAG_NUM_ENTRIES+10];
 
 	errno = 0;
 	flags = strtoul(val, NULL, 16);
@@ -1524,7 +1524,7 @@ static const char *print_prot(const char *val, unsigned int is_mmap)
 {
 	unsigned int prot, i, limit;
 	int cnt = 0;
-	char buf[144];
+	char buf[sizeof(prot_strings)+PROT_NUM_ENTRIES+1];
 	char *out;
 
 	errno = 0;
@@ -1566,7 +1566,7 @@ static const char *print_mmap(const char *val)
 {
 	unsigned int maps, i;
 	int cnt = 0;
-	char buf[sizeof(mmap_strings)+8];
+	char buf[sizeof(mmap_strings)+MMAP_NUM_ENTRIES+1];
 	char *out;
 
 	errno = 0;
@@ -1677,7 +1677,7 @@ static const char *print_mount(const char *val)
 {
 	unsigned int mounts, i;
 	int cnt = 0;
-	char buf[sizeof(mount_strings)+8];
+	char buf[sizeof(mount_strings)+MOUNT_NUM_ENTRIES+1];
 	char *out;
 
 	errno = 0;
@@ -1732,7 +1732,7 @@ static const char *print_recv(const char *val)
 {
 	unsigned int rec, i;
 	int cnt = 0;
-	char buf[sizeof(recv_strings)+8];
+	char buf[sizeof(recv_strings)+RECV_NUM_ENTRIES+1];
 	char *out;
 
 	errno = 0;
@@ -1764,7 +1764,7 @@ static const char *print_recv(const char *val)
 static const char *print_access(const char *val)
 {
 	unsigned long mode;
-	char buf[16];
+	char buf[sizeof(access_strings)+ACCESS_NUM_ENTRIES+1];
 	unsigned int i, cnt = 0;
 
 	errno = 0;
@@ -2011,7 +2011,7 @@ static const char *print_shmflags(const char *val)
 {
 	unsigned int flags, partial, i;
 	int cnt = 0;
-	char *out, buf[sizeof(shm_mode_strings)+sizeof(ipccmd_strings)+8];
+	char *out, buf[sizeof(shm_mode_strings)+sizeof(ipccmd_strings)+SHM_MODE_NUM_ENTRIES+IPCCMD_NUM_ENTRIES+1];
 
 	errno = 0;
 	flags = strtoul(val, NULL, 16);
@@ -2092,7 +2092,7 @@ static const char *print_umount(const char *val)
 {
 	unsigned int flags, i;
 	int cnt = 0;
-	char buf[sizeof(umount_strings)+8];
+	char buf[sizeof(umount_strings)+UMOUNT_NUM_ENTRIES+1];
 	char *out;
 
 	errno = 0;
