@@ -168,10 +168,10 @@ static int process_logs(void)
 	int num = 0;
 
 	if (user_file && userfile_is_dir) {
-		char dirname[MAXPATHLEN];
+		char dirname[MAXPATHLEN+1];
 		clear_config (&config);
 
-		strcpy(dirname, user_file);
+		strncpy(dirname, user_file, MAXPATHLEN-32);
 		if (dirname[strlen(dirname)-1] != '/')
 			strcat(dirname, "/");
 		strcat (dirname, "audit.log");

@@ -1242,7 +1242,7 @@ static const char *print_flags(const char *val)
 {
         int flags, cnt = 0;
 	size_t i;
-	char *out, buf[80];
+	char *out, buf[sizeof(flag_strings)];
 
         errno = 0;
         flags = strtoul(val, NULL, 16);
