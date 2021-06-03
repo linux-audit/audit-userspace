@@ -142,7 +142,6 @@ void databuf_print(DataBuf *db, int print_data, char *fmt, ...)
            fmt?" ":"", db->alloc_size, db->alloc_ptr, db->offset, databuf_beg(db), db->len, db->max_len);
 
     if (db->flags & DATABUF_FLAG_PRESERVE_HEAD) printf("PRESERVE_HEAD ");
-    if (db->flags & DATABUF_FLAG_STRING)        printf("STRING ");
     printf("]");
     
     if (print_data) {
@@ -171,9 +170,6 @@ int databuf_init(DataBuf *db, size_t size, unsigned flags)
             return -1;
         }
     }
-
-    // For strings intialize with initial NULL terminator
-    if (flags & DATABUF_FLAG_STRING) databuf_append(db, "", 1);
 
     return 1;
 }
@@ -319,7 +315,7 @@ int main(int argc, char **argv)
     char *data;
     int rc;
 
-    rc = databuf_init(&buf, size, DATABUF_FLAG_STRING);
+    rc = databuf_init(&buf, size, 0);
     assert(rc);
     databuf_print(&buf, 1, "after init size=%d", size);
 
