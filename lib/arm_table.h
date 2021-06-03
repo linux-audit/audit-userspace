@@ -423,3 +423,5 @@ _S(438, "pidfd_getfd")
 _S(439, "faccessat2")
 _S(440, "process_madvise")
 _S(441, "epoll_pwait2")
+_S(442, "mount_setattr")
+
