@@ -35,7 +35,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+#include <string.h> // for memmove()
 #include <assert.h>
 #include <stdarg.h>
 #include <errno.h>
@@ -85,7 +85,6 @@
 /*****************************************************************************/
 
 static int databuf_shift_data_to_beginning(DataBuf *db);
-static int databuf_strcat(DataBuf *db, const char *str);
 
 /*****************************************************************************/
 /*************************  External Global Variables  ***********************/
@@ -174,7 +173,7 @@ int databuf_init(DataBuf *db, size_t size, unsigned flags)
     }
 
     // For strings intialize with initial NULL terminator
-    if (flags & DATABUF_FLAG_STRING) databuf_strcat(db, "");
+    if (flags & DATABUF_FLAG_STRING) databuf_append(db, "", 1);
 
     return 1;
 }
@@ -254,33 +253,6 @@ int databuf_replace(DataBuf *db, const char *src, size_t src_size)
     return databuf_append(db, src, src_size);
 }
 
-static int databuf_strcat(DataBuf *db, const char *str)
-{
-    size_t str_len;
-
-    DATABUF_VALIDATE(db);
-
-    if (str == NULL) return 0;
-
-    // +1 so the data append also copies the NULL terminator
-    str_len = strlen(str) + 1;
-
-    // If there is a NULL terminator exclude it so the subsequent
-    // data append produces a proper string concatenation
-    if (db->len > 0) {
-        char *last_char = databuf_end(db) - 1;
-        if (last_char && *last_char == 0) {
-            db->len--;          // backup over NULL terminator
-        }
-    }
-
-    // Copy string and NULL terminator
-    databuf_append(db, str, str_len);
-
-    DATABUF_VALIDATE(db);
-    return 1;
-}
-
 int databuf_advance(DataBuf *db, size_t advance)
 {
     size_t actual_advance;
@@ -350,21 +322,6 @@ int main(int argc, char **argv)
     rc = databuf_init(&buf, size, DATABUF_FLAG_STRING);
     assert(rc);
     databuf_print(&buf, 1, "after init size=%d", size);
-
-#if 1
-    data = "a";
-    assert(databuf_strcat(&buf, data));
-    databuf_print(&buf, 1, "after strcat(%s)", data);
-
-    data = "bb";
-    assert(databuf_strcat(&buf, data));
-    databuf_print(&buf, 1, "after strcat(%s)", data);
-
-    data = "ccc";
-    assert(databuf_strcat(&buf, data));
-    databuf_print(&buf, 1, "after strcat(%s)", data);
-
-#endif
 
     databuf_free(&buf);
 
