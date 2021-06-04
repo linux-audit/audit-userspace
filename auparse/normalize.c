@@ -494,7 +494,16 @@ static void set_socket_object(auparse_state_t *au)
 static int set_program_obj(auparse_state_t *au)
 {
 	auparse_first_record(au);
-	if (auparse_find_field(au, "exe")) {
+	int type = auparse_get_type(au);
+
+	if (type == AUDIT_BPF) {
+		if (auparse_find_field(au, "prog-id")) {
+			D.thing.primary = set_record(0,
+					auparse_get_record_num(au));
+			D.thing.primary = set_field(D.thing.primary,
+					auparse_get_field_num(au));
+		}
+	} else if (auparse_find_field(au, "exe")) {
 		const char *exe = auparse_interpret_field(au);
 		if ((strncmp(exe, "/usr/bin/python", 15) == 0) ||
 		    (strncmp(exe, "/usr/bin/sh", 11) == 0) ||
@@ -514,16 +523,8 @@ static int set_program_obj(auparse_state_t *au)
 		D.thing.primary = set_field(D.thing.primary,
 				auparse_get_field_num(au));
 		return 0;
-	} else {
-		// Maybe its a BPF program?
-		auparse_first_record(au);
-		if (auparse_find_field(au, "prog-id")) {
-			D.thing.primary = set_record(0,
-					auparse_get_record_num(au));
-			D.thing.primary = set_field(D.thing.primary,
-					auparse_get_field_num(au));
-		}
 	}
+
 	return 1;
 }
 
@@ -568,10 +569,11 @@ static int normalize_syscall(auparse_state_t *au, const char *syscall)
 			objtype = NORM_MAC_CONFIG;
 			break;
 		} else if (ttype == AUDIT_FANOTIFY) {
+			// We want to go ahead with syscall to get objects
 			tmp_objkind = NORM_AV;
 			break;
 		} else if (ttype == AUDIT_BPF) {
-			tmp_objkind = NORM_BPF;
+			objtype = NORM_BPF;
 			break;
 		}
 		rc = auparse_next_record(au);
@@ -946,7 +948,6 @@ static const char *normalize_determine_evkind(int type)
 		case AUDIT_TEST ... AUDIT_TRUSTED_APP:
 		case AUDIT_USER_CMD:
 		case AUDIT_CHUSER_ID:
-		case AUDIT_BPF:
 			kind = NORM_EVTYPE_USERSPACE;
 			break;
 		case AUDIT_USER_TTY:
@@ -997,6 +998,9 @@ static const char *normalize_determine_evkind(int type)
 		case AUDIT_FANOTIFY:
 			kind = NORM_EVTYPE_AV_DECISION;
 			break;
+		case AUDIT_BPF:
+			kind = NORM_EVTYPE_BPF;
+			break;
 		default:
 			kind = NORM_EVTYPE_UNKNOWN;
 	}
@@ -1016,10 +1020,11 @@ static int normalize_compound(auparse_state_t *au)
 	if (type == AUDIT_NETFILTER_CFG || type == AUDIT_ANOM_PROMISCUOUS ||
 		type == AUDIT_AVC || type == AUDIT_SELINUX_ERR ||
 		type == AUDIT_MAC_POLICY_LOAD || type == AUDIT_MAC_STATUS ||
-		type == AUDIT_MAC_CONFIG_CHANGE || type == AUDIT_FANOTIFY) {
+		type == AUDIT_MAC_CONFIG_CHANGE || type == AUDIT_FANOTIFY ||
+		type == AUDIT_BPF) {
 		auparse_next_record(au);
 		type = auparse_get_type(au);
-	} else if (type == AUDIT_ANOM_LINK) {
+	} else if (type == AUDIT_ANOM_LINK) { // Skip ahead 2 records
 		auparse_next_record(au);
 		auparse_next_record(au);
 		type = auparse_get_type(au);
@@ -1811,7 +1816,7 @@ int auparse_normalize(auparse_state_t *au, normalize_option_t opt)
 	if (num > 1)
 		rc = normalize_compound(au);
 	else
-		rc = normalize_simple(au);	
+		rc = normalize_simple(au);
 
 	// Reset the cursor
 	auparse_first_record(au);

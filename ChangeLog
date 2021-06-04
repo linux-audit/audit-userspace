@@ -5,6 +5,7 @@
 - In auditd, do not allow spaces in the hostname name format
 - Big documentation cleanup (MIZUTA Takeshi)
 - Update syscall table to the 5.12 kernel
+- Update the auparse normalizer for new event types
 
 3.0.1
 - Update syscall table to the 5.11 kernel
