@@ -1604,6 +1604,7 @@ map:
 
 		// Subject attrs
 		collect_simple_subj_attr(au);
+		D.actor.what = strdup("auditd");
 
 		// action
 		act = normalize_record_map_i2s(type);
@@ -1612,6 +1613,12 @@ map:
 
 		// Object type
 		D.thing.what = NORM_WHAT_SERVICE;
+
+		// How start:init, everything else:signal
+		if (type == AUDIT_DAEMON_START)
+			D.how = strdup("init");
+		else if (type < AUDIT_DAEMON_ACCEPT && type != AUDIT_DAEMON_ABORT)
+			D.how = strdup("signal");
 
 		// Results
 		set_results(au, 0);
