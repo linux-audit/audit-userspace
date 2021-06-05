@@ -1,6 +1,6 @@
 /*
 * ausearch-parse.c - Extract interesting fields and check for match
-* Copyright (c) 2005-08,2011,2013-14,2018-20 Red Hat
+* Copyright (c) 2005-08,2011,2013-14,2018-21 Red Hat
 * Copyright (c) 2011 IBM Corp. 
 * All Rights Reserved. 
 *
@@ -2731,6 +2731,23 @@ static int parse_kernel(lnode *n, search_items *s)
 		} else
 			s->exe = strdup("(null)");
 	}
+	// optionally get res
+	if (event_success != S_UNSET) {
+		str = strstr(term, "res=");
+		if (str != NULL) {
+			ptr = str + 4;
+			term = strchr(ptr, ' ');
+			if (term)
+				*term = 0;
+			errno = 0;
+			s->success = strtoul(ptr, NULL, 10);
+			if (errno)
+				return 7;
+			if (term)
+				*term = ' ';
+		}
+	}
+
 	return 0;
 }
 
