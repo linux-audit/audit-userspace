@@ -579,6 +579,10 @@ static int normalize_syscall(auparse_state_t *au, const char *syscall)
 			// We want to go ahead with syscall to get objects
 			tmp_objkind = NORM_AV;
 			break;
+		} else if (ttype == AUDIT_TIME_INJOFFSET ||
+			   ttype == AUDIT_TIME_ADJNTPVAL) {
+			objtype = NORM_SYSTEM_TIME;
+			break;
 		} else if (ttype == AUDIT_BPF) {
 			objtype = NORM_BPF;
 			break;
@@ -960,7 +964,9 @@ static const char *normalize_determine_evkind(int type)
 		case AUDIT_USYS_CONFIG:
 		case AUDIT_CONFIG_CHANGE:
 		case AUDIT_NETFILTER_CFG:
-		case AUDIT_FEATURE_CHANGE ... AUDIT_REPLACE:
+		case AUDIT_FEATURE_CHANGE:
+		case AUDIT_TIME_INJOFFSET:
+		case AUDIT_TIME_ADJNTPVAL:
 		case AUDIT_USER_DEVICE:
 		case AUDIT_SOFTWARE_UPDATE:
 			kind = NORM_EVTYPE_CONFIG;
@@ -1044,8 +1050,8 @@ static int normalize_compound(auparse_state_t *au)
 	if (type == AUDIT_NETFILTER_CFG || type == AUDIT_ANOM_PROMISCUOUS ||
 		type == AUDIT_AVC || type == AUDIT_SELINUX_ERR ||
 		type == AUDIT_MAC_POLICY_LOAD || type == AUDIT_MAC_STATUS ||
-		type == AUDIT_MAC_CONFIG_CHANGE || type == AUDIT_FANOTIFY ||
-		type == AUDIT_BPF || type == AUDIT_EVENT_LISTENER) {
+		type == AUDIT_MAC_CONFIG_CHANGE ||
+		(type >= AUDIT_FANOTIFY && type <= AUDIT_EVENT_LISTENER) ) {
 		auparse_next_record(au);
 		type = auparse_get_type(au);
 	} else if (type == AUDIT_ANOM_LINK) { // Skip ahead 2 records
