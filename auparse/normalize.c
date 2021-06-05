@@ -1440,7 +1440,8 @@ static int normalize_simple(auparse_state_t *au)
 	// This is for events that follow:
 	// auid, (op), (uid), stuff
 	if (type == AUDIT_CONFIG_CHANGE || type == AUDIT_FEATURE_CHANGE ||
-			type == AUDIT_SECCOMP || type == AUDIT_ANOM_ABEND) {
+			type == AUDIT_SECCOMP || type == AUDIT_ANOM_ABEND ||
+			type == AUDIT_ANOM_PROMISCUOUS) {
 		// Subject - primary
 		set_prime_subject(au, "auid", 0);
 
@@ -1545,6 +1546,13 @@ map:
 				const char *sig = auparse_interpret_field(au);
 				D.how = strdup(sig);
 			}
+		}
+		if (type == AUDIT_ANOM_PROMISCUOUS) {
+			auparse_first_field(au);
+			set_prime_object(au, "dev", 0);
+			set_secondary_subject(au, "uid", 0);
+
+			D.thing.what = NORM_WHAT_SOCKET;
 		}
 
 		// Results
