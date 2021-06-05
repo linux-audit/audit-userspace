@@ -2849,6 +2849,29 @@ static const char *print_seccomp_code(const char *val)
 	return out;
 }
 
+static const char *nlmcgrp[2]= { "audit-none", "audit-netlink-multicast" };
+static const char *print_nlmcgrp(const char *val)
+{
+	unsigned long nl;
+
+	errno = 0;
+        nl = strtoul(val, NULL, 16);
+	if (errno) {
+		char *out;
+		if (asprintf(&out, "conversion error(%s)", val) < 0)
+			out = NULL;
+		return out;
+	}
+
+	switch (nl)
+	{
+		default:
+			return strdup(nlmcgrp[0]);
+		case AUDIT_NLGRP_READLOG:
+			return strdup(nlmcgrp[1]);
+	}
+}
+
 int lookup_type(const char *name)
 {
 	int i;
@@ -3088,6 +3111,9 @@ unknown:
 			break;
 		case AUPARSE_TYPE_FANOTIFY:
 			out = print_fanotify(id->val);
+			break;
+		case AUPARSE_TYPE_NLMCGRP:
+			out = print_nlmcgrp(id->val);
 			break;
 		case AUPARSE_TYPE_MAC_LABEL:
 		case AUPARSE_TYPE_UNCLASSIFIED:

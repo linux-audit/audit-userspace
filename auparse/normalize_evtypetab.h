@@ -1,5 +1,5 @@
 /* normalize_evtypetab.h --
- * Copyright 2017 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2017,2021 Red Hat Inc.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or

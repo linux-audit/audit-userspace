@@ -1,6 +1,6 @@
 /*
  * normalize-internal.h
- * Copyright (c) 2016-18 Red Hat Inc., Durham, North Carolina.
+ * Copyright (c) 2016-18,21 Red Hat Inc.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -72,6 +72,7 @@
 #define NORM_SCHEDULER		36
 #define NORM_AV			37
 #define NORM_BPF		38
+#define NORM_EV_LISTEN		39
 
 // This enum is used to map what the system objects are
 #define NORM_WHAT_UNKNOWN	0

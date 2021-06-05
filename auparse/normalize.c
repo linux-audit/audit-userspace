@@ -503,6 +503,13 @@ static int set_program_obj(auparse_state_t *au)
 			D.thing.primary = set_field(D.thing.primary,
 					auparse_get_field_num(au));
 		}
+	} else if (type == AUDIT_EVENT_LISTENER) {
+		if (auparse_find_field(au, "nl-mcgrp")) {
+			D.thing.primary = set_record(0,
+					auparse_get_record_num(au));
+			D.thing.primary = set_field(D.thing.primary,
+					auparse_get_field_num(au));
+		}
 	} else if (auparse_find_field(au, "exe")) {
 		const char *exe = auparse_interpret_field(au);
 		if ((strncmp(exe, "/usr/bin/python", 15) == 0) ||
@@ -574,6 +581,9 @@ static int normalize_syscall(auparse_state_t *au, const char *syscall)
 			break;
 		} else if (ttype == AUDIT_BPF) {
 			objtype = NORM_BPF;
+			break;
+		} else if (ttype == AUDIT_EVENT_LISTENER) {
+			objtype = NORM_EV_LISTEN;
 			break;
 		}
 		rc = auparse_next_record(au);
@@ -875,6 +885,20 @@ static int normalize_syscall(auparse_state_t *au, const char *syscall)
 			D.thing.what = NORM_WHAT_PROCESS;
 			set_program_obj(au);
 			break;
+		case NORM_EV_LISTEN:
+			auparse_first_record(au);
+			f = auparse_find_field(au, "op");
+			if (f) {
+				const char *str = auparse_get_field_str(au);
+				if (strcmp(str, "connect") == 0)
+					act = "connected-to";
+				else
+					act = "disconnected-from";
+			} else
+				act = "connected";
+			D.thing.what = NORM_WHAT_SOCKET;
+			set_program_obj(au);
+			break;
 		default:
 			{
 				const char *k;
@@ -939,7 +963,6 @@ static const char *normalize_determine_evkind(int type)
 		case AUDIT_FEATURE_CHANGE ... AUDIT_REPLACE:
 		case AUDIT_USER_DEVICE:
 		case AUDIT_SOFTWARE_UPDATE:
-		case AUDIT_EVENT_LISTENER:
 			kind = NORM_EVTYPE_CONFIG;
 			break;
 		case AUDIT_SECCOMP:
@@ -954,6 +977,7 @@ static const char *normalize_determine_evkind(int type)
 		case AUDIT_TTY:
 			kind = NORM_EVTYPE_TTY;
 			break;
+		case AUDIT_EVENT_LISTENER:
 		case AUDIT_FIRST_DAEMON ... AUDIT_LAST_DAEMON:
 			kind = NORM_EVTYPE_AUDIT_DAEMON;
 			break;
@@ -1021,7 +1045,7 @@ static int normalize_compound(auparse_state_t *au)
 		type == AUDIT_AVC || type == AUDIT_SELINUX_ERR ||
 		type == AUDIT_MAC_POLICY_LOAD || type == AUDIT_MAC_STATUS ||
 		type == AUDIT_MAC_CONFIG_CHANGE || type == AUDIT_FANOTIFY ||
-		type == AUDIT_BPF) {
+		type == AUDIT_BPF || type == AUDIT_EVENT_LISTENER) {
 		auparse_next_record(au);
 		type = auparse_get_type(au);
 	} else if (type == AUDIT_ANOM_LINK) { // Skip ahead 2 records
@@ -1641,6 +1665,42 @@ map:
 		D.action = strdup(act);
 		D.thing.what = NORM_WHAT_PROCESS;
 		set_program_obj(au);
+		return 0;
+	}
+
+	// LISTENER events are atypical
+	if (type == AUDIT_EVENT_LISTENER) {
+		// Subject - primary
+		set_prime_subject(au, "auid", 0);
+
+		// Secondary - optional
+		auparse_first_record(au);
+		set_secondary_subject(au, "uid", 0);
+
+		// Session
+		auparse_first_record(au);
+		add_session(au, 0);
+
+		// Subject attrs
+		collect_simple_subj_attr(au);
+
+		auparse_first_record(au);
+		f = auparse_find_field(au, "op");
+		if (f) {
+			const char *str = auparse_get_field_str(au);
+			if (strcmp(str, "connect") == 0)
+				act = "connected-to";
+			else
+				act = "disconnected-from";
+		} else
+			act = "connected";
+		D.action = strdup(act);
+		D.thing.what = NORM_WHAT_SOCKET;
+		set_program_obj(au);
+
+		// Results
+		set_results(au, 0);
+
 		return 0;
 	}
 

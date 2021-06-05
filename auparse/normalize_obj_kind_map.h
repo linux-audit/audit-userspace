@@ -1,6 +1,6 @@
 /*
  * normalize_obj_kind_map.h
- * Copyright (c) 2016-18 Red Hat Inc., Durham, North Carolina.
+ * Copyright (c) 2016-18,21 Red Hat Inc.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
