@@ -1820,7 +1820,30 @@ map:
 		collect_userspace_subj_attr(au, type);
 
 	// Results
-	set_results(au, 0);
+	if (type != AUDIT_USER_AVC)
+		set_results(au, 0);
+	else {
+		// find the denial
+		auparse_first_record(au);
+		f = auparse_find_field(au, "seresult");
+		if (f) {
+			D.results = set_record(0, 0);
+			D.results = set_field(D.results,
+					      auparse_get_field_num(au));
+		}
+
+		// Subject
+		auparse_first_record(au);
+		set_prime_subject(au, "scontext", 0);
+
+		// Object
+		if (D.opt == NORM_OPT_ALL) {
+			// We will only collect this when everything is asked
+			// for because it messes up text format otherwise
+			auparse_first_record(au);
+			set_prime_object(au, "tcontext", 0);
+		}
+	}
 
 	// action
 	if (type == AUDIT_USER_DEVICE) {
@@ -1835,18 +1858,21 @@ map:
 		D.action = strdup(act);
 
 	// object
-	D.thing.primary = find_simple_object(au, type);
-	D.thing.secondary = find_simple_obj_secondary(au, type);
-	D.thing.two = find_simple_obj_primary2(au, type);
+	if (type != AUDIT_USER_AVC) {
+		auparse_first_record(au);
+		D.thing.primary = find_simple_object(au, type);
+		D.thing.secondary = find_simple_obj_secondary(au, type);
+		D.thing.two = find_simple_obj_primary2(au, type);
 
-	// object attrs - rare on simple events
-	if (D.opt == NORM_OPT_ALL) {
-		if (type == AUDIT_USER_DEVICE) {
-			add_obj_attr(au, "uuid", 0);
-		} else if (type == AUDIT_SOFTWARE_UPDATE) {
-			auparse_first_record(au);
-			add_obj_attr(au, "key_enforce", 0);
-			add_obj_attr(au, "gpg_res", 0);
+		// object attrs - rare on simple events
+		if (D.opt == NORM_OPT_ALL) {
+			if (type == AUDIT_USER_DEVICE) {
+				add_obj_attr(au, "uuid", 0);
+			} else if (type == AUDIT_SOFTWARE_UPDATE) {
+				auparse_first_record(au);
+				add_obj_attr(au, "key_enforce", 0);
+				add_obj_attr(au, "gpg_res", 0);
+			}
 		}
 	}
 
