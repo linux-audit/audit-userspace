@@ -1047,7 +1047,7 @@ static int normalize_compound(auparse_state_t *au)
 
 	// All compound events have a syscall record
 	// Some start with a record type and follow with a syscall
-	if (type == AUDIT_NETFILTER_CFG || type == AUDIT_ANOM_PROMISCUOUS ||
+	if (type == AUDIT_ANOM_PROMISCUOUS ||
 		type == AUDIT_AVC || type == AUDIT_SELINUX_ERR ||
 		type == AUDIT_MAC_POLICY_LOAD || type == AUDIT_MAC_STATUS ||
 		type == AUDIT_MAC_CONFIG_CHANGE ||
@@ -1058,6 +1058,11 @@ static int normalize_compound(auparse_state_t *au)
 		auparse_next_record(au);
 		auparse_next_record(au);
 		type = auparse_get_type(au);
+	} else if (type == AUDIT_NETFILTER_CFG) {
+		// NETFILTER_CFG can have 3 or 4 records before syscall
+		do {
+			auparse_next_record(au);
+		} while ((type = auparse_get_type(au)) != AUDIT_SYSCALL);
 	}
 
 	// Determine the kind of event using original event type
@@ -1427,7 +1432,7 @@ static int normalize_simple(auparse_state_t *au)
 	int type = auparse_get_type(au);
 
 	// netfilter_cfg sometimes emits 1 record events
-	if (type == AUDIT_NETFILTER_CFG || type == AUDIT_BPF)
+	if (type == AUDIT_BPF)
 		return 1;
 
 	// Some older OS do not have PROCTITLE records
@@ -1595,6 +1600,28 @@ map:
 		return 0;
 	}
 
+	// NETFILTER_CFG is atypical
+	if (type == AUDIT_NETFILTER_CFG) {
+		// Subject attrs
+		collect_simple_subj_attr(au);
+		// how
+		f = auparse_find_field(au, "comm");
+		if (f) {
+			const char *sig = auparse_interpret_field(au);
+			D.how = strdup(sig);
+		}
+		D.action = strdup("loaded-firewall-rule-to");
+		auparse_first_record(au);
+		f = auparse_find_field(au, "table");
+		if (f) {
+			D.thing.primary = set_record(0,
+				auparse_get_record_num(au));
+			D.thing.primary = set_field(D.thing.primary,
+				auparse_get_field_num(au));
+		}
+		D.thing.what = NORM_WHAT_FIREWALL;
+		return 0;
+	}
 	/* This one is also atypical and comes from the kernel */
 	if (type == AUDIT_AVC) {
 		// how
