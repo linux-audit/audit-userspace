@@ -1,4 +1,4 @@
-.TH "AUPARSE_FIND_FIELD" "3" "Feb 2007" "Red Hat" "Linux Audit API"
+.TH "AUPARSE_FIND_FIELD" "3" "June 2021" "Red Hat" "Linux Audit API"
 .SH NAME
 auparse_find_field \- search for field name
 .SH "SYNOPSIS"
@@ -9,6 +9,8 @@ const char *auparse_find_field(auparse_state_t *au, const char *name);
 .SH "DESCRIPTION"
 
 auparse_find_field will scan all records in an event to find the first occurrence of the field name passed to it. Searching begins from the cursor's current position. The field name is stored for subsequent searching.
+
+NOTE: auparse creates 2 psuedo fields that do not exist in the natural record for SELinux AVC and USER_AVC decision and permissions. The field names are seresult and seperms respectively.
 
 .SH "RETURN VALUE"
 
