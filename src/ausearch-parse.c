@@ -2261,6 +2261,23 @@ static int parse_kernel_anom(const lnode *n, search_items *s)
 		*term = ' ';
 	}
 
+	// optionally get res
+	if (event_success != S_UNSET) {
+		str = strstr(term, "res=");
+		if (str != NULL) {
+			ptr = str + 4;
+			term = strchr(ptr, ' ');
+			if (term)
+				*term = 0;
+			errno = 0;
+			s->success = strtoul(ptr, NULL, 10);
+			if (errno)
+				return 68;
+			if (term)
+				*term = ' ';
+		}
+	}
+
 	return 0;
 }
 
@@ -2742,7 +2759,7 @@ static int parse_kernel(lnode *n, search_items *s)
 			errno = 0;
 			s->success = strtoul(ptr, NULL, 10);
 			if (errno)
-				return 7;
+				return 69;
 			if (term)
 				*term = ' ';
 		}
