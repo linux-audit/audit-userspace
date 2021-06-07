@@ -4872,6 +4872,8 @@ infy_cb (EV_P_ ev_io *w, int revents)
   char buf [EV_INOTIFY_BUFSIZE];
   int ofs;
   int len = read (fs_fd, buf, sizeof (buf));
+  if (len < 0)
+	  return;
 
   for (ofs = 0; ofs < len; )
     {
