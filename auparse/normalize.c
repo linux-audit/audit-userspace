@@ -1732,10 +1732,20 @@ map:
 		} else
 			act = "connected";
 		D.action = strdup(act);
-		D.thing.what = NORM_WHAT_SOCKET;
+
 		set_program_obj(au);
+		D.thing.what = NORM_WHAT_SOCKET;
+
+		// How
+		auparse_first_record(au);
+		f = auparse_find_field(au, "exe");
+		if (f) {
+			const char *exe = auparse_interpret_field(au);
+			D.how = strdup(exe);
+		}
 
 		// Results
+		auparse_first_record(au);
 		set_results(au, 0);
 
 		return 0;
