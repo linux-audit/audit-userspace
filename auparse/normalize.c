@@ -1045,21 +1045,8 @@ static int normalize_compound(auparse_state_t *au)
 
 	otype = type = auparse_get_type(au);
 
-	// All compound events have a syscall record
-	// Some start with a record type and follow with a syscall
-	if (type == AUDIT_ANOM_PROMISCUOUS ||
-		type == AUDIT_AVC || type == AUDIT_SELINUX_ERR ||
-		type == AUDIT_MAC_POLICY_LOAD || type == AUDIT_MAC_STATUS ||
-		type == AUDIT_MAC_CONFIG_CHANGE ||
-		(type >= AUDIT_FANOTIFY && type <= AUDIT_EVENT_LISTENER) ) {
-		auparse_next_record(au);
-		type = auparse_get_type(au);
-	} else if (type == AUDIT_ANOM_LINK) { // Skip ahead 2 records
-		auparse_next_record(au);
-		auparse_next_record(au);
-		type = auparse_get_type(au);
-	} else if (type == AUDIT_NETFILTER_CFG) {
-		// NETFILTER_CFG can have 3 or 4 records before syscall
+	// All compound events have a syscall record, find it
+	if (type != AUDIT_SYSCALL) {
 		do {
 			auparse_next_record(au);
 		} while ((type = auparse_get_type(au)) != AUDIT_SYSCALL);
