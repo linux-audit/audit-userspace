@@ -51,8 +51,10 @@ static void start_session(auparse_state_t *au, struct ids_conf *config)
 				acct = auparse_interpret_field(au);
 
 			origin_data_t *o = find_origin(a);
-			if (o == NULL)
-				o = new_origin(a);
+			if (o == NULL) {
+				new_origin(a);
+				o = find_origin(a);
+			}
 			if(service_acct &&
 					!config->option_service_login_allowed)
 				bad_service_login_origin(o, config, acct);
