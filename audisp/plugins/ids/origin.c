@@ -66,7 +66,7 @@ static void free_origin(origin_data_t *o)
 	free(o);
 }
 
-origin_data_t *new_origin(unsigned int a)
+void new_origin(unsigned int a)
 {
 	origin_data_t *tmp = (origin_data_t *)malloc(sizeof(origin_data_t));
 	if (tmp) {
@@ -75,7 +75,6 @@ origin_data_t *new_origin(unsigned int a)
 		tmp->blocked = 0;
 		add_origin(tmp);
 	}
-	return tmp;
 }
 
 static void destroy_origin(void)
@@ -166,7 +165,7 @@ int del_origin(unsigned int addr)
 char *sockint_to_ipv4(unsigned int addr)
 {
         unsigned char *uaddr = (unsigned char *)&(addr);
-        static char buf[40];
+        static char buf[16];
 
         snprintf(buf, sizeof(buf), "%u.%u.%u.%u",
                 uaddr[0], uaddr[1], uaddr[2], uaddr[3]);
@@ -181,9 +180,10 @@ void bad_login_origin(origin_data_t *o, struct ids_conf *config)
 void bad_service_login_origin(origin_data_t *o, struct ids_conf *config,
 		const char *acct)
 {	// We will just add a 5 for a bad service login.
-	char buf[32];
+	char buf[62];
 	const char *addr = sockint_to_ipv4(o->address);
-	snprintf(buf, sizeof(buf), "acct=%s daddr=%s",
+	// account names can be up to 32 characters. IPv4 can be 16
+	snprintf(buf, sizeof(buf), "acct=%32s daddr=%16s",
 			acct ? acct : "?", addr);
 	log_audit_event(AUDIT_ANOM_LOGIN_SERVICE, buf, 1);
 
@@ -193,9 +193,9 @@ void bad_service_login_origin(origin_data_t *o, struct ids_conf *config,
 void watched_login_origin(origin_data_t *o, struct ids_conf *config,
 		const char *acct)
 {	// We will just add a 5 for a watched login.
-	char buf[32];
+	char buf[62];
 	const char *addr = sockint_to_ipv4(o->address);
-	snprintf(buf, sizeof(buf), "acct=%s daddr=%s",
+	snprintf(buf, sizeof(buf), "acct=%32s daddr=%16s",
 			acct ? acct : "?", addr);
 	log_audit_event(AUDIT_ANOM_LOGIN_ACCT, buf, 1);
 

@@ -85,7 +85,7 @@ static void destroy_session(void)
 	cur = NULL;
 }
 
-session_data_t *new_session(unsigned int s, unsigned int o, const char *acct)
+void new_session(unsigned int s, unsigned int o, const char *acct)
 {
 	session_data_t *tmp = malloc(sizeof(session_data_t));
 	if (tmp) {
@@ -96,7 +96,6 @@ session_data_t *new_session(unsigned int s, unsigned int o, const char *acct)
 		tmp->acct = acct ? acct : strdup("");
 		add_session(tmp);
 	}
-	return tmp;
 }
 
 void destroy_sessions(void)

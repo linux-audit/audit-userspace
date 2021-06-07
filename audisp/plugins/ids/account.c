@@ -81,7 +81,7 @@ static void destroy_account(void)
 	cur = NULL;
 }
 
-account_data_t *new_account(const char *name)
+void new_account(const char *name)
 {
 	account_data_t *tmp = (account_data_t *)malloc(sizeof(account_data_t));
 	if (tmp) {
@@ -89,7 +89,6 @@ account_data_t *new_account(const char *name)
 		tmp->karma = 0;
 		add_account(tmp);
 	}
-	return tmp;
 }
 
 void destroy_accounts(void)

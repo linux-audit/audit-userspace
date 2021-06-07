@@ -25,7 +25,7 @@ typedef struct session_data {
 
 
 void init_sessions(void);
-session_data_t *new_session(unsigned int s, unsigned int o, const char *acct);
+void new_session(unsigned int s, unsigned int o, const char *acct);
 void destroy_sessions(void);
 unsigned int get_num_sessions(void);
 void traverse_sessions(FILE *f);

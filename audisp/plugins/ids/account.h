@@ -21,7 +21,7 @@ typedef struct account_data {
 
 void init_accounts(void);
 void destroy_accounts(void);
-account_data_t *new_account(const char *name);
+void new_account(const char *name);
 unsigned int get_num_accounts(void);
 void traverse_accounts(FILE *f);
 

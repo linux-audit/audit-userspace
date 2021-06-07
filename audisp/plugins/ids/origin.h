@@ -22,7 +22,7 @@ typedef struct origin_data {
 
 
 void init_origins(void);
-origin_data_t *new_origin(unsigned int a);
+void new_origin(unsigned int a);
 void destroy_origins(void);
 unsigned int get_num_origins(void);
 void traverse_origins(FILE *f);
