@@ -1616,28 +1616,41 @@ map:
 			auparse_first_record(au);
 
 		// Subject
-		if (set_prime_subject(au, "scontext", 0))
-			auparse_first_record(au);
+		set_prime_subject(au, "scontext", 0);
+		D.actor.what = strdup("unknown-acct");
+		auparse_first_record(au);
 
 		// Object
 		if (D.opt == NORM_OPT_ALL) {
 			// We will only collect this when everything is asked
 			// for because it messes up text format otherwise
-			if (set_prime_object(au, "tcontext", 0))
-				auparse_first_record(au);
+			set_prime_object(au, "tcontext", 0);
+			auparse_first_record(au);
 		}
+
+		// Ideally we would choose tclass
+		D.thing.what = NORM_WHAT_UNKNOWN;
 
 		// action
 		act = normalize_record_map_i2s(type);
 		if (act)
 			D.action = strdup(act);
 
+		// find the denial
+		auparse_first_record(au);
+		f = auparse_find_field(au, "seresult");
+		if (f) {
+			D.results = set_record(0, 0);
+			D.results = set_field(D.results,
+					      auparse_get_field_num(au));
+		}
+
 		// This is slim pickings without a syscall record
 		return 0;
 	}
 
 	/* Daemon events are atypical because they never transit the kernel */
-	if (type >= AUDIT_FIRST_DAEMON && 
+	if (type >= AUDIT_FIRST_DAEMON &&
 		type < AUDIT_LAST_DAEMON) {
 		// Subject - primary
 		set_prime_subject(au, "auid", 0);
