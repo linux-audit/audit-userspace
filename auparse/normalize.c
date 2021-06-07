@@ -1431,10 +1431,6 @@ static int normalize_simple(auparse_state_t *au)
 	const char *f, *act = NULL;
 	int type = auparse_get_type(au);
 
-	// netfilter_cfg sometimes emits 1 record events
-	if (type == AUDIT_BPF)
-		return 1;
-
 	// Some older OS do not have PROCTITLE records
 	if (type == AUDIT_SYSCALL)
 		return normalize_compound(au);
