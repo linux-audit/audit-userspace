@@ -99,6 +99,16 @@ void clear_normalizer(normalize_data *d)
 	syscall_success = -1;
 }
 
+static void set_system_subject_what(auparse_state_t *au)
+{
+	D.actor.what = strdup("system");
+}
+
+static void set_unknown_subject_what(auparse_state_t *au)
+{
+	D.actor.what = strdup("unknown-acct");
+}
+
 static unsigned int set_subject_what(auparse_state_t *au)
 {
 	int uid = NORM_ACCT_UNSET - 1;
@@ -118,6 +128,7 @@ static unsigned int set_subject_what(auparse_state_t *au)
 				}
 			}
 		}
+		set_unknown_subject_what(au);
 		return 1;
 	}
 
@@ -131,7 +142,7 @@ check:
 	else if (uid < NORM_ACCT_MAX_USER)
 		D.actor.what = strdup("user-acct");
 	else
-		D.actor.what = strdup("unknown-acct");
+		set_unknown_subject_what(au);
 	return 0;
 }
 
@@ -1602,6 +1613,7 @@ map:
 			D.thing.primary = set_field(D.thing.primary,
 				auparse_get_field_num(au));
 		}
+		set_system_subject_what(au);
 		D.thing.what = NORM_WHAT_FIREWALL;
 		return 0;
 	}
@@ -1617,7 +1629,7 @@ map:
 
 		// Subject
 		set_prime_subject(au, "scontext", 0);
-		D.actor.what = strdup("unknown-acct");
+		set_unknown_subject_what(au);
 		auparse_first_record(au);
 
 		// Object
@@ -1688,6 +1700,7 @@ map:
 
 	// BPF events are atypical
 	if (type == AUDIT_BPF) {
+		set_system_subject_what(au);
 		auparse_first_record(au);
 		f = auparse_find_field(au, "op");
 		if (f) {
