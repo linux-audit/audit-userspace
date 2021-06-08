@@ -117,7 +117,7 @@ static int setup_log_file_array(auparse_state_t *au)
 	free(filename);
 
 	// Terminate the list
-	tmp[i] = NULL; 
+	tmp[i] = NULL;
 	au->source_list = tmp;
 	return 0;
 }
@@ -238,7 +238,7 @@ static event_list_t *au_get_ready_event(auparse_state_t *au, int is_test)
         int i;
 	au_lol *lol = au->au_lo;
 	au_lolnode *lowest = NULL;
-	
+
 	if (au->au_ready == 0) {
 		//if (debug) printf("No events ready\n");
 		return NULL;
@@ -295,7 +295,7 @@ static void au_check_events(auparse_state_t *au, time_t sec)
 				au->au_ready++;
                         } else if ( // FIXME: Check this v remains true
 				r->type == AUDIT_PROCTITLE ||
-				r->type == AUDIT_EOE || 
+				r->type == AUDIT_EOE ||
 				r->type < AUDIT_FIRST_EVENT ||
 				r->type >= AUDIT_FIRST_ANOM_MSG ||
 				r->type == AUDIT_KERNEL ||
@@ -729,7 +729,7 @@ int auparse_reset(auparse_state_t *au)
 		/* Fall through */
 		case AUSOURCE_DESCRIPTOR:
 		case AUSOURCE_FILE_POINTER:
-			if (au->in) 
+			if (au->in)
 				rewind(au->in);
 		/* Fall through */
 		case AUSOURCE_BUFFER:
@@ -956,7 +956,7 @@ static void auparse_destroy_common(auparse_state_t *au)
 
 	if (au->source_list) {
 		int n = 0;
-		while (au->source_list[n]) 
+		while (au->source_list[n])
 			free(au->source_list[n++]);
 		free(au->source_list);
 		au->source_list = NULL;
@@ -989,7 +989,7 @@ static void auparse_destroy_common(auparse_state_t *au)
 
 void auparse_destroy(auparse_state_t *au)
 {
-    lookup_destroy_uid_list();
+	lookup_destroy_uid_list();
 	aulookup_destroy_gid_list();
 
 	auparse_destroy_common(au);
@@ -1008,7 +1008,7 @@ void auparse_destroy_ext(auparse_state_t *au, auparse_destroy_what_t what)
  * without a newline (note, this implies the line may be empty (strlen == 0)) if
  * successfully read a blank line (e.g. containing only a single newline).
  * cur_buf will have been newly allocated with malloc.
- * 
+ *
  * Note: cur_buf will be freed the next time this routine is called if
  * cur_buf is not NULL, callers who retain a reference to the cur_buf
  * pointer will need to set cur_buf to NULL to cause the previous cur_buf
@@ -1066,7 +1066,7 @@ static int readline_file(auparse_state_t *au)
  * newline (note, this implies the line may be empty (strlen == 0)) if
  * successfully read a blank line (e.g. containing only a single
  * newline).
- * 
+ *
  * Note: cur_buf will be freed the next time this routine is called if
  * cur_buf is not NULL, callers who retain a reference to the cur_buf
  * pointer will need to set cur_buf to NULL to cause the previous cur_buf
@@ -1099,7 +1099,7 @@ static int readline_buf(auparse_state_t *au)
 	if ((p_newline = strnchr(databuf_beg(&au->databuf), '\n',
 						au->databuf.len)) != NULL) {
 		line_len = p_newline - databuf_beg(&au->databuf);
-		
+
 		/* dup the line */
 		au->cur_buf = malloc(line_len+1);   // +1 for null terminator
 		if (au->cur_buf == NULL)
@@ -1112,7 +1112,6 @@ static int readline_buf(auparse_state_t *au)
 		// return success
 		errno = 0;
 		return 1;
-	
 	} else {
 		// return no data available
 		errno = 0;
@@ -1137,7 +1136,7 @@ static int str2event(char *s, au_event_t *e)
 		s = ptr;
 	} else
 		e->milli = 0;
-	
+
 	ptr = strchr(s, ':');
 	if (ptr) {
 		ptr++;
@@ -1227,7 +1226,7 @@ static int events_are_equal(au_event_t *e1, au_event_t *e2)
 
 /* This function will figure out how to get the next line of input.
  * storing it cur_buf. cur_buf will be NULL terminated but will not
- * contain a trailing newline. This implies a successful read 
+ * contain a trailing newline. This implies a successful read
  * (result == 1) may result in a zero length cur_buf if a blank line
  * was read.
  *
