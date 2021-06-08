@@ -27,6 +27,7 @@
 #include <errno.h>
 #include <string.h>
 #include <stdio.h>
+#include <limits.h>
 #include "ausearch-common.h"
 #include "auditd-config.h"
 #include "common.h"
@@ -99,13 +100,13 @@ static int str2event(char *s, event *e)
 
 	errno = 0;
 	e->sec = strtoul(s, NULL, 10);
-	if (errno)
+	if (errno || e->sec > (LONG_MAX - eoe_timeout -1))
 		return -1;
 	ptr = strchr(s, '.');
 	if (ptr) {
 		ptr++;
 		e->milli = strtoul(ptr, NULL, 10);
-		if (errno)
+		if (errno || e->milli > 999)
 			return -1;
 		s = ptr;
 	} else

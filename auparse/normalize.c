@@ -1098,9 +1098,16 @@ static int normalize_compound(auparse_state_t *au)
 	// All compound events have a syscall record, find it
 	if (type != AUDIT_SYSCALL) {
 		do {
-			auparse_next_record(au);
-		} while ((type = auparse_get_type(au)) != AUDIT_SYSCALL);
+			// If we go off the end without finding a syscall
+			// record, don't parse corrupt events
+			if (auparse_next_record(au) < 0)
+				return 1;
+			type = auparse_get_type(au);
+		} while (type && type != AUDIT_SYSCALL);
 	}
+
+	if (!type)
+		return 1;
 
 	// Determine the kind of event using original event type
 	D.evkind = normalize_determine_evkind(otype);

@@ -32,6 +32,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <stdio_ext.h>
+#include <limits.h>
 #include "common.h"
 
 //#define LOL_EVENTS_DEBUG01	1	// add debug for list of list event
@@ -1125,13 +1126,13 @@ static int str2event(char *s, au_event_t *e)
 
 	errno = 0;
 	e->sec = strtoul(s, NULL, 10);
-	if (errno)
+	if (errno || e->sec > (LONG_MAX - eoe_timeout -1))
 		return -1;
 	ptr = strchr(s, '.');
 	if (ptr) {
 		ptr++;
 		e->milli = strtoul(ptr, NULL, 10);
-		if (errno)
+		if (errno || e->milli > 999)
 			return -1;
 		s = ptr;
 	} else
