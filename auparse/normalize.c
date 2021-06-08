@@ -53,6 +53,7 @@
 #define D au->norm_data
 
 static int syscall_success;
+static value_t find_simple_object(auparse_state_t *au, int type);
 
 void init_normalizer(normalize_data *d)
 {
@@ -1049,6 +1050,44 @@ static const char *normalize_determine_evkind(int type)
 	return evtype_i2s(kind);
 }
 
+const char *find_config_change_object(auparse_state_t *au)
+{
+	const char *f;
+
+	// Check if its an audit rule
+	auparse_first_record(au);
+	f = auparse_find_field(au, "key");
+	if (f) {
+		const char *str = auparse_get_field_str(au);
+		if (str && strcmp(str, "(null)"))
+			return f;
+	}
+
+	// Next lets find the individual objects being set
+	auparse_first_record(au);
+	f = auparse_find_field(au, "audit_enabled");
+	if (f)
+		return f;
+	auparse_first_record(au);
+	f = auparse_find_field(au, "audit_pid");
+	if (f)
+		return f;
+	auparse_first_record(au);
+	f = auparse_find_field(au, "audit_backlog_limit");
+	if (f)
+		return f;
+	auparse_first_record(au);
+	f = auparse_find_field(au, "audit_failure");
+	if (f)
+		return f;
+	auparse_first_record(au);
+	f = auparse_find_field(au, "actions"); // seccomp-logging
+	if (f)
+		return f;
+
+	return NULL;
+}
+
 static int normalize_compound(auparse_state_t *au)
 {
 	const char *f, *syscall = NULL;
@@ -1170,6 +1209,21 @@ static int normalize_compound(auparse_state_t *au)
 			if (act)
 				D.action = strdup(act);
 			// FIXME: AUDIT_ANOM_LINK needs an object
+		} else if (otype == AUDIT_CONFIG_CHANGE) {
+			const char *f;
+
+			auparse_first_record(au);
+			f = auparse_find_field(au, "op");
+			if (f) {
+				value_t o;
+
+				// Fix the action
+				D.action = strdup(auparse_interpret_field(au));
+
+				// Next fix the object
+				o = find_simple_object(au, AUDIT_CONFIG_CHANGE);
+				D.thing.primary = o;
+			}
 		} else
 			normalize_syscall(au, syscall);
 	}
@@ -1276,25 +1330,7 @@ static value_t find_simple_object(auparse_state_t *au, int type)
 			D.thing.what = NORM_WHAT_PRINTER;
 			break;
 		case AUDIT_CONFIG_CHANGE:
-			f = auparse_find_field(au, "key");
-			if (f == NULL) {
-				auparse_first_record(au);
-				f = auparse_find_field(au, "audit_enabled");
-				if (f == NULL) {
-					auparse_first_record(au);
-					f = auparse_find_field(au, "audit_pid");
-					if (f == NULL) {
-						auparse_first_record(au);
-						f = auparse_find_field(au,
-							"audit_backlog_limit");
-						if (f == NULL) {
-						    auparse_first_record(au);
-						    f = auparse_find_field(au,
-							"audit_failure");
-						}
-					}
-				}
-			}
+			f = find_config_change_object(au);
 			D.thing.what = NORM_WHAT_AUDIT_CONFIG;
 			break;
 		case AUDIT_MAC_CONFIG_CHANGE:

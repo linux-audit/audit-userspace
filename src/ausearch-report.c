@@ -450,7 +450,7 @@ static void csv_event(auparse_state_t *au,
 	rc = auparse_normalize(au,
 			extra_labels ? NORM_OPT_ALL : NORM_OPT_NO_ATTRS);
 
-	//DATE
+	// DATE
 	if (tv) {
 		strftime(tmp, sizeof(tmp), "%x", tv);
 		printf("%s", tmp);
@@ -602,7 +602,13 @@ static void csv_event(auparse_state_t *au,
 
 		if (auparse_get_field_type(au) == AUPARSE_TYPE_ESCAPED_FILE)
 			val = auparse_interpret_realpath(au);
-		else
+		else if (auparse_get_type(au) == AUDIT_CONFIG_CHANGE) {
+			if ((strcmp(action, "set") == 0) ||
+			    strcmp(action, "seccomp-logging") == 0)
+				val = auparse_get_field_name(au);
+			else
+				val = auparse_interpret_field(au);
+		} else
 			val = auparse_interpret_field(au);
 		printf("%s", val);
 	}
@@ -750,6 +756,12 @@ static void text_event(auparse_state_t *au,
 			val = auparse_interpret_sock_address(au);
 			if (val == NULL)
 				val = auparse_interpret_sock_family(au);
+		} else if (type == AUDIT_CONFIG_CHANGE) {
+			if ((strcmp(action, "set") == 0) ||
+			    strcmp(action, "seccomp-logging") == 0)
+				val = auparse_get_field_name(au);
+			else
+				val = auparse_interpret_field(au);
 		}
 
 		if (val == NULL)
