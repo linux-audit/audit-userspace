@@ -198,6 +198,8 @@ static void *flush_thread_main(void *arg)
 	sigaddset(&sigs, SIGHUP);
 	sigaddset(&sigs, SIGUSR1);
 	sigaddset(&sigs, SIGUSR2);
+	sigaddset(&sigs, SIGCHLD);
+	sigaddset(&sigs, SIGCONT);
 	pthread_sigmask(SIG_SETMASK, &sigs, NULL);
 
 	while (!stop) {

@@ -7,6 +7,7 @@
 - Update syscall table to the 5.12 kernel
 - Update the auparse normalizer for new event types
 - Fix compiler warnings in ids subsystem
+- Block a couple signals from flush & reconfigure threads
 
 3.0.1
 - Update syscall table to the 5.11 kernel
