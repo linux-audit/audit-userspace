@@ -165,6 +165,7 @@ int main(int argc, char *argv[])
 					/* we deal with failures via
 					 * checkpt_failure later */
 					(void)set_ChkPtFileDetails(user_file);
+				free_config(&config);
 				break;
 		}
 	} else if (force_logs)
