@@ -1,5 +1,5 @@
 /* auditd-reconfig.c -- 
- * Copyright 2005 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2005,2021 Red Hat Inc.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -91,7 +91,6 @@ static void *config_thread_main(void *arg)
 
 	/* This is a worker thread. Don't handle signals. */
 	sigemptyset(&sigs);
-	sigaddset(&sigs, SIGALRM);
 	sigaddset(&sigs, SIGTERM);
 	sigaddset(&sigs, SIGHUP);
 	sigaddset(&sigs, SIGUSR1);

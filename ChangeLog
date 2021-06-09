@@ -8,6 +8,7 @@
 - Update the auparse normalizer for new event types
 - Fix compiler warnings in ids subsystem
 - Block a couple signals from flush & reconfigure threads
+- In auditd, don't wait on flush thread when exiting
 
 3.0.1
 - Update syscall table to the 5.11 kernel

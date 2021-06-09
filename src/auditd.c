@@ -1,5 +1,5 @@
 /* auditd.c -- 
- * Copyright 2004-09,2011,2013,2016-18 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2004-09,2011,2013,2016-18,2021 Red Hat Inc.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -79,7 +79,6 @@ static uint32_t session;
 
 /* Local function prototypes */
 int send_audit_event(int type, const char *str);
-static void close_down(void);
 static void clean_exit(void);
 static int get_reply(int fd, struct audit_reply *rep, int seq);
 static char *getsubj(char *subj);
@@ -494,7 +493,7 @@ static void netlink_handler(struct ev_loop *loop, struct ev_io *io,
 			send_audit_event(AUDIT_DAEMON_ABORT, emsg);
 			audit_msg(LOG_ERR,
 				  "Cannot allocate audit reply, exiting");
-			close_down();
+			shutdown_events();
 			if (pidfile)
 				unlink(pidfile);
 			shutdown_dispatcher();
@@ -876,7 +875,7 @@ int main(int argc, char *argv[])
 		audit_msg(LOG_ERR,
 		"Unable to set initial audit startup state to '%s', exiting",
 			startup_states[opt_startup]);
-		close_down();
+		shutdown_events();
 		if (pidfile)
 			unlink(pidfile);
 		shutdown_dispatcher();
@@ -905,7 +904,7 @@ int main(int argc, char *argv[])
 		stop = 1;
 		send_audit_event(AUDIT_DAEMON_ABORT, emsg);
 		audit_msg(LOG_ERR, "Unable to set audit pid, exiting");
-		close_down();
+		shutdown_events();
 		if (pidfile)
 			unlink(pidfile);
 		shutdown_dispatcher();
@@ -1019,24 +1018,11 @@ int main(int argc, char *argv[])
 	// Tear down IO watchers Part 3
 	ev_signal_stop(loop, &sigchld_watcher);
 
-	close_down();
+	shutdown_events();
 	free_config(&config);
 	ev_default_destroy();
 
 	return 0;
-}
-
-static void close_down(void)
-{
-	struct sigaction sa;
-
-	/* We are going down. Give the event thread a chance to shutdown.
-	   Just in case it hangs, set a timer to get us out of trouble. */
-	sa.sa_flags = 0 ;
-	sigemptyset( &sa.sa_mask ) ;
-	sa.sa_handler = thread_killer;
-	sigaction( SIGALRM, &sa, NULL );
-	shutdown_events();
 }
 
 

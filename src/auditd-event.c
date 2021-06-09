@@ -1,5 +1,5 @@
 /* auditd-event.c -- 
- * Copyright 2004-08,2011,2013,2015-16,2018 Red Hat Inc.,Durham, North Carolina.
+ * Copyright 2004-08,2011,2013,2015-16,2018,2021 Red Hat Inc.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -131,14 +131,9 @@ void write_logging_state(FILE *f)
 
 void shutdown_events(void)
 {
-	/* Give it 5 seconds to clear the queue */
-	alarm(5);
-
-	// Nudge the flush thread
-	pthread_cond_signal(&do_flush);
-	pthread_join(flush_thread, NULL);
-
+	// We are no longer processing events, sync the disk and close up.
 	free((void *)format_buf);
+	fsync(log_fd);
 	if (log_file)
 		fclose(log_file);
 	auparse_destroy_ext(au, AUPARSE_DESTROY_ALL);
@@ -193,7 +188,6 @@ static void *flush_thread_main(void *arg)
 
 	/* This is a worker thread. Don't handle signals. */
 	sigemptyset(&sigs);
-	sigaddset(&sigs, SIGALRM);
 	sigaddset(&sigs, SIGTERM);
 	sigaddset(&sigs, SIGHUP);
 	sigaddset(&sigs, SIGUSR1);
