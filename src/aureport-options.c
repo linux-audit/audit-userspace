@@ -266,8 +266,8 @@ int check_params(int count, char *vars[])
 					vars[c]);
 				retval = -1;
 			} else {
-				if (strlen(optarg) >= PATH_MAX) {
-					fprintf(stderr, 
+				if (strlen(optarg) >= PATH_MAX-32) {
+					fprintf(stderr,
 						"File name is too long %s\n",
 						optarg);
 					retval = -1;

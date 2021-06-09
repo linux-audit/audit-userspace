@@ -9,6 +9,7 @@
 - Fix compiler warnings in ids subsystem
 - Block a couple signals from flush & reconfigure threads
 - In auditd, don't wait on flush thread when exiting
+- Output error message if the path of input files are too long ausearch/report
 
 3.0.1
 - Update syscall table to the 5.11 kernel

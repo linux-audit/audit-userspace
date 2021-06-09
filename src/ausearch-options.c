@@ -593,7 +593,14 @@ int check_params(int count, char *vars[])
 					vars[c]);
 				retval = -1;
 			} else {
-				user_file = strndup(optarg, PATH_MAX-1);
+				if (strlen(optarg) >= PATH_MAX-32) {
+					fprintf(stderr,
+						"File name is too longs %s\n",
+						optarg);
+					retval = -1;
+					break;
+				}
+				user_file = strdup(optarg);
 				if (user_file == NULL)
 					retval = -1;
 				c++;
