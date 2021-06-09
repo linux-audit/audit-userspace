@@ -757,8 +757,9 @@ static void text_event(auparse_state_t *au,
 			if (val == NULL)
 				val = auparse_interpret_sock_family(au);
 		} else if (type == AUDIT_CONFIG_CHANGE) {
-			if ((strcmp(action, "set") == 0) ||
-			    strcmp(action, "seccomp-logging") == 0)
+			if (action &&
+			    ((strcmp(action, "set") == 0) ||
+			      strcmp(action, "seccomp-logging") == 0))
 				val = auparse_get_field_name(au);
 			else
 				val = auparse_interpret_field(au);
