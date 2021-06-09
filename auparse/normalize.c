@@ -1720,7 +1720,7 @@ map:
 
 		// Subject attrs
 		collect_simple_subj_attr(au);
-		free(D.actor.what);
+		free((void *)D.actor.what);
 		D.actor.what = strdup("auditd");
 
 		// action

@@ -112,16 +112,9 @@ static void term_handler(struct ev_loop *loop, struct ev_signal *sig,
 	EV_STOP ();
 }
 
-/*
- * Used with sigalrm to force exit
- */
-static void thread_killer( int sig )
-{
-	exit(0);
-}
 
 /*
- * Used with sigalrm to force exit
+ * Used to reconfigure the daemon
  */
 static void hup_handler( struct ev_loop *loop, struct ev_signal *sig, int revents )
 {
