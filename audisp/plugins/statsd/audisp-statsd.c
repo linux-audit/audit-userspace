@@ -148,11 +148,11 @@ static int load_config(void)
 			break;
 		default:
 			fprintf(stderr, "unknown option\n");
-			close(f);
+			fclose(f);
 			return 1;
 		}
 	}
-	close(f);
+	fclose(f);
 	if (status != 0x07) {
 		fprintf(stderr, "Not all config options specified\n");
 		return 1;
