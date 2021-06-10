@@ -1,3 +1,5 @@
+3.0.3
+
 3.0.2
 - In audispd-statsd pluging, use struct sockaddr_storage (Ville Heikkinen)
 - Optionally interpret auid in auditctl -l
