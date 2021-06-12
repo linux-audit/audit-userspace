@@ -2867,8 +2867,10 @@ static const char *print_nlmcgrp(const char *val)
 	{
 		default:
 			return strdup(nlmcgrp[0]);
+#ifdef AUDIT_NLGRP_MAX
 		case AUDIT_NLGRP_READLOG:
 			return strdup(nlmcgrp[1]);
+#endif
 	}
 }
 
