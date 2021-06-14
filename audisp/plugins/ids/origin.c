@@ -183,7 +183,7 @@ void bad_service_login_origin(origin_data_t *o, struct ids_conf *config,
 	char buf[62];
 	const char *addr = sockint_to_ipv4(o->address);
 	// account names can be up to 32 characters. IPv4 can be 16
-	snprintf(buf, sizeof(buf), "acct=%32s daddr=%16s",
+	snprintf(buf, sizeof(buf), "acct=%.32s daddr=%.16s",
 			acct ? acct : "?", addr);
 	log_audit_event(AUDIT_ANOM_LOGIN_SERVICE, buf, 1);
 
@@ -195,7 +195,7 @@ void watched_login_origin(origin_data_t *o, struct ids_conf *config,
 {	// We will just add a 5 for a watched login.
 	char buf[62];
 	const char *addr = sockint_to_ipv4(o->address);
-	snprintf(buf, sizeof(buf), "acct=%32s daddr=%16s",
+	snprintf(buf, sizeof(buf), "acct=%.32s daddr=%.16s",
 			acct ? acct : "?", addr);
 	log_audit_event(AUDIT_ANOM_LOGIN_ACCT, buf, 1);
 

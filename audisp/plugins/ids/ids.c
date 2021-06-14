@@ -256,7 +256,7 @@ static void block_address(unsigned int reaction)
 	char buf[24];
 	origin_data_t *o = current_origin();
 	const char *addr = sockint_to_ipv4(o->address);
-	snprintf(buf, sizeof(buf), "daddr=%16s", addr);
+	snprintf(buf, sizeof(buf), "daddr=%.16s", addr);
 	log_audit_event(AUDIT_ANOM_LOGIN_FAILURES, buf, 1);
 
 	if (debug)
