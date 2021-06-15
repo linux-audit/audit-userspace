@@ -85,10 +85,12 @@ static void init_audit(void)
 	}
 }
 
+
 static void destroy_audit(void)
 {
 	audit_close(audit_fd);
 }
+
 
 void log_audit_event(int type, const char *text, int res)
 {
@@ -104,12 +106,14 @@ static void term_handler(int sig __attribute__((unused)))
         stop = 1;
 }
 
+
 static void child_handler(int sig __attribute__((unused)))
 {
 	int status;
 	while (waitpid(-1, &status, WNOHANG)>0)
 		; /* empty */
 }
+
 
 /*
  * SIGHUP handler: re-read config
@@ -119,6 +123,7 @@ static void hup_handler(int sig __attribute__((unused)))
         hup = 1;
 }
 
+
 static void reload_config(void)
 {
 	hup = 0;
@@ -126,10 +131,12 @@ static void reload_config(void)
 	load_config(&config);
 }
 
+
 static void sigusr1_handler(int sig __attribute__((unused)))
 {
 	dump_state = 1;
 }
+
 
 static void output_state(void)
 {
@@ -145,6 +152,7 @@ static void output_state(void)
 		fclose(f);
 	}
 }
+
 
 int main(void)
 {
@@ -183,8 +191,11 @@ int main(void)
 		return -1;
 	}
 	auparse_add_callback(au, handle_event, NULL, NULL);
-	
+
 	init_timer_services();
+
+	FD_ZERO(&read_mask);
+	FD_SET(0, &read_mask);
 
 	do {
 		int retval = -1;
@@ -201,8 +212,6 @@ int main(void)
 		if (stop)
 			break;
 
-		FD_ZERO(&read_mask);
-		FD_SET(0, &read_mask);
 		do {
 			retval= select(1, &read_mask, NULL, NULL, NULL);
 		} while (retval == -1 && errno == EINTR && NO_ACTIONS);
@@ -246,7 +255,7 @@ int main(void)
 
 #define MINUTES	60
 #define HOURS	60*MINUTES
-#define DAYS 	24*HOURS
+#define DAYS	24*HOURS
 #define WEEKS	7*DAYS
 #define MONTHS	30*DAYS
 
@@ -275,6 +284,7 @@ static void block_address(unsigned int reaction)
 			log_audit_event(AUDIT_RESP_ORIGIN_BLOCK_TIMED, buf, 1);
 	}
 }
+
 
 static void do_reaction(unsigned int answer)
 {
@@ -320,8 +330,8 @@ static void do_reaction(unsigned int answer)
 		}
 		num ++;
 	} while (num < 32);
-
 }
+
 
 /* This function receives a single complete event from the auparse library. */
 static void handle_event(auparse_state_t *au,
