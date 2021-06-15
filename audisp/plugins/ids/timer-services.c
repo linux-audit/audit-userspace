@@ -27,6 +27,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <signal.h>
+#include <stdio.h>	// for snprintf
 #include "timer-services.h"
 #include "nvpair.h"
 #include "reactions.h"
@@ -73,8 +74,16 @@ rerun_jobs:
 					// Should we reset the stats?
 					break;
 				case UNBLOCK_ADDRESS:
-					unblock_ip_address(j->arg);
+					{
+					int res = unblock_ip_address(j->arg);
 					// Should we reset the stats?
+					char buf[24];
+					snprintf(buf, sizeof(buf),
+						 "daddr=%.16s", j->arg);
+					log_audit_event(
+						AUDIT_RESP_ORIGIN_UNBLOCK_TIMED,
+						buf, !res);
+					}
 					break;
 				default:
 					break;

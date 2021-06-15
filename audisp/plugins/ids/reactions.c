@@ -21,7 +21,7 @@
 #include "reactions.h"
 #include "timer-services.h"
 
-
+// Returns 0 on success and 1 on failure
 static int safe_exec(const char *exe, ...)
 {
 	char **argv;

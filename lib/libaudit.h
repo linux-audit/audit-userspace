@@ -1,5 +1,5 @@
-/* libaudit.h -- 
- * Copyright 2004-2018 Red Hat Inc., Durham, North Carolina.
+/* libaudit.h --
+ * Copyright 2004-2018,2021 Red Hat Inc.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- * 
+ *
  * Authors:
  *	Steve Grubb <sgrubb@redhat.com>
  *	Rickard E. (Rik) Faith <faith@redhat.com>
@@ -189,6 +189,7 @@ extern "C" {
 #define AUDIT_RESP_HALT			2212 /* take the system down */
 #define AUDIT_RESP_ORIGIN_BLOCK		2213 /* Address blocked by iptables */
 #define AUDIT_RESP_ORIGIN_BLOCK_TIMED	2214 /* Address blocked for time */
+#define AUDIT_RESP_ORIGIN_UNBLOCK_TIMED	2215 /* Address unblocked from timed */
 
 #define AUDIT_FIRST_USER_LSPP_MSG	2300
 #define AUDIT_LAST_USER_LSPP_MSG	2399
