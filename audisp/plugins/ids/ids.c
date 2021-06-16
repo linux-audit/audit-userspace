@@ -194,9 +194,6 @@ int main(void)
 
 	init_timer_services();
 
-	FD_ZERO(&read_mask);
-	FD_SET(0, &read_mask);
-
 	do {
 		int retval = -1;
 
@@ -211,6 +208,9 @@ int main(void)
 		/* Probably not needed, but maybe reload took some time?  */
 		if (stop)
 			break;
+
+		FD_ZERO(&read_mask);
+		FD_SET(0, &read_mask);
 
 		do {
 			retval= select(1, &read_mask, NULL, NULL, NULL);
