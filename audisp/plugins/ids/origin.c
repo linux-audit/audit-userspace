@@ -172,6 +172,18 @@ char *sockint_to_ipv4(unsigned int addr)
         return buf;
 }
 
+unsigned int ipv4_to_sockint(const char *buf)
+{
+	unsigned int addr;
+	unsigned int ip[4] = {0, 0, 0, 0};
+
+	if (sscanf(buf, "%u.%u.%u.%u", &ip[3], &ip[2], &ip[1], &ip[0]) != 4)
+		return 0;
+
+	addr = ip[0] << 24 | ip[1] << 16 | ip[2] << 8 | ip[3];
+	return addr;
+}
+
 void bad_login_origin(origin_data_t *o, struct ids_conf *config)
 {	// We will just add a 1 for a bad login.
 	add_to_score_origin(o, config->option_bad_login_weight);
@@ -216,3 +228,15 @@ void add_to_score_origin(origin_data_t *o, unsigned int adj)
                 my_printf("origin karma: %u", o->karma);
 }
 
+// Returns 1 on success and 0 on failure
+int unblock_origin(const char *addr)
+{
+	unsigned int uaddr = ipv4_to_sockint(addr);
+	origin_data_t *o = find_origin(uaddr);
+	if (o) {
+		o->blocked = 0;
+		return 1;
+	}
+
+	return 0;
+}

@@ -9,6 +9,7 @@
 #define ORIGIN_HEADER
 
 #include <stdio.h>
+#include <stdatomic.h>
 #include "avl.h"
 #include "ids_config.h"
 
@@ -17,7 +18,7 @@ typedef struct origin_data {
 
 	unsigned int address; // This hack works for IPv4
 	unsigned int karma;
-	unsigned int blocked;
+	atomic_int blocked;
 } origin_data_t;
 
 
@@ -37,7 +38,9 @@ void bad_service_login_origin(origin_data_t *o, struct ids_conf *config,
 void watched_login_origin(origin_data_t *o, struct ids_conf *config,
 	const char *acct);
 void add_to_score_origin(origin_data_t *o, unsigned int adj);
+int unblock_origin(const char *addr);
 char *sockint_to_ipv4(unsigned int addr);
+unsigned int ipv4_to_sockint(const char *buf);
 
 #endif
 

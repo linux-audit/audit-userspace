@@ -32,6 +32,7 @@
 #include "nvpair.h"
 #include "reactions.h"
 #include "ids.h"
+#include "origin.h"
 
 static pthread_t timer_thread;
 static void *timer_thread_main(void *arg);
@@ -75,14 +76,19 @@ rerun_jobs:
 					break;
 				case UNBLOCK_ADDRESS:
 					{
+					// Send iptables rule
 					int res = unblock_ip_address(j->arg);
-					// Should we reset the stats?
+
+					// Log that its back in business
 					char buf[24];
 					snprintf(buf, sizeof(buf),
 						 "daddr=%.16s", j->arg);
 					log_audit_event(
 						AUDIT_RESP_ORIGIN_UNBLOCK_TIMED,
 						buf, !res);
+
+					// Reset origin state
+					unblock_origin(j->arg);
 					}
 					break;
 				default:
