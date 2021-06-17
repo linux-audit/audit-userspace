@@ -45,10 +45,11 @@
 
 /* Global Data */
 int debug = 1;
-// mode 2 == syslog, 1 == stderr, 0 == nothing
+// mode 3 == file, mode 2 == syslog, 1 == stderr, 0 == nothing
 int mode = 0;
 
 /* Local Data */
+static FILE *l = NULL;	// Log file
 static volatile int stop = 0;
 static volatile int hup = 0;
 static volatile int dump_state = 0;
@@ -71,6 +72,17 @@ void my_printf(const char *fmt, ...)
 	else if (mode == 1) {
 		vfprintf(stderr, fmt, ap);
 		fputc('\n', stderr);
+	} else if (mode == 3) {
+		if (l == NULL) {
+			l = fopen("/var/run/audisp-ids.log", "wt");
+			if (l == NULL) {
+				va_end(ap);
+				return;
+			}
+			setlinebuf(l);
+		}
+		vfprintf(l, fmt, ap);
+		fputc('\n', l);
 	}
 	va_end(ap);
 }
