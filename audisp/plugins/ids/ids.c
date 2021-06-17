@@ -208,7 +208,8 @@ int main(void)
 	init_timer_services();
 
 	do {
-		int retval = -1;
+		int retval = 0;
+		struct timeval tv;
 
 		/* Handle dump_state */
 		if (dump_state)
@@ -222,11 +223,23 @@ int main(void)
 		if (stop)
 			break;
 
-		FD_ZERO(&read_mask);
-		FD_SET(0, &read_mask);
-
 		do {
-			retval= select(1, &read_mask, NULL, NULL, NULL);
+			tv.tv_sec = 2;
+			tv.tv_usec = 0;
+			FD_ZERO(&read_mask);
+			FD_SET(0, &read_mask);
+
+			if (auparse_feed_has_data(au)) {
+				//my_printf("auparse_feed_has_data");
+				retval= select(1, &read_mask, NULL, NULL, &tv);
+			} else
+				retval= select(1, &read_mask, NULL, NULL, NULL);
+
+			/* If we timed out & have events, shake them loose */
+			if (retval == 0 && auparse_feed_has_data(au)) {
+				//my_printf("auparse_feed_age_events");
+				auparse_feed_age_events(au);
+			}
 		} while (retval == -1 && errno == EINTR && NO_ACTIONS);
 
 		/* Now the event loop */
