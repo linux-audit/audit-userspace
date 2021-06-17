@@ -263,6 +263,9 @@ int main(void)
 	else
 		my_printf("ids is exiting on stdin EOF");
 
+	if (l)
+		fclose(l);
+
 	return 0;
 }
 
