@@ -87,14 +87,14 @@ static void start_session(auparse_state_t *au, struct ids_conf *config)
 	// Look for new login sessions
 	if (auparse_normalize_session(au) == 1) {
 		unsigned int s = auparse_get_field_int(au);
-		if (s == UNSET) {
+		if (s != UNSET) {
 			// new_session takes custody of acct
 			new_session(s, a, acct);
 			acct = NULL;
 		// otherwise we have a strange daemon login
 		} else if (debug)
-		    my_printf("start_session: can't find session in serial %lu",
-				auparse_get_serial(au));
+		    my_printf("start_session: can't find session in serial %s",
+				auparse_get_type_name(au));
 	}
 	free((void *)acct);
 }
