@@ -9,6 +9,7 @@
 #include <arpa/inet.h> // inet_pton
 #include <libaudit.h>
 #include <string.h>
+#include <stdlib.h>
 #include "ids.h"
 #include "session.h"
 #include "origin.h"
@@ -29,6 +30,10 @@ static void terminate_sessions(void)
 	destroy_sessions();
 }
 
+// Look at the acct, is it a daemon acct and forbidden
+// Is the acct root and forbidden
+// is it a bad login
+// is it a new session
 static void start_session(auparse_state_t *au, struct ids_conf *config)
 {
 	unsigned int a;
@@ -38,48 +43,60 @@ static void start_session(auparse_state_t *au, struct ids_conf *config)
 	else
 		a = -1;
 
+	int service_acct = 0;
+	const char *acct = NULL;
+	const char *atype = auparse_normalize_subject_kind(au);
+	if (atype && strncmp(atype, "service", 7) == 0)
+		service_acct = 1;
+	if (auparse_normalize_subject_primary(au) == 1)
+		acct = strdup(auparse_interpret_field(au));
+
+	// Have we seen this endpoint before?
+	origin_data_t *o = find_origin(a);
+	if (o == NULL) {
+		new_origin(a);
+		o = find_origin(a);
+	}
+
+	// Is this login a service account?
+	if (service_acct && !config->option_service_login_allowed) {
+		my_printf("bad_service_login_origin: %s", acct);
+		bad_service_login_origin(o, config, acct);
+	}
+
+	// Is this a root login
+	else if (!config->option_root_login_allowed && acct &&
+				strcmp(acct, "root") == 0) {
+		my_printf("watched_login_origin: %s", acct);
+		watched_login_origin(o, config, acct);
+	}
+
+	// Check if it's a failed login
 	if (auparse_normalize_get_results(au) == 1) {
 		// Handle a bad login
 		const char *res = auparse_interpret_field(au);
 		if (res && strcmp(res, "failed") == 0) {
-			int service_acct = 0;
-			const char *acct = NULL;
-			const char *atype = auparse_normalize_subject_kind(au);
-			if (atype && strncmp(atype, "service", 7) == 0)
-				service_acct = 1;
-			if (auparse_normalize_subject_primary(au) == 1)
-				acct = auparse_interpret_field(au);
-
-			origin_data_t *o = find_origin(a);
-			if (o == NULL) {
-				new_origin(a);
-				o = find_origin(a);
-			}
-			if(service_acct &&
-					!config->option_service_login_allowed)
-				bad_service_login_origin(o, config, acct);
-			else if (!config->option_root_login_allowed && acct && 
-						strcmp(acct, "root") == 0)
-				watched_login_origin(o, config, acct);
-			else
-				bad_login_origin(o, config);
+			// Since the login failed, we don't need to
+			// start a new session
+			bad_login_origin(o, config);
+			free((void *)acct);
 			return;
 		}
 	}
+
+	// Look for new login sessions
 	if (auparse_normalize_session(au) == 1) {
-		const char *ses = auparse_get_field_str(au);
-		if (ses) {
-			if (strcmp(ses, DAEMON_SESSION)) {
-				unsigned int s = auparse_get_field_int(au);
-				if (auparse_normalize_subject_primary(au) == 1){
-					new_session(s, a, strdup(
-						auparse_interpret_field(au)));
-				}
-			} // else we have a strange daemon login
+		unsigned int s = auparse_get_field_int(au);
+		if (s == UNSET) {
+			// new_session takes custody of acct
+			new_session(s, a, acct);
+			acct = NULL;
+		// otherwise we have a strange daemon login
 		} else if (debug)
-		     my_printf("start_session: can't find session in serial %lu",
+		    my_printf("start_session: can't find session in serial %lu",
 				auparse_get_serial(au));
 	}
+	free((void *)acct);
 }
 
 static void end_session(auparse_state_t *au)
@@ -117,7 +134,7 @@ unsigned int process_bad_event_model(auparse_state_t *au,
 		{
 			// Do not process our own events
 			const char *exe = auparse_normalize_how(au);
-			if (exe && strcmp(exe, "ids") == 0)
+			if (exe && strcmp(exe, "/usr/sbin/audisp-ids") == 0)
 				break;
 		}
 			// fallthrough if pam related
@@ -143,7 +160,7 @@ unsigned int process_bad_event_model(auparse_state_t *au,
 		if (o->karma >= config->option_origin_failed_logins_threshold &&
 							!o->blocked)
 			answer |= config->option_origin_failed_logins_reaction;
-	}
+	} 
 	return answer;
 }
 

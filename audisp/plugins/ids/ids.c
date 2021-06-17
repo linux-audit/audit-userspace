@@ -190,6 +190,7 @@ int main(void)
 		my_printf("ids is exiting due to auparse init errors");
 		return -1;
 	}
+	auparse_set_eoe_timeout(2);
 	auparse_add_callback(au, handle_event, NULL, NULL);
 
 	init_timer_services();
@@ -261,12 +262,12 @@ int main(void)
 
 static void block_address(unsigned int reaction)
 {
+	// FIXME: This should be configurable
+	unsigned time_out = 2*MINUTES;
 	int res;
-	char buf[24];
+	char buf[48];
 	origin_data_t *o = current_origin();
 	const char *addr = sockint_to_ipv4(o->address);
-	snprintf(buf, sizeof(buf), "daddr=%.16s", addr);
-	log_audit_event(AUDIT_ANOM_LOGIN_FAILURES, buf, 1);
 
 	if (debug)
 		my_printf("Blocking address %s", addr);
@@ -274,14 +275,18 @@ static void block_address(unsigned int reaction)
 	if (reaction == REACTION_BLOCK_ADDRESS)
 		res = block_ip_address(addr);
 	else
-		res = block_ip_address_timed(addr, 2*DAYS);
+		res = block_ip_address_timed(addr, time_out);
 
 	if (res == 0) {
 		o->blocked = 1;
-		if (reaction == REACTION_BLOCK_ADDRESS)
+		if (reaction == REACTION_BLOCK_ADDRESS) {
+			snprintf(buf, sizeof(buf), "daddr=%.16s", addr);
 			log_audit_event(AUDIT_RESP_ORIGIN_BLOCK, buf, 1);
-		else
+		} else {
+			snprintf(buf, sizeof(buf), "daddr=%.16s time_out=%u",
+				 addr, time_out/MINUTES);
 			log_audit_event(AUDIT_RESP_ORIGIN_BLOCK_TIMED, buf, 1);
+		}
 	}
 }
 

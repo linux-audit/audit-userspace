@@ -10,6 +10,7 @@
 
 #include "libaudit.h"
 #define DAEMON_SESSION "4294967295"
+#define UNSET 4294967295
 
 extern int debug;
 extern void my_printf(const char *fmt, ...)
