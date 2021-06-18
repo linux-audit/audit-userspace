@@ -1,5 +1,5 @@
 /* audisp-example.c --
- * Copyright 2012 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2012 Red Hat Inc.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -98,11 +98,11 @@ int main(int argc, char *argv[])
 		printf("audisp-example is exiting due to auparse init errors");
 		return -1;
 	}
+	auparse_set_eoe_timeout(2);
 	auparse_add_callback(au, handle_event, NULL, NULL);
 	do {
 		fd_set read_mask;
-		struct timeval tv;
-		int retval = 0;
+		int retval;
 		int read_size = 0;
 
 		/* Load configuration */
@@ -110,23 +110,27 @@ int main(int argc, char *argv[])
 			reload_config();
 		}
 		do {
+			FD_ZERO(&read_mask);
+			FD_SET(0, &read_mask);
+
+			if (auparse_feed_has_data(au)) {
+				struct timeval tv;
+				tv.tv_sec = 1;
+				tv.tv_usec = 0;
+				retval= select(1, &read_mask, NULL, NULL, &tv);
+			} else
+				retval= select(1, &read_mask, NULL, NULL, NULL);
+
 			/* If we timed out & have events, shake them loose */
 			if (retval == 0 && auparse_feed_has_data(au))
 				auparse_feed_age_events(au);
 
-			tv.tv_sec = 3;
-			tv.tv_usec = 0;
-			FD_ZERO(&read_mask);
-			FD_SET(0, &read_mask);
-			if (auparse_feed_has_data(au))
-				retval= select(1, &read_mask, NULL, NULL, &tv);
-			else
-				retval= select(1, &read_mask, NULL, NULL, NULL);
 		} while (retval == -1 && errno == EINTR && !hup && !stop);
 
 		/* Now the event loop */
 		if (!stop && !hup && retval > 0) {
-			while ((read_size = read(0, tmp, MAX_AUDIT_MESSAGE_LENGTH)) > 0) {
+			while ((read_size = read(0, tmp,
+					     MAX_AUDIT_MESSAGE_LENGTH)) > 0) {
 				auparse_feed(au, tmp, read_size);
 			}
 		}
