@@ -371,6 +371,9 @@ int main(void)
 				unsigned long long missed;
 				missed=read(timer_fd, &missed, sizeof (missed));
 				kill(auditd_pid, SIGCONT); // Run auditd report
+				// Clear any old events if possible
+				if (auparse_feed_has_data(au))
+					auparse_feed_age_events(au);
 				get_kernel_status();
 				get_auditd_status();
 				send_statsd();
@@ -390,7 +393,6 @@ int main(void)
 
 	// tear down everything
 	close(timer_fd);
-	auparse_flush_feed(au);
 	auparse_destroy(au);
 	close(audit_fd);
 	close(d.sock);
