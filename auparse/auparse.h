@@ -1,5 +1,5 @@
 /* auparse.h --
- * Copyright 2006-08,2012,2014-17 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2006-08,2012,2014-17 Red Hat Inc.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -46,6 +46,7 @@ int auparse_feed(auparse_state_t *au, const char *data, size_t data_len);
 void auparse_feed_age_events(auparse_state_t *au);
 int auparse_flush_feed(auparse_state_t *au);
 int auparse_feed_has_data(auparse_state_t *au);
+int auparse_feed_has_ready_event(auparse_state_t *au);
 void auparse_add_callback(auparse_state_t *au, auparse_callback_ptr callback,
 			void *user_data, user_destroy user_destroy_func);
 void auparse_set_escape_mode(auparse_state_t *au, auparse_esc_t mode);

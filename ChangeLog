@@ -1,6 +1,7 @@
 3.0.3
 - Limit interpretation of audit netlink groups to  AUDIT_NLGRP_MAX being defined
 - Add support for AUDIT_RESP_ORIGIN_UNBLOCK_TIMED to ids
+- Change auparse_feed_has_data in auparse to include incomplete events
 
 3.0.2
 - In audispd-statsd pluging, use struct sockaddr_storage (Ville Heikkinen)

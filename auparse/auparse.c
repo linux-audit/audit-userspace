@@ -654,9 +654,30 @@ int auparse_flush_feed(auparse_state_t *au)
 	return 0;
 }
 
-// If there is data in the state machine, return 1
+// If there is any data in the state machine, return 1.
 // Otherwise return 0 to indicate its empty
 int auparse_feed_has_data(auparse_state_t *au)
+{
+	if (!au)
+		return 0;
+
+	unsigned int i;
+	au_lol *lol = au->au_lo;
+
+	// An improvement would be to track how many events we have stored
+	// to avoid a costly loop
+        for (i=0; i <= lol->maxi; i++) {
+                au_lolnode *cur = &(lol->array[i]);
+		if (cur->status > EBS_EMPTY)
+			return 1;
+	}
+
+	return 0;
+}
+
+// If there is a ready event in the state machine, return 1.
+// Otherwise return 0 to indicate its empty
+int auparse_feed_has_ready_event(auparse_state_t *au)
 {
 	if (au_get_ready_event(au, 1) != NULL)
 		return 1;
