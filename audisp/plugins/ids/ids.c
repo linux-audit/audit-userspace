@@ -208,8 +208,7 @@ int main(void)
 	init_timer_services();
 
 	do {
-		int retval = 0;
-		struct timeval tv;
+		int retval;
 
 		/* Handle dump_state */
 		if (dump_state)
@@ -224,12 +223,15 @@ int main(void)
 			break;
 
 		do {
-			tv.tv_sec = 2;
-			tv.tv_usec = 0;
 			FD_ZERO(&read_mask);
 			FD_SET(0, &read_mask);
 
 			if (auparse_feed_has_data(au)) {
+				// We'll do a 1 second timeout to try to
+				// age events as quick as possible
+				struct timeval tv;
+				tv.tv_sec = 1;
+				tv.tv_usec = 0;
 				//my_printf("auparse_feed_has_data");
 				retval= select(1, &read_mask, NULL, NULL, &tv);
 			} else
@@ -248,6 +250,9 @@ int main(void)
 				do {
 					if (audit_fgets(tmp,
 						MAX_AUDIT_MESSAGE_LENGTH, 0)) {
+					/*	char *buf = strndup(tmp, 40);
+					     my_printf("auparse_feed %s", buf);
+						free(buf); */
 						auparse_feed(au, tmp,
 							       strnlen(tmp,
 						    MAX_AUDIT_MESSAGE_LENGTH));
@@ -376,10 +381,11 @@ static void handle_event(auparse_state_t *au,
 	if (cb_event_type != AUPARSE_CB_EVENT_READY)
 		return;
 
+	//my_printf("handle_event %s", auparse_get_type_name(au));
+
 	/* Do this once for all models */
-	if (auparse_normalize(au, NORM_OPT_NO_ATTRS)) {
+	if (auparse_normalize(au, NORM_OPT_NO_ATTRS))
 		my_printf("Error normalizing %s", auparse_get_type_name(au));
-	}
 
 	/* Check for events that are known bad */
 	answer = process_bad_event_model(au, &config);
