@@ -31,6 +31,8 @@
 #include <stdarg.h>
 #include <sys/wait.h>
 #include <sys/stat.h> // umask
+#include <unistd.h>
+#include <sys/timerfd.h>
 #include "auparse.h"
 #include "common.h"
 #include "ids.h"
@@ -56,6 +58,7 @@ static volatile int dump_state = 0;
 static auparse_state_t *au = NULL;
 #define NO_ACTIONS (!hup && !stop && !dump_state)
 #define STATE_FILE "/var/run/ids-state"
+#define TIMER_INTERVAL 30	// Run every 30 seconds
 static struct ids_conf config;
 
 /* Local declarations */
@@ -170,6 +173,8 @@ int main(void)
 {
 	char tmp[MAX_AUDIT_MESSAGE_LENGTH+1];
 	struct sigaction sa;
+	struct itimerspec itval;
+	int tfd;
 	fd_set read_mask;
 
 	/* Register sighandlers */
@@ -206,6 +211,16 @@ int main(void)
 	auparse_add_callback(au, handle_event, NULL, NULL);
 
 	init_timer_services();
+	tfd = timerfd_create (CLOCK_MONOTONIC, TFD_NONBLOCK|TFD_CLOEXEC);
+	if (tfd < 0) {
+		my_printf("ids is exiting due to timerfd_create failing");
+		return -1;
+	}
+	itval.it_interval.tv_sec = TIMER_INTERVAL;
+	itval.it_interval.tv_nsec = 0;
+	itval.it_value.tv_sec = itval.it_interval.tv_sec;
+	itval.it_value.tv_nsec = 0;
+	timerfd_settime(tfd, 0, &itval, NULL);
 
 	do {
 		int retval;
@@ -225,6 +240,7 @@ int main(void)
 		do {
 			FD_ZERO(&read_mask);
 			FD_SET(0, &read_mask);
+			FD_SET(tfd, &read_mask);
 
 			if (auparse_feed_has_data(au)) {
 				// We'll do a 1 second timeout to try to
@@ -233,9 +249,11 @@ int main(void)
 				tv.tv_sec = 1;
 				tv.tv_usec = 0;
 				//my_printf("auparse_feed_has_data");
-				retval= select(1, &read_mask, NULL, NULL, &tv);
+				retval= select(tfd+1, &read_mask,
+					       NULL, NULL, &tv);
 			} else
-				retval= select(1, &read_mask, NULL, NULL, NULL);
+				retval= select(tfd+1, &read_mask,
+					       NULL, NULL, NULL);
 
 			/* If we timed out & have events, shake them loose */
 			if (retval == 0 && auparse_feed_has_data(au)) {
@@ -260,12 +278,20 @@ int main(void)
 				} while (audit_fgets_more(
 						MAX_AUDIT_MESSAGE_LENGTH));
 			}
+			if (FD_ISSET(tfd, &read_mask)) {
+				unsigned long long missed;
+				//my_printf("do_timer_services");
+				do_timer_services(TIMER_INTERVAL);
+				missed=read(tfd, &missed, sizeof (missed));
+			}
+
 		}
 		if (audit_fgets_eof())
 			break;
 	} while (stop == 0);
 
 	shutdown_timer_services();
+	close(tfd);
 
 	/* Flush any accumulated events from queue */
 	auparse_flush_feed(au);

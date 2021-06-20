@@ -9,7 +9,6 @@
 #define ORIGIN_HEADER
 
 #include <stdio.h>
-#include <stdatomic.h>
 #include "avl.h"
 #include "ids_config.h"
 
@@ -18,7 +17,7 @@ typedef struct origin_data {
 
 	unsigned int address; // This hack works for IPv4
 	unsigned int karma;
-	atomic_int blocked;
+	unsigned int blocked;
 } origin_data_t;
 
 

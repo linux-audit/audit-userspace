@@ -38,7 +38,7 @@ audisp_ids_SOURCES = account.c avl.c ids.c ids_config.c model_bad_event.c \
 	model_behavior.c nvpair.c origin.c reactions.c session.c \
 	timer-services.c
 audisp_ids_CFLAGS = -D_GNU_SOURCE
-audisp_ids_LDADD = ${top_builddir}/lib/libaudit.la ${top_builddir}/auparse/libauparse.la ${top_builddir}/common/libaucommon.la -lpthread
+audisp_ids_LDADD = ${top_builddir}/lib/libaudit.la ${top_builddir}/auparse/libauparse.la ${top_builddir}/common/libaucommon.la
 
 install-data-hook:
 	mkdir -p -m 0750 ${DESTDIR}${plugin_confdir}
