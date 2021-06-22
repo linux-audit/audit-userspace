@@ -1,10 +1,10 @@
 3.0.3
-- Limit interpretation of audit netlink groups to  AUDIT_NLGRP_MAX being defined
+- Dont interpret audit netlink groups unless AUDIT_NLGRP_MAX is defined
 - Add support for AUDIT_RESP_ORIGIN_UNBLOCK_TIMED to ids
 - Change auparse_feed_has_data in auparse to include incomplete events
 
 3.0.2
-- In audispd-statsd pluging, use struct sockaddr_storage (Ville Heikkinen)
+- In audispd-statsd plugin, use struct sockaddr_storage (Ville Heikkinen)
 - Optionally interpret auid in auditctl -l
 - Update some syscall argument interpretations
 - In auditd, do not allow spaces in the hostname name format
@@ -82,7 +82,7 @@
 - Update to libev-4.25
 - Fix ausearch when checkpointing a single file (Burn Alting)
 - Fix scripting in 31-privileged.rules wrt filecap (#1662516)
-- In ausearch, do not checkpt if stdin is input source
+- In ausearch, do not checkpoint if stdin is input source
 - In libev, remove __cold__ attribute for functions to allow proper hardening
 - Add tests to configure.ac for openldap support
 - Make systemd support files use /run rather than /var/run (Christian Hesse)
@@ -90,7 +90,7 @@
 - Allow exclude and user filter by executable name (Ondrej Mosnacek)
 - Fix auditd regression where keep_logs is limited by rotate_logs 2 file test
 - In ausearch/report fix --end to use midnight time instead of now (#1671338)
-- Add substitue functions for strndupa & rawmemchr
+- Add substitute functions for strndupa & rawmemchr
 - Fix memleak in auparse caused by corrected event ordering
 - Fix legacy reload script to reload audit rules when daemon is reloaded
 - Support for unescaping in trusted messages (Dmitry Voronin)
@@ -118,7 +118,7 @@
 - Add error messages for watch permissions
 - If audit rules file doesn't exist log error message instead of info message
 - Revise error message for unmatched options in auditctl
-- In audisp-remote, fixup remote endpoint disappearin in ascii format
+- In audisp-remote, fixup remote endpoint disappearing in ascii format
 - Add backlog_wait_time_actual reporting / resetting to auditctl (Max Englander)
 - In auditctl, add support for sending a signal to auditd
 
