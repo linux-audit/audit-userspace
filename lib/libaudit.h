@@ -137,7 +137,7 @@ extern "C" {
 #define AUDIT_INTEGRITY_LAST_MSG	1899
 #ifndef AUDIT_INTEGRITY_DATA
 #define AUDIT_INTEGRITY_DATA		1800 /* Data integrity verification */
-#define AUDIT_INTEGRITY_METADATA 	1801 // Metadata integrity verification
+#define AUDIT_INTEGRITY_METADATA	1801 // Metadata integrity verification
 #define AUDIT_INTEGRITY_STATUS		1802 /* Integrity enable status */
 #define AUDIT_INTEGRITY_HASH		1803 /* Integrity HASH type */
 #define AUDIT_INTEGRITY_PCR		1804 /* PCR invalidation msgs */
@@ -171,6 +171,8 @@ extern "C" {
 #define AUDIT_ANOM_MOD_ACCT		2116 // Changing an acct
 #define AUDIT_ANOM_ROOT_TRANS		2117 // User became root
 #define AUDIT_ANOM_LOGIN_SERVICE	2118 // Service acct attempted login
+#define AUDIT_ANOM_LOGIN_ROOT		2119 // Root login attempted
+#define AUDIT_ANOM_SESSION		2120 // The user session is bad
 
 #define AUDIT_FIRST_ANOM_RESP		2200
 #define AUDIT_LAST_ANOM_RESP		2299
