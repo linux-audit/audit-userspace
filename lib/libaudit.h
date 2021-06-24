@@ -172,7 +172,8 @@ extern "C" {
 #define AUDIT_ANOM_ROOT_TRANS		2117 // User became root
 #define AUDIT_ANOM_LOGIN_SERVICE	2118 // Service acct attempted login
 #define AUDIT_ANOM_LOGIN_ROOT		2119 // Root login attempted
-#define AUDIT_ANOM_SESSION		2120 // The user session is bad
+#define AUDIT_ANOM_ORIGIN_FAILURES	2120 // Origin has too many failed login
+#define AUDIT_ANOM_SESSION		2121 // The user session is bad
 
 #define AUDIT_FIRST_ANOM_RESP		2200
 #define AUDIT_LAST_ANOM_RESP		2299
