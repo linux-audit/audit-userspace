@@ -14,7 +14,7 @@
 #include "session.h"
 #include "origin.h"
 #include "model_bad_event.h"
-
+#include "reactions.h"
 
 /* Local Data */
 
@@ -111,7 +111,7 @@ static void end_session(auparse_state_t *au)
 }
 
 /* This function receives a single complete event from the auparse library. */
-unsigned int process_bad_event_model(auparse_state_t *au,
+void process_bad_event_model(auparse_state_t *au,
 	struct ids_conf *config)
 {
 	unsigned int answer = 0;
@@ -158,9 +158,11 @@ unsigned int process_bad_event_model(auparse_state_t *au,
 	origin_data_t *o = current_origin();
 	if (o) {
 		if (o->karma >= config->option_origin_failed_logins_threshold &&
-							!o->blocked)
+							!o->blocked) {
+			//AUDIT_ANOM_ORIGIN_FAILURES
 			answer |= config->option_origin_failed_logins_reaction;
-	} 
-	return answer;
+			do_reaction(answer, "login_failures");
+		}
+	}
 }
 

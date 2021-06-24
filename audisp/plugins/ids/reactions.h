@@ -21,5 +21,6 @@ int unblock_ip_address(const char *addr);
 int system_reboot(void);
 int system_single_user(void);
 int system_halt(void);
+void do_reaction(unsigned int answer, const char *reason);
 
 #endif

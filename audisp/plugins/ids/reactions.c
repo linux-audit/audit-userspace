@@ -18,7 +18,9 @@
 #include <pwd.h>
 #include <string.h>
 #include "ids.h"
+#include "ids_config.h"
 #include "reactions.h"
+#include "session.h"
 #include "timer-services.h"
 
 // Returns 0 on success and 1 on failure
@@ -230,6 +232,44 @@ int block_ip_address_timed(const char *addr, unsigned long length)
 	return 0;
 }
 
+#define MINUTES 60
+#define HOURS   60*MINUTES
+#define DAYS    24*HOURS
+#define WEEKS   7*DAYS
+#define MONTHS  30*DAYS
+
+static void block_address(unsigned int reaction, const char *reason)
+{
+	// FIXME: This should be configurable
+	unsigned time_out = 2*MINUTES;
+	int res;
+	char buf[80];
+	origin_data_t *o = current_origin();
+	const char *addr = sockint_to_ipv4(o->address);
+
+	if (debug)
+		my_printf("Blocking address %s b/c %s", addr, reason);
+
+	if (reaction == REACTION_BLOCK_ADDRESS)
+		res = block_ip_address(addr);
+	else
+		res = block_ip_address_timed(addr, time_out);
+
+	if (res == 0) {
+		o->blocked = 1;
+		if (reaction == REACTION_BLOCK_ADDRESS) {
+			snprintf(buf, sizeof(buf), "daddr=%.16s reason=%s",
+				      addr, reason);
+			log_audit_event(AUDIT_RESP_ORIGIN_BLOCK, buf, 1);
+		} else {
+			snprintf(buf, sizeof(buf),
+				      "daddr=%.16s reason=%s time_out=%u",
+				      addr, reason, time_out/MINUTES);
+			log_audit_event(AUDIT_RESP_ORIGIN_BLOCK_TIMED, buf, 1);
+		}
+	}
+}
+
 int unblock_ip_address(const char *addr)
 {
 	if (debug)
@@ -253,5 +293,52 @@ int system_single_user(void)
 int system_halt(void)
 {
 	return safe_exec("/sbin/init", "0");
+}
+
+void do_reaction(unsigned int answer, const char *reason)
+{
+//my_printf("Answer: %u", answer);
+	unsigned int num = 0;
+
+	do {
+		unsigned int tmp = 1 << num;
+		if (answer & tmp) {
+			switch (tmp) {
+				// FIXME: do the reactions
+				case REACTION_IGNORE:
+					break;
+				case REACTION_LOG:
+				case REACTION_EMAIL:
+				case REACTION_TERMINATE_PROCESS:
+					break;
+				case REACTION_TERMINATE_SESSION:
+				{
+					// FIXME: need to add audit events
+					session_data_t *s = current_session();
+					kill_session(s->session);
+					break;
+				}
+				case REACTION_RESTRICT_ROLE:
+				case REACTION_PASSWORD_RESET:
+				case REACTION_LOCK_ACCOUNT_TIMED:
+				case REACTION_LOCK_ACCOUNT:
+					break;
+				case REACTION_BLOCK_ADDRESS_TIMED:
+				case REACTION_BLOCK_ADDRESS:
+					block_address(tmp, reason);
+					break;
+				case REACTION_SYSTEM_REBOOT:
+				case REACTION_SYSTEM_SINGLE_USER:
+				case REACTION_SYSTEM_HALT:
+					break;
+				default:
+					if (debug)
+					    my_printf("Unknown reaction: %X",
+							    tmp);
+					break;
+			}
+		}
+		num++;
+	} while (num < 32);
 }
 

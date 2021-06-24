@@ -12,7 +12,7 @@
 #include "session.h"
 #include "origin.h"
 #include "model_behavior.h"
-
+#include "reactions.h"
 
 /* Local Data */
 
@@ -71,8 +71,7 @@ static void process_anomalies(auparse_state_t *au)
 }
 
 /* This function receives a single complete event from the auparse library. */
-unsigned int process_behavior_model(auparse_state_t *au,
-	struct ids_conf *config)
+void process_behavior_model(auparse_state_t *au, struct ids_conf *config)
 {
 	unsigned int answer = 0;
 	auparse_first_record(au);
@@ -115,7 +114,9 @@ unsigned int process_behavior_model(auparse_state_t *au,
 	if (o && s) {
 		if (s->score >= config->option_session_badness1_threshold &&
 							s->killed == 0) {
+			//AUDIT_ANOM_SESSION
 			answer |= config->option_session_badness1_reaction;
+			do_reaction(answer, "session_bad");
 			if (s->killed >= 1)
 				add_to_score_origin(o, 5);
 			else
@@ -124,9 +125,10 @@ unsigned int process_behavior_model(auparse_state_t *au,
 	}
 
 	if (o && o->karma >= config->option_origin_failed_logins_threshold &&
-							!o->blocked)
+							!o->blocked) {
+		//AUDIT_ANOM_ORIGIN_FAILURES
 		answer |= config->option_origin_failed_logins_reaction;
-
-	return answer;
+			do_reaction(answer, "failed_login");
+	}
 }
 

@@ -43,7 +43,6 @@
 #include "model_bad_event.h"
 #include "model_behavior.h"
 #include "timer-services.h"
-#include "reactions.h"
 
 /* Global Data */
 int debug = 1;
@@ -313,97 +312,12 @@ int main(void)
 	return 0;
 }
 
-#define MINUTES	60
-#define HOURS	60*MINUTES
-#define DAYS	24*HOURS
-#define WEEKS	7*DAYS
-#define MONTHS	30*DAYS
-
-static void block_address(unsigned int reaction)
-{
-	// FIXME: This should be configurable
-	unsigned time_out = 2*MINUTES;
-	int res;
-	char buf[48];
-	origin_data_t *o = current_origin();
-	const char *addr = sockint_to_ipv4(o->address);
-
-	if (debug)
-		my_printf("Blocking address %s", addr);
-
-	if (reaction == REACTION_BLOCK_ADDRESS)
-		res = block_ip_address(addr);
-	else
-		res = block_ip_address_timed(addr, time_out);
-
-	if (res == 0) {
-		o->blocked = 1;
-		if (reaction == REACTION_BLOCK_ADDRESS) {
-			snprintf(buf, sizeof(buf), "daddr=%.16s", addr);
-			log_audit_event(AUDIT_RESP_ORIGIN_BLOCK, buf, 1);
-		} else {
-			snprintf(buf, sizeof(buf), "daddr=%.16s time_out=%u",
-				 addr, time_out/MINUTES);
-			log_audit_event(AUDIT_RESP_ORIGIN_BLOCK_TIMED, buf, 1);
-		}
-	}
-}
-
-
-static void do_reaction(unsigned int answer)
-{
-//my_printf("Answer: %u", answer);
-	unsigned int num = 0;
-
-	do {
-		unsigned int tmp = 1 << num;
-		if (answer & tmp) {
-			switch (tmp) {
-				// FIXME: do the reactions
-				case REACTION_IGNORE:
-					break;
-				case REACTION_LOG:
-				case REACTION_EMAIL:
-				case REACTION_TERMINATE_PROCESS:
-					break;
-				case REACTION_TERMINATE_SESSION:
-				{
-					// FIXME: need to add audit events
-					session_data_t *s = current_session();
-					kill_session(s->session);
-					break;
-				}
-				case REACTION_RESTRICT_ROLE:
-				case REACTION_PASSWORD_RESET:
-				case REACTION_LOCK_ACCOUNT_TIMED:
-				case REACTION_LOCK_ACCOUNT:
-					break;
-				case REACTION_BLOCK_ADDRESS_TIMED:
-				case REACTION_BLOCK_ADDRESS:
-					block_address(tmp);
-					break;
-				case REACTION_SYSTEM_REBOOT:
-				case REACTION_SYSTEM_SINGLE_USER:
-				case REACTION_SYSTEM_HALT:
-				default:
-					if (debug)
-					    my_printf("Unknown reaction: %X",
-							tmp);
-					break;
-			}
-		}
-		num ++;
-	} while (num < 32);
-}
-
 
 /* This function receives a single complete event from the auparse library. */
 static void handle_event(auparse_state_t *au,
 		auparse_cb_event_t cb_event_type,
 		void *user_data __attribute__((unused)))
 {
-	unsigned int answer;
-
 	if (cb_event_type != AUPARSE_CB_EVENT_READY)
 		return;
 
@@ -414,13 +328,9 @@ static void handle_event(auparse_state_t *au,
 		my_printf("Error normalizing %s", auparse_get_type_name(au));
 
 	/* Check for events that are known bad */
-	answer = process_bad_event_model(au, &config);
+	process_bad_event_model(au, &config);
 
 	/* Check if user doing something strange */
-	answer |= process_behavior_model(au, &config);
-	if (answer == 0)
-		return;
-
-	do_reaction(answer);
+	process_behavior_model(au, &config);
 }
 
