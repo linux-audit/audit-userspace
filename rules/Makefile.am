@@ -38,6 +38,7 @@ EXTRA_DIST = 10-base-config.rules 10-no-audit.rules 11-loginuid.rules \
 30-ospp-v42-6-owner-change-success.rules \
 31-privileged.rules 32-power-abuse.rules \
 40-local.rules 41-containers.rules 42-injection.rules 43-module-load.rules \
+44-installers.rules \
 70-einval.rules 71-networking.rules \
 99-finalize.rules README-rules
 
