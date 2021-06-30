@@ -132,11 +132,12 @@ void write_logging_state(FILE *f)
 void shutdown_events(void)
 {
 	// We are no longer processing events, sync the disk and close up.
+	pthread_cancel(flush_thread);
 	free((void *)format_buf);
+	auparse_destroy_ext(au, AUPARSE_DESTROY_ALL);
 	fsync(log_fd);
 	if (log_file)
 		fclose(log_file);
-	auparse_destroy_ext(au, AUPARSE_DESTROY_ALL);
 }
 
 int init_event(struct daemon_conf *conf)
@@ -223,6 +224,7 @@ static void init_flush_thread(void)
 	pthread_cond_init(&do_flush, NULL);
 	flush = 0;
 	pthread_create(&flush_thread, NULL, flush_thread_main, NULL);
+	pthread_detach(flush_thread);
 }
 
 static void replace_event_msg(struct auditd_event *e, const char *buf)
