@@ -137,11 +137,10 @@ static au_lolnode *au_lol_create(au_lol *lol)
 	int sz = ARRAY_LIMIT * sizeof(au_lolnode);
 
 	lol->maxi = -1;
-	lol->limit = ARRAY_LIMIT;
-	if ((lol->array = (au_lolnode *)malloc(sz)) == NULL) {
-		lol->maxi = -1;
+	if ((lol->array = (au_lolnode *)malloc(sz)) == NULL)
 		return NULL;
-	}
+
+	lol->limit = ARRAY_LIMIT;
 	memset(lol->array, 0x00, sz);
 
 	return lol->array;
@@ -661,7 +660,7 @@ int auparse_feed_has_data(auparse_state_t *au)
 	if (!au)
 		return 0;
 
-	unsigned int i;
+	int i;
 	au_lol *lol = au->au_lo;
 
 	// An improvement would be to track how many events we have stored

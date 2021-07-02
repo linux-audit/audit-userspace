@@ -98,7 +98,7 @@ typedef struct _au_lolnode {
 typedef struct {
 	au_lolnode *array;	/* array of events */
 	int         maxi;	/* largest index in array used */
-	int         limit;	/* number of events in array */
+	size_t      limit;	/* number of events in array */
 } au_lol;
 
 /*
