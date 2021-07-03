@@ -33,6 +33,8 @@ MemoryDenyWriteExecute=true
 LockPersonality=true
 ProtectControlGroups=true
 ProtectKernelModules=true
+ProtectHome=true
+RestrictRealtime=true
 
 [Install]
 WantedBy=multi-user.target

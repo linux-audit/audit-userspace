@@ -3,6 +3,7 @@
 - Add support for AUDIT_RESP_ORIGIN_UNBLOCK_TIMED to ids
 - Change auparse_feed_has_data in auparse to include incomplete events
 - Auditd, stop linking against -lrt
+- Add ProtectHome and RestrictRealtime to auditd.service
 
 3.0.2
 - In audispd-statsd plugin, use struct sockaddr_storage (Ville Heikkinen)
