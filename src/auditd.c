@@ -473,88 +473,96 @@ static void tell_parent(int status)
 static void netlink_handler(struct ev_loop *loop, struct ev_io *io,
 			int revents)
 {
-	if (cur_event == NULL) {
-		if ((cur_event = malloc(sizeof(*cur_event))) == NULL) {
-			char emsg[DEFAULT_BUF_SZ];
-			if (*subj)
-				snprintf(emsg, sizeof(emsg),
+	int rc = 1, cnt = 0;
+
+	// Try to get all the events that are waiting but yield after 5 to
+	// let other handlers run. Five should cover PATH events.
+	while (rc > 0 && cnt < 5) {
+		if (cur_event == NULL) {
+			if ((cur_event = malloc(sizeof(*cur_event))) == NULL) {
+				char emsg[DEFAULT_BUF_SZ];
+				if (*subj)
+					snprintf(emsg, sizeof(emsg),
 			"op=error-halt auid=%u pid=%d subj=%s res=failed",
-					audit_getloginuid(), getpid(), subj);
-			else
-				snprintf(emsg, sizeof(emsg),
+						audit_getloginuid(),
+						getpid(), subj);
+				else
+					snprintf(emsg, sizeof(emsg),
 				 "op=error-halt auid=%u pid=%d res=failed",
-					 audit_getloginuid(), getpid());
-			EV_STOP ();
-			send_audit_event(AUDIT_DAEMON_ABORT, emsg);
-			audit_msg(LOG_ERR,
+						 audit_getloginuid(),
+						 getpid());
+				EV_STOP ();
+				send_audit_event(AUDIT_DAEMON_ABORT, emsg);
+				audit_msg(LOG_ERR,
 				  "Cannot allocate audit reply, exiting");
-			shutdown_events();
-			if (pidfile)
-				unlink(pidfile);
-			shutdown_dispatcher();
-			return;
+				shutdown_events();
+				if (pidfile)
+					unlink(pidfile);
+				shutdown_dispatcher();
+				return;
+			}
+			cur_event->ack_func = NULL;
 		}
-		cur_event->ack_func = NULL;
-	}
-	if (audit_get_reply(fd, &cur_event->reply,
-			    GET_REPLY_NONBLOCKING, 0) > 0) {
-		switch (cur_event->reply.type)
-		{	/* Don't process these */
-		case NLMSG_NOOP:
-		case NLMSG_DONE:
-		case NLMSG_ERROR:
-		case AUDIT_GET: /* Or these */
-		case AUDIT_WATCH_INS...AUDIT_WATCH_LIST:
-		case AUDIT_ADD_RULE...AUDIT_GET_FEATURE:
-		case AUDIT_FIRST_DAEMON...AUDIT_LAST_DAEMON:
-		case AUDIT_REPLACE:
-			break;
-		case AUDIT_SIGNAL_INFO:
-			if (hup_info_requested) {
-				char hup[MAX_AUDIT_MESSAGE_LENGTH];
-				audit_msg(LOG_DEBUG,
+
+		rc = audit_get_reply(fd, &cur_event->reply,
+			    GET_REPLY_NONBLOCKING, 0);
+		if (rc > 0) {
+			switch (cur_event->reply.type)
+			{	/* Don't process these */
+			case NLMSG_NOOP:
+			case NLMSG_DONE:
+			case NLMSG_ERROR:
+			case AUDIT_GET: /* Or these */
+			case AUDIT_WATCH_INS...AUDIT_WATCH_LIST:
+			case AUDIT_ADD_RULE...AUDIT_GET_FEATURE:
+			case AUDIT_FIRST_DAEMON...AUDIT_LAST_DAEMON:
+			case AUDIT_REPLACE:
+				break;
+			case AUDIT_SIGNAL_INFO:
+				if (hup_info_requested) {
+					char hup[MAX_AUDIT_MESSAGE_LENGTH];
+					audit_msg(LOG_DEBUG,
 				    "HUP detected, starting config manager");
-				reconfig_ev = cur_event;
-				if (start_config_manager(cur_event)) {
-					audit_format_signal_info(hup,
+					reconfig_ev = cur_event;
+					if (start_config_manager(cur_event)) {
+						audit_format_signal_info(hup,
 								 sizeof(hup),
 						 "reconfigure state=no-change",
 							 &cur_event->reply,
 								 "failed");
 					send_audit_event(AUDIT_DAEMON_CONFIG,
 							 hup);
-				}
-				cur_event = NULL;
-				hup_info_requested = 0;
-			} else if (usr1_info_requested) {
-				char usr1[MAX_AUDIT_MESSAGE_LENGTH];
+					}
+					cur_event = NULL;
+					hup_info_requested = 0;
+				} else if (usr1_info_requested) {
+					char usr1[MAX_AUDIT_MESSAGE_LENGTH];
 				audit_format_signal_info(usr1, sizeof(usr1),
 							 "rotate-logs",
 							 &cur_event->reply,
 							 "success");
 				send_audit_event(AUDIT_DAEMON_ROTATE, usr1);
-				usr1_info_requested = 0;
-			} else if (usr2_info_requested) {
-				char usr2[MAX_AUDIT_MESSAGE_LENGTH];
+					usr1_info_requested = 0;
+				} else if (usr2_info_requested) {
+					char usr2[MAX_AUDIT_MESSAGE_LENGTH];
 				audit_format_signal_info(usr2, sizeof(usr2),
 							 "resume-logging",
 							 &cur_event->reply,
 							 "success");
-				resume_logging();
-				libdisp_resume();
-				send_audit_event(AUDIT_DAEMON_RESUME, usr2);
-				usr2_info_requested = 0;
+					resume_logging();
+					libdisp_resume();
+					send_audit_event(AUDIT_DAEMON_RESUME,
+							 usr2);
+					usr2_info_requested = 0;
+				}
+				break;
+			default:
+				distribute_event(cur_event);
+				cur_event = NULL;
+				break;
 			}
-			break;
-		default:
-			distribute_event(cur_event);
-			cur_event = NULL;
-			break;
 		}
-	} else {
-		if (errno == EFBIG) {
-			// FIXME do err action
-		}
+		cnt++;
 	}
 }
 

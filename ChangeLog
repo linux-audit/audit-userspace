@@ -4,6 +4,7 @@
 - Change auparse_feed_has_data in auparse to include incomplete events
 - Auditd, stop linking against -lrt
 - Add ProtectHome and RestrictRealtime to auditd.service
+- In auditd, read up to 5 netlink packets in a row
 
 3.0.2
 - In audispd-statsd plugin, use struct sockaddr_storage (Ville Heikkinen)
