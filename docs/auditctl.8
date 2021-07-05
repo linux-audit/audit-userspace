@@ -1,4 +1,4 @@
-.TH AUDITCTL "8" "Aug 2018" "Red Hat" "System Administration Utilities"
+.TH AUDITCTL "8" "July 2021" "Red Hat" "System Administration Utilities"
 .SH NAME
 auditctl \- a utility to assist controlling the kernel's audit system
 .SH SYNOPSIS
@@ -292,7 +292,10 @@ This will be higher performance since the kernel will not evaluate it each and e
 To see all syscalls made by a specific program:
 
 .nf
+# By pid:
 .B auditctl \-a always,exit \-S all \-F pid=1005
+# By executable path
+.B auditctl \-a always,exit \-S all \-F exe=/usr/bin/ls
 .fi
 
 To see files opened by a specific user:
@@ -327,12 +330,22 @@ To see if an admin is accessing other user's files:
 .B auditctl \-a always,exit \-F dir=/home/ \-F uid=0 \-C auid!=obj_uid
 .fi
 
+.SH DISABLED BY DEFAULT
+
+On many systems auditd is configured to install an 
+.B -a never,task
+rule by default. This rule causes every new process to skip all audit rule processing. This is usually done to avoid a small performance overhead imposed by syscall auditing. If you want to use auditd, you need to remove that rule by deleting 10-no-audit.rules and adding 10-base-config.rules to the audit rules directory.
+
+If you have defined audit rules that are not matching when they should, check auditctl -l to make sure there is no never,task rule there.
+
 .SH FILES
 .TP
 .I /etc/audit/audit.rules /etc/audit/audit-stop.rules
 
 .SH "SEE ALSO"
 .BR audit.rules (7),
+.BR ausearch(8),
+.BR aureport(8),
 .BR auditd (8).
 
 .SH AUTHOR
