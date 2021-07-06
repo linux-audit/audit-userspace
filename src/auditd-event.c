@@ -663,7 +663,7 @@ static void write_to_log(const struct auditd_event *e)
 			log_size += rc;
 			check_log_file_size();
 			// Keep loose tabs on the free space
-			if ((log_size % 4) < 2)
+			if ((log_size % 8) < 3)
 				check_space_left();
 		}
 

@@ -347,7 +347,7 @@ void clear_config(struct daemon_conf *config)
 	config->krb5_principal = NULL;
 	config->krb5_key_file = NULL;
 	config->distribute_network_events = 0;
-	config->q_depth = 400;
+	config->q_depth = 800;
 	config->overflow_action = O_SYSLOG;
 	config->max_restarts = 10;
 	config->plugin_dir = strdup("/etc/audit/plugins.d");
