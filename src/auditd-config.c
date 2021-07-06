@@ -1,5 +1,5 @@
 /* auditd-config.c -- 
- * Copyright 2004-2011,2013-14,2016,2018 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2004-2011,2013-14,2016,2018,2020-21 Red Hat Inc.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -18,7 +18,7 @@
  *
  * Authors:
  *   Steve Grubb <sgrubb@redhat.com>
- * 
+ *
  */
 
 #include "config.h"
@@ -347,7 +347,7 @@ void clear_config(struct daemon_conf *config)
 	config->krb5_principal = NULL;
 	config->krb5_key_file = NULL;
 	config->distribute_network_events = 0;
-	config->q_depth = 800;
+	config->q_depth = 1200;
 	config->overflow_action = O_SYSLOG;
 	config->max_restarts = 10;
 	config->plugin_dir = strdup("/etc/audit/plugins.d");
