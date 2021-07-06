@@ -103,7 +103,7 @@ int main(int argc, char *argv[])
 	do {
 		fd_set read_mask;
 		int retval;
-		int read_size = 0;
+		int read_size = 1; /* Set to 1 so it's not EOF */
 
 		/* Load configuration */
 		if (hup) {
@@ -134,7 +134,7 @@ int main(int argc, char *argv[])
 				auparse_feed(au, tmp, read_size);
 			}
 		}
-		if (read_size == 0) /* check eof */
+		if (read_size == 0) /* EOF */
 			break;
 	} while (stop == 0);
 
