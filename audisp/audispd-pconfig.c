@@ -1,5 +1,5 @@
-/* audispd-pconfig.c -- 
- * Copyright 2007,2010,2015 Red Hat Inc., Durham, North Carolina.
+/* audispd-pconfig.c --
+ * Copyright 2007,2010,2015,2021 Red Hat Inc.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -18,7 +18,7 @@
  *
  * Authors:
  *   Steve Grubb <sgrubb@redhat.com>
- * 
+ *
  */
 
 #include "config.h"
@@ -41,7 +41,7 @@ struct nv_pair
 	const char *option;
 };
 
-struct kw_pair 
+struct kw_pair
 {
 	const char *name;
 	int (*parser)(struct nv_pair *, int, plugin_conf_t *);
@@ -49,7 +49,7 @@ struct kw_pair
 };
 
 struct nv_list
-{ 
+{
 	const char *name;
 	int option;
 };
@@ -162,25 +162,25 @@ int load_pconfig(plugin_conf_t *config, char *file)
 	 * not symlink.
 	 */
 	if (fstat(fd, &st) < 0) {
-		audit_msg(LOG_ERR, "Error fstat'ing config file (%s)", 
+		audit_msg(LOG_ERR, "Error fstat'ing config file (%s)",
 			strerror(errno));
 		close(fd);
 		return 1;
 	}
 	if (st.st_uid != 0) {
-		audit_msg(LOG_ERR, "Error - %s isn't owned by root", 
+		audit_msg(LOG_ERR, "Error - %s isn't owned by root",
 			file);
 		close(fd);
 		return 1;
 	}
 	if ((st.st_mode & S_IWOTH) == S_IWOTH) {
-		audit_msg(LOG_ERR, "Error - %s is world writable", 
+		audit_msg(LOG_ERR, "Error - %s is world writable",
 			file);
 		close(fd);
 		return 1;
 	}
 	if (!S_ISREG(st.st_mode)) {
-		audit_msg(LOG_ERR, "Error - %s is not a regular file", 
+		audit_msg(LOG_ERR, "Error - %s is not a regular file",
 			file);
 		close(fd);
 		return 1;
@@ -189,7 +189,7 @@ int load_pconfig(plugin_conf_t *config, char *file)
 	/* it's ok, read line by line */
 	f = fdopen(fd, "rm");
 	if (f == NULL) {
-		audit_msg(LOG_ERR, "Error - fdopen failed (%s)", 
+		audit_msg(LOG_ERR, "Error - fdopen failed (%s)",
 			strerror(errno));
 		close(fd);
 		return 1;
@@ -204,18 +204,18 @@ int load_pconfig(plugin_conf_t *config, char *file)
 			case 0: // fine
 				break;
 			case 1: // not the right number of tokens.
-				audit_msg(LOG_ERR, 
-				"Wrong number of arguments for line %d in %s", 
+				audit_msg(LOG_ERR,
+				"Wrong number of arguments for line %d in %s",
 					lineno, file);
 				break;
 			case 2: // no '=' sign
-				audit_msg(LOG_ERR, 
-					"Missing equal sign for line %d in %s", 
+				audit_msg(LOG_ERR,
+					"Missing equal sign for line %d in %s",
 					lineno, file);
 				break;
-			default: // something else went wrong... 
-				audit_msg(LOG_ERR, 
-					"Unknown error for line %d in %s", 
+			default: // something else went wrong...
+				audit_msg(LOG_ERR,
+					"Unknown error for line %d in %s",
 					lineno, file);
 				break;
 		}
@@ -231,8 +231,8 @@ int load_pconfig(plugin_conf_t *config, char *file)
 		/* identify keyword or error */
 		kw = kw_lookup(nv.name);
 		if (kw->name == NULL) {
-			audit_msg(LOG_ERR, 
-				"Unknown keyword \"%s\" in line %d of %s", 
+			audit_msg(LOG_ERR,
+				"Unknown keyword \"%s\" in line %d of %s",
 				nv.name, lineno, file);
 			fclose(f);
 			return 1;
@@ -240,9 +240,9 @@ int load_pconfig(plugin_conf_t *config, char *file)
 
 		/* Check number of options */
 		if (kw->max_options == 0 && nv.option != NULL) {
-			audit_msg(LOG_ERR, 
+			audit_msg(LOG_ERR,
 				"Keyword \"%s\" has invalid option "
-				"\"%s\" in line %d of %s", 
+				"\"%s\" in line %d of %s",
 				nv.name, nv.option, lineno, file);
 			fclose(f);
 			return 1;
@@ -347,8 +347,8 @@ static const struct kw_pair *kw_lookup(const char *val)
 	}
 	return &keywords[i];
 }
- 
-static int active_parser(struct nv_pair *nv, int line, 
+
+static int active_parser(struct nv_pair *nv, int line,
 		plugin_conf_t *config)
 {
 	int i;
@@ -363,7 +363,7 @@ static int active_parser(struct nv_pair *nv, int line,
 	return 1;
 }
 
-static int direction_parser(struct nv_pair *nv, int line, 
+static int direction_parser(struct nv_pair *nv, int line,
 		plugin_conf_t *config)
 {
 	int i;
@@ -382,7 +382,6 @@ static int path_parser(struct nv_pair *nv, int line,
 	plugin_conf_t *config)
 {
 	char *dir = NULL, *tdir;
-	struct stat buf;
 
 	if (nv->value == NULL) {
 		config->path = NULL;
@@ -407,35 +406,14 @@ static int path_parser(struct nv_pair *nv, int line,
 	}
 
 	free((void *)tdir);
-	/* If the file exists, see that its regular, owned by root,
-	 * and not world anything */
-	if (stat(nv->value, &buf) < 0) {
-		audit_msg(LOG_ERR, "Unable to stat %s (%s)", nv->value,
-			strerror(errno));
-		return 1;
-	}
-	if (!S_ISREG(buf.st_mode)) {
-		audit_msg(LOG_ERR, "%s is not a regular file", nv->value);
-		return 1;
-	}
-	if (buf.st_uid != 0) {
-		audit_msg(LOG_ERR, "%s is not owned by root", nv->value);
-		return 1;
-	}
-	if ((buf.st_mode & (S_IRUSR|S_IWUSR|S_IXUSR|S_IRGRP|S_IXGRP)) !=
-			   (S_IRUSR|S_IWUSR|S_IXUSR|S_IRGRP|S_IXGRP)) {
-		audit_msg(LOG_ERR, "%s permissions should be 0750", nv->value);
-		return 1;
-	}
 	free((void *)config->path);
 	config->path = strdup(nv->value);
-	config->inode = buf.st_ino;
 	if (config->path == NULL)
 		return 1;
 	return 0;
 }
 
-static int service_type_parser(struct nv_pair *nv, int line, 
+static int service_type_parser(struct nv_pair *nv, int line,
 		plugin_conf_t *config)
 {
 	int i;
@@ -466,7 +444,7 @@ static int args_parser(struct nv_pair *nv, int line,
 	return 0;
 }
 
-static int format_parser(struct nv_pair *nv, int line, 
+static int format_parser(struct nv_pair *nv, int line,
 		plugin_conf_t *config)
 {
 	int i;
@@ -489,11 +467,45 @@ static int format_parser(struct nv_pair *nv, int line,
 static int sanity_check(plugin_conf_t *config, const char *file)
 {
 	/* Error checking */
-	if (config->active == A_YES && config->path == NULL) {
-		audit_msg(LOG_ERR, 
+	if (config->active == A_YES) {
+		struct stat buf;
+
+		if (config->path == NULL) {
+			audit_msg(LOG_ERR,
 		    "Error - plugin (%s) is active but no path given", file);
-		return 1;
+			return 1;
+		}
+		// Don't check builtins
+		if (strncasecmp(config->path, "builtin_", 8) == 0)
+			goto out;
+
+		/* If the file exists, see that its regular, owned by root,
+		 * and not world anything */
+		if (stat(config->path, &buf) < 0) {
+			audit_msg(LOG_ERR, "Unable to stat %s (%s)",
+				  config->path,	strerror(errno));
+			return 1;
+		}
+		if (!S_ISREG(buf.st_mode)) {
+			audit_msg(LOG_ERR, "%s is not a regular file",
+				 config->path);
+			return 1;
+		}
+		if (buf.st_uid != 0) {
+			audit_msg(LOG_ERR, "%s is not owned by root",
+				 config->path);
+			return 1;
+		}
+		if ((buf.st_mode & (S_IRUSR|S_IWUSR|S_IXUSR|S_IRGRP|S_IXGRP)) !=
+				   (S_IRUSR|S_IWUSR|S_IXUSR|S_IRGRP|S_IXGRP)) {
+			audit_msg(LOG_ERR, "%s permissions should be 0750",
+				 config->path);
+			return 1;
+		}
+		// Passes, record inode
+		config->inode = buf.st_ino;
 	}
+out:
 	return 0;
 }
 
