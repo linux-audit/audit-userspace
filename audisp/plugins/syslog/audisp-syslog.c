@@ -249,7 +249,7 @@ int main(int argc, const char *argv[])
 			if (FD_ISSET(0, &read_mask)) {
 				do {
 					if (audit_fgets(tmp,
-					    MAX_AUDIT_MESSAGE_LENGTH, 0))
+					    MAX_AUDIT_MESSAGE_LENGTH, 0) > 0)
 						write_syslog(tmp);
 				} while (audit_fgets_more(
 						MAX_AUDIT_MESSAGE_LENGTH));

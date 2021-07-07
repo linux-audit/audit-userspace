@@ -265,14 +265,14 @@ int main(void)
 		 if (NO_ACTIONS && retval > 0) {
 			if (FD_ISSET(0, &read_mask)) {
 				do {
-					if (audit_fgets(tmp,
-						MAX_AUDIT_MESSAGE_LENGTH, 0)) {
+					int len;
+					if ((len = audit_fgets(tmp,
+						MAX_AUDIT_MESSAGE_LENGTH,
+								0)) > 0) {
 					/*	char *buf = strndup(tmp, 40);
 					     my_printf("auparse_feed %s", buf);
 						free(buf); */
-						auparse_feed(au, tmp,
-							       strnlen(tmp,
-						    MAX_AUDIT_MESSAGE_LENGTH));
+						auparse_feed(au, tmp, len);
 					}
 				} while (audit_fgets_more(
 						MAX_AUDIT_MESSAGE_LENGTH));

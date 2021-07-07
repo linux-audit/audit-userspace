@@ -51,6 +51,9 @@ int audit_fgets_more(size_t blen)
 	return 0;
 }
 
+/* Function to read the next chunk of data from the given fd. If we have
+ * data to return, we pass the line length for success. 0 for no data. And
+ * -1 if there was an error reading the fd. */
 int audit_fgets(char *buf, size_t blen, int fd)
 {
 	int complete = 0;
@@ -119,5 +122,5 @@ int audit_fgets(char *buf, size_t blen, int fd)
 		}
 		*current = 0;
 	}
-	return complete;
+	return complete ? line_len : 0;
 }

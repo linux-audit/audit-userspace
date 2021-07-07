@@ -566,7 +566,7 @@ int main(int argc, char *argv[])
 		// See if input fd is also set
 		if (FD_ISSET(ifd, &rfd)) {
 			do {
-				if (audit_fgets(event, sizeof(event), ifd)) {
+				if (audit_fgets(event,sizeof(event),ifd) > 0) {
 					if (!transport_ok && remote_ended &&
 						(config.remote_ending_action ==
 								FA_RECONNECT ||
