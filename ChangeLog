@@ -6,6 +6,7 @@
 - Add ProtectHome and RestrictRealtime to auditd.service
 - In auditd, read up to 3 netlink packets in a row
 - In auditd, do not validate path to plugin unless active
+- In auparse, only emit config errors when AUPARSE_DEBUG env variable exists
 
 3.0.2
 - In audispd-statsd plugin, use struct sockaddr_storage (Ville Heikkinen)

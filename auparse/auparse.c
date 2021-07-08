@@ -67,8 +67,9 @@ static int setup_log_file_array(auparse_state_t *au)
         char *filename, **tmp;
         int len, num = 0, i = 0;
 
-        /* Load config so we know where logs are */
-	set_aumessage_mode(au, MSG_STDERR, DBG_NO);
+	/* Load config so we know where logs are */
+	if (secure_getenv("AUPARSE_DEBUG"))
+		set_aumessage_mode(au, MSG_STDERR, DBG_NO);
 	aup_load_config(au, &config, TEST_SEARCH);
 
 	/* for each file */
@@ -414,8 +415,9 @@ static void au_setup_userspace_configitems(auparse_state_t *au)
 {
 	struct daemon_conf config;
 
-        /* Load config so we know where logs are */
-	set_aumessage_mode(au, MSG_STDERR, DBG_NO);
+	/* Load config so we know where logs are */
+	if (secure_getenv("AUPARSE_DEBUG"))
+		set_aumessage_mode(au, MSG_STDERR, DBG_NO);
 	aup_load_config(au, &config, TEST_SEARCH);
 
 	eoe_timeout = (time_t)config.end_of_event_timeout;
