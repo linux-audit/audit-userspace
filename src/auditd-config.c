@@ -1768,7 +1768,9 @@ static int q_depth_parser(struct nv_pair *nv, int line,
 	if (i > 99999) {
 		audit_msg(LOG_ERR, "q_depth must be 99999 or less");
 		return 1;
-	}
+	} else if (i < 512)
+		audit_msg(LOG_WARNING,
+			 "q_depth should be larger than 512 for safety margin");
 	config->q_depth = i;
 	return 0;
 }
