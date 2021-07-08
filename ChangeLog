@@ -4,7 +4,7 @@
 - Change auparse_feed_has_data in auparse to include incomplete events
 - Auditd, stop linking against -lrt
 - Add ProtectHome and RestrictRealtime to auditd.service
-- In auditd, read up to 5 netlink packets in a row
+- In auditd, read up to 3 netlink packets in a row
 - In auditd, do not validate path to plugin unless active
 
 3.0.2

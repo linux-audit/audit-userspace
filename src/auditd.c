@@ -477,7 +477,8 @@ static void netlink_handler(struct ev_loop *loop, struct ev_io *io,
 
 	// Try to get all the events that are waiting but yield after 5 to
 	// let other handlers run. Five should cover PATH events.
-	while (rc > 0 && cnt < 5) {
+	// FIXME: backing down to 3 until IPC is faster
+	while (rc > 0 && cnt < 3) {
 		if (cur_event == NULL) {
 			if ((cur_event = malloc(sizeof(*cur_event))) == NULL) {
 				char emsg[DEFAULT_BUF_SZ];
