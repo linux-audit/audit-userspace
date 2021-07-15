@@ -448,11 +448,11 @@ static int become_daemon(void)
 			if (rc < 0)
 				return -1;
 
-			free_config(&config);
-
 			/* Success - die a happy death */
-			if (status == SUCCESS)
+			if (status == SUCCESS) {
+				free_config(&config);
 				_exit(0);
+			}
 			return -1;
 	}
 
