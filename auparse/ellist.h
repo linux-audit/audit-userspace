@@ -1,6 +1,6 @@
 /*
 * ellist.h - Header file for ellist.c
-* Copyright (c) 2006-07,2017 Red Hat Inc., Durham, North Carolina.
+* Copyright (c) 2006-07,2017,2021 Red Hat Inc.
 * All Rights Reserved.
 *
 * This library is free software; you can redistribute it and/or
@@ -44,7 +44,7 @@ typedef struct {
 
 static inline unsigned int aup_list_get_cnt(event_list_t *l) { return l ? l->cnt : 0; }
 static inline void aup_list_first(event_list_t *l) { l->cur = l->head; }
-static inline rnode *aup_list_get_cur(event_list_t *l) { return l->cur; }
+static inline rnode *aup_list_get_cur(event_list_t *l) { return l ? l->cur : NULL; }
 
 AUDIT_HIDDEN_START
 
