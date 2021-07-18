@@ -34,6 +34,7 @@ AUDIT_HIDDEN_START
 void init_interpretation_list(void);
 int load_interpretation_list(const char *buf);
 void free_interpretation_list(void);
+unsigned int interpretation_list_cnt(void);
 int lookup_type(const char *name);
 const char *do_interpret(const rnode *r, auparse_esc_t escape_mode);
 void lookup_destroy_uid_list(void);

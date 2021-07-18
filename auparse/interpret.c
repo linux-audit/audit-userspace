@@ -497,6 +497,11 @@ void free_interpretation_list(void)
 	nvlist_clear(&il);
 }
 
+unsigned int interpretation_list_cnt(void)
+{
+	return il.cnt;
+}
+
 //////////// Start Field Value Interpretations /////////////
 
 static const char *success[3]= { "unset", "no", "yes" };
