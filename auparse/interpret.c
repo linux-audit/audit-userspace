@@ -394,9 +394,11 @@ char *au_unescape(char *buf)
 }
 
 /////////// Interpretation list functions ///////////////
+#define NEVER_LOADED 0xFFFF
 void init_interpretation_list(void)
 {
 	nvlist_create(&il);
+	il.cnt = NEVER_LOADED;
 }
 
 /*
@@ -411,6 +413,7 @@ int load_interpretation_list(const char *buffer)
 	if (buffer == NULL)
 		return 0;
 
+	il.cnt = 0;
 	buf = strdup(buffer);
 	if (strncmp(buf, "SADDR=", 6) == 0) {
 		// We have SOCKADDR record. It has no other values.
@@ -495,11 +498,17 @@ const char *_auparse_lookup_interpretation(const char *name)
 void free_interpretation_list(void)
 {
 	nvlist_clear(&il);
+	il.cnt = NEVER_LOADED;
 }
 
+// This uses a sentinel to determine if the list has ever been loaded.
+// If never loaded, returns 0. Otherwise it returns 1 higher than how
+// many interpretations are loaded.
 unsigned int interpretation_list_cnt(void)
 {
-	return il.cnt;
+	if (il.cnt == NEVER_LOADED)
+		return 0;
+	return il.cnt+1;
 }
 
 //////////// Start Field Value Interpretations /////////////

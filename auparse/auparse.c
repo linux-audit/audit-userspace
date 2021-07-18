@@ -1769,8 +1769,9 @@ int auparse_first_record(auparse_state_t *au)
 	}
 	r = aup_list_get_cur(au->le);
 	if (r && r->item == 0 && interpretation_list_cnt()) {
-		// If we are on the first record, just pull cursor back
-		// to avoid loading the interpretation list.
+		// If we are on the first record and the list has previously
+		// been loaded, just pull cursor back and avoid loading the
+		// interpretation list.
 		aup_list_first_field(au->le);
 		return 1;
 	}
@@ -1813,9 +1814,10 @@ int auparse_goto_record_num(auparse_state_t *au, unsigned int num)
 	rnode *r;
 
 	r = aup_list_get_cur(au->le);
-        if (r && r->item == num && interpretation_list_cnt()) {
-		// If we are positioned on the right record, just pull back
-		// the cursor and avoid loading the interpretation list.
+	if (r && r->item == num && interpretation_list_cnt()) {
+		// If we are on the first record and the list has previously
+		// been loaded, just pull cursor back and avoid loading the
+		// interpretation list.
 		aup_list_first_field(au->le);
 		return 1;
 	}
