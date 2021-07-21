@@ -46,6 +46,7 @@
 #include "s390_tables.h"
 #include "s390x_tables.h"
 #include "x86_64_tables.h"
+#include "uringop_tables.h"
 #include "errtabs.h"
 #include "fstypetabs.h"
 #include "ftypetabs.h"
@@ -147,7 +148,7 @@ int audit_name_to_uringop(const char *uringop)
 	int res = -1, found = 0;
 
 #ifndef NO_TABLES
-	//found = uringop_s2i(uringop, &res);
+	found = uringop_s2i(uringop, &res);
 #endif
 	if (found)
 		return res;
@@ -187,7 +188,7 @@ const char *audit_syscall_to_name(int sc, int machine)
 const char *audit_uringop_to_name(int uringop)
 {
 #ifndef NO_TABLES
-	//return uringop_i2s(uringop);
+	return uringop_i2s(uringop);
 #endif
 	return NULL;
 }
