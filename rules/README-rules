@@ -20,7 +20,10 @@ The rules are not meant to be used all at once. They are pieces of a policy
 that should be thought out and individual files copied to /etc/audit/rules.d/
 For example, if you wanted to set a system up in the STIG configuration, copy
 rules 10-base-config, 30-stig, 31-privileged, and 99-finalize. You can add
-more if you like.
+more if you like. Also, not all arches have the same syscalls. It is expected
+that the rules be fine tuned for the arch they are deployed on. For example,
+aarch64 does not have the open syscall. It should just be deleted from the
+rules.
 
 Once you have the rules in the rules.d directory, you can load them by running
 augenrules --load
