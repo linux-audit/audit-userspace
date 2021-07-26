@@ -457,6 +457,9 @@ auparse_state_t *auparse_init(ausource_t source, const void *b)
 		return NULL;
 	}
 	au->au_ready = 0;
+	au->escape_mode = AUPARSE_ESC_TTY;
+	au->message_mode = MSG_QUIET;
+	au->debug_message = DBG_NO;
 
 	au->in = NULL;
 	au->source_list = NULL;
@@ -553,9 +556,6 @@ auparse_state_t *auparse_init(ausource_t source, const void *b)
 	au->expr = NULL;
 	au->find_field = NULL;
 	au->search_where = AUSEARCH_STOP_EVENT;
-	au->escape_mode = AUPARSE_ESC_TTY;
-	au->message_mode = MSG_QUIET;
-	au->debug_message = DBG_NO;
 	au->tmp_translation = NULL;
 	init_normalizer(&au->norm_data);
 
