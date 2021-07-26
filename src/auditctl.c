@@ -153,30 +153,30 @@ static void usage(void)
 
 static int lookup_filter(const char *str, int *filter)
 {
-	if (strcmp(str, "task") == 0) 
-		*filter = AUDIT_FILTER_TASK;
-	else if (strcmp(str, "exit") == 0)
+	if (strcmp(str, "exit") == 0)
 		*filter = AUDIT_FILTER_EXIT;
+	else if (strcmp(str, "task") == 0)
+		*filter = AUDIT_FILTER_TASK;
 	else if (strcmp(str, "user") == 0)
 		*filter = AUDIT_FILTER_USER;
-	else if (strcmp(str, "filesystem") == 0)
-		*filter = AUDIT_FILTER_FS;
 	else if (strcmp(str, "exclude") == 0) {
 		*filter = AUDIT_FILTER_EXCLUDE;
 		exclude = 1;
-	} else
+	} else if (strcmp(str, "filesystem") == 0)
+		*filter = AUDIT_FILTER_FS;
+	else
 		return 2;
 	return 0;
 }
 
 static int lookup_action(const char *str, int *act)
 {
-	if (strcmp(str, "never") == 0)
+	if (strcmp(str, "always") == 0)
+		*act = AUDIT_ALWAYS;
+	else if (strcmp(str, "never") == 0)
 		*act = AUDIT_NEVER;
 	else if (strcmp(str, "possible") == 0)
 		return 1;
-	else if (strcmp(str, "always") == 0)
-		*act = AUDIT_ALWAYS;
 	else
 		return 2;
 	return 0;
@@ -200,8 +200,8 @@ static int audit_rule_setup(char *opt, int *filter, int *act)
 	*p = 0;
 
 	/* Try opt both ways */
-	if (lookup_filter(opt, filter) == 2) {
-		rc = lookup_action(opt, act);
+	if (lookup_action(opt, act) == 2) {
+		rc = lookup_filter(opt, filter);
 		if (rc != 0) {
 			*p = ',';
 			return rc;
