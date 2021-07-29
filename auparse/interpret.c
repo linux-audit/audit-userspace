@@ -50,6 +50,7 @@
 #include <sys/personality.h>
 #include <sys/prctl.h>
 #include <sched.h>
+#include <limits.h>     /* PATH_MAX */
 #ifdef USE_FANOTIFY
 #include <linux/fanotify.h>
 #else
@@ -865,8 +866,10 @@ static const char *print_escaped_ext(const idata *id)
 			str1 = NULL;
 		}
 		errno = 0;
-		out = realpath(str3, NULL);
+		out = malloc(PATH_MAX);
+		realpath(str3, out);
 		if (errno) { // If there's an error, just return the original
+			free(out);
 			free(str1);
 			free(str2);
 			return str3;

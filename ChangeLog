@@ -1,6 +1,7 @@
 3.0.4
 - Apply an optimization to auparse to improve performance
 - Optimize rule loading in auditctl
+- Fix an auparse memory leak caused in recent glibc
 
 3.0.3
 - Dont interpret audit netlink groups unless AUDIT_NLGRP_MAX is defined
