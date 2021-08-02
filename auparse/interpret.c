@@ -843,6 +843,64 @@ static char *print_escaped(const char *val)
 	return strdup(val); // Something is wrong with string, just send as is
 }
 
+// This code is loosely based on glibc-2.27 realpath.
+static char working[PATH_MAX];
+static char *path_norm(const char *name)
+{
+	char *rpath, *dest;
+	const char *start, *end, *rpath_limit;
+	int old_errno = errno;
+
+	errno = EINVAL;
+	if (name == NULL)
+		return NULL;
+	if (name[0] == 0)
+		return NULL;
+	errno = old_errno;
+
+	dest = rpath = working;
+	rpath_limit = rpath + PATH_MAX;
+
+	// If not absolute, give it back as is
+	if (name[0] == '.')
+		return strdup(name);
+
+	for (start = end = name; *start; start = end) {
+		// Remove duplicate '/'
+		while (*start == '/')
+			++start;
+
+		// Find end of path component
+		for (end = start; *end && *end != '/'; ++end)
+			; //empty
+
+		// if it ends with a slash, we're done
+		if (end - start == 0)
+			break;
+		else if (end - start == 1 && start[0] == '.')
+			; //empty
+		else if (end - start == 2 && start[0] == '.' &&
+					 start[1] == '.') {
+			// Back up to previous component, ignore if root
+			if (dest > rpath + 1)
+				while ((--dest)[-1] != '/');
+		} else {
+			if (dest[-1] != '/')
+				*dest++ = '/';
+
+			// If it will overflow, chop it at last component
+			if (dest + (end - start) >= rpath_limit) {
+				*dest = 0;
+				break;
+			}
+			// Otherwise copy next component
+			dest = mempcpy (dest, start, end - start);
+			*dest = 0;
+		}
+	}
+	return strdup(working);
+}
+
 static const char *print_escaped_ext(const idata *id)
 {
 	if (id->cwd) {
@@ -865,11 +923,8 @@ static const char *print_escaped_ext(const idata *id)
 			str2 = NULL;
 			str1 = NULL;
 		}
-		errno = 0;
-		out = malloc(PATH_MAX);
-		realpath(str3, out);
-		if (errno) { // If there's an error, just return the original
-			free(out);
+		out = path_norm(str3);
+		if (!out) { // If there's an error, just return the original
 			free(str1);
 			free(str2);
 			return str3;
