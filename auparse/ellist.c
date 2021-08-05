@@ -177,7 +177,11 @@ static int parse_up_record(rnode* r)
 					n.name = strdup("key");
 					char *t = strdup(n.val);
 					n.val = t;
-					nvlist_append(&r->nv, &n);
+					if (nvlist_append(&r->nv, &n)) {
+						free(n.name);
+						free(n.val);
+						continue;
+					}
 				} else {
 					// Virtual keys
 					char *key, *ptr2, *saved2;
@@ -206,8 +210,13 @@ static int parse_up_record(rnode* r)
 					n.name = strdup("key");
 					char *t = strdup(n.val);
 					n.val = t;
-				} // else - everything not a key
-				nvlist_append(&r->nv, &n);
+					if (nvlist_append(&r->nv, &n)) {
+						free(n.name);
+						free(n.val);
+						continue;
+					}
+				} else	// everything not a key
+					nvlist_append(&r->nv, &n);
 			}
 
 			// Do some info gathering for use later
@@ -285,7 +294,10 @@ static int parse_up_record(rnode* r)
 					}
 					n.name = strdup("seperms");
 					n.val = strdup(tmpctx);
-					nvlist_append(&r->nv, &n);
+					if (nvlist_append(&r->nv, &n)) {
+						free(n.name);
+						free(n.val);
+					}
 					continue;
 				}
 			} else
@@ -441,7 +453,7 @@ rnode *aup_list_find_rec_range(event_list_t *l, int low, int high)
 	if (high <= low)
 		return NULL;
 
-       	node = l->head;	/* Start at the beginning */
+	node = l->head;	/* Start at the beginning */
 	while (node) {
 		if (node->type >= low && node->type <= high) {
 			l->cur = node;
