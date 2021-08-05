@@ -865,12 +865,13 @@ static char *path_norm(const char *name)
 		return NULL;
 	errno = old_errno;
 
-	dest = rpath = working;
-	rpath_limit = rpath + PATH_MAX;
-
 	// If not absolute, give it back as is
 	if (name[0] == '.')
 		return strdup(name);
+
+	rpath = working;
+	dest = rpath + 1;
+	rpath_limit = rpath + PATH_MAX;
 
 	for (start = end = name; *start; start = end) {
 		// Remove duplicate '/'
