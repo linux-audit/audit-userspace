@@ -1,5 +1,5 @@
 /* auparse.c --
- * Copyright 2006-08,2012-19 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2006-08,2012-19,21 Red Hat Inc.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -2014,6 +2014,7 @@ const char *auparse_find_field_next(auparse_state_t *au)
 			r = aup_list_next(au->le);
 			if (r) {
 				aup_list_first_field(au->le);
+				free_interpretation_list();
 				load_interpretation_list(r->interp);
 			}
 		}
