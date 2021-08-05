@@ -173,11 +173,13 @@ static int parse_up_record(rnode* r)
 			// Make virtual keys or just store it
 			if (strcmp(n.name, "key") == 0 && *n.val != '(') {
 				if (*n.val == '"') {
+					// This is a normal single key.
 					n.name = strdup("key");
 					char *t = strdup(n.val);
 					n.val = t;
 					nvlist_append(&r->nv, &n);
 				} else {
+					// Virtual keys
 					char *key, *ptr2, *saved2;
 
 					key = (char *)au_unescape(n.val);
@@ -200,10 +202,11 @@ static int parse_up_record(rnode* r)
 				continue;
 			} else {
 				if (strcmp(n.name, "key") == 0) {
+					// This is a null key
 					n.name = strdup("key");
 					char *t = strdup(n.val);
 					n.val = t;
-				}
+				} // else - everything not a key
 				nvlist_append(&r->nv, &n);
 			}
 
