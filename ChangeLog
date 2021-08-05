@@ -1,8 +1,7 @@
 3.0.4
-- Apply an optimization to auparse to improve performance
+- Apply performance speedups to auparse library
 - Optimize rule loading in auditctl
 - Fix an auparse memory leak by replacing realpath
-- Apply performance speedup to auparse library
 
 3.0.3
 - Dont interpret audit netlink groups unless AUDIT_NLGRP_MAX is defined
