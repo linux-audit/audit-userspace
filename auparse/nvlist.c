@@ -1,7 +1,7 @@
 /*
 * nvlist.c - Minimal linked list library for name-value pairs
-* Copyright (c) 2006-07,2016 Red Hat Inc., Durham, North Carolina.
-* All Rights Reserved. 
+* Copyright (c) 2006-07,2016,2021 Red Hat Inc.
+* All Rights Reserved.
 *
 * This library is free software; you can redistribute it and/or
 * modify it under the terms of the GNU Lesser General Public
@@ -41,9 +41,11 @@ void nvlist_create(nvlist *l)
 
 nvnode *nvlist_next(nvlist *l)
 {
-	if (l->cur < NFIELDS)
+	if (l->cnt && l->cur < (l->cnt - 1)) {
 		l->cur++;
-	return &l->array[l->cur];
+		return &l->array[l->cur];
+	}
+	return NULL;
 }
 
 void nvlist_append(nvlist *l, nvnode *node)

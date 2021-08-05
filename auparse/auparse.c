@@ -2006,7 +2006,8 @@ const char *auparse_find_field_next(auparse_state_t *au)
 		rnode *r = aup_list_get_cur(au->le);
 		while (r) {	// For each record in the event...
 			if (!moved) {
-				nvlist_next(&r->nv);
+				if (nvlist_next(&r->nv) == NULL)
+					return NULL;
 				moved=1;
 			}
 			if (nvlist_find_name(&r->nv, au->find_field))
