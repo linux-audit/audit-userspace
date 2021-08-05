@@ -429,11 +429,13 @@ int load_interpretation_list(const char *buffer)
 				// Just change the case
 				n.name = strcpy(buf, "saddr");
 				n.val = val;
-				nvlist_append(&il, &n);
+				if (nvlist_append(&il, &n))
+					goto err_out;
 				nvlist_interp_fixup(&il);
 				return 1;
 			}
 		}
+err_out:
 		free(buf);
 		il.record = NULL;
 		il.cnt = NEVER_LOADED;
@@ -441,12 +443,8 @@ int load_interpretation_list(const char *buffer)
 	} else {
 		// We handle everything else in this branch
 		ptr = audit_strsplit_r(buf, &saved);
-		if (ptr == NULL) {
-			free(buf);
-			il.record = NULL;
-			il.cnt = NEVER_LOADED;
-			return 0;
-		}
+		if (ptr == NULL)
+			goto err_out;
 
 		do {
 			char tmp;
@@ -471,11 +469,12 @@ int load_interpretation_list(const char *buffer)
 				tmp = 0;
 
 			n.val = val;
-			nvlist_append(&il, &n);
+			if (nvlist_append(&il, &n))
+				continue; // assuming we loaded something
 			nvlist_interp_fixup(&il);
 			if (ptr)
 				*ptr = tmp;
-		} while((ptr = audit_strsplit_r(NULL, &saved)));
+		} while ((ptr = audit_strsplit_r(NULL, &saved)));
 	}
 	return 1;
 }

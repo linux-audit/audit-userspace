@@ -48,11 +48,12 @@ nvnode *nvlist_next(nvlist *l)
 	return NULL;
 }
 
-void nvlist_append(nvlist *l, nvnode *node)
+// 0 on success and 1 on error
+int nvlist_append(nvlist *l, nvnode *node)
 {
 	// FIXME: on overflow switch to linked list
 	if (l->cnt >= NFIELDS)
-		return;
+		return 1;
 
 	nvnode *newnode = &l->array[l->cnt];
 	newnode->name = node->name;
@@ -63,6 +64,7 @@ void nvlist_append(nvlist *l, nvnode *node)
 	// make newnode current
 	l->cur = l->cnt;
 	l->cnt++;
+	return 0;
 }
 
 /*
