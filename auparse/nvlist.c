@@ -35,6 +35,7 @@ void nvlist_create(nvlist *l)
 		memset(&l->array[0], 0, sizeof(nvnode) * NFIELDS);
 		l->cur = 0;
 		l->cnt = 0;
+		l->record = NULL;
 	}
 }
 
@@ -53,7 +54,6 @@ void nvlist_append(nvlist *l, nvnode *node)
 	newnode->val = node->val;
 	newnode->interp_val = NULL;
 	newnode->item = l->cnt;
-//	newnode->next = NULL;
 
 	// make newnode current
 	l->cur = l->cnt;
@@ -119,7 +119,8 @@ const char *nvlist_interp_cur_val(const rnode *r, auparse_esc_t escape_mode)
 	return do_interpret(r, escape_mode);
 }
 
-void nvlist_clear(nvlist* l)
+// free_interp does not apply to thing coming from interpretation_list
+void nvlist_clear(nvlist* l, int free_interp)
 {
 	unsigned int i = 0;
 	register nvnode* current;
@@ -129,11 +130,23 @@ void nvlist_clear(nvlist* l)
 
 	while (i < l->cnt) {
 		current = &l->array[i];
-		free(current->name);
-		free(current->val);
-		free(current->interp_val);
+		if (free_interp) {
+			free(current->interp_val);
+			// A couple items are not in parsed up list.
+			// These all come from the aup_list_append path.
+			if ((strcmp(current->name, "key") == 0) ||
+			    (strcmp(current->name, "seperms") == 0) ||
+			    (strcmp(current->name, "seresult") == 0)) {
+				// seperms & key values are strdup'ed
+				if (current->name[2] != 'r')
+					free(current->val);
+				free(current->name);
+			}
+		}
 		i++;
 	}
+	free((void *)l->record);
+	l->record = NULL;
 	l->cur = 0;
 	l->cnt = 0;
 }

@@ -112,7 +112,7 @@ static int parse_up_record(rnode* r)
 		ptr++;
 	}
 	r->interp = ptr;
-	buf = strdup(r->record);
+	r->nv.record = buf = strdup(r->record);
 	ptr = audit_strsplit_r(buf, &saved);
 	if (ptr == NULL) {
 		free(buf);
@@ -147,8 +147,8 @@ static int parse_up_record(rnode* r)
 			// Remove beginning cruft of name
 			if (*ptr == '(')
 				ptr++;
-			n.name = strdup(ptr);
-			n.val = strdup(val);
+			n.name = ptr;
+			n.val = val;
 			// Remove trailing punctuation
 			len = strlen(n.val);
 			if (len && n.val[len-1] == ':') {
@@ -172,20 +172,22 @@ static int parse_up_record(rnode* r)
 			}
 			// Make virtual keys or just store it
 			if (strcmp(n.name, "key") == 0 && *n.val != '(') {
-				if (*n.val == '"')
+				if (*n.val == '"') {
+					n.name = strdup("key");
+					char *t = strdup(n.val);
+					n.val = t;
 					nvlist_append(&r->nv, &n);
-				else {
+				} else {
 					char *key, *ptr2, *saved2;
 
 					key = (char *)au_unescape(n.val);
 					if (key == NULL) {
+						n.name = strdup("key");
 						// Malformed key - save as is
 						nvlist_append(&r->nv, &n);
 						continue;
 					}
 					ptr2 = strtok_r(key, key_sep, &saved2);
-					free(n.name);
-					free(n.val);
 					while (ptr2) {
 						n.name = strdup("key");
 						n.val = escape(ptr2);
@@ -196,8 +198,14 @@ static int parse_up_record(rnode* r)
 					free(key);
 				}
 				continue;
-			} else
+			} else {
+				if (strcmp(n.name, "key") == 0) {
+					n.name = strdup("key");
+					char *t = strdup(n.val);
+					n.val = t;
+				}
 				nvlist_append(&r->nv, &n);
+			}
 
 			// Do some info gathering for use later
 			if (r->nv.cnt == 1 && strcmp(n.name, "node") == 0)
@@ -208,7 +216,7 @@ static int parse_up_record(rnode* r)
 				r->type = audit_name_to_msg_type(n.val);
 				// This has to account for seccomp records
 			} else if ((r->nv.cnt == (2 + offset) ||
-					r->nv.cnt == (11 + offset)) && 
+					r->nv.cnt == (11 + offset)) &&
 					strcmp(n.name, "arch")== 0){
 				unsigned int ival;
 				errno = 0;
@@ -279,12 +287,11 @@ static int parse_up_record(rnode* r)
 				}
 			} else
 				continue;
-			n.val = strdup(ptr);
+			n.val = ptr;
 			nvlist_append(&r->nv, &n);
 		}
 	} while((ptr = audit_strsplit_r(NULL, &saved)));
 
-	free(buf);
 	r->nv.cur = 0;	// reset to beginning
 	return 0;
 }
@@ -350,7 +357,7 @@ void aup_list_clear(event_list_t* l)
 	current = l->head;
 	while (current) {
 		nextnode=current->next;
-		nvlist_clear(&current->nv);
+		nvlist_clear(&current->nv, 1);
 		free(current->record);
 		free(current);
 		current=nextnode;

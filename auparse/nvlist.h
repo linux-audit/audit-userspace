@@ -33,19 +33,19 @@
 
 static inline unsigned int nvlist_get_cnt(nvlist *l) { return l->cnt; }
 static inline void nvlist_first(nvlist *l) { l->cur = 0; }
-static inline nvnode *nvlist_get_cur(const nvlist *l)
+static inline nvnode *nvlist_get_cur(nvlist *l)
 	{ return &l->array[l->cur]; }
-static inline const char *nvlist_get_cur_name(const nvlist *l)
+static inline const char *nvlist_get_cur_name(nvlist *l)
 	{if (l->cur) { nvnode *node = &l->array[l->cur]; return node->name; } else return NULL;}
-static inline const char *nvlist_get_cur_val(const nvlist *l)
+static inline const char *nvlist_get_cur_val(nvlist *l)
 	{if (l->cur) { nvnode *node = &l->array[l->cur]; return node->val; } else return NULL;}
-static inline const char *nvlist_get_cur_val_interp(const nvlist *l)
+static inline const char *nvlist_get_cur_val_interp(nvlist *l)
 	{if (l->cur) { nvnode *node = &l->array[l->cur]; return node->interp_val; } else return NULL;}
 
 AUDIT_HIDDEN_START
 
 void nvlist_create(nvlist *l);
-void nvlist_clear(nvlist* l);
+void nvlist_clear(nvlist* l, int free_interp);
 nvnode *nvlist_next(nvlist *l);
 int nvlist_get_cur_type(const rnode *r);
 const char *nvlist_interp_cur_val(const rnode *r, auparse_esc_t escape_mode);

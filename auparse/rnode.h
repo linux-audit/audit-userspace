@@ -1,6 +1,5 @@
-
 /* rnode.h --
- * Copyright 2007,2016-17 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2007,2016-17,21 Red Hat Inc.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -33,7 +32,6 @@ typedef struct _nvnode{
   char *val;            // The value field
   char *interp_val;     // The value field interpreted
   unsigned int item;    // Which item of the same event
-//  struct _nvnode* next; // Next nvpair node pointer
 } nvnode;
 
 /* This is the field list head. */
@@ -41,6 +39,7 @@ typedef struct {
   nvnode array[NFIELDS];// array of fields
   unsigned int cur;     // Index to current node
   unsigned int cnt;     // How many items in this list
+  char *record;		// Holds the parsed up record
 } nvlist;
 
 
