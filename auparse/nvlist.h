@@ -32,11 +32,15 @@
 
 
 static inline unsigned int nvlist_get_cnt(nvlist *l) { return l->cnt; }
-static inline void nvlist_first(nvlist *l) { l->cur = l->head; }
-static inline nvnode *nvlist_get_cur(const nvlist *l) { return l->cur; }
-static inline const char *nvlist_get_cur_name(const nvlist *l) {if (l->cur) return l->cur->name; else return NULL;}
-static inline const char *nvlist_get_cur_val(const nvlist *l) {if (l->cur) return l->cur->val; else return NULL;}
-static inline const char *nvlist_get_cur_val_interp(const nvlist *l) {if (l->cur) return l->cur->interp_val; else return NULL;}
+static inline void nvlist_first(nvlist *l) { l->cur = 0; }
+static inline nvnode *nvlist_get_cur(const nvlist *l)
+	{ return &l->array[l->cur]; }
+static inline const char *nvlist_get_cur_name(const nvlist *l)
+	{if (l->cur) { nvnode *node = &l->array[l->cur]; return node->name; } else return NULL;}
+static inline const char *nvlist_get_cur_val(const nvlist *l)
+	{if (l->cur) { nvnode *node = &l->array[l->cur]; return node->val; } else return NULL;}
+static inline const char *nvlist_get_cur_val_interp(const nvlist *l)
+	{if (l->cur) { nvnode *node = &l->array[l->cur]; return node->interp_val; } else return NULL;}
 
 AUDIT_HIDDEN_START
 

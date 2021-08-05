@@ -414,7 +414,8 @@ int load_interpretation_list(const char *buffer)
 	if (buffer == NULL)
 		return 0;
 
-	il.cnt = 0;
+	if (il.cnt == NEVER_LOADED)
+		il.cnt = 0;
 	buf = strdup(buffer);
 	if (strncmp(buf, "SADDR=", 6) == 0) {
 		// We have SOCKADDR record. It has no other values.
@@ -498,8 +499,10 @@ const char *_auparse_lookup_interpretation(const char *name)
 
 void free_interpretation_list(void)
 {
-	nvlist_clear(&il);
-	il.cnt = NEVER_LOADED;
+	if (il.cnt != NEVER_LOADED) {
+		nvlist_clear(&il);
+		il.cnt = NEVER_LOADED;
+	}
 }
 
 // This uses a sentinel to determine if the list has ever been loaded.
@@ -3049,10 +3052,11 @@ char *auparse_do_interpretation(int type, const idata *id,
 	const char *out;
 
 	// Check the interpretations list first
-	if (il.head) {
+	if (interpretation_list_cnt()) {
 		nvlist_first(&il);
 		if (nvlist_find_name(&il, id->name)) {
-			const char *val = il.cur->interp_val;
+			nvnode* node = &il.array[il.cur];
+			const char *val = node->interp_val;
 
 			if (val) {
 				// If we don't know what it is when auditd

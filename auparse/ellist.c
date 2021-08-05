@@ -285,7 +285,7 @@ static int parse_up_record(rnode* r)
 	} while((ptr = audit_strsplit_r(NULL, &saved)));
 
 	free(buf);
-	r->nv.cur = r->nv.head;	// reset to beginning
+	r->nv.cur = 0;	// reset to beginning
 	return 0;
 }
 

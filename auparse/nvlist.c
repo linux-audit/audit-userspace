@@ -31,56 +31,32 @@
 
 void nvlist_create(nvlist *l)
 {
-	l->head = NULL;
-	l->cur = NULL;
-	l->cnt = 0;
-}
-
-static void nvlist_last(nvlist *l)
-{
-        register nvnode* node;
-
-	if (l->head == NULL)
-		return;
-
-	node = l->head;
-	while (node->next)
-		node = node->next;
-	l->cur = node;
+	if (l) {
+		memset(&l->array[0], 0, sizeof(nvnode) * NFIELDS);
+		l->cur = 0;
+		l->cnt = 0;
+	}
 }
 
 nvnode *nvlist_next(nvlist *l)
 {
-	if (l->cur)
-		l->cur = l->cur->next;
-	return l->cur;
+	if (l->cur < NFIELDS)
+		l->cur++;
+	return &l->array[l->cur];
 }
 
 void nvlist_append(nvlist *l, nvnode *node)
 {
-	nvnode* newnode = malloc(sizeof(nvnode));
+	nvnode *newnode = &l->array[l->cnt];
 
 	newnode->name = node->name;
 	newnode->val = node->val;
 	newnode->interp_val = NULL;
-	newnode->item = l->cnt; 
-	newnode->next = NULL;
-
-	// if we are at top, fix this up
-	if (l->head == NULL)
-		l->head = newnode;
-	else {	// Otherwise add pointer to newnode
-		if (l->cnt == (l->cur->item+1)) {
-			l->cur->next = newnode;
-		}
-		else {
-			nvlist_last(l);
-			l->cur->next = newnode;
-		}
-	}
+	newnode->item = l->cnt;
+//	newnode->next = NULL;
 
 	// make newnode current
-	l->cur = newnode;
+	l->cur = l->cnt;
 	l->cnt++;
 }
 
@@ -89,23 +65,17 @@ void nvlist_append(nvlist *l, nvnode *node)
  */
 void nvlist_interp_fixup(nvlist *l)
 {
-	if (l->cur) {
-		l->cur->interp_val = l->cur->val;
-		l->cur->val = NULL;
-	}
+	nvnode* node = &l->array[l->cur];
+	node->interp_val = node->val;
+	node->val = NULL;
 }
 
+#include <stdio.h>
 nvnode *nvlist_goto_rec(nvlist *l, unsigned int i)
 {
-	register nvnode* node;
-
-	node = l->head;       /* start at the beginning */
-	while (node) {
-		if (node->item == i) {
-			l->cur = node;
-			return node;
-		} else
-			node = node->next;
+	if (i <= l->cnt) {
+		l->cur = i;
+		return &l->array[l->cur];
 	}
 	return NULL;
 }
@@ -115,16 +85,20 @@ nvnode *nvlist_goto_rec(nvlist *l, unsigned int i)
  */
 int nvlist_find_name(nvlist *l, const char *name)
 {
-        register nvnode* node = l->cur;
+	unsigned int i = l->cur;
+	register nvnode *node;
 
-	while (node) {
-		if (strcmp(node->name, name) == 0) {
-			l->cur = node;
+	if (l->cnt == 0)
+		return 0;
+
+	do {
+		node = &l->array[i];
+		if (node->name && strcmp(node->name, name) == 0) {
+			l->cur = i;
 			return 1;
 		}
-		else
-			node = node->next;
-	}
+		i++;
+	} while (i < l->cnt);
 	return 0;
 }
 
@@ -132,35 +106,34 @@ extern int interp_adjust_type(int rtype, const char *name, const char *val);
 int nvlist_get_cur_type(const rnode *r)
 {
 	const nvlist *l = &r->nv;
-	return auparse_interp_adjust_type(r->type, l->cur->name, l->cur->val);
+	nvnode *node = &l->array[l->cur];
+	return auparse_interp_adjust_type(r->type, node->name, node->val);
 }
 
 const char *nvlist_interp_cur_val(const rnode *r, auparse_esc_t escape_mode)
 {
 	const nvlist *l = &r->nv;
-	if (l->cur->interp_val)
-		return l->cur->interp_val;
+	nvnode *node = &l->array[l->cur];
+	if (node->interp_val)
+		return node->interp_val;
 	return do_interpret(r, escape_mode);
 }
 
 void nvlist_clear(nvlist* l)
 {
-	nvnode* nextnode;
+	unsigned int i = 0;
 	register nvnode* current;
 
-	if (l->head == NULL)
+	if (l->cnt == 0)
 		return;
 
-	current = l->head;
-	while (current) {
-		nextnode=current->next;
+	while (i < l->cnt) {
+		current = &l->array[i];
 		free(current->name);
 		free(current->val);
 		free(current->interp_val);
-		free(current);
-		current=nextnode;
+		i++;
 	}
-	l->head = NULL;
-	l->cur = NULL;
+	l->cur = 0;
 	l->cnt = 0;
 }
