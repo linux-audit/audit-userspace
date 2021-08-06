@@ -2715,8 +2715,10 @@ static int parse_kernel(lnode *n, search_items *s)
 		str = strstr(term, "comm=");
 		if (str) {
 			/* Make the syscall one override */
-			if (s->comm)
+			if (s->comm) {
 				free(s->comm);
+				s->comm = NULL;
+			}
 			str += 5;
 			if (*str == '"') {
 				str++;
