@@ -194,7 +194,10 @@ static int parse_up_record(rnode* r)
 						n.name = strdup("key");
 						n.val = NULL;
 						// Malformed key - save as is
-						nvlist_append(&r->nv, &n);
+						if (nvlist_append(&r->nv, &n)) {
+							free(n.name);
+							free(n.val);
+						}
 						continue;
 					}
 					ptr2 = strtok_r(key, key_sep, &saved2);
