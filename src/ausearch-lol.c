@@ -193,7 +193,8 @@ static int extract_timestamp(const char *b, event *e)
 
 		// Now should be pointing to msg=
 		ptr = audit_strsplit(NULL);
-		if (ptr) {
+		// strlen is for fuzzers that make invalid lines
+		if (ptr && strlen(ptr) > 24) {
 			if (*(ptr+9) == '(')
 				ptr+=9;
 			else
