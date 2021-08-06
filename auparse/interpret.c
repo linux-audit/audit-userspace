@@ -486,6 +486,9 @@ const char *_auparse_lookup_interpretation(const char *name)
 {
 	nvnode *n;
 
+	if (il.cnt == NEVER_LOADED)
+		return NULL;
+
 	nvlist_first(&il);
 	if (nvlist_find_name(&il, name)) {
 		n = nvlist_get_cur(&il);
