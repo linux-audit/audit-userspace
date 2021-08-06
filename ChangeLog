@@ -3,6 +3,7 @@
 - Optimize rule loading in auditctl
 - Fix an auparse memory leak caused by glibc-2.33 by replacing realpath
 - Update syscall table to the 5.14 kernel
+- Fixed various issues when dealing with corrupted logs
 
 3.0.3
 - Dont interpret audit netlink groups unless AUDIT_NLGRP_MAX is defined
