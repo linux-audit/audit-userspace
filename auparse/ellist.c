@@ -151,6 +151,9 @@ static int parse_up_record(rnode* r)
 			n.val = val;
 			// Remove trailing punctuation
 			len = strlen(n.val);
+			// Check for invalid val
+			if (!len)
+				continue;
 			if (len && n.val[len-1] == ':') {
 				n.val[len-1] = 0;
 				len--;
