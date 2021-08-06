@@ -420,8 +420,10 @@ try_again:
 		str = strstr(term, "comm=");
 		if (str) {
 			/* Make the syscall one override */
-			if (s->comm)
+			if (s->comm) {
 				free(s->comm);
+				s->comm = NULL;
+			}
 			str += 5;
 			if (*str == '"') {
 				str++;
@@ -431,7 +433,7 @@ try_again:
 				*term = 0;
 				s->comm = strdup(str);
 				*term = '"';
-			} else 
+			} else
 				s->comm = unescape(str);
 		} else
 			return 38;
