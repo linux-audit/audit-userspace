@@ -424,4 +424,7 @@ _S(439, "faccessat2")
 _S(440, "process_madvise")
 _S(441, "epoll_pwait2")
 _S(442, "mount_setattr")
-
+_S(443, "quotactl_fd")
+_S(444, "landlock_create_ruleset")
+_S(445, "landlock_add_rule")
+_S(446, "landlock_restrict_self")
