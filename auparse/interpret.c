@@ -476,6 +476,11 @@ err_out:
 				*ptr = tmp;
 		} while ((ptr = audit_strsplit_r(NULL, &saved)));
 	}
+
+	// If for some reason it was useless, delete buf
+	if (il.cnt == 0)
+		goto err_out;
+
 	return 1;
 }
 
@@ -1205,13 +1210,19 @@ static const char *print_sockaddr(const char *val)
 	// Now print address for some families
         switch (saddr->sa_family) {
                 case AF_LOCAL:
-                        {
+			if (slen < 4) {
+				rc = asprintf(&out,
+				    "{ saddr_fam=%s sockaddr len too short }",
+							str);
+				break;
+			} else {
                                 const struct sockaddr_un *un =
                                         (const struct sockaddr_un *)saddr;
+
                                 if (un->sun_path[0])
 					rc = asprintf(&out,
-						"{ saddr_fam=%s path=%s }", str,
-						      un->sun_path);
+						"{ saddr_fam=%s path=%.108s }",
+							str, un->sun_path);
                                 else // abstract name
 					rc = asprintf(&out,
 						"{ saddr_fam=%s path=%.108s }",
