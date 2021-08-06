@@ -192,6 +192,7 @@ static int parse_up_record(rnode* r)
 					key = (char *)au_unescape(n.val);
 					if (key == NULL) {
 						n.name = strdup("key");
+						n.val = NULL;
 						// Malformed key - save as is
 						nvlist_append(&r->nv, &n);
 						continue;

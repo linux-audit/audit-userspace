@@ -77,7 +77,6 @@ void nvlist_interp_fixup(nvlist *l)
 	node->val = NULL;
 }
 
-#include <stdio.h>
 nvnode *nvlist_goto_rec(nvlist *l, unsigned int i)
 {
 	if (i <= l->cnt) {
