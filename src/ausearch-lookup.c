@@ -300,6 +300,9 @@ char *unescape(const char *buf)
 		while (isxdigit(*ptr))
 			ptr++;
 	}
+	if ((ptr - buf) == 0)
+		return NULL;
+
 	str = strndup(buf, ptr - buf);
 
 	if (*buf == '(')

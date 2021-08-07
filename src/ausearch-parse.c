@@ -1658,12 +1658,21 @@ static int parse_sockaddr(const lnode *n, search_items *s)
 	if (event_hostname || event_filename) {
 		str = strstr(n->message, "saddr=");
 		if (str) {
-			int len;
+			unsigned int len = 0;
 			struct sockaddr *saddr;
 			char name[NI_MAXHOST];
 
 			str += 6;
-			len = strlen(str)/2;
+			const char *ptr = str;
+			if (*ptr == '(') {
+				const char *ptr2 = strchr(ptr, ')');
+				if (ptr2)
+					len = (ptr2 - ptr) + 1;
+			} else {
+				while (isxdigit(ptr[len]))
+					len++;
+				len /= 2;
+			}
 			s->hostname = unescape(str);
 			if (s->hostname == NULL)
 				return 4;
@@ -1683,17 +1692,13 @@ static int parse_sockaddr(const lnode *n, search_items *s)
 				}
 				len = sizeof(struct sockaddr_in6);
 			} else if (saddr->sa_family == AF_UNIX) {
-				struct sockaddr_un *un =
-					(struct sockaddr_un *)saddr;
-				if (un->sun_path[0])
-					len = strlen(un->sun_path);
-				else // abstract name
-					len = strlen(&un->sun_path[1]);
-				if (len == 0) {
+				if (len < 4) {
 					fprintf(stderr,
 						"sun_path len too short\n");
 					return 3;
 				}
+				struct sockaddr_un *un =
+					(struct sockaddr_un *)saddr;
 				if (event_filename) {
 					if (!s->filename) {
 						//create
@@ -1736,7 +1741,7 @@ static int parse_sockaddr(const lnode *n, search_items *s)
 				s->hostname = NULL;
 				return 0;
 			}
-			if (getnameinfo(saddr, len, name, NI_MAXHOST, 
+			if (getnameinfo(saddr, len, name, NI_MAXHOST,
 					NULL, 0, NI_NUMERICHOST) ) {
 				free(s->hostname);
 				s->hostname = NULL;
