@@ -346,10 +346,11 @@ static void collect_id_obj2(auparse_state_t *au, const char *syscall)
 			if ((strcmp(str, "unset") == 0) && errno == 0) {
 				// Only move it if its safe to
 				if (cnt < limit) {
-					auparse_next_field(au);
+					if (auparse_next_field(au) == 0)
+						return;
 					cnt++;
 				} else
-					break;
+					return;
 			} else
 				break;
 		}
