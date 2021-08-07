@@ -315,8 +315,10 @@ static int parse_up_record(rnode* r)
 	} while((ptr = audit_strsplit_r(NULL, &saved)));
 
 	// If for some reason it was useless, delete buf
-	if (r->nv.cnt == 0)
+	if (r->nv.cnt == 0) {
 		free(buf);
+		free(r->cwd);
+	}
 
 	r->nv.cur = 0;	// reset to beginning
 	return 0;
