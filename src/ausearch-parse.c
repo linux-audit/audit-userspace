@@ -1995,6 +1995,10 @@ other_avc:
 			*term = '"';
 		} else { 
 			s->comm = unescape(str);
+			if (s->comm == NULL) {
+				rc = 11;
+				goto err;
+			}
 			term = str + 6;
 		}
 	}
