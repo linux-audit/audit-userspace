@@ -1311,11 +1311,16 @@ static const char *print_sockaddr(const char *val)
 					    str);
                         break;
                 case AF_NETLINK:
-                        {
+			if (slen < sizeof(struct sockaddr_nl)) {
+				rc = asprintf(&out,
+				    "{ saddr_fam=%s len too short }",
+					   str);
+				break;
+			} else {
                                 const struct sockaddr_nl *n =
                                              (const struct sockaddr_nl *)saddr;
 				rc = asprintf(&out,
-					"{ saddr_fam=%s nlnk-fam=%u nlnk-pid=%u }",
+				    "{ saddr_fam=%s nlnk-fam=%u nlnk-pid=%u }",
 					  str, n->nl_family, n->nl_pid);
                         }
                         break;
