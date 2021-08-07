@@ -348,7 +348,8 @@ static void collect_id_obj2(auparse_state_t *au, const char *syscall)
 				if (cnt < limit) {
 					auparse_next_field(au);
 					cnt++;
-				}
+				} else
+					break;
 			} else
 				break;
 		}
