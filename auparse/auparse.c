@@ -1201,7 +1201,8 @@ static int extract_timestamp(const char *b, au_event_t *e)
 		}
 		// at this point we have type=
 		ptr = audit_strsplit(NULL);
-		if (ptr) {
+		// strlen is for fuzzers that make invalid lines
+		if (ptr && strlen(ptr) > 24) {
 			if (*(ptr+9) == '(')
 				ptr+=9;
 			else
