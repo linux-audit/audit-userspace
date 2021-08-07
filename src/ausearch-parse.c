@@ -1031,7 +1031,7 @@ static int parse_user(const lnode *n, search_items *s, anode *avc)
 		if (str) {
 			str += 5;
 			term = str;
-			while (*term != ' ' && *term != ':')
+			while (*term != ' ' && *term != ':' && *term)
 				term++;
 			if (term == str)
 				return 24;
@@ -1244,7 +1244,7 @@ skip:
 				char *end = str;
 				int legacy = 0;
 
-				while (*end != ' ') {
+				while (*end != ' ' && *end) {
 					if (!isxdigit(*end)) {
 						legacy = 1;
 					}
@@ -1295,7 +1295,7 @@ skip:
 				char *end = str;
 				int legacy = 0;
 
-				while (*end != ' ') {
+				while (*end != ' ' && *end) {
 					if (!isxdigit(*end)) {
 						legacy = 1;
 					}
