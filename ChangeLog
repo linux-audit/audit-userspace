@@ -1,3 +1,5 @@
+3.0.5
+
 3.0.4
 - Apply performance speedups to auparse library
 - Optimize rule loading in auditctl
