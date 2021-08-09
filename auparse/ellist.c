@@ -204,7 +204,10 @@ static int parse_up_record(rnode* r)
 					while (ptr2) {
 						n.name = strdup("key");
 						n.val = escape(ptr2);
-						nvlist_append(&r->nv, &n);
+						if (nvlist_append(&r->nv, &n)) {
+							free(n.name);
+							free(n.val);
+						}
 						ptr2 = strtok_r(NULL,
 							key_sep, &saved2);
 					}

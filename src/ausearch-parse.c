@@ -1132,7 +1132,7 @@ try_again:
 		}
 	}
 skip:
-	mptr = term + 1;
+	mptr = term;
 
 	if (event_comm) {
 		// dont do this search unless needed
@@ -1186,7 +1186,7 @@ skip:
 			}
 		}
 	}
-	mptr = term + 1;
+	mptr = term;
 
 	// get hostname
 	if (event_hostname) {
