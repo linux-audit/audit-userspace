@@ -1611,7 +1611,13 @@ static int au_auparse_next_event(auparse_state_t *au)
 		}
 		aup_list_create(l);
 		aup_list_set_event(l, &e);
-		aup_list_append(l, au->cur_buf, au->list_idx, au->line_number);
+		if (aup_list_append(l, au->cur_buf, au->list_idx,
+				    au->line_number) < 0) {
+			au->cur_buf = NULL;
+			aup_list_clear(l);
+			free(l);
+			continue;
+		}
 		// Eat standalone EOE - main event was already marked complete
 		if (l->head->type == AUDIT_EOE) {
 			au->cur_buf = NULL;

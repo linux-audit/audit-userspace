@@ -290,7 +290,9 @@ static int parse_up_record(rnode* r)
 					while (ptr && *ptr != '}') {
 						len = strlen(ptr);
 						if ((len+1) >= (256-total)) {
-							free(buf);
+						   if (nvlist_get_cnt(&r->nv)
+									 == 0)
+								free(buf);
 							return -1;
 						}
 						if (tmpctx[0]) {
