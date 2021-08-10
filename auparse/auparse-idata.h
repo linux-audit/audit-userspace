@@ -1,6 +1,6 @@
 /*
 * idata.h - Header file for ausearch-lookup.c
-* Copyright (c) 2013,2016-17 Red Hat Inc., Durham, North Carolina.
+* Copyright (c) 2013,2016-17,2021 Red Hat Inc.
 * All Rights Reserved.
 *
 * This library is free software; you can redistribute it and/or
@@ -45,6 +45,7 @@ char *auparse_do_interpretation(int type, const idata *id,
 void _auparse_load_interpretations(const char *buf);
 void _auparse_free_interpretations(void);
 const char *_auparse_lookup_interpretation(const char *name);
+void _auparse_flush_caches(void);
 
 #endif
 

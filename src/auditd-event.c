@@ -42,6 +42,7 @@
 #include "libaudit.h"
 #include "private.h"
 #include "auparse.h"
+#include "auparse-idata.h"
 
 /* This is defined in auditd.c */
 extern volatile int stop;
@@ -56,7 +57,7 @@ static void do_space_left_action(int admin);
 static void do_disk_full_action(void);
 static void do_disk_error_action(const char *func, int err);
 static void fix_disk_permissions(void);
-static void check_excess_logs(void); 
+static void check_excess_logs(void);
 static void rotate_logs_now(void);
 static void rotate_logs(unsigned int num_logs, unsigned int keep_logs);
 static void shift_logs(void);
@@ -394,7 +395,7 @@ static const char *format_enrich(const struct audit_reply *rep)
 	        	snprintf(format_buf, MAX_AUDIT_MESSAGE_LENGTH,
 		    "type=DAEMON_ERR op=format-enriched msg=NULL res=failed");
 	} else {
-		int rc;
+		int rc, rtype;
 		size_t mlen, len;
 		char *message;
 		// Do raw format to get event started
@@ -427,6 +428,17 @@ static const char *format_enrich(const struct audit_reply *rep)
 
 		// Loop over all fields while possible to add field
 		rc = auparse_first_record(au);
+		rtype = auparse_get_type(au);
+		switch (rtype)
+		{	// Flush before adding to pickup new associations
+			case AUDIT_ADD_USER:
+			case AUDIT_ADD_GROUP:
+				_auparse_flush_caches();
+				break;
+			default:
+				break;
+		}
+
 		while (rc > 0 && len > MIN_SPACE_LEFT) {
 			// See what kind of field we have
 			size_t vlen;
@@ -454,6 +466,17 @@ static const char *format_enrich(const struct audit_reply *rep)
 			rc = auparse_next_field(au);
 		}
 
+		switch(rtype)
+		{	// Flush after modification to remove stale entries
+			case AUDIT_USER_MGMT:
+			case AUDIT_DEL_USER:
+			case AUDIT_DEL_GROUP:
+			case AUDIT_GRP_MGMT:
+				_auparse_flush_caches();
+				break;
+			default:
+				break;
+		}
 		free(message);
 	}
         return format_buf;

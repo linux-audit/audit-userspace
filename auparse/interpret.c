@@ -653,6 +653,18 @@ void aulookup_destroy_gid_list(void)
 	gid_cache_created = 0;
 }
 
+void _auparse_flush_caches(void)
+{
+	if (uid_cache_created) {
+		destroy_lru(uid_cache);
+		uid_cache_created = 0;
+	}
+	if (gid_cache_created) {
+		destroy_lru(gid_cache);
+		gid_cache_created = 0;
+	}
+}
+
 static const char *print_uid(const char *val, unsigned int base)
 {
         int uid;
