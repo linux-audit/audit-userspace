@@ -109,16 +109,16 @@ int nvlist_find_name(nvlist *l, const char *name)
 }
 
 extern int interp_adjust_type(int rtype, const char *name, const char *val);
-int nvlist_get_cur_type(const rnode *r)
+int nvlist_get_cur_type(rnode *r)
 {
-	const nvlist *l = &r->nv;
+	nvlist *l = &r->nv;
 	nvnode *node = &l->array[l->cur];
 	return auparse_interp_adjust_type(r->type, node->name, node->val);
 }
 
-const char *nvlist_interp_cur_val(const rnode *r, auparse_esc_t escape_mode)
+const char *nvlist_interp_cur_val(rnode *r, auparse_esc_t escape_mode)
 {
-	const nvlist *l = &r->nv;
+	nvlist *l = &r->nv;
 	nvnode *node = &l->array[l->cur];
 	if (node->interp_val)
 		return node->interp_val;

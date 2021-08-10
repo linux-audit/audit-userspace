@@ -322,7 +322,7 @@ static int parse_up_record(rnode* r)
 	// If for some reason it was useless, delete buf
 	if (r->nv.cnt == 0) {
 		free(buf);
-		free(r->cwd);
+		free((void *)r->cwd);
 	}
 
 	r->nv.cur = 0;	// reset to beginning

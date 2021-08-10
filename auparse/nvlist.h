@@ -47,8 +47,8 @@ AUDIT_HIDDEN_START
 void nvlist_create(nvlist *l);
 void nvlist_clear(nvlist* l, int free_interp);
 nvnode *nvlist_next(nvlist *l);
-int nvlist_get_cur_type(const rnode *r);
-const char *nvlist_interp_cur_val(const rnode *r, auparse_esc_t escape_mode);
+int nvlist_get_cur_type(rnode *r);
+const char *nvlist_interp_cur_val(rnode *r, auparse_esc_t escape_mode);
 int nvlist_append(nvlist *l, nvnode *node);
 void nvlist_interp_fixup(nvlist *l);
 

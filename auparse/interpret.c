@@ -2999,7 +2999,7 @@ int lookup_type(const char *name)
  */
 const char *do_interpret(const rnode *r, auparse_esc_t escape_mode)
 {
-	const nvlist *nv = &r->nv;
+	nvlist *nv = &r->nv;
 	int type;
 	idata id;
 	nvnode *n;
