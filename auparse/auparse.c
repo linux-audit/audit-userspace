@@ -1195,14 +1195,14 @@ static int extract_timestamp(const char *b, au_event_t *e)
 	ptr = audit_strsplit(tmp);
 	if (ptr) {
 		// Optionally grab the node - may or may not be included
-		if (*ptr == 'n') {
+		if (*ptr == 'n' && strnlen(ptr, 8) > 5) {
 			e->host = strdup(ptr+5);
 			(void)audit_strsplit(NULL);// Bump along to next one
 		}
 		// at this point we have type=
 		ptr = audit_strsplit(NULL);
 		// strlen is for fuzzers that make invalid lines
-		if (ptr && strlen(ptr) > 24) {
+		if (ptr && strnlen(ptr, 28) > 24) {
 			if (*(ptr+9) == '(')
 				ptr+=9;
 			else
