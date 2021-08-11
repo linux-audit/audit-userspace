@@ -71,7 +71,7 @@ static void init_flush_thread(void);
 /* Local Data */
 static struct daemon_conf *config;
 static volatile int log_fd;
-static FILE *log_file;
+static FILE *log_file = NULL;
 static unsigned int disk_err_warning = 0;
 static int fs_space_warning = 0;
 static int fs_admin_space_warning = 0;
@@ -136,7 +136,8 @@ void shutdown_events(void)
 	pthread_cancel(flush_thread);
 	free((void *)format_buf);
 	auparse_destroy_ext(au, AUPARSE_DESTROY_ALL);
-	fsync(log_fd);
+	if (log_fd >= 0)
+		fsync(log_fd);
 	if (log_file)
 		fclose(log_file);
 }
@@ -174,7 +175,8 @@ int init_event(struct daemon_conf *conf)
 	format_buf = (char *)malloc(FORMAT_BUF_LEN);
 	if (format_buf == NULL) {
 		audit_msg(LOG_ERR, "No memory for formatting, exiting");
-		fclose(log_file);
+		if (log_file)
+			fclose(log_file);
 		log_file = NULL;
 		return 1;
 	}
@@ -212,7 +214,8 @@ static void *flush_thread_main(void *arg)
 		flush = 0;
 		pthread_mutex_unlock(&flush_lock);
 
-		fsync(log_fd);
+		if (log_fd >= 0)
+			fsync(log_fd);
 	}
 	return NULL;
 }
@@ -589,7 +592,8 @@ void handle_event(struct auditd_event *e)
 				if (config->daemonize == D_BACKGROUND) {
 					if (config->flush == FT_INCREMENTAL) {
 						/* EIO is only likely failure */
-						if (fsync(log_fd) != 0) {
+						if (log_fd >= 0 &&
+							fsync(log_fd) != 0) {
 						     do_disk_error_action(
 							"fsync",
 							errno);
@@ -744,6 +748,9 @@ static void check_space_left(void)
 	int rc;
 	struct statfs buf;
 
+	if (log_fd < 0)
+		return;
+
         rc = fstatfs(log_fd, &buf);
         if (rc == 0) {
 		if (buf.f_bavail < 5) {
@@ -831,7 +838,8 @@ static void do_space_left_action(int admin)
 		case FA_EXEC:
 			// Close the logging file in case the script zips or
 			// moves the file. We'll reopen in sigusr2 handler
-			fclose(log_file);
+			if (log_file)
+				fclose(log_file);
 			log_file = NULL;
 			log_fd = -1;
 			logging_suspended = 1;
@@ -881,7 +889,8 @@ static void do_disk_full_action(void)
 		case FA_EXEC:
 			// Close the logging file in case the script zips or
 			// moves the file. We'll reopen in sigusr2 handler
-			fclose(log_file);
+			if (log_file)
+				fclose(log_file);
 			log_file = NULL;
 			log_fd = -1;
 			logging_suspended = 1;
@@ -928,7 +937,8 @@ static void do_disk_error_action(const char *func, int err)
 		case FA_EXEC:
 			// Close the logging file in case the script zips or
 			// moves the file. We'll reopen in sigusr2 handler
-			fclose(log_file);
+			if (log_file)
+				fclose(log_file);
 			log_file = NULL;
 			log_fd = -1;
 			logging_suspended = 1;
@@ -1053,17 +1063,21 @@ static void rotate_logs(unsigned int num_logs, unsigned int keep_logs)
 	/* Close audit file. fchmod and fchown errors are not fatal because we
 	 * already adjusted log file permissions and ownership when opening the
 	 * log file. */
-	if (fchmod(log_fd, config->log_group ? S_IRUSR|S_IRGRP : S_IRUSR) < 0){
-		audit_msg(LOG_WARNING, "Couldn't change permissions while "
+	if (log_fd >= 0) {
+		if (fchmod(log_fd, config->log_group ? S_IRUSR|S_IRGRP :
+			  S_IRUSR) < 0){
+		    audit_msg(LOG_WARNING, "Couldn't change permissions while "
 			"rotating log file (%s)", strerror(errno));
-	}
-	if (fchown(log_fd, 0, config->log_group) < 0) {
-		audit_msg(LOG_WARNING, "Couldn't change ownership while "
+		}
+		if (fchown(log_fd, 0, config->log_group) < 0) {
+		    audit_msg(LOG_WARNING, "Couldn't change ownership while "
 			"rotating log file (%s)", strerror(errno));
+		}
 	}
-	fclose(log_file);
+	if (log_file)
+		fclose(log_file);
 	log_file = NULL;
-	
+
 	/* Rotate */
 	len = strlen(config->log_file) + 16;
 	oldname = (char *)malloc(len);
@@ -1470,7 +1484,8 @@ static void reconfigure(struct auditd_event *e)
 		free((void *)nconf->log_file);
 
 	if (need_reopen) {
-		fclose(log_file);
+		if (log_file)
+			fclose(log_file);
 		log_file = NULL;
 		fix_disk_permissions();
 		if (open_audit_log()) {

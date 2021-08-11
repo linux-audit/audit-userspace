@@ -1,6 +1,7 @@
 3.0.5
 - In auditd, flush uid/gid caches when user/group added/deleted/modified
 - Fixed various issues when dealing with corrupted logs
+- In auditd, check if log_file is valid before closing handle
 
 3.0.4
 - Apply performance speedups to auparse library
