@@ -840,6 +840,9 @@ static char *print_escaped(const char *val)
 {
 	char *out;
 
+	if (val == NULL)
+                        return strdup(" ");
+
         if (*val == '"') {
                 char *term;
                 val++;
