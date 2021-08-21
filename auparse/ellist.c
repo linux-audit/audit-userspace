@@ -116,6 +116,7 @@ static int parse_up_record(rnode* r)
 	ptr = audit_strsplit_r(buf, &saved);
 	if (ptr == NULL) {
 		free(buf);
+		r->nv.record = NULL;
 		return -1;
 	}
 
@@ -322,6 +323,7 @@ static int parse_up_record(rnode* r)
 	// If for some reason it was useless, delete buf
 	if (r->nv.cnt == 0) {
 		free(buf);
+		r->nv.record = NULL;
 		free((void *)r->cwd);
 	}
 

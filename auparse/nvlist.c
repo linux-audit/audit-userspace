@@ -119,6 +119,8 @@ int nvlist_get_cur_type(rnode *r)
 const char *nvlist_interp_cur_val(rnode *r, auparse_esc_t escape_mode)
 {
 	nvlist *l = &r->nv;
+	if (l->cnt == 0)
+		return NULL;
 	nvnode *node = &l->array[l->cur];
 	if (node->interp_val)
 		return node->interp_val;
