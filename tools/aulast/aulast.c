@@ -96,8 +96,11 @@ static void report_session(lnode* cur)
 			int mins, hours, days;
 			if (notime)
 				printf("- %-7.5s", " ");
-			else
-				printf("- %-7.5s", ctime(&cur->end) + 11);
+			else {
+				char *ttime = ctime(&cur->end);
+				printf("- %-7.5s", ttime ? ttime + 11 :
+				       "bad value");
+			}
 			secs = cur->end - cur->start;
 			mins  = (secs / 60) % 60;
 			hours = (secs / 3600) % 24;
@@ -128,10 +131,13 @@ static void report_session(lnode* cur)
 		strftime(start, sizeof(start), "%x %T", btm);
 		if (cur->end != 0) {
 			btm = localtime(&cur->end);
-			strftime(end, sizeof(end), "%x %T", btm);
-		      printf("    ausearch --start %s --end %s",
-				start, end);
+			if (btm) {
+				strftime(end, sizeof(end), "%x %T", btm);
+				printf("    ausearch --start %s --end %s",
+					start, end);
+			} else goto no_end;
 		} else {
+no_end:
 		    printf("    ausearch --start %s", start);
 		}
 		if (cur->name == NULL)
