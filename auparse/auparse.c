@@ -1582,8 +1582,11 @@ static int au_auparse_next_event(auparse_state_t *au)
 					if (debug)
 						printf("Adding event to building event\n");
 #endif	/* LOL_EVENTS_DEBUG01 */
-					aup_list_append(cur->l, au->cur_buf,
-						au->list_idx, au->line_number);
+					if (aup_list_append(cur->l, au->cur_buf,
+					    au->list_idx, au->line_number) < 0) {
+						au->cur_buf = NULL;
+						continue;
+					}
 					au->cur_buf = NULL;
 					free((char *)e.host);
 					au_check_events(au,  e.sec);
