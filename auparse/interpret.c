@@ -44,8 +44,10 @@
 #include <linux/ax25.h>
 #include <linux/atm.h>
 #include <linux/x25.h>
-#include <linux/if.h>   // FIXME: remove when ipx.h is fixed
-#include <linux/ipx.h>
+#ifdef HAVE_IPX_HEADERS
+  #include <linux/if.h>   // FIXME: remove when ipx.h is fixed
+  #include <linux/ipx.h>
+#endif
 #include <linux/capability.h>
 #include <sys/personality.h>
 #include <sys/prctl.h>
@@ -1279,6 +1281,7 @@ static const char *print_sockaddr(const char *val)
 					      x->sax25_call.ax25_call[6]);
                         }
                         break;
+#ifdef HAVE_IPX_HEADERS
                 case AF_IPX:
                         {
                                 const struct sockaddr_ipx *ip =
@@ -1288,6 +1291,7 @@ static const char *print_sockaddr(const char *val)
 					str, ip->sipx_port, ip->sipx_network);
                         }
                         break;
+#endif
                 case AF_ATMPVC:
                         {
                                 const struct sockaddr_atmpvc* at =

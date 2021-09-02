@@ -1,5 +1,6 @@
 3.0.6
 - Fixed various issues when dealing with corrupted logs
+- Make IPX packet interpretation dependent on the ipx header file existing
 
 3.0.5
 - In auditd, flush uid/gid caches when user/group added/deleted/modified

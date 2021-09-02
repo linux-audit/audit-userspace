@@ -418,6 +418,12 @@ if test x"$LIBWRAP_LIBS" != "x"; then
 	AC_DEFINE_UNQUOTED(HAVE_LIBWRAP, [], Define if tcp_wrappers support is enabled )
 fi
 
+# linux/ipx.h - deprecated in 2018
+AC_CHECK_HEADER(linux/ipx.h, ipx_headers=yes, ipx_headers=no)
+if test $ipx_headers = yes ; then
+	AC_DEFINE(HAVE_IPX_HEADERS,1,[IPX packet interpretation])
+fi
+
 # See if we want to support lower capabilities for plugins
 LIBCAP_NG_PATH
 
