@@ -56,7 +56,7 @@ int main(int argc, char *argv[])
 				usage();
 			}
 			syscall_num = strtol(argv[i], 0, 10);
-		} else if ((rc = audit_name_to_machine(argv[i])) != -1) {
+		} else if ((rc = audit_determine_machine(argv[i])) >= 0) {
 			if (machine != -1) {
 				fputs("Two machine types not allowed\n",stderr);
 				usage();
