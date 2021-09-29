@@ -368,7 +368,7 @@ static int audit_request_rule_list(void)
 	return 0;
 }
 
-static void check_rule_mismatch(int lineno, const char *option)
+static int check_rule_mismatch(int lineno, const char *option)
 {
 	struct audit_rule_data tmprule;
 	unsigned int old_audit_elf = _audit_elf;
@@ -386,17 +386,28 @@ static void check_rule_mismatch(int lineno, const char *option)
 			_audit_elf = AUDIT_ARCH_S390;
 			break;
 	}
+
+	char *ptr, *saved, *tmp = strdup(option);
+	if (tmp == NULL)
+		return -1;
+	ptr = strtok_r(tmp, ",", &saved);
 	memset(&tmprule, 0, sizeof(struct audit_rule_data));
-	audit_rule_syscallbyname_data(&tmprule, option);
+	while (ptr) {
+		audit_rule_syscallbyname_data(&tmprule, ptr);
+		ptr = strtok_r(NULL, ",", &saved);
+	}
 	if (memcmp(tmprule.mask, rule_new->mask, AUDIT_BITMASK_SIZE))
 		rc = 1;
+	free(tmp);
+
 	_audit_elf = old_audit_elf;
-	if (rc) { 
+	if (rc) {
 		if (lineno)
 			audit_msg(LOG_WARNING, "WARNING - 32/64 bit syscall mismatch in line %d, you should specify an arch", lineno);
 		else
 			audit_msg(LOG_WARNING, "WARNING - 32/64 bit syscall mismatch, you should specify an arch");
 	}
+	return 0;
 }
 
 
@@ -824,7 +835,8 @@ static int setopt(int count, int lineno, char *vars[])
 			case 0:
 				_audit_syscalladded = 1;
 				if (unknown_arch && add != AUDIT_FILTER_UNSET)
-					check_rule_mismatch(lineno, optarg);
+					if (check_rule_mismatch(lineno, optarg) == -1)
+						retval = -1;
 				break;
 			case -1:
 				audit_msg(LOG_ERR, "Syscall name unknown: %s", 
