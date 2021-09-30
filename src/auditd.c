@@ -192,6 +192,7 @@ static void cont_handler(struct ev_loop *loop, struct ev_signal *sig,
 	if (f == NULL)
 		return;
 
+	fprintf(f, "audit version = %s\n", VERSION);
 	time_t now = time(0);
 	strftime(buf, sizeof(buf), "%x %X", localtime(&now));
 	fprintf(f, "current time = %s\n", buf);
