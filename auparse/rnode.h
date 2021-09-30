@@ -40,6 +40,7 @@ typedef struct {
   unsigned int cur;     // Index to current node
   unsigned int cnt;     // How many items in this list
   char *record;		// Holds the parsed up record
+  char *end;		// End of the parsed up record
 } nvlist;
 
 

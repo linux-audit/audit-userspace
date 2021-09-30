@@ -36,11 +36,13 @@ void nvlist_create(nvlist *l)
 		l->cur = 0;
 		l->cnt = 0;
 		l->record = NULL;
+		l->end = NULL;
 	}
 }
 
 nvnode *nvlist_next(nvlist *l)
 {
+	// Since cur will be incremented, check for 1 less that total
 	if (l->cnt && l->cur < (l->cnt - 1)) {
 		l->cur++;
 		return &l->array[l->cur];
@@ -127,11 +129,21 @@ const char *nvlist_interp_cur_val(rnode *r, auparse_esc_t escape_mode)
 	return do_interpret(r, escape_mode);
 }
 
+// This function determines if a chunk of memory is part of the parsed up
+// record. If it is, do not free it since it gets free'd at the very end.
+// NOTE: This function causes invalid-pointer-pair errors with ASAN
+static inline int not_in_rec_buf(nvlist *l, const char *ptr)
+{
+	if (ptr >= l->record && ptr < l->end)
+		return 0;
+	return 1;
+}
+
 // free_interp does not apply to thing coming from interpretation_list
-void nvlist_clear(nvlist* l, int free_interp)
+void nvlist_clear(nvlist *l, int free_interp)
 {
 	unsigned int i = 0;
-	register nvnode* current;
+	register nvnode *current;
 
 	if (l->cnt == 0)
 		return;
@@ -142,11 +154,9 @@ void nvlist_clear(nvlist* l, int free_interp)
 			free(current->interp_val);
 			// A couple items are not in parsed up list.
 			// These all come from the aup_list_append path.
-			if ((strcmp(current->name, "key") == 0) ||
-			    (strcmp(current->name, "seperms") == 0) ||
-			    (strcmp(current->name, "seresult") == 0)) {
+			if (not_in_rec_buf(l, current->name)) {
 				// seperms & key values are strdup'ed
-				if (current->name[2] != 'r')
+				if (not_in_rec_buf(l, current->val))
 					free(current->val);
 				free(current->name);
 			}
@@ -155,6 +165,7 @@ void nvlist_clear(nvlist* l, int free_interp)
 	}
 	free((void *)l->record);
 	l->record = NULL;
+	l->end = NULL;
 	l->cur = 0;
 	l->cnt = 0;
 }

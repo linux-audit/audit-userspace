@@ -45,7 +45,7 @@ static inline const char *nvlist_get_cur_val_interp(nvlist *l)
 AUDIT_HIDDEN_START
 
 void nvlist_create(nvlist *l);
-void nvlist_clear(nvlist* l, int free_interp);
+void nvlist_clear(nvlist *l, int free_interp);
 nvnode *nvlist_next(nvlist *l);
 int nvlist_get_cur_type(rnode *r);
 const char *nvlist_interp_cur_val(rnode *r, auparse_esc_t escape_mode);

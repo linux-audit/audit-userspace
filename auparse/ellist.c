@@ -103,7 +103,7 @@ static char *escape(const char *tmp)
 static int parse_up_record(rnode* r)
 {
 	char *ptr, *buf, *saved=NULL;
-	unsigned int offset = 0;
+	unsigned int offset = 0, len;
 
 	// Potentially cut the record in two
 	ptr = strchr(r->record, AUDIT_INTERP_SEPARATOR);
@@ -112,7 +112,15 @@ static int parse_up_record(rnode* r)
 		ptr++;
 	}
 	r->interp = ptr;
-	r->nv.record = buf = strdup(r->record);
+	// Rather than call strndup, we will do it ourselves to reduce
+	// the number of interations across the record.
+	// len includes the string terminator.
+	len = strlen(r->record) + 1;
+	r->nv.record = buf = malloc(len);
+	if (r->nv.record == NULL)
+		return -1;
+	memcpy(r->nv.record, r->record, len);
+	r->nv.end = r->nv.record + len;
 	ptr = audit_strsplit_r(buf, &saved);
 	if (ptr == NULL) {
 		free(buf);
@@ -324,6 +332,7 @@ static int parse_up_record(rnode* r)
 	if (r->nv.cnt == 0) {
 		free(buf);
 		r->nv.record = NULL;
+		r->nv.end = NULL;
 		free((void *)r->cwd);
 	}
 
