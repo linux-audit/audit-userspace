@@ -1,4 +1,4 @@
-.TH "AUDITD" "8" "Sept 2013" "Red Hat" "System Administration Utilities"
+.TH "AUDITD" "8" "Sept 2021" "Red Hat" "System Administration Utilities"
 .SH NAME
 auditd \- The Linux Audit daemon
 .SH SYNOPSIS
@@ -35,23 +35,40 @@ Specify alternate config file directory. Note that this same directory will
 be passed to the dispatcher. (default: /etc/audit/)
 .SH SIGNALS
 .TP
-SIGHUP
+.B SIGHUP
 causes auditd to reconfigure. This means that auditd re-reads the configuration file. If there are no syntax errors, it will proceed to implement the requested changes. If the reconfigure is successful, a DAEMON_CONFIG event is recorded in the logs. If not successful, error handling is controlled by space_left_action, admin_space_left_action, disk_full_action, and disk_error_action parameters in auditd.conf.
 
 .TP
-SIGTERM
+.B SIGTERM
 caused auditd to discontinue processing audit events, write a shutdown audit event, and exit.
 
 .TP
-SIGUSR1
+.B SIGUSR1
 causes auditd to immediately rotate the logs. It will consult the max_log_file_action to see if it should keep the logs or not.
 
 .TP
-SIGUSR2
+.B SIGUSR2
 causes auditd to attempt to resume logging and passing events to plugins. This is usually needed after logging has been suspended or the internal queue is overflowed. Either of these conditions depends on the applicable configuration settings.
 .TP
-SIGCONT
+.B SIGCONT
 causes auditd to dump a report of internal state to /var/run/auditd.state.
+
+.SH EXIT CODES
+.TP
+.B 1
+Cannot adjust priority, daemonize, open audit netlink, write the pid file, start up plugins, resolve the machine name, set audit pid, or other initialization tasks.
+
+.TP
+.B 2
+Invalid or excessive command line arguments
+
+.TP
+.B 4
+The audit daemon doesn't have sufficient privilege
+
+.TP
+.B 6
+There is an error in the configuration file
 
 .SH FILES
 .B /etc/audit/auditd.conf
