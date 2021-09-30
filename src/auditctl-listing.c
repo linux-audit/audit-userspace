@@ -585,7 +585,7 @@ int audit_print_reply(struct audit_reply *rep, int fd)
 #endif
 			printed = 1;
 			break;
-#if defined(HAVE_DECL_AUDIT_FEATURE_VERSION)
+#if HAVE_DECL_AUDIT_FEATURE_VERSION == 1
 		case AUDIT_GET_FEATURE:
 			{
 			uint32_t mask = AUDIT_FEATURE_TO_MASK(

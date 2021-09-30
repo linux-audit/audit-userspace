@@ -559,7 +559,7 @@ int audit_reset_backlog_wait_time_actual(int fd)
 
 int audit_set_feature(int fd, unsigned feature, unsigned value, unsigned lock)
 {
-#if defined(HAVE_DECL_AUDIT_FEATURE_VERSION)
+#if HAVE_DECL_AUDIT_FEATURE_VERSION == 1
 	int rc;
 	struct audit_features f;
 
@@ -583,7 +583,7 @@ int audit_set_feature(int fd, unsigned feature, unsigned value, unsigned lock)
 
 int audit_request_features(int fd)
 {
-#if defined(HAVE_DECL_AUDIT_FEATURE_VERSION)
+#if HAVE_DECL_AUDIT_FEATURE_VERSION == 1
 	int rc;
 	struct audit_features f;
 
@@ -602,7 +602,7 @@ int audit_request_features(int fd)
 
 extern int  audit_set_loginuid_immutable(int fd)
 {
-#if defined(HAVE_DECL_AUDIT_FEATURE_VERSION)
+#if HAVE_DECL_AUDIT_FEATURE_VERSION == 1
 	return audit_set_feature(fd, AUDIT_FEATURE_LOGINUID_IMMUTABLE, 1, 1);
 #else
 	errno = EINVAL;
