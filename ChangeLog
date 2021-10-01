@@ -4,6 +4,7 @@
 - Add b32/b64 support to ausyscall (Egor Ignatov)
 - Add support for armv8l (Egor Ignatov)
 - Fix auditctl list of syscalls in PPC (Egor Ignatov)
+- auditd.service now restarts auditd under some conditions (Timothée Ravier)
 
 3.0.5
 - In auditd, flush uid/gid caches when user/group added/deleted/modified
