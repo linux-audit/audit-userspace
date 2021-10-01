@@ -1,3 +1,5 @@
+3.0.7
+
 3.0.6
 - Fixed various issues when dealing with corrupted logs
 - Make IPX packet interpretation dependent on the ipx header file existing
