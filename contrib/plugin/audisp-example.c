@@ -58,7 +58,7 @@ static void handle_event(auparse_state_t *au,
 /*
  * SIGTERM handler
  */
-static void term_handler( int sig )
+static void term_handler(int sig)
 {
         stop = 1;
 }
@@ -66,7 +66,7 @@ static void term_handler( int sig )
 /*
  * SIGHUP handler: re-read config
  */
-static void hup_handler( int sig )
+static void hup_handler(int sig)
 {
         hup = 1;
 }
@@ -74,6 +74,11 @@ static void hup_handler( int sig )
 static void reload_config(void)
 {
 	hup = 0;
+
+	/*
+	 * Add your code here that re-reads the config file and changes
+	 * how your plugin works.
+	 */
 }
 
 int main(int argc, char *argv[])
