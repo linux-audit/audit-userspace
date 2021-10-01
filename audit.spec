@@ -256,6 +256,6 @@ fi
 
 
 %changelog
-* Wed Aug 11 2021 Steve Grubb <sgrubb@redhat.com> 3.0.6-1
+* Fri Oct 01 2021 Steve Grubb <sgrubb@redhat.com> 3.0.6-1
 - New upstream release
 

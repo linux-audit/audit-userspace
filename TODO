@@ -4,7 +4,7 @@ Future roadmap (subject to change):
 * Basic HIDS based on reactive audit component
 * Add keywords for time: month-ago, this-hour, last-hour
 * If searching user/group doesn't map to uid/gid, do translated string search
-* In audispd, look into non-blocking handling of write to plugins
+* In auditd, look into non-blocking handling of write to plugins
 * Support multiple time streams when searching
 
 3.1.1
