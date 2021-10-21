@@ -113,7 +113,7 @@ aureport \-\-start this-week \-\-key \-\-summary
 This will give an ordered listing of the keys associated with rules that have been triggering. If, for example, you had a syscall audit rule that triggered on the failure to open files with EPERM that had a key field of access like this:
 
 .nf
-\-a always,exit \-F arch=b64 \-S open \-S openat \-F exit=\-EPERM \-k access
+\-a always,exit \-F arch=b64 \-S open \-S openat \-S openat2 \-F exit=\-EPERM \-k access
 .fi
 
 Then you can isolate these failures with ausearch and pipe the results to aureport for display. Suppose your investigation noticed a lot of the access denied events. If you wanted to see the files that unauthorized access has been attempted, you could run the following command:
@@ -166,10 +166,10 @@ If you get a warning that says, "entry rules deprecated, changing to exit rule".
 The following rule shows how to audit failed access to files due to permission problems. Note that it takes two rules for each arch ABI to audit this since file access can fail with two different failure codes indicating permission problems.
 
 .nf
-.B \-a always,exit \-F arch=b32 \-S open \-S openat \-F exit=\-EACCES \-k access
-.B \-a always,exit \-F arch=b32 \-S open \-S openat \-F exit=\-EPERM \-k access
-.B \-a always,exit \-F arch=b64 \-S open \-S openat \-F exit=\-EACCES \-k access
-.B \-a always,exit \-F arch=b64 \-S open \-S openat \-F exit=\-EPERM \-k access
+.B \-a always,exit \-F arch=b32 \-S open \-S openat \-S openat2 \-F exit=\-EACCES \-k access
+.B \-a always,exit \-F arch=b32 \-S open \-S openat \-S openat2 \-F exit=\-EPERM \-k access
+.B \-a always,exit \-F arch=b64 \-S open \-S openat \-S openat2 \-F exit=\-EACCES \-k access
+.B \-a always,exit \-F arch=b64 \-S open \-S openat \-S openat2 \-F exit=\-EPERM \-k access
 .fi
 
 .SH HARD WIRED EVENTS

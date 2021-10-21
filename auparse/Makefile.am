@@ -19,6 +19,7 @@
 # 
 # Authors:
 #   Steve Grubb <sgrubb@redhat.com>
+#   Richard Guy Briggs <rgb@redhat.com>
 #
 
 SUBDIRS = test
@@ -66,7 +67,8 @@ BUILT_SOURCES = accesstabs.h captabs.h clocktabs.h clone-flagtabs.h \
 	tcpoptnametabs.h typetabs.h umounttabs.h inethooktabs.h \
 	netactiontabs.h \
 	normalize_obj_kind_maps.h normalize_record_maps.h \
-	normalize_syscall_maps.h normalize_evtypetabs.h bpftabs.h
+	normalize_syscall_maps.h normalize_evtypetabs.h bpftabs.h \
+	openat2-resolvetabs.h
 noinst_PROGRAMS = gen_accesstabs_h gen_captabs_h gen_clock_h \
 	gen_clone-flagtabs_h \
 	gen_epoll_ctls_h gen_famtabs_h \
@@ -83,7 +85,8 @@ noinst_PROGRAMS = gen_accesstabs_h gen_captabs_h gen_clock_h \
 	gen_socktypetabs_h gen_tcpoptnametabs_h gen_typetabs_h \
 	gen_umounttabs_h gen_inethooktabs_h gen_netactiontabs_h \
 	gen_normalize_record_map gen_normalize_syscall_map \
-	gen_normalize_obj_kind_map gen_normalize_evtypetabs_h gen_bpftabs_h
+	gen_normalize_obj_kind_map gen_normalize_evtypetabs_h gen_bpftabs_h \
+	gen_openat2-resolvetabs_h
 
 gen_accesstabs_h_SOURCES = ../lib/gen_tables.c ../lib/gen_tables.h accesstab.h
 gen_accesstabs_h_CFLAGS = '-DTABLE_H="accesstab.h"'
@@ -660,4 +663,18 @@ gen_bpftabs_h$(BUILD_EXEEXT): CPPFLAGS=$(CPPFLAGS_FOR_BUILD)
 gen_bpftabs_h$(BUILD_EXEEXT): LDFLAGS=$(LDFLAGS_FOR_BUILD)
 bpftabs.h: gen_bpftabs_h Makefile
 	./gen_bpftabs_h --i2s bpf > $@
+
+gen_openat2_resolvetabs_h_SOURCES = ../lib/gen_tables.c ../lib/gen_tables.h \
+	openat2-resolvetab.h
+gen_openat2_resolvetabs_h_CFLAGS = '-DTABLE_H="openat2-resolvetab.h"'
+$(gen_openat2_resolvetabs_h_OBJECTS): CC=$(CC_FOR_BUILD)
+$(gen_openat2_resolvetabs_h_OBJECTS): CFLAGS=$(CFLAGS_FOR_BUILD)
+$(gen_openat2_resolvetabs_h_OBJECTS): CPPFLAGS=$(CPPFLAGS_FOR_BUILD)
+$(gen_openat2_resolvetabs_h_OBJECTS): LDFLAGS=$(LDFLAGS_FOR_BUILD)
+gen_openat2-resolvetabs_h$(BUILD_EXEEXT): CC=$(CC_FOR_BUILD)
+gen_openat2-resolvetabs_h$(BUILD_EXEEXT): CFLAGS=$(CFLAGS_FOR_BUILD)
+gen_openat2-resolvetabs_h$(BUILD_EXEEXT): CPPFLAGS=$(CPPFLAGS_FOR_BUILD)
+gen_openat2-resolvetabs_h$(BUILD_EXEEXT): LDFLAGS=$(LDFLAGS_FOR_BUILD)
+openat2-resolvetabs.h: gen_openat2-resolvetabs_h Makefile
+	./gen_openat2-resolvetabs_h --i2s-transtab openat2_resolve > $@
 

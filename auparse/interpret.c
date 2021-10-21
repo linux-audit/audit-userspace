@@ -123,6 +123,7 @@
 #include "inethooktabs.h"
 #include "netactiontabs.h"
 #include "bpftabs.h"
+#include "openat2-resolvetabs.h"
 
 typedef enum { AVC_UNSET, AVC_DENIED, AVC_GRANTED } avc_t;
 typedef enum { S_UNSET=-1, S_FAILED, S_SUCCESS } success_t;
@@ -2328,6 +2329,40 @@ static const char *print_bpf(const char *val)
 		return strdup(str);
 }
 
+static const char *print_openat2_resolve(const char *val)
+{
+	size_t i;
+	unsigned long long resolve;
+	int cnt = 0;
+	char *out, buf[sizeof(openat2_resolve_strings)+8];
+
+	errno = 0;
+	resolve = strtoull(val, NULL, 16);
+	if (errno) {
+		if (asprintf(&out, "conversion error(%s)", val) < 0)
+			out = NULL;
+		return out;
+	}
+
+	buf[0] = 0;
+	for (i=0; i<OPENAT2_RESOLVE_NUM_ENTRIES; i++) {
+		if (openat2_resolve_table[i].value & resolve) {
+			if (!cnt) {
+				strcat(buf,
+				openat2_resolve_strings + openat2_resolve_table[i].offset);
+				cnt++;
+			} else {
+				strcat(buf, "|");
+				strcat(buf,
+				openat2_resolve_strings + openat2_resolve_table[i].offset);
+			}
+		}
+	}
+	if (buf[0] == 0)
+		snprintf(buf, sizeof(buf), "0x%s", val);
+	return strdup(buf);
+}
+
 static const char *print_a0(const char *val, const idata *id)
 {
 	char *out;
@@ -3234,6 +3269,9 @@ unknown:
 			break;
 		case AUPARSE_TYPE_NLMCGRP:
 			out = print_nlmcgrp(id->val);
+			break;
+		case AUPARSE_TYPE_RESOLVE:
+			out = print_openat2_resolve(id->val);
 			break;
 		case AUPARSE_TYPE_MAC_LABEL:
 		case AUPARSE_TYPE_UNCLASSIFIED:

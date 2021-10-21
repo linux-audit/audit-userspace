@@ -2391,6 +2391,7 @@ initauparse(void)
     PyModule_AddIntConstant(m, "AUPARSE_TYPE_ESCAPED_KEY", AUPARSE_TYPE_ESCAPED_KEY);
     PyModule_AddIntConstant(m, "AUPARSE_TYPE_ESCAPED_FILE", AUPARSE_TYPE_ESCAPED_FILE);
     PyModule_AddIntConstant(m, "AUPARSE_TYPE_FANOTIFY", AUPARSE_TYPE_FANOTIFY);
+    PyModule_AddIntConstant(m, "AUPARSE_TYPE_RESOLVE", AUPARSE_TYPE_RESOLVE);
 
     /* Escape types */
     PyModule_AddIntConstant(m, "AUPARSE_ESC_RAW", AUPARSE_ESC_RAW);
