@@ -1037,6 +1037,7 @@ static const char *normalize_determine_evkind(int type)
 		case AUDIT_SOCKADDR ... AUDIT_MQ_GETSETATTR:
 		case AUDIT_FD_PAIR ... AUDIT_OBJ_PID:
 		case AUDIT_BPRM_FCAPS ... AUDIT_NETFILTER_PKT:
+		case AUDIT_URINGOP:
 			kind = NORM_EVTYPE_AUDIT_RULE;
 			break;
 		case AUDIT_FANOTIFY:
