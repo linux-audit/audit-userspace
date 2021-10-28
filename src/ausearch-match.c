@@ -79,7 +79,7 @@ int match(llist *l)
 					slist *sptr = event_node_list;
 
 					if (l->e.node == NULL)
-				  		return 0;
+						return 0;
 
 					slist_first(sptr);
 					sn=slist_get_cur(sptr);
@@ -97,17 +97,17 @@ int match(llist *l)
 					return 0;
 				if (group_match(l) == 0)
 					return 0;
-				if ((event_ppid != -1) && 
+				if ((event_ppid != -1) &&
 						(event_ppid != l->s.ppid))
 					return 0;
-				if ((event_pid != -1) && 
+				if ((event_pid != -1) &&
 						(event_pid != l->s.pid))
 					return 0;
-				if (event_machine != -1 && 
+				if (event_machine != -1 &&
 						(event_machine !=
 					audit_elf_to_machine(l->s.arch)))
 					return 0;
-				if ((event_syscall != -1) && 
+				if ((event_syscall != -1) &&
 					(event_syscall != l->s.syscall))
 						return 0;
 				if ((event_session_id != -2) &&
@@ -139,7 +139,7 @@ int match(llist *l)
 								found = 1;
 								break;
 							}
-						} while((in = 
+						} while((in =
 						    ilist_next(event_type)));
 						if (found)
 							break;
@@ -148,7 +148,7 @@ int match(llist *l)
 						return 0;
 				}
 
-				// Done all the easy compares, now do the 
+				// Done all the easy compares, now do the
 				// string searches.
 				if (event_filename) {
 					int found = 0;
@@ -184,31 +184,31 @@ int match(llist *l)
 				if (event_hostname) {
 					if (l->s.hostname == NULL)
 						return 0;
-					if (strmatch(event_hostname, 
+					if (strmatch(event_hostname,
 						l->s.hostname) == 0)
-						return 0; 
+						return 0;
 				}
 				if (event_terminal) {
 					if (l->s.terminal == NULL)
 						return 0;
-					if (strmatch(event_terminal, 
+					if (strmatch(event_terminal,
 						l->s.terminal) == 0)
-						return 0; 
+						return 0;
 				}
 				if (event_exe) {
 					if (l->s.exe == NULL)
 						return 0;
-					if (strmatch(event_exe, 
+					if (strmatch(event_exe,
 						l->s.exe) == 0)
-						return 0; 
-				}				
+						return 0;
+				}
 				if (event_comm) {
 					if (l->s.comm == NULL)
 						return 0;
-					if (strmatch(event_comm, 
+					if (strmatch(event_comm,
 						l->s.comm) == 0)
-						return 0; 
-				}				
+						return 0;
+				}
 				if (event_key) {
 					if (l->s.key == NULL)
 						return 0;
@@ -232,7 +232,7 @@ int match(llist *l)
 						if (!found)
 							return 0;
 					}
-				}				
+				}
 				if (event_vmname) {
 					if (l->s.vmname == NULL)
 						return 0;
@@ -258,23 +258,23 @@ int match(llist *l)
 
 /*
  * This function compares strings. It returns a 0 if no match and a 1 if
- * there is a match 
+ * there is a match
  */
 static int strmatch(const char *needle, const char *haystack)
 {
 	if (event_exact_match) {
 		if (strcmp(haystack, needle) != 0)
-			return 0; 
+			return 0;
 	} else {
 		if (strstr(haystack, needle) == NULL)
-			return 0; 
+			return 0;
 	}
 	return 1;
 }
 
 /*
  * This function compares user id's.
- * It returns a 0 if no match and a 1 if there is a match 
+ * It returns a 0 if no match and a 1 if there is a match
  */
 static int user_match(llist *l)
 {
@@ -335,7 +335,7 @@ static int user_match(llist *l)
 
 /*
  * This function compares group id's. It returns a 0 if no match and a 1 if
- * there is a match 
+ * there is a match
  */
 static int group_match(llist *l)
 {
@@ -358,7 +358,7 @@ static int group_match(llist *l)
 
 /*
  * This function compares contexts. It returns a 0 if no match and a 1 if
- * there is a match 
+ * there is a match
  */
 static int context_match(llist *l)
 {
@@ -366,21 +366,21 @@ static int context_match(llist *l)
 		if (event_subject) {
 			if (l->s.avc && alist_find_subj(l->s.avc)) {
 				do {
-					if (strmatch(event_subject, 
+					if (strmatch(event_subject,
 						l->s.avc->cur->scontext))
 						return 1;
 				} while(alist_next_subj(l->s.avc));
 			}
-		} 
+		}
 		if (event_object) {
 			if (l->s.avc) {
 				alist_first(l->s.avc);
 				if (alist_find_obj(l->s.avc)) {
 					do {
-						if (strmatch(event_object, 
+						if (strmatch(event_object,
 						    l->s.avc->cur->tcontext))
 						    return 1;
-	 				} while(alist_next_obj(l->s.avc));
+					} while(alist_next_obj(l->s.avc));
 				}
 			}
 		}
@@ -391,19 +391,19 @@ static int context_match(llist *l)
 				return 0;
 			if (alist_find_subj(l->s.avc)) {
 				do {
-					if (strmatch(event_subject, 
+					if (strmatch(event_subject,
 						l->s.avc->cur->scontext))
 						return 1;
 				} while(alist_next_subj(l->s.avc));
 			}
 			return 0;
-		} 
+		}
 		if (event_object) {
 			if (l->s.avc == NULL)
 				return 0;
 			if (alist_find_obj(l->s.avc)) {
 				do {
-					if (strmatch(event_object, 
+					if (strmatch(event_object,
 						l->s.avc->cur->tcontext))
 						return 1;
 				} while(alist_next_obj(l->s.avc));

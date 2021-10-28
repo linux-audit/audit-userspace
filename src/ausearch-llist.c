@@ -136,11 +136,11 @@ void list_append(llist *l, lnode *node)
 int list_find_item(llist *l, unsigned int i)
 {
         register lnode* node;
-                                                                                
+
 	if (l->cur && (l->cur->item <= i))
 		node = l->cur;	/* Try to use where we are */
 	else
-        	node = l->head;	/* Can't, start over */
+		node = l->head;	/* Can't, start over */
 
 	while (node) {
 		if (node->item == i) {
@@ -167,12 +167,12 @@ void list_clear(llist* l)
 	l->head = NULL;
 	l->cur = NULL;
 	l->cnt = 0;
-	l->e.milli = 0L;       
-	l->e.sec = 0L;         
-	l->e.serial = 0L;      
+	l->e.milli = 0L;
+	l->e.sec = 0L;
+	l->e.serial = 0L;
 	free((char *)l->e.node);
 	l->e.node = NULL;
-	l->e.type = 0;         
+	l->e.type = 0;
 	l->s.gid = -1;
 	l->s.egid = -1;
 	l->s.ppid = -1;
@@ -239,8 +239,8 @@ int list_get_event(llist* l, event *e)
 lnode *list_find_msg(llist *l, int i)
 {
         register lnode* node;
-                                                                                
-       	node = l->head;	/* start at the beginning */
+
+	node = l->head;	/* start at the beginning */
 	while (node) {
 		if (node->type == i) {
 			l->cur = node;
@@ -258,7 +258,7 @@ lnode *list_find_msg_range(llist *l, int low, int high)
 	if (high <= low)
 		return NULL;
 
-       	node = l->head;	/* Start at the beginning */
+	node = l->head;	/* Start at the beginning */
 	while (node) {
 		if (node->type >= low && node->type <= high) {
 			l->cur = node;

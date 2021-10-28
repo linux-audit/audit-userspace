@@ -50,7 +50,7 @@ void init_config_manager(void)
 int start_config_manager(struct auditd_event *e)
 {
 	int retval, rc = 0;
-	
+
 	retval = pthread_mutex_trylock(&config_lock);
 	if (retval == 0) {
 		pthread_attr_t detached;
@@ -60,19 +60,19 @@ int start_config_manager(struct auditd_event *e)
 			PTHREAD_CREATE_DETACHED);
 
 	        if (pthread_create(&config_thread, &detached,
-        	                config_thread_main, e) < 0) {
-                	audit_msg(LOG_ERR,
+		                config_thread_main, e) < 0) {
+			audit_msg(LOG_ERR,
 			"Couldn't create config thread, no config changes");
 			free(e);
 			pthread_mutex_unlock(&config_lock);
-        	        rc = 1;
+		        rc = 1;
 	        }
 		pthread_attr_destroy(&detached);
 	} else {
-               	audit_msg(LOG_ERR, 
+		audit_msg(LOG_ERR,
 			"Config thread already running, no config changes");
 		free(e);
-       	        rc = 1;
+		rc = 1;
 	}
 	return rc;
 }
@@ -104,10 +104,10 @@ static void *config_thread_main(void *arg)
 		new_config.sender_uid = e->reply.signal_info->uid;
 		new_config.sender_pid = e->reply.signal_info->pid;
 		if (e->reply.len > 24)
-			new_config.sender_ctx = 
+			new_config.sender_ctx =
 				strdup(e->reply.signal_info->ctx);
 		else
-			new_config.sender_ctx = strdup("?"); 
+			new_config.sender_ctx = strdup("?");
 		memcpy(e->reply.msg.data, &new_config, sizeof(new_config));
 		e->reply.conf = (struct daemon_conf *)e->reply.msg.data;
 		e->reply.type = AUDIT_DAEMON_RECONFIG;
@@ -125,6 +125,6 @@ static void *config_thread_main(void *arg)
 	}
 
 	pthread_mutex_unlock(&config_lock);
-	return NULL;		
+	return NULL;
 }
 

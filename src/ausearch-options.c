@@ -257,14 +257,14 @@ static int convert_str_to_msg(const char *optarg)
 		errno = 0;
 		tmp = strtoul(optarg, NULL, 10);
 		if (errno) {
-	       		fprintf(stderr, 
+			fprintf(stderr,
 			"Numeric message type conversion error (%s) for %s\n",
 				strerror(errno), optarg);
 			retval = -1;
 		}
 	} else {
 		tmp = audit_name_to_msg_type(optarg);
-		if (tmp < 0) 
+		if (tmp < 0)
 		        retval = -1;
 	}
 	if (retval == 0) {
@@ -329,7 +329,7 @@ int check_params(int count, char *vars[])
 		switch (audit_lookup_option(vars[c])) {
 		case S_EVENT:
 			if (!optarg) {
-				fprintf(stderr, 
+				fprintf(stderr,
 					"Argument is required for %s\n",
 					vars[c]);
 				retval = -1;
@@ -345,7 +345,7 @@ int check_params(int count, char *vars[])
 				}
 				c++;
 			} else {
-				fprintf(stderr, 
+				fprintf(stderr,
 			"Audit event id must be a numeric value, was %s\n",
 					optarg);
 				retval = -1;
@@ -374,56 +374,56 @@ int check_params(int count, char *vars[])
 		case S_EXTRA_KEYS:
 			extra_keys = 1;
 			if (optarg) {
-				fprintf(stderr, 
+				fprintf(stderr,
 					"Argument is NOT required for %s\n",
 					vars[c]);
-        	                retval = -1;
+		                retval = -1;
 			}
 			break;
 		case S_EXTRA_LABELS:
 			extra_labels = 1;
 			if (optarg) {
-				fprintf(stderr, 
+				fprintf(stderr,
 					"Argument is NOT required for %s\n",
 					vars[c]);
-        	                retval = -1;
+				retval = -1;
 			}
 			break;
 		case S_EXTRA_OBJ2:
 			extra_obj2 = 1;
 			if (optarg) {
-				fprintf(stderr, 
+				fprintf(stderr,
 					"Argument is NOT required for %s\n",
 					vars[c]);
-        	                retval = -1;
+				retval = -1;
 			}
 			break;
 		case S_EXTRA_TIME:
 			extra_time = 1;
 			if (optarg) {
-				fprintf(stderr, 
+				fprintf(stderr,
 					"Argument is NOT required for %s\n",
 					vars[c]);
-        	                retval = -1;
+				retval = -1;
 			}
 			break;
 		case S_COMM:
 			if (!optarg) {
-				fprintf(stderr, 
+				fprintf(stderr,
 					"Argument is required for %s\n",
 					vars[c]);
 				retval = -1;
 				break;
 			} else {
 				event_comm = strdup(optarg);
-        	                if (event_comm == NULL)
-                	                retval = -1;
+		                if (event_comm == NULL)
+					retval = -1;
 				c++;
 			}
 			break;
 		case S_FILENAME:
 			if (!optarg) {
-				fprintf(stderr, 
+				fprintf(stderr,
 					"Argument is required for %s\n",
 					vars[c]);
 				retval = -1;
@@ -437,120 +437,120 @@ int check_params(int count, char *vars[])
 					break;
 				}
 				event_filename = strdup(optarg);
-       		                if (event_filename == NULL)
-               		                retval = -1;
+				if (event_filename == NULL)
+					retval = -1;
 				c++;
 			}
 			break;
 		case S_KEY:
 			if (!optarg) {
-				fprintf(stderr, 
+				fprintf(stderr,
 					"Argument is required for %s\n",
 					vars[c]);
 				retval = -1;
 			} else {
 				event_key = strdup(optarg);
-        	                if (event_key == NULL)
-                	                retval = -1;
+				if (event_key == NULL)
+					retval = -1;
 				c++;
 			}
 			break;
 		case S_ALL_GID:
 			if (!optarg) {
-				fprintf(stderr, 
+				fprintf(stderr,
 					"Argument is required for %s\n",
 					vars[c]);
 				retval = -1;
 				break;
 			}
-                	if (isdigit(optarg[0])) {
+			if (isdigit(optarg[0])) {
 				errno = 0;
-                        	event_gid = strtoul(optarg,NULL,10);
+				event_gid = strtoul(optarg,NULL,10);
 				if (errno) {
-                        		fprintf(stderr, 
+					fprintf(stderr,
 			"Numeric group ID conversion error (%s) for %s\n",
 						strerror(errno), optarg);
-                                	retval = -1;
+					retval = -1;
 				}
-                	} else {
+			} else {
 				struct group *gr ;
 
 				gr = getgrnam(optarg) ;
 				if (gr == NULL) {
-                        		fprintf(stderr, 
+					fprintf(stderr,
 				"Group ID is non-numeric and unknown (%s)\n",
 						optarg);
 					retval = -1;
 					break;
 				}
 				event_gid = gr->gr_gid;
-                	}
+			}
 			event_egid = event_gid;
 			event_ga = 1;
 			c++;
 			break;
 		case S_EFF_GID:
 			if (!optarg) {
-				fprintf(stderr, 
+				fprintf(stderr,
 					"Argument is required for %s\n",
 					vars[c]);
 				retval = -1;
 				break;
 			}
-                	if (isdigit(optarg[0])) {
+			if (isdigit(optarg[0])) {
 				errno = 0;
-                        	event_egid = strtoul(optarg,NULL,10);
+				event_egid = strtoul(optarg,NULL,10);
 				if (errno) {
-                        		fprintf(stderr, 
+					fprintf(stderr,
 			"Numeric group ID conversion error (%s) for %s\n",
 						strerror(errno), optarg);
-                                	retval = -1;
+					retval = -1;
 				}
-                	} else {
+			} else {
 				struct group *gr ;
 
 				gr = getgrnam(optarg) ;
 				if (gr == NULL) {
-                        		fprintf(stderr, 
+					fprintf(stderr,
 			"Effective group ID is non-numeric and unknown (%s)\n",
 						optarg);
 					retval = -1;
 					break;
 				}
 				event_egid = gr->gr_gid;
-                	}
+			}
 			c++;
 			break;
 		case S_GID:
 			if (!optarg) {
-				fprintf(stderr, 
+				fprintf(stderr,
 					"Argument is required for %s\n",
 					vars[c]);
 				retval = -1;
 				break;
 			}
-                	if (isdigit(optarg[0])) {
+			if (isdigit(optarg[0])) {
 				errno = 0;
-                        	event_gid = strtoul(optarg,NULL,10);
+				event_gid = strtoul(optarg,NULL,10);
 				if (errno) {
-                        		fprintf(stderr, 
+					fprintf(stderr,
 			"Numeric group ID conversion error (%s) for %s\n",
 						strerror(errno), optarg);
-                                	retval = -1;
+					retval = -1;
 				}
-                	} else {
+			} else {
 				struct group *gr ;
 
 				gr = getgrnam(optarg) ;
 				if (gr == NULL) {
-                        		fprintf(stderr, 
+					fprintf(stderr,
 				"Group ID is non-numeric and unknown (%s)\n",
 						optarg);
 					retval = -1;
 					break;
 				}
 				event_gid = gr->gr_gid;
-                	}
+			}
 			c++;
 			break;
 		case S_HELP:
@@ -559,7 +559,7 @@ int check_params(int count, char *vars[])
 			break;
 		case S_HOSTNAME:
 			if (!optarg) {
-				fprintf(stderr, 
+				fprintf(stderr,
 					"Argument is required for %s\n",
 					vars[c]);
 				retval = -1;
@@ -574,16 +574,16 @@ int check_params(int count, char *vars[])
 			if (report_format == RPT_DEFAULT)
 				report_format = RPT_INTERP;
 			else {
-				fprintf(stderr, 
+				fprintf(stderr,
 					"Conflicting output format %s\n",
 					vars[c]);
-        	                retval = -1;
+				retval = -1;
 			}
 			if (optarg) {
-				fprintf(stderr, 
+				fprintf(stderr,
 					"Argument is NOT required for %s\n",
 					vars[c]);
-        	                retval = -1;
+				retval = -1;
 			}
 			break;
 		case S_INFILE:
@@ -611,7 +611,7 @@ int check_params(int count, char *vars[])
 				fprintf(stderr,
 					"Argument is required for %s\n",
 					vars[c]);
-        	                retval = -1;
+				retval = -1;
 	                } else {
 				if (strcasecmp(optarg, "ALL") != 0) {
 					retval = parse_msg(optarg);
@@ -620,7 +620,7 @@ int check_params(int count, char *vars[])
 			}
 			if (retval < 0) {
 				int i;
-                        	fprintf(stderr, 
+				fprintf(stderr,
 					"Valid message types are: ALL ");
 				for (i=AUDIT_USER;i<=AUDIT_LAST_VIRT_MSG;i++){
 					const char *name;
@@ -628,28 +628,28 @@ int check_params(int count, char *vars[])
 						i = AUDIT_FIRST_USER_MSG;
 					name = audit_msg_type_to_name(i);
 					if (name)
-		                        	fprintf(stderr, "%s ", name);
+						fprintf(stderr, "%s ", name);
 				}
-                        	fprintf(stderr, "\n");
+				fprintf(stderr, "\n");
 			}
 			break;
 		case S_OBJECT:
 			if (!optarg) {
-				fprintf(stderr, 
+				fprintf(stderr,
 					"Argument is required for %s\n",
 					vars[c]);
 				retval = -1;
 				break;
 			} else {
 				event_object = strdup(optarg);
-        	                if (event_object == NULL)
-                	                retval = -1;
+				if (event_object == NULL)
+					retval = -1;
 				c++;
 			}
 			break;
 		case S_PPID:
 			if (!optarg) {
-				fprintf(stderr, 
+				fprintf(stderr,
 					"Argument is required for %s\n",
 					vars[c]);
 				retval = -1;
@@ -662,7 +662,7 @@ int check_params(int count, char *vars[])
 					retval = -1;
 				c++;
 			} else {
-				fprintf(stderr, 
+				fprintf(stderr,
 			"Parent process id must be a numeric value, was %s\n",
 					optarg);
 				retval = -1;
@@ -670,7 +670,7 @@ int check_params(int count, char *vars[])
 			break;
 		case S_PID:
 			if (!optarg) {
-				fprintf(stderr, 
+				fprintf(stderr,
 					"Argument is required for %s\n",
 					vars[c]);
 				retval = -1;
@@ -683,7 +683,7 @@ int check_params(int count, char *vars[])
 					retval = -1;
 				c++;
 			} else {
-				fprintf(stderr, 
+				fprintf(stderr,
 				"Process id must be a numeric value, was %s\n",
 					optarg);
 				retval = -1;
@@ -693,19 +693,19 @@ int check_params(int count, char *vars[])
 			if (report_format == RPT_DEFAULT)
 				report_format = RPT_RAW;
 			else {
-				fprintf(stderr, 
+				fprintf(stderr,
 					"Conflicting output format --raw\n");
-        	                retval = -1;
+				retval = -1;
 			}
 			if (optarg) {
-				fprintf(stderr, 
+				fprintf(stderr,
 					"Argument is NOT required for --raw\n");
-        	                retval = -1;
+				retval = -1;
 			}
 			break;
 		case S_ESCAPE:
 			if (!optarg) {
-				fprintf(stderr, 
+				fprintf(stderr,
 					"Argument is required for %s\n",
 					vars[c]);
 				retval = -1;
@@ -719,7 +719,7 @@ int check_params(int count, char *vars[])
 				else if (strcmp(optarg, "shell_quote") == 0)
 					escape_mode = AUPARSE_ESC_SHELL_QUOTE;
 				else {
-					fprintf(stderr, 
+					fprintf(stderr,
 						"Unknown option (%s)\n",
 						optarg);
 					retval = -1;
@@ -730,13 +730,13 @@ int check_params(int count, char *vars[])
 			break;
 		case S_FORMAT:
 			if (report_format != RPT_DEFAULT) {
-				fprintf(stderr, 
+				fprintf(stderr,
 					"Multiple output formats, use only 1\n");
-        	                retval = -1;
+				retval = -1;
 				break;
 			}
 			if (!optarg) {
-				fprintf(stderr, 
+				fprintf(stderr,
 					"Argument is required for %s\n",
 					vars[c]);
 				retval = -1;
@@ -752,7 +752,7 @@ int check_params(int count, char *vars[])
 				else if (strcmp(optarg, "text") == 0)
 					report_format = RPT_TEXT;
 				else {
-					fprintf(stderr, 
+					fprintf(stderr,
 						"Unknown option (%s)\n",
 						optarg);
 					retval = -1;
@@ -763,7 +763,7 @@ int check_params(int count, char *vars[])
 			break;
 		case S_NODE:
 			if (!optarg) {
-				fprintf(stderr, 
+				fprintf(stderr,
 					"Argument is required for %s\n",
 					vars[c]);
 				retval = -1;
@@ -779,7 +779,7 @@ int check_params(int count, char *vars[])
 					}
 					slist_create(event_node_list);
 				}
-				
+
 				sn.str = strdup(optarg);
 				sn.key = NULL;
 				sn.hits=0;
@@ -788,7 +788,7 @@ int check_params(int count, char *vars[])
 			break;
 		case S_SYSCALL:
 			if (!optarg) {
-				fprintf(stderr, 
+				fprintf(stderr,
 					"Argument is required for %s\n",
 					vars[c]);
 				retval = -1;
@@ -798,27 +798,27 @@ int check_params(int count, char *vars[])
 				errno = 0;
 				event_syscall = (int)strtoul(optarg, NULL, 10);
 				if (errno) {
-                        		fprintf(stderr, 
+					fprintf(stderr,
 			"Syscall numeric conversion error (%s) for %s\n",
 						strerror(errno), optarg);
-                                	retval = -1;
+					retval = -1;
 				}
 			} else {
 				if (event_machine == -1) {
 	                                int machine;
-        	                        machine = audit_detect_machine();
-                	                if (machine < 0) {
-                        	                fprintf(stderr,
+					machine = audit_detect_machine();
+					if (machine < 0) {
+						fprintf(stderr,
                                             "Error detecting machine type");
-                                	        retval = -1;
+						retval = -1;
 						break;
 	                                }
 					event_machine = machine;
 				}
-				event_syscall = audit_name_to_syscall(optarg, 
+				event_syscall = audit_name_to_syscall(optarg,
 					event_machine);
 				if (event_syscall == -1) {
-					fprintf(stderr, 
+					fprintf(stderr,
 						"Syscall %s not found\n",
 						optarg);
                                         retval = -1;
@@ -828,55 +828,55 @@ int check_params(int count, char *vars[])
 			break;
 		case S_CONTEXT:
 			if (!optarg) {
-				fprintf(stderr, 
+				fprintf(stderr,
 					"Argument is required for %s\n",
 					vars[c]);
 				retval = -1;
 				break;
 			} else {
 				event_subject = strdup(optarg);
-        	                if (event_subject == NULL)
-                	                retval = -1;
+				if (event_subject == NULL)
+					retval = -1;
 				event_object = strdup(optarg);
-        	                if (event_object == NULL)
-                	                retval = -1;
+				if (event_object == NULL)
+					retval = -1;
 				event_se = 1;
 				c++;
 			}
 			break;
 		case S_SUBJECT:
 			if (!optarg) {
-				fprintf(stderr, 
+				fprintf(stderr,
 					"Argument is required for %s\n",
 					vars[c]);
 				retval = -1;
 				break;
 			} else {
 				event_subject = strdup(optarg);
-        	                if (event_subject == NULL)
-                	                retval = -1;
+				if (event_subject == NULL)
+					retval = -1;
 				c++;
 			}
 			break;
 		case S_OSUCCESS:
 			if (!optarg) {
-				fprintf(stderr, 
+				fprintf(stderr,
 					"Argument is required for %s\n",
 					vars[c]);
 				retval = -1;
 				break;
 			}
-                	if ( (strstr(optarg, "yes")!=NULL) || 
+			if ( (strstr(optarg, "yes")!=NULL) ||
 					(strstr(optarg, "no")!=NULL) ) {
-                        	if (strcmp(optarg, "yes") == 0)
+				if (strcmp(optarg, "yes") == 0)
 					event_success = S_SUCCESS;
 				else
 					event_success = S_FAILED;
-                	} else {
-                        	fprintf(stderr, 
+			} else {
+				fprintf(stderr,
 					"Success must be 'yes' or 'no'.\n");
-                        	retval = -1;
-                	}
+				retval = -1;
+			}
 			c++;
 			break;
 		case S_SESSION:
@@ -891,7 +891,7 @@ int check_params(int count, char *vars[])
 					break;
 				}
 			}
-			{ 
+			{
 			size_t len = strlen(optarg);
 			if (isdigit(optarg[0])) {
 				errno = 0;
@@ -910,7 +910,7 @@ int check_params(int count, char *vars[])
 				}
 				c++;
 			} else {
-				fprintf(stderr, 
+				fprintf(stderr,
 				"Session id must be a numeric value, was %s\n",
 					optarg);
 				retval = -1;
@@ -928,7 +928,7 @@ int check_params(int count, char *vars[])
 					retval = -1;
 					break;
 				}
-			} 
+			}
 			{
 			size_t len = strlen(optarg);
                         if (isdigit(optarg[0])) {
@@ -952,7 +952,7 @@ int check_params(int count, char *vars[])
                                 event_exit = audit_name_to_errno(optarg);
                                 if (event_exit == 0) {
 					retval = -1;
-					fprintf(stderr, 
+					fprintf(stderr,
 						"Unknown errno, was %s\n",
 						optarg);
 				}
@@ -964,19 +964,19 @@ int check_params(int count, char *vars[])
 			break;
 		case S_TIME_END:
 			if (optarg) {
-				if ( (c+2 < count) && vars[c+2] && 
+				if ( (c+2 < count) && vars[c+2] &&
 					(vars[c+2][0] != '-') ) {
 				/* Have both date and time - check order*/
 					if (strchr(optarg, ':')) {
 						if (ausearch_time_end(vars[c+2],
-								 optarg) != 0) 
+								 optarg) != 0)
 							retval = -1;
 					} else {
-						if (ausearch_time_end(optarg, 
+						if (ausearch_time_end(optarg,
 								vars[c+2]) != 0)
 							retval = -1;
 					}
-					c++;			
+					c++;
 				} else {
 					// Check against recognized words
 					int t = lookup_time(optarg);
@@ -996,17 +996,17 @@ int check_params(int count, char *vars[])
 							retval = -1;
 					}
 				}
-				c++;			
+				c++;
 				break;
-			} 
-			fprintf(stderr, 
+			}
+			fprintf(stderr,
 				"%s requires either date and/or time\n",
 				vars[c]);
 			retval = -1;
 			break;
 		case S_TIME_START:
 			if (optarg) {
-				if ( (c+2 < count) && vars[c+2] && 
+				if ( (c+2 < count) && vars[c+2] &&
 					(vars[c+2][0] != '-') ) {
 				/* Have both date and time - check order */
 					if (strchr(optarg, ':')) {
@@ -1014,7 +1014,7 @@ int check_params(int count, char *vars[])
 							vars[c+2], optarg) != 0)
 							retval = -1;
 					} else {
-						if (ausearch_time_start(optarg, 
+						if (ausearch_time_start(optarg,
 								vars[c+2]) != 0)
 							retval = -1;
 					}
@@ -1046,47 +1046,47 @@ int check_params(int count, char *vars[])
 				c++;
 				break;
 			}
-			fprintf(stderr, 
+			fprintf(stderr,
 				"%s requires either date and/or time\n",
 				vars[c]);
 			retval = -1;
 			break;
 		case S_TERMINAL:
 			if (!optarg) {
-				fprintf(stderr, 
+				fprintf(stderr,
 					"Argument is required for %s\n",
 					vars[c]);
 				retval = -1;
-                	} else { 
+			} else {
 				event_terminal = strdup(optarg);
 				if (event_terminal == NULL)
-        	                        retval = -1;
+					retval = -1;
 				c++;
 			}
 			break;
 		case S_UID:
 			if (!optarg) {
-				fprintf(stderr, 
+				fprintf(stderr,
 					"Argument is required for %s\n",
 					vars[c]);
 				retval = -1;
 				break;
 			}
-                	if (isdigit(optarg[0])) {
+			if (isdigit(optarg[0])) {
 				errno = 0;
-                        	event_uid = strtoul(optarg,NULL,10);
+				event_uid = strtoul(optarg,NULL,10);
 				if (errno) {
-                        		fprintf(stderr, 
+					fprintf(stderr,
 			"Numeric user ID conversion error (%s) for %s\n",
 						strerror(errno), optarg);
-                                	retval = -1;
+					retval = -1;
 				}
-                	} else {
+			} else {
 				struct passwd *pw;
 
 				pw = getpwnam(optarg);
 				if (pw == NULL) {
-                        		fprintf(stderr, 
+					fprintf(stderr,
 			"Effective user ID is non-numeric and unknown (%s)\n",
 						optarg);
 					retval = -1;
@@ -1094,32 +1094,32 @@ int check_params(int count, char *vars[])
 				}
 				event_uid = pw->pw_uid;
 				event_tuid = strdup(optarg);
-                	}
+			}
 			c++;
 			break;
 		case S_EFF_UID:
 			if (!optarg) {
-				fprintf(stderr, 
+				fprintf(stderr,
 					"Argument is required for %s\n",
 					vars[c]);
 				retval = -1;
 				break;
 			}
-                	if (isdigit(optarg[0])) {
+			if (isdigit(optarg[0])) {
 				errno = 0;
-                        	event_euid = strtoul(optarg,NULL,10);
+				event_euid = strtoul(optarg,NULL,10);
 				if (errno) {
-                        		fprintf(stderr, 
+					fprintf(stderr,
 			"Numeric user ID conversion error (%s) for %s\n",
 						strerror(errno), optarg);
-                                	retval = -1;
+					retval = -1;
 				}
-                	} else {
+			} else {
 				struct passwd *pw ;
 
 				pw = getpwnam(optarg) ;
 				if (pw == NULL) {
-                        		fprintf(stderr, 
+					fprintf(stderr,
 				"User ID is non-numeric and unknown (%s)\n",
 						optarg);
 					retval = -1;
@@ -1127,32 +1127,32 @@ int check_params(int count, char *vars[])
 				}
 				event_euid = pw->pw_uid;
 				event_teuid = strdup(optarg);
-                	}
+			}
 			c++;
 			break;
 		case S_ALL_UID:
 			if (!optarg) {
-				fprintf(stderr, 
+				fprintf(stderr,
 					"Argument is required for %s\n",
 					vars[c]);
 				retval = -1;
 				break;
 			}
-                	if (isdigit(optarg[0])) {
+			if (isdigit(optarg[0])) {
 				errno = 0;
-                        	event_uid = strtoul(optarg,NULL,10);
+				event_uid = strtoul(optarg,NULL,10);
 				if (errno) {
-                        		fprintf(stderr, 
+					fprintf(stderr,
 			"Numeric user ID conversion error (%s) for %s\n",
 						strerror(errno), optarg);
-                                	retval = -1;
+					retval = -1;
 				}
-                	} else {
+			} else {
 				struct passwd *pw ;
 
 				pw = getpwnam(optarg) ;
 				if (pw == NULL) {
-                        		fprintf(stderr, 
+					fprintf(stderr,
 				"User ID is non-numeric and unknown (%s)\n",
 						optarg);
 					retval = -1;
@@ -1162,7 +1162,7 @@ int check_params(int count, char *vars[])
 				event_tuid = strdup(optarg);
 				event_teuid = strdup(optarg);
 				event_tauid = strdup(optarg);
-                	}
+			}
 			event_ua = 1;
 			event_euid = event_uid;
 			event_loginuid = event_uid;
@@ -1184,9 +1184,9 @@ int check_params(int count, char *vars[])
 			size_t len = strlen(optarg);
                         if (isdigit(optarg[0])) {
 				errno = 0;
-                        	event_loginuid = strtoul(optarg,NULL,10);
+				event_loginuid = strtoul(optarg,NULL,10);
 				if (errno) {
-                        		fprintf(stderr, 
+					fprintf(stderr,
 			"Numeric user ID conversion error (%s) for %s\n",
 						strerror(errno), optarg);
                                         retval = -1;
@@ -1205,7 +1205,7 @@ int check_params(int count, char *vars[])
 
 				pw = getpwnam(optarg) ;
 				if (pw == NULL) {
-                        		fprintf(stderr, 
+					fprintf(stderr,
 			"Login user ID is non-numeric and unknown (%s)\n",
 						optarg);
 					retval = -1;
@@ -1260,14 +1260,14 @@ int check_params(int count, char *vars[])
 			break;
 		case S_EXECUTABLE:
 			if (!optarg) {
-				fprintf(stderr, 
+				fprintf(stderr,
 					"Argument is required for %s\n",
 					vars[c]);
 				retval = -1;
-	               	} else { 
+			} else {
 				event_exe = strdup(optarg);
 				if (event_exe == NULL)
-       	                	        retval = -1;
+				        retval = -1;
 				c++;
 			}
 			break;
@@ -1279,20 +1279,20 @@ int check_params(int count, char *vars[])
 			break;
 		case S_CHECKPOINT:
 			if (!optarg) {
-				fprintf(stderr, 
+				fprintf(stderr,
 					"Argument is required for %s\n",
 					vars[c]);
 				retval = -1;
 			} else {
 				checkpt_filename = strdup(optarg);
-        	                if (checkpt_filename == NULL)
-                	                retval = -1;
+				if (checkpt_filename == NULL)
+					retval = -1;
 				c++;
 			}
 			break;
 		case S_ARCH:
 			if (!optarg) {
-				fprintf(stderr, 
+				fprintf(stderr,
 					"Argument is required for %s\n",
 					vars[c]);
 				retval = -1;
@@ -1300,10 +1300,10 @@ int check_params(int count, char *vars[])
 			}
 			if (event_machine != -1) {
 				if (event_syscall != -1)
-					fprintf(stderr, 
+					fprintf(stderr,
 			"Arch needs to be defined before the syscall\n");
 				else
-					fprintf(stderr, 
+					fprintf(stderr,
 						"Arch is already defined\n");
 				retval = -1;
 				break;
@@ -1319,7 +1319,7 @@ int check_params(int count, char *vars[])
 			c++;
 			break;
 		default:
-			fprintf(stderr, "%s is an unsupported option\n", 
+			fprintf(stderr, "%s is an unsupported option\n",
 				vars[c]);
 			retval = -1;
 			break;

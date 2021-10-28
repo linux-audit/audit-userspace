@@ -875,7 +875,7 @@ static void auditd_tcp_listen_handler( struct ev_loop *loop,
 	/* Make the client data structure */
 	client = (struct ev_tcp *)malloc (sizeof (struct ev_tcp));
 	if (client == NULL) {
-        	audit_msg(LOG_CRIT, "Unable to allocate TCP client data");
+		audit_msg(LOG_CRIT, "Unable to allocate TCP client data");
 		snprintf(emsg, sizeof(emsg),
 			"op=alloc addr=%s port=%u res=no",
 			sockaddr_to_string(&aaddr),
@@ -1003,11 +1003,11 @@ int auditd_tcp_listen_init(struct ev_loop *loop, struct daemon_conf *config)
 		// we only need one.
 		if (runp->ai_family == AF_INET && prefer_ipv6)
 			goto next_try;
-			
+
 		listen_socket[nlsocks] = socket(runp->ai_family,
 				 runp->ai_socktype, runp->ai_protocol);
 		if (listen_socket[nlsocks] < 0) {
-        		audit_msg(LOG_ERR, "Cannot create %s listener socket",
+			audit_msg(LOG_ERR, "Cannot create %s listener socket",
 				runp->ai_family == AF_INET ? "IPv4" : "IPv6");
 			goto next_try;
 		}
@@ -1027,7 +1027,7 @@ int auditd_tcp_listen_init(struct ev_loop *loop, struct daemon_conf *config)
 		if (bind(listen_socket[nlsocks], runp->ai_addr,
 						runp->ai_addrlen)) {
 			if (errno != EADDRINUSE)
-		        	audit_msg(LOG_ERR,
+				audit_msg(LOG_ERR,
 				"Cannot bind listener socket to port %ld (%s)",
 				config->tcp_listen_port, strerror(errno));
 			close(listen_socket[nlsocks]);
@@ -1036,7 +1036,7 @@ int auditd_tcp_listen_init(struct ev_loop *loop, struct daemon_conf *config)
 		}
 
 		if (listen(listen_socket[nlsocks], config->tcp_listen_queue)) {
-        		audit_msg(LOG_ERR, "Unable to listen on %ld (%s)",
+			audit_msg(LOG_ERR, "Unable to listen on %ld (%s)",
 				config->tcp_listen_port,
 				strerror(errno));
 			close(listen_socket[nlsocks]);
