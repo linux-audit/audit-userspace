@@ -1020,7 +1020,7 @@ process_keys:
 		}
 		break;
 	case 'p':
-		if (!add && !del) {
+		if (add == AUDIT_FILTER_UNSET && del == AUDIT_FILTER_UNSET) {
 			audit_msg(LOG_ERR,
 			"permission option needs a watch given prior to it");
 			retval = -1;
