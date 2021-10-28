@@ -307,6 +307,10 @@ extern "C" {
 #define AUDIT_EVENT_LISTENER	1335 /* audit mcast sock join/part */
 #endif
 
+#ifndef AUDIT_URINGOP
+#define AUDIT_URINGOP		1336 /* io_uring operations */
+#endif
+
 #ifndef AUDIT_OPENAT2
 #define AUDIT_OPENAT2		1337 /* openat2 open_how flags */
 #endif
