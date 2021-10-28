@@ -723,6 +723,14 @@ static void check_log_file_size(void)
 			case SZ_SUSPEND:
 				audit_msg(LOG_ERR,
 		    "Audit daemon is suspending logging due to logfile size.");
+				// We need to close the file so that manual
+				// intervention can move or delete the file.
+				// We don't want to keep logging to a deleted
+				// file.
+				if (log_file)
+					fclose(log_file);
+				log_file = NULL;
+				log_fd = -1;
 				logging_suspended = 1;
 				break;
 			case SZ_ROTATE:
