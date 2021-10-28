@@ -656,7 +656,6 @@ extern int audit_request_signal_info(int fd);
 /* AUDIT_WATCH */
 extern int audit_update_watch_perms(struct audit_rule_data *rule, int perms);
 extern int audit_add_watch(struct audit_rule_data **rulep, const char *path);
-extern int audit_add_dir(struct audit_rule_data **rulep, const char *path);
 extern int audit_add_watch_dir(int type, struct audit_rule_data **rulep,
 				const char *path);
 extern int audit_trim_subtrees(int fd);
@@ -701,7 +700,6 @@ extern int audit_log_user_command(int audit_fd, int type, const char *command,
 extern struct audit_rule_data *audit_rule_create_data(void);
 /* Initializes an existing audit_rule_data struct */
 extern void audit_rule_init_data(struct audit_rule_data *rule);
-extern int audit_rule_syscall_data(struct audit_rule_data *rule, int scall);
 extern int audit_rule_syscallbyname_data(struct audit_rule_data *rule,
                                           const char *scall);
 /* Note that the following function takes a **, where audit_rule_fieldpair()

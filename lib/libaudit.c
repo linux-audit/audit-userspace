@@ -742,11 +742,6 @@ int audit_add_watch(struct audit_rule_data **rulep, const char *path)
 	return audit_add_watch_dir(AUDIT_WATCH, rulep, path);
 }
 
-int audit_add_dir(struct audit_rule_data **rulep, const char *path)
-{
-	return audit_add_watch_dir(AUDIT_DIR, rulep, path);
-}
-
 int audit_add_watch_dir(int type, struct audit_rule_data **rulep,
 			const char *path)
 {
