@@ -1224,7 +1224,7 @@ static int open_audit_log(void)
 	if (config->write_logs == 0)
 		return 0;
 
-	flags = O_WRONLY|O_APPEND|O_NOFOLLOW;
+	flags = O_WRONLY|O_APPEND|O_NOFOLLOW|O_CLOEXEC;
 	if (config->flush == FT_DATA)
 		flags |= O_DSYNC;
 	else if (config->flush == FT_SYNC)
@@ -1269,12 +1269,6 @@ retry:
 		}
 	}
 
-	if (fcntl(lfd, F_SETFD, FD_CLOEXEC) == -1) {
-		audit_msg(LOG_ERR, "Error setting log file CLOEXEC flag (%s)",
-			strerror(errno));
-		close(lfd);
-		return 1;
-	}
 	if (fchmod(lfd, config->log_group ? S_IRUSR|S_IWUSR|S_IRGRP :
 							S_IRUSR|S_IWUSR) < 0) {
 		audit_msg(LOG_ERR,
