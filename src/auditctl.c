@@ -110,7 +110,7 @@ static void usage(void)
      "    -C f=f                            Compare collected fields if available:\n"
      "                                      Field name, operator(=,!=), field name\n"
      "    -d <l,a>                          Delete rule from <l>ist with <a>ction\n"
-     "                                      l=task,exit,user,exclude\n"
+     "                                      l=task,exit,user,exclude,filesystem\n"
      "                                      a=never,always\n"
      "    -D                                Delete all rules and watches\n"
      "    -e [0..2]                         Set enabled flag\n"

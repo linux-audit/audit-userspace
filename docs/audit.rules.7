@@ -43,7 +43,7 @@ rule.
 .SS System Call
 The system call rules are loaded into a matching engine that intercepts each syscall that all programs on the system makes. Therefore it is very important to only use syscall rules when you have to since these affect performance. The more rules, the bigger the performance hit. You can help the performance, though, by combining syscalls into one rule whenever possible.
 
-The Linux kernel has 4 rule matching lists or filters as they are sometimes called. They are: task, exit, user, and exclude. The task list is checked only during the fork or clone syscalls. It is rarely used in practice.
+The Linux kernel has 5 rule matching lists or filters as they are sometimes called. They are: task, exit, user, exclude and filesystem. The task list is checked only during the fork or clone syscalls. It is rarely used in practice.
 
 The exit filter is the place where all syscall and file system audit requests are evaluated.
 
@@ -71,7 +71,7 @@ option tells the kernel's rule matching engine that we want to append a rule at 
 .RE
 
 The action and list are separated by a comma but no space in between. Valid lists are:
-.IR task ", " exit ", " user ", and " exclude ". Their meaning was explained earlier.
+.IR task ", " exit ", " user ", " exclude ", and " filesystem ". Their meaning was explained earlier.
 
 Next in the rule would normally be the
 .B \-S
