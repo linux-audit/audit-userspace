@@ -861,6 +861,13 @@ static void do_space_left_action(int admin)
 		case FA_SUSPEND:
 			audit_msg(LOG_ALERT,
 			    "Audit daemon is suspending logging due to low disk space.");
+			// We need to close the file so that manual
+			// intervention can move or delete the file. We
+			// don't want to keep logging to a deleted file.
+			if (log_file)
+				fclose(log_file);
+			log_file = NULL;
+			log_fd = -1;
 			logging_suspended = 1;
 			break;
 		case FA_SINGLE:
@@ -909,6 +916,13 @@ static void do_disk_full_action(void)
 		case FA_SUSPEND:
 			audit_msg(LOG_ALERT,
 			    "Audit daemon is suspending logging due to no space left on logging partition.");
+			// We need to close the file so that manual
+			// intervention can move or delete the file. We
+			// don't want to keep logging to a deleted file.
+			if (log_file)
+				fclose(log_file);
+			log_file = NULL;
+			log_fd = -1;
 			logging_suspended = 1;
 			break;
 		case FA_SINGLE:
@@ -957,6 +971,13 @@ static void do_disk_error_action(const char *func, int err)
 		case FA_SUSPEND:
 			audit_msg(LOG_ALERT,
 			    "Audit daemon is suspending logging due to previously mentioned write error");
+			// We need to close the file so that manual
+			// intervention can move or delete the file. We
+			// don't want to keep logging to a deleted file.
+			if (log_file)
+				fclose(log_file);
+			log_file = NULL;
+			log_fd = -1;
 			logging_suspended = 1;
 			break;
 		case FA_SINGLE:
