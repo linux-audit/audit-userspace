@@ -39,7 +39,7 @@ audit_request_signal_info.3 audit_request_status.3 audit.rules.7 \
 audit_set_backlog_limit.3 audit_set_enabled.3 audit_set_failure.3 \
 audit_setloginuid.3 audit_set_pid.3 audit_set_rate_limit.3 \
 audit_update_watch_perms.3 audit_value_needs_encoding.3 \
-audit_encode_value.3 auparse_add_callback.3 \
+audit_encode_value.3 auparse_add_callback.3 audit_name_to_syscall.3 \
 auparse_destroy.3 auparse_feed.3 auparse_feed_age_events.3 \
 auparse_feed_has_data.3 auparse_find_field.3 \
 auparse_find_field_next.3 auparse_first_field.3 auparse_first_record.3 \

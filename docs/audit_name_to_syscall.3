@@ -1,0 +1,31 @@
+.TH "AUDIT_NAME_TO_SYSCALL" "3" "Nov 2021" "Red Hat" "Linux Audit API"
+.SH NAME
+audit_name_to_syscall \- Convert the syscall name to the numeric syscall value
+.SH "SYNOPSIS"
+.nf
+.B #include <libaudit.h>
+.PP
+.BI "int audit_name_to_syscall(const char " *sc ", int " machine );
+.fi
+.SH "DESCRIPTION"
+.BR audit_name_to_syscall ()
+converts the syscall name to the numeric syscall value.
+.I sc
+is the syscall name.
+.I machine
+is the enum value of the machine type defined in machine_t.
+.I machine
+can be obtained by calling
+.BR audit_detect_machine (3).
+
+.SH "RETURN VALUE"
+
+Returns -1 if an error occurs; otherwise, the return value is the numeric syscall value.
+
+.SH "SEE ALSO"
+
+.BR audit_syscall_to_name (3),
+.BR audit_detect_machine (3).
+
+.SH AUTHOR
+Steve Grubb
