@@ -38,6 +38,13 @@ ProtectControlGroups=true
 ProtectKernelModules=true
 ProtectHome=true
 RestrictRealtime=true
+ProtectSystem=full
+ProtectHostname=true
+ProtectClock=true
+ProtectKernelTunables=true
+ProtectKernelLogs=true
+# end of automatic additions 
+ReadWritePaths=/etc/audit
 
 [Install]
 WantedBy=multi-user.target
