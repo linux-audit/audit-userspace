@@ -26,7 +26,7 @@ EXTRA_DIST = auditd.init auditd.service auditd.sysconfig auditd.conf \
 	auditd.cron libaudit.conf auditd.condrestart \
 	auditd.reload auditd.restart auditd.resume \
 	auditd.rotate auditd.state auditd.stop \
-	audit-stop.rules augenrules
+	audit-stop.rules augenrules augenrules.service
 libconfig = libaudit.conf
 if ENABLE_SYSTEMD
 initdir = /usr/lib/systemd/system
@@ -53,6 +53,7 @@ if ENABLE_SYSTEMD
 	mkdir -p ${DESTDIR}${initdir}
 	mkdir -p ${DESTDIR}${legacydir}
 	$(INSTALL_SCRIPT) -D -m 644 ${srcdir}/auditd.service ${DESTDIR}${initdir}
+	$(INSTALL_SCRIPT) -D -m 644 ${srcdir}/augenrules.service ${DESTDIR}${initdir}
 	$(INSTALL_SCRIPT) -D -m 750 ${srcdir}/auditd.rotate ${DESTDIR}${legacydir}/rotate
 	$(INSTALL_SCRIPT) -D -m 750 ${srcdir}/auditd.resume ${DESTDIR}${legacydir}/resume
 	$(INSTALL_SCRIPT) -D -m 750 ${srcdir}/auditd.reload ${DESTDIR}${legacydir}/reload
@@ -70,6 +71,7 @@ uninstall-hook:
 	rm ${DESTDIR}${sysconfdir}/${libconfig}
 if ENABLE_SYSTEMD
 	rm ${DESTDIR}${initdir}/auditd.service
+	rm ${DESTDIR}${initdir}/augenrules.service
 	rm ${DESTDIR}${legacydir}/rotate
 	rm ${DESTDIR}${legacydir}/resume
 	rm ${DESTDIR}${legacydir}/reload

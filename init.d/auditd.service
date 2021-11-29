@@ -11,22 +11,22 @@ After=local-fs.target systemd-tmpfiles-setup.service
 Before=sysinit.target shutdown.target
 ##Before=shutdown.target
 Conflicts=shutdown.target
-RefuseManualStop=yes
 ConditionKernelCommandLine=!audit=0
 Documentation=man:auditd(8) https://github.com/linux-audit/audit-documentation
+Requires=augenrules.service
+# This unit clears rules on stop, so make sure that augenrules runs again
+PropagatesStopTo=augenrules.service
 
 [Service]
 Type=forking
 PIDFile=/run/auditd.pid
 ExecStart=/sbin/auditd
-## To not use augenrules, copy this file to /etc/systemd/system/auditd.service
-## and comment/delete the next line and uncomment the auditctl line.
-## NOTE: augenrules expect any rules to be added to /etc/audit/rules.d/
-ExecStartPost=-/sbin/augenrules --load
+## To not use augenrules: copy this file to /etc/systemd/system/auditd.service,
+## uncomment the next line, and comment the Requires=augenrules.service above.
 #ExecStartPost=-/sbin/auditctl -R /etc/audit/audit.rules
-# By default we don't clear the rules on exit. To enable this, uncomment
+# By default we clear the rules on exit. To disable this, comment
 # the next line after copying the file to /etc/systemd/system/auditd.service
-#ExecStopPost=/sbin/auditctl -R /etc/audit/audit-stop.rules
+ExecStopPost=/sbin/auditctl -R /etc/audit/audit-stop.rules
 Restart=on-failure
 # Do not restart for intentional exits. See EXIT CODES section in auditd(8).
 RestartPreventExitStatus=2 4 6
@@ -43,8 +43,6 @@ ProtectHostname=true
 ProtectClock=true
 ProtectKernelTunables=true
 ProtectKernelLogs=true
-# end of automatic additions 
-ReadWritePaths=/etc/audit
 
 [Install]
 WantedBy=multi-user.target

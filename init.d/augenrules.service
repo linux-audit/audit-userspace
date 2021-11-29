@@ -1,0 +1,27 @@
+[Unit]
+Description=auditd rules generation
+After=auditd.service
+Documentation=man:augenrules(8)
+
+[Service]
+Type=oneshot
+## NOTE: augenrules expect any rules to be added to /etc/audit/rules.d/
+ExecStart=/sbin/augenrules --load
+# We need RemainAfterExit=true so augenrules is called again
+# in case auditd.service is restarted.
+RemainAfterExit=true
+
+### Security Settings ###
+MemoryDenyWriteExecute=true
+LockPersonality=true
+ProtectControlGroups=true
+ProtectKernelModules=true
+ProtectHome=true
+RestrictRealtime=true
+ProtectSystem=full
+PrivateDevices=true
+ProtectHostname=true
+ProtectClock=true
+ProtectKernelTunables=true
+ProtectKernelLogs=true
+ReadWritePaths=/etc/audit
