@@ -46,6 +46,7 @@
 #include "s390_tables.h"
 #include "s390x_tables.h"
 #include "x86_64_tables.h"
+#include "loongarch64_tables.h"
 #include "errtabs.h"
 #include "fstypetabs.h"
 #include "ftypetabs.h"
@@ -70,6 +71,7 @@ static const struct int_transtab elftab[] = {
     { MACH_PPC,     AUDIT_ARCH_PPC    },
     { MACH_S390X,   AUDIT_ARCH_S390X  },
     { MACH_S390,    AUDIT_ARCH_S390   },
+    { MACH_LOONGARCH64,    AUDIT_ARCH_LOONGARCH64   },
 #ifdef WITH_ARM
     { MACH_ARM,   AUDIT_ARCH_ARM  },
 #endif
@@ -123,6 +125,9 @@ int audit_name_to_syscall(const char *sc, int machine)
 		case MACH_S390:
 			found = s390_syscall_s2i(sc, &res);
 			break;
+		case MACH_LOONGARCH64:
+			found = loongarch64_syscall_s2i(sc, &res);
+			break;
 #ifdef WITH_ARM
 	        case MACH_ARM:
 			found = arm_syscall_s2i(sc, &res);
@@ -159,6 +164,8 @@ const char *audit_syscall_to_name(int sc, int machine)
 			return s390x_syscall_i2s(sc);
 		case MACH_S390:
 			return s390_syscall_i2s(sc);
+		case MACH_LOONGARCH64:
+			return loongarch64_syscall_i2s(sc);
 #ifdef WITH_ARM
 	        case MACH_ARM:
 			return arm_syscall_i2s(sc);

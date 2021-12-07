@@ -826,6 +826,8 @@ struct signalfd_siginfo
       /* GNU/Linux emulates sync on mips1 architectures, so we force its use */
       /* anybody else who still uses mips1 is supposed to send in their version, with detection code. */
       #define ECB_MEMORY_FENCE         __asm__ __volatile__ (".set mips2; sync; .set mips0" : : : "memory")
+    #elif defined __loongarch__
+      #define ECB_MEMORY_FENCE         __asm__ __volatile__ ("dbar 0" : : : "memory")
     #elif defined __alpha__
       #define ECB_MEMORY_FENCE         __asm__ __volatile__ ("mb"       : : : "memory")
     #elif defined __hppa__
@@ -1552,6 +1554,7 @@ ecb_binary32_to_binary16 (uint32_t x)
     || defined __alpha__ \
     || defined __hppa__ \
     || defined __ia64__ \
+    || defined __loongarch__ \
     || defined __m68k__ \
     || defined __m88k__ \
     || defined __sh__ \
