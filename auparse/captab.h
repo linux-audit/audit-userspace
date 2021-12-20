@@ -1,5 +1,5 @@
 /* captab.h --
- * Copyright 2007,2008,2012-14 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2007,2008,2012-14,2021 Red Hat Inc.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -60,3 +60,7 @@ _S(34,	"syslog"		)
 _S(35,	"wake_alarm"		)
 _S(36,	"block_suspend"		)
 _S(37,	"audit_read"		)
+_S(38,  "perfmon"               )
+_S(39,  "bpf"                   )
+_S(40,  "checkpoint_restore"    )
+
