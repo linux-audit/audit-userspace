@@ -2409,7 +2409,7 @@ static const char *print_a0(const char *val, const idata *id)
 				return print_dirfd(val);
 			else if (strcmp(sys, "fchmodat") == 0)
 				return print_dirfd(val);
-			else if (strcmp(sys, "faccessat") == 0)
+			else if (strncmp(sys, "faccessat", 9) == 0)
 				return print_dirfd(val);
 			else if (strcmp(sys, "futimensat") == 0)
 				return print_dirfd(val);
@@ -2593,7 +2593,7 @@ static const char *print_a2(const char *val, const idata *id)
 		} else if (*sys == 'f') {
 			if (strcmp(sys, "fchmodat") == 0)
 				return print_mode_short(val, 16);
-			else if (strcmp(sys, "faccessat") == 0)
+			else if (strncmp(sys, "faccessat", 9) == 0)
 				return print_access(val);
 		} else if (*sys == 's') {
 			if (strcmp(sys, "setresuid") == 0)
