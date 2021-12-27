@@ -1919,7 +1919,16 @@ static char *print_dirfd(const char *val)
 {
 	char *out;
 
-	if (strcmp(val, "-100") == 0) {
+	errno = 0;
+	uint32_t i = strtoul(val, NULL, 16);
+	if (errno) {
+		char *out;
+		if (asprintf(&out, "conversion error(%s)", val) < 0)
+			out = NULL;
+		return out;
+	}
+
+	if (i == 0xffffff9c) {
 		if (asprintf(&out, "AT_FDCWD") < 0)
 			out = NULL;
 	} else {
@@ -2372,7 +2381,7 @@ static const char *print_a0(const char *val, const idata *id)
 		if (*sys == 'r') {
 			if (strcmp(sys, "rt_sigaction") == 0)
 		                return print_signals(val, 16);
-			else if (strcmp(sys, "renameat") == 0)
+			else if (strncmp(sys, "renameat", 8) == 0)
 				return print_dirfd(val);
 			else if (strcmp(sys, "readlinkat") == 0)
 				return print_dirfd(val);
@@ -2613,6 +2622,8 @@ static const char *print_a2(const char *val, const idata *id)
 			if (strcmp(sys, "recvmsg") == 0)
 				return print_recv(val);
 			else if (strcmp(sys, "readlinkat") == 0)
+				return print_dirfd(val);
+			else if (strncmp(sys, "renameat", 8) == 0)
 				return print_dirfd(val);
 		} else if (*sys == 'l') {
 			if (strcmp(sys, "linkat") == 0)
