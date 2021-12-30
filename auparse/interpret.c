@@ -2386,9 +2386,7 @@ static const char *print_a0(const char *val, const idata *id)
 			else if (strcmp(sys, "readlinkat") == 0)
 				return print_dirfd(val);
 		} else if (*sys == 'c') {
-			if (strcmp(sys, "clone") == 0)
-				return print_clone_flags(val);
-	                else if (strcmp(sys, "clock_settime") == 0)
+	                if (strcmp(sys, "clock_settime") == 0)
 				return print_clock_id(val);
 		} else if (*sys == 'p') {
 	                if (strcmp(sys, "personality") == 0)
@@ -2448,9 +2446,7 @@ static const char *print_a0(const char *val, const idata *id)
 			return print_dirfd(val);
 		else if (strcmp(sys, "newfstatat") == 0)
 			return print_dirfd(val);
-		else if (strcmp(sys, "openat") == 0)
-			return print_dirfd(val);
-		else if (strcmp(sys, "openat2") == 0)
+		else if (strncmp(sys, "openat", 6) == 0)
 			return print_dirfd(val);
 		else if (strcmp(sys, "name_to_handle_at") == 0)
 			return print_dirfd(val);
@@ -2630,6 +2626,11 @@ static const char *print_a2(const char *val, const idata *id)
 				return print_dirfd(val);
 			else if (strcmp(sys, "lseek") == 0)
 				return print_seek(val);
+		} else if (*sys == 'c') {
+			if (strcmp(sys, "clone") == 0)
+				return print_clone_flags(val);
+			else if (strcmp(sys, "clone2") == 0)
+				return print_clone_flags(val);
 		}
 		else if (strstr(sys, "chown"))
 			return print_gid(val, 16);
