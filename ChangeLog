@@ -3,6 +3,7 @@
 - In auditd, close the logging file descriptor when logging is suspended
 - Update the capabilities lookup table to match 5.16 kernel
 - Improve interpretation of renamat & faccessat family of syscalls
+- Update syscall table for the 5.16 kernel
 
 3.0.6
 - Fixed various issues when dealing with corrupted logs
