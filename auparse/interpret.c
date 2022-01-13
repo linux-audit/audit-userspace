@@ -898,7 +898,7 @@ static char *path_norm(const char *name)
 	dest = rpath + 1;
 	rpath_limit = rpath + PATH_MAX;
 
-	for (start = end = name; *start; start = end) {
+	for (start = name; *start; start = end) {
 		// Remove duplicate '/'
 		while (*start == '/')
 			++start;
@@ -3051,7 +3051,7 @@ int lookup_type(const char *name)
  * This is the main entry point for the auparse library. Call chain is:
  * auparse_interpret_field -> nvlist_interp_cur_val -> do_interpret
  */
-const char *do_interpret(const rnode *r, auparse_esc_t escape_mode)
+const char *do_interpret(rnode *r, auparse_esc_t escape_mode)
 {
 	nvlist *nv = &r->nv;
 	int type;

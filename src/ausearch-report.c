@@ -603,8 +603,8 @@ static void csv_event(auparse_state_t *au,
 		if (auparse_get_field_type(au) == AUPARSE_TYPE_ESCAPED_FILE)
 			val = auparse_interpret_realpath(au);
 		else if (auparse_get_type(au) == AUDIT_CONFIG_CHANGE) {
-			if ((strcmp(action, "set") == 0) ||
-			    strcmp(action, "seccomp-logging") == 0)
+			if (action && ((strcmp(action, "set") == 0) ||
+			    (strcmp(action, "seccomp-logging") == 0)))
 				val = auparse_get_field_name(au);
 			else
 				val = auparse_interpret_field(au);
