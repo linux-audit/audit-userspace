@@ -15,8 +15,8 @@ BuildRequires: systemd
 
 Requires: %{name}-libs = %{version}-%{release}
 Requires(post): systemd coreutils
-Requires(preun): systemd initscripts
-Requires(postun): systemd coreutils initscript
+Requires(preun): systemd initscripts-service
+Requires(postun): systemd coreutils initscripts-service
 
 %description
 The audit package contains the user space utilities for
