@@ -119,9 +119,9 @@ static unsigned int sockaddr_to_port(struct sockaddr_storage *addr)
 
 static char *sockaddr_to_addr(struct sockaddr_storage *addr)
 {
-	static char buf[40];
+	static char buf[64];
 
-	snprintf(buf, sizeof(buf), "%s:%u",
+	snprintf(buf, sizeof(buf), "%52s:%u",
 		sockaddr_to_string(addr),
 		sockaddr_to_port(addr));
 	return buf;
@@ -970,7 +970,7 @@ int auditd_tcp_listen_init(struct ev_loop *loop, struct daemon_conf *config)
 	hints.ai_flags = AI_PASSIVE | AI_ADDRCONFIG;
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_family = AF_UNSPEC;
-	snprintf(local, sizeof(local), "%lu", config->tcp_listen_port);
+	snprintf(local, sizeof(local), "%u", (unsigned)config->tcp_listen_port);
 
 	rc = getaddrinfo(NULL, local, &hints, &ai);
 	if (rc) {
