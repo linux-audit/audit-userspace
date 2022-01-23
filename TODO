@@ -7,7 +7,7 @@ Future roadmap (subject to change):
 * In auditd, look into non-blocking handling of write to plugins
 * Support multiple time streams when searching
 
-3.1.1
+3.2
 * Multi-thread audisp-remote
 * Container support
 * Support TLS PSK as remote logging transport
