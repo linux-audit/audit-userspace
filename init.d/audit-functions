@@ -1,0 +1,52 @@
+# -*-Shell-script-*-
+
+# Make sure umask is sane
+umask 022
+
+#/usr/libexec/audit/audit-functions
+
+# killproc {program} [-signal]
+killproc ()
+{
+	local daemon="$1"
+	local sig=
+	[ -n "${2:-}" ] && sig=$2
+
+	# This matches src/auditd.c
+	local pid_file="/var/run/auditd.pid"
+	local pid_dir=$(dirname $pid_file)
+
+	if [ ! -d "$pid_dir" ] ; then
+		return 4
+	fi
+
+	local pid=
+	if [ -f "$pid_file" ] ; then
+		# pid file exists, use it
+		while : ; do
+			read line
+			[ -z "$line" ] && break
+			for p in $line ; do
+			   # pid is numeric and corresponds to a process
+			   if [ -z "${p//[0-9]/}" ] && [ -d "/proc/$p" ] ; then
+				d=$(cat "/proc/$p/comm")
+				if [ "$d" = "$daemon" ] ; then
+					pid="$p"
+					break
+				fi
+			   fi
+			done
+		done < "$pid_file"
+	else
+		# need to search /proc
+		p=$(pidof "$daemon")
+		if [ -n "$p" ] ; then
+			pid="$p"
+		fi
+	fi
+
+	# At this point we should have a pid or the process is dead
+	if [ -n "$pid" ] && [ -n "$sig" ] ; then
+		kill "$sig" "$pid" >/dev/null 2>&1
+	fi
+}
