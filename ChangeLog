@@ -4,6 +4,7 @@
 - Update the capabilities lookup table to match 5.16 kernel
 - Improve interpretation of renamat & faccessat family of syscalls
 - Update syscall table for the 5.16 kernel
+- Reduce dependency from initscripts to initscripts-service
 
 3.0.6
 - Fixed various issues when dealing with corrupted logs

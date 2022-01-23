@@ -7,8 +7,12 @@ test $(id -u) = 0  ||  exit 4
 
 PATH=/sbin:/bin:/usr/bin:/usr/sbin
 prog="auditd"
-. /etc/rc.d/init.d/functions
-pid="$(__pids_pidof "$prog")"
+. /usr/libexec/audit-functions
+pid=
+p=$(pidof "$prog")
+if [ -n "$p" ] ; then
+	pid="$p"
+fi
 
 printf "Stopping logging: "
 killproc $prog -TERM

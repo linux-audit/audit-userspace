@@ -8,7 +8,7 @@ test $(id -u) = 0  ||  exit 4
 PATH=/sbin:/bin:/usr/bin:/usr/sbin
 prog="auditd"
 state_file="/var/run/auditd.state"
-. /etc/rc.d/init.d/functions
+. /usr/libexec/audit-functions
 
 printf "Getting auditd internal state: "
 killproc $prog -CONT

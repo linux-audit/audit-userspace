@@ -7,7 +7,7 @@ test $(id -u) = 0  ||  exit 4
 
 PATH=/sbin:/bin:/usr/bin:/usr/sbin
 prog="auditd"
-. /etc/rc.d/init.d/functions
+. /usr/libexec/audit-functions
 
 printf "Resuming logging: "
 killproc $prog -USR2
