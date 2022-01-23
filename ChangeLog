@@ -1,3 +1,5 @@
+3.0.8
+
 3.0.7
 - Add support for the OPENAT2 record type (Richard Guy Briggs)
 - In auditd, close the logging file descriptor when logging is suspended
