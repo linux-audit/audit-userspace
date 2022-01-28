@@ -1091,6 +1091,15 @@ static void rotate_logs(unsigned int num_logs, unsigned int keep_logs)
 		return;
 	}
 
+	/* If max_log_file is unset (0 by default), consider it 'unlimited',
+	 * i.e. do not rotate logs, keep appending to log_file.
+	 */
+	if (config->max_log_size == 0) {
+		audit_msg(LOG_NOTICE,
+			"Log rotation disabled, max_log_file is 0 (unlimited), skipping");
+		return;
+	}
+
 	/* Close audit file. fchmod and fchown errors are not fatal because we
 	 * already adjusted log file permissions and ownership when opening the
 	 * log file. */
