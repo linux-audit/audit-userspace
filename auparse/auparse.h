@@ -1,5 +1,5 @@
 /* auparse.h --
- * Copyright 2006-08,2012,2014-17 Red Hat Inc.
+ * Copyright 2006-08,2012,2014-17,2022 Red Hat Inc.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -23,6 +23,16 @@
 #ifndef AUPARSE_HEADER
 #define AUPARSE_HEADER
 
+#include <sys/cdefs.h>
+#ifndef __attr_access
+#  define __attr_access(x)
+#  define __attr_access_none(argno)
+#endif
+#ifndef __attr_dealloc
+# define __attr_dealloc(dealloc, argno)
+# define __attr_dealloc_free
+#endif
+
 #include "auparse-defs.h"
 
 #ifdef __cplusplus
@@ -40,9 +50,14 @@ typedef void (*auparse_callback_ptr)(auparse_state_t *au,
 			auparse_cb_event_t cb_event_type, void *user_data);
 
 /* General functions that affect operation of the library */
-auparse_state_t *auparse_init(ausource_t source, const void *b);
-int auparse_new_buffer(auparse_state_t *au, const char *data, size_t data_len);
-int auparse_feed(auparse_state_t *au, const char *data, size_t data_len);
+void auparse_destroy(auparse_state_t *au);
+void auparse_destroy_ext(auparse_state_t *au, auparse_destroy_what_t what);
+auparse_state_t *auparse_init(ausource_t source, const void *b)
+	__attribute_malloc__ __attr_dealloc (auparse_destroy, 1);
+int auparse_new_buffer(auparse_state_t *au, const char *data, size_t data_len)
+	__attr_access ((__read_only__, 2, 3));
+int auparse_feed(auparse_state_t *au, const char *data, size_t data_len)
+	__attr_access ((__read_only__, 2, 3));
 void auparse_feed_age_events(auparse_state_t *au);
 int auparse_flush_feed(auparse_state_t *au);
 int auparse_feed_has_data(auparse_state_t *au);
@@ -51,8 +66,6 @@ void auparse_add_callback(auparse_state_t *au, auparse_callback_ptr callback,
 			void *user_data, user_destroy user_destroy_func);
 void auparse_set_escape_mode(auparse_state_t *au, auparse_esc_t mode);
 int auparse_reset(auparse_state_t *au);
-void auparse_destroy(auparse_state_t *au);
-void auparse_destroy_ext(auparse_state_t *au, auparse_destroy_what_t what);
 
 /* Functions that are part of the search interface */
 int ausearch_add_expression(auparse_state_t *au, const char *expression,
@@ -119,7 +132,7 @@ const au_event_t *auparse_get_timestamp(auparse_state_t *au);
 time_t auparse_get_time(auparse_state_t *au);
 unsigned int auparse_get_milli(auparse_state_t *au);
 unsigned long auparse_get_serial(auparse_state_t *au);
-const char *auparse_get_node(auparse_state_t *au);
+const char *auparse_get_node(auparse_state_t *au) __attr_dealloc_free;
 int auparse_node_compare(au_event_t *e1, au_event_t *e2);
 int auparse_timestamp_compare(au_event_t *e1, au_event_t *e2);
 unsigned int auparse_get_num_records(auparse_state_t *au);

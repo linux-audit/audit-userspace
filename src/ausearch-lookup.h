@@ -34,13 +34,16 @@
 
 const char *aulookup_result(avc_t result);
 const char *aulookup_success(int s);
-const char *aulookup_syscall(llist *l, char *buf, size_t size);
-const char *aulookup_uid(uid_t uid, char *buf, size_t size);
+const char *aulookup_syscall(llist *l, char *buf, size_t size)
+	__attr_access ((__write_only__, 2, 3));
+const char *aulookup_uid(uid_t uid, char *buf, size_t size)
+	__attr_access ((__write_only__, 2, 3));
 void aulookup_destroy_uid_list(void);
 char *unescape(const char *buf);
 int is_hex_string(const char *str);
 void print_tty_data(const char *val);
-void safe_print_string_n(const char *s, unsigned int len, int ret);
+void safe_print_string_n(const char *s, unsigned int len, int ret)
+	__attr_access ((__read_only__, 1, 2));
 void safe_print_string(const char *s, int ret);
 
 #endif

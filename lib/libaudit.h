@@ -1,5 +1,5 @@
 /* libaudit.h --
- * Copyright 2004-2018,2021 Red Hat Inc.
+ * Copyright 2004-2018,2021-22 Red Hat Inc.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -27,7 +27,15 @@
 extern "C" {
 #endif
 
-
+#include <sys/cdefs.h>
+#ifndef __attr_access
+#  define __attr_access(x)
+#  define __attr_access_none(argno)
+#endif
+#ifndef __attr_dealloc
+# define __attr_dealloc(dealloc, argno)
+# define __attr_dealloc_free
+#endif
 #include <asm/types.h>
 #include <stdint.h>
 #include <sys/socket.h>
@@ -605,7 +613,9 @@ extern int  audit_setloginuid(uid_t uid);
 extern uint32_t audit_get_session(void);
 extern int  audit_detect_machine(void);
 extern int audit_determine_machine(const char *arch);
-extern char *audit_format_signal_info(char *buf, int len, char *op, struct audit_reply *rep, char *res);
+extern char *audit_format_signal_info(char *buf, int len, char *op,
+			struct audit_reply *rep, char *res)
+			__attr_access ((__write_only__, 1, 2));
 
 /* Translation functions */
 extern int        audit_name_to_field(const char *field);
@@ -675,10 +685,15 @@ extern int audit_delete_rule_data(int fd, struct audit_rule_data *rule,
                                   int flags, int action);
 
 /* The following are for standard formatting of messages */
-extern int audit_value_needs_encoding(const char *str, unsigned int size);
-extern char *audit_encode_value(char *final,const char *buf,unsigned int size);
+extern int audit_value_needs_encoding(const char *str, unsigned int size)
+	__attr_access ((__read_only__, 1, 2));
+extern char *audit_encode_value(char *final,const char *buf,unsigned int size)
+	__attr_access ((__write_only__, 1))
+	__attr_access ((__read_only__, 2, 3));
 extern char *audit_encode_nv_string(const char *name, const char *value,
-	unsigned int vlen);
+	unsigned int vlen)
+	__attr_access ((__read_only__, 2, 3))
+	__attr_dealloc_free;
 extern int audit_log_user_message(int audit_fd, int type, const char *message,
         const char *hostname, const char *addr, const char *tty, int result);
 extern int audit_log_user_comm_message(int audit_fd, int type,

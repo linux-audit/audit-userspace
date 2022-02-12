@@ -1,7 +1,7 @@
 /*
 * audispd-builtins.h - Interface to builtin plugins
-* Copyright (c) 2007,2013,2018 Red Hat Inc., Durham, North Carolina.
-* All Rights Reserved. 
+* Copyright (c) 2007,2013,2018,2022 Red Hat Inc.
+* All Rights Reserved.
 *
 * This software may be freely redistributed and/or modified under the
 * terms of the GNU General Public License as published by the Free
@@ -25,11 +25,17 @@
 #ifndef AUDISPD_BUILTINS_HEADER
 #define AUDISPD_BUILTINS_HEADER
 
+#include <sys/cdefs.h>
+#ifndef __attr_access
+#  define __attr_access(x)
+#  define __attr_access_none(argno)
+#endif
 #include "queue.h"
 
 void start_builtin(plugin_conf_t *conf);
 void stop_builtin(plugin_conf_t *conf);
-void send_af_unix_string(const char *s, unsigned int len);
+void send_af_unix_string(const char *s, unsigned int len)
+	__attr_access ((__read_only__, 1, 2));
 void send_af_unix_binary(event_t *e);
 void destroy_af_unix(void);
 
