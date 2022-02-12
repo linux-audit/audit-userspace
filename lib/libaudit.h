@@ -606,7 +606,7 @@ void set_aumessage_mode(message_t mode, debug_message_t debug);
 typedef enum { GET_REPLY_BLOCKING=0, GET_REPLY_NONBLOCKING } reply_t;
 extern int  audit_open(void);
 extern void audit_close(int fd);
-extern int  audit_get_reply(int fd, struct audit_reply *rep, reply_t block, 
+extern int  audit_get_reply(int fd, struct audit_reply *rep, reply_t block,
 		int peek);
 extern uid_t audit_getloginuid(void);
 extern int  audit_setloginuid(uid_t uid);
@@ -636,9 +636,9 @@ extern const char *audit_operator_to_symbol(int op);
 extern int        audit_name_to_errno(const char *error);
 extern const char *audit_errno_to_name(int error);
 extern int        audit_name_to_ftype(const char *name);
-extern const char *audit_ftype_to_name(int ftype); 
+extern const char *audit_ftype_to_name(int ftype);
 extern int        audit_name_to_fstype(const char *name);
-extern const char *audit_fstype_to_name(int fstype); 
+extern const char *audit_fstype_to_name(int fstype);
 extern void audit_number_to_errmsg(int errnumber, const char *opt);
 
 /* AUDIT_GET */
@@ -658,7 +658,8 @@ extern int  audit_set_backlog_limit(int fd, uint32_t limit);
 int audit_set_backlog_wait_time(int fd, uint32_t bwt);
 int audit_reset_lost(int fd);
 int audit_reset_backlog_wait_time_actual(int fd);
-extern int  audit_set_feature(int fd, unsigned feature, unsigned value, unsigned lock);
+extern int  audit_set_feature(int fd, unsigned feature, unsigned value,
+			      unsigned lock);
 extern int  audit_set_loginuid_immutable(int fd);
 
 /* AUDIT_LIST_RULES */
@@ -702,8 +703,8 @@ extern int audit_log_user_comm_message(int audit_fd, int type,
 extern int audit_log_acct_message(int audit_fd, int type, const char *pgname,
         const char *op, const char *name, unsigned int id,
         const char *host, const char *addr, const char *tty, int result);
-extern int audit_log_user_avc_message(int audit_fd, int type, 
-	const char *message, const char *hostname, const char *addr, 
+extern int audit_log_user_avc_message(int audit_fd, int type,
+	const char *message, const char *hostname, const char *addr,
 	const char *tty, uid_t uid);
 extern int audit_log_semanage_message(int audit_fd, int type,
 	const char *pgname, const char *op, const char *name, unsigned int id,

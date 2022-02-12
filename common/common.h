@@ -1,5 +1,5 @@
 /* audit-fgets.h -- a replacement for glibc's fgets
- * Copyright 2018i,2022 Red Hat Inc.
+ * Copyright 2018,2022 Red Hat Inc.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
