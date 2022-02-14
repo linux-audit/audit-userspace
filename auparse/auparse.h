@@ -23,10 +23,9 @@
 #ifndef AUPARSE_HEADER
 #define AUPARSE_HEADER
 
-#include <sys/cdefs.h>
+#include <features.h>
 #ifndef __attr_access
 #  define __attr_access(x)
-#  define __attr_access_none(argno)
 #endif
 #ifndef __attr_dealloc
 # define __attr_dealloc(dealloc, argno)

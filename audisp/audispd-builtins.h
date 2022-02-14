@@ -25,10 +25,9 @@
 #ifndef AUDISPD_BUILTINS_HEADER
 #define AUDISPD_BUILTINS_HEADER
 
-#include <sys/cdefs.h>
+#include <features.h>
 #ifndef __attr_access
 #  define __attr_access(x)
-#  define __attr_access_none(argno)
 #endif
 #include "queue.h"
 
