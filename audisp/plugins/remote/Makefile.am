@@ -36,7 +36,7 @@ TESTS = $(check_PROGRAMS)
 
 audisp_remote_DEPENDENCIES = ${top_builddir}/common/libaucommon.la
 audisp_remote_SOURCES = audisp-remote.c remote-config.c queue.c
-audisp_remote_CFLAGS = -fPIE -DPIE -g -D_REENTRANT -D_GNU_SOURCE -Wundef
+audisp_remote_CFLAGS = -fPIE -DPIE -g -D_REENTRANT -D_GNU_SOURCE -Wundef ${WFLAGS}
 audisp_remote_LDFLAGS = -pie -Wl,-z,relro -Wl,-z,now
 audisp_remote_LDADD = $(CAPNG_LDADD) $(gss_libs) ${top_builddir}/common/libaucommon.la
 

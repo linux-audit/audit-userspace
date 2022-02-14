@@ -341,6 +341,21 @@ else
 fi
 ],WARNS="$ALLWARNS")
 
+WFLAGS=""
+AC_MSG_CHECKING(for -Wformat-truncation)
+TMPCFLAGS="${CFLAGS}"
+CFLAGS="${CFLAGS} -Wformat-truncation"
+AC_LINK_IFELSE([AC_LANG_PROGRAM([[]], [[]])],[WFLAGS="-Wno-format-truncation"
+	AC_MSG_RESULT(yes)],
+	[AC_MSG_RESULT(no)])
+CFLAGS="${TMPCFLAGS}"
+CFLAGS="${CFLAGS} -Wunused-but-set-variable"
+AC_LINK_IFELSE([AC_LANG_PROGRAM([[]], [[]])],[WFLAGS="${WFLAGS} -Wno-unused-but-set-variable"
+	AC_MSG_RESULT(yes)],
+	[AC_MSG_RESULT(no)])
+CFLAGS="${TMPCFLAGS}"
+AC_SUBST(WFLAGS)
+
 withval=""
 AC_MSG_CHECKING(whether to include arm eabi processor support)
 AC_ARG_WITH(arm,

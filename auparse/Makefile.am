@@ -26,7 +26,7 @@ SUBDIRS = test
 EXTRA_DIST = expression-design.txt
 CLEANFILES = $(BUILT_SOURCES)
 CONFIG_CLEAN_FILES = *.loT *.rej *.orig
-AM_CFLAGS = -fPIC -DPIC -D_GNU_SOURCE -g ${DEBUG} -Wno-pointer-sign -Wno-enum-compare -Wno-switch
+AM_CFLAGS = -fPIC -DPIC -D_GNU_SOURCE -g ${DEBUG} -Wno-pointer-sign -Wno-enum-compare -Wno-switch ${WFLAGS}
 AM_CPPFLAGS = -I. -I${top_srcdir} -I${top_srcdir}/src -I${top_srcdir}/lib -I${top_srcdir}/common
 LIBS =
 
