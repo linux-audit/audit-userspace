@@ -306,7 +306,16 @@ static int reconfigure(void)
 	return plist_count_active(&plugin_conf);
 }
 
-/* Return 0 on success and 1 on failure */
+/*
+ * Return 0 on success and 1 on failure
+ *
+ * Call tree:	auditd.c main
+ *		auditd-dispatch.c init_dispatcher
+ *
+ * And:		auditd-event.c reconfigure
+ *		auditd-dispatch.c reconfigure_dispatcher
+ *
+ * */
 int libdisp_init(const struct daemon_conf *c)
 {
 	int i;
@@ -598,6 +607,10 @@ void libdisp_nudge_queue(void)
 		nudge_queue();
 }
 
+/*
+ * Called by:	auditd-event.c reconfigure
+ *		auditd-dispatch.c reconfigure_dispatcher
+ */
 void libdisp_reconfigure(const struct daemon_conf *c)
 {
 	// If the dispatcher thread is dead, start a new one
