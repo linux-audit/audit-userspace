@@ -230,6 +230,7 @@ void increase_queue_depth(unsigned int size)
 		for (i=q_depth; i<size; i++)
 			q[i] = NULL;
 		q_depth = size;
+		overflowed = 0;
 	}
 	pthread_mutex_unlock(&queue_lock);
 }
