@@ -1,0 +1,25 @@
+.TH "AUDIT_NAME_TO_FSTYPE" "3" "Mar 2022" "Red Hat" "Linux Audit API"
+.SH NAME
+audit_name_to_fstype \- Convert the fstype name to the numeric fstype value
+.SH "SYNOPSIS"
+.nf
+.B #include <libaudit.h>
+.PP
+.BI "int audit_name_to_fstype(const char " *name );
+.fi
+.SH "DESCRIPTION"
+.BR audit_name_to_fstype ()
+converts the fstype name ("debugfs" or "tracefs") to the numeric fstype value (0x64626720 or 0x74726163).
+.I name
+is the fstype name.
+
+.SH "RETURN VALUE"
+
+Returns -1 if an name occurs; otherwise, the return value is the numeric fstype value.
+
+.SH "SEE ALSO"
+
+.BR audit_fstype_to_name (3),
+
+.SH AUTHOR
+Steve Grubb
