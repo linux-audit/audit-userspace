@@ -2,6 +2,7 @@
 - Add gcc function attributes for access and allocation
 - Add some more man pages (MIZUTA Takeshi)
 - In auditd, change the reinitializing of the plugin queue
+- Fix path normalization in auparse (Sergio Correia)
 
 3.0.7
 - Add support for the OPENAT2 record type (Richard Guy Briggs)
