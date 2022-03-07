@@ -895,7 +895,7 @@ static char *path_norm(const char *name)
 		return strdup(name);
 
 	rpath = working;
-	dest = rpath + 1;
+	dest = rpath;
 	rpath_limit = rpath + PATH_MAX;
 
 	for (start = name; *start; start = end) {
