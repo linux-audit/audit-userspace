@@ -53,7 +53,7 @@
  */
 volatile int stop = 0;
 volatile int hup = 0;
-volatile ZOS_REMOTE zos_remote_inst;
+static ZOS_REMOTE zos_remote_inst;
 static plugin_conf_t conf;
 static const char *def_config_file = "/etc/audit/zos-remote.conf";
 static pthread_t submission_thread;
