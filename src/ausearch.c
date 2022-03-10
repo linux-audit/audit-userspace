@@ -517,11 +517,15 @@ static void alarm_handler(int signal)
 
 static int process_stdin(void)
 {
+	struct sigaction sa;
 	log_fd = stdin;
-	input_is_pipe=1;
+	input_is_pipe = 1;
 
-	if (signal(SIGALRM, alarm_handler) == SIG_ERR ||
-	    siginterrupt(SIGALRM, 1) == -1)
+	sa.sa_flags = 0;
+	sigemptyset(&sa.sa_mask);
+	sa.sa_handler = alarm_handler;
+
+	if (sigaction(SIGALRM, &sa, NULL) < 0)
 		return -1;
 
 	return process_log_fd();
