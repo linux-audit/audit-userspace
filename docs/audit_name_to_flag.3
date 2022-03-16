@@ -1,0 +1,25 @@
+.TH "AUDIT_NAME_TO_FLAG" "3" "Mar 2022" "Red Hat" "Linux Audit API"
+.SH NAME
+audit_name_to_flag \- Convert the rule-matching filter name to the numeric rule-matching filter value
+.SH "SYNOPSIS"
+.nf
+.B #include <libaudit.h>
+.PP
+.BI "int audit_name_to_flag(const char " *flag );
+.fi
+.SH "DESCRIPTION"
+.BR audit_name_to_flag ()
+converts the rule-matching filter name ("task", "exit", "user", "exclude", "filesystem") to the numeric rule-matching filter value (AUDIT_FILTER_TASK, AUDIT_FILTER_EXIT, AUDIT_FILTER_USER, AUDIT_FILTER_EXCLUDE, AUDIT_FILTER_FS).
+.I flag
+is the rule-matching filter name.
+
+.SH "RETURN VALUE"
+
+Returns -1 if an error occurs; otherwise, the return value is the numeric rule-matching filter value.
+
+.SH "SEE ALSO"
+
+.BR audit_flag_to_name (3),
+
+.SH AUTHOR
+Steve Grubb
