@@ -43,6 +43,7 @@ audit_encode_value.3 auparse_add_callback.3 audit_name_to_syscall.3 \
 audit_syscall_to_name.3 audit_errno_to_name.3 audit_name_to_errno.3\
 audit_fstype_to_name.3 audit_name_to_fstype.3 \
 audit_action_to_name.3 audit_name_to_action.3 \
+audit_flag_to_name.3 audit_name_to_flag.3 \
 auparse_destroy.3 auparse_feed.3 auparse_feed_age_events.3 \
 auparse_feed_has_data.3 auparse_find_field.3 \
 auparse_find_field_next.3 auparse_first_field.3 auparse_first_record.3 \
