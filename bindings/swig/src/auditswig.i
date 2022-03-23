@@ -39,6 +39,10 @@ signed
 #define __attribute(X) /*nothing*/
 typedef unsigned __u32;
 typedef unsigned uid_t;
+/* Sidestep SWIG's limitation of handling c99 Flexible arrays by not:
+ * generating setters against them: https://github.com/swig/swig/issues/1699
+ */
+%ignore audit_rule_data::buf;
 %include "/usr/include/linux/audit.h"
 #define __extension__ /*nothing*/
 %include <stdint.i>
