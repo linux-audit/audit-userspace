@@ -1830,9 +1830,17 @@ static int audit_name_to_uid(const char *name, uid_t *uid)
 {
 	struct passwd *pw;
 
+	errno = 0;
 	pw = getpwnam(name);
-	if (pw == NULL)
+	if (pw == NULL) {
+		/* getpwnam() might return ECONNREFUSED in some very
+		 * specific cases when using LDAP.
+		 * Manually set it to ENOENT so callers don't get confused
+		 * with netlink's ECONNREFUSED */
+		if (errno == ECONNREFUSED)
+			errno = ENOENT;
 		return 1;
+	}
 
 	memset(pw->pw_passwd, ' ', strlen(pw->pw_passwd));
 	*uid = pw->pw_uid;
@@ -1843,9 +1851,14 @@ static int audit_name_to_gid(const char *name, gid_t *gid)
 {
 	struct group *gr;
 
+	errno = 0;
 	gr = getgrnam(name);
-	if (gr == NULL)
+	if (gr == NULL) {
+		/* See above for explanation. */
+		if (errno == ECONNREFUSED)
+			errno = ENOENT;
 		return 1;
+	}
 
 	*gid = gr->gr_gid;
 	return 0;
