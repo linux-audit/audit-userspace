@@ -1,25 +1,32 @@
 .TH "AUDIT_NAME_TO_ERRNO" "3" "Mar 2022" "Red Hat" "Linux Audit API"
 .SH NAME
-audit_name_to_errno \- Convert the errno name to the numeric errno value
+audit_name_to_errno, audit_errno_to_name \- Convert the errno name and the numeric errno value to each other
 .SH "SYNOPSIS"
 .nf
 .B #include <libaudit.h>
 .PP
 .BI "int audit_name_to_errno(const char " *error );
+.PP
+.BI "const char *audit_errno_to_name(int " error );
 .fi
 .SH "DESCRIPTION"
 .BR audit_name_to_errno ()
 converts the errno name ("EPERM", "ENOENT", "ESRCH", etc.) to the numeric errno value (EPERM, ENOENT, ESRCH, etc.).
 .I error
 is the errno name.
+.PP
+.BR audit_errno_to_name ()
+converts the numeric errno value (EPERM, ENOENT, ESRCH, etc.) to the errno name ("EPERM", "ENOENT", "ESRCH", etc.).
+.I error
+is the numeric errno value.
 
 .SH "RETURN VALUE"
 
-Returns 0 if an error occurs; otherwise, the return value is the numeric errno value.
-
-.SH "SEE ALSO"
-
-.BR audit_errno_to_name (3),
+.BR audit_name_to_errno ()
+returns 0 if an error occurs; otherwise, the return value is the numeric errno value.
+.PP
+.BR audit_errno_to_name ()
+returns NULL if an error occurs; otherwise, the return value is the errno name.
 
 .SH AUTHOR
 Steve Grubb
