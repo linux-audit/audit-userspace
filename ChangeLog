@@ -3,6 +3,8 @@
 - Add some more man pages (MIZUTA Takeshi)
 - In auditd, change the reinitializing of the plugin queue
 - Fix path normalization in auparse (Sergio Correia)
+- In libaudit, handle ECONNREFUSED for network uid/gid lookups (Enzo Matsumiya)
+- In audisp-remote, fix hang with disk_low_action=suspend (Enzo Matsumiya)
 
 3.0.7
 - Add support for the OPENAT2 record type (Richard Guy Briggs)
