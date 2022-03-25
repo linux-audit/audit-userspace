@@ -40,7 +40,7 @@ audit_set_backlog_limit.3 audit_set_enabled.3 audit_set_failure.3 \
 audit_setloginuid.3 audit_set_pid.3 audit_set_rate_limit.3 \
 audit_update_watch_perms.3 audit_value_needs_encoding.3 \
 audit_encode_value.3 auparse_add_callback.3 audit_name_to_syscall.3 \
-audit_syscall_to_name.3 audit_errno_to_name.3 audit_name_to_errno.3\
+audit_syscall_to_name.3 audit_name_to_errno.3\
 audit_fstype_to_name.3 audit_name_to_fstype.3 \
 audit_action_to_name.3 audit_name_to_action.3 \
 audit_flag_to_name.3 audit_name_to_flag.3 \
