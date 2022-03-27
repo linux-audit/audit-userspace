@@ -25,11 +25,10 @@
 #ifndef AUDISPD_BUILTINS_HEADER
 #define AUDISPD_BUILTINS_HEADER
 
-#include <features.h>
+#include "queue.h"
 #ifndef __attr_access
 #  define __attr_access(x)
 #endif
-#include "queue.h"
 
 void start_builtin(plugin_conf_t *conf);
 void stop_builtin(plugin_conf_t *conf);

@@ -23,7 +23,8 @@
 #ifndef AUPARSE_HEADER
 #define AUPARSE_HEADER
 
-#include <features.h>
+#include "auparse-defs.h"
+
 #ifndef __attr_access
 #  define __attr_access(x)
 #endif
@@ -31,8 +32,6 @@
 # define __attr_dealloc(dealloc, argno)
 # define __attr_dealloc_free
 #endif
-
-#include "auparse-defs.h"
 
 #ifdef __cplusplus
 extern "C" {

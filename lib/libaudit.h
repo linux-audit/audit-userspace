@@ -23,18 +23,6 @@
 #ifndef _LIBAUDIT_H_
 #define _LIBAUDIT_H_
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#include <features.h>
-#ifndef __attr_access
-#  define __attr_access(x)
-#endif
-#ifndef __attr_dealloc
-# define __attr_dealloc(dealloc, argno)
-# define __attr_dealloc_free
-#endif
 #include <asm/types.h>
 #include <stdint.h>
 #include <sys/socket.h>
@@ -42,6 +30,17 @@ extern "C" {
 #include <linux/audit.h>
 #include <stdarg.h>
 #include <syslog.h>
+#ifndef __attr_access
+#  define __attr_access(x)
+#endif
+#ifndef __attr_dealloc
+# define __attr_dealloc(dealloc, argno)
+# define __attr_dealloc_free
+#endif
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 
 /* Audit message types as of 2.6.29 kernel:

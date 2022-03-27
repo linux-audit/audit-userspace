@@ -23,12 +23,11 @@
 #ifndef AUDIT_FGETS_HEADER
 #define AUDIT_FGETS_HEADER
 
-#include <features.h>
+#include <sys/types.h>
+#include "dso.h"
 #ifndef __attr_access
 #  define __attr_access(x)
 #endif
-#include <sys/types.h>
-#include "dso.h"
 AUDIT_HIDDEN_START
 
 int audit_fgets_eof(void);
