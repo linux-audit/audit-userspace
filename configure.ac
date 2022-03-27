@@ -82,6 +82,20 @@ AC_LINK_IFELSE(
  [AC_DEFINE(HAVE_STRNDUPA, 1, [Let us know if we have it or not])],
  []
 )
+
+AC_MSG_CHECKING(__attr_access support)
+AC_COMPILE_IFELSE(
+  [AC_LANG_SOURCE(
+    [[
+      #include <stdio.h>
+      int audit_fgets(char *buf, size_t blen, int fd)
+        __attr_access ((__write_only__, 1, 2));
+      int main(void) { return 0; }]])],
+  [ACCESS="yes"],
+  [ACCESS="no"]
+)
+AC_MSG_RESULT($ACCESS)
+
 dnl; pthread_yield is used in zos-remote
 OLDLIBS="$LIBS"
 AC_SEARCH_LIBS(pthread_yield, pthread, 
@@ -454,4 +468,5 @@ echo "
   Compiler:               $CC
   Compiler flags:
 `echo $CFLAGS | fmt -w 50 | sed 's,^,                          ,'`
+  __attr_access support:  $ACCESS
 "
