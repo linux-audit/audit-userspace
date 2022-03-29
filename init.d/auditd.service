@@ -13,6 +13,8 @@ Before=sysinit.target shutdown.target
 Conflicts=shutdown.target
 RefuseManualStop=yes
 ConditionKernelCommandLine=!audit=0
+ConditionKernelCommandLine=!audit=off
+
 Documentation=man:auditd(8) https://github.com/linux-audit/audit-documentation
 
 [Service]
