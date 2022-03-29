@@ -1,25 +1,32 @@
 .TH "AUDIT_NAME_TO_ACTION" "3" "Mar 2022" "Red Hat" "Linux Audit API"
 .SH NAME
-audit_name_to_action \- Convert the action name to the numeric action value
+audit_name_to_action, audit_action_to_name \- Convert the action name to the numeric action value to each other
 .SH "SYNOPSIS"
 .nf
 .B #include <libaudit.h>
 .PP
 .BI "int audit_name_to_action(const char " *action );
+.PP
+.BI "const char *audit_action_to_name(int " action );
 .fi
 .SH "DESCRIPTION"
 .BR audit_name_to_action ()
 converts the action name ("never", "possible", "always") to the numeric action value (AUDIT_NEVER, AUDIT_POSSIBLE, AUDIT_ALWAYS).
 .I action
 is the action name.
+.PP
+.BR audit_action_to_name ()
+converts the numeric action value (AUDIT_NEVER, AUDIT_POSSIBLE, AUDIT_ALWAYS) to the action name ("never", "possible", "always").
+.I action
+is the numeric action value
 
 .SH "RETURN VALUE"
 
-Returns -1 if an error occurs; otherwise, the return value is the numeric action value.
-
-.SH "SEE ALSO"
-
-.BR audit_action_to_name (3),
+.BR audit_name_to_action ()
+returns -1 if an error occurs; otherwise, the return value is the numeric action value.
+.PP
+.BR audit_action_to_name ()
+returns NULL if an error occurs; otherwise, the return value is the action name.
 
 .SH AUTHOR
 Steve Grubb
