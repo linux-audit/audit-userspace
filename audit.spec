@@ -258,6 +258,6 @@ fi
 
 
 %changelog
-* Sun Jan 23 2022 Steve Grubb <sgrubb@redhat.com> 3.0.8-1
+* Tue Mar 29 2022 Steve Grubb <sgrubb@redhat.com> 3.0.8-1
 - New upstream release
 
