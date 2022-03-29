@@ -29,7 +29,7 @@ define([AC_INIT_NOTICE],
 ])
 
 AC_REVISION($Revision: 1.3 $)dnl
-AC_INIT(audit,3.0.8)
+AC_INIT(audit,3.0.9)
 AC_PREREQ(2.12)dnl
 AM_CONFIG_HEADER(config.h)
 
