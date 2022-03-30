@@ -1950,6 +1950,21 @@ static int sanity_check(struct daemon_conf *config)
 		"Error - incremental flushing chosen, but 0 selected for freq");
 		return 1;
 	}
+	if (config->log_group != 0) {
+		int rc = 0;
+		char *path = strdup(config->log_file);
+		const char *dir = dirname(path);
+		if (dir && strcmp(dir, "/var/log") == 0) {
+			audit_msg(LOG_ERR,
+				  "Error - log_file is directly in %s and chgrp"
+				  " will alter a system directory's permissions. Use"
+				  " another directory.", dir);
+			rc = 1;
+		}
+		free(path);
+		if (rc)
+			return rc;
+	}
 	/* Warnings */
 	if (config->flush > FT_INCREMENTAL_ASYNC && config->freq != 0) {
 		audit_msg(LOG_WARNING, 
