@@ -208,8 +208,10 @@ static void *flush_thread_main(void *arg)
 		// into a loop of fsyncs.
 		while (flush == 0) {
 			pthread_cond_wait(&do_flush, &flush_lock);
-			if (stop)
+			if (stop) {
+				pthread_mutex_unlock(&flush_lock);
 				return NULL;
+			}
 		}
 		flush = 0;
 		pthread_mutex_unlock(&flush_lock);
