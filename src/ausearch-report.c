@@ -712,7 +712,8 @@ static void text_event(auparse_state_t *au,
 	rc = auparse_normalize_subject_secondary(au);
 	if (rc == 1) {
 		int uid = auparse_get_field_int(au);
-		if (uid != id && id != -2)
+		// if they are different, id exists, and uid is not unset
+		if (uid != id && id != -2 && uid != -1)
 			printf(", acting as %s,", auparse_interpret_field(au));
 	}
 
