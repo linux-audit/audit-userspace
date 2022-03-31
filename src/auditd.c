@@ -1005,7 +1005,7 @@ int main(int argc, char *argv[])
 	} 
 	if (rc <= 0)
 		send_audit_event(AUDIT_DAEMON_END, 
-			"op=terminate auid=-1 pid=-1 subj=? res=success");
+		"op=terminate auid=-1 uid=-1 ses=-1 pid=-1 subj=? res=success");
 	free(cur_event);
 
 	// Tear down IO watchers Part 2

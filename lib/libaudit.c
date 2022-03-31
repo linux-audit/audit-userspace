@@ -693,12 +693,40 @@ int audit_request_signal_info(int fd)
 char *audit_format_signal_info(char *buf, int len, char *op,
 			       struct audit_reply *rep, char *res)
 {
+	struct stat sb;
+	char path[32], ses[16];
+	int rlen;
+	snprintf(path, sizeof(path), "/proc/%u", rep->signal_info->pid);
+	int fd = open(path, O_RDONLY);
+	if (fd >= 0) {
+		if (fstat(fd, &sb) < 0)
+			sb.st_uid = -1;
+		close(fd);
+	} else
+		sb.st_uid = -1;
+	snprintf(path, sizeof(path), "/proc/%u/sessionid",
+		 rep->signal_info->pid);
+	fd = open(path, O_RDONLY, rep->signal_info->pid);
+	if (fd < 0)
+		strcpy(ses, "4294967295");
+	else {
+		do {
+			rlen = read(fd, ses, sizeof(ses));
+		} while (rlen < 0 && errno == EINTR);
+		close(fd);
+		if (rlen < 0 || rlen >= sizeof(ses))
+			strcpy(ses, "4294967295");
+		else
+			ses[rlen] = 0;
+	}
 	if (rep->len == 24)
-		snprintf(buf, len, "op=%s auid=%u pid=%d res=%s", op,
-			rep->signal_info->uid, rep->signal_info->pid, res);
+		snprintf(buf, len, "op=%s auid=%u uid=%u ses=%s pid=%d res=%s",
+			op, rep->signal_info->uid, sb.st_uid, ses,
+			rep->signal_info->pid, res);
 	else
-		snprintf(buf, len, "op=%s auid=%u pid=%d subj=%s res=%s",
-			op, rep->signal_info->uid, rep->signal_info->pid,
+		snprintf(buf, len, "op=%s auid=%u uid=%u ses=%s pid=%d subj=%s res=%s",
+			op,rep->signal_info->uid, sb.st_uid, ses,
+			rep->signal_info->pid,
 			rep->signal_info->ctx, res);
 	return buf;
 }
