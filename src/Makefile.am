@@ -32,12 +32,12 @@ auditd_SOURCES = auditd.c auditd-event.c auditd-config.c auditd-reconfig.c audit
 if ENABLE_LISTENER
 auditd_SOURCES += auditd-listen.c
 endif
-auditd_CFLAGS = -fPIE -DPIE -g -D_REENTRANT -D_GNU_SOURCE -fno-strict-aliasing -pthread -Wno-pointer-sign
+auditd_CFLAGS = -fPIE -DPIE -g -D_REENTRANT -D_GNU_SOURCE -fno-strict-aliasing -pthread -Wno-pointer-sign ${WFLAGS}
 auditd_LDFLAGS = -pie -Wl,-z,relro -Wl,-z,now
 auditd_LDADD = @LIBWRAP_LIBS@ ${top_builddir}/src/libev/libev.la ${top_builddir}/audisp/libdisp.la ${top_builddir}/lib/libaudit.la ${top_builddir}/auparse/libauparse.la -lpthread -lm $(gss_libs) ${top_builddir}/common/libaucommon.la
 
 auditctl_SOURCES = auditctl.c auditctl-llist.c delete_all.c auditctl-listing.c
-auditctl_CFLAGS = -fPIE -DPIE -g -D_GNU_SOURCE
+auditctl_CFLAGS = -fPIE -DPIE -g -D_GNU_SOURCE ${WFLAGS}
 auditctl_LDFLAGS = -pie -Wl,-z,relro -Wl,-z,now
 auditctl_LDADD = ${top_builddir}/lib/libaudit.la ${top_builddir}/auparse/libauparse.la ${top_builddir}/common/libaucommon.la
 

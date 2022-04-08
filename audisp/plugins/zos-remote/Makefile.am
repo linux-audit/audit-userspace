@@ -37,7 +37,7 @@ noinst_HEADERS = zos-remote-log.h zos-remote-ldap.h zos-remote-config.h \
 	zos-remote-queue.h
 audispd_zos_remote_SOURCES = zos-remote-plugin.c zos-remote-log.c \
 	zos-remote-ldap.c zos-remote-config.c zos-remote-queue.c
-audispd_zos_remote_CFLAGS = -W -Wall -Wundef -D_GNU_SOURCE -fPIE -DPIE
+audispd_zos_remote_CFLAGS = -W -Wall -Wundef -D_GNU_SOURCE -fPIE -DPIE ${WFLAGS}
 audispd_zos_remote_LDFLAGS = -pie -Wl,-z,relro -Wl,-z,now
 
 install-data-hook:

@@ -30,7 +30,7 @@ plugin_conf = au-statsd.conf
 sbin_PROGRAMS = audisp-statsd
 man_MANS = audisp-statsd.8
 audisp_statsd_SOURCES = audisp-statsd.c
-audisp_statsd_CFLAGS = -g -D_GNU_SOURCE
+audisp_statsd_CFLAGS = -g -D_GNU_SOURCE ${WFLAGS}
 audisp_statsd_LDADD = ${top_builddir}/auparse/libauparse.la ${top_builddir}/lib/libaudit.la
 
 install-data-hook:

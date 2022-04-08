@@ -25,7 +25,7 @@ CONFIG_CLEAN_FILES = *.loT *.rej *.orig
 EXTRA_DIST = $(man_MANS)
 AM_CPPFLAGS = -I${top_srcdir} -I${top_srcdir}/lib
 LIBS = ${top_builddir}/lib/libaudit.la
-AM_CFLAGS = -D_GNU_SOURCE
+AM_CFLAGS = -D_GNU_SOURCE ${WFLAGS}
 bin_PROGRAMS = ausyscall
 man_MANS = ausyscall.8
 

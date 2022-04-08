@@ -31,6 +31,6 @@ noinst_HEADERS = audispd-pconfig.h audispd-llist.h audispd-config.h \
 	queue.h audispd-builtins.h libdisp.h
 libdisp_la_SOURCES = audispd.c audispd-pconfig.c queue.c \
 	audispd-llist.c audispd-builtins.c
-libdisp_la_CFLAGS = -fno-strict-aliasing
+libdisp_la_CFLAGS = -fno-strict-aliasing ${WFLAGS}
 libdisp_la_LDFLAGS = -no-undefined -static
 noinst_LTLIBRARIES = libdisp.la

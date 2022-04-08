@@ -32,7 +32,7 @@ man_MANS = audisp-syslog.8
 
 audisp_syslog_DEPENDENCIES = ${top_builddir}/common/libaucommon.la
 audisp_syslog_SOURCES = audisp-syslog.c
-audisp_syslog_CFLAGS = -fPIE -DPIE -g -D_GNU_SOURCE -Wundef
+audisp_syslog_CFLAGS = -fPIE -DPIE -g -D_GNU_SOURCE -Wundef ${WFLAGS}
 audisp_syslog_LDFLAGS = -pie -Wl,-z,relro -Wl,-z,now
 audisp_syslog_LDADD = $(CAPNG_LDADD) ${top_builddir}/common/libaucommon.la ${top_builddir}/auparse/libauparse.la
 

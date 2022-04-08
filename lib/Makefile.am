@@ -26,7 +26,7 @@ CLEANFILES = $(BUILT_SOURCES)
 CONFIG_CLEAN_FILES = *.loT *.rej *.orig
 EXTRA_DIST = syscall-update.txt
 VERSION_INFO = 1:0
-AM_CFLAGS = -fPIC -DPIC -D_GNU_SOURCE
+AM_CFLAGS = -fPIC -DPIC -D_GNU_SOURCE ${WFLAGS}
 AM_CPPFLAGS = -I. -I${top_srcdir} -I${top_srcdir}/auparse -I${top_srcdir}/common
 
 pkgconfigdir = $(libdir)/pkgconfig
