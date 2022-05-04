@@ -28,7 +28,7 @@ auparse_timestamp_compare: because AuEvent calls this via the cmp operator
 
 #if PY_MAJOR_VERSION > 2
 #define IS_PY3K
-#if PY_MINOR_VERSION > 5
+#if PY_MINOR_VERSION >= 5
 #define USE_RICH_COMPARISON
 #endif
 #define MODINITERROR return NULL
