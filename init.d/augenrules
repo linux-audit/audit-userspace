@@ -27,7 +27,7 @@
 
 DestinationFile=/etc/audit/audit.rules
 SourceRulesDir=/etc/audit/rules.d
-TmpRules=`mktemp /tmp/aurules.XXXXXXXX`
+TmpRules=$(mktemp /tmp/aurules.XXXXXXXX)
 ASuffix="prev"
 OnlyCheck=0
 LoadRules=0
