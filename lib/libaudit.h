@@ -329,6 +329,14 @@ extern "C" {
 #define AUDIT_MAC_CALIPSO_DEL	1419 /* NetLabel: del CALIPSO DOI entry */
 #endif
 
+#ifndef AUDIT_MAC_TASK_CONTEXTS
+#define AUDIT_MAC_TASK_CONTEXTS	1420 /* Multiple LSM contexts */
+#endif
+
+#ifndef AUDIT_MAC_OBJ_CONTEXTS
+#define AUDIT_MAC_OBJ_CONTEXTS	1421 /* Multiple LSM object contexts */
+#endif
+
 #ifndef AUDIT_ANOM_LINK
 #define AUDIT_ANOM_LINK		1702 /* Suspicious use of file links */
 #endif
