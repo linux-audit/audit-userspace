@@ -750,7 +750,7 @@ static int krb5_key_file_parser(struct nv_pair *nv, int line,
 }
 
 /*
- * This function is where we do the integrated check of the audispd config
+ * This function is where we do the integrated check of the config
  * options. At this point, all fields have been read. Returns 0 if no
  * problems and 1 if problems detected.
  */
