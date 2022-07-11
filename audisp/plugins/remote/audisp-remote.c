@@ -765,7 +765,6 @@ static krb5_context kcontext = NULL;
 static char *realm_name = NULL;
 static krb5_principal audit_princ;
 static krb5_ccache ccache = NULL;
-static krb5_creds my_creds;
 static krb5_get_init_creds_opt options;
 static krb5_keytab keytab = NULL;
 
@@ -790,6 +789,7 @@ static int negotiate_credentials (void)
 	   we use Kerberos calls here.  */
 
 	int krberr;
+	krb5_creds my_creds;
 	const char *krb5_client_name;
 	char *slashptr;
 	char host_name[255];
@@ -897,14 +897,14 @@ static int negotiate_credentials (void)
 	krberr = krb5_cc_initialize(kcontext, ccache, audit_princ);
 	if (krberr) {
 		KLOG (krberr, "krb5_cc_initialize");
-		goto error6;
+		goto error5;
 	}
 
 	/* ...and store our credentials in it.  */
 	krberr = krb5_cc_store_cred(kcontext, ccache, &my_creds);
 	if (krberr) {
 		KLOG (krberr, "krb5_cc_store_cred");
-		goto error6;
+		goto error5;
 	}
 
 	/* The GSS code now has a set of credentials for this program.
@@ -928,13 +928,13 @@ static int negotiate_credentials (void)
 			       (gss_OID) gss_nt_service_name, &service_name_e);
 	if (major_status != GSS_S_COMPLETE) {
 		gss_failure("importing name", major_status, minor_status);
-		goto error6;
+		goto error5;
 	}
 
 	/* Someone has to go first.  In this case, it's us.  */
 	if (send_token(sock, empty_token) < 0) {
 		(void) gss_release_name(&minor_status, &service_name_e);
-		goto error6;
+		goto error5;
 	}
 
 	/* The server starts this loop with the token we just sent
@@ -961,7 +961,7 @@ static int negotiate_credentials (void)
 						&send_tok);
 				(void) gss_release_name(&minor_status,
 						&service_name_e);
-				goto error6;
+				goto error5;
 			}
 		}
 		(void) gss_release_buffer(&minor_status, &send_tok);
@@ -974,7 +974,7 @@ static int negotiate_credentials (void)
 			if (*gss_context != GSS_C_NO_CONTEXT)
 				gss_delete_sec_context(&minor_status,
 						gss_context, GSS_C_NO_BUFFER);
-			goto error6;
+			goto error5;
 		}
 
 		/* Now get any tokens the sever sends back.  We use
@@ -983,7 +983,7 @@ static int negotiate_credentials (void)
 			if (recv_token(sock, &recv_tok) < 0) {
 				(void) gss_release_name(&minor_status,
 							&service_name_e);
-				goto error6;
+				goto error5;
 			}
 			token_ptr = &recv_tok;
 		}
@@ -1011,8 +1011,6 @@ static int negotiate_credentials (void)
 #endif
 	return 0;
 
-error6:
-	krb5_free_creds(kcontext, &my_creds);
 error5:
 	krb5_cc_close(kcontext, ccache);
 	ccache = NULL;
@@ -1040,7 +1038,6 @@ static int stop_sock(void)
 			gss_delete_sec_context(&minor_status, &my_context,
 						GSS_C_NO_BUFFER);
 			my_context = GSS_C_NO_CONTEXT;
-			krb5_free_creds(kcontext, &my_creds);
 			krb5_cc_close(kcontext, ccache);
 			ccache = NULL;
 			krb5_kt_close(kcontext, keytab);
