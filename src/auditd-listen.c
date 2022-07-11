@@ -325,11 +325,12 @@ static void gss_failure(const char *msg, int major_status, int minor_status)
 		const char *kstr = krb5_get_error_message(kcontext, x); \
 		audit_msg(LOG_ERR, "krb5 error: %s in %s\n", kstr, f); \
 		krb5_free_error_message(kcontext, kstr); \
-		krb5_free_context(k); \
+		krb5_free_context(k); k = NULL; \
 		return -1; }
 
 /* These are our private credentials, which come from a key file on
    our server.  They are aquired once, at program start.  */
+static krb5_context kcontext = NULL;
 static int server_acquire_creds(const char *service_name,
 		gss_cred_id_t *lserver_creds)
 {
@@ -337,7 +338,6 @@ static int server_acquire_creds(const char *service_name,
 	gss_name_t server_name;
 	OM_uint32 major_status, minor_status;
 
-	krb5_context kcontext = NULL;
 	int krberr;
 
 	my_service_name = strdup(service_name);
@@ -1139,6 +1139,8 @@ void auditd_tcp_listen_uninit(struct ev_loop *loop, struct daemon_conf *config)
 #ifdef USE_GSSAPI
 	if (USE_GSS) {
 		gss_release_cred(&status, &server_creds);
+		krb5_free_context(kcontext);
+		kcontext = NULL;
 		free(my_service_name);
 		my_service_name = NULL;
 	}

@@ -757,8 +757,17 @@ static void gss_failure (const char *msg, int major_status, int minor_status)
 		gss_failure_2 (msg, minor_status, GSS_C_MECH_CODE);
 }
 
-#define KLOG(x,f) syslog (LOG_ERR, "krb5 error: %s in %s\n", \
-			  krb5_get_error_message (kcontext, x), f);
+#define KLOG(x,f) { \
+	const char *kstr = krb5_get_error_message(kcontext, x); \
+	syslog (LOG_ERR, "krb5 error: %s in %s\n", kstr, f); \
+	krb5_free_error_message(kcontext, kstr); }
+static krb5_context kcontext = NULL;
+static char *realm_name = NULL;
+static krb5_principal audit_princ;
+static krb5_ccache ccache = NULL;
+static krb5_creds my_creds;
+static krb5_get_init_creds_opt options;
+static krb5_keytab keytab = NULL;
 
 /* Each time we connect to the server, we negotiate a set of credentials and
    a security context. To do this, we need our own credentials first. For
@@ -781,13 +790,6 @@ static int negotiate_credentials (void)
 	   we use Kerberos calls here.  */
 
 	int krberr;
-	krb5_context kcontext = NULL;
-	char *realm_name;
-	krb5_principal audit_princ;
-	krb5_ccache ccache = NULL;
-	krb5_creds my_creds;
-        krb5_get_init_creds_opt options;
-	krb5_keytab keytab = NULL;
 	const char *krb5_client_name;
 	char *slashptr;
 	char host_name[255];
@@ -1013,14 +1015,18 @@ error6:
 	krb5_free_creds(kcontext, &my_creds);
 error5:
 	krb5_cc_close(kcontext, ccache);
+	ccache = NULL;
 error4:
 	krb5_kt_close(kcontext, keytab);
+	keytab = NULL;
 error3:
 	krb5_free_principal(kcontext, audit_princ);
 error2:
 	krb5_free_default_realm(kcontext, realm_name);
+	realm_name = NULL;
 error1:
 	krb5_free_context(kcontext);
+	kcontext = NULL;
 	return -1;
 }
 #endif // USE_GSSAPI
@@ -1034,6 +1040,16 @@ static int stop_sock(void)
 			gss_delete_sec_context(&minor_status, &my_context,
 						GSS_C_NO_BUFFER);
 			my_context = GSS_C_NO_CONTEXT;
+			krb5_free_creds(kcontext, &my_creds);
+			krb5_cc_close(kcontext, ccache);
+			ccache = NULL;
+			krb5_kt_close(kcontext, keytab);
+			keytab = NULL;
+			krb5_free_principal(kcontext, audit_princ);
+			krb5_free_default_realm(kcontext, realm_name);
+			realm_name = NULL;
+			krb5_free_context(kcontext);
+			kcontext = NULL;
 		}
 #endif
 		shutdown(sock, SHUT_RDWR);
