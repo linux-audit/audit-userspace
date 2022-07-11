@@ -484,7 +484,7 @@ static int event_loop(void)
 	while (stop == 0) {
 		event_t *e;
 		char *v, *ptr, unknown[32];
-		unsigned int len;
+		int len;
 		lnode *conf;
 
 		/* This is where we block until we have an event */
