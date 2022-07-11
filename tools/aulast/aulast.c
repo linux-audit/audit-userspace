@@ -408,7 +408,7 @@ static void update_session_logout(auparse_state_t *au)
 static void process_bootup(auparse_state_t *au)
 {
 	lnode *cur;
-	int start;
+	time_t start;
 
 	// See if we have unclosed boot up and make into CRASH record
 	list_first(&l);
