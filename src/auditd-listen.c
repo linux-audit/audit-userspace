@@ -321,10 +321,11 @@ static void gss_failure(const char *msg, int major_status, int minor_status)
 		gss_failure_2(msg, minor_status, GSS_C_MECH_CODE);
 }
 
-#define KCHECK(x,f) if (x) { \
+#define KCHECK(x,f, k) if (x) { \
 		const char *kstr = krb5_get_error_message(kcontext, x); \
 		audit_msg(LOG_ERR, "krb5 error: %s in %s\n", kstr, f); \
 		krb5_free_error_message(kcontext, kstr); \
+		krb5_free_context(k); \
 		return -1; }
 
 /* These are our private credentials, which come from a key file on
@@ -363,9 +364,9 @@ static int server_acquire_creds(const char *service_name,
 	(void) gss_release_name(&minor_status, &server_name);
 
 	krberr = krb5_init_context(&kcontext);
-	KCHECK (krberr, "krb5_init_context");
+	KCHECK (krberr, "krb5_init_context", kcontext);
 	krberr = krb5_get_default_realm(kcontext, &my_gss_realm);
-	KCHECK (krberr, "krb5_get_default_realm");
+	KCHECK (krberr, "krb5_get_default_realm", kcontext);
 
 	audit_msg(LOG_DEBUG, "GSS creds for %s acquired", service_name);
 
