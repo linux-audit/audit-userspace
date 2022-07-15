@@ -1,4 +1,4 @@
-.TH AUDISP-REMOTE.CONF "5" "Aug 2018" "Red Hat" "System Administration Utilities"
+.TH AUDISP-REMOTE.CONF "5" "Jul 2022" "Red Hat" "System Administration Utilities"
 .SH NAME
 audisp-remote.conf \- the audisp-remote configuration file
 .SH DESCRIPTION
@@ -234,6 +234,13 @@ and retry until either too many attempts have been made or the allowed
 time expires.  Note that these times govern the maximum amount of time
 the remote server is allowed in order to reboot, if you want to
 maintain logging across a reboot.
+
+It is recommended to set a large q_depth in auditd.conf if using this
+plugin. Also set an even bigger q_depth in audisp-remote.conf. Also
+set the heartbeat_timeout to something non-zero but coordinate it with
+the server so that it's half the size of the server's tcp_client_max_idle
+setting. This is required to get retries in a reasonable time if the
+network has a problem.
 
 .SH "SEE ALSO"
 .BR audisp-remote (8),
