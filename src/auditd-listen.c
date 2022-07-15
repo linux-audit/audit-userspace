@@ -414,10 +414,9 @@ static int negotiate_credentials(ev_tcp *io)
 					GSS_C_NO_CHANNEL_BINDINGS, &client,
 					NULL, &send_tok, &sess_flags,
 					NULL, NULL);
-		if (recv_tok.value) {
-			free(recv_tok.value);
-			recv_tok.value = NULL;
-		}
+		if (recv_tok.value)
+			gss_release_buffer(&min_stat, &recv_tok);
+
 		if (maj_stat != GSS_S_COMPLETE
 		    && maj_stat != GSS_S_CONTINUE_NEEDED) {
 			gss_release_buffer(&min_stat, &send_tok);
@@ -441,6 +440,7 @@ static int negotiate_credentials(ev_tcp *io)
 				if (*context != GSS_C_NO_CONTEXT)
 					gss_delete_sec_context(&min_stat,
 						context, GSS_C_NO_BUFFER);
+				gss_release_name(&min_stat, &client);
 				return -1;
 			}
 			gss_release_buffer(&min_stat, &send_tok);
@@ -455,14 +455,22 @@ static int negotiate_credentials(ev_tcp *io)
 		return -1;
 	}
 
-	audit_msg(LOG_INFO, "GSS-API Accepted connection from: %s",
-		  (char *)recv_tok.value);
-	io->remote_name = strdup(recv_tok.value);
-	io->remote_name_len = strlen(recv_tok.value);
+	if (asprintf(&io->remote_name, "%.*s", (int)recv_tok.length,
+		    (char *)recv_tok.value) < 0) {
+		io->remote_name = strdup("?");
+		io->remote_name_len = 1;
+	} else
+		io->remote_name_len = recv_tok.length;
+
+	audit_msg(LOG_INFO, "GSS-API Accepted connection from: %s", 
+		  io->remote_name);
 	gss_release_buffer(&min_stat, &recv_tok);
 
-	slashptr = strchr(io->remote_name, '/');
-	atptr = strchr(io->remote_name, '@');
+	if (io->remote_name) {
+		slashptr = strchr(io->remote_name, '/');
+		atptr = strchr(io->remote_name, '@');
+	} else
+		slashptr = NULL;
 
 	if (!slashptr || !atptr) {
 		audit_msg(LOG_ERR, "Invalid GSS name from remote client: %s",
