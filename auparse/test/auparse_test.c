@@ -17,6 +17,8 @@ static const char *buf[] = {
 		NULL
 };
 
+unsigned int walked_fields = 0;
+#define FIELDS_EXPECTED 403
 
 static void walk_test(auparse_state_t *au)
 {
@@ -55,6 +57,7 @@ static void walk_test(auparse_state_t *au)
 						auparse_get_field_name(au),
 						auparse_get_field_str(au),
 						auparse_interpret_field(au));
+                walked_fields++;
 			} while (auparse_next_field(au) > 0);
 			printf("\n");
 			record_cnt++;
@@ -461,6 +464,23 @@ int main(void)
 		auparse_destroy(au);
 	}
         printf("Test 10 Done\n\n");
+
+	printf("Starting Test 11, walk LONG event records from a file...\n");
+	au = auparse_init(AUSOURCE_FILE, "test4.log");
+	if (au == NULL) {
+		printf("Error - %s\n", strerror(errno));
+		return 1;
+	}
+
+	walked_fields = 0;
+	walk_test(au);
+	auparse_destroy(au);
+
+	if (walked_fields != FIELDS_EXPECTED) {
+		printf("Error: %i fields expected, but %i read!\n",
+			   FIELDS_EXPECTED, walked_fields);
+	}
+	printf("Test 11 Done\n\n");
 
 	puts("Finished non-admin tests\n");
 
