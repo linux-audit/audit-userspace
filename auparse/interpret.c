@@ -3144,8 +3144,7 @@ char *auparse_do_interpretation(int type, const idata *id,
 	if (interpretation_list_cnt()) {
 		nvlist_first(&il);
 		if (nvlist_find_name(&il, id->name)) {
-			nvnode* node = &il.array[il.cur];
-			const char *val = node->interp_val;
+			const char *val = nvlist_get_cur_val_interp(&il);
 
 			if (val) {
 				// If we don't know what it is when auditd

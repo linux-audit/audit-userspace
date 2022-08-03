@@ -23,8 +23,6 @@
 #ifndef RNODE_HEADER
 #define RNODE_HEADER
 
-#define NFIELDS 36
-
 /* This is the data node of the fields list. Any data elements that are
  * per field goes here. */
 typedef struct _nvnode{
@@ -32,12 +30,13 @@ typedef struct _nvnode{
   char *val;            // The value field
   char *interp_val;     // The value field interpreted
   unsigned int item;    // Which item of the same event
+  struct _nvnode *next; // Next data node or NULL
 } nvnode;
 
 /* This is the field list head. */
 typedef struct {
-  nvnode array[NFIELDS];// array of fields
-  unsigned int cur;     // Index to current node
+  nvnode *first;    // First data node
+  nvnode *cur;      // Current data node
   unsigned int cnt;     // How many items in this list
   char *record;		// Holds the parsed up record
   char *end;		// End of the parsed up record
