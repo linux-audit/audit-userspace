@@ -370,7 +370,7 @@ static void avoid_oom_killer(void)
 				O_NOFOLLOW | O_WRONLY)) >= 0) {
 		score = "-17";
 	} else {
-		audit_msg(LOG_NOTICE, "Cannot open out of memory adjuster");
+		audit_msg(LOG_NOTICE, "Cannot opt out of memory adjuster");
 		return;
 	}
 
