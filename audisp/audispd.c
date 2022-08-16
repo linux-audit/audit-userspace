@@ -548,20 +548,21 @@ static int event_loop(void)
 				rc = write_to_plugin(e, v, len, conf);
 				if (rc < 0 && errno == EPIPE) {
 					/* Child disappeared ? */
-					audit_msg(LOG_ERR,
+					if (!stop)
+						audit_msg(LOG_ERR,
 					"plugin %s terminated unexpectedly",
 								conf->p->path);
 					conf->p->pid = 0;
 					conf->p->restart_cnt++;
-					if (conf->p->restart_cnt >
+					close(conf->p->plug_pipe[1]);
+					conf->p->plug_pipe[1] = -1;
+					conf->p->active = A_NO;
+					if (!stop && conf->p->restart_cnt >
 						daemon_config.max_restarts) {
 						audit_msg(LOG_ERR,
 					"plugin %s has exceeded max_restarts",
 								conf->p->path);
 					}
-					close(conf->p->plug_pipe[1]);
-					conf->p->plug_pipe[1] = -1;
-					conf->p->active = A_NO;
 					if (!stop && start_one_plugin(conf)) {
 						rc = write_to_plugin(e, v, len,
 								     conf);
