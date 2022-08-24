@@ -5,7 +5,7 @@
 # based on a cron job.
 ##########
 
-/sbin/service auditd rotate
+/sbin/auditctl --signal usr1
 EXITVALUE=$?
 if [ $EXITVALUE != 0 ]; then
     /usr/bin/logger -t auditd "ALERT exited abnormally with [$EXITVALUE]"
