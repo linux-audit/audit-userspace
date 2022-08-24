@@ -32,9 +32,9 @@
 void nvlist_create(nvlist *l)
 {
 	if (l) {
-        l->array = calloc(NFIELDS, sizeof(nvnode));
+		l->array = calloc(NFIELDS, sizeof(nvnode));
 		memset(l->array, 0, sizeof(nvnode) * NFIELDS);
-        l->size = NFIELDS;
+		l->size = NFIELDS;
 		l->cur = 0;
 		l->cnt = 0;
 		l->record = NULL;
@@ -58,11 +58,11 @@ int nvlist_append(nvlist *l, nvnode *node)
 	if (node->name == NULL)
 		return 1;
 
-    if (l->cnt == l->size) {
-        l->array = realloc(l->array, l->size * sizeof(nvnode) * 2);
-        memset(l->array + l->size, 0, sizeof(nvnode) * l->size);
-        l->size = l->size * 2;
-    }
+	if (l->cnt == l->size) {
+		l->array = realloc(l->array, l->size * sizeof(nvnode) * 2);
+		memset(l->array + l->size, 0, sizeof(nvnode) * l->size);
+		l->size = l->size * 2;
+	}
 
 	nvnode *newnode = &l->array[l->cnt];
 	newnode->name = node->name;
@@ -173,9 +173,9 @@ void nvlist_clear(nvlist *l, int free_interp)
 
 	free((void *)l->record);
 
-    free(l->array);
-    l->array = NULL;
-    l->size = 0;
+	free(l->array);
+	l->array = NULL;
+	l->size = 0;
 
 	l->record = NULL;
 	l->end = NULL;
