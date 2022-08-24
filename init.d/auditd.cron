@@ -1,14 +1,14 @@
 #!/bin/sh
 
 ##########
-# This script can be installed to get a daily log rotation
-# based on a cron job.
+# This script can be installed to the cron system to get log rotation
+# based on time instead of log size.
 ##########
 
 /sbin/auditctl --signal usr1
 EXITVALUE=$?
 if [ $EXITVALUE != 0 ]; then
-    /usr/bin/logger -t auditd "ALERT exited abnormally with [$EXITVALUE]"
+    /usr/bin/logger -t auditd "ALERT auditctl exited abnormally with [$EXITVALUE] while rotating the logs"
 fi
 exit 0
 
