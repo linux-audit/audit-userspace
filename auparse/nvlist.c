@@ -173,9 +173,9 @@ void nvlist_clear(nvlist *l, int free_interp)
 
 	free((void *)l->record);
 
-    l->array = realloc(l->array, sizeof(nvnode) * NFIELDS);
-    memset(l->array, 0, sizeof(nvnode) * NFIELDS);
-    l->size = NFIELDS;
+    free(l->array);
+    l->array = NULL;
+    l->size = 0;
 
 	l->record = NULL;
 	l->end = NULL;
