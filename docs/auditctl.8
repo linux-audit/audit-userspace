@@ -11,7 +11,7 @@ The \fBauditctl\fP program is used to configure kernel options related to auditi
 Set max number (limit) of outstanding audit buffers allowed (Kernel Default=64) If all buffers are full, the failure flag is consulted by the kernel for action.
 .TP
 .BI \-\-backlog_wait_time \ \fIwait_time\fP
-Set the time for the kernel to wait (Kernel Default 60*HZ) when the backlog limit is reached before queuing more audit events to be transferred to auditd. The number must be greater than or equal to zero and less that 10 times the default value.
+Set the time for the kernel to wait (Kernel Default 60*HZ) when the backlog limit is reached before queuing more audit events to be transferred to auditd. The number must be greater than or equal to zero and less than 10 times the default value.
 .TP
 .BI \-\-reset_backlog_wait_time_actual
 Reset the actual backlog wait time counter shown by the status command.
