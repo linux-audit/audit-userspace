@@ -327,7 +327,7 @@ If set to "yes", network originating events will be distributed to the audit
 dispatcher for processing. The default is "no".
 .TP
 .I q_depth
-This is a numeric value that tells how big to make the internal queue of the audit event dispatcher. A bigger queue lets it handle a flood of events better, but could hold events that are not processed when the daemon is terminated. If you get messages in syslog about events getting dropped, increase this value. The default value is 1200.
+This is a numeric value that tells how big to make the internal queue of the audit event dispatcher. A bigger queue lets it handle a flood of events better, but could hold events that are not processed when the daemon is terminated. If you get messages in syslog about events getting dropped, increase this value. The default value is 2000.
 .TP
 .I overflow_action
 This option determines how the daemon should react to overflowing its internal queue. When this happens, it means that more events are being received than it can pass along to child processes. This error means that it is going to lose the current event that it's trying to dispatch. This option has the following choices:
