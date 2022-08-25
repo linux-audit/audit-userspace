@@ -36,9 +36,10 @@ typedef struct _nvnode{
 
 /* This is the field list head. */
 typedef struct {
-  nvnode array[NFIELDS];// array of fields
+  nvnode *array;    // array of fields
   unsigned int cur;     // Index to current node
   unsigned int cnt;     // How many items in this list
+  unsigned int size;    // Number of allocated items
   char *record;		// Holds the parsed up record
   char *end;		// End of the parsed up record
 } nvlist;

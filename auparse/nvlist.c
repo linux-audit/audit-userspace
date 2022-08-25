@@ -32,7 +32,9 @@
 void nvlist_create(nvlist *l)
 {
 	if (l) {
-		memset(&l->array[0], 0, sizeof(nvnode) * NFIELDS);
+		l->array = calloc(NFIELDS, sizeof(nvnode));
+		memset(l->array, 0, sizeof(nvnode) * NFIELDS);
+		l->size = NFIELDS;
 		l->cur = 0;
 		l->cnt = 0;
 		l->record = NULL;
@@ -53,9 +55,14 @@ nvnode *nvlist_next(nvlist *l)
 // 0 on success and 1 on error
 int nvlist_append(nvlist *l, nvnode *node)
 {
-	// FIXME: on overflow switch to linked list
-	if (l->cnt >= NFIELDS || node->name == NULL)
+	if (node->name == NULL)
 		return 1;
+
+	if (l->cnt == l->size) {
+		l->array = realloc(l->array, l->size * sizeof(nvnode) * 2);
+		memset(l->array + l->size, 0, sizeof(nvnode) * l->size);
+		l->size = l->size * 2;
+	}
 
 	nvnode *newnode = &l->array[l->cnt];
 	newnode->name = node->name;
@@ -81,7 +88,7 @@ void nvlist_interp_fixup(nvlist *l)
 
 nvnode *nvlist_goto_rec(nvlist *l, unsigned int i)
 {
-	if (i <= l->cnt) {
+	if (i < l->cnt) {
 		l->cur = i;
 		return &l->array[l->cur];
 	}
@@ -163,7 +170,13 @@ void nvlist_clear(nvlist *l, int free_interp)
 		}
 		i++;
 	}
+
 	free((void *)l->record);
+
+	free(l->array);
+	l->array = NULL;
+	l->size = 0;
+
 	l->record = NULL;
 	l->end = NULL;
 	l->cur = 0;

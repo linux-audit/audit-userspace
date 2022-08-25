@@ -24,7 +24,11 @@ def none_to_null(s):
     else:
         return s
 
+walked_fields = 0
+FIELDS_EXPECTED = 403
+
 def walk_test(au):
+    global walked_fields
     event_cnt = 1
 
     au.reset()
@@ -51,6 +55,7 @@ def walk_test(au):
             au.first_field()
             while True:
                 print("        %s=%s (%s)" % (au.get_field_name(), au.get_field_str(), au.interpret_field()))
+                walked_fields += 1
                 if not au.next_field(): break
             print("")
             record_cnt += 1
@@ -255,6 +260,15 @@ while True:
     au.feed(data)
 au.flush_feed()
 print("Test 10 Done\n")
+
+print("Starting Test 11, walk LONG event records from a file...")
+au = auparse.AuParser(auparse.AUSOURCE_FILE, "test4.log");
+walked_fields = 0
+walk_test(au)
+if walked_fields != FIELDS_EXPECTED:
+    print("Error: %i fields expected, but %i read!\n" % \
+          (FIELDS_EXPECTED, walked_fields))
+print("Test 11 Done\n")
 
 print("Finished non-admin tests\n")
 
