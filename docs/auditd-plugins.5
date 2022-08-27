@@ -1,4 +1,4 @@
-.TH AUDITD-PLUGINS "5" "Aug 2018" "Red Hat" "System Administration Utilities"
+.TH AUDITD-PLUGINS "5" "Aug 2022" "Red Hat" "System Administration Utilities"
 .SH NAME
 auditd-plugins \- realtime event receivers
 .SH DESCRIPTION
@@ -55,6 +55,17 @@ passes the data exactly as the audit event dispatcher gets it from the audit dae
 .IR string
 option tells the dispatcher to completely change the event into a string suitable for parsing with the audit parsing library. The default value is
 .IR string.
+
+.SH NOTE
+auditd has an internal queue to hold events for plugins. (See the \fIq_depth\fP setting in \fIauditd.conf\fP.) Plugins have to watch for and dequeue events as fast as possible and queue them internally if they can't be immediately processed. If the plugin is not able to dequeue records, the auditd internal queue will get filled. At any time, as root, you can run the following to check auditd's metrics:
+
+auditctl --signal cont ; sleep 1 ; cat /var/run/auditd.state
+
+If auditd's internal queue fills, it cannot dequeue any events from the kernel backlog. If the kernel's backlog fills, it looks at the value of backlog_wait_time to delay all processes that generate an event to see if there is eventually room to add the event. This will likely be noticed as slowing down various processes on the machine. The kernel's audit subsystem can be checked by running:
+
+auditctl -s
+
+When tuning the audit system's performance, you'd want to check both kernel and auditd metrics and adjust accordingly.
  
 .SH FILES
 /etc/auditd/auditd.conf
