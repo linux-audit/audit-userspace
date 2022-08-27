@@ -3124,7 +3124,8 @@ int auparse_interp_adjust_type(int rtype, const char *name, const char *val)
 			type = AUPARSE_TYPE_ESCAPED;
 		else
 			type = AUPARSE_TYPE_UNCLASSIFIED;
-	}
+	} else if (rtype == AUDIT_KERN_MODULE && strcmp(name, "name") == 0)
+		type = AUPARSE_TYPE_ESCAPED;
 	else
 		type = lookup_type(name);
 
