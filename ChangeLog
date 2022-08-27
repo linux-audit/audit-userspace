@@ -3,6 +3,7 @@
 - Don't allow auditd to log directly into /var/log when log_group is non-zero
 - Cleanup krb5 memory leaks on error paths
 - Update auditd.cron to use auditctl --signal
+- In auparse, if too many fields, realloc array bigger (Paul Wolneykien)
 - In auparse, special case kernel module name interpretation
 
 3.0.8
