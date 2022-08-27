@@ -28,13 +28,16 @@
 #include "interpret.h"
 #include "auparse-idata.h"
 
+static inline void alloc_array(nvlist *l)
+{
+		l->array = calloc(NFIELDS, sizeof(nvnode));
+		l->size = NFIELDS;
+}
 
 void nvlist_create(nvlist *l)
 {
 	if (l) {
-		l->array = calloc(NFIELDS, sizeof(nvnode));
-		memset(l->array, 0, sizeof(nvnode) * NFIELDS);
-		l->size = NFIELDS;
+		alloc_array(l);
 		l->cur = 0;
 		l->cnt = 0;
 		l->record = NULL;
@@ -57,6 +60,9 @@ int nvlist_append(nvlist *l, nvnode *node)
 {
 	if (node->name == NULL)
 		return 1;
+
+	if (l->array == NULL)
+		alloc_array(l);
 
 	if (l->cnt == l->size) {
 		l->array = realloc(l->array, l->size * sizeof(nvnode) * 2);
