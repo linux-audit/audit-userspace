@@ -1,3 +1,5 @@
+3.0.10
+
 3.0.9
 - In auditd, release the async flush lock on stop
 - Don't allow auditd to log directly into /var/log when log_group is non-zero
