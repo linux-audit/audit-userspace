@@ -1944,9 +1944,19 @@ map:
 	// how
 	if (type == AUDIT_SYSTEM_BOOT) {
 		D.thing.what = NORM_WHAT_SYSTEM;
+		f = auparse_find_field(au, "exe");
+		if (f) {
+			const char *exe = auparse_interpret_field(au);
+			D.how = strdup(exe);
+		}
 		return 0;
 	} else if (type == AUDIT_SYSTEM_SHUTDOWN) {
 		D.thing.what = NORM_WHAT_SERVICE;
+		f = auparse_find_field(au, "exe");
+		if (f) {
+			const char *exe = auparse_interpret_field(au);
+			D.how = strdup(exe);
+		}
 		return 0;
 	}
 	auparse_first_record(au);
