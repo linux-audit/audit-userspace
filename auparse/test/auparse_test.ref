@@ -805,8 +805,8 @@ event 1 has 7 records
     line=1 file=test4.log
     event time: 1655465398.534:25618, host=?
         type=SYSCALL (SYSCALL)
-        arch=c00000b7 (aarch64)
-        syscall=221 (execve)
+        arch=c000003e (x86_64)
+        syscall=59 (execve)
         success=yes (yes)
         exit=0 (0)
         a0=8c403a0 (0x8c403a0)
@@ -959,8 +959,8 @@ event 2 has 6 records
     line=8 file=test4.log
     event time: 1655465404.819:27091, host=?
         type=SYSCALL (SYSCALL)
-        arch=c00000b7 (aarch64)
-        syscall=221 (execve)
+        arch=c000003e (x86_64)
+        syscall=59 (execve)
         success=yes (yes)
         exit=0 (0)
         a0=1a407f50 (0x1a407f50)
