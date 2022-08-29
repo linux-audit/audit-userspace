@@ -96,12 +96,14 @@ static void change_runlevel(const char *level)
 	exit(1);
 }
 
-static void do_overflow_action(struct disp_conf *config)
+static int do_overflow_action(struct disp_conf *config)
 {
+	int rc = -1;
 	overflowed = 1;
         switch (config->overflow_action)
         {
                 case O_IGNORE:
+			rc = 0;
 			break;
                 case O_SYSLOG:
 			if (queue_full_warning < QUEUE_FULL_LIMIT) {
@@ -134,6 +136,7 @@ static void do_overflow_action(struct disp_conf *config)
                         syslog(LOG_ALERT, "Unknown overflow action requested");
                         break;
         }
+	return rc;
 }
 
 /* returns 0 on success and -1 on error */
@@ -149,9 +152,9 @@ int enqueue(event_t *e, struct disp_conf *config)
 retry:
 	// We allow 3 retries and then its over
 	if (retry_cnt > 3) {
-		do_overflow_action(config);
 		free(e);
-		return -1;
+
+		return do_overflow_action(config);
 	}
 	pthread_mutex_lock(&queue_lock);
 

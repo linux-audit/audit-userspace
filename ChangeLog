@@ -5,6 +5,7 @@
 - Update auditd.cron to use auditctl --signal
 - In auparse, if too many fields, realloc array bigger (Paul Wolneykien)
 - In auparse, special case kernel module name interpretation
+- If overflow_action is ignore, don't treat as an error
 
 3.0.8
 - Add gcc function attributes for access and allocation
