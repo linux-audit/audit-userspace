@@ -2,13 +2,13 @@ Future roadmap (subject to change):
 ===================================
 3.1
 * Basic HIDS based on reactive audit component
+* Multi-thread audisp-remote
 * Add keywords for time: month-ago, this-hour, last-hour
 * If searching user/group doesn't map to uid/gid, do translated string search
 * In auditd, look into non-blocking handling of write to plugins
 * Support multiple time streams when searching
 
 3.2
-* Multi-thread audisp-remote
 * Container support
 * Support TLS PSK as remote logging transport
 * Add rule verify to detect mismatch between in-kernel and on-disk rules

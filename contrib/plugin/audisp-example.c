@@ -30,10 +30,19 @@
  * It will print things to stdout. In a real program, you wouldn't
  * do anything with stdout since that is likely to be pointing to /dev/null.
  *
- * Excluding some init/destroy items you might need to add to main, the 
+ * Excluding some init/destroy items you might need to add to main, the
  * event_handler function is the main place that you would modify to do
- * things specific to your plugin. 
+ * things specific to your plugin.
  *
+ * Also, note that for a "real" plugin, you may have to add an internal queue
+ * to your application. If plugins do any kind of networking or in depth
+ * processing of incoming events, auditd's internal queue can overflow because
+ * the socket connecting to the plugin's stdin get backed up. When audit has
+ * nowhere to put events, the kernel's audit backlog can get filled up.
+ * If that happens, the backlog_wait_time is consulted by the kernel which
+ * may have the effect of slowing down the whole system. A good design would be
+ * to have 2 threads, one watching for inbound events and one doing the
+ * processing of the events with a configurable queue in between.
  */
 
 #define _GNU_SOURCE
