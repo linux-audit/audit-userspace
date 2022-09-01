@@ -132,6 +132,8 @@
 
 ## Special case for systemd-run. It is not audit aware, specifically watch it
 -a always,exit -F path=/usr/bin/systemd-run -F perm=x -F key=maybe-escalation
+## Special case for pkexec. It is not audit aware, specifically watch it
+-a always,exit -F path=/usr/bin/pkexec -F perm=x -F key=maybe-escalation
 
 ## (GEN002860: CAT II) (Previously – G674) The SA and/or IAO will
 ##ensure old audit logs are closed and new audit logs are started daily.

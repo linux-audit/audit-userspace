@@ -27,6 +27,8 @@
 
 ## Special case for systemd-run. It is not audit aware, specifically watch it
 -a always,exit -F path=/usr/bin/systemd-run -F perm=x -F key=maybe-escalation
+## Special case for pkexec. It is not audit aware, specifically watch it
+-a always,exit -F path=/usr/bin/pkexec -F perm=x -F key=maybe-escalation
 
 ## Watch for configuration changes to privilege escalation.
 -a always,exit -F path=/etc/sudoers -F perm=wa -F key=10.2.2-priv-config-changes
