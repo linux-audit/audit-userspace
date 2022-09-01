@@ -57,6 +57,8 @@
 -a always,exit -F path=/usr/sbin/grub2-set-bootflag -F perm=x -F auid>=1000 -F auid!=unset -F key=special-config-changes
 
 ## Privilege escalation via su or sudo. This is entirely handled by pam.
+## Special case for systemd-run. It is not audit aware, specifically watch it
+-a always,exit -F path=/usr/bin/systemd-run -F perm=x -F key=maybe-escalation
 
 ## Watch for configuration changes to privilege escalation.
 -a always,exit -F path=/etc/sudoers -F perm=wa -F key=special-config-changes

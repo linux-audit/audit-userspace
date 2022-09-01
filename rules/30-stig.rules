@@ -130,6 +130,9 @@
 -w /etc/sudoers -p wa -k actions
 -w /etc/sudoers.d/ -p wa -k actions
 
+## Special case for systemd-run. It is not audit aware, specifically watch it
+-a always,exit -F path=/usr/bin/systemd-run -F perm=x -F key=maybe-escalation
+
 ## (GEN002860: CAT II) (Previously – G674) The SA and/or IAO will
 ##ensure old audit logs are closed and new audit logs are started daily.
 ##
