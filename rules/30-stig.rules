@@ -131,7 +131,7 @@
 -w /etc/sudoers.d/ -p wa -k actions
 
 ## Special case for systemd-run. It is not audit aware, specifically watch it
--a always,exit -F path=/usr/bin/systemd-run -F perm=x -F key=maybe-escalation
+-a always,exit -F path=/usr/bin/systemd-run -F perm=x -F auid!=unset -F key=maybe-escalation
 ## Special case for pkexec. It is not audit aware, specifically watch it
 -a always,exit -F path=/usr/bin/pkexec -F perm=x -F key=maybe-escalation
 
