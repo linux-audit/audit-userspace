@@ -65,7 +65,6 @@ if ENABLE_SYSTEMD
 else
 	$(INSTALL_SCRIPT) -D ${srcdir}/auditd.init ${DESTDIR}${initdir}/auditd
 endif
-	chmod 0750 $(DESTDIR)$(sbindir)/augenrules
 
 
 uninstall-hook:
