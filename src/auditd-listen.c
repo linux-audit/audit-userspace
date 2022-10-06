@@ -358,6 +358,7 @@ static int server_acquire_creds(const char *service_name,
 	if (major_status != GSS_S_COMPLETE) {
 		gss_failure("acquiring credentials",
 				major_status, minor_status);
+		(void) gss_release_name(&minor_status, &server_name);
 		return -1;
 	}
 
