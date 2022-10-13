@@ -1427,6 +1427,7 @@ int audit_determine_machine(const char *arch)
 		case MACH_86_64:   /* fallthrough */
 		case MACH_PPC64:   /* fallthrough */
 		case MACH_S390X:   /* fallthrough */
+		case MACH_LOONGARCH64:   /* fallthrough */
 			break;
 		case MACH_PPC64LE: /* 64 bit only */
 			if (bits && bits != __AUDIT_ARCH_64BIT)
@@ -1895,10 +1896,18 @@ static int audit_name_to_gid(const char *name, gid_t *gid)
 int audit_detect_machine(void)
 {
 	struct utsname uts;
+#if 0
 	if (uname(&uts) == 0)
 //		strcpy(uts.machine, "x86_64");
 		return audit_name_to_machine(uts.machine);
 	return -1;
+#endif
+
+       if (uname(&uts) == -1)
+               return -1;
+               
+       return audit_name_to_machine(uts.machine);
+
 }
 
 #ifndef NO_TABLES

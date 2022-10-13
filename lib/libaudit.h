@@ -486,6 +486,14 @@ extern "C" {
 #define EM_AARCH64 183
 #endif
 
+#ifndef AUDIT_ARCH_LOONGARCH64
+#define AUDIT_ARCH_LOONGARCH64 (EM_LOONGARCH64|__AUDIT_ARCH_64BIT|__AUDIT_ARCH_LE)
+#endif
+
+#ifndef EM_LOONGARCH64
+#define EM_LOONGARCH64 258
+#endif
+
 #ifndef AUDIT_ARCH_AARCH64
 #define AUDIT_ARCH_AARCH64	(EM_AARCH64|__AUDIT_ARCH_64BIT|__AUDIT_ARCH_LE)
 #endif
@@ -585,7 +593,8 @@ typedef enum {
 	MACH_ALPHA,	// Deprecated but has to stay
 	MACH_ARM,
 	MACH_AARCH64,
-	MACH_PPC64LE
+	MACH_PPC64LE,
+	MACH_LOONGARCH64
 } machine_t;
 
 /* These are the valid audit failure tunable enum values */
