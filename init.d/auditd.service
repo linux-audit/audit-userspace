@@ -36,7 +36,8 @@ RestartPreventExitStatus=2 4 6
 ### Security Settings ###
 MemoryDenyWriteExecute=true
 LockPersonality=true
-ProtectControlGroups=true
+# The following control prevents rules on /proc so its off by default
+#ProtectControlGroups=true
 ProtectKernelModules=true
 RestrictRealtime=true
 
