@@ -37,7 +37,7 @@
 // sysctls, selinux booleans
 // update specific rpm, all rpms
 // restart service
-// drop service timed <- need to whitelist these
+// drop service timed <- need to allowlist these
 
 // System terminations
 // Drop network timed
