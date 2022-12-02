@@ -1,5 +1,6 @@
 3.0.10
 - Disable ProtectControlGroups in auditd.service by default
+- Fix rule checking for exclude filter
 
 3.0.9
 - In auditd, release the async flush lock on stop
