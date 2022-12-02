@@ -1705,7 +1705,8 @@ int audit_rule_fieldpair_data(struct audit_rule_data **rulep, const char *pair,
 			_audit_archadded = 1;
 			break;
 		case AUDIT_PERM:
-			if (flags != AUDIT_FILTER_EXIT)
+			if (!(flags == AUDIT_FILTER_EXIT ||
+			      flags == AUDIT_FILTER_EXCLUDE))
 				return -EAU_EXITONLY;
 			else if (op != AUDIT_EQUAL)
 				return -EAU_OPEQ;

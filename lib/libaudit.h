@@ -344,6 +344,9 @@ extern "C" {
 #ifndef AUDIT_FILTER_FS
 #define AUDIT_FILTER_FS		0x06 /* FS record filter in __audit_inode_child */
 #endif
+#ifndef AUDIT_FILTER_URING_EXIT
+#define AUDIT_FILTER_URING_EXIT 0x07 /* Apply rule at io_uring op exit */
+#endif
 #ifndef AUDIT_FILTER_EXCLUDE
 #define AUDIT_FILTER_EXCLUDE	AUDIT_FILTER_TYPE
 #endif

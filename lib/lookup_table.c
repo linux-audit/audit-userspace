@@ -142,6 +142,18 @@ int audit_name_to_syscall(const char *sc, int machine)
 	return -1;
 }
 
+int audit_name_to_uringop(const char *uringop)
+{
+	int res = -1, found = 0;
+
+#ifndef NO_TABLES
+	//found = uringop_s2i(uringop, &res);
+#endif
+	if (found)
+		return res;
+	return -1;
+}
+
 const char *audit_syscall_to_name(int sc, int machine)
 {
 #ifndef NO_TABLES
@@ -168,6 +180,14 @@ const char *audit_syscall_to_name(int sc, int machine)
 			return aarch64_syscall_i2s(sc);
 #endif
 	}
+#endif
+	return NULL;
+}
+
+const char *audit_uringop_to_name(int uringop)
+{
+#ifndef NO_TABLES
+	//return uringop_i2s(uringop);
 #endif
 	return NULL;
 }
