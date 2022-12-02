@@ -623,6 +623,8 @@ extern int        audit_name_to_field(const char *field);
 extern const char *audit_field_to_name(int field);
 extern int        audit_name_to_syscall(const char *sc, int machine);
 extern const char *audit_syscall_to_name(int sc, int machine);
+extern const char *audit_uringop_to_name(int uringop);
+extern int        audit_name_to_uringop(const char *uringop);
 extern int        audit_name_to_flag(const char *flag);
 extern const char *audit_flag_to_name(int flag);
 extern int        audit_name_to_action(const char *action);
