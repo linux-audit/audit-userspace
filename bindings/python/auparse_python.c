@@ -362,11 +362,11 @@ AuParser_init(AuParser *self, PyObject *args, PyObject *kwds)
     case AUSOURCE_FILE_ARRAY: {
         int i, n;
         PyObject *item = NULL;
-        char **files = NULL;
+        const char **files = NULL;
 
         if (PySequence_Check(source)) {
             n = PySequence_Size(source);
-            if ((files = PyMem_New(char *, n+1)) == NULL) {
+            if ((files = (const char **)PyMem_New(char *, n+1)) == NULL) {
                 PyErr_NoMemory();
                 return -1;
             }
@@ -405,11 +405,11 @@ AuParser_init(AuParser *self, PyObject *args, PyObject *kwds)
     case AUSOURCE_BUFFER_ARRAY: {
         int i, n;
         PyObject *item = NULL;
-        char **buffers = NULL;
+        const char **buffers = NULL;
 
         if (PySequence_Check(source)) {
             n = PySequence_Size(source);
-            if ((buffers = PyMem_New(char *, n+1)) == NULL) {
+            if ((buffers = (const char **)PyMem_New(char *, n+1)) == NULL) {
                 PyErr_NoMemory();
                 return -1;
             }
