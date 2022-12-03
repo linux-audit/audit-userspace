@@ -725,6 +725,9 @@ extern struct audit_rule_data *audit_rule_create_data(void);
 extern void audit_rule_init_data(struct audit_rule_data *rule);
 extern int audit_rule_syscallbyname_data(struct audit_rule_data *rule,
                                           const char *scall);
+extern int audit_rule_io_uringbyname_data(struct audit_rule_data *rule,
+                                          const char *scall);
+
 /* Note that the following function takes a **, where audit_rule_fieldpair()
  * takes just a *.  That structure may need to be reallocated as a result of
  * adding new fields */

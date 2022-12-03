@@ -164,6 +164,10 @@ static int lookup_filter(const char *str, int *filter)
 		exclude = 1;
 	} else if (strcmp(str, "filesystem") == 0)
 		*filter = AUDIT_FILTER_FS;
+#ifdef WITH_IO_URING
+	else if (strcmp(str, "io_uring") == 0)
+		*filter = AUDIT_FILTER_URING_EXIT;
+#endif
 	else
 		return 2;
 	return 0;
@@ -541,6 +545,29 @@ static int parse_syscall(const char *optarg)
 	return audit_rule_syscallbyname_data(rule_new, optarg);
 }
 
+#ifdef WITH_IO_URING
+// return 0 on success and -1 if unknow op.
+static int parse_io_uring(const char *optarg)
+{
+	if (strchr(optarg, ',')) {
+		int retval;
+		char *saved, *ptr, *tmp = strdup(optarg);
+		if (tmp == NULL)
+			return -1;
+		ptr = strtok_r(tmp, ",", &saved);
+		while (ptr) {
+			retval = audit_rule_io_uringbyname_data(rule_new, ptr);
+			if (retval != 0)
+				break;
+			ptr = strtok_r(NULL, ",", &saved);
+		}
+		free(tmp);
+		return retval;
+	}
+	return audit_rule_io_uringbyname_data(rule_new, optarg);
+}
+#endif
+
 static struct option long_opts[] =
 {
 #if HAVE_DECL_AUDIT_FEATURE_VERSION == 1
@@ -782,6 +809,29 @@ static int setopt(int count, int lineno, char *vars[])
 		break;
         case 'S': {
 		int unknown_arch = !_audit_elf;
+#ifdef WITH_IO_URING
+		if (((add & (AUDIT_FILTER_MASK|AUDIT_FILTER_UNSET)) ==
+				AUDIT_FILTER_URING_EXIT || (del &
+				(AUDIT_FILTER_MASK|AUDIT_FILTER_UNSET)) ==
+				AUDIT_FILTER_URING_EXIT)) {
+			// Do io_uring op
+			rc = parse_io_uring(optarg);
+			switch (rc)
+			{
+				case 0:
+					_audit_syscalladded = 1;
+					retval = 1; /* success - please send */
+					break;
+				case -1:
+					audit_msg(LOG_ERR,
+						  "io_uring op unknown: %s",
+						  optarg);
+				retval = -1;
+				break;
+			}
+			break;
+		}
+#endif
 		/* Do some checking to make sure that we are not adding a
 		 * syscall rule to a list that does not make sense. */
 		if (((add & (AUDIT_FILTER_MASK|AUDIT_FILTER_UNSET)) ==

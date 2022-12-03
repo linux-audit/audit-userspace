@@ -446,6 +446,18 @@ if test x"$LIBWRAP_LIBS" != "x"; then
 	AC_DEFINE_UNQUOTED(HAVE_LIBWRAP, [], Define if tcp_wrappers support is enabled )
 fi
 
+withval=""
+AC_MSG_CHECKING(whether to include io_uring support)
+AC_ARG_WITH(io_uring,
+AS_HELP_STRING([--with-io_uring],[enable io_uring support]),
+use_io_uring=$withval,
+use_io_uring=no)
+if test x$use_io_uring != xno ; then
+     AC_DEFINE(WITH_IO_URING,1,[Define if you want to enable io_uring support.])
+fi
+# AM_CONDITIONAL(USE_IO_URING, test x$use_io_uring = xyes)
+AC_MSG_RESULT($use_io_uring)
+
 # linux/ipx.h - deprecated in 2018
 AC_CHECK_HEADER(linux/ipx.h, ipx_headers=yes, ipx_headers=no)
 if test $ipx_headers = yes ; then
