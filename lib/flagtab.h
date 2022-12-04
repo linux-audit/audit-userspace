@@ -20,9 +20,14 @@
  *      Steve Grubb <sgrubb@redhat.com>
  *      Richard Guy Briggs <rgb@redhat.com>
  */
+#include "config.h"
+
 _S(AUDIT_FILTER_TASK,       "task"      )
 _S(AUDIT_FILTER_EXIT,       "exit"      )
 _S(AUDIT_FILTER_USER,       "user"      )
 _S(AUDIT_FILTER_EXCLUDE,    "exclude"   )
 _S(AUDIT_FILTER_FS,         "filesystem")
+#ifdef WITH_IO_URING
 _S(AUDIT_FILTER_URING_EXIT, "io_uring"  )
+#endif
+

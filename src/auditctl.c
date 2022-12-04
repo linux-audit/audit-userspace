@@ -153,22 +153,10 @@ static void usage(void)
 
 static int lookup_filter(const char *str, int *filter)
 {
-	if (strcmp(str, "exit") == 0)
-		*filter = AUDIT_FILTER_EXIT;
-	else if (strcmp(str, "task") == 0)
-		*filter = AUDIT_FILTER_TASK;
-	else if (strcmp(str, "user") == 0)
-		*filter = AUDIT_FILTER_USER;
-	else if (strcmp(str, "exclude") == 0) {
-		*filter = AUDIT_FILTER_EXCLUDE;
+	*filter = audit_name_to_flag(str);
+	if (*filter == AUDIT_FILTER_EXCLUDE)
 		exclude = 1;
-	} else if (strcmp(str, "filesystem") == 0)
-		*filter = AUDIT_FILTER_FS;
-#ifdef WITH_IO_URING
-	else if (strcmp(str, "io_uring") == 0)
-		*filter = AUDIT_FILTER_URING_EXIT;
-#endif
-	else
+	if (*filter == -1)
 		return 2;
 	return 0;
 }

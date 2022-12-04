@@ -1036,6 +1036,7 @@ int audit_rule_syscallbyname_data(struct audit_rule_data *rule,
 int audit_rule_io_uringbyname_data(struct audit_rule_data *rule,
                                   const char *scall)
 {
+#ifdef WITH_IO_URING
 	int nr;
 
 	if (!strcmp(scall, "all")) {
@@ -1054,6 +1055,7 @@ int audit_rule_io_uringbyname_data(struct audit_rule_data *rule,
 	}
 	if (nr >= 0)
 		return audit_rule_syscall_data(rule, nr);
+#endif
 	return -1;
 }
 

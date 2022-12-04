@@ -46,7 +46,9 @@
 #include "s390_tables.h"
 #include "s390x_tables.h"
 #include "x86_64_tables.h"
+#ifdef WITH_IO_URING
 #include "uringop_tables.h"
+#endif
 #include "errtabs.h"
 #include "fstypetabs.h"
 #include "ftypetabs.h"
@@ -145,6 +147,7 @@ int audit_name_to_syscall(const char *sc, int machine)
 
 int audit_name_to_uringop(const char *uringop)
 {
+#ifdef WITH_IO_URING
 	int res = -1, found = 0;
 
 #ifndef NO_TABLES
@@ -152,6 +155,7 @@ int audit_name_to_uringop(const char *uringop)
 #endif
 	if (found)
 		return res;
+#endif
 	return -1;
 }
 
@@ -187,8 +191,10 @@ const char *audit_syscall_to_name(int sc, int machine)
 
 const char *audit_uringop_to_name(int uringop)
 {
+#ifdef WITH_IO_URING
 #ifndef NO_TABLES
 	return uringop_i2s(uringop);
+#endif
 #endif
 	return NULL;
 }
