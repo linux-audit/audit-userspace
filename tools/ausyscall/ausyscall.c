@@ -1,6 +1,6 @@
 /*
- * ausysvcall.c - A program that lets you map syscall names and numbers 
- * Copyright (c) 2008 Red Hat Inc., Durham, North Carolina.
+ * ausysvcall.c - A program that lets you map syscall names and numbers
+ * Copyright (c) 2008,2022 Red Hat Inc.
  * All Rights Reserved.
  *
  * This software may be freely redistributed and/or modified under the
@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; see the file COPYING. If not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor 
+ * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor
  * Boston, MA 02110-1335, USA.
  *
  * Authors:
@@ -32,8 +32,8 @@
 
 void usage(void)
 {
-	fprintf(stderr, "usage: ausyscall [arch] name | number | --dump | --exact\n");
-	exit(1);
+  fprintf(stderr, "usage: ausyscall [arch] name | number | --dump | --exact\n");
+  exit(1);
 }
 
 int main(int argc, char *argv[])
@@ -93,6 +93,11 @@ int main(int argc, char *argv[])
 			name = argv[i];
 		}
 	}
+	// If they passed only uring, assume they want the syscall
+	if (name == NULL && machine == MACH_IO_URING && i == 2) {
+		machine = -1;
+		name = argv[i - 1];
+	}
 	if (machine == -1)
 		machine = audit_detect_machine();
 	if (machine == -1) {
@@ -105,7 +110,7 @@ int main(int argc, char *argv[])
 			audit_machine_to_name(machine));
 		for (i=0; i<8192; i++) {
 			name = audit_syscall_to_name(i, machine);
-			if (name) 
+			if (name)
 				printf("%d\t%s\n", i, name);
 		}
 		return 0;
@@ -116,7 +121,7 @@ int main(int argc, char *argv[])
 			rc = audit_name_to_syscall(name, machine);
 			if (rc < 0) {
 				fprintf(stderr,
-					"Unknown syscall %s using %s lookup table\n",
+				   "Unknown syscall %s using %s lookup table\n",
 					name, audit_machine_to_name(machine));
 				return 1;
 			} else
@@ -124,7 +129,7 @@ int main(int argc, char *argv[])
 		} else {
 			int found = 0;
 			for (i=0; i< LAST_SYSCALL; i++) {
-				const char *n = audit_syscall_to_name(i, machine);
+				const char *n=audit_syscall_to_name(i, machine);
 				if (n && strcasestr(n, name)) {
 					found = 1;
 					printf("%-18s %d\n", n, i);
@@ -132,7 +137,7 @@ int main(int argc, char *argv[])
 			}
 			if (!found) {
 				fprintf(stderr,
-					"Unknown syscall %s using %s lookup table\n",
+				   "Unknown syscall %s using %s lookup table\n",
 					name, audit_machine_to_name(machine));
 				return 1;
 			}

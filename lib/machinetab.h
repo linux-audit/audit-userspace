@@ -1,5 +1,5 @@
 /* machine.h --
- * Copyright 2005,2006,2009,2012,2013 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2005-06,2009,2012-13,2022 Red Hat Inc.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -19,7 +19,7 @@
  * Authors:
  *      Steve Grubb <sgrubb@redhat.com>
  */
-
+#include "config.h"
 _S(MACH_X86,     "i386"   )
 _S(MACH_X86,     "i486"   )
 _S(MACH_X86,     "i586"   )
@@ -42,3 +42,7 @@ _S(MACH_ARM,   "armv7l")
 _S(MACH_AARCH64,   "aarch64"  )
 _S(MACH_AARCH64,   "armv8l")
 #endif
+#ifdef WITH_IO_URING
+_S(MACH_IO_URING,   "uring")
+#endif
+

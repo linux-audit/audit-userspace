@@ -588,7 +588,8 @@ typedef enum {
 	MACH_ALPHA,	// Deprecated but has to stay
 	MACH_ARM,
 	MACH_AARCH64,
-	MACH_PPC64LE
+	MACH_PPC64LE,
+	MACH_IO_URING
 } machine_t;
 
 /* These are the valid audit failure tunable enum values */

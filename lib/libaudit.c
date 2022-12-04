@@ -1459,6 +1459,7 @@ int audit_determine_machine(const char *arch)
 		case MACH_86_64:   /* fallthrough */
 		case MACH_PPC64:   /* fallthrough */
 		case MACH_S390X:   /* fallthrough */
+		case MACH_IO_URING:
 			break;
 		case MACH_PPC64LE: /* 64 bit only */
 			if (bits && bits != __AUDIT_ARCH_64BIT)
