@@ -1003,6 +1003,7 @@ int audit_rule_syscall_data(struct audit_rule_data *rule, int scall)
 	if (word > (AUDIT_BITMASK_SIZE-1))
 		return -1;
 	rule->mask[word] |= bit;
+	_audit_syscalladded = 1;
 	return 0;
 }
 
