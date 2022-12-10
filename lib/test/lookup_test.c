@@ -234,6 +234,7 @@ test_x86_64_table(void)
 #undef S2I
 }
 
+#ifdef WITH_IO_URING
 static void
 test_uringop_table(void)
 {
@@ -249,6 +250,7 @@ test_uringop_table(void)
 #undef I2S
 #undef S2I
 }
+#endif
 
 static void
 test_actiontab(void)
@@ -411,7 +413,9 @@ main(void)
 	test_s390_table();
 	test_s390x_table();
 	test_x86_64_table();
+#ifdef WITH_IO_URING
 	test_uringop_table();
+#endif
 	test_actiontab();
 	test_errtab();
 	test_fieldtab();
