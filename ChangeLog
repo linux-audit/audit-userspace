@@ -150,7 +150,7 @@
 - Fix memleak in auparse caused by corrected event ordering
 - Fix legacy reload script to reload audit rules when daemon is reloaded
 - Support for unescaping in trusted messages (Dmitry Voronin)
-- In auditd, use standard template for DEAMON events (Richard Guy Briggs)
+- In auditd, use standard template for DAEMON events (Richard Guy Briggs)
 - In aureport, fix segfault for malformed USER_CMD events
 - Add exe field to audit_log_user_command in libaudit
 - In auditctl support filter on socket address families (Richard Guy Briggs)
