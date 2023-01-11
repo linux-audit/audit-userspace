@@ -1,5 +1,5 @@
 # Makefile.am--
-# Copyright 2004-07,2012-13,2018 Red Hat Inc., Durham, North Carolina.
+# Copyright 2004-07,2012-13,2018 Red Hat Inc.
 # All Rights Reserved.
 #
 # This program is free software; you can redistribute it and/or modify
@@ -65,7 +65,7 @@ if ENABLE_SYSTEMD
 else
 	$(INSTALL_SCRIPT) -D ${srcdir}/auditd.init ${DESTDIR}${initdir}/auditd
 endif
-	chmod 0750 $(DESTDIR)$(sbindir)/augenrules
+	chmod 0755 $(DESTDIR)$(sbindir)/augenrules
 
 
 uninstall-hook:
