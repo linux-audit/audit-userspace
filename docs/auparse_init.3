@@ -1,4 +1,4 @@
-.TH "AUPARSE_INIT" "3" "Feb 2007" "Red Hat" "Linux Audit API"
+.TH "AUPARSE_INIT" "3" "Jan 2023" "Red Hat" "Linux Audit API"
 .SH NAME
 auparse_init \- initialize an instance of the audit parsing library
 .SH "SYNOPSIS"
@@ -22,6 +22,8 @@ auparse_init initializes an instance of the audit parsing library. The function 
 .fi
 
 The pointer 'b' is used to set the file name, array of filenames, the buffer address, or an array of pointers to buffers, or the descriptor number based on what source is given. When the data source is an array of files or buffers, you would create an array of pointers with the last one being a NULL pointer. Buffers should be NUL terminated.
+
+The data structure returned by auparse_init is not thread-safe. If you need to use it in a multithreaded program, you will need to add locking around any use of the data structure.
 
 .SH "RETURN VALUE"
 
