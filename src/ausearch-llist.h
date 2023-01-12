@@ -1,6 +1,6 @@
 /*
 * ausearch-llist.h - Header file for ausearch-llist.c
-* Copyright (c) 2005-2008, 2013-14,2016 Red Hat Inc., Durham, North Carolina.
+* Copyright (c) 2005-2008, 2013-14,2016 Red Hat Inc.
 * Copyright (c) 2011 IBM Corp.
 * All Rights Reserved.
 *
@@ -97,7 +97,7 @@ typedef struct {
 
 			// Data we add as 1 per event
   event e;		// event - time & serial number
-  search_items s;	// items in master rec that are searchable
+  search_items s;	// items in the record that are searchable
   int fmt;		// The event's format (raw, enriched)
 } llist;
 
