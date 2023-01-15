@@ -50,7 +50,7 @@ Set limit in messages/sec (\fB0\fP=none). If this \fIrate\fP is non-zero and is 
 Reset the lost record counter shown by the status command.
 .TP
 .BI \-R\  file
-Read rules from a \fIfile\fP. The rules must be 1 per line and in the order that they are to be executed in. The rule file must be owned by root and not readable by other users or it will be rejected. The rule file may have comments embedded by starting the line with a '#' character. Rules that are read from a file are identical to what you would type on a command line except they are not preceded by auditctl (since auditctl is the one executing the file) and you would not use shell escaping since auditctl is reading the file instead of bash.
+Read and execute auditctl commands from a \fIfile\fP. The commands are executed line-by-line, in the order that they appear in the file. The file must be owned by root and not readable by other users, or else it will be rejected. Empty lines are skipped. Lines starting with the '#' character are treated as comment lines. Each line is executed as if it was provided to auditctl as command line arguments. Since auditctl is the one reading the file and not a shell such as bash, do not escape special shell characters. See the EXAMPLES section for an example.
 .TP
 .BI \-\-signal\  signal
 Send a signal to the audit daemon. You must have privileges to do this. Supported signals are
@@ -331,6 +331,15 @@ To see if an admin is accessing other user's files:
 
 .nf
 .B auditctl \-a always,exit \-F dir=/home/ \-F uid=0 \-C auid!=obj_uid
+.fi
+
+This is an example rules file:
+
+.nf
+# Remove all existing rules
+\-D
+# Never record sudo invocations
+\-A exclude,always \-F exe=/usr/bin/sudo
 .fi
 
 .SH DISABLED BY DEFAULT
