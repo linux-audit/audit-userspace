@@ -1,5 +1,5 @@
 /* uringop_table.h --
- * Copyright 2005-22 Red Hat Inc.
+ * Copyright 2005-23 Red Hat Inc.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -35,7 +35,6 @@ _S(16,	"connect")
 _S(17,	"fallocate")
 _S(18,	"openat")
 _S(19,	"close")
-_S(25,	"madvise")
 _S(28,	"openat2")
 _S(34,	"shutdown")
 _S(35,	"renameat")
@@ -43,4 +42,11 @@ _S(36,	"unlinkat")
 _S(37,  "mkdirat")
 _S(38,  "symlinkat")
 _S(39,  "linkat")
+_S(40,  "msg_ring")
+_S(41,  "fsetxattr")
+_S(42,  "setxattr")
+_S(43,  "fgetxattr")
+_S(44,  "getxattr")
+_S(46,  "uring_cmd")
+_S(48,	"sendmsg_zc")
 
