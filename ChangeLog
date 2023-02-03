@@ -2,6 +2,7 @@
 - Disable ProtectControlGroups in auditd.service by default
 - Fix rule checking for exclude filter
 - Make audit_rule_syscallbyname_data work correctly outside of auditctl
+- Add new record types
 
 3.0.9
 - In auditd, release the async flush lock on stop

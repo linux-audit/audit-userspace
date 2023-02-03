@@ -1,5 +1,5 @@
 /* msg_typetab.h --
- * Copyright 2005-07,2009-18,21 Red Hat Inc.
+ * Copyright 2005-07,2009-18,21-23 Red Hat Inc.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -129,13 +129,15 @@ _S(AUDIT_BPF,                        "BPF"                           )
 _S(AUDIT_EVENT_LISTENER,             "EVENT_LISTENER"                )
 _S(AUDIT_URINGOP,                    "URINGOP"                       )
 _S(AUDIT_OPENAT2,                    "OPENAT2"                       )
+_S(AUDIT_DM_CTR,                     "DM_CTR"                        )
+_S(AUDIT_DM_EVENT,                   "DM_EVENT"                      )
 _S(AUDIT_AVC,                        "AVC"                           )
 _S(AUDIT_SELINUX_ERR,                "SELINUX_ERR"                   )
 _S(AUDIT_AVC_PATH,                   "AVC_PATH"                      )
 _S(AUDIT_MAC_POLICY_LOAD,            "MAC_POLICY_LOAD"               )
 _S(AUDIT_MAC_STATUS,                 "MAC_STATUS"                    )
 _S(AUDIT_MAC_CONFIG_CHANGE,          "MAC_CONFIG_CHANGE"             )
-_S(AUDIT_MAC_UNLBL_ALLOW,            "MAC_UNLBL_ALLOW"               )       
+_S(AUDIT_MAC_UNLBL_ALLOW,            "MAC_UNLBL_ALLOW"               )
 _S(AUDIT_MAC_CIPSOV4_ADD,            "MAC_CIPSOV4_ADD"               )
 _S(AUDIT_MAC_CIPSOV4_DEL,            "MAC_CIPSOV4_DEL"               )
 _S(AUDIT_MAC_MAP_ADD,                "MAC_MAP_ADD"                   )

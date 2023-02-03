@@ -1,5 +1,5 @@
 /* libaudit.h --
- * Copyright 2004-2018,2021-22 Red Hat Inc.
+ * Copyright 2004-2018,2021-23 Red Hat Inc.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -319,6 +319,14 @@ extern "C" {
 
 #ifndef AUDIT_OPENAT2
 #define AUDIT_OPENAT2		1337 /* openat2 open_how flags */
+#endif
+
+#ifndef AUDIT_DM_CTRL
+#define AUDIT_DM_CTRL		1338 /* Device Mapper target control */
+#endif
+
+#ifndef AUDIT_DM_EVENT
+#define AUDIT_DM_EVENT		1339 /* Device Mapper events */
 #endif
 
 #ifndef AUDIT_MAC_CALIPSO_ADD
