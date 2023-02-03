@@ -1,4 +1,4 @@
-.TH AUDITCTL "8" "July 2021" "Red Hat" "System Administration Utilities"
+.TH AUDITCTL "8" "Feb 2023" "Red Hat" "System Administration Utilities"
 .SH NAME
 auditctl \- a utility to assist controlling the kernel's audit system
 .SH SYNOPSIS
@@ -92,6 +92,9 @@ Add a rule to the event type exclusion filter list. This list is used to filter 
 .TP
 .B filesystem
 Add a rule that will be applied to a whole filesystem. The filesystem must be identified with a fstype field. Normally this filter is used to exclude any events for a whole filesystem such as tracefs or debugfs.
+.TP
+.B io_uring
+Add a rule to the io_uring syscall filter. Rules against this filter specify the syscall operation using the -S syscall notion explained below. You can add a key field to the rule so that it may be grouped with other rules watching the same underlying syscall.
 .RE
 
 The following describes the valid \fIactions\fP for the rule:

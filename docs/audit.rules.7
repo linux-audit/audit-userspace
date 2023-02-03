@@ -1,4 +1,4 @@
-.TH AUDIT.RULES "7" "Jan 2019" "Red Hat" "System Administration Utilities"
+.TH AUDIT.RULES "7" "Feb 2023" "Red Hat" "System Administration Utilities"
 .SH NAME
 audit.rules \- a set of rules loaded in the kernel audit system
 .SH DESCRIPTION
@@ -43,13 +43,15 @@ rule.
 .SS System Call
 The system call rules are loaded into a matching engine that intercepts each syscall that all programs on the system makes. Therefore it is very important to only use syscall rules when you have to since these affect performance. The more rules, the bigger the performance hit. You can help the performance, though, by combining syscalls into one rule whenever possible.
 
-The Linux kernel has 5 rule matching lists or filters as they are sometimes called. They are: task, exit, user, exclude, and filesystem. The task list is checked only during the fork or clone syscalls. It is rarely used in practice.
+The Linux kernel has 6 rule matching lists or filters as they are sometimes called. They are: task, exit, user, exclude, filesystem, and io_uring. The task list is checked only during the fork or clone syscalls. It is rarely used in practice.
 
 The exit filter is the place where all syscall and file system audit requests are evaluated.
 
 The user filter is used to filter (remove) some events that originate in user space.  By default, any event originating in user space is allowed. So, if there are some events that you do not want to see, then this is a place where some can be removed. See auditctl(8) for fields that are valid.
 
 The exclude filter is used to exclude certain events from being emitted. The msgtype and a number of subject attribute fields can be used to tell the kernel which message types you do not want to record. This filter can remove the event as a whole and is not selective about any other attribute. The user and exit filters are better suited to selectively auditing events.  The action is ignored for this filter, defaulting to "never".
+
+The io_uring filter is used to watch underlying syscalls performed by io_uring operations.
 
 Syscall rules take the general form of:
 
@@ -71,7 +73,7 @@ option tells the kernel's rule matching engine that we want to append a rule at 
 .RE
 
 The action and list are separated by a comma but no space in between. Valid lists are:
-.IR task ", " exit ", " user ", " exclude ", and " filesystem ". Their meaning was explained earlier.
+.IR task ", " exit ", " user ", " exclude ", " filesystem ", and "io_uring ". Their meaning was explained earlier.
 
 Next in the rule would normally be the
 .B \-S
@@ -171,6 +173,12 @@ The following rule shows how to audit failed access to files due to permission p
 .B \-a always,exit \-F arch=b64 \-S open \-S openat \-S openat2 \-F exit=\-EACCES \-k access
 .B \-a always,exit \-F arch=b64 \-S open \-S openat \-S openat2 \-F exit=\-EPERM \-k access
 .fi
+
+.SH IO_URING RULES
+Io_uring rules do not take an arch field. It is implicit in the specification of the filter. The following example rule watches for file opens through the io_uring subsystem:
+
+.nf
+.B \-a always,io_uring \-S openat \-S openat2  \-F key=access
 
 .SH HARD WIRED EVENTS
 If auditing is enabled, then you can get any event that is not caused by syscall or file watch rules (because you don't have any rules loaded). So, that means, any event from 1100-1299, 1326, 1328, 1331 and higher can be emitted. The reason that there are a number of events that are hardwired is because they are required by regulatory compliance and are sent automatically as a convenience. (For example, logon/logoff is a mandatory event in all security guidance.) If you don't want this, you can use the exclude filter to drop events that you do not want.
