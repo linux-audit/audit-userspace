@@ -1,5 +1,5 @@
 /* typetab.h --
- * Copyright 2007-09,2011-12,2014-18 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2007-09,2011-12,2014-18,2023 Red Hat Inc.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -44,6 +44,7 @@ _S(AUPARSE_TYPE_GID,		"igid"		)
 _S(AUPARSE_TYPE_GID,		"inode_gid"	)
 _S(AUPARSE_TYPE_GID,		"new_gid"	)
 _S(AUPARSE_TYPE_SYSCALL,	"syscall"	)
+_S(AUPARSE_TYPE_SYSCALL,	"uring_op"	)
 _S(AUPARSE_TYPE_ARCH,		"arch"		)
 _S(AUPARSE_TYPE_EXIT,		"exit"		)
 _S(AUPARSE_TYPE_ESCAPED,	"path"		)

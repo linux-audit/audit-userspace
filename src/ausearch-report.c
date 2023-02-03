@@ -1,6 +1,6 @@
 /*
 * ausearch-report.c - Format and output events
-* Copyright (c) 2005-09,2011-13,2016-17,2021 Red Hat
+* Copyright (c) 2005-09,2011-13,2016-17,2021-23 Red Hat
 * All Rights Reserved.
 *
 * This software may be freely redistributed and/or modified under the
@@ -343,8 +343,11 @@ static void report_interpret(char *name, char *val, int comma, int rtype)
 	}
 	type = auparse_interp_adjust_type(rtype, name, val);
 
-	if (rtype == AUDIT_SYSCALL || rtype == AUDIT_SECCOMP) {
-		if (machine == (unsigned long)-1) 
+	if (rtype == AUDIT_SYSCALL || rtype == AUDIT_SECCOMP ||
+	    rtype == AUDIT_URINGOP) {
+		if (rtype == AUDIT_URINGOP)
+			machine = MACH_IO_URING;
+		else if (machine == (unsigned long)-1)
 			machine = audit_detect_machine();
 		if (*name == 'a' && strcmp(name, "arch") == 0) {
 			unsigned long ival;
@@ -356,8 +359,9 @@ static void report_interpret(char *name, char *val, int comma, int rtype)
 			}
 			machine = audit_elf_to_machine(ival);
 		}
-		if (cur_syscall < 0 && *name == 's' &&
-				strcmp(name, "syscall") == 0) {
+		if (cur_syscall < 0 && ((*name == 's' &&
+				strcmp(name, "syscall") == 0) ||
+		    (*name == 'u' && strcmp(name, "uring_op") == 0))) {
 			unsigned long ival;
 			errno = 0;
 			ival = strtoul(val, NULL, 10);
@@ -370,6 +374,7 @@ static void report_interpret(char *name, char *val, int comma, int rtype)
 		id.syscall = cur_syscall;
 	} else
 		id.syscall = 0;
+
 	id.machine = machine;
 	id.a0 = a0;
 	id.a1 = a1;

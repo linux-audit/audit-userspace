@@ -1,7 +1,7 @@
 /*
 * ellist.c - Minimal linked list library
-* Copyright (c) 2006-08,2014,2016-17 Red Hat Inc., Durham, North Carolina.
-* All Rights Reserved. 
+* Copyright (c) 2006-08,2014,2016-17,2023 Red Hat Inc.
+* All Rights Reserved.
 *
 * This library is free software; you can redistribute it and/or
 * modify it under the terms of the GNU Lesser General Public
@@ -245,6 +245,8 @@ static int parse_up_record(rnode* r)
 			else if (r->nv.cnt == (1 + offset) &&
 					strcmp(n.name, "type") == 0) {
 				r->type = audit_name_to_msg_type(n.val);
+				if (r->type == AUDIT_URINGOP)
+					r->machine = MACH_IO_URING;
 				// This has to account for seccomp records
 			} else if ((r->nv.cnt == (2 + offset) ||
 					r->nv.cnt == (11 + offset)) &&
@@ -259,6 +261,12 @@ static int parse_up_record(rnode* r)
 			} else if ((r->nv.cnt == (3 + offset) ||
 					r->nv.cnt == (12 + offset)) &&
 					strcmp(n.name, "syscall") == 0){
+				errno = 0;
+				r->syscall = strtoul(n.val, NULL, 10);
+				if (errno)
+					r->syscall = -1;
+			} else if (r->nv.cnt == (2 + offset) &&
+				   strcmp(n.name, "uring_op") == 0) {
 				errno = 0;
 				r->syscall = strtoul(n.val, NULL, 10);
 				if (errno)
