@@ -5,6 +5,7 @@
 - Add new record types
 - Add io_uring support
 - Add support for new FANOTIFY record fields
+- Add keyword, this-hour, to ausearch/report start/end options
 
 3.0.9
 - In auditd, release the async flush lock on stop

@@ -46,6 +46,7 @@ struct nv_pair {
 static struct nv_pair timetab[] = {
         { T_NOW, "now" },
         { T_RECENT, "recent" },
+	{ T_THIS_HOUR, "this-hour" },
 	{ T_BOOT, "boot" },
         { T_TODAY, "today" },
         { T_YESTERDAY, "yesterday" },
@@ -122,6 +123,15 @@ static void set_tm_recent(struct tm *d)
         struct tm *tv = localtime(&t);
 	replace_time(d, tv);
 	replace_date(d, tv);
+}
+
+static void set_tm_hour(struct tm *d)
+{
+        time_t t = time(NULL);
+        struct tm *tv = localtime(&t);
+        d->tm_sec = 0;          /* seconds */
+        d->tm_min = 0;          /* minutes */
+	replace_time(d, tv);
 }
 
 static int set_tm_boot(struct tm *d)
@@ -244,6 +254,9 @@ static int lookup_and_set_time(const char *da, struct tm *d)
 			case T_RECENT:
 				set_tm_recent(d);
 				break;
+			case T_THIS_HOUR:
+				set_tm_hour(d);
+				break;
 			case T_BOOT:
 				if (set_tm_boot(d))
 					return -2;
@@ -302,7 +315,7 @@ int ausearch_time_start(const char *da, const char *ti)
 		} else {
 			int keyword=lookup_time(da);
 			if (keyword == T_RECENT || keyword == T_NOW ||
-				keyword == T_BOOT) {
+				keyword == T_THIS_HOUR || keyword == T_BOOT) {
 				if (ti == NULL || strcmp(ti, "00:00:00") == 0)
 					goto set_it;
 			}
@@ -376,7 +389,7 @@ int ausearch_time_end(const char *da, const char *ti)
 		} else {
 			int keyword=lookup_time(da);
 			if (keyword == T_RECENT || keyword == T_NOW ||
-				keyword == T_BOOT) {
+				keyword == T_THIS_HOUR || keyword == T_BOOT) {
 				if (ti == NULL || strcmp(ti, "00:00:00") == 0)
 					goto set_it;
 			}

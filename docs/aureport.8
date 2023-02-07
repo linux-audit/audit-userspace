@@ -1,4 +1,4 @@
-.TH AUREPORT "8" "March 2017" "Red Hat" "System Administration Utilities"
+.TH AUREPORT "8" "February 2023" "Red Hat" "System Administration Utilities"
 .SH NAME
 aureport \- a tool that produces summary reports of audit daemon logs
 .SH SYNOPSIS
@@ -109,7 +109,7 @@ is assumed. If the time is omitted,
 .B now
 is assumed. Use 24 hour clock time rather than AM or PM to specify time. An example date using the en_US.utf8 locale is 09/03/2009. An example of time is 18:00:00. The date format accepted is influenced by the LC_TIME environmental variable.
 
-You may also use the word: \fBnow\fP, \fBrecent\fP, \fBboot\fP, \fBtoday\fP, \fByesterday\fP, \fBthis\-week\fP, \fBweek\-ago\fP, \fBthis\-month\fP, \fBthis\-year\fP. \fBNow\fP means starting now. \fBRecent\fP is 10 minutes ago. \fBBoot\fP means the time of day to the second when the system last booted. \fBToday\fP means now. \fBYesterday\fP is 1 second after midnight the previous day. \fBThis\-week\fP means starting 1 second after midnight on day 0 of the week determined by your locale (see \fBlocaltime\fP). \fBWeek\-ago\fP means 1 second after midnight exactly 7 days ago. \fBThis\-month\fP means 1 second after midnight on day 1 of the month. \fBThis\-year\fP means the 1 second after midnight on the first day of the first month.
+You may also use the word: \fBnow\fP, \fBrecent\fP, \fBthis-hour\fP, \fBboot\fP, \fBtoday\fP, \fByesterday\fP, \fBthis\-week\fP, \fBweek\-ago\fP, \fBthis\-month\fP, \fBthis\-year\fP. \fBNow\fP means starting now. \fBRecent\fP is 10 minutes ago. \fBBoot\fP means the time of day to the second when the system last booted. \fBToday\fP means now. \fBYesterday\fP is 1 second after midnight the previous day. \fBThis\-week\fP means starting 1 second after midnight on day 0 of the week determined by your locale (see \fBlocaltime\fP). \fBWeek\-ago\fP means 1 second after midnight exactly 7 days ago. \fBThis\-month\fP means 1 second after midnight on day 1 of the month. \fBThis\-year\fP means the 1 second after midnight on the first day of the first month.
 .TP
 .BR \-tm ,\  \-\-terminal
 Report about terminals
@@ -121,7 +121,7 @@ is assumed. If the time is omitted,
 .B midnight
 is assumed. Use 24 hour clock time rather than AM or PM to specify time. An example date using the en_US.utf8 locale is 09/03/2009. An example of time is 18:00:00. The date format accepted is influenced by the LC_TIME environmental variable.
 
-You may also use the word: \fBnow\fP, \fBrecent\fP, \fBboot\fP, \fBtoday\fP, \fByesterday\fP, \fBthis\-week\fP, \fBweek\-ago\fP, \fBthis\-month\fP, \fBthis\-year\fP. \fBBoot\fP means the time of day to the second when the system last booted. \fBToday\fP means starting at 1 second after midnight. \fBRecent\fP is 10 minutes ago. \fBYesterday\fP is 1 second after midnight the previous day. \fBThis\-week\fP means starting 1 second after midnight on day 0 of the week determined by your locale (see \fBlocaltime\fP). \fBWeek\-ago\fP means starting 1 second after midnight exactly 7 days ago. \fBThis\-month\fP means 1 second after midnight on day 1 of the month. \fBThis\-year\fP means the 1 second after midnight on the first day of the first month.
+You may also use the word: \fBnow\fP, \fBrecent\fP, \fBthis-hour\fP, \fBboot\fP, \fBtoday\fP, \fByesterday\fP, \fBthis\-week\fP, \fBweek\-ago\fP, \fBthis\-month\fP, \fBthis\-year\fP. \fBBoot\fP means the time of day to the second when the system last booted. \fBToday\fP means starting at 1 second after midnight. \fBRecent\fP is 10 minutes ago. \fBYesterday\fP is 1 second after midnight the previous day. \fBThis\-week\fP means starting 1 second after midnight on day 0 of the week determined by your locale (see \fBlocaltime\fP). \fBWeek\-ago\fP means starting 1 second after midnight exactly 7 days ago. \fBThis\-month\fP means 1 second after midnight on day 1 of the month. \fBThis\-year\fP means the 1 second after midnight on the first day of the first month.
 .TP
 .BR \-u ,\  \-\-user
 Report about users
