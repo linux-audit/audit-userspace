@@ -2408,7 +2408,7 @@ static const char *print_fan_type(const char *val)
 
 static const char *print_fan_info(const char *val)
 {
-	const char *out;
+	char *out;
 	if (last_type == 1) {
 		errno = 0;
 		unsigned long info = strtoul(val, NULL, 16);
