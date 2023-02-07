@@ -4,6 +4,7 @@
 - Make audit_rule_syscallbyname_data work correctly outside of auditctl
 - Add new record types
 - Add io_uring support
+- Add support for new FANOTIFY record fields
 
 3.0.9
 - In auditd, release the async flush lock on stop

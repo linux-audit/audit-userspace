@@ -1,6 +1,6 @@
 /*
 * interpret.c - Lookup values to something more readable
-* Copyright (c) 2007-09,2011-16,2018-21 Red Hat Inc.
+* Copyright (c) 2007-09,2011-16,2018-21,2023 Red Hat Inc.
 * All Rights Reserved.
 *
 * This library is free software; you can redistribute it and/or
@@ -2372,6 +2372,60 @@ static const char *print_openat2_resolve(const char *val)
 	return strdup(buf);
 }
 
+static const char *print_trust(const char *val)
+{
+	const char *out;
+
+	if (strcmp(val, "0") == 0)
+		out = strdup("no");
+	else if (strcmp(val, "1") == 0)
+		out = strdup("yes");
+	else
+		out = strdup("unknown");
+
+	return out;
+}
+
+// fan_type always preceeds fan_info
+static int last_type = 2;
+static const char *print_fan_type(const char *val)
+{
+	const char *out;
+
+	if (strcmp(val, "0") == 0) {
+		out = strdup("none");
+		last_type = 0;
+	} else if (strcmp(val, "1") == 0) {
+		out = strdup("rule_info");
+		last_type = 1;
+	} else {
+		out = strdup("unknown");
+		last_type = 2;
+	}
+
+	return out;
+}
+
+static const char *print_fan_info(const char *val)
+{
+	const char *out;
+	if (last_type == 1) {
+		errno = 0;
+		unsigned long info = strtoul(val, NULL, 16);
+		if (errno) {
+			if (asprintf(&out, "conversion error(%s)", val) < 0)
+				out = NULL;
+			return out;
+		} else {
+			if (asprintf(&out, "%lu", info) < 0)
+				out = NULL;
+			return out;
+		}
+	} else
+		out = strdup(val);
+	return out;
+}
+
 static const char *print_a0(const char *val, const idata *id)
 {
 	char *out;
@@ -3285,6 +3339,15 @@ unknown:
 			break;
 		case AUPARSE_TYPE_RESOLVE:
 			out = print_openat2_resolve(id->val);
+			break;
+		case AUPARSE_TYPE_TRUST:
+			out = print_trust(id->val);
+			break;
+		case AUPARSE_TYPE_FAN_TYPE:
+			out = print_fan_type(id->val);
+			break;
+		case AUPARSE_TYPE_FAN_INFO:
+			out = print_fan_info(id->val);
 			break;
 		case AUPARSE_TYPE_MAC_LABEL:
 		case AUPARSE_TYPE_UNCLASSIFIED:

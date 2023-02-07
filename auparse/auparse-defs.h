@@ -1,5 +1,5 @@
 /* auparse-defs.h --
- * Copyright 2006-07,09,2011-12,2014-17 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2006-07,09,2011-12,2014-17,2023 Red Hat Inc.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -88,7 +88,8 @@ typedef enum {  AUPARSE_TYPE_UNCLASSIFIED,  AUPARSE_TYPE_UID, AUPARSE_TYPE_GID,
 	AUPARSE_TYPE_NETACTION, AUPARSE_TYPE_MACPROTO,
 	AUPARSE_TYPE_IOCTL_REQ, AUPARSE_TYPE_ESCAPED_KEY,
 	AUPARSE_TYPE_ESCAPED_FILE, AUPARSE_TYPE_FANOTIFY,
-	AUPARSE_TYPE_NLMCGRP, AUPARSE_TYPE_RESOLVE
+	AUPARSE_TYPE_NLMCGRP, AUPARSE_TYPE_RESOLVE, AUPARSE_TYPE_TRUST,
+	AUPARSE_TYPE_FAN_TYPE, AUPARSE_TYPE_FAN_INFO
 } auparse_type_t;
 
 /* This type determines what escaping if any gets applied to interpreted fields */
