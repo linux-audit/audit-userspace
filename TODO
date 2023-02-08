@@ -13,7 +13,6 @@ Future roadmap (subject to change):
 * Support TLS PSK as remote logging transport
 * Add rule verify to detect mismatch between in-kernel and on-disk rules
 * audisp-remote, add config to say what home network is so laptops don't try if their not on a network that can reach the server.
-* Fix audit.pc.in to use Requires.private
 * Change ausearch to output name="" unless its a real null. (mount) ausearch-report.c, 523. FIXME
 * Fix SIGHUP for auditd network settings
 * Add ability to filter events in auditd

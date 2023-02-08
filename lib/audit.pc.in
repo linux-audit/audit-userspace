@@ -9,3 +9,4 @@ Version: @VERSION@
 Libs: -L${libdir} -laudit
 Libs.private: @CAPNG_LDADD@
 Cflags: -I${includedir}
+Requires.private: @CAPNG_PKG@
