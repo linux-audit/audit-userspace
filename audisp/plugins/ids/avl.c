@@ -28,8 +28,8 @@
 
 /* Search |tree| for an item matching |item|, and return it if found.
      Otherwise return |NULL|. */
-avl *avl_search(avl_tree *tree, avl *item) {
-    avl *p;
+avl_t *avl_search(const avl_tree_t *tree, avl_t *item) {
+    avl_t *p;
 
     // assert (tree != NULL && item != NULL);
 
@@ -51,11 +51,11 @@ avl *avl_search(avl_tree *tree, avl *item) {
      If a duplicate item is found in the tree,
      returns a pointer to the duplicate without inserting |item|.
  */
-avl *avl_insert(avl_tree *tree, avl *item) {
-    avl *y, *z; /* Top node to update balance factor, and parent. */
-    avl *p, *q; /* Iterator, and parent. */
-    avl *n;     /* Newly inserted node. */
-    avl *w;     /* New root of rebalanced subtree. */
+avl_t *avl_insert(avl_tree_t *tree, avl_t *item) {
+    avl_t *y, *z; /* Top node to update balance factor, and parent. */
+    avl_t *p, *q; /* Iterator, and parent. */
+    avl_t *n;     /* Newly inserted node. */
+    avl_t *w;     /* New root of rebalanced subtree. */
     unsigned char dir; /* Direction to descend. */
 
     unsigned char da[AVL_MAX_HEIGHT]; /* Cached comparison results. */
@@ -63,7 +63,7 @@ avl *avl_insert(avl_tree *tree, avl *item) {
 
     // assert(tree != NULL && item != NULL);
 
-    z = (avl *) &tree->root;
+    z = (avl_t *) &tree->root;
     y = tree->root;
     dir = 0;
     for (q = z, p = y; p != NULL; q = p, p = p->avl_link[dir]) {
@@ -90,7 +90,7 @@ avl *avl_insert(avl_tree *tree, avl *item) {
             p->avl_balance++;
 
     if (y->avl_balance == -2) {
-        avl *x = y->avl_link[0];
+        avl_t *x = y->avl_link[0];
         if (x->avl_balance == -1) {
             w = x;
             y->avl_link[0] = x->avl_link[1];
@@ -114,7 +114,7 @@ avl *avl_insert(avl_tree *tree, avl *item) {
         }
     }
     else if (y->avl_balance == +2) {
-        avl *x = y->avl_link[1];
+        avl_t *x = y->avl_link[1];
         if (x->avl_balance == +1) {
             w = x;
             y->avl_link[1] = x->avl_link[0];
@@ -147,19 +147,19 @@ avl *avl_insert(avl_tree *tree, avl *item) {
 
 /* Deletes from |tree| and returns an item matching |item|.
      Returns a null pointer if no matching item found. */
-avl *avl_remove(avl_tree *tree, avl *item) {
+avl_t *avl_remove(avl_tree_t *tree, avl_t *item) {
     /* Stack of nodes. */
-    avl *pa[AVL_MAX_HEIGHT]; /* Nodes. */
+    avl_t *pa[AVL_MAX_HEIGHT]; /* Nodes. */
     unsigned char da[AVL_MAX_HEIGHT];    /* |avl_link[]| indexes. */
     int k;                               /* Stack pointer. */
 
-    avl *p;   /* Traverses tree to find node to delete. */
+    avl_t *p;   /* Traverses tree to find node to delete. */
     int cmp;              /* Result of comparison between |item| and |p|. */
 
     // assert (tree != NULL && item != NULL);
 
     k = 0;
-    p = (avl *) &tree->root;
+    p = (avl_t *) &tree->root;
     for(cmp = -1; cmp != 0; cmp = tree->compar(item, p)) {
         unsigned char dir = (unsigned char)(cmp > 0);
 
@@ -175,7 +175,7 @@ avl *avl_remove(avl_tree *tree, avl *item) {
     if (p->avl_link[1] == NULL)
         pa[k - 1]->avl_link[da[k - 1]] = p->avl_link[0];
     else {
-        avl *r = p->avl_link[1];
+        avl_t *r = p->avl_link[1];
         if (r->avl_link[0] == NULL) {
             r->avl_link[0] = p->avl_link[0];
             r->avl_balance = p->avl_balance;
@@ -184,7 +184,7 @@ avl *avl_remove(avl_tree *tree, avl *item) {
             pa[k++] = r;
         }
         else {
-            avl *s;
+            avl_t *s;
             int j = k++;
 
             for (;;) {
@@ -209,15 +209,15 @@ avl *avl_remove(avl_tree *tree, avl *item) {
 
     // assert (k > 0);
     while (--k > 0) {
-        avl *y = pa[k];
+        avl_t *y = pa[k];
 
         if (da[k] == 0) {
             y->avl_balance++;
             if (y->avl_balance == +1) break;
             else if (y->avl_balance == +2) {
-                avl *x = y->avl_link[1];
+                avl_t *x = y->avl_link[1];
                 if (x->avl_balance == -1) {
-                    avl *w;
+                    avl_t *w;
                     // assert (x->avl_balance == -1);
                     w = x->avl_link[0];
                     x->avl_link[0] = w->avl_link[1];
@@ -251,9 +251,9 @@ avl *avl_remove(avl_tree *tree, avl *item) {
             y->avl_balance--;
             if (y->avl_balance == -1) break;
             else if (y->avl_balance == -2) {
-                avl *x = y->avl_link[0];
+                avl_t *x = y->avl_link[0];
                 if (x->avl_balance == +1) {
-                    avl *w;
+                    avl_t *w;
                     // assert (x->avl_balance == +1);
                     w = x->avl_link[1];
                     x->avl_link[1] = w->avl_link[0];
@@ -295,7 +295,7 @@ avl *avl_remove(avl_tree *tree, avl *item) {
 // ---------------------------
 // traversing
 
-int avl_walker(avl *node, int (*callback)(void *entry, void *data), void *data) {
+int avl_walker(avl_t *node, int (*callback)(void *entry, void *data), void *data) {
     int total = 0, ret = 0;
 
     if(node->avl_link[0]) {
@@ -317,7 +317,7 @@ int avl_walker(avl *node, int (*callback)(void *entry, void *data), void *data) 
     return total;
 }
 
-int avl_traverse(avl_tree *t, int (*callback)(void *entry, void *data),
+int avl_traverse(const avl_tree_t *t, int (*callback)(void *entry, void *data),
                  void *data) {
     if(t->root)
         return avl_walker(t->root, callback, data);
@@ -325,7 +325,7 @@ int avl_traverse(avl_tree *t, int (*callback)(void *entry, void *data),
         return 0;
 }
 
-void avl_init(avl_tree *t, int (*compar)(void *a, void *b)) {
+void avl_init(avl_tree_t *t, int (*compar)(void *a, void *b)) {
     t->root = NULL;
     t->compar = compar;
 }
@@ -335,7 +335,7 @@ void avl_init(avl_tree *t, int (*compar)(void *a, void *b)) {
 
 // ---------------------------
 
-avl *avl_first(avl_iterator *i, avl_tree *t)
+avl_t *avl_first(avl_iterator *i, avl_tree_t *t)
 {
 	if (t->root == NULL || i == NULL)
 		return NULL;
@@ -344,7 +344,7 @@ avl *avl_first(avl_iterator *i, avl_tree *t)
 	i->height = 0;
 
 	// follow the leftmost node to its bottom
-	avl *node = t->root;
+	avl_t *node = t->root;
 	while (node->avl_link[0]) {
 		i->stack[i->height] = node;
 		i->height++;
@@ -355,12 +355,12 @@ avl *avl_first(avl_iterator *i, avl_tree *t)
 	return node;
 }
 
-avl *avl_next(avl_iterator *i)
+avl_t *avl_next(avl_iterator *i)
 {
 	if (i == NULL || i->tree == NULL)
 		return NULL;
 
-	avl *node = i->current;
+	avl_t *node = i->current;
 	if (node == NULL)
 		return avl_first(i, i->tree);
 	else if (node->avl_link[1]) {
@@ -374,7 +374,7 @@ avl *avl_next(avl_iterator *i)
 			node = node->avl_link[0];
 		}
 	} else {
-		avl *tmp;
+		avl_t *tmp;
 
 		do {
 			if (i->height == 0) {
@@ -392,7 +392,7 @@ avl *avl_next(avl_iterator *i)
 	return node;
 }
 
-static int avl_walker2(avl *node, avl_tree *haystack) {
+static int avl_walker2(avl_t *node, avl_tree_t *haystack) {
     int ret;
 
     // If the lefthand has a link, take it so that we walk to the
@@ -403,7 +403,7 @@ static int avl_walker2(avl *node, avl_tree *haystack) {
     }
 
     // Next, check the current node
-    avl *res = avl_search(haystack, node);
+    avl_t *res = avl_search(haystack, node);
     if (res) return 1;
 
     // If the righthand has a link, take it so that we check all the
@@ -417,7 +417,7 @@ static int avl_walker2(avl *node, avl_tree *haystack) {
     return 0;
 }
 
-int avl_intersection(avl_tree *needle, avl_tree *haystack)
+int avl_intersection(const avl_tree_t *needle, avl_tree_t *haystack)
 {
 	// traverse the needle and search the haystack
 	// this implies that needle should be smaller than haystack

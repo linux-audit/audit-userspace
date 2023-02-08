@@ -13,7 +13,7 @@
 #include "ids_config.h"
 
 typedef struct origin_data {
-	avl avl;	// This has to be first
+	avl_t avl;	// This has to be first
 
 	unsigned int address; // This hack works for IPv4
 	unsigned int karma;

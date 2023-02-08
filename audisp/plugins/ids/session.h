@@ -14,7 +14,7 @@
 #include "ids_config.h"
 
 typedef struct session_data {
-	avl avl;	// This has to be first
+	avl_t avl;	// This has to be first
 
 	unsigned int session;
 	unsigned int score;

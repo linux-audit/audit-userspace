@@ -12,7 +12,7 @@
 #include "avl.h"
 
 typedef struct account_data {
-	avl avl;	// This has to be first
+	avl_t avl;	// This has to be first
 
 	const char *name;
 	unsigned int karma;

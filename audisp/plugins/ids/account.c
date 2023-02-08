@@ -15,7 +15,7 @@
 
 // This holds info about all sessions
 struct account_avl{
-	avl_tree index;
+	avl_tree_t index;
 	unsigned int count;
 };
 
@@ -70,10 +70,10 @@ static void free_account(account_data_t *a)
 
 static void destroy_account(void)
 {
-	avl *cur = accounts.index.root;
+	avl_t *cur = accounts.index.root;
 
 	account_data_t *a = (account_data_t *)avl_remove(&accounts.index, cur);
-	if ((avl *)a != cur)
+	if ((avl_t *)a != cur)
 		my_printf("account: removal of invalid node");
 
 	// Now free any data pointed to by cur
@@ -106,7 +106,7 @@ int add_account(account_data_t *a)
 		my_printf("Adding account %s", a->name);
 
 	cur = NULL;
-	tmp = (account_data_t *)avl_insert(&accounts.index, (avl *)(a));
+	tmp = (account_data_t *)avl_insert(&accounts.index, (avl_t *)(a));
 	if (tmp) {
 		if (tmp != a) {
 			if (debug)
@@ -129,7 +129,7 @@ account_data_t *find_account(const char *name)
 		return NULL;
 
 	tmp.name = name;
-	cur = (account_data_t *)avl_search(&accounts.index, (avl *) &tmp);
+	cur = (account_data_t *)avl_search(&accounts.index, (avl_t *) &tmp);
 	return cur;
 }
 
@@ -146,7 +146,7 @@ int del_account(const char *name)
 	if (debug)
 		my_printf("Deleting %s", name);
 	cur = NULL;
-	tmp2 = (account_data_t *)avl_remove(&accounts.index, (avl *) &tmp1);
+	tmp2 = (account_data_t *)avl_remove(&accounts.index, (avl_t *) &tmp1);
 	if (tmp2) {
 		accounts.count--;
 		if (strcmp(tmp2->name, name) != 0) {

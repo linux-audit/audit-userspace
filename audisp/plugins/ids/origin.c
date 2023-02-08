@@ -13,7 +13,7 @@
 
 // This holds info about all sessions
 struct origin_avl{
-	avl_tree index;
+	avl_tree_t index;
 	unsigned int count;
 };
 
@@ -79,10 +79,10 @@ void new_origin(unsigned int a)
 
 static void destroy_origin(void)
 {
-	avl *cur = origins.index.root;
+	avl_t *cur = origins.index.root;
 
 	origin_data_t *o = (origin_data_t *)avl_remove(&origins.index, cur);
-	if ((avl *)o != cur)
+	if ((avl_t *)o != cur)
 		my_printf("origin: removal of invalid node");
 
 	// Now free any data pointed to by cur
@@ -105,7 +105,7 @@ int add_origin(origin_data_t *o)
 		my_printf("Adding origin %u", o->address);
 
 	cur = NULL;
-	tmp = (origin_data_t *)avl_insert(&origins.index, (avl *)(o));
+	tmp = (origin_data_t *)avl_insert(&origins.index, (avl_t *)(o));
 	if (tmp) {
 		if (tmp != o) {
 			if (debug)
@@ -125,7 +125,7 @@ origin_data_t *find_origin(unsigned int addr)
 	origin_data_t tmp;
 
 	tmp.address = addr;
-	cur = (origin_data_t *)avl_search(&origins.index, (avl *) &tmp);
+	cur = (origin_data_t *)avl_search(&origins.index, (avl_t *) &tmp);
 	return cur;
 }
 
@@ -142,7 +142,7 @@ int del_origin(unsigned int addr)
 	if (debug)
 		my_printf("Deleting %u", addr);
 	cur = NULL;
-	tmp2 = (origin_data_t *)avl_remove(&origins.index, (avl *) &tmp1);
+	tmp2 = (origin_data_t *)avl_remove(&origins.index, (avl_t *) &tmp1);
 	if (tmp2) {
 		origins.count--;
 		if (tmp2->address != addr) {

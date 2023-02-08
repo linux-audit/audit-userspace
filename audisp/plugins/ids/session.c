@@ -17,7 +17,7 @@
 
 // This holds info about all sessions
 struct session_avl{
-	avl_tree index;
+	avl_tree_t index;
 	unsigned int count;
 };
 
@@ -76,10 +76,10 @@ static void free_session(session_data_t *s)
 
 static void destroy_session(void)
 {
-	avl *cur = sessions.index.root;
+	avl_t *cur = sessions.index.root;
 
 	session_data_t *tmp =(session_data_t *)avl_remove(&sessions.index, cur);
-	if ((avl *)tmp != cur)
+	if ((avl_t *)tmp != cur)
 		my_printf("session: removal of invalid node");
 	free_session(tmp);
 	cur = NULL;
@@ -113,7 +113,7 @@ int add_session(session_data_t *s)
 		my_printf("Adding session %u, %p", s->session, s);
 
 	cur = NULL;
-	tmp = (session_data_t *)avl_insert(&sessions.index, (avl *)(s));
+	tmp = (session_data_t *)avl_insert(&sessions.index, (avl_t *)(s));
 	if (tmp) {
 		if (tmp != s) {
 			if (debug)
@@ -144,7 +144,7 @@ session_data_t *find_session(unsigned int s)
 	session_data_t tmp;
 
 	tmp.session = s;
-	cur = (session_data_t *)avl_search(&sessions.index, (avl *) &tmp);
+	cur = (session_data_t *)avl_search(&sessions.index, (avl_t *) &tmp);
 	return cur;
 }
 
@@ -161,7 +161,7 @@ int del_session(unsigned int s)
 	if (debug)
 		my_printf("Deleting %u", s);
 	cur = NULL;
-	tmp2 = (session_data_t *)avl_remove(&sessions.index, (avl *) &tmp1);
+	tmp2 = (session_data_t *)avl_remove(&sessions.index, (avl_t *) &tmp1);
 	if (tmp2) {
 		sessions.count--;
 		if (tmp2->session != s) {
