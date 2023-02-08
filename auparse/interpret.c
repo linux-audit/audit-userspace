@@ -1490,15 +1490,15 @@ static const char *print_success(const char *val)
 		return strdup(val);
 }
 
-static const char *print_open_flags(const char *val)
+static const char *print_open_flags(const char *val, int base)
 {
 	size_t i;
-	unsigned int flags;
+	unsigned long flags;
 	int cnt = 0;
 	char *out, buf[sizeof(open_flag_strings)+OPEN_FLAG_NUM_ENTRIES+1];
 
 	errno = 0;
-	flags = strtoul(val, NULL, 16);
+	flags = strtoul(val, NULL, base);
         if (errno) {
 		if (asprintf(&out, "conversion error(%s)", val) < 0)
 			out = NULL;
@@ -2558,10 +2558,10 @@ static const char *print_a1(const char *val, const idata *id)
 			else if (strcmp(sys, "mknod") == 0)
 				return print_mode(val, 16);
 			else if (strcmp(sys, "mq_open") == 0)
-				return print_open_flags(val);
+				return print_open_flags(val, 16);
 		}
 		else if (strcmp(sys, "open") == 0)
-			return print_open_flags(val);
+			return print_open_flags(val, 16);
 		else if (strcmp(sys, "access") == 0)
 			return print_access(val);
 		else if (strcmp(sys, "epoll_ctl") == 0)
@@ -2635,11 +2635,11 @@ static const char *print_a2(const char *val, const idata *id)
 				goto normal;
 		} else if (*sys == 'o') {
 			if (strcmp(sys, "openat") == 0)
-				return print_open_flags(val);
+				return print_open_flags(val, 16);
 			if ((strcmp(sys, "open") == 0) && (id->a1 & O_CREAT))
 				return print_mode_short(val, 16);
 			if (strcmp(sys, "open_by_handle_at") == 0)
-			    return print_open_flags(val);
+			    return print_open_flags(val, 16);
 		} else if (*sys == 'f') {
 			if (strcmp(sys, "fchmodat") == 0)
 				return print_mode_short(val, 16);
@@ -3310,8 +3310,8 @@ unknown:
 		case AUPARSE_TYPE_SECCOMP:
 			out = print_seccomp_code(id->val);
 			break;
-		case AUPARSE_TYPE_OFLAG:
-			out = print_open_flags(id->val);
+		case AUPARSE_TYPE_OFLAG: // AUDIT_OPENAT2,MQ_OPEN
+			out = print_open_flags(id->val, 0);
 			break;
 		case AUPARSE_TYPE_MMAP:
 			out = print_mmap(id->val);
