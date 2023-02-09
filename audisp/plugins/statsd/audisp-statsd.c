@@ -351,6 +351,10 @@ int main(void)
 
 	// Initialize interval timer
 	timer_fd = timerfd_create (CLOCK_MONOTONIC, 0);
+	if (timer_fd < 0) {
+		syslog(LOG_ERR, "unable to open a timerfd");
+		return 1;
+	}
 	pfd[1].fd = timer_fd;
 	pfd[1].events = POLLIN;
 	itval.it_interval.tv_sec = d.interval;
