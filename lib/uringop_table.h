@@ -22,6 +22,7 @@
 
 /*
  *  From /usr/include/linux/io_uring.h
+ *  kernel location here: io_uring/opdef.c
  *
  *  Note: not all ops are auditable for performance reasons. This was
  *  discussed on the linux-audit mail list:
