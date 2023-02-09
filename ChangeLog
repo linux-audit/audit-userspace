@@ -1,4 +1,4 @@
-3.0.10
+3.1
 - Disable ProtectControlGroups in auditd.service by default
 - Fix rule checking for exclude filter
 - Make audit_rule_syscallbyname_data work correctly outside of auditctl
