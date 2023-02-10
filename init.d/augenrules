@@ -84,6 +84,7 @@ BEGIN   {
         minus_b = "";
         rest = 0;
 } {
+        sub(/\r$/, "");
         if (length($0) < 1) { next; }
         if (match($0, "^\\s*#")) { next; }
         if (match($0, "^\\s*-e")) { minus_e = $0; next; }
