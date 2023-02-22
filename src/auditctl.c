@@ -1,5 +1,5 @@
-/* auditctl.c -- 
- * Copyright 2004-2017,2020 Red Hat Inc.
+/* auditctl.c --
+ * Copyright 2004-2017,202-3 Red Hat Inc.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -413,15 +413,20 @@ static int send_signal(const char *optarg)
 	FD_ZERO(&read_mask);
 	FD_SET(fd, &read_mask);
 
-	if (strcasecmp(optarg, "TERM") == 0)
+	if (strcasecmp(optarg, "TERM") == 0 ||
+	    strcasecmp(optarg, "stop") == 0)
 		signal = SIGTERM;
-	else if (strcasecmp(optarg, "HUP") == 0)
+	else if (strcasecmp(optarg, "HUP") == 0 ||
+		 strcasecmp(optarg, "reload") == 0)
 		signal = SIGHUP;
-	else if (strcasecmp(optarg, "USR1") == 0)
+	else if (strcasecmp(optarg, "USR1") == 0 ||
+		 strcasecmp(optarg, "rotate") == 0)
 		signal = SIGUSR1;
-	else if (strcasecmp(optarg, "USR2") == 0)
+	else if (strcasecmp(optarg, "USR2") == 0 ||
+		 strcasecmp(optarg, "resume") == 0)
 		signal = SIGUSR2;
-	else if (strcasecmp(optarg, "CONT") == 0)
+	else if (strcasecmp(optarg, "CONT") == 0 ||
+		 strcasecmp(optarg, "state") == 0)
 		signal = SIGCONT;
 
 	if (signal == 0) {

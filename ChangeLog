@@ -1,4 +1,5 @@
 3.1.1
+- Add user friendly keywords for signals to auditctl
 
 3.1
 - Disable ProtectControlGroups in auditd.service by default
