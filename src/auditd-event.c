@@ -1107,9 +1107,11 @@ static void rotate_logs(unsigned int num_logs, unsigned int keep_logs)
 			"rotating log file (%s)", strerror(errno));
 		}
 	}
-	if (log_file)
+	if (log_file) {
+		log_fd = -1;
 		fclose(log_file);
-	log_file = NULL;
+		log_file = NULL;
+	}
 
 	/* Rotate */
 	len = strlen(config->log_file) + 16;
