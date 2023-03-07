@@ -92,6 +92,7 @@ int extract_search_items(llist *l)
 		do {
 			switch (n->type) {
 			case AUDIT_SYSCALL:
+			case AUDIT_URINGOP:
 				ret = parse_syscall(n, s);
 				break;
 			case AUDIT_CWD:
@@ -147,6 +148,7 @@ int extract_search_items(llist *l)
 				break;
 			case AUDIT_FEATURE_CHANGE:
 			case AUDIT_ANOM_LINK:
+			case AUDIT_DM_CTRL:
 				ret = parse_task_info(n, s);
 				break;
 			case AUDIT_SECCOMP:
@@ -176,6 +178,7 @@ int extract_search_items(llist *l)
 			case AUDIT_PROCTITLE:
 			case AUDIT_REPLACE...AUDIT_BPF:
 			case AUDIT_OPENAT2:
+			case AUDIT_DM_EVENT:
 				// Nothing to parse
 				break;
 			case AUDIT_NETFILTER_CFG:
@@ -508,7 +511,8 @@ static int parse_syscall(lnode *n, search_items *s)
 	int ret;
 
 	term = n->message;
-	if (report_format > RPT_DEFAULT || event_machine != -1) {
+	if ((report_format > RPT_DEFAULT || event_machine != -1) &&
+	    n->type == AUDIT_SYSCALL) {
 		// get arch
 		str = strstr(term, "arch=");
 		if (str == NULL) 
@@ -525,7 +529,13 @@ static int parse_syscall(lnode *n, search_items *s)
 		*term = ' ';
 	} 
 	// get syscall
-	str = strstr(term, "syscall=");
+	if (n->type == AUDIT_SYSCALL)
+		str = strstr(term, "syscall=");
+	else if (n->type == AUDIT_URINGOP) { // or uring_op
+		str = strstr(term, "uring_op=");
+		s->arch = MACH_IO_URING;
+	} else
+		str = NULL; // unimplemented type
 	if (str == NULL)
 		return 4;
 	ptr = str + 8;
@@ -571,36 +581,38 @@ static int parse_syscall(lnode *n, search_items *s)
 		s->exit_is_set = 1;
 		*term = ' ';
 	}
-	// get a0
-	str = strstr(term, "a0=");
-	if (str == NULL)
-		return 11;
-	ptr = str + 3;
-	term = strchr(ptr, ' ');
-	if (term == NULL)
-		return 12;
-	*term = 0;
-	errno = 0;
-	// 64 bit dump on 32 bit machine looks bad here - need long long
-	n->a0 = strtoull(ptr, NULL, 16); // Hex
-	if (errno)
-		return 13;
-	*term = ' ';
-	// get a1
-	str = strstr(term, "a1=");
-	if (str == NULL)
-		return 11;
-	ptr = str + 3;
-	term = strchr(ptr, ' ');
-	if (term == NULL)
-		return 12;
-	*term = 0;
-	errno = 0;
-	// 64 bit dump on 32 bit machine looks bad here - need long long
-	n->a1 = strtoull(ptr, NULL, 16); // Hex
-	if (errno)
-		return 13;
-	*term = ' ';
+	if (n->type == AUDIT_SYSCALL) {
+		// get a0
+		str = strstr(term, "a0=");
+		if (str == NULL)
+			return 11;
+		ptr = str + 3;
+		term = strchr(ptr, ' ');
+		if (term == NULL)
+			return 12;
+		*term = 0;
+		errno = 0;
+		// 64 bit dump on 32 bit machine looks bad here - need long long
+		n->a0 = strtoull(ptr, NULL, 16); // Hex
+		if (errno)
+			return 13;
+		*term = ' ';
+		// get a1
+		str = strstr(term, "a1=");
+		if (str == NULL)
+			return 11;
+		ptr = str + 3;
+		term = strchr(ptr, ' ');
+		if (term == NULL)
+			return 12;
+		*term = 0;
+		errno = 0;
+		// 64 bit dump on 32 bit machine looks bad here - need long long
+		n->a1 = strtoull(ptr, NULL, 16); // Hex
+		if (errno)
+			return 13;
+		*term = ' ';
+	}
 
 	ret = parse_task_info(n, s);
 	if (ret)
