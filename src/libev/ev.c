@@ -215,6 +215,7 @@
 #include <limits.h>
 
 #include <signal.h>
+#include <pthread.h>
 
 #ifdef EV_H
 # include EV_H
@@ -2392,6 +2393,7 @@ ev_feed_fd_event (EV_P_ int fd, int revents) EV_NOEXCEPT
 
 /* make sure the external fd watch events are in-sync */
 /* with the kernel/libev internal state */
+static pthread_mutex_t g_fdchange_mtx = PTHREAD_MUTEX_INITIALIZER;
 inline_size void
 fd_reify (EV_P)
 {
@@ -2464,10 +2466,12 @@ fd_reify (EV_P)
    * this is a rare case (see beginning comment in this function), so we copy them to the
    * front and hope the backend handles this case.
    */
+  (void)pthread_mutex_lock(&g_fdchange_mtx);
   if (ecb_expect_false (fdchangecnt != changecnt))
     memmove (fdchanges, fdchanges + changecnt, (fdchangecnt - changecnt) * sizeof (*fdchanges));
 
   fdchangecnt -= changecnt;
+  (void)pthread_mutex_unlock(&g_fdchange_mtx);
 }
 
 /* something about the given fd changed */
@@ -2480,9 +2484,11 @@ fd_change (EV_P_ int fd, int flags)
 
   if (ecb_expect_true (!reify))
     {
+      (void)pthread_mutex_lock(&g_fdchange_mtx);
+      array_needsize (int, fdchanges, fdchangemax, fdchangecnt + 1, array_needsize_noinit);
+      fdchanges [fdchangecnt] = fd;
       ++fdchangecnt;
-      array_needsize (int, fdchanges, fdchangemax, fdchangecnt, array_needsize_noinit);
-      fdchanges [fdchangecnt - 1] = fd;
+      (void)pthread_mutex_unlock(&g_fdchange_mtx);
     }
 }
 
