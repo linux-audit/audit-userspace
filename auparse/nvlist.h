@@ -56,6 +56,7 @@ void nvlist_interp_fixup(nvlist *l);
 nvnode *nvlist_goto_rec(nvlist *l, unsigned int i);
 /* Given a name, find that record */
 int nvlist_find_name(nvlist *l, const char *name);
+int nvlist_find_name_ex(nvlist *l, const char *name, const char *val);
 
 AUDIT_HIDDEN_END
 

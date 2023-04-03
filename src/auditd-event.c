@@ -333,6 +333,7 @@ static int add_simple_field(auparse_state_t *au, size_t len_left, int encode)
 	size_t nlen, vlen, tlen;
 	unsigned int i;
 	int num;
+	int field_type = AUPARSE_TYPE_UNCLASSIFIED;
 
 	// prepare field name
 	i = 0;
@@ -344,6 +345,22 @@ static int add_simple_field(auparse_state_t *au, size_t len_left, int encode)
 	}
 	field_name[i] = 0;
 	nlen = i;
+
+	// get field type for event and add context for interpreted value
+	field_type = auparse_get_field_type(au);
+	if (field_type == AUPARSE_TYPE_UID ||
+		field_type == AUPARSE_TYPE_GID) {
+		char *val = auparse_get_field_str(au);
+
+		i = nlen;
+		while (*val && i < (NAME_SIZE - 1)) {
+			field_name[i] = *val;
+			i++;
+			val++;
+		}
+		field_name[i] = 0;
+		nlen = i;
+	}
 
 	// get the translated value
 	value = auparse_interpret_field(au);

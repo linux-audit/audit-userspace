@@ -3197,8 +3197,17 @@ char *auparse_do_interpretation(int type, const idata *id,
 
 	// Check the interpretations list first
 	if (interpretation_list_cnt()) {
+		int found = 0;
+
 		nvlist_first(&il);
-		if (nvlist_find_name(&il, id->name)) {
+		if (type == AUPARSE_TYPE_UID ||
+			type == AUPARSE_TYPE_GID) {
+			found = nvlist_find_name_ex(&il, id->name, id->val);
+		} else {
+			found = nvlist_find_name(&il, id->name);
+		}
+
+		if (found) {
 			nvnode* node = &il.array[il.cur];
 			const char *val = node->interp_val;
 

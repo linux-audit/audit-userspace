@@ -24,6 +24,7 @@
 #include "config.h"
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 #include "nvlist.h"
 #include "interpret.h"
 #include "auparse-idata.h"
@@ -122,6 +123,19 @@ int nvlist_find_name(nvlist *l, const char *name)
 	} while (i < l->cnt);
 	return 0;
 }
+
+/*
+ * Like above, but use original value for key to search
+ */
+#define NAME_SIZE 64
+int nvlist_find_name_ex(nvlist *l, const char *name, const char *val)
+{
+	char key[NAME_SIZE] = { 0 };
+
+	snprintf(key, NAME_SIZE, "%s%s", name, val);
+	return nvlist_find_name(l, key);
+}
+
 
 extern int interp_adjust_type(int rtype, const char *name, const char *val);
 int nvlist_get_cur_type(rnode *r)
