@@ -156,10 +156,11 @@ static inline void write_syslog(char *s)
 
 		// Now iterate over the fields and print each one
 		mptr = record;
-		while (rc > 0) {
+		while (rc > 0 &&
+		       ((mptr-record) < (MAX_AUDIT_MESSAGE_LENGTH-128))) {
 			int ftype = auparse_get_field_type(au);
 			const char *fname = auparse_get_field_name(au);
-			const char *fval; 
+			const char *fval;
 			switch (ftype) {
 				case AUPARSE_TYPE_ESCAPED_FILE:
 					fval = auparse_interpret_realpath(au);
