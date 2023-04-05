@@ -939,23 +939,29 @@ static const char *print_escaped_ext(const idata *id)
 	if (id->cwd) {
 		char *str1 = NULL, *str2, *str3 = NULL, *out = NULL;
 		str2 = print_escaped(id->val);
+
 		if (!str2)
 			goto err_out;
 		if (*str2 != '/') {
+			// Glue the cwd and path together
 			str1 = print_escaped(id->cwd);
 			if (!str1)
 				goto err_out;
 			if (asprintf(&str3, "%s/%s", str1, str2) < 0)
 				goto err_out;
 		} else {
-			// Check in case /home/../etc/passwd
-			if (strstr(str2, "..") == NULL)
-				return str2;
-
+			// Normal looking string
 			str3 = str2;
 			str2 = NULL;
-			str1 = NULL;
 		}
+
+		// Check in case /home/../etc/passwd
+		if (strstr(str3, "..") == NULL) {
+			free(str1);
+			free(str2);
+			return str3; // Nope, just return the string
+		}
+
 		out = path_norm(str3);
 		if (!out) { // If there's an error, just return the original
 			free(str1);
