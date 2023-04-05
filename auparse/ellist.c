@@ -284,7 +284,8 @@ static int parse_up_record(rnode* r)
 				if (errno)
 					r->a1 = -1LL;
 			} else if (r->type == AUDIT_CWD) {
-				if (strcmp(n.name, "cwd") == 0)
+				// most common fuzzing hit: duplicate cwds
+				if (strcmp(n.name, "cwd") == 0 && !r->cwd)
 					r->cwd = strdup(n.val);
 			}
 		} else if (r->type == AUDIT_AVC || r->type == AUDIT_USER_AVC) {
