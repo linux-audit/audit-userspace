@@ -1176,7 +1176,8 @@ skip:
 			saved = *term;
 			*term = 0;
 			ptr++;
-			s->acct = strdup(ptr);
+			if (!s->acct) //fuzzer induced duplicate
+				s->acct = strdup(ptr);
 			*term = saved;
 		} else { 
 			/* Handle legacy accts */
