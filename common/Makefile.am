@@ -1,5 +1,5 @@
 # Makefile.am-- 
-# Copyright 2018 Red Hat Inc., Durham, North Carolina.
+# Copyright 2018-2023 Red Hat Inc.
 # All Rights Reserved.
 #
 # This program is free software; you can redistribute it and/or modify
@@ -22,7 +22,8 @@
 #
 
 CONFIG_CLEAN_FILES = *.rej *.orig
-AM_CPPFLAGS = -D_GNU_SOURCE -fPIC -DPIC -I${top_srcdir} -I${top_srcdir}/lib
+AM_CFLAGS = -fPIC -DPIC -D_GNU_SOURCE -g
+AM_CPPFLAGS = -I${top_srcdir} -I${top_srcdir}/lib
 
 noinst_HEADERS = common.h
 libaucommon_la_DEPENDENCIES = ../config.h
