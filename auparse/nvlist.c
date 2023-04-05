@@ -158,9 +158,6 @@ void nvlist_clear(nvlist *l, int free_interp)
 	unsigned int i = 0;
 	register nvnode *current;
 
-	if (l->cnt == 0)
-		return;
-
 	while (i < l->cnt) {
 		current = &l->array[i];
 		if (free_interp) {

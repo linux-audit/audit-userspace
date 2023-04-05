@@ -122,6 +122,7 @@ static int parse_up_record(rnode* r)
 	memcpy(r->nv.record, r->record, len);
 	r->nv.end = r->nv.record + len;
 	ptr = audit_strsplit_r(buf, &saved);
+	// If no fields we have fuzzer induced problems, leave
 	if (ptr == NULL) {
 		free(buf);
 		r->nv.record = NULL;
@@ -130,6 +131,7 @@ static int parse_up_record(rnode* r)
 
 	do {	// If there's an '=' sign, its a keeper
 		nvnode n;
+
 		char *val = strchr(ptr, '=');
 		if (val) {
 			int len;
@@ -332,6 +334,7 @@ static int parse_up_record(rnode* r)
 				}
 			} else
 				continue;
+
 			n.val = ptr;
 			nvlist_append(&r->nv, &n);
 		}
@@ -343,6 +346,7 @@ static int parse_up_record(rnode* r)
 		r->nv.record = NULL;
 		r->nv.end = NULL;
 		free((void *)r->cwd);
+		r->cwd = NULL;
 	}
 
 	r->nv.cur = 0;	// reset to beginning
@@ -371,7 +375,7 @@ int aup_list_append(event_list_t *l, char *record, int list_idx,
 	r->a1 = 0LL;
 	r->machine = -1;
 	r->syscall = -1;
-	r->item = l->cnt; 
+	r->item = l->cnt;
 	r->list_idx = list_idx;
 	r->line_number = line_number;
 	r->next = NULL;
@@ -391,6 +395,9 @@ int aup_list_append(event_list_t *l, char *record, int list_idx,
 
 	// Then parse the record up into nvlist
 	rc = parse_up_record(r);
+	if (r->nv.cnt == 0) // This is fuzzer induced, return an error.
+		rc = -1;
+
 	if (r->cwd) {
 		// Should never be 2 cwd records unless log is corrupted
 		free((void *)l->cwd);
