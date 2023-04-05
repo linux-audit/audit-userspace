@@ -918,7 +918,7 @@ static char *path_norm(const char *name)
 			if (dest > rpath + 1)
 				while ((--dest)[-1] != '/');
 		} else {
-			if (dest[-1] != '/')
+			if (dest != working && dest[-1] != '/')
 				*dest++ = '/';
 
 			// If it will overflow, chop it at last component
