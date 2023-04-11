@@ -157,7 +157,7 @@ else
 	if test "x$use_python" = xyes ; then
 		AC_MSG_ERROR([Python explicitly requested and python headers were not found])
 	else
-		AC_MSG_WARN("Python headers not found - python bindings will not be made")
+		AC_MSG_WARN(Python headers not found - python bindings will not be made)
 	fi
 fi
 fi
@@ -232,7 +232,7 @@ else
 	if test "x$use_golang" = xyes ; then
 		AC_MSG_ERROR([Go language explicitly requested and program not found])
 	else
-		AC_MSG_WARN("Go not found - go bindings will not be made")
+		AC_MSG_WARN(Go not found - go bindings will not be made)
 	fi
     ])
 fi
