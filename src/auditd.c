@@ -989,6 +989,7 @@ int main(int argc, char *argv[])
 	ev_signal_stop (loop, &sigusr1_watcher);
 	ev_signal_stop (loop, &sigusr2_watcher);
 	ev_signal_stop (loop, &sigterm_watcher);
+	ev_signal_stop (loop, &sigcont_watcher);
 
 	/* Write message to log that we are going down */
 	rc = audit_request_signal_info(fd);
