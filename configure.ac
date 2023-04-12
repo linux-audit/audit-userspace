@@ -157,7 +157,7 @@ else
 	if test "x$use_python" = xyes ; then
 		AC_MSG_ERROR([Python explicitly requested and python headers were not found])
 	else
-		AC_MSG_WARN("Python headers not found - python bindings will not be made")
+		AC_MSG_WARN(Python headers not found - python bindings will not be made)
 	fi
 fi
 fi
@@ -209,6 +209,11 @@ else
 fi
 AM_CONDITIONAL(USE_PYTHON3, test ${use_python3} = "yes")
 
+if test "x$use_python" = "xyes" || test "x$use_python3" = "xyes" ; then
+	AC_CHECK_PROG([SWIG],[swig],[swig], [no])
+	AS_IF([test x"$SWIG" == x"no"], [AC_MSG_ERROR([Please install swig before configuring (required by python/python3).])])
+fi
+
 withval=""
 AC_MSG_CHECKING(whether to create Go language bindings)
 AC_ARG_WITH(golang,
@@ -232,7 +237,7 @@ else
 	if test "x$use_golang" = xyes ; then
 		AC_MSG_ERROR([Go language explicitly requested and program not found])
 	else
-		AC_MSG_WARN("Go not found - go bindings will not be made")
+		AC_MSG_WARN(Go not found - go bindings will not be made)
 	fi
     ])
 fi
