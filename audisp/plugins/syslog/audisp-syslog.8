@@ -14,7 +14,7 @@ to the args line. This will cause all events to be interpreted. The drawback to 
 If you are aggregating multiple machines, you should edit auditd.conf to set the name_format to something meaningful and the log_format to enriched. This way you can tell where the event came from and have the user name and groups resolved locally before it is sent off of the machine.
 
 .SH FILES
-/etc/audit/syslog.conf
+/etc/audit/plugins/syslog.conf
 /etc/audit/auditd.conf
 .SH "SEE ALSO"
 .BR auditd.conf (8),
