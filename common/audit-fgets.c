@@ -38,6 +38,15 @@ int audit_fgets_eof(void)
 	return eof;
 }
 
+/* This function dumps any accumulated text. This is to remove dangling text
+ * that never got consumed for the intended purpose. */
+void audit_fgets_clear(void)
+{
+	buffer[0] = 0;
+	current = buffer;
+	eof = 0;
+}
+
 /* Function to check if we have more data stored
  * and ready to process. If we have a newline or enough
  * bytes we return 1 for success. Otherwise 0 meaning that

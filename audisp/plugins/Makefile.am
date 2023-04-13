@@ -1,5 +1,5 @@
 # Makefile.am --
-# Copyright 2007-08,2018,2021 Red Hat Inc.
+# Copyright 2007-08,2018-23 Red Hat Inc.
 # All Rights Reserved.
 #
 # This library is free software; you can redistribute it and/or
@@ -23,7 +23,7 @@
 
 CONFIG_CLEAN_FILES = *.loT *.rej *.orig
 
-SUBDIRS = builtins remote syslog
+SUBDIRS = af_unix remote syslog
 if ENABLE_EXPERIMENTAL
 SUBDIRS += ids statsd
 endif

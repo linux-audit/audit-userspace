@@ -1,11 +1,11 @@
 /* audispd.c --
- * Copyright 2007-08,2013,2016-18 Red Hat Inc.
+ * Copyright 2007-08,2013,2016-23 Red Hat Inc.
  * All Rights Reserved.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * This software may be freely redistributed and/or modified under the
+ * terms of the GNU General Public License as published by the Free
+ * Software Foundation; either version 2, or (at your option) any
+ * later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -13,8 +13,9 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * along with this program; see the file COPYING. If not, write to the
+ * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor
+ * Boston, MA 02110-1335, USA.
  *
  * Authors:
  *   Steve Grubb <sgrubb@redhat.com>
@@ -40,7 +41,6 @@
 #include "audispd-pconfig.h"
 #include "audispd-config.h"
 #include "audispd-llist.h"
-#include "audispd-builtins.h"
 #include "queue.h"
 #include "libaudit.h"
 #include "private.h"
@@ -137,9 +137,7 @@ static int start_one_plugin(lnode *conf)
 	if (conf->p->restart_cnt > daemon_config.max_restarts)
 		return 1;
 
-	if (conf->p->type == S_BUILTIN)
-		start_builtin(conf->p);
-	else if (conf->p->type == S_ALWAYS) {
+	if (conf->p->type == S_ALWAYS) {
 		if (safe_exec(conf->p)) {
 			audit_msg(LOG_ERR,
 				"Error running %s (%s) continuing without it",
@@ -288,8 +286,7 @@ static int reconfigure(void)
 			if (tpconf->p->pid)
 				kill(tpconf->p->pid, SIGTERM);
 			close(tpconf->p->plug_pipe[1]);
-		} else
-			stop_builtin(tpconf->p);
+		}
 		tpconf->p->plug_pipe[1] = -1;
 		tpconf->p->pid = 0;
 		tpconf->p->checked = 1;
@@ -378,9 +375,6 @@ static void *outbound_thread_main(void *arg)
 
 	/* Tell plugins we are going down */
 	signal_plugins(SIGTERM);
-
-	/* Cleanup builtin plugins */
-	destroy_af_unix();
 
 	/* Release configs */
 	plist_first(&plugin_conf);
@@ -537,13 +531,8 @@ static int event_loop(void)
 			if (conf->p->active == A_NO || stop)
 				continue;
 
-			/* Now send the event to the right child */
-			if (conf->p->type == S_AF_UNIX) {
-				if (conf->p->format == F_STRING)
-					send_af_unix_string(v, len);
-				else
-					send_af_unix_binary(e);
-			} else if (conf->p->type == S_ALWAYS && !stop) {
+			/* Now send the event to the child */
+			if (conf->p->type == S_ALWAYS && !stop) {
 				int rc;
 				rc = write_to_plugin(e, v, len, conf);
 				if (rc < 0 && errno == EPIPE) {

@@ -1,0 +1,21 @@
+.TH AUDISP-AF_UNIX "8" "Apr 2023" "Red Hat" "System Administration Utilities"
+.SH NAME
+audisp-af_unix \- plugin to push audit events to an af_unix socket
+.SH SYNOPSIS
+.B audisp-af_unix
+[ \fIOPTIONS\fP ]
+.SH DESCRIPTION
+\fBaudisp-af_unix\fP is a plugin for the audit event dispatcher that sends audit events to an af_unix socket where other applications can read events. The
+.B args
+line of the 
+.B af_unix.conf
+file expects two arguments: the access mode and the path to the socket. The default values are 0640 and /var/run/audispd_events respectively.
+
+.SH FILES
+/etc/audit/plugins/af_unix.conf
+/etc/audit/auditd.conf
+.SH "SEE ALSO"
+.BR auditd.conf (8),
+.BR auditd-plugins (5).
+.SH AUTHOR
+Steve Grubb

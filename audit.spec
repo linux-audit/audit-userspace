@@ -251,6 +251,7 @@ fi
 %attr(644,root,root) %{_datadir}/%{name}/ids-rules/*
 %attr(750,root,root) /sbin/audisp-remote
 %attr(750,root,root) /sbin/audisp-syslog
+%attr(750,root,root) /sbin/audisp-af_unix
 %attr(750,root,root) /sbin/audisp-ids
 %attr(750,root,root) /sbin/audisp-statsd
 %attr(700,root,root) %dir %{_var}/spool/audit
@@ -259,6 +260,7 @@ fi
 %attr(644,root,root) %{_mandir}/man5/audisp-remote.conf.5.gz
 %attr(644,root,root) %{_mandir}/man8/audisp-remote.8.gz
 %attr(644,root,root) %{_mandir}/man8/audisp-syslog.8.gz
+%attr(644,root,root) %{_mandir}/man8/audisp-af_unix.8.gz
 
 
 %changelog

@@ -30,6 +30,7 @@
 #endif
 AUDIT_HIDDEN_START
 
+void audit_fgets_clear(void);
 int audit_fgets_eof(void);
 int audit_fgets_more(size_t blen);
 int audit_fgets(char *buf, size_t blen, int fd)
