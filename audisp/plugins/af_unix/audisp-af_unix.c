@@ -51,7 +51,7 @@
 static volatile int stop = 0, hup = 0;
 char rx_buf[MAX_AUDIT_MESSAGE_LENGTH];
 int sock = -1, conn = -1, client = 0;
-struct pollfd pfd[2];
+struct pollfd pfd[3];
 unsigned mode = 0;
 char *path = NULL;
 
@@ -230,7 +230,12 @@ void event_loop(int ifd)
 	while (!stop) {
 		int rc;
 
-		rc = poll(pfd, 2, -1);
+		if (client) {
+			pfd[2].fd = conn;	// the client
+			pfd[2].events = POLLHUP;
+		}
+
+		rc = poll(pfd, 2 + client, -1);
 		if (rc < 0) {
 			if (errno == EINTR)
 				continue;
