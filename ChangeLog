@@ -1,6 +1,7 @@
 3.1.1
 - Add user friendly keywords for signals to auditctl
 - In ausearch, parse up URINGOP and DM_CTRL records
+- Harden auparse to better handle corrupt logs
 - Fix a CFLAGS propogation problem in the common directory
 - Move the audispd af_unix plugin to a standalone program
 
