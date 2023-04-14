@@ -29,9 +29,9 @@ define([AC_INIT_NOTICE],
 ])
 
 AC_REVISION($Revision: 1.3 $)dnl
-AC_INIT(audit,3.1.1)
-AC_PREREQ(2.12)dnl
-AM_CONFIG_HEADER(config.h)
+AC_INIT([audit], [3.1.1])
+AC_PREREQ([2.50])dnl
+AC_CONFIG_HEADERS([config.h])
 
 echo Configuring auditd $VERSION
 
