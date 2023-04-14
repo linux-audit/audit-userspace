@@ -3417,10 +3417,12 @@ unknown:
 					if (str) {
 						tmp = *str;
 						*str = 0;
-					}
-					key_escape(out, dest, escape_mode);
-					if (str)
+						key_escape(out, dest,
+							   escape_mode);
 						*str = tmp;
+					} else
+						key_escape(out, dest,
+							   escape_mode);
 				}
 				free((void *)out);
 				out = dest;

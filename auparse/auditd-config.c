@@ -107,14 +107,13 @@ void aup_clear_config(struct daemon_conf *config)
 }
 
 int aup_load_config(auparse_state_t *au, struct daemon_conf *config,
-		log_test_t lt)
+		log_test_t lt __attribute__((unused)))
 {
 	int fd, lineno = 1;
 	FILE *f;
 	char buf[160];
 
 	aup_clear_config(config);
-	lt = lt;
 
 	/* open the file */
 	fd = open(CONFIG_FILE, O_RDONLY|O_NOFOLLOW);
