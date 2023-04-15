@@ -38,7 +38,7 @@ echo Configuring auditd $VERSION
 AC_CONFIG_MACRO_DIR([m4])
 AC_CANONICAL_TARGET
 AM_INIT_AUTOMAKE
-AM_PROG_LIBTOOL
+LT_INIT
 AC_SUBST(LIBTOOL_DEPS)
 OLDLIBS="$LIBS"
 m4_include([src/libev/libev.m4])
@@ -55,7 +55,6 @@ AX_PROG_CC_FOR_BUILD
 
 echo .
 echo Checking for header files
-AC_HEADER_STDC
 AC_HEADER_TIME
 
 AC_CHECK_SIZEOF([unsigned int])
@@ -439,8 +438,9 @@ AC_ARG_WITH(libwrap,
 			LIBWRAP_LIBS="$LIBWRAP_LIBS -lnsl" ])
 		OLDLIBS="$LIBS"
 		LIBS="$LIBWRAP_LIBS $LIBS"
-		AC_TRY_LINK([ int allow_severity; int deny_severity; ],
-			[ hosts_access(); ], [],
+		AC_LINK_IFELSE([AC_LANG_PROGRAM(
+			[[ int allow_severity; int deny_severity; ]],
+			[[ hosts_access(); ]])],[],
 			[ AC_MSG_ERROR(Could not find the $withval library.  You must first install tcp_wrappers.) ])
 		LIBS="$OLDLIBS"
 		;;
@@ -476,7 +476,8 @@ AC_SUBST(DEBUG)
 AC_SUBST(LIBWRAP_LIBS)
 #AC_SUBST(libev_LIBS)
 
-AC_OUTPUT(Makefile common/Makefile lib/Makefile lib/audit.pc lib/test/Makefile auparse/Makefile auparse/test/Makefile auparse/auparse.pc src/Makefile src/libev/Makefile src/test/Makefile docs/Makefile rules/Makefile init.d/Makefile audisp/Makefile audisp/plugins/Makefile audisp/plugins/af_unix/Makefile audisp/plugins/remote/Makefile audisp/plugins/zos-remote/Makefile audisp/plugins/syslog/Makefile audisp/plugins/ids/Makefile audisp/plugins/ids/rules/Makefile audisp/plugins/statsd/Makefile bindings/Makefile bindings/python/Makefile bindings/python/python2/Makefile bindings/python/python3/Makefile bindings/golang/Makefile bindings/swig/Makefile bindings/swig/src/Makefile bindings/swig/python/Makefile bindings/swig/python3/Makefile tools/Makefile tools/aulast/Makefile tools/aulastlog/Makefile tools/ausyscall/Makefile tools/auvirt/Makefile m4/Makefile)
+AC_CONFIG_FILES(Makefile common/Makefile lib/Makefile lib/audit.pc lib/test/Makefile auparse/Makefile auparse/test/Makefile auparse/auparse.pc src/Makefile src/libev/Makefile src/test/Makefile docs/Makefile rules/Makefile init.d/Makefile audisp/Makefile audisp/plugins/Makefile audisp/plugins/af_unix/Makefile audisp/plugins/remote/Makefile audisp/plugins/zos-remote/Makefile audisp/plugins/syslog/Makefile audisp/plugins/ids/Makefile audisp/plugins/ids/rules/Makefile audisp/plugins/statsd/Makefile bindings/Makefile bindings/python/Makefile bindings/python/python2/Makefile bindings/python/python3/Makefile bindings/golang/Makefile bindings/swig/Makefile bindings/swig/src/Makefile bindings/swig/python/Makefile bindings/swig/python3/Makefile tools/Makefile tools/aulast/Makefile tools/aulastlog/Makefile tools/ausyscall/Makefile tools/auvirt/Makefile m4/Makefile)
+AC_OUTPUT
 
 echo .
 echo "
