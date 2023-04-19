@@ -112,7 +112,7 @@ int create_af_unix_socket(const char *spath, int mode)
 	fcntl(sock, F_SETFL, cmd|FNDELAY|FD_CLOEXEC);
 
 	// Make socket listening...won't block
-	(void)listen(sock, 2);
+	(void)listen(sock, 1);
 #endif
 	return 0;
 }
