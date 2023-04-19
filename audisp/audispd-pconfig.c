@@ -100,6 +100,7 @@ static const struct nv_list directions[] =
 
 static const struct nv_list service_type[] =
 {
+  {"builtin",  S_BUILTIN },
   {"always",   S_ALWAYS },
   { NULL,  0 }
 };
@@ -378,6 +379,7 @@ static int direction_parser(struct nv_pair *nv, int line,
 	return 1;
 }
 
+static const char *BUILTIN_PATH="/sbin/audisp-af_unix";
 static int path_parser(struct nv_pair *nv, int line,
 	plugin_conf_t *config)
 {
@@ -389,7 +391,10 @@ static int path_parser(struct nv_pair *nv, int line,
 	}
 
 	if (strncasecmp(nv->value, "builtin_", 8) == 0) {
-		config->path = strdup(nv->value);
+		audit_msg(LOG_WARNING,
+			  "Option %s line %d is obsolete - using %s",
+			  nv->value, line, BUILTIN_PATH);
+		config->path = strdup(BUILTIN_PATH);
 		return 0;
 	}
 
@@ -421,6 +426,11 @@ static int service_type_parser(struct nv_pair *nv, int line,
 	for (i=0; service_type[i].name != NULL; i++) {
 		if (strcasecmp(nv->value, service_type[i].name) == 0) {
 			config->type = service_type[i].option;
+			if (config->type == S_BUILTIN) {
+				audit_msg(LOG_WARNING,
+		"Option %s line %d is obsolete - update it", nv->value, line);
+				config->type = S_ALWAYS;
+			}
 			return 0;
 		}
 	}
