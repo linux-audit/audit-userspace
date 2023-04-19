@@ -86,6 +86,8 @@ static void clear_tm(struct tm *t)
         t->tm_mday = 0;        /* day of the month */
         t->tm_mon = 0;         /* month */
         t->tm_year = 0;        /* year */
+	t->tm_wday = 0;	       /* not used */
+	t->tm_yday = 0;        /* not used */
         t->tm_isdst = 0;       /* DST flag */
 }
 
