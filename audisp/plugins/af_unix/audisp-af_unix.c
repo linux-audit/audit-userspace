@@ -208,13 +208,19 @@ void read_audit_record(int ifd)
 
 void accept_connection(void)
 {
-	do {
-		conn = accept4(sock, NULL, NULL, SOCK_NONBLOCK|SOCK_CLOEXEC);
-	} while (conn < 0 && errno == EINTR);
+	int tmp_conn;
 
-	if (conn >= 0) {
-		syslog(LOG_INFO, "Client connected");
-		client = 1;
+	do {
+		tmp_conn = accept4(sock, NULL,NULL, SOCK_NONBLOCK|SOCK_CLOEXEC);
+	} while (tmp_conn < 0 && errno == EINTR);
+
+	if (tmp_conn >= 0) {
+		if (conn < 0) {
+			syslog(LOG_INFO, "Client connected");
+			client = 1;
+			conn = tmp_conn;
+		} else
+			close(tmp_conn);
 	}
 }
 
