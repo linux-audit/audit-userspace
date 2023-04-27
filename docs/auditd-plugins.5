@@ -60,12 +60,21 @@ If auditd's internal queue fills, it cannot dequeue any events from the kernel b
 auditctl -s
 
 When tuning the audit system's performance, you'd want to check both kernel and auditd metrics and adjust accordingly.
+
+.SH NOTES FOR DEVELOPERS
+When the audit daemon starts your plugin, you will be running as root. If you do not need root privileges, you should change uid/gid to lower chances of being a target for exploit. If you need to retain capabilities, using \fBlibcap-ng\fP is the simplest way.
+
+Your environment is not going to be clean. You are inheriting many attributes from auditd itself. You will need to adjust your \fBsignal mask\fP, \fBumask\fP, and \fBenvironmental variables\fP. You will also inherit the resource limits of auditd. Note that some of these resource limits, such as maximum number of open descriptors, are controlled by systemd. You also inherit auditd's nice value. You might want to adjust that to be sure to keep up with incoming audit events.
+
+Auditd will send events to the plugin on it's \fBstdin\fP. The plugin has to keep this descriptor empty so that events don't back up. If you do significant processing of each event, you should add an internal queue to your design in order to keep events flowing. The \fBauparse_feed\fP function is the preferred way to examine whole events if you need to analyze the contents of the events.
  
 .SH FILES
 /etc/auditd/auditd.conf
 /etc/audit/plugins.d
 .SH "SEE ALSO"
 .BR auditd.conf (5),
-.BR auditd (8).
+.BR auditd (8),
+.BR execve(2),
+.BR auparse_feed(3).
 .SH AUTHOR
 Steve Grubb
