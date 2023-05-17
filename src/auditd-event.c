@@ -874,13 +874,15 @@ static void do_space_left_action(int admin)
 			break;
 		case FA_SINGLE:
 			audit_msg(LOG_ALERT,
-				"The audit daemon is now changing the system to single user mode");
+				"The audit daemon is now changing the system to single user mode and exiting due to low disk space");
 			change_runlevel(SINGLE);
+			stop = 1;
 			break;
 		case FA_HALT:
 			audit_msg(LOG_ALERT,
-				"The audit daemon is now halting the system");
+				"The audit daemon is now halting the system and exiting due to low disk space");
 			change_runlevel(HALT);
+			stop = 1;
 			break;
 		default:
 			audit_msg(LOG_ALERT,
@@ -929,13 +931,15 @@ static void do_disk_full_action(void)
 			break;
 		case FA_SINGLE:
 			audit_msg(LOG_ALERT,
-				"The audit daemon is now changing the system to single user mode due to no space left on logging partition");
+				"The audit daemon is now changing the system to single user mode and exiting due to no space left on logging partition");
 			change_runlevel(SINGLE);
+			stop = 1;
 			break;
 		case FA_HALT:
 			audit_msg(LOG_ALERT,
-				"The audit daemon is now halting the system due to no space left on logging partition");
+				"The audit daemon is now halting the system and exiting due to no space left on logging partition");
 			change_runlevel(HALT);
+			stop = 1;
 			break;
 		default:
 			audit_msg(LOG_ALERT, "Unknown disk full action requested");
@@ -984,13 +988,15 @@ static void do_disk_error_action(const char *func, int err)
 			break;
 		case FA_SINGLE:
 			audit_msg(LOG_ALERT,
-				"The audit daemon is now changing the system to single user mode due to previously mentioned write error");
+				"The audit daemon is now changing the system to single user mode and exiting due to previously mentioned write error");
 			change_runlevel(SINGLE);
+			stop = 1;
 			break;
 		case FA_HALT:
 			audit_msg(LOG_ALERT,
-				"The audit daemon is now halting the system due to previously mentioned write error.");
+				"The audit daemon is now halting the system and exiting due to previously mentioned write error.");
 			change_runlevel(HALT);
+			stop = 1;
 			break;
 		default:
 			audit_msg(LOG_ALERT,
