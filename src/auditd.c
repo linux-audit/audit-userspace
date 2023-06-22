@@ -722,8 +722,8 @@ int main(int argc, char *argv[])
 
 	if (config.priority_boost != 0) {
 		errno = 0;
-		rc = nice((int)-config.priority_boost);
-		if (rc == -1 && errno) {
+		nice((int)-config.priority_boost);
+		if (errno) {
 			audit_msg(LOG_ERR, "Cannot change priority (%s)", 
 					strerror(errno));
 			free_config(&config);

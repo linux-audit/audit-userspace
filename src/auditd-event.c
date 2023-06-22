@@ -1423,12 +1423,10 @@ static void reconfigure(struct auditd_event *e)
 
 	// priority boost
 	if (oconf->priority_boost != nconf->priority_boost) {
-		int rc;
-
 		oconf->priority_boost = nconf->priority_boost;
 		errno = 0;
-		rc = nice(-oconf->priority_boost);
-		if (rc == -1 && errno)
+		nice(-oconf->priority_boost);
+		if (errno)
 			audit_msg(LOG_WARNING, "Cannot change priority in "
 					"reconfigure (%s)", strerror(errno));
 	}
