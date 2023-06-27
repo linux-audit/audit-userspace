@@ -1494,6 +1494,16 @@ int main(int argc, char *argv[])
 		}
 	}
 	retval = handle_request(retval);
+	if (retval == -1) {
+		if (errno != ECONNREFUSED)
+			audit_msg(LOG_ERR,
+				"There was an error while processing parameters");
+		else {
+			audit_msg(LOG_ERR,
+				"The audit system is disabled");
+			return 0;
+		}
+	}
 	free(rule_new);
 	return retval;
 }
