@@ -1464,7 +1464,7 @@ int main(int argc, char *argv[])
 		set_aumessage_mode(MSG_SYSLOG, DBG_NO);
 		fd = audit_open();
 		if (is_ready() == 0)
-			return 0;
+			return 1;
 		else if (fileopt(argv[2])) {
 			free(rule_new);
 			return 1;
@@ -1490,7 +1490,7 @@ int main(int argc, char *argv[])
 		fd = audit_open();
 		if (is_ready() == 0) {
 			free(rule_new);
-			return 0;
+			return 1;
 		}
 	}
 	retval = handle_request(retval);
