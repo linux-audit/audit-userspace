@@ -32,6 +32,9 @@
 # define __attr_dealloc(dealloc, argno)
 # define __attr_dealloc_free
 #endif
+#ifndef __attribute_malloc__
+#  define __attribute_malloc__
+#endif
 
 #ifdef __cplusplus
 extern "C" {
