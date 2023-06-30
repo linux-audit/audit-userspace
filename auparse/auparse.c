@@ -31,6 +31,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <fcntl.h>
 #include <stdio_ext.h>
 #include <limits.h>
 #include "common.h"
@@ -61,6 +62,20 @@ static char *strnchr(const char *s, int c, size_t n)
     return p_char;
 }
 
+static int access_ok(const char *filename)
+{
+	int rc = access(filename, R_OK);
+	if (rc == 0)
+		return rc;
+#ifdef HAVE_FACCESSAT
+	// If we have faccessat, let's try effective ids.
+	return faccessat(AT_FDCWD, filename, R_OK, AT_EACCESS);
+#else
+	// If we don't, return what we have from access()
+	return rc;
+#endif
+}
+
 static int setup_log_file_array(auparse_state_t *au)
 {
         struct daemon_conf config;
@@ -83,7 +98,7 @@ static int setup_log_file_array(auparse_state_t *au)
 	/* Find oldest log file */
 	snprintf(filename, len, "%s", config.log_file);
 	do {
-		if (access(filename, R_OK) != 0)
+		if (access_ok(filename) != 0)
 			break;
 		num++;
 		snprintf(filename, len, "%s.%d", config.log_file, num);
@@ -477,7 +492,7 @@ auparse_state_t *auparse_init(ausource_t source, const void *b)
 		case AUSOURCE_FILE:
 			if (b == NULL)
 				goto bad_exit;
-			if (access(b, R_OK))
+			if (access_ok(b))
 				goto bad_exit;
 			tmp = malloc(2*sizeof(char *));
 			tmp[0] = strdup(b);
@@ -489,7 +504,7 @@ auparse_state_t *auparse_init(ausource_t source, const void *b)
 				goto bad_exit;
 			n = 0;
 			while (bb[n]) {
-				if (access(bb[n], R_OK))
+				if (access_ok(bb[n]))
 					goto bad_exit;
 				n++;
 			}

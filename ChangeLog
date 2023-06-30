@@ -1,5 +1,6 @@
 3.1.2
 - When processing a run level change, make auditd exit
+- In auparse, when files are given, also consider EUID for access
 
 3.1.1
 - Add user friendly keywords for signals to auditctl

@@ -73,6 +73,8 @@ dnl; signalfd is needed for libev
 AC_CHECK_FUNC([signalfd], [], [ AC_MSG_ERROR([The signalfd system call is necessary for auditd]) ])
 dnl; check if rawmemchr is available
 AC_CHECK_FUNCS([rawmemchr])
+dnl; check if faccessat is available
+AC_CHECK_FUNCS([faccessat])
 dnl; check if strndupa is available
 AC_LINK_IFELSE(
   [AC_LANG_SOURCE(
