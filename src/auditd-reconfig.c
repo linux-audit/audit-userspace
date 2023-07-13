@@ -60,7 +60,7 @@ int start_config_manager(struct auditd_event *e)
 			PTHREAD_CREATE_DETACHED);
 
 	        if (pthread_create(&config_thread, &detached,
-		                config_thread_main, e) < 0) {
+		                config_thread_main, e) > 0) {
 			audit_msg(LOG_ERR,
 			"Couldn't create config thread, no config changes");
 			free(e);
