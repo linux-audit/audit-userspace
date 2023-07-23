@@ -1235,9 +1235,10 @@ static const char *print_sockaddr(const char *val)
         switch (saddr->sa_family) {
                 case AF_LOCAL:
 			if (slen < 4) {
-				rc = asprintf(&out,
-				    "{ saddr_fam=%s sockaddr len too short }",
-							str);
+				rc = asprintf(&out, "{ saddr_fam=%s %s }", str,
+				    slen == sizeof(saddr->sa_family) ?
+				    "unnamed socket" : // ignore sun_path
+				    "sockaddr len too short");
 				break;
 			} else {
                                 const struct sockaddr_un *un =

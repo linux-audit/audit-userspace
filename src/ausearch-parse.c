@@ -1706,20 +1706,22 @@ static int parse_sockaddr(const lnode *n, search_items *s)
 				}
 				len = sizeof(struct sockaddr_in6);
 			} else if (saddr->sa_family == AF_UNIX) {
-				if (len < 4) {
-					fprintf(stderr,
-						"sun_path len too short\n");
-					return 3;
-				}
 				struct sockaddr_un *un =
 					(struct sockaddr_un *)saddr;
+				if (len != sizeof(saddr->sa_family) &&
+				    len < 4) {
+					fprintf(stderr,
+						"sun_path len too short (%d)\n",
+						len);
+					return 4;
+				}
 				if (event_filename) {
 					if (!s->filename) {
 						//create
 						s->filename =
 							malloc(sizeof(slist));
 						if (s->filename == NULL)
-							return 4;
+							return 5;
 						slist_create(s->filename);
 					}
 					if (s->filename) {
@@ -1728,9 +1730,12 @@ static int parse_sockaddr(const lnode *n, search_items *s)
 						if (un->sun_path[0])
 						    sn.str =
 							strdup(un->sun_path);
-						else
+						else if (un->sun_path[1])
 						    sn.str =
 							strdup(un->sun_path+1);
+						else
+							return 6;
+
 						sn.key = NULL;
 						sn.hits = 1;
 						slist_append(s->filename, &sn);
