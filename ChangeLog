@@ -1,6 +1,9 @@
 3.1.2
 - When processing a run level change, make auditd exit
+- In auditd, fix return code when rules added in immutable mode
 - In auparse, when files are given, also consider EUID for access
+- Auparse now interprets unnamed/anonymous sockets (Enzo Matsumiya)
+- Disable Python bindings from setting rules due to swig bug (S. Trofimovich)
 
 3.1.1
 - Add user friendly keywords for signals to auditctl
