@@ -49,5 +49,6 @@ _S(42,  "setxattr")
 _S(43,  "fgetxattr")
 _S(44,  "getxattr")
 _S(46,  "uring_cmd")
+_S(47,  "send_zc")
 _S(48,	"sendmsg_zc")
 

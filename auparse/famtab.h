@@ -1,5 +1,5 @@
 /* famtab.h --
- * Copyright 2007,2012-13 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2007,2012-23 Red Hat Inc.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -63,3 +63,4 @@ _S(41,			"kcm"		)
 _S(42,			"qipcrtr"	)
 _S(43,			"smc"		)
 _S(44,			"xdp"		)
+_S(45,			"mctp"		)

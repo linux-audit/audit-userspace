@@ -1,7 +1,7 @@
 The place where syscall information is gathered is:
 
 arch/arm/tools/syscall.tbl
-arch/arm/include/uapi/asm/unistd.h
+arch/arm/include/uapi/asm/unistd.h (unused?)
 include/uapi/asm-generic/unistd.h  (aarch64)
 arch/powerpc/kernel/syscalls/syscall.tbl
 arch/s390/kernel/syscalls/syscall.tbl

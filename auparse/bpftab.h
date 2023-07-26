@@ -1,5 +1,5 @@
 /* bpftab.h --
- * Copyright 2018-20 Red Hat Inc.
+ * Copyright 2018-23 Red Hat Inc.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -45,3 +45,15 @@ _S(20, "BPF_TASK_FD_QUERY")
 _S(21, "BPF_MAP_LOOKUP_AND_DELETE_ELEM")
 _S(22, "BPF_MAP_FREEZE")
 _S(23, "BPF_BTF_GET_NEXT_ID")
+_S(24, "BPF_MAP_LOOKUP_BATCH")
+_S(25, "BPF_MAP_LOOKUP_AND_DELETE_BATCH")
+_S(26, "BPF_MAP_UPDATE_BATCH")
+_S(27, "BPF_MAP_DELETE_BATCH")
+_S(28, "BPF_LINK_CREATE")
+_S(29, "BPF_LINK_UPDATE")
+_S(30, "BPF_LINK_GET_FD_BY_ID")
+_S(31, "BPF_LINK_GET_NEXT_ID")
+_S(32, "BPF_ENABLE_STATS")
+_S(33, "BPF_ITER_CREATE")
+_S(34, "BPF_LINK_DETACH")
+_S(35, "BPF_PROG_BIND_MAP")

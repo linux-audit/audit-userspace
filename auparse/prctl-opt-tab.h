@@ -1,5 +1,5 @@
 /* prctl-opt-tab.h --
- * Copyright 2013-16,2018,2020 Red Hat Inc.
+ * Copyright 2013-16,2018,2020-23 Red Hat Inc.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -73,3 +73,18 @@ _S(53, "PR_SET_SPECULATION_CTRL")
 _S(54, "PR_PAC_RESET_KEYS")
 _S(55, "PR_SET_TAGGED_ADDR_CTRL")
 _S(56, "PR_GET_TAGGED_ADDR_CTRL")
+_S(57, "PR_SET_IO_FLUSHER")
+_S(58, "PR_GET_IO_FLUSHER")
+_S(59, "PR_SET_SYSCALL_USER_DISPATCH")
+_S(60, "PR_PAC_SET_ENABLED_KEYS")
+_S(61, "PR_PAC_GET_ENABLED_KEYS")
+_S(62, "PR_SCHED_CORE")
+_S(63, "PR_SME_SET_VL")
+_S(64, "PR_SME_GET_VL")
+_S(65, "PR_SET_MDWE")
+_S(66, "PR_GET_MDWE")
+_S(67, "PR_SET_MEMORY_MERGE")
+_S(68, "PR_GET_MEMORY_MERGE")
+_S(69, "PR_RISCV_V_SET_CONTROL")
+_S(70, "PR_RISCV_V_GET_CONTROL")
+

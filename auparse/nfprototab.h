@@ -1,5 +1,5 @@
 /* nfprototab.h --
- * Copyright 2011-14,2018 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2011-14,2018 Red Hat Inc.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or

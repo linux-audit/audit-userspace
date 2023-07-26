@@ -1,5 +1,5 @@
 /* tty_named_keys.h --
- * Copyright 2008 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2008 Red Hat Inc.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or

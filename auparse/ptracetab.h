@@ -1,5 +1,5 @@
 /* ptracetab.h --
- * Copyright 2012-14,16,18,20 Red Hat Inc.
+ * Copyright 2012-14,16,18,20-23 Red Hat Inc.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -19,7 +19,7 @@
  * Authors:
  *      Steve Grubb <sgrubb@redhat.com>
  * Location: include/uapi/linux/ptrace.h
- *           ./arch/x86/include/uapi/asm/ptrace-abi.h
+ *           ./arch/x86/include/uapi/asm/ptrace-abi.h (0 - 30)
  */
 
 _S(0,		"PTRACE_TRACEME"	)
@@ -62,3 +62,6 @@ _S(0x420b,	"PTRACE_SETSIGMASK"	)
 _S(0x420c,	"PTRACE_SECCOMP_GET_FILTER"	)
 _S(0x420d,	"PTRACE_SECCOMP_GET_METADATA"	)
 _S(0x420e,	"PTRACE_GET_SYSCALL_INFO"	)
+_S(0x420f,	"PTRACE_GET_RSEQ_CONFIGURATION"	)
+_S(0x4210,	"PTRACE_SET_SYSCALL_USER_DISPATCH_CONFIG"	)
+_S(0x4211,	"PTRACE_GET_SYSCALL_USER_DISPATCH_CONFIG"	)

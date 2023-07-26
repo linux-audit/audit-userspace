@@ -1,5 +1,5 @@
 /* tcpoptnametab.h --
- * Copyright 2013-14,2018 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2013-14,2018 Red Hat Inc.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or

@@ -382,4 +382,5 @@ _S(447, "memfd_secret")
 _S(448, "process_mrelease")
 _S(449, "futex_waitv")
 _S(450, "set_mempolicy_home_node")
+_S(451, "cachestat")
 

@@ -18,9 +18,9 @@
  *
  * Authors:
  *      Steve Grubb <sgrubb@redhat.com>
- * Location: include/uapi/linux/in6.h
- *           include/uapi/linux/netfilter_ipv6/ip6_tables.h
- *           include/uapi/linux/mroute6.h
+ * Location: include/uapi/linux/in6.h (all ^IPV6_ && ^MCAST_)
+ *           include/uapi/linux/netfilter_ipv6/ip6_tables.h (all ^IP6T_)
+ *           include/uapi/linux/mroute6.h  (not used?)
  */
 
 _S(1, "IPV6_ADDRFORM")
@@ -49,6 +49,7 @@ _S(27, "IPV6_JOIN_ANYCAST")
 _S(28, "IPV6_LEAVE_ANYCAST")
 _S(29, "IPV6_MULTICAST_ALL")
 _S(30, "IPV6_ROUTER_ALERT_ISOLATE")
+_S(31, "IPV6_RECVERR_RFC4884")
 _S(32, "IPV6_FLOWLABEL_MGR")
 _S(33, "IPV6_FLOWINFO_SEND")
 _S(34, "IPV6_IPSEC_POLICY")

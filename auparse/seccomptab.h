@@ -23,7 +23,7 @@
 
 
 _S(0x80000000U,	"kill-process")
-_S(0x00000000U,	"kill"	)
+_S(0x00000000U,	"kill-thread")
 _S(0x00030000U,	"trap"	)
 _S(0x00050000U,	"errno"	)
 _S(0x7fc00000U, "user-notify")

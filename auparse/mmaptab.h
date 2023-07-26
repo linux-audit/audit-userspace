@@ -19,6 +19,7 @@
  * Authors:
  *      Steve Grubb <sgrubb@redhat.com>
  * Location: include/uapi/asm-generic/mman-common.h
+ * 0x0100 - 0x4000 flags are defined in include/uapi/asm-generic/mman.h
  */
 
 _S(0x0000001, "MAP_SHARED"	)

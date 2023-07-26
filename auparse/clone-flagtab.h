@@ -1,5 +1,5 @@
 /* clone-flagtab.h --
- * Copyright 2007,2012-13,2020 Red Hat Inc.
+ * Copyright 2007,2012-23 Red Hat Inc.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -45,4 +45,5 @@ _S(0x20000000ULL,	"CLONE_NEWPID" )
 _S(0x40000000ULL,	"CLONE_NEWNET" )
 _S(0x80000000ULL,	"CLONE_IO" )
 _S(0x100000000ULL,	"CLONE_CLEAR_SIGHAND")
+_S(0x200000000ULL,	"CLONE_INTO_CGROUP")
 
