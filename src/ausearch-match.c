@@ -1,6 +1,6 @@
 /*
 * ausearch-match.c - Extract interesting fields and check for match
-* Copyright (c) 2005-08, 2011 Red Hat Inc., Durham, North Carolina.
+* Copyright (c) 2005-08, 2011 Red Hat Inc.
 * Copyright (c) 2011 IBM Corp.
 * All Rights Reserved. 
 *
@@ -385,7 +385,8 @@ static int context_match(llist *l)
 			}
 		}
 		return 0;
-	} else {
+	} else { /* This is an 'and' requiring both to match */
+		int found = 0;
 		if (event_subject) {
 			if (l->s.avc == NULL)
 				return 0;
@@ -393,11 +394,13 @@ static int context_match(llist *l)
 				do {
 					if (strmatch(event_subject,
 						l->s.avc->cur->scontext))
-						return 1;
+						found = 1;
 				} while(alist_next_subj(l->s.avc));
 			}
-			return 0;
+			if (!found)
+				return 0;
 		}
+		found = 0;
 		if (event_object) {
 			if (l->s.avc == NULL)
 				return 0;
@@ -405,10 +408,11 @@ static int context_match(llist *l)
 				do {
 					if (strmatch(event_object,
 						l->s.avc->cur->tcontext))
-						return 1;
+						found = 1;
 				} while(alist_next_obj(l->s.avc));
 			}
-			return 0;
+			if (!found)
+				return 0;
 		}
 	}
 	return 1;
