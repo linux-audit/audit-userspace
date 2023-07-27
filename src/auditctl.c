@@ -1,5 +1,5 @@
 /* auditctl.c --
- * Copyright 2004-2017,202-3 Red Hat Inc.
+ * Copyright 2004-2017,20-23 Red Hat Inc.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -1326,16 +1326,6 @@ static int fileopt(const char *file)
 	if (fstat(tfd, &st) < 0) {
 		audit_msg(LOG_ERR, "Error fstat'ing %s (%s)",
 			file, strerror(errno));
-		close(tfd);
-		return 1;
-	}
-	if (st.st_uid != 0) {
-		audit_msg(LOG_ERR, "Error - %s isn't owned by root", file);
-		close(tfd);
-		return 1;
-	} 
-	if ((st.st_mode & S_IWOTH) == S_IWOTH) {
-		audit_msg(LOG_ERR, "Error - %s is world writable", file);
 		close(tfd);
 		return 1;
 	}
