@@ -717,7 +717,7 @@ extern int audit_log_acct_message(int audit_fd, int type, const char *pgname,
         const char *host, const char *addr, const char *tty, int result);
 extern int audit_log_user_avc_message(int audit_fd, int type,
 	const char *message, const char *hostname, const char *addr,
-	const char *tty, uid_t uid);
+	const char *tty, uid_t auid);
 extern int audit_log_semanage_message(int audit_fd, int type,
 	const char *pgname, const char *op, const char *name, unsigned int id,
         const char *new_seuser, const char *new_role, const char *new_range,

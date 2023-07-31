@@ -1,5 +1,5 @@
 /* audit_logging.c -- 
- * Copyright 2005-2008,2010,2011,2013,2017 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2005-2008,2010,2011,2013,2017 Red Hat Inc.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -529,12 +529,12 @@ int audit_log_acct_message(int audit_fd, int type, const char *pgname,
  * hostname - the hostname if known
  * addr - The network address of the user
  * tty - The tty of the user
- * uid - The auid of the person related to the avc message
+ * auid - The auid of the person related to the avc message
  *
  * It returns the sequence number which is > 0 on success or <= 0 on error.
  */
 int audit_log_user_avc_message(int audit_fd, int type, const char *message,
-	const char *hostname, const char *addr, const char *tty, uid_t uid)
+	const char *hostname, const char *addr, const char *tty, uid_t auid)
 {
 	char buf[MAX_AUDIT_MESSAGE_LENGTH];
 	char addrbuf[INET6_ADDRSTRLEN];
@@ -565,7 +565,7 @@ int audit_log_user_avc_message(int audit_fd, int type, const char *message,
 
 	snprintf(buf, sizeof(buf),
 	    "%s exe=%s sauid=%d hostname=%s addr=%s terminal=%s",
-		message, exename, uid,
+		message, exename, auid,
 		hostname ? hostname : "?",
 		addrbuf,
 		tty ? tty : "?"

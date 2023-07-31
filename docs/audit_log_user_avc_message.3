@@ -5,7 +5,7 @@ audit_log_user_avc_message \- log a user avc message
 .B #include <libaudit.h>
 .sp
 .B int audit_log_user_avc_message(int audit_fd, int type, const char *message,
-const char *hostname, const char *addr, const char *tty, uid_t uid)
+const char *hostname, const char *addr, const char *tty, uid_t auid)
 
 .SH DESCRIPTION
 
@@ -18,8 +18,10 @@ message - the message being sent
 hostname - the hostname if known
 addr - The network address of the user
 tty - The tty of the user, if NULL will attempt to figure out
-uid - The auid of the person related to the avc message
+auid - The auid of the person related to the avc message
 .fi
+
+These values should correspond to who the message is about.
 
 .SH "RETURN VALUE"
 

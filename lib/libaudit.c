@@ -98,7 +98,7 @@ unsigned int _audit_elf = 0U;
 static struct libaudit_conf config;
 
 static int audit_failure_parser(const char *val, int line);
-static int audit_name_to_uid(const char *name, uid_t *uid);
+static int audit_name_to_uid(const char *name, uid_t *auid);
 static int audit_name_to_gid(const char *name, gid_t *gid);
 
 static const struct kw_pair keywords[] =
