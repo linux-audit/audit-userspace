@@ -173,7 +173,8 @@ static int parse_checkpt_event(char *lbuf, int ndix, event *e)
 			return 1;
 		}
 	}
-	if (sscanf(rest, "%lu.%03u:%lu 0x%X", &e->sec, &e->milli,
+	// FIXME: This needs to be updated for 64 bit time_t which is lld
+	if (sscanf(rest, "%ld.%03u:%lu 0x%X", &e->sec, &e->milli,
 						&e->serial, &e->type) != 4) {
 		fprintf(stderr, "Malformed output/event checkpoint line "
 			"after node - [%s]\n", lbuf);

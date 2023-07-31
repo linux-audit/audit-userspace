@@ -472,10 +472,10 @@ static int process_log_fd(void)
 				output_event(entries);
 			} else if (do_output == 3) {
 				fprintf(stderr,
-			"Corrupted checkpoint file. Inode match, but newer complete event (%lu.%03u:%lu) found before loaded checkpoint %lu.%03u:%lu\n",
-					entries->e.sec, entries->e.milli,
-					entries->e.serial,
-					chkpt_input_levent.sec,
+			"Corrupted checkpoint file. Inode match, but newer complete event (%lld.%03u:%lu) found before loaded checkpoint %lld.%03u:%lu\n",
+					(long long int)entries->e.sec,
+					entries->e.milli, entries->e.serial,
+					(long long int)chkpt_input_levent.sec,
 					chkpt_input_levent.milli,
 					chkpt_input_levent.serial);
 				checkpt_failure |= CP_CORRUPTED;

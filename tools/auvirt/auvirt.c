@@ -340,8 +340,8 @@ static int extract_virt_fields(auparse_state_t *au, const char **p_uuid,
 error:
 	if (debug) {
 		fprintf(stderr, "Failed to get field \"%s\" for record "
-				"%ld.%03u:%lu\n", field,
-				auparse_get_time(au),
+				"%lld.%03u:%lu\n", field,
+				(long long int)auparse_get_time(au),
 				auparse_get_milli(au),
 				auparse_get_serial(au));
 	}
