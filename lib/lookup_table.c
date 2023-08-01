@@ -1,5 +1,5 @@
-/* lookup_table.c -- 
- * Copyright 2004-2008,2012-13,2016 Red Hat Inc., Durham, North Carolina.
+/* lookup_table.c --
+ * Copyright 2004-2008,2012-13,2016 Red Hat Inc.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -325,12 +325,15 @@ int audit_name_to_errno(const char *error)
 #endif
 }
 
-/* This function does not handle negative numbers yet */
+/* This function handles negative numbers */
 const char *audit_errno_to_name(int error)
 {
 #ifndef NO_TABLES
 	if (error < 0)
 		return NULL;
+
+	if (error < 0)
+		error *= -1;
 
         return err_i2s(error);
 #else

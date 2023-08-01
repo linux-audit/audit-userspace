@@ -2433,6 +2433,29 @@ static const char *print_fan_info(const char *val)
 	return out;
 }
 
+/* This is in IMA audit events */
+static const char *print_errno(const char *val)
+{
+	char *out;
+	const char *err_name;
+	int err;
+
+	errno = 0;
+	err = strtoul(val, NULL, 10);
+	if (errno) {
+		if (asprintf(&out, "conversion error(%s)", val) < 0)
+			out = NULL;
+		return out;
+	}
+	err_name = audit_errno_to_name(err);
+	if (err_name == NULL)
+		out = strdup("UNKNOWN");
+	else
+		out = strdup(err_name);
+
+	return out;
+}
+
 static const char *print_a0(const char *val, const idata *id)
 {
 	char *out;
@@ -3355,6 +3378,9 @@ unknown:
 			break;
 		case AUPARSE_TYPE_FAN_INFO:
 			out = print_fan_info(id->val);
+			break;
+		case AUPARSE_TYPE_ERRNO:
+			out = print_errno(id->val);
 			break;
 		case AUPARSE_TYPE_MAC_LABEL:
 		case AUPARSE_TYPE_UNCLASSIFIED:
