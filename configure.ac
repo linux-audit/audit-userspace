@@ -59,6 +59,8 @@ AC_HEADER_TIME
 
 AC_CHECK_SIZEOF([unsigned int])
 AC_CHECK_SIZEOF([unsigned long])
+AC_CHECK_SIZEOF([long])
+AC_CHECK_SIZEOF([time_t])
 dnl; next is needed for old compilers and plugins/ids/Makefile.am
 AM_PROG_CC_C_O
 AC_CHECK_DECLS([AUDIT_FEATURE_VERSION], [], [], [[#include <linux/audit.h>]])

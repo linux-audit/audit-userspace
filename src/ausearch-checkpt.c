@@ -24,6 +24,11 @@
 #include "ausearch-checkpt.h"
 
 #define	DBG	0	/* set to non-zero for debug */
+#if SIZEOF_LONG < SIZEOF_TIME_T
+#define TIME_T_SPECIFIER "%lld"
+#else
+#define TIME_T_SPECIFIER "%ld"
+#endif
 
 /* Remember why we failed */
 unsigned checkpt_failure = 0;
@@ -161,7 +166,7 @@ static int parse_checkpt_event(char *lbuf, int ndix, event *e)
 		return 1;
 	}
 	*rest++ = '\0';
-	
+
 	if (lbuf[ndix] == '-')
 		e->node = NULL;
 	else {
@@ -173,8 +178,7 @@ static int parse_checkpt_event(char *lbuf, int ndix, event *e)
 			return 1;
 		}
 	}
-	// FIXME: This needs to be updated for 64 bit time_t which is lld
-	if (sscanf(rest, "%ld.%03u:%lu 0x%X", &e->sec, &e->milli,
+	if (sscanf(rest, TIME_T_SPECIFIER ".%03u:%lu 0x%X", &e->sec, &e->milli,
 						&e->serial, &e->type) != 4) {
 		fprintf(stderr, "Malformed output/event checkpoint line "
 			"after node - [%s]\n", lbuf);
