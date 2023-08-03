@@ -248,6 +248,7 @@ fi
 %config(noreplace) %attr(640,root,root) /etc/audit/plugins.d/au-statsd.conf
 %config(noreplace) %attr(640,root,root) /etc/audit/ids.conf
 %config(noreplace) %attr(640,root,root) /etc/audit/plugins.d/audisp-ids.conf
+%config(noreplace) %attr(640,root,root) /etc/audit/plugins.d/audisp-af_unix.conf
 %attr(644,root,root) %{_datadir}/%{name}/ids-rules/*
 %attr(750,root,root) /sbin/audisp-remote
 %attr(750,root,root) /sbin/audisp-syslog
