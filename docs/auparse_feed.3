@@ -1,4 +1,4 @@
-.TH "AUPARSE_FEED" "3" "May 2007" "Red Hat" "Linux Audit API"
+.TH "AUPARSE_FEED" "3" "Aug 2023" "Red Hat" "Linux Audit API"
 .SH NAME
 auparse_feed \- feed data into parser
 .SH "SYNOPSIS"
@@ -39,6 +39,10 @@ prepended to the next feed data. After all data has been feed to the parser
 .I auparse_flush_feed
 should be called to signal the end of input data and flush any pending parse data through the parsing system.
 
+.SH "RETURN VALUE"
+
+Returns \-1 if an error occurs; otherwise, 0 for success.
+
 .SH "EXAMPLE"
 .nf
 void
@@ -56,8 +60,8 @@ auparse_callback(auparse_state_t *au, auparse_cb_event_t cb_event_type,
             printf("type=%d ", auparse_get_type(au));
             const au_event_t *e = auparse_get_timestamp(au);
             if (e == NULL) return;
-            printf("event time: %u.%u:%lu\\n",
-                    (unsigned)e\->sec, e\->milli, e\->serial);
+            printf("event time: %lu.%u:%lu\\n",
+                    (long unsigned)e\->sec, e\->milli, e\->serial);
             auparse_first_field(au);
             do {
                 printf("%s=%s (%s)\\n", auparse_get_field_name(au),
@@ -80,6 +84,7 @@ main(int argc, char **argv)
     int *event_cnt = malloc(sizeof(int));
 
     au = auparse_init(AUSOURCE_FEED, 0);
+    auparse_set_eoe_timeout(2);
 
     *event_cnt = 1;
     auparse_add_callback(au, auparse_callback, event_cnt, free);
@@ -93,12 +98,9 @@ main(int argc, char **argv)
         auparse_feed(au, buf, len);
     }
     auparse_flush_feed(au);
+    auparse_destroy(au);
 }
 .fi
-
-.SH "RETURN VALUE"
-
-Returns \-1 if an error occurs; otherwise, 0 for success.
 
 .SH "SEE ALSO"
 
