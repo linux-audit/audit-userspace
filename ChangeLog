@@ -8,6 +8,7 @@
 - Don't be as paranoid about auditctl -R file permissions
 - In ausearch, correct subject/object search to be an and if both are given
 - Adjust formats for 64 bit time_t
+- Fix segfault in python bindings around the feed API
 
 3.1.1
 - Add user friendly keywords for signals to auditctl

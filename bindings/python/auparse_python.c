@@ -284,13 +284,16 @@ void callback_data_destroy(void *user_data)
     }
 }
 
-static void auparse_callback(auparse_state_t *au, auparse_cb_event_t cb_event_type, void *user_data)
+static void auparse_callback(auparse_state_t *au,
+			     auparse_cb_event_t cb_event_type, void *user_data)
 {
     CallbackData *cb = (CallbackData *)user_data;
     PyObject *arglist;
     PyObject *result;
 
-    arglist = Py_BuildValue("OiO", cb->py_AuParser, cb_event_type, cb->user_data);
+    if (debug) printf("<< auparse_callback\n");
+    arglist = Py_BuildValue("OiO", cb->py_AuParser, cb_event_type,
+			    cb->user_data);
     result = PyEval_CallObject(cb->func, arglist);
     Py_DECREF(arglist);
     Py_XDECREF(result);
@@ -518,6 +521,7 @@ AuParser_feed(AuParser *self, PyObject *args)
 
     if (!PyArg_ParseTuple(args, "s#:feed", &data, &data_len)) return NULL;
     PARSER_CHECK;
+    if (debug) printf("<< AuParser_feed\n");
     result = auparse_feed(self->au, data, data_len);
     if (result ==  0) Py_RETURN_NONE;
     PyErr_SetFromErrno(PyExc_EnvironmentError);
@@ -618,9 +622,10 @@ static PyObject *
 AuParser_add_callback(AuParser *self, PyObject *args)
 {
     PyObject *func;
-    PyObject *user_data;
+    PyObject *user_data = NULL;
 
-    if (!PyArg_ParseTuple(args, "O|O:add_callback", &func, &user_data)) return NULL;
+    if (!PyArg_ParseTuple(args, "O|O:add_callback", &func, &user_data))
+	    return NULL;
     if (!PyFunction_Check(func)) {
         PyErr_SetString(PyExc_ValueError, "callback must be a function");
         return NULL;
@@ -628,6 +633,13 @@ AuParser_add_callback(AuParser *self, PyObject *args)
     PARSER_CHECK;
 
     {
+	/*
+	 * The way this works is that we gather up all of the pieces that
+	 * were passed to the bindings and bundle them up in a callback data
+	 * structure and register _that_ with the auparse library. This user
+	 * supplied data is then used in the callback to rebuild a python
+	 * function call which is then called.
+	 */
         CallbackData *cb;
 
         cb = PyMem_New(CallbackData, 1);
@@ -635,11 +647,19 @@ AuParser_add_callback(AuParser *self, PyObject *args)
             return PyErr_NoMemory();
         cb->py_AuParser = self;
         cb->func = func;
+	/*
+	 * The second parameter to this function is optional. If it were not
+	 * passed, convert it to the None object for the python function
+	 * call later.
+	 */
+	if (user_data == NULL)
+		user_data = Py_None;
         cb->user_data = user_data;
         Py_INCREF(cb->func);
         Py_XINCREF(cb->user_data);
-        auparse_add_callback(self->au, auparse_callback, cb, callback_data_destroy);
-}
+        auparse_add_callback(self->au, auparse_callback, cb,
+			     callback_data_destroy);
+    }
 
     Py_RETURN_NONE;
 }
