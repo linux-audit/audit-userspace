@@ -233,6 +233,11 @@ The boot time option is a convenience function and has limitations. The time it 
 
 date -d "`cut \-f1 \-d. /proc/uptime` seconds ago"
 
+.SH EXAMPLE
+.nf
+Check the SELinux log for any denials today
+# ausearch \-i \-m avc \-ts today
+
 .SH "SEE ALSO"
 .BR auditd (8),
 .BR auditd.conf (5),
