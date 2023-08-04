@@ -233,10 +233,19 @@ The boot time option is a convenience function and has limitations. The time it 
 
 date -d "`cut \-f1 \-d. /proc/uptime` seconds ago"
 
-.SH EXAMPLE
+.SH EXAMPLES
 .nf
+Search for a specific user:
+# ausearch \-\-start today \-\-loginuid john \-i
+
 Check the SELinux log for any denials today
-# ausearch \-i \-m avc \-ts today
+# ausearch \-\-start today \-m avc \-i
+
+Output logs in text format
+# ausearch \-\-start today \-\-format text
+
+Output TTY events interpreted and shell escaped
+# ausearch \-\-start today \-m TTY \-i \-\-escape shell_quote
 
 .SH "SEE ALSO"
 .BR auditd (8),
