@@ -284,6 +284,12 @@ void callback_data_destroy(void *user_data)
     }
 }
 
+/*
+ * This function is hard coded into the python bindings for the
+ * AuParser_add_callback function as the receiver of any callbacks. It
+ * gets the data from auparse and builds up a python function call based
+ * on the saved data set during the add callback.
+ */
 static void auparse_callback(auparse_state_t *au,
 			     auparse_cb_event_t cb_event_type, void *user_data)
 {
@@ -529,6 +535,25 @@ AuParser_feed(AuParser *self, PyObject *args)
 }
 
 /********************************
+ * auparse_feed_age_events
+ ********************************/
+PyDoc_STRVAR(feed_age_events_doc,
+"feed_age_events() age events by the clock\n\
+\n\
+feed_age_events() should be called to timeout events by the clock.\n\
+Any newly complete events will be sent to the callback function.\n\
+\n\
+Returns None.\n\
+");
+static PyObject *
+AuParser_feed_age_events(AuParser *self)
+{
+    PARSER_CHECK;
+    auparse_feed_age_events(self->au);
+    Py_RETURN_NONE;
+}
+
+/********************************
  * auparse_flush_feed
  ********************************/
 PyDoc_STRVAR(flush_feed_doc,
@@ -571,22 +596,21 @@ AuParser_feed_has_data(AuParser *self)
 }
 
 /********************************
- * auparse_feed_age_events
+ * auparse_feed_has_data
  ********************************/
-PyDoc_STRVAR(feed_age_events_doc,
-"feed_age_events() age events by the clock\n\
+PyDoc_STRVAR(feed_has_ready_event_doc,
+"feed_has_ready_event() determines if there are any events that are\n\
+ ready to emit.\n\
 \n\
-feed_age_events() should be called to timeout events by the clock.\n\
-Any newly complete events will be sent to the callback function.\n\
-\n\
-Returns None.\n\
+Returns True if event is ready and false otherwise.\n\
 ");
 static PyObject *
-AuParser_feed_age_events(AuParser *self)
+AuParser_feed_has_ready_event(AuParser *self)
 {
     PARSER_CHECK;
-    auparse_feed_age_events(self->au);
-    Py_RETURN_NONE;
+    if (auparse_feed_has_ready_event(self->au) == 0)
+        Py_RETURN_FALSE;
+    Py_RETURN_TRUE;
 }
 
 /********************************
@@ -1023,7 +1047,7 @@ No Return value, raises exception (EnvironmentError) on error.\n\
 static PyObject *
 AuParser_search_add_regex(AuParser *self, PyObject *args)
 {
-    const char* regexp;
+    const char *regexp;
     int result;
 
     if (!PyArg_ParseTuple(args, "s", &regexp)) return NULL;
@@ -1681,6 +1705,28 @@ AuParser_next_record(AuParser *self)
 }
 
 /********************************
+ * auparse_get_record_num
+ ********************************/
+PyDoc_STRVAR(get_record_num_doc,
+"get_record_num() get one based record number where auparse is currently at\n\
+The record numbering will reset back to 1 each time a new event is processed.\n\
+Raises exception (RuntimeError) on error.\n\
+");
+static PyObject *
+AuParser_get_record_num(AuParser *self)
+{
+    unsigned int value;
+
+    PARSER_CHECK;
+    value = auparse_get_record_num(self->au);
+    if (value == 0) {
+        PyErr_SetString(PyExc_RuntimeError, "No record number");
+        return NULL;
+    }
+    return Py_BuildValue("I", value);
+}
+
+/********************************
  * auparse_goto_record_num
  ********************************/
 PyDoc_STRVAR(goto_record_num_doc,
@@ -1933,7 +1979,6 @@ AuParser_find_field(AuParser *self, PyObject *args)
     return Py_BuildValue("s", value);
 }
 
-const char *auparse_find_field_next(auparse_state_t *au);
 /********************************
  * auparse_find_field_next
  ********************************/
@@ -1959,6 +2004,59 @@ AuParser_find_field_next(AuParser *self)
         }
     }
     return Py_BuildValue("s", value);
+}
+
+/********************************
+ * auparse_get_field_num
+ ********************************/
+PyDoc_STRVAR(get_field_num_doc,
+"get_field_num() get one based record number where auparse is currently at\n\
+The record numbering will reset back to 1 each time a new event is processed.\n\
+Raises exception (RuntimeError) on error.\n\
+");
+static PyObject *
+AuParser_get_field_num(AuParser *self)
+{
+    unsigned int value;
+
+    PARSER_CHECK;
+    value = auparse_get_field_num(self->au);
+    if (value == 0) {
+        PyErr_SetString(PyExc_RuntimeError, "No field number");
+        return NULL;
+    }
+    return Py_BuildValue("I", value);
+}
+
+/********************************
+ * auparse_goto_field_num
+ ********************************/
+PyDoc_STRVAR(goto_field_num_doc,
+"goto_field_num() Move field cursor to specific position.\n\
+\n\
+goto_field_num() will move the internal library cursors to point\n\
+to a specific physical field number. Fields within the same record are\n\
+numbered  starting  from  1. This is generally not needed but there are\n\
+some cases where one may want precise control over the exact field\n\
+being looked at.\n\
+\n\
+Returns True on success, False if no more fields in current event\n\
+Raises exception (EnvironmentError) on error.\n\
+");
+static PyObject *
+AuParser_goto_field_num(AuParser *self, PyObject *args)
+{
+    int result;
+    unsigned int num;
+
+    if (!PyArg_ParseTuple(args, "i", &num)) return NULL;
+    PARSER_CHECK;
+    result = auparse_goto_field_num(self->au, num);
+
+    if (result >  0) Py_RETURN_TRUE;
+    if (result == 0) Py_RETURN_FALSE;
+    PyErr_SetFromErrno(PyExc_EnvironmentError);
+    return NULL;
 }
 
 /********************************
@@ -2177,6 +2275,7 @@ static PyMethodDef AuParser_methods[] = {
     {"feed",              (PyCFunction)AuParser_feed,              METH_VARARGS, feed_doc},
     {"flush_feed",        (PyCFunction)AuParser_flush_feed,        METH_NOARGS,  flush_feed_doc},
     {"feed_has_data",     (PyCFunction)AuParser_feed_has_data,     METH_NOARGS,  feed_has_data_doc},
+    {"feed_has_ready_event", (PyCFunction)AuParser_feed_has_ready_event, METH_NOARGS,  feed_has_ready_event_doc},
     {"feed_age_events",   (PyCFunction)AuParser_feed_age_events,   METH_NOARGS,  feed_age_events_doc},
     {"add_callback",      (PyCFunction)AuParser_add_callback,      METH_VARARGS, add_callback_doc},
     {"set_escape_mode",   (PyCFunction)AuParser_set_escape_mode,   METH_VARARGS, set_escape_mode_doc},
@@ -2213,6 +2312,7 @@ static PyMethodDef AuParser_methods[] = {
     {"get_num_records",   (PyCFunction)AuParser_get_num_records,   METH_NOARGS,  get_num_records_doc},
     {"first_record",      (PyCFunction)AuParser_first_record,      METH_NOARGS,  first_record_doc},
     {"next_record",       (PyCFunction)AuParser_next_record,       METH_NOARGS,  next_record_doc},
+    {"get_record_num",    (PyCFunction)AuParser_get_record_num,    METH_NOARGS,  get_record_num_doc},
     {"goto_record_num",   (PyCFunction)AuParser_goto_record_num,   METH_VARARGS,  goto_record_num_doc},
     {"get_type",          (PyCFunction)AuParser_get_type,          METH_NOARGS,  get_type_doc},
     {"get_type_name",     (PyCFunction)AuParser_get_type_name,     METH_NOARGS,  get_type_name_doc},
@@ -2223,6 +2323,8 @@ static PyMethodDef AuParser_methods[] = {
     {"get_num_fields",    (PyCFunction)AuParser_get_num_fields,    METH_NOARGS,  get_num_fields_doc},
     {"get_record_text",   (PyCFunction)AuParser_get_record_text,   METH_NOARGS,  get_record_text_doc},
     {"find_field_next",   (PyCFunction)AuParser_find_field_next,   METH_NOARGS,  find_field_next_doc},
+    {"get_field_num",     (PyCFunction)AuParser_get_field_num,     METH_NOARGS,  get_field_num_doc},
+    {"goto_field_num",    (PyCFunction)AuParser_goto_field_num,   METH_VARARGS,  goto_field_num_doc},
     {"find_field",        (PyCFunction)AuParser_find_field,        METH_VARARGS, find_field_doc},
     {"get_field_name",    (PyCFunction)AuParser_get_field_name,    METH_NOARGS,  get_field_name_doc},
     {"get_field_str",     (PyCFunction)AuParser_get_field_str,     METH_NOARGS,  get_field_str_doc},
