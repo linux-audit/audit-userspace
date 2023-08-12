@@ -196,7 +196,6 @@ fi
 %attr(644,root,root) %{_mandir}/man8/auditd.8.gz
 %attr(644,root,root) %{_mandir}/man8/aureport.8.gz
 %attr(644,root,root) %{_mandir}/man8/ausearch.8.gz
-%attr(644,root,root) %{_mandir}/man8/autrace.8.gz
 %attr(644,root,root) %{_mandir}/man8/aulast.8.gz
 %attr(644,root,root) %{_mandir}/man8/aulastlog.8.gz
 %attr(644,root,root) %{_mandir}/man8/augenrules.8.gz
@@ -209,7 +208,6 @@ fi
 %attr(755,root,root) /sbin/auditd
 %attr(755,root,root) /sbin/ausearch
 %attr(755,root,root) /sbin/aureport
-%attr(750,root,root) /sbin/autrace
 %attr(755,root,root) /sbin/augenrules
 %attr(755,root,root) %{_bindir}/aulast
 %attr(755,root,root) %{_bindir}/aulastlog

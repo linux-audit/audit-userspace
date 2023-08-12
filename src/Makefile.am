@@ -1,5 +1,5 @@
 # Makefile.am-- 
-# Copyright 2004-2006, 2008,2011-16,2018 Red Hat Inc., Durham, North Carolina.
+# Copyright 2004-2006, 2008,2011-16,2018 Red Hat Inc.
 # All Rights Reserved.
 #
 # This program is free software; you can redistribute it and/or modify
@@ -24,7 +24,7 @@
 CONFIG_CLEAN_FILES = *.rej *.orig
 SUBDIRS = test
 AM_CPPFLAGS = -I${top_srcdir} -I${top_srcdir}/lib -I${top_srcdir}/src/libev -I${top_srcdir}/auparse -I${top_srcdir}/audisp -I${top_srcdir}/common
-sbin_PROGRAMS = auditd auditctl aureport ausearch autrace
+sbin_PROGRAMS = auditd auditctl aureport ausearch
 AM_CFLAGS = -D_GNU_SOURCE -Wno-pointer-sign ${WFLAGS}
 noinst_HEADERS = auditd-config.h auditd-event.h auditd-listen.h ausearch-llist.h ausearch-options.h auditctl-llist.h aureport-options.h ausearch-parse.h aureport-scan.h ausearch-lookup.h ausearch-int.h auditd-dispatch.h ausearch-string.h ausearch-nvpair.h ausearch-common.h ausearch-avc.h ausearch-time.h ausearch-lol.h auditctl-listing.h ausearch-checkpt.h
 
@@ -46,9 +46,6 @@ aureport_LDADD = ${top_builddir}/lib/libaudit.la ${top_builddir}/auparse/libaupa
 
 ausearch_SOURCES = ausearch.c auditd-config.c ausearch-llist.c ausearch-options.c ausearch-report.c ausearch-match.c ausearch-string.c ausearch-parse.c ausearch-int.c ausearch-time.c ausearch-nvpair.c ausearch-lookup.c ausearch-avc.c ausearch-lol.c ausearch-checkpt.c
 ausearch_LDADD = ${top_builddir}/lib/libaudit.la ${top_builddir}/auparse/libauparse.la ${top_builddir}/common/libaucommon.la
-
-autrace_SOURCES = autrace.c delete_all.c auditctl-llist.c
-autrace_LDADD = ${top_builddir}/lib/libaudit.la
 
 libev/libev.a:
 	make -C libev
