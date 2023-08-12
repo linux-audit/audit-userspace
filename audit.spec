@@ -93,7 +93,7 @@ behavior.
 	   --with-python3=yes \
 	   --enable-gssapi-krb5=yes --with-arm --with-aarch64 \
 	   --with-libcap-ng=yes --without-golang --enable-zos-remote \
-	   --enable-systemd --enable-experimental --with-io_uring
+	   --enable-experimental --with-io_uring
 
 make CFLAGS="%{optflags}" %{?_smp_mflags}
 
