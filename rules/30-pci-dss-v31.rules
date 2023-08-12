@@ -40,7 +40,6 @@
 -a always,exit -F path=/usr/sbin/aureport -F perm=x -F key=10.2.3-access-audit-trail
 -a always,exit -F path=/usr/sbin/aulast -F perm=x -F key=10.2.3-access-audit-trail
 -a always,exit -F path=/usr/sbin/aulastlogin -F perm=x -F key=10.2.3-access-audit-trail
--a always,exit -F path=/usr/sbin/auvirt -F perm=x -F key=10.2.3-access-audit-trail
 
 ## 10.2.4 Invalid logical access attempts. This is naturally met by pam. You
 ## can find these events with: ausearch --start today -m user_login -sv no -i
