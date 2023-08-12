@@ -28,13 +28,8 @@ EXTRA_DIST = auditd.init auditd.service auditd.sysconfig auditd.conf \
 	auditd.rotate auditd.state auditd.stop \
 	audit-stop.rules augenrules audit-functions
 libconfig = libaudit.conf
-if ENABLE_SYSTEMD
 initdir = /usr/lib/systemd/system
 legacydir = $(libexecdir)/initscripts/legacy-actions/auditd
-else
-initdir = $(sysconfdir)/rc.d/init.d
-sysconfigdir = $(sysconfdir)/sysconfig
-endif
 
 auditdir = $(sysconfdir)/audit
 auditrdir = $(auditdir)/rules.d
@@ -43,13 +38,8 @@ sbin_SCRIPTS = augenrules
 
 install-data-hook:
 	$(INSTALL_DATA) -D -m 640 ${srcdir}/${libconfig} ${DESTDIR}${sysconfdir}
-if ENABLE_SYSTEMD
-else
-	$(INSTALL_DATA) -D -m 640 ${srcdir}/auditd.sysconfig ${DESTDIR}${sysconfigdir}/auditd
-endif
 
 install-exec-hook:
-if ENABLE_SYSTEMD
 	mkdir -p ${DESTDIR}${initdir}
 	mkdir -p ${DESTDIR}${legacydir}
 	mkdir -p ${DESTDIR}${libexecdir}
@@ -62,15 +52,11 @@ if ENABLE_SYSTEMD
 	$(INSTALL_SCRIPT) -D -m 750 ${srcdir}/auditd.restart ${DESTDIR}${legacydir}/restart
 	$(INSTALL_SCRIPT) -D -m 750 ${srcdir}/auditd.condrestart ${DESTDIR}${legacydir}/condrestart
 	$(INSTALL_SCRIPT) -D -m 750 ${srcdir}/audit-functions ${DESTDIR}${libexecdir}
-else
-	$(INSTALL_SCRIPT) -D ${srcdir}/auditd.init ${DESTDIR}${initdir}/auditd
-endif
 	chmod 0755 $(DESTDIR)$(sbindir)/augenrules
 
 
 uninstall-hook:
 	rm ${DESTDIR}${sysconfdir}/${libconfig}
-if ENABLE_SYSTEMD
 	rm ${DESTDIR}${initdir}/auditd.service
 	rm ${DESTDIR}${legacydir}/rotate
 	rm ${DESTDIR}${legacydir}/resume
@@ -79,8 +65,4 @@ if ENABLE_SYSTEMD
 	rm ${DESTDIR}${legacydir}/stop
 	rm ${DESTDIR}${legacydir}/restart
 	rm ${DESTDIR}${legacydir}/condrestart
-else
-	rm ${DESTDIR}${sysconfigdir}/auditd
-	rm ${DESTDIR}${initdir}/auditd
-endif
 
