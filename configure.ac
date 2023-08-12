@@ -101,6 +101,20 @@ AC_COMPILE_IFELSE(
 )
 AC_MSG_RESULT($ACCESS)
 
+AC_MSG_CHECKING(__attr_dealloc_free support)
+AC_COMPILE_IFELSE(
+  [AC_LANG_SOURCE(
+    [[
+      #include <stdio.h>
+      extern char *audit_encode_nv_string(const char *name, const char *value,
+                                          unsigned int vlen)
+                                          __attr_dealloc_free;
+      int main(void) { return 0; }]])],
+  [DEALLOC="yes"],
+  [DEALLOC="no"]
+)
+AC_MSG_RESULT($DEALLOC)
+
 dnl; pthread_yield is used in zos-remote
 OLDLIBS="$LIBS"
 AC_SEARCH_LIBS(pthread_yield, pthread, 
@@ -479,4 +493,5 @@ echo "
   Compiler flags:
 `echo $CFLAGS | fmt -w 50 | sed 's,^,                          ,'`
   __attr_access support:  $ACCESS
+  __attr_dealloc_free support:  $DEALLOC
 "
