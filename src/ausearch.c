@@ -109,9 +109,20 @@ int main(int argc, char *argv[])
 	(void) umask( umask( 077 ) | 027 );
 
 	/* Load config so we know where logs are and eoe_timeout */
-	if (load_config(&config, TEST_SEARCH))
-	        fprintf(stderr, "NOTE - using built-in logs: %s\n",
+	if (load_config(&config, TEST_SEARCH)) {
+
+		/* Config was not loaded successfully,
+		 * so we are using the default config values
+		 */
+		fprintf(stderr, "NOTE - using built-in end_of_event_timeout: %lu\n",
+			config.end_of_event_timeout);
+
+		/* Using built-in logs when --input was not given */
+		if (user_file == NULL) {
+			fprintf(stderr, "NOTE - using built-in logs: %s\n",
 				config.log_file);
+		}
+	}
 
 	/* Set timeout from the config file */
 	lol_set_eoe_timeout((time_t)config.end_of_event_timeout);
