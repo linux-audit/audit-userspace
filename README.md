@@ -48,7 +48,7 @@ CONFIGURING AND COMPILING
 
 To build from the repo after cloning and installing dependencies:
 
-```bash
+```
 cd audit
 ./autogen.sh
 ./configure --with-python3=yes --enable-gssapi-krb5=yes --with-arm \
@@ -66,7 +66,7 @@ It's just an example.
 CROSS COMPILING
 ---------------
 Cross compiling is not supported. The audit system builds native binaries at
-build time and uses those to create sorted b-trees for fast lookup during
+build time and uses those to create sorted btrees for fast lookup during
 event processing and reporting. To enable cross compiling, those binaries
 would need to be rewritten in python or another scripting langauge. No one is
 currently working on that.
@@ -77,8 +77,15 @@ The following image illustrates the architecture and relationship of the compone
 
 ![audit-components](https://github.com/linux-audit/audit-userspace/blob/assets/audit-components.png)
 
+In the above diagram, auditd is in the middle. It interfaces with the kernel to receive events. It writes them to the audit logs. It also distributes events in realtime to audisp plugins. To load rules, you use the augenrules program. It in turn uses auditctl to load them into the kernel. Auditctl is used to create, load, and delete rules; configure the kernel's backlog and other parameters; and to gather status about the audit system. The kernel does the heavy lifting and generates the events. In the case of a trusted application, shadow-utils for example, it collects the event, adds origin information, timestamps, and queues the event for delivery to the audit daemon.
+
 DAEMON CONSIDERATIONS
 ---------------------
+Almost all Security Standards are concerned about what happens when logging space fills up. Because of this, the audit daemon keeps careful track of free space and emits warnings at admin defined levels called "space left" and "admin space left". The former is considered a low disk space warning which should give the admin time to do something. The latter is more serious because you are just about out.
+
+To get an accurate reading, the audit daemon should log to a disk partition that is reserved only for the audit daemon. This way someone using the logger command can't suddenly fill up the audit space and trigger an admin defined action. It is recommended to set aside a partition, /var/log/audit, for use by the audit daemon.
+
+The audit daemon is started by systemd. Some people run the "systemd-analyze security" command. It tells you all sorts of things to do to protect your system from auditd. However, doing the things it suggests places auditd in namespaces. When that happens, the audit rules may not trigger correctly and auditd may not be able to access trusted databases either. The audit service files are the results of trial and error based on well intentioned patchs gone wrong. You can lock it down more, but you probably will break something.
 
 RULES
 -----
