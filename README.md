@@ -37,7 +37,7 @@ SUPPORTED ARCHITECTURES
 * s390 & s390x
 * x86_64 & i386
 
-NOTE: There is a moratorium on adding support for any new platforms. Syscalls and other lookup tables get updated frequently. Without an active community with more people maintaining the code, it is not sustainable to add more. If you would like to see more platforms supported, please consider working on bugs and code cleanups and then maybe we can add more. Any submitted pull requests adding a new platform with be marked with a 'wont_fix' label. It will be left available in case anyone wants to use it. But it is unsupported.
+NOTE: **There is a moratorium on adding support for any new platforms.** Syscalls and other lookup tables get updated frequently. Without an active community with more people maintaining the code, it is not sustainable to add more. If you would like to see more platforms supported, please consider working on bugs and code cleanups and then maybe we can add more. Any submitted pull requests adding a new platform with be marked with a 'wont_fix' label. It will be left available in case anyone wants to use it. But it is unsupported.
 
 MAIL LIST
 ---------
@@ -77,6 +77,9 @@ The following image illustrates the architecture and relationship of the compone
 
 ![audit-components](https://github.com/linux-audit/audit-userspace/blob/assets/audit-components.png)
 
+DAEMON CONSIDERATIONS
+---------------------
+
 RULES
 -----
 
@@ -85,4 +88,7 @@ SEARCHING AND REPORTING FROM LOGS
 
 PERFORMANCE AND MONITORING
 --------------------------
+
+AUPARSE
+-------
 
