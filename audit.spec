@@ -50,18 +50,6 @@ The audit-libs-static package contains the static libraries
 needed for developing applications that need to use static audit
 framework libraries
 
-%package libs-python2
-Summary: Python2 bindings for libaudit
-License: LGPLv2+
-BuildRequires: python2-devel
-Requires: %{name}-libs%{?_isa} = %{version}-%{release}
-Provides: audit-libs-python = %{version}-%{release}
-Obsoletes: audit-libs-python <= 2.8.3
-
-%description libs-python2
-The audit-libs-python2 package contains the bindings so that libaudit
-and libauparse can be used by python2.
-
 %package libs-python3
 Summary: Python3 bindings for libaudit
 License: LGPLv2+
@@ -89,8 +77,7 @@ behavior.
 %setup -q
 
 %build
-%configure --sbindir=/sbin --libdir=/%{_lib} --with-python=no \
-	   --with-python3=yes \
+%configure --sbindir=/sbin --libdir=/%{_lib} --with-python3=yes \
 	   --enable-gssapi-krb5=yes --with-arm --with-aarch64 \
 	   --with-libcap-ng=yes --without-golang --enable-zos-remote \
 	   --enable-experimental --with-io_uring
@@ -119,7 +106,7 @@ rm -f $RPM_BUILD_ROOT/%{_lib}/libaudit.so
 rm -f $RPM_BUILD_ROOT/%{_lib}/libauparse.so
 
 find $RPM_BUILD_ROOT -name '*.la' -delete
-find $RPM_BUILD_ROOT/%{_libdir}/python?.?/site-packages -name '*.a' -delete
+find $RPM_BUILD_ROOT/%{_libdir}/python3.?/site-packages -name '*.a' -delete
 
 # Move the pkgconfig file
 mv $RPM_BUILD_ROOT/%{_lib}/pkgconfig $RPM_BUILD_ROOT%{_libdir}
@@ -178,11 +165,6 @@ fi
 %license COPYING.LIB
 %{_libdir}/libaudit.a
 %{_libdir}/libauparse.a
-
-%files libs-python2
-%attr(755,root,root) %{python_sitearch}/_audit.so
-%attr(755,root,root) %{python_sitearch}/auparse.so
-%{python_sitearch}/audit.py*
 
 %files libs-python3
 %defattr(-,root,root,-)

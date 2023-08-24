@@ -26,8 +26,6 @@ auparse_timestamp_compare: because AuEvent calls this via the cmp operator
  *
  */
 
-#if PY_MAJOR_VERSION > 2
-#define IS_PY3K
 #if PY_MINOR_VERSION >= 5
 #define USE_RICH_COMPARISON
 #endif
@@ -49,14 +47,6 @@ int PyFile_Check(PyObject *f) {
         }
     }
 }
-#else
-#define MODINITERROR return
-#define PYNUM_FROMLONG PyInt_FromLong
-#define PYSTR_CHECK PyString_Check
-#define PYSTR_FROMSTRING PyString_FromString
-#define PYSTR_ASSTRING PyString_AsString
-#define PYFILE_ASFILE(f) PyFile_AsFile(f)
-#endif
 
 static int debug = 0;
 static PyObject *NoParserError = NULL;
@@ -2375,21 +2365,10 @@ static PyTypeObject AuParserType = {
  *                                Module
  *===========================================================================*/
 
-#ifndef IS_PY3K
-PyDoc_STRVAR(auparse_doc,
-"Parsing library for audit messages.\n\
-\n\
-The module defines the following exceptions:\n\
-\n\
-NoParser: Raised if the underlying C code parser is not bound to the AuParser object.\n\
-");
-#endif
-
 static PyMethodDef module_methods[] = {
     {NULL}  /* Sentinel */
 };
 
-#ifdef IS_PY3K
 static struct PyModuleDef auparse_def = {
     PyModuleDef_HEAD_INIT,
     "auparse",
@@ -2404,22 +2383,13 @@ static struct PyModuleDef auparse_def = {
 
 PyMODINIT_FUNC
 PyInit_auparse(void)
-#else
-PyMODINIT_FUNC
-initauparse(void) 
-#endif
 {
     PyObject* m;
 
     if (PyType_Ready(&AuEventType) < 0) MODINITERROR;
     if (PyType_Ready(&AuParserType) < 0) MODINITERROR;
 
-#ifdef IS_PY3K
     m = PyModule_Create(&auparse_def);
-#else
-    m = Py_InitModule3("auparse", module_methods, auparse_doc);
-#endif
-
     if (m == NULL)
       MODINITERROR;
 
@@ -2523,7 +2493,6 @@ initauparse(void)
     PyModule_AddIntConstant(m, "AUPARSE_ESC_SHELL", AUPARSE_ESC_SHELL);
     PyModule_AddIntConstant(m, "AUPARSE_ESC_SHELL_QUOTE", AUPARSE_ESC_SHELL_QUOTE);
 
-#ifdef IS_PY3K
     return m;
-#endif
 }
+

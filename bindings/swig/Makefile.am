@@ -1,5 +1,5 @@
 # Makefile.am --
-# Copyright 2015 Red Hat Inc., Durham, North Carolina.
+# Copyright 2023 Red Hat Inc.
 # All Rights Reserved.
 #
 # This library is free software; you can redistribute it and/or
@@ -25,9 +25,6 @@ CONFIG_CLEAN_FILES = *.loT *.rej *.orig
 EXTRA_DIST = src/auditswig.i
 
 SUBDIRS = src
-if HAVE_PYTHON
-SUBDIRS += python
-endif
 if USE_PYTHON3
 SUBDIRS += python3
 endif
