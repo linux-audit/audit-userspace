@@ -75,7 +75,7 @@ OVERVIEW
 --------
 The following image illustrates the architecture and relationship of the components shipped as part of this project:
 
-![audit-components](https://raw.githubusercontent.com/linux-audit/audit-userspace/assets/images/audit-components.png)
+![audit-components](https://github.com/linux-audit/audit-userspace/blob/assets/audit-components.png)
 
 RULES
 -----
