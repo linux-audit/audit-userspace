@@ -28,7 +28,7 @@ EXTRA_DIST = auditd.service auditd.conf auditd.cron \
 	auditd.rotate auditd.state auditd.stop \
 	audit-stop.rules augenrules audit-functions
 libconfig = libaudit.conf
-initdir = /usr/lib/systemd/system
+initdir = $(pre)/lib/systemd/system
 legacydir = $(libexecdir)/initscripts/legacy-actions/auditd
 
 auditdir = $(sysconfdir)/audit
@@ -42,7 +42,6 @@ install-data-hook:
 install-exec-hook:
 	mkdir -p ${DESTDIR}${initdir}
 	mkdir -p ${DESTDIR}${legacydir}
-	mkdir -p ${DESTDIR}${libexecdir}
 	$(INSTALL_SCRIPT) -D -m 644 ${srcdir}/auditd.service ${DESTDIR}${initdir}
 	$(INSTALL_SCRIPT) -D -m 750 ${srcdir}/auditd.rotate ${DESTDIR}${legacydir}/rotate
 	$(INSTALL_SCRIPT) -D -m 750 ${srcdir}/auditd.resume ${DESTDIR}${legacydir}/resume
