@@ -12,7 +12,7 @@ RUNTIME DEPENDENCIES
 
 BUILD-TIME DEPENDENCIES
 -----------------------
-* gcc
+* gcc (or clang)
 * autoconf
 * automake
 * libtool
@@ -20,7 +20,7 @@ BUILD-TIME DEPENDENCIES
 * kernel-headers >= 3.0
 * systemd-devel
 
-Optional Dependencies
+OPTIONAL DEPENDENCIES
 ---------------------
 * golang
 * krb5-devel
@@ -37,7 +37,7 @@ SUPPORTED ARCHITECTURES
 * s390 & s390x
 * x86_64 & i386
 
-NOTE: There is a moratorium on adding support for any new platforms. Syscalls and other lookup tables get updated frequently. Without an active community with more people maintaining the code, it is not sustainable to add more. If you would like to see more platforms support, please consider working on bugs and code cleanups and then maybe we can add more.
+NOTE: There is a moratorium on adding support for any new platforms. Syscalls and other lookup tables get updated frequently. Without an active community with more people maintaining the code, it is not sustainable to add more. If you would like to see more platforms support, please consider working on bugs and code cleanups and then maybe we can add more. Any submitted pull requests add a new platform with be marked with a 'wont_fix' label. It will be left available in case anyone wants to use it. But it is unsupported.
 
 MAIL LIST
 ---------
@@ -58,7 +58,18 @@ make install
 ```
 
 But if you are packaging this, you probably want to do "make dist" and
-use the resulting tar file with your package building framework.
+use the resulting tar file with your package building framework. A spec file
+is included in the git repo as an example of packaging it using rpm. This
+spec file is not known to be the official spec file used by any distribution.
+It's just an example.
+
+CROSS COMPILING
+---------------
+Cross compiling is not supported. The audit system builds native binaries at
+build time and uses those to create sorted b-trees for fast lookup during
+event processing and reporting. To enable cross compiling, those binaries
+would need to be rewritten in python or another scripting langauge. No one is
+currently working on that.
 
 OVERVIEW
 --------
