@@ -26,7 +26,7 @@ EXTRA_DIST = auditd.service auditd.conf auditd.cron \
 	libaudit.conf auditd.condrestart \
 	auditd.reload auditd.restart auditd.resume \
 	auditd.rotate auditd.state auditd.stop \
-	audit-stop.rules augenrules audit-functions
+	audit-stop.rules augenrules
 libconfig = libaudit.conf
 initdir = $(prefix)/lib/systemd/system
 legacydir = $(libexecdir)/initscripts/legacy-actions/auditd
@@ -50,7 +50,6 @@ install-exec-hook:
 	$(INSTALL_SCRIPT) -D -m 750 ${srcdir}/auditd.stop ${DESTDIR}${legacydir}/stop
 	$(INSTALL_SCRIPT) -D -m 750 ${srcdir}/auditd.restart ${DESTDIR}${legacydir}/restart
 	$(INSTALL_SCRIPT) -D -m 750 ${srcdir}/auditd.condrestart ${DESTDIR}${legacydir}/condrestart
-	$(INSTALL_SCRIPT) -D -m 750 ${srcdir}/audit-functions ${DESTDIR}${libexecdir}
 	chmod 0755 $(DESTDIR)$(sbindir)/augenrules
 
 

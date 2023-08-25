@@ -5,13 +5,9 @@
 # Check that we are root ... so non-root users stop here
 test $(id -u) = 0  ||  exit 4
 
-PATH=/sbin:/bin:/usr/bin:/usr/sbin
-prog="auditd"
-. /usr/libexec/audit-functions
-
 printf "Reconfiguring: "
 /sbin/augenrules --load
-killproc $prog -HUP
+/sbin/auditctl --signal reload
 RETVAL=$?
 echo
 exit $RETVAL

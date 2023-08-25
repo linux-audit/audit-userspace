@@ -5,12 +5,8 @@
 # Check that we are root ... so non-root users stop here
 test $(id -u) = 0  ||  exit 4
 
-PATH=/sbin:/bin:/usr/bin:/usr/sbin
-prog="auditd"
-. /usr/libexec/audit-functions
-
 printf "Resuming logging: "
-killproc $prog -USR2
+/sbin/auditctl --signal resume
 RETVAL=$?
 echo
 exit $RETVAL
