@@ -8,6 +8,7 @@ RUNTIME DEPENDENCIES
 * coreutils
 * initscripts-service
 * kernel >= 5.0 
+* procps-ng
 * systemd
 
 BUILD-TIME DEPENDENCIES

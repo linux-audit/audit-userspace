@@ -13,7 +13,7 @@ BuildRequires: kernel-headers >= 5.0
 BuildRequires: systemd
 
 Requires: %{name}-libs = %{version}-%{release}
-Requires(post): systemd coreutils
+Requires(post): systemd coreutils procps-ng
 Requires(preun): systemd initscripts-service
 Requires(postun): systemd coreutils initscripts-service
 
