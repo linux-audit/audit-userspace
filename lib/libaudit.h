@@ -252,59 +252,7 @@ extern "C" {
 #define AUDIT_LAST_USER_MSG2   2999
 #endif
 
-/* New kernel event definitions since 2.6.30 */
-#ifndef AUDIT_SET_FEATURE
-#define AUDIT_SET_FEATURE       1018    /* Turn an audit feature on or off */
-#endif
-
-#ifndef AUDIT_GET_FEATURE
-#define AUDIT_GET_FEATURE       1019    /* Get which features are enabled */
-#endif
-
-#ifndef AUDIT_MMAP
-#define AUDIT_MMAP		1323 /* Descriptor and flags in mmap */
-#endif
-
-#ifndef AUDIT_NETFILTER_PKT
-#define AUDIT_NETFILTER_PKT	1324 /* Packets traversing netfilter chains */
-#endif
-#ifndef AUDIT_NETFILTER_CFG
-#define AUDIT_NETFILTER_CFG	1325 /* Netfilter chain modifications */
-#endif
-
-#ifndef AUDIT_SECCOMP
-#define AUDIT_SECCOMP		1326 /* Secure Computing event */
-#endif
-
-#ifndef AUDIT_PROCTITLE
-#define AUDIT_PROCTITLE		1327 /* Process Title info */
-#endif
-
-#undef AUDIT_FEATURE_CHANGE
-#ifndef AUDIT_FEATURE_CHANGE
-#define AUDIT_FEATURE_CHANGE	1328 /* Audit feature changed value */
-#endif
-
-#ifndef AUDIT_REPLACE
-#define AUDIT_REPLACE           1329 /* Auditd replaced because probe failed */
-#endif
-
-#ifndef AUDIT_KERN_MODULE
-#define AUDIT_KERN_MODULE	1330 /* Kernel Module events */
-#endif
-
-#ifndef AUDIT_FANOTIFY
-#define AUDIT_FANOTIFY		1331 /* Fanotify access decision */
-#endif
-
-#ifndef AUDIT_TIME_INJOFFSET
-#define AUDIT_TIME_INJOFFSET	1332 /* Timekeeping offset injected */
-#endif
-
-#ifndef AUDIT_TIME_ADJNTPVAL
-#define AUDIT_TIME_ADJNTPVAL	1333 /* NTP value adjustment */
-#endif
-
+/* New kernel event definitions since 5.0 */
 #ifndef AUDIT_BPF
 #define AUDIT_BPF		1334 /* BPF load/unload */
 #endif
@@ -329,18 +277,6 @@ extern "C" {
 #define AUDIT_DM_EVENT		1339 /* Device Mapper events */
 #endif
 
-#ifndef AUDIT_MAC_CALIPSO_ADD
-#define AUDIT_MAC_CALIPSO_ADD	1418 /* NetLabel: add CALIPSO DOI entry */
-#endif
-
-#ifndef AUDIT_MAC_CALIPSO_DEL
-#define AUDIT_MAC_CALIPSO_DEL	1419 /* NetLabel: del CALIPSO DOI entry */
-#endif
-
-#ifndef AUDIT_ANOM_LINK
-#define AUDIT_ANOM_LINK		1702 /* Suspicious use of file links */
-#endif
-
 #ifndef AUDIT_ANOM_CREAT
 #define AUDIT_ANOM_CREAT            1703 /* Suspicious file creation */
 #endif
@@ -349,161 +285,16 @@ extern "C" {
 #define AUDIT_KEY_SEPARATOR 0x01
 
 /* These are used in filter control */
-#ifndef AUDIT_FILTER_FS
-#define AUDIT_FILTER_FS		0x06 /* FS record filter in __audit_inode_child */
-#endif
 #ifndef AUDIT_FILTER_URING_EXIT
 #define AUDIT_FILTER_URING_EXIT 0x07 /* Apply rule at io_uring op exit */
 #endif
+
 #ifndef AUDIT_FILTER_EXCLUDE
 #define AUDIT_FILTER_EXCLUDE	AUDIT_FILTER_TYPE
 #endif
+
 #define AUDIT_FILTER_MASK	0x07	/* Mask to get actual filter */
 #define AUDIT_FILTER_UNSET	0x80	/* This value means filter is unset */
-
-/* Status symbol mask values */
-#ifndef AUDIT_STATUS_LOST
-#define AUDIT_STATUS_LOST               0x0040
-#endif
-
-/* These defines describe what features are in the kernel */
-#ifndef AUDIT_FEATURE_BITMAP_BACKLOG_LIMIT
-#define AUDIT_FEATURE_BITMAP_BACKLOG_LIMIT      0x00000001
-#endif
-#ifndef AUDIT_FEATURE_BITMAP_BACKLOG_WAIT_TIME
-#define AUDIT_FEATURE_BITMAP_BACKLOG_WAIT_TIME  0x00000002
-#endif
-#ifndef AUDIT_FEATURE_BITMAP_EXECUTABLE_PATH
-#define AUDIT_FEATURE_BITMAP_EXECUTABLE_PATH    0x00000004
-#endif
-#ifndef AUDIT_FEATURE_BITMAP_EXCLUDE_EXTEND
-#define AUDIT_FEATURE_BITMAP_EXCLUDE_EXTEND     0x00000008
-#endif
-#ifndef AUDIT_FEATURE_BITMAP_SESSIONID_FILTER
-#define AUDIT_FEATURE_BITMAP_SESSIONID_FILTER   0x00000010
-#endif
-#ifndef AUDIT_FEATURE_BITMAP_LOST_RESET
-#define AUDIT_FEATURE_BITMAP_LOST_RESET		0x00000020
-#endif
-#ifndef AUDIT_FEATURE_BITMAP_FILTER_FS
-#define AUDIT_FEATURE_BITMAP_FILTER_FS		0x00000040
-#endif
-
-/* Defines for interfield comparison update */
-#ifndef AUDIT_OBJ_UID
-#define AUDIT_OBJ_UID  109
-#endif
-#ifndef AUDIT_OBJ_GID
-#define AUDIT_OBJ_GID  110
-#endif
-#ifndef AUDIT_FIELD_COMPARE
-#define AUDIT_FIELD_COMPARE 111
-#endif
-#ifndef AUDIT_EXE
-#define AUDIT_EXE 112
-#endif
-#ifndef AUDIT_SADDR_FAM
-#define AUDIT_SADDR_FAM 113
-#endif
-
-#ifndef AUDIT_SESSIONID
-#define AUDIT_SESSIONID 25
-#endif
-
-#ifndef AUDIT_FSTYPE
-#define AUDIT_FSTYPE 26
-#endif
-
-#ifndef AUDIT_COMPARE_UID_TO_OBJ_UID
-#define AUDIT_COMPARE_UID_TO_OBJ_UID   1
-#endif
-#ifndef AUDIT_COMPARE_GID_TO_OBJ_GID
-#define AUDIT_COMPARE_GID_TO_OBJ_GID   2
-#endif
-#ifndef AUDIT_COMPARE_EUID_TO_OBJ_UID
-#define AUDIT_COMPARE_EUID_TO_OBJ_UID  3
-#endif
-#ifndef AUDIT_COMPARE_EGID_TO_OBJ_GID
-#define AUDIT_COMPARE_EGID_TO_OBJ_GID  4
-#endif
-#ifndef AUDIT_COMPARE_AUID_TO_OBJ_UID
-#define AUDIT_COMPARE_AUID_TO_OBJ_UID  5
-#endif
-#ifndef AUDIT_COMPARE_SUID_TO_OBJ_UID
-#define AUDIT_COMPARE_SUID_TO_OBJ_UID  6
-#endif
-#ifndef AUDIT_COMPARE_SGID_TO_OBJ_GID
-#define AUDIT_COMPARE_SGID_TO_OBJ_GID  7
-#endif
-#ifndef AUDIT_COMPARE_FSUID_TO_OBJ_UID
-#define AUDIT_COMPARE_FSUID_TO_OBJ_UID 8
-#endif
-#ifndef AUDIT_COMPARE_FSGID_TO_OBJ_GID
-#define AUDIT_COMPARE_FSGID_TO_OBJ_GID 9
-#endif
-#ifndef AUDIT_COMPARE_UID_TO_AUID
-#define AUDIT_COMPARE_UID_TO_AUID      10
-#endif
-#ifndef AUDIT_COMPARE_UID_TO_EUID
-#define AUDIT_COMPARE_UID_TO_EUID      11
-#endif
-#ifndef AUDIT_COMPARE_UID_TO_FSUID
-#define AUDIT_COMPARE_UID_TO_FSUID     12
-#endif
-#ifndef AUDIT_COMPARE_UID_TO_SUID
-#define AUDIT_COMPARE_UID_TO_SUID      13
-#endif
-#ifndef AUDIT_COMPARE_AUID_TO_FSUID
-#define AUDIT_COMPARE_AUID_TO_FSUID    14
-#endif
-#ifndef AUDIT_COMPARE_AUID_TO_SUID
-#define AUDIT_COMPARE_AUID_TO_SUID     15
-#endif
-#ifndef AUDIT_COMPARE_AUID_TO_EUID
-#define AUDIT_COMPARE_AUID_TO_EUID     16
-#endif
-#ifndef AUDIT_COMPARE_EUID_TO_SUID
-#define AUDIT_COMPARE_EUID_TO_SUID     17
-#endif
-#ifndef AUDIT_COMPARE_EUID_TO_FSUID
-#define AUDIT_COMPARE_EUID_TO_FSUID    18
-#endif
-#ifndef AUDIT_COMPARE_SUID_TO_FSUID
-#define AUDIT_COMPARE_SUID_TO_FSUID    19
-#endif
-#ifndef AUDIT_COMPARE_GID_TO_EGID
-#define AUDIT_COMPARE_GID_TO_EGID      20
-#endif
-#ifndef AUDIT_COMPARE_GID_TO_FSGID
-#define AUDIT_COMPARE_GID_TO_FSGID     21
-#endif
-#ifndef AUDIT_COMPARE_GID_TO_SGID
-#define AUDIT_COMPARE_GID_TO_SGID      22
-#endif
-#ifndef AUDIT_COMPARE_EGID_TO_FSGID
-#define AUDIT_COMPARE_EGID_TO_FSGID    23
-#endif
-#ifndef AUDIT_COMPARE_EGID_TO_SGID
-#define AUDIT_COMPARE_EGID_TO_SGID     24
-#endif
-#ifndef AUDIT_COMPARE_SGID_TO_FSGID
-#define AUDIT_COMPARE_SGID_TO_FSGID    25
-#endif
-
-#ifndef EM_ARM
-#define EM_ARM  40
-#endif
-#ifndef EM_AARCH64
-#define EM_AARCH64 183
-#endif
-
-#ifndef AUDIT_ARCH_AARCH64
-#define AUDIT_ARCH_AARCH64	(EM_AARCH64|__AUDIT_ARCH_64BIT|__AUDIT_ARCH_LE)
-#endif
-
-#ifndef AUDIT_ARCH_PPC64LE
-#define AUDIT_ARCH_PPC64LE	(EM_PPC64|__AUDIT_ARCH_64BIT|__AUDIT_ARCH_LE)
-#endif
 
 /* This is the character that separates event data from enrichment fields */
 #define AUDIT_INTERP_SEPARATOR 0x1D
