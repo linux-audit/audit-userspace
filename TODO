@@ -1,17 +1,17 @@
 Future roadmap (subject to change):
 ===================================
-3.2
+4.0
+* Rewrite swig based python
 * In auditd, look into non-blocking handling of write to plugins
 * Basic HIDS based on reactive audit component
 * Multi-thread audisp-remote
 * Support multiple time streams when searching
 * If searching user/group doesn't map to uid/gid, do translated string search
 
-3.3
+4.1
 * Support TLS PSK as remote logging transport
 * audisp-remote, add config to say what home network is so laptops don't try if their not on a network that can reach the server.
 * Change ausearch to output name="" unless its a real null. (mount) ausearch-report.c, 523. FIXME
 
-3.4
-* Rewrite swig based python
+Someday...
 * Container support
