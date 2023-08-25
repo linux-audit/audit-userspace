@@ -63,4 +63,3 @@ uninstall-hook:
 	rm ${DESTDIR}${legacydir}/stop
 	rm ${DESTDIR}${legacydir}/restart
 	rm ${DESTDIR}${legacydir}/condrestart
-	rm ${DESTDIR}${libexecdir}/audit-functions
