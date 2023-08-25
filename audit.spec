@@ -9,7 +9,7 @@ Source0: http://people.redhat.com/sgrubb/audit/%{name}-%{version}.tar.gz
 BuildRequires: gcc swig
 BuildRequires: golang
 BuildRequires: krb5-devel libcap-ng-devel
-BuildRequires: kernel-headers >= 2.6.29
+BuildRequires: kernel-headers >= 5.0
 BuildRequires: systemd
 
 Requires: %{name}-libs = %{version}-%{release}

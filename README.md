@@ -7,7 +7,7 @@ RUNTIME DEPENDENCIES
 --------------------
 * coreutils
 * initscripts-service
-* kernel >= 3.0 
+* kernel >= 5.0 
 * systemd
 
 BUILD-TIME DEPENDENCIES
