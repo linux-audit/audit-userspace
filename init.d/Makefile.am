@@ -26,7 +26,7 @@ EXTRA_DIST = auditd.init auditd.service auditd.sysconfig auditd.conf \
 	auditd.cron libaudit.conf auditd.condrestart \
 	auditd.reload auditd.restart auditd.resume \
 	auditd.rotate auditd.state auditd.stop \
-	audit-stop.rules augenrules audit-functions
+	audit-stop.rules augenrules
 libconfig = libaudit.conf
 if ENABLE_SYSTEMD
 initdir = /usr/lib/systemd/system
@@ -61,7 +61,6 @@ if ENABLE_SYSTEMD
 	$(INSTALL_SCRIPT) -D -m 750 ${srcdir}/auditd.stop ${DESTDIR}${legacydir}/stop
 	$(INSTALL_SCRIPT) -D -m 750 ${srcdir}/auditd.restart ${DESTDIR}${legacydir}/restart
 	$(INSTALL_SCRIPT) -D -m 750 ${srcdir}/auditd.condrestart ${DESTDIR}${legacydir}/condrestart
-	$(INSTALL_SCRIPT) -D -m 750 ${srcdir}/audit-functions ${DESTDIR}${libexecdir}
 else
 	$(INSTALL_SCRIPT) -D ${srcdir}/auditd.init ${DESTDIR}${initdir}/auditd
 endif
