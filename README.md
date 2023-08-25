@@ -140,16 +140,49 @@ The intended way to view audit events is by using the ausearch program. Audit ev
 Some fields are searchable. Typically you will search for a specific kind of event, a specific process, a specific file, or a specific user. The ausearch man page details all the different options. But we wll list some examples below:
 
 ```
+Searching for bad logins:
+ausearch -m USER_LOGIN --success no -i
+
+Searching for events on shadow file today:
+ausearch --start today -f shadow -i
+
+Searching for failed file opens for user acct 1000:
+ausearch -m PATH --success no --syscall open --loginuid 1000 -i
 ```
 
 Sometimes you want summary information. In this case you would want to use the aureport program. It can summarize all of the searchable kinds of fields. It can all so pick out all of a kind of data without summary so that you can use ausearch to see the full event. Below are some examples of using aureport:
 
 ```
+Monthly summary report:
+aureport --start this-month --summary
+
+Files accessed today summary:
+aureport --start today --file --summary
+
+Syscall events summarized by key:
+aureport --start today --key --summary
+
+All account modifications this month:
+aureport --start this-month --mods -i
+
+Report all log files and their time range:
+aureport -t
 ```
 
-Sometimes aureport provides too much information. You might want files summarized by accessed by a specific user. In this case, you can combine ausearch and aureport to get the information you need. For example:
+Sometimes aureport provides too much information. You might want files summarized by accessed by a specific user. In this case, you can combine ausearch and aureport to get the information you need. The main trick to remember is that the outpur of ausearch has to be in the "raw" format. For example:
 
 ```
+Summary of files accessed by uid 1000
+ausearch --start today --auid 1000 --raw | aureport --file --summary
+
+Summary of files accessed by vi
+ausearch --start this-week -x vi --raw | aureport --file --summary
+
+Summary of programs with files access associated with the unsuccessful-access key
+ausearch --start this-month --key unsuccessful-access --raw | aureport -x --summary -i
+
+Hosts user logged in from
+ausearch --start this-week -m user_login --raw | aureport --host --summary
 ```
 
 The ausearch program also has a couple more tricks worth knowing about. It has an option, --format, which can take "csv" or "text" as options. In the case of csv, it will emit a condensed audit event normalized to be suitable as a Comma Separated Value file. In this format, you can take the audit logs and do data scince queries using python/pandas or the R programming language.
@@ -172,10 +205,44 @@ Another way to check performance is to use
 
 ```
 auditctl --signal state
+cat /var/run/auditd.state
+
+audit version = 3.1.2
+current time = 08/24/23 20:21:31
+process priority = -4
+writing to logs = yes
+current log size = 2423 KB
+max log size = 8192 KB
+logs detected last rotate/shift = 0
+space left on partition = yes
+Logging partition free space 45565 MB
+space_left setting 75 MB
+admin_space_left setting 50 MB
+logging suspended = no
+file system space action performed = no
+admin space action performed = no
+disk error detected = no
+Number of active plugins = 1
+current plugin queue depth = 0
+max plugin queue depth used = 4
+plugin queue size = 2000
+plugin queue overflow detected = no
+plugin queueing suspended = no
+listening for network connections = no
 ```
 
-This command causes auditd to dump its internal metrics.
+This command causes auditd to dump its internal metrics to /var/run/auditd.state. This can tell you if auditd is healthy.
 
 AUPARSE
 -------
+The auparse library is available to allow one to create custom reporting applications. The library is patterned after a dbase or foxpro database library and hass the following organization:
+
+- General functions that affect operation of the library
+- Functions that traverse events
+- Accessors to event data
+- Functions that traverse records in the same event
+- Accessors to record data
+- Accessors to field data
+
+You can write programs in one of two ways: iterate across events, records, and fields; or use the feed API and be presented with a single, complete event that can be iterated across records and fields. The former is best for working with files while the latter is more appropriate for realtime data for a plugin.
 
