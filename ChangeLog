@@ -5,7 +5,7 @@
 - Require the use of the 5.0 or later kernel headers
 - New README.md file
 - Rewrite legacy service functions in terms of systemctl
-- Consolidate end of event detection to a common function
+- Consolidate and update end of event detection to a common function
 
 3.1.2
 - When processing a run level change, make auditd exit

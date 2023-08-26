@@ -2005,7 +2005,7 @@ map:
 
 /*
  * This is the main entry point for the normalization. This function
- * will analyze the current record to pick out the important pieces.
+ * will analyze the current event to pick out the important pieces.
  */
 int auparse_normalize(auparse_state_t *au, normalize_option_t opt)
 {
