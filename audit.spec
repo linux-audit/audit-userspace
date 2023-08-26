@@ -172,7 +172,7 @@ fi
 
 %files
 %license COPYING
-%doc README.md README-very-old ChangeLog rules init.d/auditd.cron
+%doc README.md ChangeLog rules init.d/auditd.cron
 %attr(755,root,root) %{_datadir}/%{name}
 %attr(644,root,root) %{_mandir}/man8/auditctl.8.gz
 %attr(644,root,root) %{_mandir}/man8/auditd.8.gz
