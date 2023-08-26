@@ -309,14 +309,7 @@ static void au_check_events(auparse_state_t *au, time_t sec)
                         if (cur->l->e.sec + eoe_timeout <= sec) {
                                 cur->status = EBS_COMPLETE;
 				au->au_ready++;
-                        } else if ( // FIXME: Check this v remains true
-				r->type == AUDIT_PROCTITLE ||
-				r->type == AUDIT_EOE ||
-				r->type < AUDIT_FIRST_EVENT ||
-				r->type >= AUDIT_FIRST_ANOM_MSG ||
-				r->type == AUDIT_KERNEL ||
-				(r->type >= AUDIT_MAC_UNLBL_ALLOW &&
-                                 r->type <= AUDIT_MAC_CALIPSO_DEL)) {
+                        } else if (audit_is_last_record(r->type)) {
                                 // If known to be 1 record event, we are done
 				cur->status = EBS_COMPLETE;
 				au->au_ready++;

@@ -1,5 +1,5 @@
-/* audit-fgets.h -- a replacement for glibc's fgets
- * Copyright 2018-23 Red Hat Inc.
+/* common.c --
+ * Copyright 2023 Red Hat Inc.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -20,26 +20,24 @@
  *      Steve Grubb <sgrubb@redhat.com>
  */
 
-#ifndef AUDIT_FGETS_HEADER
-#define AUDIT_FGETS_HEADER
+#include "libaudit.h"
+#include "common.h"
 
-#include <sys/types.h>
-#include "dso.h"
-#ifndef __attr_access
-#  define __attr_access(x)
-#endif
-AUDIT_HIDDEN_START
-
-void audit_fgets_clear(void);
-int audit_fgets_eof(void);
-int audit_fgets_more(size_t blen);
-int audit_fgets(char *buf, size_t blen, int fd)
-	__attr_access ((__write_only__, 1, 2));
-
-char *audit_strsplit_r(char *s, char **savedpp);
-char *audit_strsplit(char *s);
-int audit_is_last_record(int type);
-
-AUDIT_HIDDEN_END
-#endif
+/*
+ * This function returns 1 if it is the last record in an event.
+ * It returns 0 otherwise.
+ */
+int audit_is_last_record(int type)
+{
+	if (type == AUDIT_PROCTITLE ||
+			type == AUDIT_EOE ||
+			type < AUDIT_FIRST_EVENT ||
+			type >= AUDIT_FIRST_ANOM_MSG ||
+			type == AUDIT_KERNEL ||
+			(type >= AUDIT_MAC_UNLBL_ALLOW &&
+			type <= AUDIT_MAC_CALIPSO_DEL)) {
+		return 1;
+	}
+	return 0;
+}
 
