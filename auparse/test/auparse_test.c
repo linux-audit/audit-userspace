@@ -269,7 +269,7 @@ static void auparse_callback(auparse_state_t *au, auparse_cb_event_t cb_event_ty
 int main(void)
 {
 	//char *files[4] = { "test.log", "test2.log", "test3.log", NULL };
-	char *files[3] = { "test.log", "test2.log", NULL };
+	char *files[3] = { "test2.log", "test.log", NULL };
 	setlocale (LC_ALL, "");
 	auparse_state_t *au;
 
