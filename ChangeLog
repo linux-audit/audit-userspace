@@ -6,6 +6,7 @@
 - New README.md file
 - Rewrite legacy service functions in terms of systemctl
 - Consolidate and update end of event detection to a common function
+- Split off rule loading from auditd.service into audit-rules.service
 
 3.1.2
 - When processing a run level change, make auditd exit
