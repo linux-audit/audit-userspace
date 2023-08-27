@@ -28,7 +28,7 @@
 #include <string.h>
 #include <sys/stat.h>
 
-#include "../libaudit.h"
+#include "libaudit.h"
 
 /* Number of lookups of random strings */
 #define RAND_ITERATIONS 1000

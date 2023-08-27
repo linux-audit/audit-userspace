@@ -1,4 +1,4 @@
-# Copyright 2008 Red Hat Inc., Durham, North Carolina.
+# Copyright 2008 Red Hat Inc.
 # All Rights Reserved.
 #
 # This library is free software; you can redistribute it and/or
@@ -19,6 +19,7 @@
 #   Miloslav Trmač <mitr@redhat.com>
 #
 
+AM_CPPFLAGS = -I${top_srcdir}/lib
 check_PROGRAMS = lookup_test
 TESTS = $(check_PROGRAMS)
 
