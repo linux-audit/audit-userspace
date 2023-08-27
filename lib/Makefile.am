@@ -34,7 +34,7 @@ pkgconfig_DATA = audit.pc
 DISTCLEANFILES = $(pkgconfig_DATA)
 
 lib_LTLIBRARIES = libaudit.la
-include_HEADERS = libaudit.h
+include_HEADERS = libaudit.h audit-logging.h audit-records.h
 
 libaudit_la_SOURCES = libaudit.c message.c netlink.c \
 	lookup_table.c audit_logging.c deprecated.c \
