@@ -1,6 +1,6 @@
 /*
 * ausearch-string.c - Minimal linked list library for strings
-* Copyright (c) 2005,2008,2014 Red Hat Inc., Durham, North Carolina.
+* Copyright (c) 2005,2008,2014 Red Hat Inc.
 * All Rights Reserved. 
 *
 * This software may be freely redistributed and/or modified under the
@@ -34,10 +34,10 @@ void slist_create(slist *l)
 	l->cnt = 0;
 }
 
-void slist_last(slist *l)
+static inline void slist_last(slist *l)
 {
         register snode* cur;
-	
+
 	if (l->head == NULL)
 		return;
 
