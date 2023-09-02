@@ -1,27 +1,28 @@
 /*
-* ausearch-string.c - Minimal linked list library for strings
-* Copyright (c) 2005,2008,2014 Red Hat Inc., Durham, North Carolina.
-* All Rights Reserved. 
-*
-* This software may be freely redistributed and/or modified under the
-* terms of the GNU General Public License as published by the Free
-* Software Foundation; either version 2, or (at your option) any
-* later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-* GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; see the file COPYING. If not, write to the
-* Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor 
-* Boston, MA 02110-1335, USA.
-*
-* Authors:
-*   Steve Grubb <sgrubb@redhat.com>
-*/
+ * ausearch-string.c - Minimal linked list library for strings
+ * Copyright (c) 2005,2008,2014,2023 Red Hat Inc.
+ * All Rights Reserved.
+ *
+ * This software may be freely redistributed and/or modified under the
+ * terms of the GNU General Public License as published by the Free
+ * Software Foundation; either version 2, or (at your option) any
+ * later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; see the file COPYING. If not, write to the
+ * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor
+ * Boston, MA 02110-1335, USA.
+ *
+ * Authors:
+ *   Steve Grubb <sgrubb@redhat.com>
+ */
 
+#pragma GCC optimize("O3,inline")
 #include "ausearch-string.h"
 #include <stdlib.h>
 #include <string.h>
@@ -31,26 +32,8 @@ void slist_create(slist *l)
 {
 	l->head = NULL;
 	l->cur = NULL;
+	l->last = NULL;
 	l->cnt = 0;
-}
-
-void slist_last(slist *l)
-{
-        register snode* cur;
-	
-	if (l->head == NULL)
-		return;
-
-	// Try using cur so that we don't have to start at beginnning
-	if (l->cur)
-		cur = l->cur;
-	else
-	        cur = l->head;
-
-	// Loop until no next value
-	while (cur->next)
-		cur = cur->next;
-	l->cur = cur;
 }
 
 snode *slist_next(slist *l)
@@ -80,14 +63,14 @@ void slist_append(slist *l, snode *node)
 	newnode->hits = node->hits;
 	newnode->next = NULL;
 
-	// Make sure cursor is at the end
-	slist_last(l);
-
-	// if we are at top, fix this up
-	if (l->head == NULL)
+	// if the top is empty, add it there
+	if (l->head == NULL) {
 		l->head = newnode;
-	else	// Otherwise add pointer to newnode
-		l->cur->next = newnode;
+		l->last = newnode;
+	} else { // Otherwise put at the end
+		l->last->next = newnode;
+		l->last = newnode;
+	}
 
 	// make newnode current
 	l->cur = newnode;
@@ -109,25 +92,25 @@ void slist_clear(slist* l)
 	}
 	l->head = NULL;
 	l->cur = NULL;
+	l->last = NULL;
 	l->cnt = 0;
 }
 
-/* This function dominates the timing of aureport. Needs to be more efficient */
 int slist_add_if_uniq(slist *l, const char *str)
 {
 	snode sn;
-        register snode *cur;
+	register snode *cur;
 
 	if (str == NULL)
 		return -1;
 
-       	cur = l->head;
+	cur = l->head;
 	while (cur) {
 		if (strcmp(str, cur->str) == 0) {
 			cur->hits++;
 			l->cur = cur;
 			return 0;
-		} else 
+		} else
 			cur = cur->next;
 	}
 
@@ -140,7 +123,7 @@ int slist_add_if_uniq(slist *l, const char *str)
 }
 
 // If lprev would be NULL, use l->head
-static void swap_nodes(snode *lprev, snode *left, snode *right)
+static inline void swap_nodes(snode *lprev, snode *left, snode *right)
 {
 	snode *t = right->next;
 	if (lprev)
@@ -150,17 +133,13 @@ static void swap_nodes(snode *lprev, snode *left, snode *right)
 }
 
 // This will sort the list from most hits to least
-void slist_sort_by_hits(slist *l)
+static void old_sort_by_hits(slist *l)
 {
 	register snode* cur, *prev;
-
-	if (l->cnt <= 1)
-		return;
-
 	prev = cur = l->head;
 
 	while (cur && cur->next) {
-		/* If the next node is bigger */
+		// If the next node is bigger
 		if (cur->hits < cur->next->hits) {
 			if (cur == l->head) {
 				// Update the actual list head
@@ -176,6 +155,85 @@ void slist_sort_by_hits(slist *l)
 		prev = cur;
 		cur = cur->next;
 	}
+	// End with cur pointing at first record
+	l->cur = l->head;
+}
+
+// Merge two sorted lists
+static snode* slist_merge_sorted_lists(snode *a, snode *b)
+{
+	snode dummy;
+	snode *tail = &dummy;
+	dummy.next = NULL;
+
+	while (a && b) {
+		if (a->hits >= b->hits) {
+			tail->next = a;
+			a = a->next;
+		} else {
+			tail->next = b;
+			b = b->next;
+		}
+		tail = tail->next;
+	}
+	tail->next = a ? a : b;
+	return dummy.next;
+}
+
+// Split the list into two halves
+static void slist_split_list(snode *head, snode **front, snode **back)
+{
+	snode *fast, *slow;
+	slow = head;
+	fast = head->next;
+
+	while (fast) {
+		fast = fast->next;
+		if (fast) {
+			slow = slow->next;
+			fast = fast->next;
+		}
+	}
+
+	*front = head;
+	*back = slow->next;
+	slow->next = NULL;
+}
+
+// Merge sort for linked list
+static void slist_merge_sort(snode **head_ref)
+{
+	snode *head = *head_ref;
+	snode *a, *b;
+
+	if (!head || !head->next)
+		return;
+
+	slist_split_list(head, &a, &b);
+
+	slist_merge_sort(&a);
+	slist_merge_sort(&b);
+
+	*head_ref = slist_merge_sorted_lists(a, b);
+}
+
+// This function dominates aureport --summary --kind output
+void slist_sort_by_hits(slist *l)
+{
+	if (l->cnt <= 1)
+		return;
+
+	// If the list is small, use old algorithm because
+	// the new one has some overhead that makes it slower
+	// until the list is big enough that the inefficiencies
+	// of the old algorithm cause slowness. The value chosen
+	// below is just a guess. At 100, the old algorithm is
+	// faster. At 1000, the new one is 5x faster.
+	if (l->cnt < 200)
+		return old_sort_by_hits(l);
+
+	slist_merge_sort(&l->head);
+
 	// End with cur pointing at first record
 	l->cur = l->head;
 }
