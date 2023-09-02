@@ -47,6 +47,7 @@ typedef unsigned uid_t;
 %include "/usr/include/linux/audit.h"
 #define __extension__ /*nothing*/
 %include <stdint.i>
+%include "../lib/audit-records.h"
 %include "../lib/audit_logging.h"
 extern int  audit_open(void);
 extern void audit_close(int fd);
