@@ -23,6 +23,16 @@
         #include "../lib/audit_logging.h"
 %}
 
+#if defined(SWIGPYTHON)
+%exception audit_open {
+  $action
+  if (result < 0) {
+    PyErr_SetFromErrno(PyExc_OSError);
+    return NULL;
+  }
+}
+#endif
+
 %define __signed__
 signed
 %enddef
@@ -38,4 +48,6 @@ typedef unsigned uid_t;
 #define __extension__ /*nothing*/
 %include <stdint.i>
 %include "../lib/audit_logging.h"
+extern int  audit_open(void);
+extern void audit_close(int fd);
 

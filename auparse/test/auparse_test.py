@@ -15,7 +15,6 @@ if False:
     sys.path.insert(0, load_path)
 
 import auparse
-import audit
 
 def none_to_null(s):
     'used so output matches C version'
@@ -43,7 +42,7 @@ def walk_test(au):
         while True:
             print("    record %d of type %d(%s) has %d fields" % \
                   (record_cnt,
-                   au.get_type(), audit.audit_msg_type_to_name(au.get_type()),
+                   au.get_type(), au.get_type_name(),
                    au.get_num_fields()))
             print("    line=%d file=%s" % (au.get_line_number(), au.get_filename()))
             event = au.get_timestamp()
@@ -76,7 +75,7 @@ def light_test(au):
         while True:
             print("    record %d of type %d(%s) has %d fields" % \
                   (record_cnt,
-                   au.get_type(), audit.audit_msg_type_to_name(au.get_type()),
+                   au.get_type(), au.get_type_name(),
                    au.get_num_fields()))
             print("    line=%d file=%s" % (au.get_line_number(), au.get_filename()))
             event = au.get_timestamp()
@@ -136,7 +135,7 @@ def feed_callback(au, cb_event_type, event_cnt):
         while True:
             print("    record %d of type %d(%s) has %d fields" % \
                   (record_cnt,
-                   au.get_type(), audit.audit_msg_type_to_name(au.get_type()),
+                   au.get_type(), au.get_type_name(),
                    au.get_num_fields()))
             print("    line=%d file=%s" % (au.get_line_number(), au.get_filename()))
             event = au.get_timestamp()
