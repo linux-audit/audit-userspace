@@ -743,6 +743,31 @@ AuParser_reset(AuParser *self)
 }
 
 /********************************
+ * auparse_metrics
+ ********************************/
+PyDoc_STRVAR(metrics_doc,
+"metrics() Returns gets some basic information about auparse's internalstate.\n\
+\n\
+Returns a string holding metrics\n\
+Raises exception (RuntimeError) on error\n\
+");
+static PyObject *
+AuParser_metrics(AuParser *self)
+{
+    char *value = NULL;
+
+    PARSER_CHECK;
+    value = auparse_metrics(self->au);
+    if (value == NULL) {
+        PyErr_SetString(PyExc_RuntimeError, "metrics returned NULL");
+        return NULL;
+    }
+    PyObject *obj = Py_BuildValue("s", value);
+    free(value);
+    return obj;
+}
+
+/********************************
  * ausearch_add_expression
  ********************************/
 PyDoc_STRVAR(search_add_expression_doc,
@@ -2271,6 +2296,7 @@ static PyMethodDef AuParser_methods[] = {
     {"set_escape_mode",   (PyCFunction)AuParser_set_escape_mode,   METH_VARARGS, set_escape_mode_doc},
     {"set_eoe_timeout",   (PyCFunction)AuParser_set_eoe_timeout,   METH_VARARGS, set_eoe_timeout_doc},
     {"reset",             (PyCFunction)AuParser_reset,             METH_NOARGS,  reset_doc},
+    {"metrics",           (PyCFunction)AuParser_metrics,           METH_NOARGS,  metrics_doc},
     {"search_add_expression", (PyCFunction)AuParser_search_add_expression, METH_VARARGS, search_add_expression_doc},
     {"search_add_item",   (PyCFunction)AuParser_search_add_item,   METH_VARARGS, search_add_item_doc},
     {"search_add_interpreted_item", (PyCFunction)AuParser_search_add_interpreted_item, METH_VARARGS, search_add_interpreted_item_doc},

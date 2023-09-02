@@ -1,0 +1,22 @@
+.TH "AUPARSE_METRICS" "3" "Sept 2023" "Red Hat" "Linux Audit API"
+.SH NAME
+auparse_metrics \- get some metrics about auparse
+.SH "SYNOPSIS"
+.B #include <auparse.h>
+.sp
+char *auparse_metrics(auparse_state_t *au);
+
+.SH "DESCRIPTION"
+
+auparse_metrics gets some basic information about auparse's internal state. It returns a character string ready to print. It returns the current limit for storing building events, the maximum events building or ready, and the number of ready events for processing. This information is only useful when the feed api is being used.
+
+.SH "RETURN VALUE"
+
+Returns a memory buffer of current metrics on success and NULL on error. The caller must free the string.
+
+.SH "SEE ALSO"
+
+.BR auparse_feed (3) 
+
+.SH AUTHOR
+Steve Grubb

@@ -1,5 +1,5 @@
 /* ids.c --
- * Copyright 2021 Steve Grubb.
+ * Copyright 202-23 Steve Grubb.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -13,8 +13,9 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * along with this program; see the file COPYING. If not, write to the
+ * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor
+ * Boston, MA 02110-1335, USA.
  *
  * Authors:
  *   Steve Grubb <sgrubb@redhat.com>
@@ -157,6 +158,11 @@ static void output_state(void)
 	FILE *f = fopen(STATE_FILE, "wt");
 	dump_state = 0;
 	if (f) {
+		char *metrics = auparse_metrics(au);
+		if (metrics) {
+			fprintf(f, "%s\n", metrics);
+			free(metrics);
+		}
 		traverse_origins(f);
 		fprintf(f, "\n");
 		traverse_accounts(f);

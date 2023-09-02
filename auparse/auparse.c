@@ -1,5 +1,5 @@
 /* auparse.c --
- * Copyright 2006-08,2012-19,21 Red Hat Inc.
+ * Copyright 2006-08,2012-23 Red Hat Inc.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -12,9 +12,10 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * You should have received a copy of the GNU General Public License
+ * along with this program; see the file COPYING. If not, write to the
+ * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor
+ * Boston, MA 02110-1335, USA.
  *
  * Authors:
  *      Steve Grubb <sgrubb@redhat.com>
@@ -777,6 +778,20 @@ int auparse_reset(auparse_state_t *au)
 	return 0;
 }
 
+char *auparse_metrics(auparse_state_t *au)
+{
+	char *metrics;
+
+	if (asprintf(&metrics,
+		     "max lol available: %lu\n"
+		     "max lol used: %d\n"
+		     "pending lol: %d",
+		     au->au_lo->limit,
+		     au->au_lo->maxi,
+		     au->au_ready) < 0)
+		metrics = NULL;
+	return metrics;
+}
 
 /* Add EXPR to AU, using HOW to select the combining operator.
    On success, return 0.

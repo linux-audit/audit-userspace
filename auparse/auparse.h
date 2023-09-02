@@ -1,5 +1,5 @@
 /* auparse.h --
- * Copyright 2006-08,2012,2014-17,2022 Red Hat Inc.
+ * Copyright 2006-08,2012-23 Red Hat Inc.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -12,9 +12,10 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; see the file COPYING. If not, write to the
+ * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor
+ * Boston, MA 02110-1335, USA.
  *
  * Authors:
  *      Steve Grubb <sgrubb@redhat.com>
@@ -67,6 +68,7 @@ void auparse_add_callback(auparse_state_t *au, auparse_callback_ptr callback,
 			void *user_data, user_destroy user_destroy_func);
 void auparse_set_escape_mode(auparse_state_t *au, auparse_esc_t mode);
 int auparse_reset(auparse_state_t *au);
+char *auparse_metrics(auparse_state_t *au);
 
 /* Functions that are part of the search interface */
 int ausearch_add_expression(auparse_state_t *au, const char *expression,
