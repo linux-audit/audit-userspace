@@ -1,5 +1,5 @@
 # Makefile.am -- 
-# Copyright 2015 Red Hat Inc., Durham, North Carolina.
+# Copyright 2015 Red Hat Inc.
 # All Rights Reserved.
 #
 # This library is free software; you can redistribute it and/or
@@ -24,7 +24,7 @@ CONFIG_CLEAN_FILES = *.loT *.rej *.orig
 AM_CFLAGS = -fPIC -DPIC -fno-strict-aliasing $(PYTHON3_CFLAGS)
 AM_CPPFLAGS = -I. -I$(top_builddir) -I${top_srcdir}/lib $(PYTHON3_INCLUDES)
 LIBS = $(top_builddir)/lib/libaudit.la
-SWIG_FLAGS = -python -py3 -modern
+SWIG_FLAGS = -python
 SWIG_INCLUDES = -I. -I$(top_builddir) -I${top_srcdir}/lib $(PYTHON3_INCLUDES)
 PYTHON = $(PYTHON3)
 py3exec_PYTHON = audit.py
@@ -33,7 +33,7 @@ py3exec_SOLIBRARIES = _audit.so
 _audit_la_CFLAGS = -shared
 _audit_la_LDFLAGS = -module -avoid-version -Wl,-z,relro
 _audit_la_HEADERS: $(top_builddir)/config.h 
-_audit_la_DEPENDENCIES =${top_srcdir}/lib/libaudit.h ${top_builddir}/lib/libaudit.la
+_audit_la_DEPENDENCIES =${top_srcdir}/lib/audit-logging.h ${top_builddir}/lib/libaudit.la
 _audit_la_LIBADD = ${top_builddir}/lib/libaudit.la
 nodist__audit_la_SOURCES  = audit_wrap.c
 audit.py audit_wrap.c: ${srcdir}/../src/auditswig.i 
