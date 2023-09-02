@@ -8,6 +8,7 @@
 - Consolidate and update end of event detection to a common function
 - Split off rule loading from auditd.service into audit-rules.service
 - Refactor libaudit.h to split out logging functions and record numbers
+- Speed up aureport --summary reports
 
 3.1.2
 - When processing a run level change, make auditd exit
