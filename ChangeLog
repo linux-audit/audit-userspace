@@ -1,6 +1,7 @@
 3.1.3
 - Speed up aureport --summary reports
 - Rewrite legacy service functions in terms of systemctl
+- Add a metrics function for auparse
 
 3.1.2
 - When processing a run level change, make auditd exit
