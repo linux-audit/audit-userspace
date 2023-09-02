@@ -56,7 +56,7 @@ auparse_get_serial.3 auparse_get_time.3 auparse_get_timestamp.3 \
 auparse_get_type.3 auparse_get_type_name.3  \
 auparse_get_field_num.3 auparse_get_record_num.3 \
 auparse_goto_field_num.3 auparse_goto_record_num.3 \
-auparse_init.3 auparse_interpret_field.3 \
+auparse_init.3 auparse_interpret_field.3 auparse_metrics.3 \
 auparse_next_event.3 auparse_next_field.3 auparse_next_record.3 \
 auparse_node_compare.3 auparse_reset.3 auparse_set_escape_mode.3 \
 auparse_normalize.3 auparse_normalize_functions.3 \
