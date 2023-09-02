@@ -1,4 +1,4 @@
-/* audit-logging.h --
+/* audit_logging.h --
  * Copyright 2023 Red Hat Inc.
  * All Rights Reserved.
  *

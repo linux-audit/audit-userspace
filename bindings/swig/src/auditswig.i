@@ -20,7 +20,7 @@
 
 %module audit
 %{
-        #include "../lib/audit-logging.h"
+        #include "../lib/audit_logging.h"
 %}
 
 %define __signed__
@@ -37,5 +37,5 @@ typedef unsigned uid_t;
 %include "/usr/include/linux/audit.h"
 #define __extension__ /*nothing*/
 %include <stdint.i>
-%include "../lib/audit-logging.h"
+%include "../lib/audit_logging.h"
 

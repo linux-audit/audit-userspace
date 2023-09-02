@@ -170,7 +170,7 @@ fi
 %{_libdir}/libaudit.so
 %{_libdir}/libauparse.so
 %{_includedir}/libaudit.h
-%{_includedir}/audit-logging.h
+%{_includedir}/audit_logging.h
 %{_includedir}/audit-records.h
 %{_includedir}/auparse.h
 %{_includedir}/auparse-defs.h

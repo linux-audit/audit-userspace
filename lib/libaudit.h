@@ -33,7 +33,7 @@
 #ifndef __attr_access
 #  define __attr_access(x)
 #endif
-#include <audit-logging.h>
+#include <audit_logging.h>
 
 #ifdef __cplusplus
 extern "C" {
