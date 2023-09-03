@@ -160,6 +160,7 @@ static void output_state(void)
 	if (f) {
 		char *metrics = auparse_metrics(au);
 		if (metrics) {
+			fprintf(f, "auparse\n=======\n");
 			fprintf(f, "%s\n\n", metrics);
 			free(metrics);
 		}
