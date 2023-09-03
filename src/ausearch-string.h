@@ -47,7 +47,6 @@ typedef struct {
 
 void slist_create(slist *l);
 static inline void slist_first(slist *l) { l->cur = l->head; }
-void slist_last(slist *l);
 snode *slist_next(slist *l);
 static inline snode *slist_get_cur(slist *l) { return l->cur; }
 void slist_append(slist *l, snode *node);
