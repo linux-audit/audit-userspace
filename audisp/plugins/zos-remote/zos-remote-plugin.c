@@ -467,7 +467,8 @@ int main(int argc, char *argv[])
 #ifdef HAVE_LIBCAP_NG
 	// Drop all capabilities
         capng_clear(CAPNG_SELECT_BOTH);
-        capng_apply(CAPNG_SELECT_BOTH);
+        if (capng_apply(CAPNG_SELECT_BOTH))
+		syslog(LOG_WARNING, "zos-remote plugin was unable to drop capabilities, continuing with elevated priviles");
 #endif
 
         /* set stdin to O_NONBLOCK */
