@@ -1,5 +1,5 @@
 /* audisp-syslog.c --
- * Copyright 2018 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2018 Red Hat Inc.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -228,7 +228,8 @@ int main(int argc, const char *argv[])
 #ifdef HAVE_LIBCAP_NG
 	// Drop capabilities
 	capng_clear(CAPNG_SELECT_BOTH);
-        capng_apply(CAPNG_SELECT_BOTH);
+        if (capng_apply(CAPNG_SELECT_BOTH))
+		syslog(LOG_WARNING, "audisp-syslog plugin was unable to drop capabilities, continuing with elevated priviles");
 #endif
 
 	do {
