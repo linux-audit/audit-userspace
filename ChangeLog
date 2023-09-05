@@ -6,6 +6,7 @@ See the git log for the complete list of changes. This is no longer maintained.
 - Speed up aureport --summary reports
 - Rewrite legacy service functions in terms of systemctl
 - Add a metrics function for auparse
+- Change auditctl to use pidfd_send_signal for signaling auditd
 
 3.1.2
 - When processing a run level change, make auditd exit
