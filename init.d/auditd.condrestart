@@ -4,7 +4,7 @@
 
 state=$(systemctl status auditd | awk '/Active:/ { print $2 }')
 if [ "$state" = "active" ] ; then
-	/usr/libexec/initscripts/legacy-actions/auditd/stop
+	/sbin/auditctl --signal stop
 	/bin/systemctl start auditd
 	RETVAL="$?"
 	exit $RETVAL

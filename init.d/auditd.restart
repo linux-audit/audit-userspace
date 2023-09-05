@@ -4,7 +4,7 @@
 
 test -f /etc/audit/auditd.conf  || exit 6
 
-/usr/libexec/initscripts/legacy-actions/auditd/stop
+/sbin/auditctl --signal stop
 sleep 1
 echo "Redirecting start to /bin/systemctl start auditd.service"
 /bin/systemctl start auditd.service
