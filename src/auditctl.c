@@ -40,6 +40,8 @@
 #include <libgen.h>	/* For basename */
 #include <limits.h>	/* PATH_MAX */
 #include <signal.h>
+#include <sys/syscall.h> // SYS_pidfd_open
+#include <poll.h>
 #include "libaudit.h"
 #include "auditctl-listing.h"
 #include "private.h"
@@ -402,6 +404,46 @@ static int check_rule_mismatch(int lineno, const char *option)
 	return 0;
 }
 
+#ifdef SYS_pidfd_open
+static int pidfd_open(int pid, unsigned int flags)
+{
+	return syscall(SYS_pidfd_open, pid, flags);
+}
+
+static int pidfd_send_signal(int pidfd, int sig, siginfo_t *info,
+			     unsigned int flags)
+{
+	return syscall(SYS_pidfd_send_signal, pidfd, sig, info, flags);
+}
+
+// This function uses the new pidfd_ family of functions to send
+// the signal to auditd. If the signal is SIGTERM, it waits for auditd
+// to exit before returning. This is to prevent old and new daemons
+// from stepping on each other since auditd shutsdown slowly.
+static int sure_kill(int pid, int signal)
+{
+	int rc = 0;
+	int pidfd = pidfd_open(pid, 0);
+	pidfd_send_signal(pidfd, signal, NULL, 0);
+	if (signal == SIGTERM) {
+		struct pollfd pollfd;
+		pollfd.fd = pidfd;
+		pollfd.events = POLLIN;
+		int ready = poll(&pollfd, 1, -1);
+		if (ready == -1) {
+			perror("poll");
+			rc = -1;
+			goto out;
+		}
+		// Check if it exited or errored
+		if (!(pollfd.revents & POLLIN))
+			rc = -1;
+	}
+out:
+	close(pidfd);
+	return rc;
+}
+#endif
 
 static int send_signal(const char *optarg)
 {
@@ -471,7 +513,11 @@ static int send_signal(const char *optarg)
 						"Auditd is not running");
 					return -2;
 				}
+#ifdef SYS_pidfd_open
+				retval = sure_kill(rep.status->pid, signal);
+#else
 				retval = kill(rep.status->pid, signal);
+#endif
 				if (retval < 0) {
 					audit_msg(LOG_WARNING,
 				        "Failed sending signal to auditd (%s)",
