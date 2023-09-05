@@ -1,8 +1,8 @@
 [Unit]
 Description=Loads Audit Rule
-After=auditd.service
 ConditionKernelCommandLine=!audit=0
 ConditionKernelCommandLine=!audit=off
+After=local-fs.target systemd-tmpfiles-setup.service
 
 Documentation=man:auditctl(8) https://github.com/linux-audit/audit-documentation
 

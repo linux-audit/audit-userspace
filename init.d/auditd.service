@@ -1,12 +1,13 @@
 [Unit]
 Description=Security Audit Logging Service
 DefaultDependencies=no
+Requires=audit-rules.service
 ## If auditd is sending or recieving remote logging, copy this file to
 ## /etc/systemd/system/auditd.service and comment out the first After and
 ## uncomment the second so that network-online.target is part of After.
 ## then comment the first Before and uncomment the second Before to remove
 ## sysinit.target from "Before".
-After=local-fs.target systemd-tmpfiles-setup.service
+After=local-fs.target systemd-tmpfiles-setup.service audit-rules.service
 ##After=network-online.target local-fs.target systemd-tmpfiles-setup.service
 Before=sysinit.target shutdown.target
 ##Before=shutdown.target
