@@ -1,3 +1,4 @@
+
 dnl
 define([AC_INIT_NOTICE],
 [### Generated automatically using autoconf version] AC_ACVERSION [
@@ -168,15 +169,10 @@ else
 	PYTHON3_LIBS=`python3-config --libs 2> /dev/null`
 	PYTHON3_INCLUDES=`python3-config --includes 2> /dev/null`
 	AC_SUBST([PYTHON3_PREFIX], ['${prefix}'])
-	AC_SUBST([PYTHON3_EXEC_PREFIX], ['${exec_prefix}'])
-	PYTHON3_DIR=`$PYTHON3 -c "import distutils.sysconfig; \
-	print(distutils.sysconfig.get_python_lib(0,0,prefix='$PYTHON3_PREFIX'))"`
-	PYTHON3_EXECDIR=`$PYTHON3 -c "import distutils.sysconfig; \
-	print(distutils.sysconfig.get_python_lib(1,0,prefix='$PYTHON3_EXEC_PREFIX'))"`
+	PYTHON3_EXECDIR=`$PYTHON3 -c "import sysconfig; print(sysconfig.get_path('platlib'))"`
 	AC_SUBST(PYTHON3_CFLAGS)
 	AC_SUBST(PYTHON3_LIBS)
 	AC_SUBST(PYTHON3_INCLUDES)
-	AC_SUBST(python3dir, $PYTHON3_DIR)
 	AC_SUBST(py3execdir, $PYTHON3_EXECDIR)
 	fi
 fi
