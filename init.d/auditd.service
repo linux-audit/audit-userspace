@@ -1,5 +1,7 @@
 [Unit]
 Description=Security Audit Logging Service
+ConditionKernelCommandLine=!audit=0
+ConditionKernelCommandLine=!audit=off
 DefaultDependencies=no
 Requires=audit-rules.service
 ## If auditd is sending or recieving remote logging, copy this file to
@@ -13,8 +15,6 @@ Before=sysinit.target shutdown.target
 ##Before=shutdown.target
 Conflicts=shutdown.target
 RefuseManualStop=yes
-ConditionKernelCommandLine=!audit=0
-ConditionKernelCommandLine=!audit=off
 
 Documentation=man:auditd(8) https://github.com/linux-audit/audit-documentation
 
