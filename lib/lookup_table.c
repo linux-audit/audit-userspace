@@ -1,5 +1,5 @@
 /* lookup_table.c --
- * Copyright 2004-2008,2012-13,2016 Red Hat Inc.
+ * Copyright 2004-2008,2012-13,2016,2023 Red Hat Inc.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -53,6 +53,7 @@
 #include "fstypetabs.h"
 #include "ftypetabs.h"
 #include "fieldtabs.h"
+#include "permtabs.h"
 #endif
 #include "msg_typetabs.h"
 #include "actiontabs.h"
@@ -343,9 +344,8 @@ const char *audit_errno_to_name(int error)
 
 int audit_name_to_ftype(const char *name)
 {
-	int res;
-
 #ifndef NO_TABLES
+	int res;
 	if (ftype_s2i(name, &res) != 0)
 		return res;
 #endif
@@ -363,9 +363,8 @@ const char *audit_ftype_to_name(int ftype)
 
 int audit_name_to_fstype(const char *name)
 {
-	int res;
-
 #ifndef NO_TABLES
+	int res;
 	if (fstype_s2i(name, &res) != 0)
 		return res;
 #endif
@@ -376,6 +375,25 @@ const char *audit_fstype_to_name(int fstype)
 {
 #ifndef NO_TABLES
 	return fstype_i2s(fstype);
+#else
+	return NULL;
+#endif
+}
+
+int audit_name_to_perm(const char *name)
+{
+#ifndef NO_TABLES
+	int res;
+	if (perm_s2i(name, &res) != 0)
+		return res;
+#endif
+	return -1;
+}
+
+const char *audit_perm_to_name(int perm)
+{
+#ifndef NO_TABLES
+	return perm_i2s(perm);
 #else
 	return NULL;
 #endif
