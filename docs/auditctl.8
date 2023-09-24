@@ -1,4 +1,4 @@
-.TH AUDITCTL "8" "Feb 2023" "Red Hat" "System Administration Utilities"
+.TH AUDITCTL "8" "Sep 2023" "Red Hat" "System Administration Utilities"
 .SH NAME
 auditctl \- a utility to assist controlling the kernel's audit system
 .SH SYNOPSIS
@@ -184,7 +184,7 @@ Group ID. May be numeric or the groups name.
 Inode Number
 .TP
 .B key
-This is another way of setting a filter key. See discussion above for \fB\-k\fP option.
+Set a filter key on an audit rule. The filter key is an arbitrary string of text that can be up to 31 bytes long. It can uniquely identify the audit records produced by a rule. Typical use is for when you have several rules that together satisfy a security requirement. The key value can be searched on with ausearch so that no matter which rule triggered the event, you can find its results. The key can also be used on delete all (\-D) and list rules (\-l) to select rules with a specific key. You may have more than one key on a rule if you want to be able to search logged events in multiple ways or if you have an auditd plugin that uses a key to aid its analysis.
 .TP
 .B msgtype
 This is used to match the event's record type. It should only be used on the exclude or user filter lists.
@@ -211,10 +211,13 @@ Resource's SE Linux Low Level
 Resource's SE Linux High Level
 .TP
 .B path
-Full Path of File to watch. It can only be used on exit list.
+Insert a watch for the file system object at \fIpath\fP. You cannot insert a watch to the top level directory. This is prohibited by the kernel. Wildcards are not supported either and will generate a warning. The way that watches work is by tracking the inode internally. This can only be used on exit list.
 .TP
 .B perm
-Permission filter for file operations. See "\fB\-p\fP". It can only be used on exit list. You can use this without specifying a syscall and the kernel will select the syscalls that satisfy the permissions being requested.
+Permission filter for file operations. Supply the access type that a file system watch will trigger on. \fBr\fP=read, \fBw\fP=write, \fBx\fP=execute, \fBa\fP=attribute change. These permissions are not the standard file permissions, but rather the kind of syscall that would do this kind of thing. The read & write syscalls are omitted from this set since they would overwhelm the logs. But rather for reads or writes, the open flags are looked at to see what permission was requested. The perm field can only be used on exit list. You can use this without specifying a syscall and the kernel will select the syscalls that satisfy the access permissions being requested. This also requires supplying an arch parameter before the perm field. This way the kernel can better determine what syscalls are needed. Not supplying an arch will result in
+.B all
+system calls being subject to audit. This will lower system performance.
+
 .TP
 .B pers
 OS Personality Number
@@ -260,16 +263,18 @@ User ID. May be numeric or the user account name.
 .RE
 .TP
 .BI \-k\  key
-Set a filter key on an audit rule. The filter key is an arbitrary string of text that can be up to 31 bytes long. It can uniquely identify the audit records produced by a rule. Typical use is for when you have several rules that together satisfy a security requirement. The key value can be searched on with ausearch so that no matter which rule triggered the event, you can find its results. The key can also be used on delete all (\-D) and list rules (\-l) to select rules with a specific key. You may have more than one key on a rule if you want to be able to search logged events in multiple ways or if you have an auditd plugin that uses a key to aid its analysis.
+Set a filter key on an audit rule. This is deprecated when used with watches. Convert any watches to the syscall form of rules. It is still valid for use with deleting or listing rules.
 .TP
 \fB\-p\fP [\fBr\fP|\fBw\fP|\fBx\fP|\fBa\fP]
-Describe the permission access type that a file system watch will trigger on. \fBr\fP=read, \fBw\fP=write, \fBx\fP=execute, \fBa\fP=attribute change. These permissions are not the standard file permissions, but rather the kind of syscall that would do this kind of thing. The read & write syscalls are omitted from this set since they would overwhelm the logs. But rather for reads or writes, the open flags are looked at to see what permission was requested.
+Describe the permission access type that a file system watch will trigger on. This is deprecated. Convert watches to the syscall form.
 .TP
 \fB\-S\fP [\fISyscall name or number\fP|\fBall\fP]
 Any \fIsyscall name\fP or \fInumber\fP may be used. The word '\fBall\fP' may also be used.  If the given syscall is made by a program, then start an audit record. If a field rule is given and no syscall is specified, it will default to all syscalls. You may also specify multiple syscalls in the same rule by using multiple \-S options in the same rule. Doing so improves performance since fewer rules need to be evaluated. Alternatively, you may pass a comma separated list of syscall names. If you are on a bi-arch system, like x86_64, you should be aware that auditctl simply takes the text, looks it up for the native arch (in this case b64) and sends that rule to the kernel. If there are no additional arch directives, IT WILL APPLY TO BOTH 32 & 64 BIT SYSCALLS. This can have undesirable effects since there is no guarantee that any syscall has the same number on both 32 and 64 bit interfaces. You will likely want to control this and write 2 rules, one with arch equal to b32 and one with b64 to make sure the kernel finds the events that you intend. See the arch field discussion for more info.
 .TP
 .BI \-w\  path
-Insert a watch for the file system object at \fIpath\fP. You cannot insert a watch to the top level directory. This is prohibited by the kernel. Wildcards are not supported either and will generate a warning. The way that watches work is by tracking the inode internally. If you place a watch on a file, its the same as using the \-F path option on a syscall rule. If you place a watch on a directory, its the same as using the \-F dir option on a syscall rule. The \-w form of writing watches is for backwards compatibility and the syscall based form is more expressive. Unlike most syscall auditing rules, watches do not impact performance based on the number of rules sent to the kernel. The only valid options when using a watch are the \-p and \-k. If you need to do anything fancy like audit a specific user accessing a file, then use the syscall auditing form with the path or dir fields. See the EXAMPLES section for an example of converting one form to another.
+Place a watch on path. If the path is a file, it's almost the same as using the \-F path option on a syscall rule. If the watch is on a directory, it's almost the same as using the \-F dir option on a syscall rule. The \-w form of writing watches is for backwards compatibility and is
+.B deprecated due to poor system performance.
+Convert watches of this form to the syscall based form. The only valid options when using a watch are the \-p and \-k.
 .TP
 .BI \-W\  path
 Remove a watch for the file system object at \fIpath\fP. The rule must match exactly. See \fB-d\fP discussion for more info.
@@ -292,7 +297,7 @@ could be re-written as one rule:
 Also, try to use file system auditing wherever practical. This improves performance. For example, if you were wanting to capture all failed opens & truncates like above, but were only concerned about files in /etc and didn't care about /usr or /sbin, its possible to use this rule:
 
 .nf
-.B auditctl \-a always,exit \-S openat \-S truncate \-F dir=/etc \-F success=0
+.B auditctl \-a always,exit \-F arch=b64 \-S openat,truncate \-F dir=/etc \-F success=0
 .fi
 
 This will be higher performance since the kernel will not evaluate it each and every syscall. It will be handled by the filesystem auditing code and only checked on filesystem related syscalls.
@@ -321,15 +326,15 @@ To see unsuccessful openat calls:
 To watch a file for changes (2 ways to express):
 
 .nf
-.B auditctl \-w /etc/shadow \-p wa
-.B auditctl \-a always,exit \-F path=/etc/shadow \-F perm=wa
+.B auditctl \-w /etc/shadow \-p wa  # Note this slows the system
+.B auditctl \-a always,exit \-F arch=b64 \-F path=/etc/shadow \-F perm=wa
 .fi
 
 To recursively watch a directory for changes (2 ways to express):
 
 .nf
-.B auditctl \-w /etc/ \-p wa
-.B auditctl \-a always,exit \-F dir=/etc/ \-F perm=wa
+.B auditctl \-w /etc/ \-p wa  # Note this slows the system
+.B auditctl \-a always,exit \-F arch=b64 \-F dir=/etc/ \-F perm=wa
 .fi
 
 To see if an admin is accessing other user's files:
