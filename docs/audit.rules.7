@@ -1,4 +1,4 @@
-.TH AUDIT.RULES "7" "Feb 2023" "Red Hat" "System Administration Utilities"
+.TH AUDIT.RULES "7" "Sep 2023" "Red Hat" "System Administration Utilities"
 .SH NAME
 audit.rules \- a set of rules loaded in the kernel audit system
 .SH DESCRIPTION
@@ -12,7 +12,7 @@ Control commands generally involve configuring the audit system rather than tell
 File System rules are sometimes called watches. These rules are used to audit access to particular files or directories that you may be interested in. If the path given in a watch rule is a directory, then the rule used is recursive to the bottom of the directory tree excluding any directories that may be mount points. The syntax of these watch rules generally follow this format:
 
 .nf
-.B \-w path-to-file \-p permissions \-k keyname
+.B \-a always,exit \-F arch=b64 -F path=path-to-file -F perm=permissions -F key=keyname
 .fi
 
 where the permission are any one of the following:
@@ -32,7 +32,11 @@ where the permission are any one of the following:
 - change in the file's attribute
 .RE
 
-Watches can also be created using the syscall format described below which allow for greater flexibility and options. Using syscall rules you can choose between
+For best performance, you should supply an
+.B arch
+field in the rule. The individual permissions will cause the selection of specific system calls that use that kind of access. Not supplying the arch will cause the selection of all system calls which will affect performance as all system calls will be evaluated.
+
+Watches can also be created using the deprecated \-w format which allows for backwards compatibility at the expense of system performance as explained. Using syscall rules as shown above, you can choose between
 .B path
 and
 .B dir
@@ -168,17 +172,17 @@ If you get a warning that says, "entry rules deprecated, changing to exit rule".
 The following rule shows how to audit failed access to files due to permission problems. Note that it takes two rules for each arch ABI to audit this since file access can fail with two different failure codes indicating permission problems.
 
 .nf
-.B \-a always,exit \-F arch=b32 \-S open \-S openat \-S openat2 \-F exit=\-EACCES \-k access
-.B \-a always,exit \-F arch=b32 \-S open \-S openat \-S openat2 \-F exit=\-EPERM \-k access
-.B \-a always,exit \-F arch=b64 \-S open \-S openat \-S openat2 \-F exit=\-EACCES \-k access
-.B \-a always,exit \-F arch=b64 \-S open \-S openat \-S openat2 \-F exit=\-EPERM \-k access
+.B \-a always,exit \-F arch=b32 \-S open,openat,openat2 \-F exit=\-EACCES \-k access
+.B \-a always,exit \-F arch=b32 \-S open,openat,openat2 \-F exit=\-EPERM \-k access
+.B \-a always,exit \-F arch=b64 \-S open,openat,openat2 \-F exit=\-EACCES \-k access
+.B \-a always,exit \-F arch=b64 \-S open,openat,openat2 \-F exit=\-EPERM \-k access
 .fi
 
 .SH IO_URING RULES
 Io_uring rules do not take an arch field. It is implicit in the specification of the filter. The following example rule watches for file opens through the io_uring subsystem:
 
 .nf
-.B \-a always,io_uring \-S openat \-S openat2  \-F key=access
+.B \-a always,io_uring \-S openat,openat2  \-F key=access
 
 .SH HARD WIRED EVENTS
 If auditing is enabled, then you can get any event that is not caused by syscall or file watch rules (because you don't have any rules loaded). So, that means, any event from 1100-1299, 1326, 1328, 1331 and higher can be emitted. The reason that there are a number of events that are hardwired is because they are required by regulatory compliance and are sent automatically as a convenience. (For example, logon/logoff is a mandatory event in all security guidance.) If you don't want this, you can use the exclude filter to drop events that you do not want.
