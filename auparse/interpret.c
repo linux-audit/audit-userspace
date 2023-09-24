@@ -2557,6 +2557,13 @@ static const char *print_a1(const char *val, const idata *id)
 				return print_mode_short(val, 16);
 			else if (strncmp(sys, "fcntl", 5) == 0)
 				return print_fcntl_cmd(val);
+			else if (strncmp(sys, "fsopen", 6) == 0) {
+				if (strcmp(val, "1") == 0)
+					return strdup("FSOPEN_CLOEXEC");
+			} else if (strncmp(sys, "fsmount", 7) == 0) {
+				if (strcmp(val, "1") == 0)
+					return strdup("FSMOUNT_CLOEXEC");
+			}
 		} else if (*sys == 'c') {
 			if (strcmp(sys, "chmod") == 0)
 				return print_mode_short(val, 16);
@@ -2675,6 +2682,8 @@ static const char *print_a2(const char *val, const idata *id)
 				return print_mode_short(val, 16);
 			else if (strncmp(sys, "faccessat", 9) == 0)
 				return print_access(val);
+			else if (strncmp(sys, "fsmount", 7) == 0)
+				print_mount(val);
 		} else if (*sys == 's') {
 			if (strcmp(sys, "setresuid") == 0)
 				return print_uid(val, 16);
@@ -2695,6 +2704,8 @@ static const char *print_a2(const char *val, const idata *id)
 				return print_mode_short(val, 16);
 			else if (strcmp(sys, "mprotect") == 0)
 				return print_prot(val, 0);
+			else if (strcmp(sys, "move_mount") == 0)
+				return print_dirfd(val);
 			else if ((strcmp(sys, "mq_open") == 0) &&
 						(id->a1 & O_CREAT))
 				return print_mode_short(val, 16);
