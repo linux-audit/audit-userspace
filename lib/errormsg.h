@@ -73,6 +73,7 @@ struct msg_tab {
 #define EAU_FSTYPEUNKNOWN	36
 #define EAU_FIELDVALTOOBIG	37
 #define EAU_PRINT_NOTHING	38
+#define EAU_PERM_SYSCALL	39
 
 static const struct msg_tab err_msgtab[] = {
     { -EAU_OPMISSING,		2, "-F missing operation for" },
@@ -113,5 +114,6 @@ static const struct msg_tab err_msgtab[] = {
     { -EAU_FSTYPEUNKNOWN,	2, "file system type is unknown for field:" },
     { -EAU_FIELDVALTOOBIG,	2, "value is too large for field:" },
     { -EAU_PRINT_NOTHING,	3, "" },
+    { -EAU_PERM_SYSCALL,	0, "Error adding syscalls for perm filtering" },
 };
 #endif

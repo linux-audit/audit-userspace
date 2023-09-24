@@ -1472,6 +1472,65 @@ int audit_determine_machine(const char *arch)
 	return machine;
 }
 
+int _audit_parse_syscall(const char *optarg, struct audit_rule_data *rule)
+{
+	int retval = 0;
+	char *saved;
+
+	if (strchr(optarg, ',')) {
+		char *ptr, *tmp = strdup(optarg);
+		if (tmp == NULL)
+			return -1;
+		ptr = strtok_r(tmp, ",", &saved);
+		while (ptr) {
+			retval = audit_rule_syscallbyname_data(rule, ptr);
+			if (retval != 0) {
+				if (retval == -1) {
+					audit_msg(LOG_ERR,
+						"Syscall name unknown: %s",
+						ptr);
+					retval = -3; // error reported
+				}
+				break;
+			}
+			ptr = strtok_r(NULL, ",", &saved);
+		}
+		free(tmp);
+		return retval;
+	}
+
+	return audit_rule_syscallbyname_data(rule, optarg);
+}
+
+static int audit_add_perm_syscalls(int perm, struct audit_rule_data *rule)
+{
+	// We only get here if syscall notation is being used in the rule.
+	// The -w -p -k options are handled in auditctl itself. See
+	// audit_setup_watch_name and audit_setup_perms. Therefore if no
+	// arch declared, we leave the old behavior for backwards compatibility
+	// and just warn about performance.
+	if (_audit_elf == 0) {
+		audit_msg(LOG_INFO, "perm used without an arch is slower");
+		return 0;
+	}
+
+	const char *syscalls = audit_perm_to_name(perm);
+	int rc = _audit_parse_syscall(syscalls, rule);
+	switch (rc)
+	{
+	case 0:
+		_audit_syscalladded = 1;
+		break;
+	case -1: // Should never happen
+		audit_msg(LOG_ERR, "Syscall name unknown: %s", syscall);
+		break;
+	default: // Error reported - do nothing here
+		break;
+	}
+
+	return rc;
+}
+
 int audit_rule_fieldpair_data(struct audit_rule_data **rulep, const char *pair,
                               int flags)
 {
@@ -1746,6 +1805,7 @@ int audit_rule_fieldpair_data(struct audit_rule_data **rulep, const char *pair,
 				return -EAU_OPEQ;
 			else {
 				unsigned int i, len, val = 0;
+				int rc;
 
 				len = strlen(v);
 				if (len > 4)
@@ -1755,19 +1815,25 @@ int audit_rule_fieldpair_data(struct audit_rule_data **rulep, const char *pair,
 					switch (tolower(v[i])) {
 						case 'r':
 							val |= AUDIT_PERM_READ;
+				   rc=audit_add_perm_syscalls(AUDIT_PERM_READ,rule);
 							break;
 						case 'w':
 							val |= AUDIT_PERM_WRITE;
+				   rc=audit_add_perm_syscalls(AUDIT_PERM_WRITE,rule);
 							break;
 						case 'x':
 							val |= AUDIT_PERM_EXEC;
+				   rc=audit_add_perm_syscalls(AUDIT_PERM_EXEC,rule);
 							break;
 						case 'a':
 							val |= AUDIT_PERM_ATTR;
+				   rc=audit_add_perm_syscalls(AUDIT_PERM_ATTR,rule);
 							break;
 						default:
 							return -EAU_PERMRWXA;
 					}
+					if (rc)
+						return -EAU_PERM_SYSCALL;
 				}
 				rule->values[rule->field_count] = val;
 			}
