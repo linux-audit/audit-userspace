@@ -31,26 +31,38 @@
 # Introduced in 2.6.39, commented out because it can make false positives
 #-a always,exit -F arch=b32 -S clock_adjtime -F key=time-change
 #-a always,exit -F arch=b64 -S clock_adjtime -F key=time-change
--w /etc/localtime -p wa -k time-change
+-a always,exit -F arch=b32 -F path=/etc/localtime -F perm=wa -F key=time-change
+-a always,exit -F arch=b64 -F path=/etc/localtime -F perm=wa -F key=time-change
 
 ## Things that affect identity
--w /etc/group -p wa -k identity
--w /etc/passwd -p wa -k identity
--w /etc/gshadow -p wa -k identity
--w /etc/shadow -p wa -k identity
--w /etc/security/opasswd -p wa -k identity
+-a always,exit -F arch=b32 -F path=/etc/group -F perm=wa -F key=identity
+-a always,exit -F arch=b64 -F path=/etc/group -F perm=wa -F key=identity
+-a always,exit -F arch=b32 -F path=/etc/passwd -F perm=wa -F key=identity
+-a always,exit -F arch=b64 -F path=/etc/passwd -F perm=wa -F key=identity
+-a always,exit -F arch=b32 -F path=/etc/gshadow -F perm=wa -F key=identity
+-a always,exit -F arch=b64 -F path=/etc/gshadow -F perm=wa -F key=identity
+-a always,exit -F arch=b32 -F path=/etc/shadow -F perm=wa -F key=identity
+-a always,exit -F arch=b64 -F path=/etc/shadow -F perm=wa -F key=identity
+-a always,exit -F arch=b32 -F path=/etc/security/opasswd -F perm=wa -F key=identity
+-a always,exit -F arch=b64 -F path=/etc/security/opasswd -F perm=wa -F key=identity
 
 ## Things that could affect system locale
 -a always,exit -F arch=b32 -S sethostname,setdomainname -F key=system-locale
 -a always,exit -F arch=b64 -S sethostname,setdomainname -F key=system-locale
--w /etc/issue -p wa -k system-locale
--w /etc/issue.net -p wa -k system-locale
--w /etc/hosts -p wa -k system-locale
--w /etc/hostname -p wa -k system-locale
--a always,exit -F dir=/etc/NetworkManager/ -F perm=wa -F key=system-locale
+-a always,exit -F arch=b32 -F path=/etc/issue -F perm=wa -F key=system-locale
+-a always,exit -F arch=b64 -F path=/etc/issue -F perm=wa -F key=system-locale
+-a always,exit -F arch=b32 -F path=/etc/issue.net -F perm=wa -F key=system-locale
+-a always,exit -F arch=b64 -F path=/etc/issue.net -F perm=wa -F key=system-locale
+-a always,exit -F arch=b32 -F path=/etc/hosts -F perm=wa -F key=system-locale
+-a always,exit -F arch=b64 -F path=/etc/hosts -F perm=wa -F key=system-locale
+-a always,exit -F arch=b32 -F path=/etc/hostname -F perm=wa -F key=system-locale
+-a always,exit -F arch=b64 -F path=/etc/hostname -F perm=wa -F key=system-locale
+-a always,exit -F arch=b32 -F dir=/etc/NetworkManager/ -F perm=wa -F key=system-locale
+-a always,exit -F arch=b64 -F dir=/etc/NetworkManager/ -F perm=wa -F key=system-locale
 
 ## Things that could affect MAC policy
--a always,exit -F dir=/etc/selinux/ -F perm=wa -F key=MAC-policy
+-a always,exit -F arch=b32 -F dir=/etc/selinux/ -F perm=wa -F key=MAC-policy
+-a always,exit -F arch=b64 -F dir=/etc/selinux/ -F perm=wa -F key=MAC-policy
 
 
 ## (GEN002900: CAT III) The IAO will ensure audit files are retained at
@@ -77,18 +89,24 @@
 ##
 ## Handled by pam, sshd, login, and gdm
 ## Might also want to watch these files if needing extra information
-#-w /var/log/tallylog -p wa -k logins
-#-w /var/run/faillock/ -p wa -k logins
-#-w /var/log/lastlog -p wa -k logins
+#-a always,exit -F arch=b32 -F path=/var/log/tallylog -F perm=wa -F key=logins
+#-a always,exit -F arch=b64 -F path=/var/log/tallylog -F perm=wa -F key=logins
+#-a always,exit -F arch=b32 -F path=/var/run/faillock/ -F perm=wa -F key=logins
+#-a always,exit -F arch=b64 -F path=/var/run/faillock/ -F perm=wa -F key=logins
+#-a always,exit -F arch=b32 -F path=/var/log/lastlog -F perm=wa -F key=logins
+#-a always,exit -F arch=b64 -F path=/var/log/lastlog -F perm=wa -F key=logins
 
 
 ##- Process and session initiation (unsuccessful and successful)
 ##
 ## The session initiation is audited by pam without any rules needed.
 ## Might also want to watch this file if needing extra information
-#-w /var/run/utmp -p wa -k session
-#-w /var/log/btmp -p wa -k session
-#-w /var/log/wtmp -p wa -k session
+#-a always,exit -F arch=b32 -F path=/var/run/utmp -F perm=wa -F key=session
+#-a always,exit -F arch=b64 -F path=/var/run/utmp -F perm=wa -F key=session
+#-a always,exit -F arch=b32 -F path=/var/log/btmp -F perm=wa -F key=session
+#-a always,exit -F arch=b64 -F path=/var/log/btmp -F perm=wa -F key=session
+#-a always,exit -F arch=b32 -F path=/var/log/wtmp -F perm=wa -F key=session
+#-a always,exit -F arch=b64 -F path=/var/log/wtmp -F perm=wa -F key=session
 
 ##- Discretionary access control permission modification (unsuccessful
 ## and successful use of chown/chmod)
@@ -127,13 +145,17 @@
 ## If that is not found, use sudo which should be patched to record its
 ## commands to the audit system. Do not allow unrestricted root shells or
 ## sudo cannot record the action.
--w /etc/sudoers -p wa -k actions
--w /etc/sudoers.d/ -p wa -k actions
+-a always,exit -F arch=b32 -F path=/etc/sudoers -F perm=wa -F key=actions
+-a always,exit -F arch=b64 -F path=/etc/sudoers -F perm=wa -F key=actions
+-a always,exit -F arch=b32 -F path=/etc/sudoers.d/ -F perm=wa -F key=actions
+-a always,exit -F arch=b64 -F path=/etc/sudoers.d/ -F perm=wa -F key=actions
 
 ## Special case for systemd-run. It is not audit aware, specifically watch it
--a always,exit -F path=/usr/bin/systemd-run -F perm=x -F auid!=unset -F key=maybe-escalation
+-a always,exit -F arch=b32 -F path=/usr/bin/systemd-run -F perm=x -F auid!=unset -F key=maybe-escalation
+-a always,exit -F arch=b64 -F path=/usr/bin/systemd-run -F perm=x -F auid!=unset -F key=maybe-escalation
 ## Special case for pkexec. It is not audit aware, specifically watch it
--a always,exit -F path=/usr/bin/pkexec -F perm=x -F key=maybe-escalation
+-a always,exit -F arch=b32 -F path=/usr/bin/pkexec -F perm=x -F key=maybe-escalation
+-a always,exit -F arch=b64 -F path=/usr/bin/pkexec -F perm=x -F key=maybe-escalation
 
 ## (GEN002860: CAT II) (Previously – G674) The SA and/or IAO will
 ##ensure old audit logs are closed and new audit logs are started daily.

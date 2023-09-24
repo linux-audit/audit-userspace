@@ -19,28 +19,37 @@
 ## 10.2.1 Implement audit trails to detect user accesses to cardholder data
 ## This would require a watch on the database that excludes the daemon's
 ## access. This rule is commented out due to needing a path name
-#-a always,exit -F path=path-to-db -F auid>=1000 -F auid!=unset -F uid!=daemon-acct -F perm=r -F key=10.2.1-cardholder-access
+#-a always,exit -F arch=b32 -F path=path-to-db -F auid>=1000 -F auid!=unset -F uid!=daemon-acct -F perm=r -F key=10.2.1-cardholder-access
+#-a always,exit -F arch=b64 -F path=path-to-db -F auid>=1000 -F auid!=unset -F uid!=daemon-acct -F perm=r -F key=10.2.1-cardholder-access
 
 ## 10.2.2 Log administrative action. To meet this, you need to enable tty
 ## logging. The pam config below should be placed into su and sudo pam stacks.
 ## session   required pam_tty_audit.so disable=* enable=root
 
 ## Special case for systemd-run. It is not audit aware, specifically watch it
--a always,exit -F path=/usr/bin/systemd-run -F perm=x -F auid!=unset -F key=maybe-escalation
+-a always,exit -F arch=b32 -F path=/usr/bin/systemd-run -F perm=x -F auid!=unset -F key=maybe-escalation
+-a always,exit -F arch=b64 -F path=/usr/bin/systemd-run -F perm=x -F auid!=unset -F key=maybe-escalation
 ## Special case for pkexec. It is not audit aware, specifically watch it
--a always,exit -F path=/usr/bin/pkexec -F perm=x -F key=maybe-escalation
+-a always,exit -F arch=b32 -F path=/usr/bin/pkexec -F perm=x -F key=maybe-escalation
+-a always,exit -F arch=b64 -F path=/usr/bin/pkexec -F perm=x -F key=maybe-escalation
 
 ## Watch for configuration changes to privilege escalation.
--a always,exit -F path=/etc/sudoers -F perm=wa -F key=10.2.2-priv-config-changes
--a always,exit -F dir=/etc/sudoers.d/ -F perm=wa -F key=10.2.2-priv-config-changes
+-a always,exit -F arch=b32 -F path=/etc/sudoers -F perm=wa -F key=10.2.2-priv-config-changes
+-a always,exit -F arch=b64 -F path=/etc/sudoers -F perm=wa -F key=10.2.2-priv-config-changes
+-a always,exit -F arch=b32 -F dir=/etc/sudoers.d/ -F perm=wa -F key=10.2.2-priv-config-changes
+-a always,exit -F arch=b64 -F dir=/etc/sudoers.d/ -F perm=wa -F key=10.2.2-priv-config-changes
 
 ## 10.2.3 Access to all audit trails.
--a always,exit -F dir=/var/log/audit/ -F perm=r -F auid>=1000 -F auid!=unset -F key=10.2.3-access-audit-trail
--a always,exit -F path=/usr/sbin/ausearch -F perm=x -F key=10.2.3-access-audit-trail
--a always,exit -F path=/usr/sbin/aureport -F perm=x -F key=10.2.3-access-audit-trail
--a always,exit -F path=/usr/sbin/aulast -F perm=x -F key=10.2.3-access-audit-trail
--a always,exit -F path=/usr/sbin/aulastlogin -F perm=x -F key=10.2.3-access-audit-trail
--a always,exit -F path=/usr/sbin/auvirt -F perm=x -F key=10.2.3-access-audit-trail
+-a always,exit -F arch=b32 -F dir=/var/log/audit/ -F perm=r -F auid>=1000 -F auid!=unset -F key=10.2.3-access-audit-trail
+-a always,exit -F arch=b64 -F dir=/var/log/audit/ -F perm=r -F auid>=1000 -F auid!=unset -F key=10.2.3-access-audit-trail
+-a always,exit -F arch=b32 -F path=/usr/sbin/ausearch -F perm=x -F key=10.2.3-access-audit-trail
+-a always,exit -F arch=b64 -F path=/usr/sbin/ausearch -F perm=x -F key=10.2.3-access-audit-trail
+-a always,exit -F arch=b32 -F path=/usr/sbin/aureport -F perm=x -F key=10.2.3-access-audit-trail
+-a always,exit -F arch=b64 -F path=/usr/sbin/aureport -F perm=x -F key=10.2.3-access-audit-trail
+-a always,exit -F arch=b32 -F path=/usr/sbin/aulast -F perm=x -F key=10.2.3-access-audit-trail
+-a always,exit -F arch=b64 -F path=/usr/sbin/aulast -F perm=x -F key=10.2.3-access-audit-trail
+-a always,exit -F arch=b32 -F path=/usr/sbin/aulastlog -F perm=x -F key=10.2.3-access-audit-trail
+-a always,exit -F arch=b64 -F path=/usr/sbin/aulastlog -F perm=x -F key=10.2.3-access-audit-trail
 
 ## 10.2.4 Invalid logical access attempts. This is naturally met by pam. You
 ## can find these events with: ausearch --start today -m user_login -sv no -i
@@ -60,11 +69,16 @@
 ## 10.2.5.c All changes, additions, or deletions to any account are logged
 ## This is implicitly covered by shadow-utils. We will place some rules
 ## in case someone tries to hand edit the trusted databases
--a always,exit -F path=/etc/group -F perm=wa -F key=10.2.5.c-accounts
--a always,exit -F path=/etc/passwd -F perm=wa -F key=10.2.5.c-accounts
--a always,exit -F path=/etc/gshadow -F perm=wa -F key=10.2.5.c-accounts
--a always,exit -F path=/etc/shadow -F perm=wa -F key=10.2.5.c-accounts
--a always,exit -F path=/etc/security/opasswd -F perm=wa -F key=10.2.5.c-accounts
+-a always,exit -F arch=b32 -F path=/etc/group -F perm=wa -F key=10.2.5.c-accounts
+-a always,exit -F arch=b64 -F path=/etc/group -F perm=wa -F key=10.2.5.c-accounts
+-a always,exit -F arch=b32 -F path=/etc/passwd -F perm=wa -F key=10.2.5.c-accounts
+-a always,exit -F arch=b64 -F path=/etc/passwd -F perm=wa -F key=10.2.5.c-accounts
+-a always,exit -F arch=b32 -F path=/etc/gshadow -F perm=wa -F key=10.2.5.c-accounts
+-a always,exit -F arch=b64 -F path=/etc/gshadow -F perm=wa -F key=10.2.5.c-accounts
+-a always,exit -F arch=b32 -F path=/etc/shadow -F perm=wa -F key=10.2.5.c-accounts
+-a always,exit -F arch=b64 -F path=/etc/shadow -F perm=wa -F key=10.2.5.c-accounts
+-a always,exit -F arch=b32 -F path=/etc/security/opasswd -F perm=wa -F key=10.2.5.c-accounts
+-a always,exit -F arch=b64 -F path=/etc/security/opasswd -F perm=wa -F key=10.2.5.c-accounts
 
 
 ## 10.2.6 Verify the following are logged:
@@ -87,7 +101,8 @@
 # Introduced in 2.6.39, commented out because it can make false positives
 #-a always,exit -F arch=b32 -S clock_adjtime -F key=10.4.2b-time-change
 #-a always,exit -F arch=b64 -S clock_adjtime -F key=10.4.2b-time-change
--w /etc/localtime -p wa -k 10.4.2b-time-change
+-a always,exit -F arch=b32 -F path=/etc/localtime -F perm=wa -F key=10.4.2b-time-change
+-a always,exit -F arch=b64 -F path=/etc/localtime -F perm=wa -F key=10.4.2b-time-change
 
 ## 10.5 Secure audit trails so they cannot be altered
 ## The audit system protects audit logs by virtue of being the root user.
@@ -113,8 +128,10 @@
 ## See discussion in 10.5 above
 
 ## 10.5.5 Use file-integrity monitoring or change-detection software on logs
--a always,exit -F dir=/var/log/audit/ -F perm=wa -F key=10.5.5-modification-audit
+-a always,exit -F arch=b32 -F dir=/var/log/audit/ -F perm=wa -F key=10.5.5-modification-audit
+-a always,exit -F arch=b64 -F dir=/var/log/audit/ -F perm=wa -F key=10.5.5-modification-audit
 
 ## Feel free to add watches on other critical logs
-# -a always,exit -F path=path-to-log -F perm=wa -F key=10.5.5-modification-log
+# -a always,exit -F arch=b32 -F path=path-to-log -F perm=wa -F key=10.5.5-modification-log
+# -a always,exit -F arch=b64 -F path=path-to-log -F perm=wa -F key=10.5.5-modification-log
 
