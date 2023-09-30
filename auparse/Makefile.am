@@ -1,5 +1,5 @@
 # Makefile.am -- 
-# Copyright 2006-08,2011-18 Red Hat Inc., Durham, North Carolina.
+# Copyright 2006-08,2011-18 Red Hat Inc.
 # All Rights Reserved.
 #
 # This library is free software; you can redistribute it and/or
@@ -55,7 +55,7 @@ message.c:
 	cp ${top_srcdir}/lib/message.c .
 
 BUILT_SOURCES = accesstabs.h captabs.h clocktabs.h clone-flagtabs.h \
-	epoll_ctls.h famtabs.h fcntl-cmdtabs.h \
+	epoll_ctls.h famtabs.h fcntl-cmdtabs.h fsconfigs.h \
 	flagtabs.h icmptypetabs.h ipctabs.h ipccmdtabs.h\
 	ioctlreqtabs.h ipoptnametabs.h ip6optnametabs.h \
 	mmaptabs.h mounttabs.h nfprototabs.h open-flagtabs.h \
@@ -71,8 +71,8 @@ BUILT_SOURCES = accesstabs.h captabs.h clocktabs.h clone-flagtabs.h \
 	openat2-resolvetabs.h
 noinst_PROGRAMS = gen_accesstabs_h gen_captabs_h gen_clock_h \
 	gen_clone-flagtabs_h \
-	gen_epoll_ctls_h gen_famtabs_h \
-	gen_fcntl-cmdtabs_h gen_flagtabs_h gen_ioctlreqtabs_h \
+	gen_epoll_ctls_h gen_famtabs_h gen_fcntl-cmdtabs_h \
+	gen_flagtabs_h gen_fsconfigs_h gen_ioctlreqtabs_h \
 	gen_icmptypetabs_h gen_ipctabs_h gen_ipccmdtabs_h\
 	gen_ipoptnametabs_h gen_ip6optnametabs_h gen_nfprototabs_h \
 	gen_mmaptabs_h gen_mounttabs_h \
@@ -194,6 +194,19 @@ gen_fcntl-cmdtabs_h$(BUILD_EXEEXT): CPPFLAGS=$(CPPFLAGS_FOR_BUILD)
 gen_fcntl-cmdtabs_h$(BUILD_EXEEXT): LDFLAGS=$(LDFLAGS_FOR_BUILD)
 fcntl-cmdtabs.h: gen_fcntl-cmdtabs_h Makefile
 	./gen_fcntl-cmdtabs_h --i2s fcntl > $@
+
+gen_fsconfigs_h_SOURCES = ../lib/gen_tables.c ../lib/gen_tables.h fsconfig.h
+gen_fsconfigs_h_CFLAGS = '-DTABLE_H="fsconfig.h"'
+$(gen_fsconfigs_h_OBJECTS): CC=$(CC_FOR_BUILD)
+$(gen_fsconfigs_h_OBJECTS): CFLAGS=$(CFLAGS_FOR_BUILD)
+$(gen_fsconfigs_h_OBJECTS): CPPFLAGS=$(CPPFLAGS_FOR_BUILD)
+$(gen_fsconfigs_h_OBJECTS): LDFLAGS=$(LDFLAGS_FOR_BUILD)
+gen_fsconfigs_h$(BUILD_EXEEXT): CC=$(CC_FOR_BUILD)
+gen_fsconfigs_h$(BUILD_EXEEXT): CFLAGS=$(CFLAGS_FOR_BUILD)
+gen_fsconfigs_h$(BUILD_EXEEXT): CPPFLAGS=$(CPPFLAGS_FOR_BUILD)
+gen_fsconfigs_h$(BUILD_EXEEXT): LDFLAGS=$(LDFLAGS_FOR_BUILD)
+fsconfigs.h: gen_fsconfigs_h Makefile
+	./gen_fsconfigs_h --i2s fsconfig > $@
 
 gen_icmptypetabs_h_SOURCES = ../lib/gen_tables.c ../lib/gen_tables.h icmptypetab.h
 gen_icmptypetabs_h_CFLAGS = '-DTABLE_H="icmptypetab.h"'
