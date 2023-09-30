@@ -1,5 +1,5 @@
 /* lookup_test.c -- A test of table lookups.
- * Copyright 2017 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2017 Red Hat Inc.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -12,9 +12,10 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; see the file COPYING. If not, write to the
+ * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor
+ * Boston, MA 02110-1335, USA.
  *
  * Authors:
  *      Steve Grubb <sgrubb@redhat.com>
@@ -194,6 +195,20 @@ test_fcntltab(void)
 
 	printf("Testing fcntltab...\n");
 #define I2S(I) fcntl_i2s(I)
+	TEST_I2S(0);
+#undef I2S
+}
+
+#include "../fsconfigs.h"
+static void
+test_fsconfig(void)
+{
+	static const struct entry t[] = {
+#include "../fsconfig.h"
+	};
+
+	printf("Testing fsconfig...\n");
+#define I2S(I) fsconfig_i2s(I)
 	TEST_I2S(0);
 #undef I2S
 }
@@ -558,13 +573,14 @@ int
 main(void)
 {
 	// This is only for preventing collisions in s2i tests.
-	// If collisions are found in future, change the number. 
+	// If collisions are found in future, change the number.
 	srand(3);
 	test_captab();
 	test_clocktab();
 	test_epoll_ctl();
 	test_famtab();
 	test_fcntltab();
+	test_fsconfig();
 	test_icmptypetab();
 	test_inethooktab();
 	test_ioctlreqtab();

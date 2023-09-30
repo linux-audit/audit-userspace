@@ -1,5 +1,5 @@
-/* interpret.h --
- * Copyright 2007,08,2016-23 Red Hat Inc.
+/* fsconfig.h
+ * Copyright 2023 Red Hat Inc.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -19,30 +19,15 @@
  *
  * Authors:
  *      Steve Grubb <sgrubb@redhat.com>
+ * Location: include/uapi/linux/mount.h
  */
 
-#ifndef INTERPRET_HEADER
-#define INTERPRET_HEADER
-
-#include "config.h"
-#include "dso.h"
-#include "rnode.h"
-#include <time.h>
-
-/* Make these hidden to prevent conflicts */
-AUDIT_HIDDEN_START
-
-void init_interpretation_list(void);
-int load_interpretation_list(const char *buf);
-void free_interpretation_list(void);
-unsigned int interpretation_list_cnt(void);
-int lookup_type(const char *name);
-const char *do_interpret(rnode *r, auparse_esc_t escape_mode);
-void lookup_destroy_uid_list(void);
-void aulookup_destroy_gid_list(void);
-char *au_unescape(char *buf);
-
-AUDIT_HIDDEN_END
-
-#endif
+_S(0,   "FSCONFIG_SET_FLAG")
+_S(1,   "FSCONFIG_SET_STRING")
+_S(2,   "FSCONFIG_SET_BINARY")
+_S(3,   "FSCONFIG_SET_PATH")
+_S(4,   "FSCONFIG_SET_PATH_EMPTY")
+_S(5,   "FSCONFIG_SET_FD")
+_S(6,   "FSCONFIG_CMD_CREATE")
+_S(7,   "FSCONFIG_CMD_RECONFIGURE")
 
