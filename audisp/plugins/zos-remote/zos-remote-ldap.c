@@ -134,14 +134,18 @@ retry:
 
 int zos_remote_init(ZOS_REMOTE *zos_remote, const char *server, int port,
               const char *user, const char *password, int timeout)
-{       
+{
+        if (server == NULL || user == NULL || password == NULL) {
+           log_err("Error: required parameters are not present in config file");
+           return ICTX_E_FATAL;
+        }
         zos_remote->server = strdup(server);
         zos_remote->port = port;
         zos_remote->user = strdup(user);
         zos_remote->password = strdup(password);
         zos_remote->timeout = timeout;
         zos_remote->connected = 0;
-        
+
         if (!zos_remote->server || !zos_remote->user || !zos_remote->password) {
                 log_err("Error allocating memory for session members");
                 return ICTX_E_FATAL;
