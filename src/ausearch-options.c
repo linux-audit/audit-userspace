@@ -895,19 +895,21 @@ int check_params(int count, char *vars[])
 			size_t len = strlen(optarg);
 			if (isdigit(optarg[0])) {
 				errno = 0;
-				event_session_id = strtoul(optarg,NULL,10);
-				if (errno)
+				unsigned long optval = strtoul(optarg,NULL,10);
+				if (errno || optval >= (1ul << 32))
 					retval = -1;
+				event_session_id = optval;
 				c++;
                         } else if (len >= 2 && *(optarg)=='-' &&
                                                 (isdigit(optarg[1]))) {
 				errno = 0;
-                                event_session_id = strtoul(optarg, NULL, 0);
-				if (errno) {
+				long optval = strtol(optarg, NULL, 0);
+				if (errno || optval < INT_MIN || optval > INT_MAX) {
 					retval = -1;
 					fprintf(stderr, "Error converting %s\n",
 						optarg);
 				}
+				event_session_id = optval;
 				c++;
 			} else {
 				fprintf(stderr,
