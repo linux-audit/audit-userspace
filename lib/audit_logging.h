@@ -40,8 +40,8 @@ extern "C" {
 #endif
 
 /* Prerequisite to logging is acquiring and disposing of netlink connections */
-+int  audit_open(void);
-+void audit_close(int fd);
+int  audit_open(void);
+void audit_close(int fd);
 
 /* The following are for standard formatting of messages */
 int audit_value_needs_encoding(const char *str, unsigned int size)
