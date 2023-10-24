@@ -189,8 +189,6 @@ void set_aumessage_mode(message_t mode, debug_message_t debug);
 
 /* General */
 typedef enum { GET_REPLY_BLOCKING=0, GET_REPLY_NONBLOCKING } reply_t;
-int  audit_open(void);
-void audit_close(int fd);
 int  audit_get_reply(int fd, struct audit_reply *rep, reply_t block,
 	int peek);
 uid_t audit_getloginuid(void);

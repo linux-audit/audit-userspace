@@ -39,6 +39,10 @@ extern "C" {
 # define __attr_dealloc_free
 #endif
 
+/* Prerequisite to logging is acquiring and disposing of netlink connections */
++int  audit_open(void);
++void audit_close(int fd);
+
 /* The following are for standard formatting of messages */
 int audit_value_needs_encoding(const char *str, unsigned int size)
 	__attr_access ((__read_only__, 1, 2));
