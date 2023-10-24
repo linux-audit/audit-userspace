@@ -137,7 +137,7 @@ rm -f rules/Makefile*
 # Copy default rules into place on new installation
 files=`ls /etc/audit/rules.d/ 2>/dev/null | wc -w`
 if [ "$files" -eq 0 ] ; then
-	cp %{_datadir}/%{name}/sample-rules/10-base-config.rules /etc/audit/rules.d/audit.rules
+	cp %{_datadir}/%{name}-rules/10-base-config.rules /etc/audit/rules.d/audit.rules
 	chmod 0600 /etc/audit/rules.d/audit.rules
 fi
 %systemd_post audit-rules.service
@@ -254,6 +254,7 @@ fi
 %attr(644,root,root) %{_mandir}/man8/audisp-af_unix.8.gz
 
 %files rules
+%attr(755,root,root) %{_datadir}/%{name}-rules
 %attr(644,root,root) %{_mandir}/man8/auditctl.8.gz
 %attr(644,root,root) %{_mandir}/man8/augenrules.8.gz
 %attr(644,root,root) %{_mandir}/man7/audit.rules.7.gz
