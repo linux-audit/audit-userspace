@@ -475,7 +475,7 @@ static int send_signal(const char *optarg)
 
 	if (signal == 0) {
 		audit_msg(LOG_ERR, "%s is an unsupported signal", optarg);
-		return -1;
+		exit(1);
 	}
 
 	// Request status so that we can find the pid
@@ -483,7 +483,7 @@ static int send_signal(const char *optarg)
 	if (retval == -1) {
 		if (errno == ECONNREFUSED)
 			audit_msg(LOG_INFO, "The audit system is disabled");
-		return -1;
+		exit(1);
 	}
 
 	// Receive the netlink info
@@ -513,7 +513,7 @@ static int send_signal(const char *optarg)
 				if (rep.status->pid == 0) {
 					audit_msg(LOG_INFO,
 						"Auditd is not running");
-					return -2;
+					exit(2);
 				}
 #ifdef SYS_pidfd_open
 				retval = sure_kill(rep.status->pid, signal);
@@ -524,14 +524,14 @@ static int send_signal(const char *optarg)
 					audit_msg(LOG_WARNING,
 				        "Failed sending signal to auditd (%s)",
 						 strerror(errno));
-					return -1;
+					exit(1);
 				} else
 					return -2;
 			}
 		}
 	}
 	audit_msg(LOG_WARNING, "Failed sending signal to auditd (timeout)");
-	return -1;
+	exit(1);
 }
 
 static int report_status(void)
