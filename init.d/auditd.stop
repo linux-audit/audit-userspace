@@ -5,6 +5,7 @@
 # Check that we are root ... so non-root users stop here
 test $(id -u) = 0  ||  exit 4
 
+printf "Stopping logging: "
 PATH=/sbin:/bin:/usr/bin:/usr/sbin
 prog="auditd"
 pid=
@@ -13,10 +14,9 @@ if [ -n "$p" ] ; then
 	pid="$p"
 fi
 
-printf "Stopping logging: "
 /sbin/auditctl --signal stop
 RETVAL=$?
-if [ -n "$pid" ] ; then
+if [ -n "$pid" -a $RETVAL -eq 0 ] ; then
     # Wait up to 20 seconds for auditd to shutdown
     timeout 20 tail --pid="$pid" -f /dev/null
 fi
