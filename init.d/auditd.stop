@@ -7,4 +7,4 @@ test $(id -u) = 0  ||  exit 4
 
 printf "Stopping logging: "
 /sbin/auditctl --signal stop
-exit $RETVAL
+exit $?
