@@ -21,6 +21,7 @@
  */
 
 #include "config.h"
+#include <errno.h>
 #include <stdio.h>
 #include <stdarg.h>
 #include "libaudit.h"
@@ -40,6 +41,7 @@ void set_aumessage_mode(message_t mode, debug_message_t debug)
 void audit_msg(int priority, const char *fmt, ...)
 {
         va_list   ap;
+        int saved_errno = errno;
 
 	if (message_mode == MSG_QUIET)
 		return;
@@ -55,4 +57,6 @@ void audit_msg(int priority, const char *fmt, ...)
 		fputc('\n', stderr);
 	}
         va_end( ap );
+
+        errno = saved_errno;
 }
