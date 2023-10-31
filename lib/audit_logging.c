@@ -176,16 +176,16 @@ static char *_get_commname(const char *comm, char *commname, unsigned int size)
 	char tmp_comm[20];
 	
 	if (comm == NULL) {
-		int len;
+		ssize_t ret;
 		int fd = open("/proc/self/comm", O_RDONLY);
 		if (fd < 0) {
 			strcpy(commname, "\"?\"");
 			return commname;
 		}
-		len = read(fd, tmp_comm, sizeof(tmp_comm));
+		ret = read(fd, tmp_comm, sizeof(tmp_comm));
 		close(fd);
-		if (len > 0)
-			tmp_comm[len-1] = 0;
+		if (ret > 0)
+			tmp_comm[ret-1] = 0;
 		else {
 			strcpy(commname, "\"?\"");
 			return commname;

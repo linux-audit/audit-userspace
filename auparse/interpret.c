@@ -1952,7 +1952,6 @@ static char *print_dirfd(const char *val)
 	errno = 0;
 	uint32_t i = strtoul(val, NULL, 16);
 	if (errno) {
-		char *out;
 		if (asprintf(&out, "conversion error(%s)", val) < 0)
 			out = NULL;
 		return out;
