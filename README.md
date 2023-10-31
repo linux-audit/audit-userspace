@@ -64,7 +64,7 @@ CROSS COMPILING
 Cross compiling is not supported. The audit system builds native binaries at
 build time and uses those to create sorted btrees for fast lookup during
 event processing and reporting. To enable cross compiling, those binaries
-would need to be rewritten in python or another scripting langauge. No one is
+would need to be rewritten in python or another scripting language. No one is
 currently working on that.
 
 OVERVIEW
@@ -81,7 +81,7 @@ Almost all Security Standards are concerned about what happens when logging spac
 
 To get an accurate reading, the audit daemon should log to a disk partition that is reserved only for the audit daemon. This way someone using the logger command can't suddenly fill up the audit space and trigger an admin defined action. It is recommended to set aside a partition, /var/log/audit, for use by the audit daemon. The size of which depends on your audit retention policy.
 
-The audit daemon is started by systemd. Some people run the "systemd-analyze security" command. It tells you all sorts of things to do to protect your system from auditd. However, doing the things it suggests places auditd in namespaces. When that happens, the audit rules may not trigger correctly and auditd may not be able to access trusted databases. The audit service files are the result of trial and error based on well intentioned patchs gone wrong. You can lock it down more, but you probably will break something.
+The audit daemon is started by systemd. Some people run the "systemd-analyze security" command. It tells you all sorts of things to do to protect your system from auditd. However, doing the things it suggests places auditd in namespaces. When that happens, the audit rules may not trigger correctly and auditd may not be able to access trusted databases. The audit service files are the result of trial and error based on well intentioned patches gone wrong. You can lock it down more, but you probably will break something.
 
 RULES
 -----
@@ -195,7 +195,7 @@ auditctl -s
 
 This outputs some basic information such as the kernel backlog size, the current backlog, and how many events have been lost. The backlog size is the size of the queue in records that the kernel can hold records waiting for auditd to collect them. This should be around 8k or larger for a system that really does auditing. If you use the audit system to casually collect SELinux AVC's, then you can go lower to something like 256.
 
-The current backlog tells you how many events are awaiting delivery to auditd at that instant. This number should normally be low - less than 10. If this is getting bigger and approaching the backlog limit in size, then you have a problem to look into. Either you are generating too many events or an auditd plugin is taking too long to dequeue records. The auditd deamon is very fast at writing records to disk and can handle thousands per second.
+The current backlog tells you how many events are awaiting delivery to auditd at that instant. This number should normally be low - less than 10. If this is getting bigger and approaching the backlog limit in size, then you have a problem to look into. Either you are generating too many events or an auditd plugin is taking too long to dequeue records. The auditd daemon is very fast at writing records to disk and can handle thousands per second.
 
 Another way to check performance is to use
 
@@ -231,7 +231,7 @@ This command causes auditd to dump its internal metrics to /var/run/auditd.state
 
 AUPARSE
 -------
-The auparse library is available to allow one to create custom reporting applications. The library is patterned after a dbase or foxpro database library and hass the following categories of functions:
+The auparse library is available to allow one to create custom reporting applications. The library is patterned after a dbase or foxpro database library and has the following categories of functions:
 
 - General functions that affect operation of the library
 - Functions that traverse events

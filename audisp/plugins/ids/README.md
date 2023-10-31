@@ -1,6 +1,6 @@
 This is an experimental Intrusion Detection System (IDS) plugin. It's goal
 is to either identify or react to suspicious activity. This is a work in
-progress and is subject to either be completed or dropped in it's entirity
+progress and is subject to either be completed or dropped in it's entirety
 at its author's descretion.
 
 So, if you would like to test it and report issues or even contribute code

@@ -302,7 +302,7 @@ push_event(auparse_state_t * au, auparse_cb_event_t cb_event_type,
                 rc |= ber_printf(ber, "s", type);
                 
                 /* 
-                 * Nineth field is the LogString
+                 * Ninth field is the LogString
                  * we try to put something meaningful here
                  * we also start the relocations sequence
                  */
@@ -333,7 +333,7 @@ push_event(auparse_state_t * au, auparse_cb_event_t cb_event_type,
                         /* 
                          * we set a maximum of 1024 chars for
                          * relocation data (field=value pairs)
-                         * Hopefuly this wont overflow too often
+                         * Hopefully this wont overflow too often
                          */
                         char data[1024];
                         const char *name = auparse_get_field_name(au);

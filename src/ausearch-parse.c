@@ -2435,7 +2435,7 @@ static int parse_simple_message(const lnode *n, search_items *s)
 
 	// defaulting this to 1 for these messages. The kernel generally
 	// does not log the res since it can be nothing but success. 
-	// But it can still be overriden below if res= is found in the event
+	// But it can still be overridden below if res= is found in the event
 	if (n->type == AUDIT_CONFIG_CHANGE) 
 		s->success = S_SUCCESS;
 

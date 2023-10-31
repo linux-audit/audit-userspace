@@ -98,7 +98,7 @@ static char *escape(const char *tmp)
 	return name;
 }
 
-/* This funtion does the heavy duty work of splitting a record into
+/* This function does the heavy duty work of splitting a record into
  * its little tiny pieces */
 static int parse_up_record(rnode* r)
 {
@@ -113,7 +113,7 @@ static int parse_up_record(rnode* r)
 	}
 	r->interp = ptr;
 	// Rather than call strndup, we will do it ourselves to reduce
-	// the number of interations across the record.
+	// the number of interactions across the record.
 	// len includes the string terminator.
 	len = strlen(r->record) + 1;
 	r->nv.record = buf = malloc(len);

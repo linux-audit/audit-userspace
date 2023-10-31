@@ -2416,7 +2416,7 @@ static const char *print_trust(const char *val)
 	return out;
 }
 
-// fan_type always preceeds fan_info
+// fan_type always precedes fan_info
 static int last_type = 2;
 static const char *print_fan_type(const char *val)
 {

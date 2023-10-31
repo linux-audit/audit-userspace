@@ -228,7 +228,7 @@ int databuf_append(DataBuf *db, const char *src, size_t src_size)
 #ifdef DEBUG
     if (debug) databuf_print(db, 1, "databuf_append() about to memmove()");
 #endif
-    /* pointers all set up and room availble, move the data and update */
+    /* pointers all set up and room available, move the data and update */
     memmove(databuf_end(db), src, src_size);
     db->len = new_size;
     db->max_len = MAX(db->max_len, new_size);

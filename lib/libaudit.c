@@ -110,7 +110,7 @@ static const struct kw_pair keywords[] =
 static int audit_priority(int xerrno)
 {
 	/* If they've compiled their own kernel and did not include
-	 * the audit susbsystem, they will get ECONNREFUSED. We'll
+	 * the audit subsystem, they will get ECONNREFUSED. We'll
 	 * demote the message to debug so its not lost entirely. */
 	if (xerrno == ECONNREFUSED)
 		return LOG_DEBUG;
@@ -743,7 +743,7 @@ int audit_update_watch_perms(struct audit_rule_data *rule, int perms)
 
 	if (rule->field_count < 1) {
 		audit_msg(LOG_ERR,
-			 "Permissions should be preceeded by other fields");
+			 "Permissions should be preceded by other fields");
 		return -1;
 	}
 

@@ -33,7 +33,7 @@
 
 static nvlist jobs;
 static time_t now;
-// Something to think about, jobs should probably be peristent so that
+// Something to think about, jobs should probably be persistent so that
 // we can resume them after starting back up.
 
 void init_timer_services(void)

@@ -69,7 +69,7 @@ static struct zos_remote_error zos_remote_errlist[] = {
         {ZOS_REMOTE_MAJOR_RACROUTE,     "RACROUTE - The R_auditx service returned an unexpected error"},
         {ZOS_REMOTE_MAJOR_VAL_ERR,      "VAL_ERR - Value error in request"},
         {ZOS_REMOTE_MAJOR_ENC_ERR,      "ENC_ERR - DER decoding error in request"},
-        {ZOS_REMOTE_MAJOR_UNSUF_AUTH,   "UNSUF_AUTH - The user has unsufficient authority for the requested function"},
+        {ZOS_REMOTE_MAJOR_UNSUF_AUTH,   "UNSUF_AUTH - The user has insufficient authority for the requested function"},
         {ZOS_REMOTE_MAJOR_EMPTY,        "EMPTY - Empty request received - No items found within the ItemList"},
         {ZOS_REMOTE_MAJOR_INVALID_VER,  "INVALID_VER - Invalid RequestVersion"},
         {ZOS_REMOTE_MAJOR_INTERNAL_ERR, "INTERNAL_ERR - An internal error was encountered within the ICTX component"},
@@ -437,7 +437,7 @@ int submit_xop_s(ZOS_REMOTE *zos_remote, struct berval *bv)
 
         if (response.respMajor == ZOS_REMOTE_MAJOR_SUCCESS) {
                 /* submission was successful, no further processing needed */
-                log_debug("Successfully submited Remote audit Request");
+                log_debug("Successfully submitted Remote audit Request");
                 rc = ICTX_SUCCESS;
                 goto free_response;
         } else if (response.respMajor == ZOS_REMOTE_MAJOR_EMPTY) {
@@ -484,7 +484,7 @@ int submit_xop_s(ZOS_REMOTE *zos_remote, struct berval *bv)
                         log_err("Error - LDAP extended operation returned '%s' for item %d",
                                 zos_remote_err2string((response.itemList[i])->majorCode),
                                 (response.itemList[i])->itemTag);
-                        log_err("Item field: %d, reson %d",
+                        log_err("Item field: %d, reason %d",
                                 (response.itemList[i])->
                                 minorCode1,
                                 (response.itemList[i])->minorCode2);
