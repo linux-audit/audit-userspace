@@ -30,6 +30,7 @@ cscope.*
 .libs/
 .deps/
 audisp/audispd
+audisp/plugins/af_unix/audisp-af_unix
 audisp/plugins/remote/audisp-remote
 audisp/plugins/syslog/audisp-syslog
 audisp/plugins/zos-remote/audispd-zos-remote
