@@ -477,7 +477,7 @@ int audit_log_acct_message(int audit_fd, int type, const char *pgname,
 	if (host == NULL && tty)
 		host = _get_hostname(tty);
 
-	if (name && id == -1) {
+	if (name && id == (unsigned int)-1) {
 		char user[MAX_USER];
 		int encoded = 0;
 		size_t len;
