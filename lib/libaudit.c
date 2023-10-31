@@ -701,7 +701,7 @@ char *audit_format_signal_info(char *buf, int len, char *op,
 {
 	struct stat sb;
 	char path[32], ses[16];
-	int rlen;
+	ssize_t rlen;
 	snprintf(path, sizeof(path), "/proc/%u", rep->signal_info->pid);
 	int fd = open(path, O_RDONLY);
 	if (fd >= 0) {
@@ -720,7 +720,7 @@ char *audit_format_signal_info(char *buf, int len, char *op,
 			rlen = read(fd, ses, sizeof(ses));
 		} while (rlen < 0 && errno == EINTR);
 		close(fd);
-		if (rlen < 0 || rlen >= sizeof(ses))
+		if (rlen < 0 || (size_t)rlen >= sizeof(ses))
 			strcpy(ses, "4294967295");
 		else
 			ses[rlen] = 0;
@@ -909,7 +909,8 @@ int audit_make_equivalent(int fd, const char *mount_point,
 uid_t audit_getloginuid(void)
 {
 	uid_t uid;
-	int len, in;
+	int in;
+	ssize_t len;
 	char buf[16];
 
 	errno = 0;
@@ -920,7 +921,7 @@ uid_t audit_getloginuid(void)
 		len = read(in, buf, sizeof(buf));
 	} while (len < 0 && errno == EINTR);
 	close(in);
-	if (len < 0 || len >= sizeof(buf))
+	if (len < 0 || (size_t)len >= sizeof(buf))
 		return -1;
 	buf[len] = 0;
 	errno = 0;
@@ -973,7 +974,8 @@ int audit_setloginuid(uid_t uid)
 uint32_t audit_get_session(void)
 {
 	uint32_t ses;
-	int len, in;
+	int in;
+	ssize_t len;
 	char buf[16];
 
 	errno = 0;
@@ -984,7 +986,7 @@ uint32_t audit_get_session(void)
 		len = read(in, buf, sizeof(buf));
 	} while (len < 0 && errno == EINTR);
 	close(in);
-	if (len < 0 || len >= sizeof(buf))
+	if (len < 0 || (size_t)len >= sizeof(buf))
 		return -2;
 	buf[len] = 0;
 	errno = 0;
