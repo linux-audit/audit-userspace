@@ -366,6 +366,8 @@ char *au_unescape(char *buf)
 	// strlen(buf) / 2.
 	olen = strlen(buf);
 	str = malloc(olen+1);
+	if (!str)
+		return NULL;
 
         saved = *ptr;
         *ptr = 0;
