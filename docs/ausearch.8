@@ -241,6 +241,9 @@ Search for a specific user:
 Check the SELinux log for any denials today
 # ausearch \-\-start today \-m avc \-i
 
+Output any recent SELinux log
+# ausearch \-m avc,user_avc,selinux_err,user_selinux_err \-i \-ts recent
+
 Output logs in text format
 # ausearch \-\-start today \-\-format text
 
