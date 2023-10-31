@@ -221,7 +221,7 @@ static int load_libaudit_config(const char *path)
 	char buf[128];
 
 	/* open the file */
-	rc = open(path, O_NOFOLLOW|O_RDONLY);
+	rc = open(path, O_NOFOLLOW|O_RDONLY|O_CLOEXEC);
 	if (rc < 0) {
 		if (errno != ENOENT) {
 			audit_msg(LOG_ERR, "Error opening %s (%s)",
@@ -266,7 +266,7 @@ static int load_libaudit_config(const char *path)
 	}
 
 	/* it's ok, read line by line */
-	f = fdopen(fd, "rm");
+	f = fdopen(fd, "rme");
 	if (f == NULL) {
 		audit_msg(LOG_ERR, "Error - fdopen failed (%s)",
 			strerror(errno));
@@ -710,7 +710,7 @@ char *audit_format_signal_info(char *buf, int len, const char *op,
 	char path[32], ses[16];
 	ssize_t rlen;
 	snprintf(path, sizeof(path), "/proc/%u", rep->signal_info->pid);
-	int fd = open(path, O_RDONLY|O_DIRECTORY);
+	int fd = open(path, O_RDONLY|O_DIRECTORY|O_CLOEXEC);
 	if (fd >= 0) {
 		if (fstat(fd, &sb) < 0)
 			sb.st_uid = -1;
@@ -719,7 +719,7 @@ char *audit_format_signal_info(char *buf, int len, const char *op,
 		sb.st_uid = -1;
 	snprintf(path, sizeof(path), "/proc/%u/sessionid",
 		 rep->signal_info->pid);
-	fd = open(path, O_RDONLY, rep->signal_info->pid);
+	fd = open(path, O_RDONLY|O_CLOEXEC, rep->signal_info->pid);
 	if (fd < 0)
 		strcpy(ses, "4294967295");
 	else {
@@ -924,7 +924,7 @@ uid_t audit_getloginuid(void)
 	char buf[16];
 
 	errno = 0;
-	in = open("/proc/self/loginuid", O_NOFOLLOW|O_RDONLY);
+	in = open("/proc/self/loginuid", O_NOFOLLOW|O_RDONLY|O_CLOEXEC);
 	if (in < 0)
 		return -1;
 	do {
@@ -952,7 +952,7 @@ int audit_setloginuid(uid_t uid)
 
 	errno = 0;
 	count = snprintf(loginuid, sizeof(loginuid), "%u", uid);
-	o = open("/proc/self/loginuid", O_NOFOLLOW|O_WRONLY|O_TRUNC);
+	o = open("/proc/self/loginuid", O_NOFOLLOW|O_WRONLY|O_TRUNC|O_CLOEXEC);
 	if (o >= 0) {
 		int block, offset = 0;
 
@@ -989,7 +989,7 @@ uint32_t audit_get_session(void)
 	char buf[16];
 
 	errno = 0;
-	in = open("/proc/self/sessionid", O_NOFOLLOW|O_RDONLY);
+	in = open("/proc/self/sessionid", O_NOFOLLOW|O_RDONLY|O_CLOEXEC);
 	if (in < 0)
 		return -2;
 	do {
