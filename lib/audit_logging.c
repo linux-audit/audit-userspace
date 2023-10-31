@@ -38,7 +38,7 @@
 #include "private.h"
 
 #define TTY_PATH	32
-#define MAX_USER	(UT_NAMESIZE * 2) + 8
+#define MAX_USER	((UT_NAMESIZE * 2) + 8)
 
 // NOTE: The kernel fills in pid, uid, and loginuid of sender. Therefore,
 // these routines do not need to send them.
