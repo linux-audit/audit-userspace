@@ -997,7 +997,7 @@ uint32_t audit_get_session(void)
 		return ses;
 }
 
-int audit_rule_syscall_data(struct audit_rule_data *rule, int scall)
+static int audit_rule_syscall_data(struct audit_rule_data *rule, int scall)
 {
 	int word = AUDIT_WORD(scall);
 	int bit  = AUDIT_BIT(scall);
