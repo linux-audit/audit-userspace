@@ -884,9 +884,12 @@ int audit_make_equivalent(int fd, const char *mount_point,
 	struct {
 		uint32_t sizes[2];
 		unsigned char buf[];
-	} *cmd = malloc(sizeof(*cmd) + len1 + len2);
+	} *cmd = calloc(1, sizeof(*cmd) + len1 + len2);
 
-	memset(cmd, 0, sizeof(*cmd) + len1 + len2);
+	if (!cmd) {
+		audit_msg(LOG_ERR, "Cannot allocate memory!");
+		return -ENOMEM;
+	}
 
 	cmd->sizes[0] = len1;
 	cmd->sizes[1] = len2;
