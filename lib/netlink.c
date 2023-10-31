@@ -83,7 +83,7 @@ void audit_close(int fd)
 
 
 /*
- * This function returns -1 on error, 0 if error response received,
+ * This function returns -errno on error, 0 if error response received,
  * and > 0 if packet OK.
  */
 int audit_get_reply(int fd, struct audit_reply *rep, reply_t block, int peek)
