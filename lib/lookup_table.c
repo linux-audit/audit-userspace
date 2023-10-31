@@ -256,7 +256,7 @@ int audit_name_to_msg_type(const char *msg_type)
 		strncpy(buf, msg_type + 8, len);
 		errno = 0;
 		return strtol(buf, NULL, 10);
-	} else if (isdigit(*msg_type)) {
+	} else if (isdigit((unsigned char)*msg_type)) {
 		errno = 0;
 		return strtol(msg_type, NULL, 10);
 	}

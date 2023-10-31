@@ -1026,7 +1026,7 @@ int audit_rule_syscallbyname_data(struct audit_rule_data *rule,
 		return -2;
 	nr = audit_name_to_syscall(scall, machine);
 	if (nr < 0) {
-		if (isdigit(scall[0]))
+		if (isdigit((unsigned char)scall[0]))
 			nr = strtol(scall, NULL, 0);
 	}
 	if (nr >= 0)
@@ -1051,7 +1051,7 @@ int audit_rule_io_uringbyname_data(struct audit_rule_data *rule,
 	}
 	nr = audit_name_to_uringop(scall);
 	if (nr < 0) {
-		if (isdigit(scall[0]))
+		if (isdigit((unsigned char)scall[0]))
 			nr = strtol(scall, NULL, 0);
 	}
 	if (nr >= 0)
@@ -1639,11 +1639,11 @@ int audit_rule_fieldpair_data(struct audit_rule_data **rulep, const char *pair,
 		case AUDIT_OBJ_UID:
 			// Do positive & negative separate for 32 bit systems
 			vlen = strlen(v);
-			if (isdigit((char)*(v)))
+			if (isdigit((unsigned char)*(v)))
 				rule->values[rule->field_count] =
 					strtoul(v, NULL, 0);
 			else if (vlen >= 2 && *(v)=='-' &&
-						(isdigit((char)*(v+1))))
+						(isdigit((unsigned char)*(v+1))))
 				rule->values[rule->field_count] =
 					strtol(v, NULL, 0);
 			else {
@@ -1663,7 +1663,7 @@ int audit_rule_fieldpair_data(struct audit_rule_data **rulep, const char *pair,
 		case AUDIT_SGID:
 		case AUDIT_FSGID:
 		case AUDIT_OBJ_GID:
-			if (isdigit((char)*(v)))
+			if (isdigit((unsigned char)*(v)))
 				rule->values[rule->field_count] =
 					strtol(v, NULL, 0);
 			else {
@@ -1679,11 +1679,11 @@ int audit_rule_fieldpair_data(struct audit_rule_data **rulep, const char *pair,
 			if (flags != AUDIT_FILTER_EXIT)
 				return -EAU_EXITONLY;
 			vlen = strlen(v);
-			if (isdigit((char)*(v)))
+			if (isdigit((unsigned char)*(v)))
 				rule->values[rule->field_count] =
 					strtol(v, NULL, 0);
 			else if (vlen >= 2 && *(v)=='-' &&
-						(isdigit((char)*(v+1))))
+						(isdigit((unsigned char)*(v+1))))
 				rule->values[rule->field_count] =
 					strtol(v, NULL, 0);
 			else {
@@ -1698,7 +1698,7 @@ int audit_rule_fieldpair_data(struct audit_rule_data **rulep, const char *pair,
 					flags != AUDIT_FILTER_USER)
 				return -EAU_MSGTYPEEXCLUDEUSER;
 
-			if (isdigit((char)*(v)))
+			if (isdigit((unsigned char)*(v)))
 				rule->values[rule->field_count] =
 					strtol(v, NULL, 0);
 			else
@@ -1769,7 +1769,7 @@ int audit_rule_fieldpair_data(struct audit_rule_data **rulep, const char *pair,
 				return -EAU_ARCHMISPLACED;
 			if (!(op == AUDIT_NOT_EQUAL || op == AUDIT_EQUAL))
 				return -EAU_OPEQNOTEQ;
-			if (isdigit((char)*(v))) {
+			if (isdigit((unsigned char)*(v))) {
 				int machine;
 
 				errno = 0;
@@ -1812,7 +1812,7 @@ int audit_rule_fieldpair_data(struct audit_rule_data **rulep, const char *pair,
 					return -EAU_STRTOOLONG;
 
 				for (i = 0; i < len; i++) {
-					switch (tolower(v[i])) {
+					switch (tolower((unsigned char)v[i])) {
 						case 'r':
 							val |= AUDIT_PERM_READ;
 				   rc=audit_add_perm_syscalls(AUDIT_PERM_READ,rule);
@@ -1852,7 +1852,7 @@ int audit_rule_fieldpair_data(struct audit_rule_data **rulep, const char *pair,
 				return -EAU_FIELDUNAVAIL;
 			if (!(op == AUDIT_NOT_EQUAL || op == AUDIT_EQUAL))
 				return -EAU_OPEQNOTEQ;
-			if (isdigit((char)*(v)))
+			if (isdigit((unsigned char)*(v)))
 				rule->values[rule->field_count] =
 					strtoul(v, NULL, 0);
 			else
@@ -1865,11 +1865,11 @@ int audit_rule_fieldpair_data(struct audit_rule_data **rulep, const char *pair,
 			break;
 		case AUDIT_ARG0...AUDIT_ARG3:
 			vlen = strlen(v);
-			if (isdigit((char)*(v)))
+			if (isdigit((unsigned char)*(v)))
 				rule->values[rule->field_count] =
 					strtoul(v, NULL, 0);
 			else if (vlen >= 2 && *(v)=='-' &&
-						(isdigit((char)*(v+1))))
+						(isdigit((unsigned char)*(v+1))))
 				rule->values[rule->field_count] =
 					strtol(v, NULL, 0);
 			else
@@ -1885,11 +1885,11 @@ int audit_rule_fieldpair_data(struct audit_rule_data **rulep, const char *pair,
 				return -EAU_FIELDNOFILTER;
 			// Do positive & negative separate for 32 bit systems
 			vlen = strlen(v);
-			if (isdigit((char)*(v)))
+			if (isdigit((unsigned char)*(v)))
 				rule->values[rule->field_count] =
 					strtoul(v, NULL, 0);
 			else if (vlen >= 2 && *(v)=='-' &&
-						(isdigit((char)*(v+1))))
+						(isdigit((unsigned char)*(v+1))))
 				rule->values[rule->field_count] =
 					strtol(v, NULL, 0);
 			else if (strcmp(v, "unset") == 0)
@@ -1915,7 +1915,7 @@ int audit_rule_fieldpair_data(struct audit_rule_data **rulep, const char *pair,
 			if (field == AUDIT_PPID && !(flags==AUDIT_FILTER_EXIT))
 				return -EAU_EXITONLY;
 
-			if (!isdigit((char)*(v)))
+			if (!isdigit((unsigned char)*(v)))
 				return -EAU_FIELDVALNUM;
 
 			if (field == AUDIT_INODE)
