@@ -96,10 +96,10 @@ int audit_get_reply(int fd, struct audit_reply *rep, reply_t block, int peek)
 		return -EBADF;
 
 	if (block == GET_REPLY_NONBLOCKING)
-		block = MSG_DONTWAIT;
+		peek |= MSG_DONTWAIT;
 
 retry:
-	len = recvfrom(fd, &rep->msg, sizeof(rep->msg), block|peek,
+	len = recvfrom(fd, &rep->msg, sizeof(rep->msg), peek,
 		(struct sockaddr*)&nladdr, &nladdrlen);
 
 	if (len < 0) {
