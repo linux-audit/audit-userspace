@@ -1522,7 +1522,7 @@ static int audit_add_perm_syscalls(int perm, struct audit_rule_data *rule)
 		_audit_syscalladded = 1;
 		break;
 	case -1: // Should never happen
-		audit_msg(LOG_ERR, "Syscall name unknown: %s", syscall);
+		audit_msg(LOG_ERR, "Syscall name unknown: %s", syscalls);
 		break;
 	default: // Error reported - do nothing here
 		break;
