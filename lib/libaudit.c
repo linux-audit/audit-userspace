@@ -783,18 +783,18 @@ int audit_add_watch_dir(int type, struct audit_rule_data **rulep,
 	struct audit_rule_data *rule = *rulep;
 
 	if (rule && rule->field_count) {
-		audit_msg(LOG_ERR, "Rule is not empty\n");
+		audit_msg(LOG_ERR, "Rule is not empty");
 		return -1;
 	}
 	if (type != AUDIT_WATCH && type != AUDIT_DIR) {
-		audit_msg(LOG_ERR, "Invalid type used\n");
+		audit_msg(LOG_ERR, "Invalid type used");
 		return -1;
 	}
 
 	*rulep = realloc(rule, len + sizeof(*rule));
 	if (*rulep == NULL) {
 		free(rule);
-		audit_msg(LOG_ERR, "Cannot realloc memory!\n");
+		audit_msg(LOG_ERR, "Cannot realloc memory!");
 		return -1;
 	}
 	rule = *rulep;
@@ -1756,7 +1756,7 @@ int audit_rule_fieldpair_data(struct audit_rule_data **rulep, const char *pair,
 			*rulep = realloc(rule, sizeof(*rule) + rule->buflen);
 			if (*rulep == NULL) {
 				free(rule);
-				audit_msg(LOG_ERR, "Cannot realloc memory!\n");
+				audit_msg(LOG_ERR, "Cannot realloc memory!");
 				return -3;
 			} else {
 				rule = *rulep;
