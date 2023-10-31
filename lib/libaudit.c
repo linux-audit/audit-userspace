@@ -630,7 +630,7 @@ static void load_feature_bitmap(void)
 	}
 
 #if defined(HAVE_STRUCT_AUDIT_STATUS_FEATURE_BITMAP)
-	if ((rc = audit_request_status(fd)) > 0) {
+	if (audit_request_status(fd) > 0) {
 		struct audit_reply rep;
 		int i;
 		int timeout = 40; /* tenths of seconds */
