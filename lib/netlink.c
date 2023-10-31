@@ -46,11 +46,9 @@ static int check_ack(int fd);
  */
 int audit_open(void)
 {
-	int saved_errno;
 	int fd = socket(PF_NETLINK, SOCK_RAW, NETLINK_AUDIT);
 
 	if (fd < 0) {
-		saved_errno = errno;
 		if (errno == EINVAL || errno == EPROTONOSUPPORT ||
 				errno == EAFNOSUPPORT)
 			audit_msg(LOG_ERR,
@@ -59,16 +57,13 @@ int audit_open(void)
 			audit_msg(LOG_ERR,
 				"Error opening audit netlink socket (%s)", 
 				strerror(errno));
-		errno = saved_errno;
 		return fd;
 	}
 	if (fcntl(fd, F_SETFD, FD_CLOEXEC) == -1) {
-		saved_errno = errno;
 		audit_msg(LOG_ERR, 
 			"Error setting audit netlink socket CLOEXEC flag (%s)", 
 			strerror(errno));
 		close(fd);
-		errno = saved_errno;
 		return -1;
 	}
 	return fd;
@@ -105,13 +100,10 @@ retry:
 	if (len < 0) {
 		if (errno == EINTR)
 			goto retry;
-		if (errno != EAGAIN) {
-			int saved_errno = errno;
+		if (errno != EAGAIN)
 			audit_msg(LOG_ERR, 
 				"Error receiving audit netlink packet (%s)", 
 				strerror(errno));
-			errno = saved_errno;
-		}
 		return -errno;
 	}
 	if (nladdrlen != sizeof(nladdr)) {
