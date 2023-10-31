@@ -696,14 +696,14 @@ int audit_request_signal_info(int fd)
 	return rc;
 }
 
-char *audit_format_signal_info(char *buf, int len, char *op,
-			       struct audit_reply *rep, char *res)
+char *audit_format_signal_info(char *buf, int len, const char *op,
+			       const struct audit_reply *rep, const char *res)
 {
 	struct stat sb;
 	char path[32], ses[16];
 	int rlen;
 	snprintf(path, sizeof(path), "/proc/%u", rep->signal_info->pid);
-	int fd = open(path, O_RDONLY);
+	int fd = open(path, O_RDONLY|O_DIRECTORY);
 	if (fd >= 0) {
 		if (fstat(fd, &sb) < 0)
 			sb.st_uid = -1;
