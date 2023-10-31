@@ -3264,6 +3264,8 @@ ecb_noinline ecb_cold
 static void
 loop_init (EV_P_ unsigned int flags) EV_NOEXCEPT
 {
+  const char *env_flags;
+
   if (!backend)
     {
       origflags = flags;
@@ -3296,8 +3298,8 @@ loop_init (EV_P_ unsigned int flags) EV_NOEXCEPT
 
       if (!(flags & EVFLAG_NOENV)
           && !enable_secure ()
-          && getenv ("LIBEV_FLAGS"))
-        flags = atoi (getenv ("LIBEV_FLAGS"));
+          && (env_flags = getenv ("LIBEV_FLAGS")))
+        flags = atoi (env_flags);
 
       ev_rt_now          = ev_time ();
       mn_now             = get_clock ();
