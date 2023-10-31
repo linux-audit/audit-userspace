@@ -46,7 +46,7 @@ static int check_ack(int fd);
  */
 int audit_open(void)
 {
-	int fd = socket(PF_NETLINK, SOCK_RAW, NETLINK_AUDIT);
+	int fd = socket(PF_NETLINK, SOCK_RAW | SOCK_CLOEXEC, NETLINK_AUDIT);
 
 	if (fd < 0) {
 		if (errno == EINVAL || errno == EPROTONOSUPPORT ||
@@ -57,14 +57,6 @@ int audit_open(void)
 			audit_msg(LOG_ERR,
 				"Error opening audit netlink socket (%s)", 
 				strerror(errno));
-		return fd;
-	}
-	if (fcntl(fd, F_SETFD, FD_CLOEXEC) == -1) {
-		audit_msg(LOG_ERR, 
-			"Error setting audit netlink socket CLOEXEC flag (%s)", 
-			strerror(errno));
-		close(fd);
-		return -1;
 	}
 	return fd;
 }
