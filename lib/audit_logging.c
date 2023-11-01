@@ -479,7 +479,7 @@ int audit_log_acct_message(int audit_fd, int type, const char *pgname,
 
 	if (name && id == -1) {
 		char user[MAX_USER];
-		const char *format;
+		int encoded = 0;
 		size_t len;
 
 		user[0] = 0;
@@ -488,13 +488,12 @@ int audit_log_acct_message(int audit_fd, int type, const char *pgname,
 		user[len] = 0;
 		if (audit_value_needs_encoding(name, len)) {
 			audit_encode_value(user, name, len);
-			format = 
-	     "op=%s acct=%s exe=%s hostname=%s addr=%s terminal=%s res=%s";
-		} else
-			format = 
-	 "op=%s acct=\"%s\" exe=%s hostname=%s addr=%s terminal=%s res=%s";
+			encoded = 1;
+		}
 
-		snprintf(buf, sizeof(buf), format,
+		snprintf(buf, sizeof(buf),
+			encoded ? "op=%s acct=%s exe=%s hostname=%s addr=%s terminal=%s res=%s"
+			        : "op=%s acct=\"%s\" exe=%s hostname=%s addr=%s terminal=%s res=%s",
 			op, user, exename,
 			host ? host : "?",
 			addrbuf,
@@ -653,7 +652,7 @@ int audit_log_semanage_message(int audit_fd, int type, const char *pgname,
 
 	if (name && strlen(name) > 0) {
 		size_t len;
-		const char *format;
+		int encoded = 0;
 		char user[MAX_USER];
 
 		user[0] = 0;
@@ -662,10 +661,13 @@ int audit_log_semanage_message(int audit_fd, int type, const char *pgname,
 		user[len] = 0;
 		if (audit_value_needs_encoding(name, len)) {
 			audit_encode_value(user, name, len);
-			format = "op=%s acct=%s old-seuser=%s old-role=%s old-range=%s new-seuser=%s new-role=%s new-range=%s exe=%s hostname=%s addr=%s terminal=%s res=%s";
-		} else
-			format = "op=%s acct=\"%s\" old-seuser=%s old-role=%s old-range=%s new-seuser=%s new-role=%s new-range=%s exe=%s hostname=%s addr=%s terminal=%s res=%s";
-		snprintf(buf, sizeof(buf), format, op, user, 
+			encoded = 1;
+		}
+
+		snprintf(buf, sizeof(buf),
+			encoded ?  "op=%s acct=%s old-seuser=%s old-role=%s old-range=%s new-seuser=%s new-role=%s new-range=%s exe=%s hostname=%s addr=%s terminal=%s res=%s"
+			        : "op=%s acct=\"%s\" old-seuser=%s old-role=%s old-range=%s new-seuser=%s new-role=%s new-range=%s exe=%s hostname=%s addr=%s terminal=%s res=%s",
+			op, user,
 			old_seuser && strlen(old_seuser) ? old_seuser : "?",
 			old_role && strlen(old_role) ? old_role : "?",
 			old_range && strlen(old_range) ? old_range : "?",
