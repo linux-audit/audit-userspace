@@ -329,7 +329,7 @@ static void gss_failure(const char *msg, int major_status, int minor_status)
 		return -1; }
 
 /* These are our private credentials, which come from a key file on
-   our server.  They are aquired once, at program start.  */
+   our server.  They are acquired once, at program start.  */
 static krb5_context kcontext = NULL;
 static int server_acquire_creds(const char *service_name,
 		gss_cred_id_t *lserver_creds)

@@ -62,7 +62,7 @@ static int get_next_event(llist **);
 
 extern const char *checkpt_filename;	/* checkpoint file name */
 extern int checkpt_timeonly;	/* use timestamp from within checkpoint file */
-static int have_chkpt_data = 0;		/* have checkpt need to compare wit */
+static int have_chkpt_data = 0;		/* have checkpt need to compare with */
 extern char *user_file;
 extern int force_logs;
 static int userfile_is_dir = 0;
@@ -192,7 +192,7 @@ int main(int argc, char *argv[])
 
 	/* Generate a checkpoint if required */
 	if (checkpt_filename) {
-		/* Providing haven't failed and have sucessfully read data
+		/* Providing haven't failed and have successfully read data
 		 *  records, save a checkpoint */
 		if (!checkpt_failure && (rc == 0))
 			save_ChkPt(checkpt_filename);

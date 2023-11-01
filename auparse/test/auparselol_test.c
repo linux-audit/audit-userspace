@@ -20,7 +20,7 @@
  *	sed -f auparse_patch.sed /tmp/auparse_test/audit.log | sort > /tmp/auparse_test/auparse.raw
  *	auparselol_test --check -f /tmp/auparse_test/audit.log | sort > /tmp/auparse_test/auparse.new
  *	diff /tmp/auparse_test/auparse.raw /tmp/auparse_test/auparse.new
- * and the ouput of the diff should be zero or explainable (and hence expand the auparse_patch.sed file)
+ * and the output of the diff should be zero or explainable (and hence expand the auparse_patch.sed file)
  *
  */
 

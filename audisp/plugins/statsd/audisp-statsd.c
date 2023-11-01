@@ -78,7 +78,7 @@ static char msg[MAX_AUDIT_MESSAGE_LENGTH + 1];
 static struct daemon_config d;
 static struct audit_report r;
 
-/* Local function protoypes */
+/* Local function prototypes */
 static void handle_event(auparse_state_t *au, auparse_cb_event_t cb_event_type,
 			 void *user_data);
 
@@ -115,7 +115,7 @@ static char *get_line(FILE *f, char *buf, size_t len)
 }
 
 /*
- * Load the plugin's configuration. Returns 1 on failure and 0 on sucess.
+ * Load the plugin's configuration. Returns 1 on failure and 0 on success.
  */
 static int load_config(void)
 {

@@ -123,8 +123,8 @@ struct expr *expr_create_field_exists(const char *field);
    On error, set errno and return NULL. */
 struct expr *expr_create_regexp_expression(const char *regexp);
 
-/* Create a binary expresion for OP and subexpressions E1 and E2.
-   On success, return the created expresion.
+/* Create a binary expression for OP and subexpressions E1 and E2.
+   On success, return the created expression.
    On error, set errno and return NULL. */
 struct expr *expr_create_binary(unsigned op, struct expr *e1, struct expr *e2);
 

@@ -545,7 +545,7 @@ int main(int argc, char *argv[])
 			continue; // If here, we had some kind of problem
 
 		if ((config.heartbeat_timeout > 0) && n == 0 && !remote_ended) {
-			/* We attempt a hearbeat if select fails, which
+			/* We attempt a heartbeat if select fails, which
 			 * may give us more heartbeats than we need. This
 			 * is safer than too few heartbeats.  */
 			if (config.format == F_MANAGED) {
@@ -1124,7 +1124,7 @@ static int init_sock(void)
 		setsockopt(sock, SOL_SOCKET, SO_REUSEADDR,
 					(char *)&one, sizeof (int));
 
-		// If we are binding, resolve somethihng relative to
+		// If we are binding, resolve something relative to
 		// the address of the aggregating server
 		if (config.local_port != 0) {
 			struct addrinfo *ai2;

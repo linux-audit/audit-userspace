@@ -225,7 +225,7 @@ static void *flush_thread_main(void *arg)
 }
 
 /* We setup the flush thread no matter what. This is incase a reconfig
- * changes from non incremental to incremental or vise versa. */
+ * changes from non incremental to incremental or vice versa. */
 static void init_flush_thread(void)
 {
 	pthread_mutex_init(&flush_lock, NULL);

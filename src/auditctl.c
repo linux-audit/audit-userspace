@@ -557,7 +557,7 @@ static int report_status(void)
 }
 
 #ifdef WITH_IO_URING
-// return 0 on success and -1 if unknow op.
+// return 0 on success and -1 if unknown op.
 static int parse_io_uring(const char *optarg)
 {
 	if (strchr(optarg, ',')) {
