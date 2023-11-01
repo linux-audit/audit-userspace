@@ -657,12 +657,14 @@ static void load_feature_bitmap(void)
 
 				/* Found it... */
 				features_bitmap = rep.status->feature_bitmap;
+				audit_close(fd);
 				return;
 			}
 		}
 	}
 #endif
 	features_bitmap = AUDIT_FEATURES_UNSUPPORTED;
+	audit_close(fd);
 }
 
 uint32_t audit_get_features(void)
