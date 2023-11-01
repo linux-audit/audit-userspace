@@ -249,6 +249,11 @@ static int load_libaudit_config(const char *path)
 		close(fd);
 		return 1;
 	}
+	if (st.st_gid != 0 && (st.st_mode & S_IWGRP) == S_IWGRP) {
+		audit_msg(LOG_ERR, "Error - %s is group writable", path);
+		close(fd);
+		return 1;
+	}
 	if ((st.st_mode & S_IWOTH) == S_IWOTH) {
 		audit_msg(LOG_ERR, "Error - %s is world writable", path);
 		close(fd);
