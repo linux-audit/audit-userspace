@@ -30,13 +30,17 @@ cscope.*
 .libs/
 .deps/
 audisp/audispd
+audisp/plugins/af_unix/audisp-af_unix
 audisp/plugins/remote/audisp-remote
 audisp/plugins/syslog/audisp-syslog
 audisp/plugins/zos-remote/audispd-zos-remote
+audisp/plugins/statsd/audisp-statsd
+audisp/plugins/ids/audisp-ids
 auparse/*tabs.h
 auparse/normalize_*_maps.h
 auparse/gen_normalize_*_map
 auparse/epoll_ctls.h
+auparse/fsconfigs.h
 auparse/strsplit.c
 bindings/swig/python/audit.py
 bindings/swig/python/audit_wrap.c
