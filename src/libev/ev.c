@@ -128,7 +128,7 @@
    
 # if HAVE_LINUX_FS_H && HAVE_SYS_TIMERFD_H && HAVE_KERNEL_RWF_T
 #  ifndef EV_USE_IOURING
-#   define EV_USE_IOURING EV_FEATURE_BACKENDS
+#   define EV_USE_IOURING 0  // Intentionally drop the io_uring backend
 #  endif
 # else
 #  undef EV_USE_IOURING
