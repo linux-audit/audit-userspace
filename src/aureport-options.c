@@ -61,7 +61,8 @@ const char *event_uuid = NULL;
 const char *event_vmname = NULL;
 long long event_exit = 0;
 int event_exit_is_set = 0;
-int event_ppid = -1, event_session_id = -2;
+pid_t event_ppid = -1;
+uint32_t event_session_id = -2;
 int event_debug = 0, event_machine = -1;
 time_t	arg_eoe_timeout = (time_t)0;
 
