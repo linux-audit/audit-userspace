@@ -177,7 +177,7 @@ static char *_get_commname(const char *comm, char *commname, unsigned int size)
 	
 	if (comm == NULL) {
 		ssize_t ret;
-		int fd = open("/proc/self/comm", O_RDONLY);
+		int fd = open("/proc/self/comm", O_RDONLY|O_CLOEXEC);
 		if (fd < 0) {
 			strcpy(commname, "\"?\"");
 			return commname;
