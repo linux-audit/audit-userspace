@@ -1711,7 +1711,7 @@ static int parse_sockaddr(const lnode *n, search_items *s)
 				if (len != sizeof(saddr->sa_family) &&
 				    len < 4) {
 					fprintf(stderr,
-						"sun_path len too short (%d)\n",
+						"sun_path len too short (%u)\n",
 						len);
 					return 4;
 				}

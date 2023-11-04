@@ -95,7 +95,7 @@ S_PPID, S_KEY, S_RAW, S_NODE, S_IN_LOGS, S_JUST_ONE, S_SESSION, S_EXIT,
 S_LINEBUFFERED, S_UUID, S_VMNAME, S_DEBUG, S_CHECKPOINT, S_ARCH, S_FORMAT,
 S_EXTRA_TIME, S_EXTRA_LABELS, S_EXTRA_KEYS, S_EXTRA_OBJ2, S_ESCAPE, S_EOE_TMO };
 
-static struct nv_pair optiontab[] = {
+static const struct nv_pair optiontab[] = {
 	{ S_EVENT, "-a" },
 	{ S_ARCH, "--arch" },
 	{ S_EVENT, "--event" },

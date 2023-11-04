@@ -29,8 +29,6 @@
 #include "ausearch-common.h"
 
 /* Global variables that describe what search is to be performed */
-extern const char *event_context;
-
 typedef enum { RPT_UNSET, RPT_TIME, RPT_SUMMARY, RPT_AVC, RPT_MAC,
 	RPT_CONFIG, RPT_EVENT, RPT_FILE, RPT_HOST, RPT_LOGIN,
 	RPT_ACCT_MOD, RPT_PID, RPT_SYSCALL, RPT_TERM, RPT_USER,

@@ -43,7 +43,7 @@ struct nv_pair {
     const char *name;
 };
 
-static struct nv_pair timetab[] = {
+static const struct nv_pair timetab[] = {
         { T_NOW, "now" },
         { T_RECENT, "recent" },
 	{ T_THIS_HOUR, "this-hour" },

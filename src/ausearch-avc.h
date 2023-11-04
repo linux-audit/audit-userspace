@@ -53,7 +53,7 @@ typedef struct {
 void alist_create(alist *l);
 static inline void alist_first(alist *l) { l->cur = l->head; }
 anode *alist_next(alist *l);
-static inline anode *alist_get_cur(alist *l) { return l->cur; }
+static inline anode *alist_get_cur(const alist *l) { return l->cur; }
 void alist_append(alist *l, anode *node);
 void anode_init(anode *an);
 void anode_clear(anode *an);

@@ -44,7 +44,7 @@ snode *slist_next(slist *l)
 	return l->cur;
 }
 
-void slist_append(slist *l, snode *node)
+void slist_append(slist *l, const snode *node)
 {
 	snode* newnode;
 

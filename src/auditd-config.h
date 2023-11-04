@@ -99,10 +99,7 @@ struct daemon_conf
 };
 
 void set_allow_links(int allow);
-
-/* Return 0 on success. */
 int set_config_dir(const char *val);
-const char *get_config_dir(void);
 
 int load_config(struct daemon_conf *config, log_test_t lt);
 void clear_config(struct daemon_conf *config);
@@ -115,7 +112,6 @@ void init_config_manager(void);
 #ifdef AUDITD_EVENT_H
 int start_config_manager(struct auditd_event *e);
 #endif
-void shutdown_config(void);
 void free_config(struct daemon_conf *config);
 
 #endif

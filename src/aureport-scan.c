@@ -112,7 +112,7 @@ void destroy_counters(void)
 }
 
 /* This function will return 0 on no match and 1 on match */
-int classify_success(const llist *l)
+static int classify_success(const llist *l)
 {
 //printf("%d,succ=%d:%d\n", l->head->type, event_failed, l->s.success);
 	// If match only failed... 
@@ -126,7 +126,7 @@ int classify_success(const llist *l)
 }
 
 /* This function will return 0 on no match and 1 on match */
-int classify_conf(const llist *l)
+static int classify_conf(const llist *l)
 {
 	int rc = 1;
 	extern int no_config;

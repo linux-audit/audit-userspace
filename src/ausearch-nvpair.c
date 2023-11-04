@@ -34,14 +34,6 @@ void search_list_create(nvlist *l)
 	l->cnt = 0;
 }
 
-nvnode *search_list_next(nvlist *l)
-{
-	if (l->cur == NULL)
-		return NULL;
-	l->cur = l->cur->next;
-	return l->cur;
-}
-
 void search_list_append(nvlist *l, nvnode *node)
 {
 	nvnode* newnode = malloc(sizeof(nvnode));

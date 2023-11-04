@@ -299,7 +299,7 @@ static int audit_setup_watch_name(struct audit_rule_data **rulep, char *path)
  * Setup a watch permissions.
  * Returns a 1 on success & -1 on failure.
  */
-static int audit_setup_perms(struct audit_rule_data *rule, const char *opt)
+static int audit_setup_perms(const char *opt)
 {
 	unsigned int i, len, val = 0;
 
@@ -561,10 +561,10 @@ static int report_status(void)
 static int parse_io_uring(const char *optarg)
 {
 	if (strchr(optarg, ',')) {
-		int retval;
+		int retval = -1;
 		char *saved, *ptr, *tmp = strdup(optarg);
 		if (tmp == NULL)
-			return -1;
+			return retval;
 		ptr = strtok_r(tmp, ",", &saved);
 		while (ptr) {
 			retval = audit_rule_io_uringbyname_data(rule_new, ptr);
@@ -579,7 +579,7 @@ static int parse_io_uring(const char *optarg)
 }
 #endif
 
-static struct option long_opts[] =
+static const struct option long_opts[] =
 {
 #if HAVE_DECL_AUDIT_FEATURE_VERSION == 1
   {"loginuid-immutable", 0, NULL, 1},
@@ -1089,7 +1089,7 @@ process_keys:
 			audit_msg(LOG_ERR, "permission option needs a filter");
 			retval = -1;
 		} else 
-			retval = audit_setup_perms(rule_new, optarg);
+			retval = audit_setup_perms(optarg);
 		break;
         case 'q':
 		if (_audit_syscalladded) {
@@ -1281,7 +1281,7 @@ static void preprocess(char *buf)
 }
 
 
-void postprocess(char *buf)
+static void postprocess(char *buf)
 {
 	char *str = strdup(buf);
 	char *pos1 = str;

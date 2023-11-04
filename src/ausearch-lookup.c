@@ -110,7 +110,7 @@ const char *aulookup_syscall(llist *l, char *buf, size_t size)
 }
 
 // See include/linux/net.h
-static struct nv_pair socktab[] = {
+static const struct nv_pair socktab[] = {
 	{SYS_SOCKET, "socket"},
 	{SYS_BIND, "bind"},
 	{SYS_CONNECT, "connect"},
@@ -163,7 +163,7 @@ static const char *aulookup_socketcall(long sc)
 /*
  * This table maps ipc calls to their text name
  */
-static struct nv_pair ipctab[] = {
+static const struct nv_pair ipctab[] = {
         {SEMOP, "semop"},
         {SEMGET, "semget"},
         {SEMCTL, "semctl"},
@@ -251,7 +251,7 @@ void aulookup_destroy_uid_list(void)
 	uid_list_created = 0;
 }
 
-int is_hex_string(const char *str)
+static int is_hex_string(const char *str)
 {
 	int c=0;
 	while (*str) {

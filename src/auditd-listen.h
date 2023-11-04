@@ -32,7 +32,7 @@
 int auditd_tcp_listen_init ( struct ev_loop *loop, struct daemon_conf *config );
 void auditd_tcp_listen_uninit ( struct ev_loop *loop,
 				struct daemon_conf *config );
-void auditd_tcp_listen_reconfigure ( struct daemon_conf *nconf,
+void auditd_tcp_listen_reconfigure ( const struct daemon_conf *nconf,
 				     struct daemon_conf *oconf );
 void write_connection_state(FILE *f);
 #else

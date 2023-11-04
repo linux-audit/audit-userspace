@@ -82,7 +82,7 @@ struct nv_pair {
     const char *name;
 };
 
-enum {  R_INFILE, R_TIME_END, R_TIME_START, R_VERSION, R_SUMMARY, R_LOG_TIMES,
+enum {  R_INFILE, R_TIME_END, R_TIME_START, R_VERSION, R_LOG_TIMES,
 	R_CONFIGS, R_LOGINS, R_USERS, R_TERMINALS, R_HOSTS, R_EXES, R_FILES,
 	R_AVCS, R_SYSCALLS, R_PIDS, R_EVENTS, R_ACCT_MODS,  
 	R_INTERPRET, R_HELP, R_ANOMALY, R_RESPONSE, R_SUMMARY_DET, R_CRYPTO,
@@ -90,7 +90,7 @@ enum {  R_INFILE, R_TIME_END, R_TIME_START, R_VERSION, R_SUMMARY, R_LOG_TIMES,
 	R_KEYS, R_TTY, R_NO_CONFIG, R_COMM, R_VIRT, R_INTEG, R_ESCAPE,
 	R_DEBUG, R_EOE_TMO };
 
-static struct nv_pair optiontab[] = {
+static const struct nv_pair optiontab[] = {
 	{ R_AUTH, "-au" },
 	{ R_AUTH, "--auth" },
 	{ R_AVCS, "-a" },

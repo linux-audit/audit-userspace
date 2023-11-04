@@ -47,7 +47,7 @@ typedef struct {
 void ilist_create(ilist *l);
 static inline void ilist_first(ilist *l) { l->cur = l->head; }
 int_node *ilist_next(ilist *l);
-static inline int_node *ilist_get_cur(ilist *l) { return l->cur; }
+static inline int_node *ilist_get_cur(const ilist *l) { return l->cur; }
 void ilist_append(ilist *l, int num, unsigned int hits, int aux);
 void ilist_clear(ilist* l);
 

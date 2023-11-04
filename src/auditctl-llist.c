@@ -59,7 +59,7 @@ lnode *list_next(llist *l)
 	return l->cur;
 }
 
-void list_append(llist *l, struct audit_rule_data *r, size_t sz)
+void list_append(llist *l, const struct audit_rule_data *r, size_t sz)
 {
 	lnode* newnode;
 

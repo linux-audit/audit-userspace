@@ -37,9 +37,6 @@ struct auditd_event {
 	unsigned long sequence_id;
 };
 
-static inline int from_network(const struct auditd_event *e)
-{ if (e && e->ack_func) return 1; return 0; }
-
 #include "auditd-config.h"
 
 int dispatch_network_events(void);
@@ -51,7 +48,7 @@ void cleanup_event(struct auditd_event *e);
 void format_event(struct auditd_event *e);
 void enqueue_event(struct auditd_event *e);
 void handle_event(struct auditd_event *e);
-struct auditd_event *create_event(char *msg, ack_func_type ack_func,
+struct auditd_event *create_event(const char *msg, ack_func_type ack_func,
 			void *ack_data, uint32_t sequence_id);
 
 #endif

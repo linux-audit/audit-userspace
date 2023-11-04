@@ -67,83 +67,83 @@ static char *get_line(FILE *f, char *buf, unsigned size, int *lineno,
 		const char *file);
 static int nv_split(char *buf, struct nv_pair *nv);
 static const struct kw_pair *kw_lookup(const char *val);
-static int local_events_parser(struct nv_pair *nv, int line,
+static int local_events_parser(const struct nv_pair *nv, int line,
 		struct daemon_conf *config);
-static int write_logs_parser(struct nv_pair *nv, int line,
+static int write_logs_parser(const struct nv_pair *nv, int line,
 		struct daemon_conf *config);
-static int log_file_parser(struct nv_pair *nv, int line, 
+static int log_file_parser(const struct nv_pair *nv, int line,
 		struct daemon_conf *config);
-static int num_logs_parser(struct nv_pair *nv, int line, 
+static int num_logs_parser(const struct nv_pair *nv, int line,
 		struct daemon_conf *config);
-static int log_group_parser(struct nv_pair *nv, int line, 
+static int log_group_parser(const struct nv_pair *nv, int line,
 		struct daemon_conf *config);
-static int qos_parser(struct nv_pair *nv, int line, 
+static int qos_parser(const struct nv_pair *nv, int line,
 		struct daemon_conf *config);
-static int dispatch_parser(struct nv_pair *nv, int line,
+static int dispatch_parser(const struct nv_pair *nv, int line,
 		struct daemon_conf *config);
-static int name_format_parser(struct nv_pair *nv, int line,
+static int name_format_parser(const struct nv_pair *nv, int line,
 		struct daemon_conf *config);
-static int name_parser(struct nv_pair *nv, int line,
+static int name_parser(const struct nv_pair *nv, int line,
 		struct daemon_conf *config);
-static int max_log_size_parser(struct nv_pair *nv, int line, 
+static int max_log_size_parser(const struct nv_pair *nv, int line,
 		struct daemon_conf *config);
-static int max_log_size_action_parser(struct nv_pair *nv, int line, 
+static int max_log_size_action_parser(const struct nv_pair *nv, int line,
 		struct daemon_conf *config);
-static int log_format_parser(struct nv_pair *nv, int line, 
+static int log_format_parser(const struct nv_pair *nv, int line,
 		struct daemon_conf *config);
-static int flush_parser(struct nv_pair *nv, int line,
+static int flush_parser(const struct nv_pair *nv, int line,
 		struct daemon_conf *config);
-static int freq_parser(struct nv_pair *nv, int line,
+static int freq_parser(const struct nv_pair *nv, int line,
 		struct daemon_conf *config);
-static int space_left_parser(struct nv_pair *nv, int line, 
+static int space_left_parser(const struct nv_pair *nv, int line,
 		struct daemon_conf *config);
-static int space_action_parser(struct nv_pair *nv, int line, 
+static int space_action_parser(const struct nv_pair *nv, int line,
 		struct daemon_conf *config);
-static int action_mail_acct_parser(struct nv_pair *nv, int line, 
+static int action_mail_acct_parser(const struct nv_pair *nv, int line,
 		struct daemon_conf *config);
-static int verify_email_parser(struct nv_pair *nv, int line, 
+static int verify_email_parser(const struct nv_pair *nv, int line,
 		struct daemon_conf *config);
-static int admin_space_left_parser(struct nv_pair *nv, int line, 
+static int admin_space_left_parser(const struct nv_pair *nv, int line,
 		struct daemon_conf *config);
-static int admin_space_left_action_parser(struct nv_pair *nv, int line, 
+static int admin_space_left_action_parser(const struct nv_pair *nv, int line,
 		struct daemon_conf *config);
-static int disk_full_action_parser(struct nv_pair *nv, int line, 
+static int disk_full_action_parser(const struct nv_pair *nv, int line,
 		struct daemon_conf *config);
-static int disk_error_action_parser(struct nv_pair *nv, int line, 
+static int disk_error_action_parser(const struct nv_pair *nv, int line,
 		struct daemon_conf *config);
-static int priority_boost_parser(struct nv_pair *nv, int line,
+static int priority_boost_parser(const struct nv_pair *nv, int line,
 		struct daemon_conf *config);
-static int tcp_listen_port_parser(struct nv_pair *nv, int line,
+static int tcp_listen_port_parser(const struct nv_pair *nv, int line,
 		struct daemon_conf *config);
-static int tcp_listen_queue_parser(struct nv_pair *nv, int line,
+static int tcp_listen_queue_parser(const struct nv_pair *nv, int line,
 		struct daemon_conf *config);
-static int tcp_max_per_addr_parser(struct nv_pair *nv, int line,
+static int tcp_max_per_addr_parser(const struct nv_pair *nv, int line,
 		struct daemon_conf *config);
-static int use_libwrap_parser(struct nv_pair *nv, int line,
+static int use_libwrap_parser(const struct nv_pair *nv, int line,
 		struct daemon_conf *config);
-static int tcp_client_ports_parser(struct nv_pair *nv, int line,
+static int tcp_client_ports_parser(const struct nv_pair *nv, int line,
 		struct daemon_conf *config);
-static int tcp_client_max_idle_parser(struct nv_pair *nv, int line,
+static int tcp_client_max_idle_parser(const struct nv_pair *nv, int line,
 		struct daemon_conf *config);
-static int transport_parser(struct nv_pair *nv, int line,
+static int transport_parser(const struct nv_pair *nv, int line,
 		struct daemon_conf *config);
-static int enable_krb5_parser(struct nv_pair *nv, int line,
+static int enable_krb5_parser(const struct nv_pair *nv, int line,
 		struct daemon_conf *config);
-static int krb5_principal_parser(struct nv_pair *nv, int line,
+static int krb5_principal_parser(const struct nv_pair *nv, int line,
 		struct daemon_conf *config);
-static int krb5_key_file_parser(struct nv_pair *nv, int line,
+static int krb5_key_file_parser(const struct nv_pair *nv, int line,
 		struct daemon_conf *config);
-static int distribute_network_parser(struct nv_pair *nv, int line,
+static int distribute_network_parser(const struct nv_pair *nv, int line,
 		struct daemon_conf *config);
-static int q_depth_parser(struct nv_pair *nv, int line,
+static int q_depth_parser(const struct nv_pair *nv, int line,
 		struct daemon_conf *config);
-static int overflow_action_parser(struct nv_pair *nv, int line,
+static int overflow_action_parser(const struct nv_pair *nv, int line,
 		struct daemon_conf *config);
-static int max_restarts_parser(struct nv_pair *nv, int line,
+static int max_restarts_parser(const struct nv_pair *nv, int line,
 		struct daemon_conf *config);
-static int plugin_dir_parser(struct nv_pair *nv, int line,
+static int plugin_dir_parser(const struct nv_pair *nv, int line,
 		struct daemon_conf *config);
-static int eoe_timeout_parser(struct nv_pair *nv, int line,
+static int eoe_timeout_parser(const struct nv_pair *nv, int line,
 		struct daemon_conf *config);
 static int sanity_check(struct daemon_conf *config);
 
@@ -274,7 +274,6 @@ static int allow_links = 0;
 static const char *config_dir = NULL;
 static char *config_file = NULL;
 
-
 void set_allow_links(int allow)
 {
 	allow_links = allow;
@@ -288,16 +287,6 @@ int set_config_dir(const char *val)
 	if (asprintf(&config_file, "%s/auditd.conf", config_dir) < 0)
 		return 1;
 	return 0;
-}
-
-const char *get_config_dir(void)
-{
-	/* This function is used to determine if audispd is started with
-	 * a -c parameter followed by the config_dir location. If we are
-	 * using the standard location, do not pass back a location. */
-	if (config_file && strcmp(config_file, CONFIG_FILE) == 0)
-		return NULL;
-	return config_dir;
 }
 
 /*
@@ -578,7 +567,7 @@ static const struct kw_pair *kw_lookup(const char *val)
 	return &keywords[i];
 }
  
-static int local_events_parser(struct nv_pair *nv, int line,
+static int local_events_parser(const struct nv_pair *nv, int line,
 	struct daemon_conf *config)
 {
 	unsigned long i;
@@ -596,7 +585,7 @@ static int local_events_parser(struct nv_pair *nv, int line,
 	return 1;
 }
 
-static int write_logs_parser(struct nv_pair *nv, int line,
+static int write_logs_parser(const struct nv_pair *nv, int line,
 	struct daemon_conf *config)
 {
 	unsigned long i;
@@ -614,7 +603,7 @@ static int write_logs_parser(struct nv_pair *nv, int line,
 	return 1;
 }
 
-static int log_file_parser(struct nv_pair *nv, int line,
+static int log_file_parser(const struct nv_pair *nv, int line,
 	struct daemon_conf *config)
 {
 	char *dir = NULL, *tdir;
@@ -695,7 +684,7 @@ finish_up:
 	return 0;
 }
 
-static int num_logs_parser(struct nv_pair *nv, int line, 
+static int num_logs_parser(const struct nv_pair *nv, int line, 
 		struct daemon_conf *config)
 {
 	const char *ptr = nv->value;
@@ -705,7 +694,7 @@ static int num_logs_parser(struct nv_pair *nv, int line,
 
 	/* check that all chars are numbers */
 	for (i=0; ptr[i]; i++) {
-		if (!isdigit(ptr[i])) {
+		if (!isdigit((unsigned char)ptr[i])) {
 			audit_msg(LOG_ERR, 
 				"Value %s should only be numbers - line %d",
 				nv->value, line);
@@ -730,7 +719,7 @@ static int num_logs_parser(struct nv_pair *nv, int line,
 	return 0;
 }
 
-static int qos_parser(struct nv_pair *nv, int line, 
+static int qos_parser(const struct nv_pair *nv, int line, 
 		struct daemon_conf *config)
 {
 	audit_msg(LOG_WARNING, "The disp_qos option is deprecated - line %d",
@@ -738,7 +727,7 @@ static int qos_parser(struct nv_pair *nv, int line,
 	return 0;
 }
 
-static int dispatch_parser(struct nv_pair *nv, int line,
+static int dispatch_parser(const const struct nv_pair *nv, int line,
 	struct daemon_conf *config)
 {
 	audit_msg(LOG_DEBUG, "dispatch_parser called with: %s", nv->value);
@@ -747,7 +736,7 @@ static int dispatch_parser(struct nv_pair *nv, int line,
 	return 0;
 }
 
-static int name_format_parser(struct nv_pair *nv, int line,
+static int name_format_parser(const struct nv_pair *nv, int line,
 		struct daemon_conf *config)
 {
 	int i;
@@ -763,7 +752,7 @@ static int name_format_parser(struct nv_pair *nv, int line,
 	return 1;
 }
 
-static int name_parser(struct nv_pair *nv, int line,
+static int name_parser(const struct nv_pair *nv, int line,
 		struct daemon_conf *config)
 {
 	audit_msg(LOG_DEBUG, "name_parser called with: %s", nv->value);
@@ -774,7 +763,7 @@ static int name_parser(struct nv_pair *nv, int line,
 	return 0;
 }
 
-static int max_log_size_parser(struct nv_pair *nv, int line, 
+static int max_log_size_parser(const struct nv_pair *nv, int line,
 		struct daemon_conf *config)
 {
 	const char *ptr = nv->value;
@@ -784,7 +773,7 @@ static int max_log_size_parser(struct nv_pair *nv, int line,
 
 	/* check that all chars are numbers */
 	for (i=0; ptr[i]; i++) {
-		if (!isdigit(ptr[i])) {
+		if (!isdigit((unsigned char)ptr[i])) {
 			audit_msg(LOG_ERR, 
 				"Value %s should only be numbers - line %d",
 				nv->value, line);
@@ -805,7 +794,7 @@ static int max_log_size_parser(struct nv_pair *nv, int line,
 	return 0;
 }
 
-static int max_log_size_action_parser(struct nv_pair *nv, int line, 
+static int max_log_size_action_parser(const struct nv_pair *nv, int line, 
 		struct daemon_conf *config)
 {
 	int i;
@@ -822,7 +811,7 @@ static int max_log_size_action_parser(struct nv_pair *nv, int line,
 	return 1;
 }
 
-static int log_format_parser(struct nv_pair *nv, int line, 
+static int log_format_parser(const struct nv_pair *nv, int line, 
 		struct daemon_conf *config)
 {
 	int i;
@@ -846,14 +835,14 @@ static int log_format_parser(struct nv_pair *nv, int line,
 	return 1;
 }
 
-static int log_group_parser(struct nv_pair *nv, int line, 
+static int log_group_parser(const struct nv_pair *nv, int line,
 		struct daemon_conf *config)
 {
 	gid_t gid = 0;
 	
 	audit_msg(LOG_DEBUG, "log_group_parser called with: %s",
 							nv->value);
-	if (isdigit(nv->value[0])) {
+	if (isdigit((unsigned char)nv->value[0])) {
 		errno = 0;
 		gid = strtoul(nv->value,NULL,10);
 		if (errno) {
@@ -878,7 +867,7 @@ static int log_group_parser(struct nv_pair *nv, int line,
 	return 0;
 }
 
-static int flush_parser(struct nv_pair *nv, int line,
+static int flush_parser(const struct nv_pair *nv, int line,
 		struct daemon_conf *config)
 {
 	int i;
@@ -894,7 +883,7 @@ static int flush_parser(struct nv_pair *nv, int line,
 	return 1;
 }
 
-static int freq_parser(struct nv_pair *nv, int line,
+static int freq_parser(const struct nv_pair *nv, int line,
 		struct daemon_conf *config)
 {
 	const char *ptr = nv->value;
@@ -904,7 +893,7 @@ static int freq_parser(struct nv_pair *nv, int line,
 
 	/* check that all chars are numbers */
 	for (i=0; ptr[i]; i++) {
-		if (!isdigit(ptr[i])) {
+		if (!isdigit((unsigned char)ptr[i])) {
 			audit_msg(LOG_ERR, 
 				"Value %s should only be numbers - line %d",
 				nv->value, line);
@@ -932,7 +921,7 @@ static int freq_parser(struct nv_pair *nv, int line,
 	return 0;
 }
 
-static int space_left_parser(struct nv_pair *nv, int line, 
+static int space_left_parser(const struct nv_pair *nv, int line,
 		struct daemon_conf *config)
 {
 	char *p, *ptr = (char *)nv->value;
@@ -944,7 +933,7 @@ static int space_left_parser(struct nv_pair *nv, int line,
 
 	/* check that all chars are numbers */
 	for (i=0; ptr[i]; i++) {
-		if (!isdigit(ptr[i]) && ptr[i] != '%') {
+		if (!isdigit((unsigned char)ptr[i]) && ptr[i] != '%') {
 			audit_msg(LOG_ERR, 
 			"Value %c %s should only be numbers or percent - line %d",
 				ptr[i],nv->value, line);
@@ -1027,7 +1016,7 @@ static int check_exe_name(const char *val, int line)
 	return 0;
 }
 
-static int space_action_parser(struct nv_pair *nv, int line, 
+static int space_action_parser(const struct nv_pair *nv, int line, 
 		struct daemon_conf *config)
 {
 	int i;
@@ -1121,7 +1110,7 @@ static int validate_email(const char *acct)
 	return 0;
 }
 
-static int action_mail_acct_parser(struct nv_pair *nv, int line, 
+static int action_mail_acct_parser(const struct nv_pair *nv, int line,
 		struct daemon_conf *config)
 {
 	char *tmail;
@@ -1144,7 +1133,7 @@ static int action_mail_acct_parser(struct nv_pair *nv, int line,
 	return 0;
 }
 
-static int verify_email_parser(struct nv_pair *nv, int line,
+static int verify_email_parser(const struct nv_pair *nv, int line,
 	struct daemon_conf *config)
 {
 	unsigned long i;
@@ -1162,7 +1151,7 @@ static int verify_email_parser(struct nv_pair *nv, int line,
 	return 1;
 }
 
-static int admin_space_left_parser(struct nv_pair *nv, int line, 
+static int admin_space_left_parser(const struct nv_pair *nv, int line, 
 		struct daemon_conf *config)
 {
 	char *p, *ptr = (char *)nv->value;
@@ -1175,7 +1164,7 @@ static int admin_space_left_parser(struct nv_pair *nv, int line,
 
 	/* check that all chars are numbers */
 	for (i=0; ptr[i]; i++) {
-		if (!isdigit(ptr[i]) && ptr[i] != '%') {
+		if (!isdigit((unsigned char)ptr[i]) && ptr[i] != '%') {
 			audit_msg(LOG_ERR, 
 			"Value %c %s should only be numbers or percent - line %d",
 				ptr[i],nv->value, line);
@@ -1212,7 +1201,7 @@ static int admin_space_left_parser(struct nv_pair *nv, int line,
 	return 0;
 }
 
-static int admin_space_left_action_parser(struct nv_pair *nv, int line, 
+static int admin_space_left_action_parser(const struct nv_pair *nv, int line, 
 		struct daemon_conf *config)
 {
 	int i;
@@ -1242,7 +1231,7 @@ static int admin_space_left_action_parser(struct nv_pair *nv, int line,
 	return 1;
 }
 
-static int disk_full_action_parser(struct nv_pair *nv, int line, 
+static int disk_full_action_parser(const struct nv_pair *nv, int line, 
 		struct daemon_conf *config)
 {
 	int i;
@@ -1269,7 +1258,7 @@ static int disk_full_action_parser(struct nv_pair *nv, int line,
 	return 1;
 }
 
-static int disk_error_action_parser(struct nv_pair *nv, int line, 
+static int disk_error_action_parser(const struct nv_pair *nv, int line, 
 		struct daemon_conf *config)
 {
 	int i;
@@ -1297,7 +1286,7 @@ static int disk_error_action_parser(struct nv_pair *nv, int line,
 	return 1;
 }
 
-static int priority_boost_parser(struct nv_pair *nv, int line,
+static int priority_boost_parser(const struct nv_pair *nv, int line,
 	struct daemon_conf *config)
 {
 	const char *ptr = nv->value;
@@ -1308,7 +1297,7 @@ static int priority_boost_parser(struct nv_pair *nv, int line,
 
 	/* check that all chars are numbers */
 	for (i=0; ptr[i]; i++) {
-		if (!isdigit(ptr[i])) {
+		if (!isdigit((unsigned char)ptr[i])) {
 			audit_msg(LOG_ERR, 
 				"Value %s should only be numbers - line %d",
 				nv->value, line);
@@ -1336,7 +1325,7 @@ static int priority_boost_parser(struct nv_pair *nv, int line,
 	return 0;
 }
 
-static int tcp_listen_port_parser(struct nv_pair *nv, int line,
+static int tcp_listen_port_parser(const struct nv_pair *nv, int line,
 	struct daemon_conf *config)
 {
 	const char *ptr = nv->value;
@@ -1353,7 +1342,7 @@ static int tcp_listen_port_parser(struct nv_pair *nv, int line,
 #else
 	/* check that all chars are numbers */
 	for (i=0; ptr[i]; i++) {
-		if (!isdigit(ptr[i])) {
+		if (!isdigit((unsigned char)ptr[i])) {
 			audit_msg(LOG_ERR, 
 				"Value %s should only be numbers - line %d",
 				nv->value, line);
@@ -1388,7 +1377,7 @@ static int tcp_listen_port_parser(struct nv_pair *nv, int line,
 #endif
 }
 
-static int tcp_listen_queue_parser(struct nv_pair *nv, int line,
+static int tcp_listen_queue_parser(const struct nv_pair *nv, int line,
 	struct daemon_conf *config)
 {
 	const char *ptr = nv->value;
@@ -1405,7 +1394,7 @@ static int tcp_listen_queue_parser(struct nv_pair *nv, int line,
 #else
 	/* check that all chars are numbers */
 	for (i=0; ptr[i]; i++) {
-		if (!isdigit(ptr[i])) {
+		if (!isdigit((unsigned char)ptr[i])) {
 			audit_msg(LOG_ERR, 
 				"Value %s should only be numbers - line %d",
 				nv->value, line);
@@ -1443,7 +1432,7 @@ static int tcp_listen_queue_parser(struct nv_pair *nv, int line,
 }
 
 
-static int tcp_max_per_addr_parser(struct nv_pair *nv, int line,
+static int tcp_max_per_addr_parser(const struct nv_pair *nv, int line,
 	struct daemon_conf *config)
 {
 	const char *ptr = nv->value;
@@ -1460,7 +1449,7 @@ static int tcp_max_per_addr_parser(struct nv_pair *nv, int line,
 #else
 	/* check that all chars are numbers */
 	for (i=0; ptr[i]; i++) {
-		if (!isdigit(ptr[i])) {
+		if (!isdigit((unsigned char)ptr[i])) {
 			audit_msg(LOG_ERR, 
 				"Value %s should only be numbers - line %d",
 				nv->value, line);
@@ -1497,7 +1486,7 @@ static int tcp_max_per_addr_parser(struct nv_pair *nv, int line,
 #endif
 }
 
-static int use_libwrap_parser(struct nv_pair *nv, int line,
+static int use_libwrap_parser(const struct nv_pair *nv, int line,
 	struct daemon_conf *config)
 {
 	unsigned long i;
@@ -1515,7 +1504,7 @@ static int use_libwrap_parser(struct nv_pair *nv, int line,
 	return 1;
 }
 
-static int tcp_client_ports_parser(struct nv_pair *nv, int line,
+static int tcp_client_ports_parser(const struct nv_pair *nv, int line,
 	struct daemon_conf *config)
 {
 	const char *ptr = nv->value;
@@ -1537,7 +1526,7 @@ static int tcp_client_ports_parser(struct nv_pair *nv, int line,
 			saw_dash = ptr + i;
 			continue;
 		}
-		if (!isdigit(ptr[i])) {
+		if (!isdigit((unsigned char)ptr[i])) {
 			audit_msg(LOG_ERR, 
 				"Value %s should only be numbers, or "
 				"two numbers separated by a dash - line %d",
@@ -1546,7 +1535,7 @@ static int tcp_client_ports_parser(struct nv_pair *nv, int line,
 		}
 	}
 	for (; ptr[i]; i++) {
-		if (!isdigit(ptr[i])) {
+		if (!isdigit((unsigned char)ptr[i])) {
 			audit_msg(LOG_ERR, 
 				"Value %s should only be numbers, or "
 				"two numbers separated by a dash - line %d",
@@ -1598,7 +1587,7 @@ static int tcp_client_ports_parser(struct nv_pair *nv, int line,
 #endif
 }
 
-static int tcp_client_max_idle_parser(struct nv_pair *nv, int line,
+static int tcp_client_max_idle_parser(const struct nv_pair *nv, int line,
 	struct daemon_conf *config)
 {
 	const char *ptr = nv->value;
@@ -1615,7 +1604,7 @@ static int tcp_client_max_idle_parser(struct nv_pair *nv, int line,
 #else
 	/* check that all chars are numbers */
 	for (i=0; ptr[i]; i++) {
-		if (!isdigit(ptr[i])) {
+		if (!isdigit((unsigned char)ptr[i])) {
 			audit_msg(LOG_ERR, 
 				"Value %s should only be numbers - line %d",
 				nv->value, line);
@@ -1646,7 +1635,7 @@ static int tcp_client_max_idle_parser(struct nv_pair *nv, int line,
 #endif
 }
 
-static int transport_parser(struct nv_pair *nv, int line,
+static int transport_parser(const struct nv_pair *nv, int line,
 	struct daemon_conf *config)
 {
 	int i;
@@ -1664,7 +1653,7 @@ static int transport_parser(struct nv_pair *nv, int line,
 	return 1;
 }
 
-static int enable_krb5_parser(struct nv_pair *nv, int line,
+static int enable_krb5_parser(const struct nv_pair *nv, int line,
 	struct daemon_conf *config)
 {
 	audit_msg(LOG_DEBUG, "enable_krb5_parser called with: %s",
@@ -1690,7 +1679,7 @@ static int enable_krb5_parser(struct nv_pair *nv, int line,
 #endif
 }
 
-static int krb5_principal_parser(struct nv_pair *nv, int line,
+static int krb5_principal_parser(const struct nv_pair *nv, int line,
 	struct daemon_conf *config)
 {
 	audit_msg(LOG_DEBUG,"krb5_principal_parser called with: %s",nv->value);
@@ -1704,7 +1693,7 @@ static int krb5_principal_parser(struct nv_pair *nv, int line,
 	return 0;
 }
 
-static int krb5_key_file_parser(struct nv_pair *nv, int line,
+static int krb5_key_file_parser(const struct nv_pair *nv, int line,
 	struct daemon_conf *config)
 {
 	audit_msg(LOG_DEBUG, "krb5_key_file_parser called with: %s", nv->value);
@@ -1718,7 +1707,7 @@ static int krb5_key_file_parser(struct nv_pair *nv, int line,
 	return 0;
 }
 
-static int distribute_network_parser(struct nv_pair *nv, int line,
+static int distribute_network_parser(const struct nv_pair *nv, int line,
 	struct daemon_conf *config)
 {
 	unsigned long i;
@@ -1737,7 +1726,7 @@ static int distribute_network_parser(struct nv_pair *nv, int line,
 	return 1;
 }
 
-static int q_depth_parser(struct nv_pair *nv, int line,
+static int q_depth_parser(const struct nv_pair *nv, int line,
 		struct daemon_conf *config)
 {
 	const char *ptr = nv->value;
@@ -1747,7 +1736,7 @@ static int q_depth_parser(struct nv_pair *nv, int line,
 
 	/* check that all chars are numbers */
 	for (i=0; ptr[i]; i++) {
-		if (!isdigit(ptr[i])) {
+		if (!isdigit((unsigned char)ptr[i])) {
 			audit_msg(LOG_ERR,
 				"Value %s should only be numbers - line %d",
 				nv->value, line);
@@ -1774,7 +1763,7 @@ static int q_depth_parser(struct nv_pair *nv, int line,
 	return 0;
 }
 
-static int overflow_action_parser(struct nv_pair *nv, int line,
+static int overflow_action_parser(const struct nv_pair *nv, int line,
 		struct daemon_conf *config)
 {
 	int i;
@@ -1792,7 +1781,7 @@ static int overflow_action_parser(struct nv_pair *nv, int line,
 	return 1;
 }
 
-static int max_restarts_parser(struct nv_pair *nv, int line,
+static int max_restarts_parser(const struct nv_pair *nv, int line,
 	struct daemon_conf *config)
 {
 	const char *ptr = nv->value;
@@ -1803,7 +1792,7 @@ static int max_restarts_parser(struct nv_pair *nv, int line,
 
 	/* check that all chars are numbers */
 	for (i=0; ptr[i]; i++) {
-		if (!isdigit(ptr[i])) {
+		if (!isdigit((unsigned char)ptr[i])) {
 			audit_msg(LOG_ERR,
 				"Value %s should only be numbers - line %d",
 				nv->value, line);
@@ -1830,7 +1819,7 @@ static int max_restarts_parser(struct nv_pair *nv, int line,
 	return 0;
 }
 
-static int plugin_dir_parser(struct nv_pair *nv, int line,
+static int plugin_dir_parser(const struct nv_pair *nv, int line,
 		struct daemon_conf *config)
 {
 	audit_msg(LOG_DEBUG, "plugin_dir_parser called with: %s", nv->value);
@@ -1851,7 +1840,7 @@ static int plugin_dir_parser(struct nv_pair *nv, int line,
 	return 0;
 }
 
-static int eoe_timeout_parser(struct nv_pair *nv, int line,
+static int eoe_timeout_parser(const struct nv_pair *nv, int line,
 		struct daemon_conf *config)
 {
 	const char *ptr = nv->value;
@@ -1861,7 +1850,7 @@ static int eoe_timeout_parser(struct nv_pair *nv, int line,
 
 	/* check that all chars are numbers */
 	for (i=0; ptr[i]; i++) {
-		if (!isdigit(ptr[i])) {
+		if (!isdigit((unsigned char)ptr[i])) {
 			audit_msg(LOG_ERR,
 				"Value %s should only be numbers - line %d",
 				nv->value, line);

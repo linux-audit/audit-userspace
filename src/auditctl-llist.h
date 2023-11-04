@@ -49,8 +49,8 @@ void list_create(llist *l);
 void list_first(llist *l);
 void list_last(llist *l);
 lnode *list_next(llist *l);
-static inline lnode *list_get_cur(llist *l) { return l->cur; }
-void list_append(llist *l, struct audit_rule_data *r, size_t sz);
+static inline lnode *list_get_cur(const llist *l) { return l->cur; }
+void list_append(llist *l, const struct audit_rule_data *r, size_t sz);
 void list_clear(llist* l);
 
 #endif

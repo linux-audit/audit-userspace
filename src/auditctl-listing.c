@@ -557,7 +557,7 @@ static const char *get_failure(unsigned f)
  * 0 if no more should be read and 1 to indicate that more messages of this
  * type may need to be read.
  */
-int audit_print_reply(struct audit_reply *rep, int fd)
+int audit_print_reply(const struct audit_reply *rep, int fd)
 {
 	_audit_elf = 0;
 

@@ -55,7 +55,6 @@
 
 #include "ev.h"
 
-extern volatile int stop;
 extern int send_audit_event(int type, const char *str);
 #define DEFAULT_BUF_SZ  192
 
@@ -91,7 +90,7 @@ static char *my_service_name, *my_gss_realm;
 #define USE_GSS (transport == T_KRB5)
 #endif
 
-static char *sockaddr_to_string(struct sockaddr_storage *addr)
+static char *sockaddr_to_string(const struct sockaddr_storage *addr)
 {
 	static char buf[INET6_ADDRSTRLEN];
 
@@ -103,7 +102,7 @@ static char *sockaddr_to_string(struct sockaddr_storage *addr)
 	return buf;
 }
 
-static unsigned int sockaddr_to_port(struct sockaddr_storage *addr)
+static unsigned int sockaddr_to_port(const struct sockaddr_storage *addr)
 {
 	unsigned int rc;
 
@@ -765,7 +764,7 @@ static int auditd_tcpd_check(int sock)
  * a 1 if there are too many and a 0 otherwise. It assumes the incoming
  * connection has not been added to the linked list yet.
  */
-static int check_num_connections(struct sockaddr_storage *aaddr)
+static int check_num_connections(const struct sockaddr_storage *aaddr)
 {
 	int num = 0;
 	struct ev_tcp *client = client_chain;
@@ -1169,7 +1168,7 @@ void auditd_tcp_listen_uninit(struct ev_loop *loop, struct daemon_conf *config)
 	transport = T_TCP;
 }
 
-static void periodic_reconfigure(struct daemon_conf *config)
+static void periodic_reconfigure(const struct daemon_conf *config)
 {
 	struct ev_loop *loop = ev_default_loop(EVFLAG_AUTO);
 	if (config->tcp_listen_port && config->tcp_client_max_idle) {
@@ -1181,7 +1180,7 @@ static void periodic_reconfigure(struct daemon_conf *config)
 	}
 }
 
-void auditd_tcp_listen_reconfigure(struct daemon_conf *nconf,
+void auditd_tcp_listen_reconfigure(const struct daemon_conf *nconf,
 				     struct daemon_conf *oconf)
 {
 	use_libwrap = nconf->use_libwrap;

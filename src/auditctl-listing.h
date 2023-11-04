@@ -29,7 +29,7 @@
 #include "libaudit.h"
 
 void audit_print_init(void);
-int audit_print_reply(struct audit_reply *rep, int fd);
+int audit_print_reply(const struct audit_reply *rep, int fd);
 int key_match(const struct audit_rule_data *r);
 
 #endif
