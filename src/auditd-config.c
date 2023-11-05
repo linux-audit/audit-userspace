@@ -53,7 +53,7 @@ struct nv_pair
 struct kw_pair 
 {
 	const char *name;
-	int (*parser)(struct nv_pair *, int, struct daemon_conf *);
+	int (*parser)(const struct nv_pair *, int, struct daemon_conf *);
 	int max_options;
 };
 
@@ -727,7 +727,7 @@ static int qos_parser(const struct nv_pair *nv, int line,
 	return 0;
 }
 
-static int dispatch_parser(const const struct nv_pair *nv, int line,
+static int dispatch_parser(const struct nv_pair *nv, int line,
 	struct daemon_conf *config)
 {
 	audit_msg(LOG_DEBUG, "dispatch_parser called with: %s", nv->value);
