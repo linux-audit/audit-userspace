@@ -976,7 +976,7 @@ static void do_user_summary_output(slist *sptr)
 		long uid;
 		char name[64];
 
-		if (sn->str[0] == '-' || isdigit(sn->str[0])) {
+		if (sn->str[0] == '-' || isdigit((unsigned char)sn->str[0])) {
 			uid = strtol(sn->str, NULL, 10);
 			printf("%u  ", sn->hits);
 			safe_print_string(aulookup_uid(uid, name,

@@ -1128,7 +1128,7 @@ try_again:
 				return 25;
 			ptr = str + 4;
 			term = ptr;
-			while (isdigit(*term))
+			while (isdigit((unsigned char)*term))
 				term++;
 			if (term == ptr)
 				return 14;

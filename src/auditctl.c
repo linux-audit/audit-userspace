@@ -680,7 +680,7 @@ static int setopt(int count, int lineno, char *vars[])
 		}
 		break;
         case 'r':
-		if (optarg && isdigit(optarg[0])) { 
+		if (optarg && isdigit((unsigned char)optarg[0])) {
 			uint32_t rate;
 			errno = 0;
 			rate = strtoul(optarg,NULL,0);
@@ -699,7 +699,7 @@ static int setopt(int count, int lineno, char *vars[])
 		}
 		break;
         case 'b':
-		if (optarg && isdigit(optarg[0])) {
+		if (optarg && isdigit((unsigned char)optarg[0])) {
 			uint32_t limit;
 			errno = 0;
 			limit = strtoul(optarg,NULL,0);
@@ -1134,7 +1134,7 @@ process_keys:
 	case 2:
 #if HAVE_DECL_AUDIT_VERSION_BACKLOG_WAIT_TIME == 1 || \
     HAVE_DECL_AUDIT_STATUS_BACKLOG_WAIT_TIME == 1
-		if (optarg && isdigit(optarg[0])) {
+		if (optarg && isdigit((unsigned char)optarg[0])) {
 			uint32_t bwt;
 			errno = 0;
 			bwt = strtoul(optarg,NULL,0);

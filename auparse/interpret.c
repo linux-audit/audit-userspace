@@ -325,7 +325,7 @@ static void key_escape(const char *orig, char *dest, auparse_esc_t escape_mode)
 static int is_int_string(const char *str)
 {
 	while (*str) {
-		if (!isdigit(*str))
+		if (!isdigit((unsigned char)*str))
 			return 0;
 		str++;
 	}
@@ -1485,7 +1485,7 @@ static const char *print_success(const char *val)
 {
         int res;
 
-	if (isdigit(*val)) {
+	if (isdigit((unsigned char)*val)) {
 	        errno = 0;
 		res = strtoul(val, NULL, 10);
 	        if (errno) {
@@ -2319,7 +2319,7 @@ static const char *print_fanotify(const char *val)
 {
         int res;
 
-	if (isdigit(*val)) {
+	if (isdigit((unsigned char)*val)) {
 	        errno = 0;
 		res = strtoul(val, NULL, 10);
 	        if (errno) {
