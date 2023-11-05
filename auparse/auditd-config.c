@@ -340,7 +340,7 @@ static int eoe_timeout_parser(auparse_state_t *au, const char *val, int line,
 
 	/* check that all chars are numbers */
 	for (i=0; ptr[i]; i++) {
-		if (!isdigit(ptr[i])) {
+		if (!isdigit((unsigned char)ptr[i])) {
 			audit_msg(au, LOG_ERR,
 				"Value %s should only be numbers - line %d",
 				val, line);

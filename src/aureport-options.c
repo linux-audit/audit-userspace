@@ -384,7 +384,7 @@ int check_params(int count, char *vars[])
 //				} else {
 //					UNIMPLEMENTED;
 //					set_detail(D_SPECIFIC);
-//					if (isdigit(optarg[0])) {
+//					if (isdigit((unsigned char)optarg[0])) {
 //						errno = 0;
 //						event_id = strtoul(optarg,
 //							NULL, 10);
@@ -763,7 +763,7 @@ int check_params(int count, char *vars[])
 				retval = -1;
 				break;
 			}
-			if (isdigit(optarg[0])) {
+			if (isdigit((unsigned char)optarg[0])) {
 				errno = 0;
 				arg_eoe_timeout = (time_t)strtoul(optarg, NULL, 10);
 				if (errno || arg_eoe_timeout == 0) {

@@ -301,7 +301,7 @@ static int port_parser(struct nv_pair *nv, int line, plugin_conf_t * c)
 
         /* check that all chars are numbers */
         for (i = 0; ptr[i]; i++) {
-                if (!isdigit(ptr[i])) {
+                if (!isdigit((unsigned char)ptr[i])) {
                         log_err("Value %s should only be numbers - line %d", nv->value, line);
                         return 1;
                 }
@@ -327,7 +327,7 @@ static int timeout_parser(struct nv_pair *nv, int line, plugin_conf_t * c)
 
         /* check that all chars are numbers */
         for (i = 0; ptr[i]; i++) {
-                if (!isdigit(ptr[i])) {
+                if (!isdigit((unsigned char)ptr[i])) {
                         log_err("Value %s should only be numbers - line %d", nv->value, line);
                         return 1;
                 }
@@ -376,7 +376,7 @@ static int q_depth_parser(struct nv_pair *nv, int line, plugin_conf_t * c)
 
         /* check that all chars are numbers */
         for (i = 0; ptr[i]; i++) {
-                if (!isdigit(ptr[i])) {
+                if (!isdigit((unsigned char)ptr[i])) {
                         log_err("Value %s should only be numbers - line %d", nv->value, line);
                         return 1;
                 }

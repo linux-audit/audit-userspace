@@ -484,7 +484,7 @@ static int parse_uint (const struct nv_pair *nv, int line, unsigned int *valp,
 
 	/* check that all chars are numbers */
 	for (i=0; ptr[i]; i++) {
-		if (!isdigit(ptr[i])) {
+		if (!isdigit((unsigned char)ptr[i])) {
 			syslog(LOG_ERR,
 				"Value %s should only be numbers - line %d",
 				nv->value, line);

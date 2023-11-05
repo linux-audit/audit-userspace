@@ -253,7 +253,7 @@ static int convert_str_to_msg(const char *optarg)
 {
 	int tmp, retval = 0;
 
-	if (isdigit(optarg[0])) {
+	if (isdigit((unsigned char)optarg[0])) {
 		errno = 0;
 		tmp = strtoul(optarg, NULL, 10);
 		if (errno) {
@@ -335,7 +335,7 @@ int check_params(int count, char *vars[])
 				retval = -1;
 				break;
 			}
-			if (isdigit(optarg[0])) {
+			if (isdigit((unsigned char)optarg[0])) {
 				errno = 0;
 				event_id = strtoul(optarg, NULL, 10);
 				if (errno) {
@@ -357,7 +357,7 @@ int check_params(int count, char *vars[])
 				retval = -1;
 				break;
 			}
-			if (isdigit(optarg[0])) {
+			if (isdigit((unsigned char)optarg[0])) {
 				errno = 0;
 				arg_eoe_timeout = (time_t)strtoul(optarg, NULL, 10);
 				if (errno || arg_eoe_timeout == 0) {
@@ -463,7 +463,7 @@ int check_params(int count, char *vars[])
 				retval = -1;
 				break;
 			}
-			if (isdigit(optarg[0])) {
+			if (isdigit((unsigned char)optarg[0])) {
 				errno = 0;
 				event_gid = strtoul(optarg,NULL,10);
 				if (errno) {
@@ -497,7 +497,7 @@ int check_params(int count, char *vars[])
 				retval = -1;
 				break;
 			}
-			if (isdigit(optarg[0])) {
+			if (isdigit((unsigned char)optarg[0])) {
 				errno = 0;
 				event_egid = strtoul(optarg,NULL,10);
 				if (errno) {
@@ -529,7 +529,7 @@ int check_params(int count, char *vars[])
 				retval = -1;
 				break;
 			}
-			if (isdigit(optarg[0])) {
+			if (isdigit((unsigned char)optarg[0])) {
 				errno = 0;
 				event_gid = strtoul(optarg,NULL,10);
 				if (errno) {
@@ -655,7 +655,7 @@ int check_params(int count, char *vars[])
 				retval = -1;
 				break;
 			}
-			if (isdigit(optarg[0])) {
+			if (isdigit((unsigned char)optarg[0])) {
 				errno = 0;
 				event_ppid = strtol(optarg,NULL,10);
 				if (errno)
@@ -676,7 +676,7 @@ int check_params(int count, char *vars[])
 				retval = -1;
 				break;
 			}
-			if (isdigit(optarg[0])) {
+			if (isdigit((unsigned char)optarg[0])) {
 				errno = 0;
 				event_pid = strtol(optarg,NULL,10);
 				if (errno)
@@ -794,7 +794,7 @@ int check_params(int count, char *vars[])
 				retval = -1;
 				break;
 			}
-			if (isdigit(optarg[0])) {
+			if (isdigit((unsigned char)optarg[0])) {
 				errno = 0;
 				event_syscall = (int)strtoul(optarg, NULL, 10);
 				if (errno) {
@@ -893,14 +893,14 @@ int check_params(int count, char *vars[])
 			}
 			{
 			size_t len = strlen(optarg);
-			if (isdigit(optarg[0])) {
+			if (isdigit((unsigned char)optarg[0])) {
 				errno = 0;
 				event_session_id = strtoul(optarg,NULL,10);
 				if (errno)
 					retval = -1;
 				c++;
                         } else if (len >= 2 && *(optarg)=='-' &&
-                                                (isdigit(optarg[1]))) {
+                                                (isdigit((unsigned char)optarg[1]))) {
 				errno = 0;
                                 event_session_id = strtoul(optarg, NULL, 0);
 				if (errno) {
@@ -931,7 +931,7 @@ int check_params(int count, char *vars[])
 			}
 			{
 			size_t len = strlen(optarg);
-                        if (isdigit(optarg[0])) {
+                        if (isdigit((unsigned char)optarg[0])) {
 				errno = 0;
                                 event_exit = strtoll(optarg, NULL, 0);
 				if (errno) {
@@ -940,7 +940,7 @@ int check_params(int count, char *vars[])
 						optarg);
 				}
                         } else if (len >= 2 && *(optarg)=='-' &&
-                                                (isdigit(optarg[1]))) {
+                                                (isdigit((unsigned char)optarg[1]))) {
 				errno = 0;
                                 event_exit = strtoll(optarg, NULL, 0);
 				if (errno) {
@@ -1072,7 +1072,7 @@ int check_params(int count, char *vars[])
 				retval = -1;
 				break;
 			}
-			if (isdigit(optarg[0])) {
+			if (isdigit((unsigned char)optarg[0])) {
 				errno = 0;
 				event_uid = strtoul(optarg,NULL,10);
 				if (errno) {
@@ -1105,7 +1105,7 @@ int check_params(int count, char *vars[])
 				retval = -1;
 				break;
 			}
-			if (isdigit(optarg[0])) {
+			if (isdigit((unsigned char)optarg[0])) {
 				errno = 0;
 				event_euid = strtoul(optarg,NULL,10);
 				if (errno) {
@@ -1138,7 +1138,7 @@ int check_params(int count, char *vars[])
 				retval = -1;
 				break;
 			}
-			if (isdigit(optarg[0])) {
+			if (isdigit((unsigned char)optarg[0])) {
 				errno = 0;
 				event_uid = strtoul(optarg,NULL,10);
 				if (errno) {
@@ -1182,7 +1182,7 @@ int check_params(int count, char *vars[])
 			}
 			{
 			size_t len = strlen(optarg);
-                        if (isdigit(optarg[0])) {
+                        if (isdigit((unsigned char)optarg[0])) {
 				errno = 0;
 				event_loginuid = strtoul(optarg,NULL,10);
 				if (errno) {
@@ -1192,7 +1192,7 @@ int check_params(int count, char *vars[])
                                         retval = -1;
 				}
                         } else if (len >= 2 && *(optarg)=='-' &&
-                                                (isdigit(optarg[1]))) {
+                                                (isdigit((unsigned char)optarg[1]))) {
 				errno = 0;
                                 event_loginuid = strtol(optarg, NULL, 0);
 				if (errno) {

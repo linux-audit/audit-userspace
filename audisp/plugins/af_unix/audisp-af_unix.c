@@ -126,7 +126,7 @@ int setup_socket(int argc, char *argv[])
 	} else {
 		int i;
 		for (i=1; i < 3; i++) {
-			if (isdigit(argv[i][0])) {
+			if (isdigit((unsigned char)argv[i][0])) {
 				errno = 0;
 				mode = strtoul(argv[i], NULL, 8);
 				if (errno) {
