@@ -666,7 +666,7 @@ int auparse_flush_feed(auparse_state_t *au)
 
 // If there is any data in the state machine, return 1.
 // Otherwise return 0 to indicate its empty
-int auparse_feed_has_data(auparse_state_t *au)
+int auparse_feed_has_data(const auparse_state_t *au)
 {
 	if (!au)
 		return 0;
@@ -778,7 +778,7 @@ int auparse_reset(auparse_state_t *au)
 	return 0;
 }
 
-char *auparse_metrics(auparse_state_t *au)
+char *auparse_metrics(const auparse_state_t *au)
 {
 	char *metrics;
 
@@ -1252,7 +1252,7 @@ static int extract_timestamp(const char *b, au_event_t *e)
 	return rc;
 }
 
-static int events_are_equal(au_event_t *e1, au_event_t *e2)
+static int events_are_equal(const au_event_t *e1, const au_event_t *e2)
 {
 	// Check time & serial first since its most likely way
 	// to spot 2 different events
@@ -1378,7 +1378,7 @@ static int retrieve_next_line(auparse_state_t *au)
 /*******
 * Functions that traverse events.
 ********/
-static int ausearch_reposition_cursors(auparse_state_t *au)
+static int ausearch_reposition_cursors(const auparse_state_t *au)
 {
 	int rc = 0;
 
@@ -1653,6 +1653,9 @@ static int au_auparse_next_event(auparse_state_t *au)
 		}
 		if (au_lol_append(au->au_lo, l) == NULL) {
 			free((char *)e.host);
+			au->cur_buf = NULL;
+			aup_list_clear(l);
+			free(l);
 #ifdef	LOL_EVENTS_DEBUG01
 			if (debug) printf("error appending to lol\n");
 #endif	/* LOL_EVENTS_DEBUG01 */
@@ -1686,7 +1689,7 @@ int auparse_next_event(auparse_state_t *au)
 }
 
 /* Accessors to event data */
-const au_event_t *auparse_get_timestamp(auparse_state_t *au)
+const au_event_t *auparse_get_timestamp(const auparse_state_t *au)
 {
 	if (au && au->le && au->le->e.sec != 0)
 		return &au->le->e;
@@ -1695,7 +1698,7 @@ const au_event_t *auparse_get_timestamp(auparse_state_t *au)
 }
 
 
-time_t auparse_get_time(auparse_state_t *au)
+time_t auparse_get_time(const auparse_state_t *au)
 {
 	if (au && au->le)
 		return au->le->e.sec;
@@ -1704,7 +1707,7 @@ time_t auparse_get_time(auparse_state_t *au)
 }
 
 
-unsigned int auparse_get_milli(auparse_state_t *au)
+unsigned int auparse_get_milli(const auparse_state_t *au)
 {
 	if (au && au->le)
 		return au->le->e.milli;
@@ -1713,7 +1716,7 @@ unsigned int auparse_get_milli(auparse_state_t *au)
 }
 
 
-unsigned long auparse_get_serial(auparse_state_t *au)
+unsigned long auparse_get_serial(const auparse_state_t *au)
 {
 	if (au && au->le)
 		return au->le->e.serial;
@@ -1723,7 +1726,7 @@ unsigned long auparse_get_serial(auparse_state_t *au)
 
 
 // Gets the machine node name
-const char *auparse_get_node(auparse_state_t *au)
+const char *auparse_get_node(const auparse_state_t *au)
 {
 	if (au && au->le && au->le->e.host != NULL)
 		return strdup(au->le->e.host);
@@ -1732,7 +1735,7 @@ const char *auparse_get_node(auparse_state_t *au)
 }
 
 
-int auparse_node_compare(au_event_t *e1, au_event_t *e2)
+int auparse_node_compare(const au_event_t *e1, const au_event_t *e2)
 {
 	// If both have a host, only a string compare can tell if they
 	// are the same. Otherwise, if only one of them have a host, they
@@ -1748,7 +1751,7 @@ int auparse_node_compare(au_event_t *e1, au_event_t *e2)
 }
 
 
-int auparse_timestamp_compare(au_event_t *e1, au_event_t *e2)
+int auparse_timestamp_compare(const au_event_t *e1, const au_event_t *e2)
 {
 	if (e1->sec > e2->sec)
 		return 1;
@@ -1768,13 +1771,13 @@ int auparse_timestamp_compare(au_event_t *e1, au_event_t *e2)
 	return 0;
 }
 
-unsigned int auparse_get_num_records(auparse_state_t *au)
+unsigned int auparse_get_num_records(const auparse_state_t *au)
 {
 	// Its OK if au->le == NULL because get_cnt handles it
 	return aup_list_get_cnt(au->le);
 }
 
-unsigned int auparse_get_record_num(auparse_state_t *au)
+unsigned int auparse_get_record_num(const auparse_state_t *au)
 {
 	if (au->le == NULL)
 		return 0;
@@ -1842,7 +1845,7 @@ int auparse_next_record(auparse_state_t *au)
 }
 
 
-int auparse_goto_record_num(auparse_state_t *au, unsigned int num)
+int auparse_goto_record_num(const auparse_state_t *au, unsigned int num)
 {
 	rnode *r;
 
@@ -1872,7 +1875,7 @@ int auparse_goto_record_num(auparse_state_t *au, unsigned int num)
 
 
 /* Accessors to record data */
-int auparse_get_type(auparse_state_t *au)
+int auparse_get_type(const auparse_state_t *au)
 {
 	if (au->le == NULL)
 		return 0;
@@ -1885,7 +1888,7 @@ int auparse_get_type(auparse_state_t *au)
 }
 
 
-const char *auparse_get_type_name(auparse_state_t *au)
+const char *auparse_get_type_name(const auparse_state_t *au)
 {
 	if (au->le == NULL)
 		return NULL;
@@ -1898,7 +1901,7 @@ const char *auparse_get_type_name(auparse_state_t *au)
 }
 
 
-unsigned int auparse_get_line_number(auparse_state_t *au)
+unsigned int auparse_get_line_number(const auparse_state_t *au)
 {
 	if (au->le == NULL)
 		return 0;
@@ -1911,7 +1914,7 @@ unsigned int auparse_get_line_number(auparse_state_t *au)
 }
 
 
-const char *auparse_get_filename(auparse_state_t *au)
+const char *auparse_get_filename(const auparse_state_t *au)
 {
 	switch (au->source)
 	{
@@ -1935,7 +1938,7 @@ const char *auparse_get_filename(auparse_state_t *au)
 }
 
 
-int auparse_first_field(auparse_state_t *au)
+int auparse_first_field(const auparse_state_t *au)
 {
 	if (au->le == NULL)
 		return 0;
@@ -1944,7 +1947,7 @@ int auparse_first_field(auparse_state_t *au)
 }
 
 
-int auparse_next_field(auparse_state_t *au)
+int auparse_next_field(const auparse_state_t *au)
 {
 	if (au->le == NULL)
 		return 0;
@@ -1960,7 +1963,7 @@ int auparse_next_field(auparse_state_t *au)
 }
 
 
-unsigned int auparse_get_num_fields(auparse_state_t *au)
+unsigned int auparse_get_num_fields(const auparse_state_t *au)
 {
 	if (au->le == NULL)
 		return 0;
@@ -1972,7 +1975,7 @@ unsigned int auparse_get_num_fields(auparse_state_t *au)
 		return 0;
 }
 
-const char *auparse_get_record_text(auparse_state_t *au)
+const char *auparse_get_record_text(const auparse_state_t *au)
 {
 	if (au->le == NULL)
 		return NULL;
@@ -1984,7 +1987,7 @@ const char *auparse_get_record_text(auparse_state_t *au)
 		return NULL;
 }
 
-const char *auparse_get_record_interpretations(auparse_state_t *au)
+const char *auparse_get_record_interpretations(const auparse_state_t *au)
 {
 	if (au->le == NULL)
 		return NULL;
@@ -2024,7 +2027,7 @@ const char *auparse_find_field(auparse_state_t *au, const char *name)
 }
 
 /* Increment 1 location and then scan for next field */
-const char *auparse_find_field_next(auparse_state_t *au)
+const char *auparse_find_field_next(const auparse_state_t *au)
 {
 	if (au->le == NULL)
 		return NULL;
@@ -2058,7 +2061,7 @@ const char *auparse_find_field_next(auparse_state_t *au)
 
 
 /* Accessors to field data */
-unsigned int auparse_get_field_num(auparse_state_t *au)
+unsigned int auparse_get_field_num(const auparse_state_t *au)
 {
 	if (au->le == NULL)
 		return 0;
@@ -2072,7 +2075,7 @@ unsigned int auparse_get_field_num(auparse_state_t *au)
 	return 0;
 }
 
-int auparse_goto_field_num(auparse_state_t *au, unsigned int num)
+int auparse_goto_field_num(const auparse_state_t *au, unsigned int num)
 {
 	if (au->le == NULL)
 		return 0;
@@ -2088,7 +2091,7 @@ int auparse_goto_field_num(auparse_state_t *au, unsigned int num)
 	return 0;
 }
 
-const char *auparse_get_field_name(auparse_state_t *au)
+const char *auparse_get_field_name(const auparse_state_t *au)
 {
 	if (au->le == NULL)
 		return NULL;
@@ -2102,7 +2105,7 @@ const char *auparse_get_field_name(auparse_state_t *au)
 }
 
 
-const char *auparse_get_field_str(auparse_state_t *au)
+const char *auparse_get_field_str(const auparse_state_t *au)
 {
 	if (au->le == NULL)
 		return NULL;
@@ -2115,7 +2118,7 @@ const char *auparse_get_field_str(auparse_state_t *au)
 	return NULL;
 }
 
-int auparse_get_field_type(auparse_state_t *au)
+int auparse_get_field_type(const auparse_state_t *au)
 {
 	if (au->le == NULL)
 		return AUPARSE_TYPE_UNCLASSIFIED;
@@ -2128,7 +2131,7 @@ int auparse_get_field_type(auparse_state_t *au)
 	return AUPARSE_TYPE_UNCLASSIFIED;
 }
 
-int auparse_get_field_int(auparse_state_t *au)
+int auparse_get_field_int(const auparse_state_t *au)
 {
 	const char *v = auparse_get_field_str(au);
 	if (v) {
@@ -2159,7 +2162,7 @@ const char *auparse_interpret_field(auparse_state_t *au)
 }
 
 
-const char *auparse_interpret_realpath(auparse_state_t *au)
+const char *auparse_interpret_realpath(const auparse_state_t *au)
 {
 	if (au->le == NULL)
 		return NULL;

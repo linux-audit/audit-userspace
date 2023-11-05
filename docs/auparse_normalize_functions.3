@@ -8,11 +8,11 @@ auparse_normalize_get_event_kind, auparse_normalize_subject_kind, auparse_normal
 .B #include <auparse.h>
 .sp
 Metadata Functions:
-.B const char *auparse_normalize_get_event_kind(auparse_state_t *au);
-.B const char *auparse_normalize_subject_kind(auparse_state_t *au);
-.B const char *auparse_normalize_get_action(auparse_state_t *au);
-.B const char *auparse_normalize_object_kind(auparse_state_t *au);
-.B const char *auparse_normalize_how(auparse_state_t *au);
+.B const char *auparse_normalize_get_event_kind(const auparse_state_t *au);
+.B const char *auparse_normalize_subject_kind(const auparse_state_t *au);
+.B const char *auparse_normalize_get_action(const auparse_state_t *au);
+.B const char *auparse_normalize_object_kind(const auparse_state_t *au);
+.B const char *auparse_normalize_how(const auparse_state_t *au);
 .sp
 Positioning Functions:
 .B int auparse_normalize_session(auparse_state_t *au);

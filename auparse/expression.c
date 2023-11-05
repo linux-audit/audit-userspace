@@ -1008,7 +1008,7 @@ eval_unsigned_value(rnode *record, const struct expr *expr, int *valid)
    Set *FREE_IT to 1 if the return value should free()'d.
    Return NULL on *error.  */
 static char *
-eval_interpreted_value(auparse_state_t *au, rnode *record,
+eval_interpreted_value(const auparse_state_t *au, rnode *record,
 		       const struct expr *expr, int *free_it)
 {
 	if (expr->virtual_field == 0) {
@@ -1047,8 +1047,8 @@ compare_unsigned_values(uint32_t one, uint32_t two)
 /* Return -1, 0, 1 depending on comparing the field in EXPR with RECORD in AU.
    Set *ERROR to 0 if OK, non-zero otherwise. */
 static int
-compare_values(auparse_state_t *au, rnode *record, const struct expr *expr,
-	       int *error)
+compare_values(const auparse_state_t *au, const rnode *record,
+	       const struct expr *expr, int *error)
 {
 	int res;
 	if (expr->numeric_field == 0) {

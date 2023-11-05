@@ -74,7 +74,7 @@ static const struct kw_pair keywords[] =
 /*
  * Set everything to its default value
 */
-void aup_clear_config(struct daemon_conf *config)
+static void aup_clear_config(struct daemon_conf *config)
 {
 	config->local_events = 1;
 	config->sender_uid = 0;

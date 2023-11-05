@@ -4,7 +4,7 @@ auparse_goto_field_num \- move field cursor to specific field
 .SH "SYNOPSIS"
 .B #include <auparse.h>
 .sp
-int auparse_goto_field_num(auparse_state_t *au, unsigned int num);
+int auparse_goto_field_num(const auparse_state_t *au, unsigned int num);
 
 .SH "DESCRIPTION"
 auparse_goto_field_num will move the internal library cursors to point to a specific field number in the current record. Fields within the same record are numbered starting from 0. This is generally not needed but there are some cases where one may want precise control over the exact field being looked at. 

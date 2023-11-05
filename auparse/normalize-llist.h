@@ -46,7 +46,7 @@ typedef struct {
 } cllist;
 
 static inline void cllist_first(cllist *l) { l->cur = l->head; }
-static inline data_node *cllist_get_cur(cllist *l) { return l->cur; }
+static inline data_node *cllist_get_cur(const cllist *l) { return l->cur; }
 
 AUDIT_HIDDEN_START
 

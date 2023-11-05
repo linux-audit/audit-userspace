@@ -57,7 +57,7 @@ typedef struct Databuf {
 /*****************************  Inline Functions  ****************************/
 /*****************************************************************************/
 
-static inline char *databuf_beg(DataBuf *db)
+static inline char *databuf_beg(const DataBuf *db)
 {return (db->alloc_ptr == NULL) ? NULL : db->alloc_ptr+db->offset;}
 
 /*****************************************************************************/
@@ -66,7 +66,7 @@ static inline char *databuf_beg(DataBuf *db)
 
 AUDIT_HIDDEN_START
 
-void databuf_print(DataBuf *db, int print_data, char *fmt, ...)
+void databuf_print(const DataBuf *db, int print_data, char *fmt, ...)
 #ifdef __GNUC__
         __attribute__ ((format (printf, 3, 4)));
 #else

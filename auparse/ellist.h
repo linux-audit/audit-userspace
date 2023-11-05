@@ -42,9 +42,11 @@ typedef struct {
 	const char *cwd;	// cwd used for realpath conversion
 } event_list_t;
 
-static inline unsigned int aup_list_get_cnt(event_list_t *l) { return l ? l->cnt : 0; }
+static inline unsigned int aup_list_get_cnt(const event_list_t *l)
+{ return l ? l->cnt : 0; }
 static inline void aup_list_first(event_list_t *l) { l->cur = l->head; }
-static inline rnode *aup_list_get_cur(event_list_t *l) { return l ? l->cur : NULL; }
+static inline rnode *aup_list_get_cur(const event_list_t *l)
+{ return l ? l->cur : NULL; }
 
 AUDIT_HIDDEN_START
 
@@ -56,16 +58,10 @@ int aup_list_append(event_list_t *l, char *record, int list_idx,
 //int aup_list_get_event(event_list_t* l, au_event_t *e);
 int aup_list_set_event(event_list_t* l, au_event_t *e);
 
-/* Given a message type, find the matching node */
-rnode *aup_list_find_rec(event_list_t *l, int i);
-
 /* Seek to a specific record number */
 rnode *aup_list_goto_rec(event_list_t *l, int i);
 
-/* Given two message types, find the first matching node */
-rnode *aup_list_find_rec_range(event_list_t *l, int low, int high);
-
-int aup_list_first_field(event_list_t *l);
+int aup_list_first_field(const event_list_t *l);
 
 AUDIT_HIDDEN_END
 

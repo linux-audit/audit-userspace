@@ -36,7 +36,7 @@ void set_aumessage_mode(auparse_state_t *au, message_t mode,
 	au->debug_message = debug;
 }
 
-void audit_msg(auparse_state_t *au, int priority, const char *fmt, ...)
+void audit_msg(const auparse_state_t *au, int priority, const char *fmt, ...)
 {
         va_list   ap;
 

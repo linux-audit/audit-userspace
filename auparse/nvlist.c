@@ -56,7 +56,7 @@ nvnode *nvlist_next(nvlist *l)
 }
 
 // 0 on success and 1 on error
-int nvlist_append(nvlist *l, nvnode *node)
+int nvlist_append(nvlist *l, const nvnode *node)
 {
 	if (node->name == NULL)
 		return 1;
@@ -85,7 +85,7 @@ int nvlist_append(nvlist *l, nvnode *node)
 /*
  * Its less code to make a fixup than a new append.
  */
-void nvlist_interp_fixup(nvlist *l)
+void nvlist_interp_fixup(const nvlist *l)
 {
 	nvnode* node = &l->array[l->cur];
 	node->interp_val = node->val;

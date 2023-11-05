@@ -134,7 +134,7 @@ static int parse_up_record(rnode* r)
 
 		char *val = strchr(ptr, '=');
 		if (val) {
-			int len;
+			int vlen;
 
 			// If name is 'msg=audit' throw it away
 			if (*ptr == 'm' && strncmp(ptr, "msg=", 4) == 0) {
@@ -161,27 +161,27 @@ static int parse_up_record(rnode* r)
 			n.name = ptr;
 			n.val = val;
 			// Remove trailing punctuation
-			len = strlen(n.val);
+			vlen = strlen(n.val);
 			// Check for invalid val
-			if (!len)
+			if (!vlen)
 				continue;
-			if (len && n.val[len-1] == ':') {
-				n.val[len-1] = 0;
-				len--;
+			if (n.val[vlen-1] == ':') {
+				n.val[vlen-1] = 0;
+				vlen--;
 			}
-			if (len && n.val[len-1] == ',') {
-				n.val[len-1] = 0;
-				len--;
+			if (n.val[vlen-1] == ',') {
+				n.val[vlen-1] = 0;
+				vlen--;
 			}
-			if (len && n.val[len-1] == '\'') {
-				n.val[len-1] = 0;
-				len--;
+			if (n.val[vlen-1] == '\'') {
+				n.val[vlen-1] = 0;
+				vlen--;
 			}
-			if (len && n.val[len-1] == ')') {
+			if (n.val[vlen-1] == ')') {
 				if (strcmp(n.val, "(none)") &&
 					strcmp(n.val, "(null)")) {
-					n.val[len-1] = 0;
-					len--;
+					n.val[vlen-1] = 0;
+					vlen--;
 				}
 			}
 			// Make virtual keys or just store it
@@ -302,14 +302,14 @@ static int parse_up_record(rnode* r)
 			} else if (nvlist_get_cnt(&r->nv) == (2 + offset)) {
 				// skip over open brace
 				if (*ptr == '{') {
-					int total = 0, len;
+					int total = 0, clen;
 					char tmpctx[256], *to;
 					tmpctx[0] = 0;
 					to = tmpctx;
 					ptr = audit_strsplit_r(NULL, &saved);
 					while (ptr && *ptr != '}') {
-						len = strlen(ptr);
-						if ((len+1) >= (256-total)) {
+						clen = strlen(ptr);
+						if ((clen+1) >= (256-total)) {
 						   if (nvlist_get_cnt(&r->nv)
 									 == 0)
 								free(buf);
@@ -320,7 +320,7 @@ static int parse_up_record(rnode* r)
 							total++;
 						}
 						to = stpcpy(to, ptr);
-						total += len;
+						total += clen;
 						ptr = audit_strsplit_r(NULL,
 								 &saved);
 					}
@@ -461,26 +461,11 @@ int aup_list_set_event(event_list_t* l, au_event_t *e)
 	return 1;
 }
 
-rnode *aup_list_find_rec(event_list_t *l, int i)
-{
-        register rnode* node;
-                                                                                
-       	node = l->head;	/* start at the beginning */
-	while (node) {
-		if (node->type == i) {
-			l->cur = node;
-			return node;
-		} else
-			node = node->next;
-	}
-	return NULL;
-}
-
 rnode *aup_list_goto_rec(event_list_t *l, int i)
 {
         register rnode* node;
-                                                                                
-       	node = l->head;	/* start at the beginning */
+
+	node = l->head;	/* start at the beginning */
 	while (node) {
 		if (node->item == i) {
 			l->cur = node;
@@ -491,25 +476,7 @@ rnode *aup_list_goto_rec(event_list_t *l, int i)
 	return NULL;
 }
 
-rnode *aup_list_find_rec_range(event_list_t *l, int low, int high)
-{
-        register rnode* node;
-
-	if (high <= low)
-		return NULL;
-
-	node = l->head;	/* Start at the beginning */
-	while (node) {
-		if (node->type >= low && node->type <= high) {
-			l->cur = node;
-			return node;
-		} else
-			node = node->next;
-	}
-	return NULL;
-}
-
-int aup_list_first_field(event_list_t *l)
+int aup_list_first_field(const event_list_t *l)
 {
 	if (l && l->cur) {
 		nvlist_first(&l->cur->nv);

@@ -1220,8 +1220,6 @@ static int normalize_compound(auparse_state_t *au)
 				D.action = strdup(act);
 			// FIXME: AUDIT_ANOM_LINK needs an object
 		} else if (otype == AUDIT_CONFIG_CHANGE) {
-			const char *f;
-
 			auparse_first_record(au);
 			f = auparse_find_field(au, "op");
 			if (f) {
@@ -2059,7 +2057,7 @@ static int seek_field(auparse_state_t *au, value_t location)
 	return 1;
 }
 
-const char *auparse_normalize_get_event_kind(auparse_state_t *au)
+const char *auparse_normalize_get_event_kind(const auparse_state_t *au)
 {
 	return D.evkind;
 }
@@ -2079,7 +2077,7 @@ int auparse_normalize_subject_secondary(auparse_state_t *au)
 	return seek_field(au, D.actor.secondary);
 }
 
-const char *auparse_normalize_subject_kind(auparse_state_t *au)
+const char *auparse_normalize_subject_kind(const auparse_state_t *au)
 {
 	return D.actor.what;
 }
@@ -2111,7 +2109,7 @@ int auparse_normalize_subject_next_attribute(auparse_state_t *au)
 	return 0;
 }
 
-const char *auparse_normalize_get_action(auparse_state_t *au)
+const char *auparse_normalize_get_action(const auparse_state_t *au)
 {
 	return D.action;
 }
@@ -2158,7 +2156,7 @@ int auparse_normalize_object_next_attribute(auparse_state_t *au)
 	return 0;
 }
 
-const char *auparse_normalize_object_kind(auparse_state_t *au)
+const char *auparse_normalize_object_kind(const auparse_state_t *au)
 {
 	return normalize_obj_kind_map_i2s(D.thing.what);
 }
@@ -2168,7 +2166,7 @@ int auparse_normalize_get_results(auparse_state_t *au)
 	return seek_field(au, D.results);
 }
 
-const char *auparse_normalize_how(auparse_state_t *au)
+const char *auparse_normalize_how(const auparse_state_t *au)
 {
 	return D.how;
 }

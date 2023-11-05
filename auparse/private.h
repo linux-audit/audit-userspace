@@ -31,7 +31,7 @@ AUDIT_HIDDEN_START
 /* Internal syslog messaging */
 #define audit_msg auparse_msg
 #define set_aumessage_mode set_aup_message_mode
-void auparse_msg(auparse_state_t *au, int priority, const char *fmt, ...) 
+void auparse_msg(const auparse_state_t *au, int priority, const char *fmt, ...)
 #ifdef __GNUC__
         __attribute__ ((format (printf, 3, 4)));
 #else
@@ -39,7 +39,7 @@ void auparse_msg(auparse_state_t *au, int priority, const char *fmt, ...)
 #endif
 
 void set_aup_message_mode(auparse_state_t *au, message_t mode,
-		debug_message_t debug); 
+		debug_message_t debug);
 
 AUDIT_HIDDEN_END
 

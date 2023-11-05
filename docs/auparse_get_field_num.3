@@ -4,7 +4,7 @@ auparse_get_field_num \- get current field cursor location
 .SH "SYNOPSIS"
 .B #include <auparse.h>
 .sp
-unsigned int auparse_get_field_num(auparse_state_t *au);
+unsigned int auparse_get_field_num(const auparse_state_t *au);
 
 .SH "DESCRIPTION"
 auparse_get_field_num will retrieve the internal library cursors current field location in the current record. Fields within the same record are numbered starting from 0. This is generally not needed but there are some cases where one may want to know the exact field being looked at.

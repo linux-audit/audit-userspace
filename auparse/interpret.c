@@ -2301,7 +2301,7 @@ static const char *print_ioctl_req(const char *val)
 	return out;
 }
 
-static const char *fanotify[3]= { "unknown", "allow", "deny" };
+static const char *fanotify[3] = { "unknown", "allow", "deny" };
 static const char *aulookup_fanotify(unsigned s)
 {
 	switch (s)

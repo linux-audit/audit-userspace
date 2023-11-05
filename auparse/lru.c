@@ -213,7 +213,7 @@ static void insert_beginning(Queue *queue, QNode *new_node)
 	sanity_check_queue(queue, "2 insert_beginning");
 }
 
-static void remove_node(Queue *queue, QNode *node)
+static void remove_node(Queue *queue, const QNode *node)
 {
 	// If we are at the beginning
 	sanity_check_queue(queue, "1 remove_node");

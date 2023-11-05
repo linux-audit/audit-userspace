@@ -101,10 +101,10 @@ static int debug = 0;
 /*****************************************************************************/
 /****************************  Inline Functions  *****************************/
 /*****************************************************************************/
-static inline char *databuf_end(DataBuf *db)
+static inline char *databuf_end(const DataBuf *db)
 {return (db->alloc_ptr == NULL) ? NULL : db->alloc_ptr+db->offset+db->len;}
 
-static inline unsigned databuf_tail_size(DataBuf *db)
+static inline unsigned databuf_tail_size(const DataBuf *db)
 {return db->alloc_size - (db->offset+db->len);}
 
 static inline unsigned databuf_tail_available(DataBuf *db, size_t append_len)
@@ -131,7 +131,7 @@ static int databuf_shift_data_to_beginning(DataBuf *db)
 /****************************  Exported Functions  ***************************/
 /*****************************************************************************/
 
-void databuf_print(DataBuf *db, int print_data, char *fmt, ...)
+void databuf_print(const DataBuf *db, int print_data, char *fmt, ...)
 {
     va_list ap;
     va_start(ap, fmt);

@@ -7,8 +7,8 @@ auparse_interpret_field, auparse_interpret_realpath,auparse_interpret_sock_famil
 .nf
 .B #include <auparse.h>
 .sp
-const char *auparse_interpret_field(auparse_state_t *au);
-const char *auparse_interpret_realpath(auparse_state_t *au);
+const char *auparse_interpret_field(const auparse_state_t *au);
+const char *auparse_interpret_realpath(const auparse_state_t *au);
 const char *auparse_interpret_sock_family(auparse_state_t *au);
 const char *auparse_interpret_sock_port(auparse_state_t *au);
 const char *auparse_interpret_sock_address(auparse_state_t *au);
