@@ -1,5 +1,5 @@
 # Makefile.am-- 
-# Copyright 2008,2011-12 Red Hat Inc., Durham, North Carolina.
+# Copyright 2008,2011-12 Red Hat Inc.
 # All Rights Reserved.
 #
 # This program is free software; you can redistribute it and/or modify
@@ -21,7 +21,7 @@
 #   Steve Grubb <sgrubb@redhat.com>
 #
 VERSION_INFO = 4:0:0
-EXTRA_DIST = README ev_epoll.c ev_poll.c ev_select.c ev_iouring.c ev_linuxaio.c libev.m4
+EXTRA_DIST = README ev_epoll.c ev_poll.c ev_select.c ev_linuxaio.c libev.m4
 AM_CFLAGS = -fPIC -DPIC -g -fno-strict-aliasing ${DEBUG}
 
 noinst_HEADERS = ev.h ev_vars.h ev_wrap.h event.h
