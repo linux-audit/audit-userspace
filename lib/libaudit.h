@@ -30,9 +30,17 @@
 #include <linux/audit.h>
 #include <stdarg.h>
 #include <syslog.h>
+// The following macros originate in sys/cdefs.h
+// gcc-analyzer notation
+// Define buffer access modes
 #ifndef __attr_access
 #  define __attr_access(x)
 #endif
+// Warn unused result
+#ifndef __wur
+# define __wur
+#endif
+
 #include <audit_logging.h>
 
 #ifdef __cplusplus
@@ -190,9 +198,9 @@ void set_aumessage_mode(message_t mode, debug_message_t debug);
 /* General */
 typedef enum { GET_REPLY_BLOCKING=0, GET_REPLY_NONBLOCKING } reply_t;
 int  audit_get_reply(int fd, struct audit_reply *rep, reply_t block,
-	int peek);
+	int peek) __wur;
 uid_t audit_getloginuid(void);
-int  audit_setloginuid(uid_t uid);
+int  audit_setloginuid(uid_t uid) __wur;
 uint32_t audit_get_session(void);
 int  audit_detect_machine(void);
 int audit_determine_machine(const char *arch);
@@ -235,9 +243,9 @@ uint32_t audit_get_features(void);
 
 /* AUDIT_SET */
 typedef enum { WAIT_NO, WAIT_YES } rep_wait_t;
-int  audit_set_pid(int fd, uint32_t pid, rep_wait_t wmode);
-int  audit_set_enabled(int fd, uint32_t enabled);
-int  audit_set_failure(int fd, uint32_t failure);
+int  audit_set_pid(int fd, uint32_t pid, rep_wait_t wmode) __wur;
+int  audit_set_enabled(int fd, uint32_t enabled) __wur;
+int  audit_set_failure(int fd, uint32_t failure) __wur;
 int  audit_set_rate_limit(int fd, uint32_t limit);
 int  audit_set_backlog_limit(int fd, uint32_t limit);
 int audit_set_backlog_wait_time(int fd, uint32_t bwt);

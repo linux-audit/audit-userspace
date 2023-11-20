@@ -23,7 +23,7 @@
 #ifndef _AUDIT_LOGGING_H
 #define _AUDIT_LOGGING_H
 
-// This is to pick up the function attribute macros
+// Next include is to pick up the function attribute macros
 #include <features.h>
 #include <audit-records.h>
 
@@ -31,6 +31,9 @@
 extern "C" {
 #endif
 
+// The following macros originate in sys/cdefs.h
+// gcc-analyzer notation
+// Define buffer access modes
 #ifndef __attr_access
 #  define __attr_access(x)
 #endif
@@ -38,14 +41,19 @@ extern "C" {
 # define __attr_dealloc(dealloc, argno)
 # define __attr_dealloc_free
 #endif
+// Warn unused result
+#ifndef __wur
+# define __wur
+#endif
 
 /* Prerequisite to logging is acquiring and disposing of netlink connections */
-int  audit_open(void);
+int  audit_open(void) __wur;
 void audit_close(int fd);
 
 /* The following are for standard formatting of messages */
 int audit_value_needs_encoding(const char *str, unsigned int size)
-	__attr_access ((__read_only__, 1, 2));
+	__attr_access ((__read_only__, 1, 2))
+	__wur;
 char *audit_encode_value(char *final,const char *buf,unsigned int size)
 	__attr_access ((__write_only__, 1))
 	__attr_access ((__read_only__, 2, 3));
@@ -54,13 +62,14 @@ char *audit_encode_nv_string(const char *name, const char *value,
 	__attr_access ((__read_only__, 2, 3))
 	__attr_dealloc_free;
 int audit_log_user_message(int audit_fd, int type, const char *message,
-	const char *hostname, const char *addr, const char *tty, int result);
+	const char *hostname, const char *addr, const char *tty, int result)
+	__wur;
 int audit_log_user_comm_message(int audit_fd, int type,
 	const char *message, const char *comm, const char *hostname,
-	const char *addr, const char *tty, int result);
+	const char *addr, const char *tty, int result) __wur;
 int audit_log_acct_message(int audit_fd, int type, const char *pgname,
 	const char *op, const char *name, unsigned int id,
-	const char *host, const char *addr, const char *tty, int result);
+	const char *host, const char *addr, const char *tty, int result) __wur;
 int audit_log_user_avc_message(int audit_fd, int type,
 	const char *message, const char *hostname, const char *addr,
 	const char *tty, uid_t auid);
@@ -71,7 +80,7 @@ int audit_log_semanage_message(int audit_fd, int type,
 	const char *host, const char *addr,
 	const char *tty, int result);
 int audit_log_user_command(int audit_fd, int type, const char *command,
-        const char *tty, int result);
+        const char *tty, int result) __wur;
 
 #ifdef __cplusplus
 }
