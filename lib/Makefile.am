@@ -240,8 +240,6 @@ gen_permtabs_h$(BUILD_EXEEXT): LDFLAGS=$(LDFLAGS_FOR_BUILD)
 permtabs.h: gen_permtabs_h Makefile
 	./gen_permtabs_h --lowercase --i2s --s2i perm > $@
 
-gen_ftypetabs_h_SOURCES = gen_tables.c gen_tables.h ftypetab.h
-gen_ftypetabs_h_CFLAGS = '-DTABLE_H="ftypetab.h"'
 gen_ppc_tables_h_SOURCES = gen_tables.c gen_tables.h ppc_table.h
 gen_ppc_tables_h_CFLAGS = '-DTABLE_H="ppc_table.h"'
 $(gen_ppc_tables_h_OBJECTS): CC=$(CC_FOR_BUILD)
