@@ -107,9 +107,10 @@ static void destroy_audit(void)
 }
 
 
-void log_audit_event(int type, const char *text, int res)
+int log_audit_event(int type, const char *text, int res)
 {
-	audit_log_user_message(audit_fd, type, text, NULL, NULL, NULL, res);
+	return audit_log_user_message(audit_fd, type, text,
+				      NULL, NULL, NULL, res);
 }
 
 

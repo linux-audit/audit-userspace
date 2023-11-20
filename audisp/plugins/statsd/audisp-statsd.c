@@ -218,9 +218,9 @@ static void get_kernel_status(void)
 	struct audit_reply rep;
 
 	audit_request_status(audit_fd);
-	audit_get_reply(audit_fd, &rep, GET_REPLY_BLOCKING, 0);
+	int rc = audit_get_reply(audit_fd, &rep, GET_REPLY_BLOCKING, 0);
 
-	if (rep.type == AUDIT_GET) {
+	if (rc > 0 && rep.type == AUDIT_GET) {
 		// add info to global audit event struct
 		r.lost = rep.status->lost;
 		r.backlog = rep.status->backlog;

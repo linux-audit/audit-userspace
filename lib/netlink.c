@@ -280,7 +280,8 @@ retry:
 	else if (rc > 0 && rep.type == NLMSG_ERROR) {
 		int error = rep.error->error;
 		/* Eat the message */
-		(void)audit_get_reply(fd, &rep, GET_REPLY_NONBLOCKING, 0);
+		if (audit_get_reply(fd, &rep, GET_REPLY_NONBLOCKING, 0))
+			; // intentionally empty
 
 		/* NLMSG_ERROR can indicate success, only report nonzero */ 
 		if (error) {

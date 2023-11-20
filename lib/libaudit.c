@@ -473,7 +473,8 @@ int audit_set_pid(int fd, uint32_t pid, rep_wait_t wmode)
 		rc = poll(pfd, 1, 100);	/* .1 second */
 	} while (rc < 0 && errno == EINTR);
 
-	(void)audit_get_reply(fd, &rep, GET_REPLY_NONBLOCKING, 0);
+	if (audit_get_reply(fd, &rep, GET_REPLY_NONBLOCKING, 0))
+		; // intentionally empty
 	return 1;
 }
 

@@ -1044,7 +1044,8 @@ static void clean_exit(void)
 	audit_msg(LOG_INFO, "The audit daemon is exiting.");
 	if (fd >= 0) {
 		if (!opt_aggregate_only)
-			audit_set_pid(fd, 0, WAIT_NO);
+			if (audit_set_pid(fd, 0, WAIT_NO))
+				; // intentionally empty
 		audit_close(fd);
 	}
 	if (pidfile)
