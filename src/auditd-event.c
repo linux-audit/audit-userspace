@@ -1069,8 +1069,12 @@ static void fix_disk_permissions(void)
 	// Start with the directory
 	strcpy(path, config->log_file);
 	dir = dirname(path);
-	chmod(dir, config->log_group ? S_IRWXU|S_IRGRP|S_IXGRP : S_IRWXU);
-	chown(dir, 0, config->log_group ? config->log_group : 0);
+	if (chmod(dir,config->log_group ? S_IRWXU|S_IRGRP|S_IXGRP: S_IRWXU) < 0)
+		audit_msg(LOG_WARNING, "Couldn't change access mode of "
+			"%s (%s)", dir, strerror(errno));
+	if (chown(dir, 0, config->log_group ? config->log_group : 0) < 0)
+		audit_msg(LOG_WARNING, "Couldn't change ownership of "
+			"%s (%s)", dir, strerror(errno));
 
 	// Now, for each file...
 	for (i = 1; i < config->num_logs; i++) {
@@ -1430,7 +1434,8 @@ static void reconfigure(struct auditd_event *e)
 	if (oconf->priority_boost != nconf->priority_boost) {
 		oconf->priority_boost = nconf->priority_boost;
 		errno = 0;
-		nice(-oconf->priority_boost);
+		if (nice(-oconf->priority_boost))
+			; /* Intentionally blank, we have to check errno */
 		if (errno)
 			audit_msg(LOG_WARNING, "Cannot change priority in "
 					"reconfigure (%s)", strerror(errno));

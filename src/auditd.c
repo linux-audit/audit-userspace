@@ -575,7 +575,8 @@ static void pipe_handler(struct ev_loop *loop, struct ev_io *io,
 	char buf[16];
 
 	// Drain the pipe - won't block because libev sets non-blocking mode
-	read(pipefds[0], buf, sizeof(buf));
+	if (read(pipefds[0], buf, sizeof(buf)) < 0)
+		; /* Intentionally blank - nothing we can do */
 	enqueue_event(reconfig_ev);
 	reconfig_ev = NULL;
 }
@@ -583,7 +584,8 @@ static void pipe_handler(struct ev_loop *loop, struct ev_io *io,
 void reconfig_ready(void)
 {
 	const char *msg = "ready\n";
-	write(pipefds[1], msg, strlen(msg));
+	if (write(pipefds[1], msg, strlen(msg)) < 0)
+		; /* Intentionally empty - nothing we can do */
 }
 
 static void close_pipes(void)
@@ -723,7 +725,8 @@ int main(int argc, char *argv[])
 
 	if (config.priority_boost != 0) {
 		errno = 0;
-		nice((int)-config.priority_boost);
+		if (nice((int)-config.priority_boost))
+			; /* Intentionally blank, we have to check errno */
 		if (errno) {
 			audit_msg(LOG_ERR, "Cannot change priority (%s)", 
 					strerror(errno));
