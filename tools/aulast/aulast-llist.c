@@ -140,11 +140,15 @@ int list_update_logout(llist* l, time_t t, unsigned long serial)
 lnode *list_delete_cur(llist *l)
 {
         register lnode *cur, *prev;
-                                                                                
-       	prev = cur = l->head;	/* start at the beginning */
+
+	if (l == NULL || l->head == NULL)
+		return NULL;
+
+	prev = cur = l->head;	/* start at the beginning */
 	while (cur) {
 		if (cur == l->cur) {
-			if (cur == prev && cur == l->head) {
+			// If the first iteration
+			if (prev == l->head && cur == l->head) {
 				l->head = cur->next;
 				l->cur = cur->next;
 				free((void *)cur->name);
