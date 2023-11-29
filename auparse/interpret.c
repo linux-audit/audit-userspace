@@ -2709,7 +2709,7 @@ static const char *print_a2(const char *val, const idata *id)
 			else if (strncmp(sys, "faccessat", 9) == 0)
 				return print_access(val);
 			else if (strncmp(sys, "fsmount", 7) == 0)
-				print_mount(val);
+				return print_mount(val);
 		} else if (*sys == 's') {
 			if (strcmp(sys, "setresuid") == 0)
 				return print_uid(val, 16);
