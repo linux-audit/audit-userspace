@@ -25,8 +25,15 @@
 
 #include <sys/types.h>
 #include "dso.h"
+// These macros originate in sys/cdefs.h
 #ifndef __attr_access
 #  define __attr_access(x)
+#endif
+#ifndef __attr_dealloc
+#  define __attr_dealloc(dealloc, argno)
+#endif
+#ifndef __wur
+# define __wur
 #endif
 AUDIT_HIDDEN_START
 

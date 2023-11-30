@@ -26,7 +26,6 @@
 #include <arpa/inet.h>
 #include <errno.h>
 #include <fcntl.h>
-#include <limits.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -49,7 +48,11 @@ struct queue
 	unsigned char buffer[];	/* Used only locally within q_peek() */
 };
 
-/* Infrastructure */
+/* Local Declarations */
+static int full_pread(int fd, void *buf, size_t size, off_t offset)
+	__attr_access ((__write_only__, 2, 3));
+static int full_pwrite(int fd, const void *buf, size_t size, off_t offset)
+	__attr_access ((__read_only__, 2, 3));
 
 /* Compile-time expression verification */
 #define verify(E) do {				\
@@ -64,8 +67,8 @@ static int full_pread(int fd, void *buf, size_t size, off_t offset)
 	while (size != 0) {
 		ssize_t run, res;
 
-		if (size > SSIZE_MAX)
-			run = SSIZE_MAX;
+		if (size > QUEUE_ENTRY_SIZE)
+			run = QUEUE_ENTRY_SIZE;
 		else
 			run = size;
 		res = pread(fd, buf, run, offset);
@@ -89,8 +92,8 @@ static int full_pwrite(int fd, const void *buf, size_t size, off_t offset)
 	while (size != 0) {
 		ssize_t run, res;
 
-		if (size > SSIZE_MAX)
-			run = SSIZE_MAX;
+		if (size > QUEUE_ENTRY_SIZE)
+			run = QUEUE_ENTRY_SIZE;
 		else
 			run = size;
 		res = pwrite(fd, buf, run, offset);
