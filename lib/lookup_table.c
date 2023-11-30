@@ -330,9 +330,11 @@ int audit_name_to_errno(const char *error)
 const char *audit_errno_to_name(int error)
 {
 #ifndef NO_TABLES
-	if (error < 0)
+	// No error
+	if (error == 0)
 		return NULL;
 
+	// If negative, turn positive to search on
 	if (error < 0)
 		error *= -1;
 
