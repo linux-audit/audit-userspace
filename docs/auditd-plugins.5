@@ -1,4 +1,4 @@
-.TH AUDITD-PLUGINS "5" "Apr 2023" "Red Hat" "System Administration Utilities"
+.TH AUDITD-PLUGINS "5" "Jan 2024" "Red Hat" "System Administration Utilities"
 .SH NAME
 auditd-plugins \- realtime event receivers
 .SH DESCRIPTION
@@ -32,9 +32,9 @@ are the only choices. You cannot make a plugin operate in a way it wasn't design
 This is the absolute path to the plugin executable. In the case of internal plugins, it would be the name of the plugin.
 .TP
 .I type
-This tells the dispatcher how the plugin wants to be run. There is currently only one option,
-.IR builtin
-, which is the default setting.
+This tells the dispatcher how the plugin wants to be run. There is only one valid option,
+.IR always
+, which means the plugin is external and should always be run. The default is always since there are no more builtin plugins.
 .TP
 .I args
 This allows you to pass arguments to the child program. Generally plugins do not take arguments and have their own config file that instructs them how they should be configured. At the moment, there is a limit of 2 args.
