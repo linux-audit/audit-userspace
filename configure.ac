@@ -158,22 +158,13 @@ else
 	else
 	echo "Python3 bindings WILL be built"
 	use_python3=yes
-	AC_PATH_PROG([PYTHON3], [python3], [no])
-	if test "x$PYTHON3" = "xno" ; then
-		echo "The python3 program was not found in the search path. Please ensure"
-		echo "that it is installed and its directory is included in the search path or"
-		echo "pass --without-python3 to ./configure."
-		exit 1
-	fi
+	AM_PATH_PYTHON([3.1],, [:])
 	PYTHON3_CFLAGS=`python3-config --cflags 2> /dev/null`
 	PYTHON3_LIBS=`python3-config --libs 2> /dev/null`
 	PYTHON3_INCLUDES=`python3-config --includes 2> /dev/null`
-	AC_SUBST([PYTHON3_PREFIX], ['${prefix}'])
-	PYTHON3_EXECDIR=`$PYTHON3 -c "import sysconfig; print(sysconfig.get_path('platlib'))"`
 	AC_SUBST(PYTHON3_CFLAGS)
 	AC_SUBST(PYTHON3_LIBS)
 	AC_SUBST(PYTHON3_INCLUDES)
-	AC_SUBST(py3execdir, $PYTHON3_EXECDIR)
 	fi
 fi
 AM_CONDITIONAL(USE_PYTHON3, test ${use_python3} = "yes")

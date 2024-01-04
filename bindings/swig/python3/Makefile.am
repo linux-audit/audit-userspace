@@ -27,9 +27,9 @@ LIBS = $(top_builddir)/lib/libaudit.la
 SWIG_FLAGS = -python
 SWIG_INCLUDES = -I. -I$(top_builddir) -I${top_srcdir}/lib $(PYTHON3_INCLUDES)
 PYTHON = $(PYTHON3)
-py3exec_PYTHON = audit.py
-py3exec_LTLIBRARIES = _audit.la
-py3exec_SOLIBRARIES = _audit.so
+pyexec_PYTHON = audit.py
+pyexec_LTLIBRARIES = _audit.la
+pyexec_SOLIBRARIES = _audit.so
 _audit_la_CFLAGS = -shared
 _audit_la_LDFLAGS = -module -avoid-version -Wl,-z,relro
 _audit_la_HEADERS: $(top_builddir)/config.h 

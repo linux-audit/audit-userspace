@@ -1,5 +1,5 @@
 # Makefile.am --
-# Copyright 2015 Red Hat Inc., Durham, North Carolina.
+# Copyright 2015,2024 Red Hat Inc.
 # All Rights Reserved.
 #
 # This library is free software; you can redistribute it and/or
@@ -25,7 +25,7 @@ CONFIG_CLEAN_FILES = *.loT *.rej *.orig
 AM_CFLAGS = -fPIC -DPIC -fno-strict-aliasing $(PYTHON3_CFLAGS)
 AM_CPPFLAGS = -I$(top_builddir) $(PYTHON3_INCLUDES)
 
-py3exec_LTLIBRARIES = auparse.la
+pyexec_LTLIBRARIES = auparse.la
 
 auparse_la_SOURCES = $(top_srcdir)/bindings/python/auparse_python.c
 auparse_la_CPPFLAGS = -I$(top_srcdir)/auparse $(AM_CPPFLAGS)
