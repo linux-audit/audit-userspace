@@ -50,6 +50,7 @@ report_t report_format = RPT_DEFAULT;
 unsigned int event_id = -1;
 gid_t event_gid = -1, event_egid = -1;
 ilist *event_type = NULL;
+int event_type_inverted = -1;
 pid_t event_pid = -1, event_ppid = -1;
 success_t event_success = S_UNSET;
 auparse_esc_t escape_mode = AUPARSE_ESC_TTY;
@@ -93,7 +94,8 @@ S_TIME_END, S_TIME_START, S_TERMINAL, S_ALL_UID, S_EFF_UID, S_UID, S_LOGINID,
 S_VERSION, S_EXACT_MATCH, S_EXECUTABLE, S_CONTEXT, S_SUBJECT, S_OBJECT,
 S_PPID, S_KEY, S_RAW, S_NODE, S_IN_LOGS, S_JUST_ONE, S_SESSION, S_EXIT,
 S_LINEBUFFERED, S_UUID, S_VMNAME, S_DEBUG, S_CHECKPOINT, S_ARCH, S_FORMAT,
-S_EXTRA_TIME, S_EXTRA_LABELS, S_EXTRA_KEYS, S_EXTRA_OBJ2, S_ESCAPE, S_EOE_TMO };
+S_EXTRA_TIME, S_EXTRA_LABELS, S_EXTRA_KEYS, S_EXTRA_OBJ2, S_ESCAPE, S_EOE_TMO,
+S_MESSAGE_TYPE_EXCLUDE };
 
 static const struct nv_pair optiontab[] = {
 	{ S_EVENT, "-a" },
@@ -136,6 +138,8 @@ static const struct nv_pair optiontab[] = {
 	{ S_LINEBUFFERED, "--line-buffered" },
 	{ S_MESSAGE_TYPE, "-m" },
 	{ S_MESSAGE_TYPE, "--message" },
+	{ S_MESSAGE_TYPE_EXCLUDE, "-M" },
+	{ S_MESSAGE_TYPE_EXCLUDE, "--message-exclude" },
 	{ S_NODE, "-n" },
 	{ S_NODE, "--node" },
 	{ S_OBJECT, "-o" },
@@ -222,6 +226,7 @@ static void usage(void)
 	"\t-k,--key  <key string>\t\tsearch based on key field\n"
 	"\t-l, --line-buffered\t\tFlush output on every line\n"
 	"\t-m,--message  <Message type>\tsearch based on message type\n"
+	"\t-M,--message-exclude  <Message type>\texclude based on message type\n"
 	"\t-n,--node  <Node name>\t\tsearch based on machine's name\n"
 	"\t-o,--object  <SE Linux Object context> search based on context of object\n"
 	"\t-p,--pid  <Process id>\t\tsearch based on process id\n"
@@ -317,6 +322,8 @@ int check_params(int count, char *vars[])
 		return -1;
 	}
 	while (c < count && retval == 0) {
+		int option;
+
 		// Go ahead and point to the next argument
 		if (c+1 < count) {
 			if (vars[c+1][0] != '-')
@@ -326,7 +333,8 @@ int check_params(int count, char *vars[])
 		} else
 			optarg = NULL;
 
-		switch (audit_lookup_option(vars[c])) {
+		option = audit_lookup_option(vars[c]);
+		switch (option) {
 		case S_EVENT:
 			if (!optarg) {
 				fprintf(stderr,
@@ -607,12 +615,19 @@ int check_params(int count, char *vars[])
 			}
 			break;
 		case S_MESSAGE_TYPE:
+		case S_MESSAGE_TYPE_EXCLUDE:
 	                if (!optarg) {
 				fprintf(stderr,
 					"Argument is required for %s\n",
 					vars[c]);
 				retval = -1;
+			} else if ((option == S_MESSAGE_TYPE && event_type_inverted == 1) ||
+				    option == S_MESSAGE_TYPE_EXCLUDE && event_type_inverted == 0) {
+				fprintf(stderr,
+					"Option -m is mutual exclusive with option -M\n");
+				retval = -1;
 	                } else {
+				event_type_inverted = (option == S_MESSAGE_TYPE_EXCLUDE);
 				if (strcasecmp(optarg, "ALL") != 0) {
 					retval = parse_msg(optarg);
 				}

@@ -144,7 +144,7 @@ int match(llist *l)
 						if (found)
 							break;
 					} while ((n = list_next(l)));
-					if (!found)
+					if (!(found ^ event_type_inverted))
 						return 0;
 				}
 
