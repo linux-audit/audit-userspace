@@ -261,6 +261,32 @@ static void check_events(lol *lo, time_t sec)
 	}
 }
 
+// This function will check events to see if they are complete but not compare against a given time
+static void check_events_without_time(lol *lo)
+{
+	int i;
+
+	for(i=0;i<=lo->maxi; i++) {
+		lolnode *cur = &lo->array[i];
+		if (cur->status == L_BUILDING) {
+			/* We now iterate over the event's records but without affecting the node's current
+			 * pointer (cur->l->cur). That is, we don't call the list-* routines
+			 * We could jump to the last record in the list which is normally a PROCTITLE, but this
+			 * may not be guaranteed, so we check all record types
+			 */
+			lnode *ln = cur->l->head;
+			while (ln) {
+				if (audit_is_last_record(ln->type)) {
+					cur->status = L_COMPLETE;
+					ready++;
+					break;
+				}
+				ln = ln->next;
+			}
+		}
+	}
+}
+
 // This function adds a new record to an existing linked list
 // or creates a new one if its a new event
 int lol_add_record(lol *lo, char *buff)
@@ -358,6 +384,13 @@ void terminate_all_events(lol *lo)
 			ready++;
 		}
 	}
+}
+
+// This function will mark all events as complete if it can.
+void complete_all_events(lol *lo)
+{
+
+	check_events_without_time(lo);
 }
 
 /* Search the list for any event that is ready to go. The caller
