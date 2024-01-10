@@ -610,19 +610,21 @@ static int get_next_event(llist **l)
 			 * If we get an EINTR error or we are at EOF, we check
 			 * to see if we have any events to print and return
 			 * appropriately. If we are the last file being
-			 * processed, we mark all incomplete events as
-			 * complete so they will be printed.
+			 * processed, and we are not checkpointing, we mark all incomplete
+			 * events as complete so they will be printed. If we are checkpointing
+			 * we do an exhaustive validation to see if there are complete events still
 			 */
 			if ((ferror_unlocked(log_fd) &&
 			     errno == EINTR) || feof_unlocked(log_fd)) {
 				/*
-				 * Only mark all events as L_COMPLETE if we are
+				 * Only attempt to mark all events as L_COMPLETE if we are
 				 * the last file being processed.
-				 * We DO NOT do this if we are checkpointing.
 				 */
 				if (files_to_process == 0) {
 					if (!checkpt_filename)
-					terminate_all_events(&lo);
+					 	terminate_all_events(&lo);	// terminate as we are not checkpointing
+					else
+					 	complete_all_events(&lo);	// exhaustively check if we can complete events
 				}
 				*l = get_ready_event(&lo);
 				if (*l)
