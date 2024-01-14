@@ -56,8 +56,6 @@ AX_PROG_CC_FOR_BUILD
 
 echo .
 echo Checking for header files
-AC_HEADER_TIME
-
 AC_CHECK_SIZEOF([unsigned int])
 AC_CHECK_SIZEOF([unsigned long])
 AC_CHECK_SIZEOF([long])
