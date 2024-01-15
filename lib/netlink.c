@@ -26,6 +26,7 @@
 #include <string.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <limits.h>
 #include <time.h>
 #include <sys/poll.h>
 #include "libaudit.h"
@@ -204,8 +205,10 @@ int __audit_send(int fd, int type, const void *data, unsigned int size, int *seq
 		return -errno;
 	}
 
-	if (++sequence < 0) 
+	if (sequence == INT_MAX)
 		sequence = 1;
+	else
+		sequence++;
 	*seq = sequence;
 
 	memset(&req, 0, sizeof(req));
