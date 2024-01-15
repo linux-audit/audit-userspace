@@ -1964,15 +1964,43 @@ void audit_rule_free_data(struct audit_rule_data *rule)
 	free(rule);
 }
 
+static void memset_secure(void *buf, size_t size)
+{
+	buf = memset(buf, '\0', size);
+	__asm__ __volatile__ ("" : : "r"(buf) : "memory");
+}
+
 // This use is OK because its creating rules for the local
 // machine and is looking up a local user.
 static int audit_name_to_uid(const char *name, uid_t *uid)
 {
-	struct passwd *pw;
+	struct passwd pwd;
+	struct passwd *result;
+	char *buf;
+	long bufsize;
+	int rc;
+
+	bufsize = sysconf(_SC_GETPW_R_SIZE_MAX);
+	if (bufsize <= 0)
+		bufsize = 1024;
+
+retry:
+	buf = malloc(bufsize);
+	if (!buf)
+		return 1;
 
 	errno = 0;
-	pw = getpwnam(name);
-	if (pw == NULL) {
+	rc = getpwnam_r(name, &pwd, buf, bufsize, &result);
+	if (rc == ERANGE) {
+		free(buf);
+		if (__builtin_mul_overflow(bufsize, 2, &bufsize)) {
+			errno = ENOMEM;
+			return 1;
+		}
+		goto retry;
+	}
+	if (result == NULL) {
+		free(buf);
 		/* getpwnam() might return ECONNREFUSED in some very
 		 * specific cases when using LDAP.
 		 * Manually set it to ENOENT so callers don't get confused
@@ -1982,25 +2010,52 @@ static int audit_name_to_uid(const char *name, uid_t *uid)
 		return 1;
 	}
 
-	memset(pw->pw_passwd, ' ', strlen(pw->pw_passwd));
-	*uid = pw->pw_uid;
+	*uid = result->pw_uid;
+	memset_secure(buf, bufsize);
+	free(buf);
+
 	return 0;
 }
 
 static int audit_name_to_gid(const char *name, gid_t *gid)
 {
-	struct group *gr;
+	struct group gr;
+	struct group *result;
+	char *buf;
+	long bufsize;
+	int rc;
+
+	bufsize = sysconf(_SC_GETGR_R_SIZE_MAX);
+	if (bufsize <= 0)
+		bufsize = 1024;
+
+retry:
+	buf = malloc(bufsize);
+	if (!buf)
+		return 1;
 
 	errno = 0;
-	gr = getgrnam(name);
-	if (gr == NULL) {
+	rc = getgrnam_r(name, &gr, buf, bufsize, &result);
+	if (rc == ERANGE) {
+		free(buf);
+		if (__builtin_mul_overflow(bufsize, 2, &bufsize)) {
+			errno = ENOMEM;
+			return 1;
+		}
+		goto retry;
+	}
+	if (result == NULL) {
+		free(buf);
 		/* See above for explanation. */
 		if (errno == ECONNREFUSED)
 			errno = ENOENT;
 		return 1;
 	}
 
-	*gid = gr->gr_gid;
+	*gid = result->gr_gid;
+	memset_secure(buf, bufsize);
+	free(buf);
+
 	return 0;
 }
 
