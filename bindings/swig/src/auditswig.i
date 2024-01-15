@@ -21,6 +21,12 @@
 %module audit
 %{
         #include "../lib/audit_logging.h"
+// Have to declare these so they can be wrapped later
+extern int audit_elf_to_machine(unsigned int elf);
+extern const char *audit_machine_to_name(int machine);
+extern const char *audit_syscall_to_name(int sc, int machine);
+extern int audit_detect_machine(void);
+extern const char *audit_msg_type_to_name(int msg_type);
 %}
 
 #if defined(SWIGPYTHON)
@@ -49,6 +55,12 @@ typedef unsigned uid_t;
 %include <stdint.i>
 %include "../lib/audit-records.h"
 %include "../lib/audit_logging.h"
-extern int  audit_open(void);
-extern void audit_close(int fd);
 
+/*
+ * These are provided especially for setroubleshooter support
+ */
+int audit_elf_to_machine(unsigned int elf);
+const char *audit_machine_to_name(int machine);
+const char *audit_syscall_to_name(int sc, int machine);
+int audit_detect_machine(void);
+const char *audit_msg_type_to_name(int msg_type);
