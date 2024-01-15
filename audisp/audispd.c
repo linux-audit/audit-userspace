@@ -60,6 +60,8 @@ static void signal_plugins(int sig);
 static int event_loop(void);
 static int safe_exec(plugin_conf_t *conf);
 static void *outbound_thread_main(void *arg);
+static int write_to_plugin(event_t *e, const char *string, size_t string_len,
+			   lnode *conf) __attr_access ((__read_only__, 2, 3));
 
 /*
  * Handle child plugins when they exit

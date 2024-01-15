@@ -56,24 +56,24 @@ struct nv_list
 };
 
 static char *get_line(FILE *f, char *buf, unsigned size, int *lineno,
-		const char *file);
+		const char *file) __attr_access ((__write_only__, 2, 3));
 static int nv_split(char *buf, struct nv_pair *nv);
 static const struct kw_pair *kw_lookup(const char *val);
-static int active_parser(struct nv_pair *nv, int line, 
+static int active_parser(struct nv_pair *nv, int line,
 		plugin_conf_t *config);
-static int direction_parser(struct nv_pair *nv, int line, 
+static int direction_parser(struct nv_pair *nv, int line,
 		plugin_conf_t *config);
-static int path_parser(struct nv_pair *nv, int line, 
+static int path_parser(struct nv_pair *nv, int line,
 		plugin_conf_t *config);
-static int service_type_parser(struct nv_pair *nv, int line, 
+static int service_type_parser(struct nv_pair *nv, int line,
 		plugin_conf_t *config);
-static int args_parser(struct nv_pair *nv, int line, 
+static int args_parser(struct nv_pair *nv, int line,
 		plugin_conf_t *config);
-static int format_parser(struct nv_pair *nv, int line, 
+static int format_parser(struct nv_pair *nv, int line,
 		plugin_conf_t *config);
 static int sanity_check(plugin_conf_t *config, const char *file);
 
-static const struct kw_pair keywords[] = 
+static const struct kw_pair keywords[] =
 {
   {"active",                   active_parser,			0 },
   {"direction",                direction_parser,		0 },
