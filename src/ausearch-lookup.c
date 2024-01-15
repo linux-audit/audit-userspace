@@ -1,6 +1,6 @@
 /*
 * ausearch-lookup.c - Lookup values to something more readable
-* Copyright (c) 2005-06,2011-12,2015-17 Red Hat Inc., Durham, North Carolina.
+* Copyright (c) 2005-06,2011-12,2015-17 Red Hat Inc.
 * All Rights Reserved. 
 *
 * This software may be freely redistributed and/or modified under the
@@ -253,12 +253,10 @@ void aulookup_destroy_uid_list(void)
 
 static int is_hex_string(const char *str)
 {
-	int c=0;
 	while (*str) {
 		if (!isxdigit(*str))
 			return 0;
 		str++;
-		c++;
 	}
 	return 1;
 }

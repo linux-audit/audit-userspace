@@ -1,5 +1,5 @@
 /* auditd-listen.c -- 
- * Copyright 2008,2009,2011,2016,2018 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2008,2009,2011,2016,2018 Red Hat Inc.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -506,7 +506,7 @@ static void client_ack(void *ack_data, const unsigned char *header,
 	if (USE_GSS) {
 		OM_uint32 major_status, minor_status;
 		gss_buffer_desc utok, etok;
-		int rc, mlen;
+		int mlen;
 
 		mlen = strlen(msg);
 		utok.length = AUDIT_RMW_HEADER_SIZE + mlen;
@@ -532,8 +532,8 @@ static void client_ack(void *ack_data, const unsigned char *header,
 			free(utok.value);
 			return;
 		}
-		// FIXME: What were we going to do with rc?
-		rc = send_token(io->io.fd, &etok);
+		// FIXME: Should we check the return code of this?
+		send_token(io->io.fd, &etok);
 		free(utok.value);
 		(void) gss_release_buffer(&minor_status, &etok);
 
