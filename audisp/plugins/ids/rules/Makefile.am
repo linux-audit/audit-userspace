@@ -22,6 +22,6 @@
 
 CONFIG_CLEAN_FILES = *.rej *.orig
 EXTRA_DIST = 25-connections.rules  25-make-exec.rules  25-recon.rules  25-unpacking.rules
-rulesdir = $(datadir)/audit/ids-rules
+rulesdir = $(datadir)/audit-rules/ids-rules
 dist_rules_DATA = $(EXTRA_DIST)
 
