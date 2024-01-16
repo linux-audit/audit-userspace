@@ -14,7 +14,7 @@
 - Change auditctl to use pidfd_send_signal for signaling auditd
 - Adjust watches to optimize syscalls hooked when watch file access
 - Drop nispom rules
-- Update syscall tables to the 6.8 kernel
+- Update syscall and interpretation tables to the 6.8 kernel
 
 3.1.2
 - When processing a run level change, make auditd exit

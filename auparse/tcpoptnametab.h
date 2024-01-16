@@ -14,7 +14,7 @@
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Foundation Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA
  *
  * Authors:
  *      Steve Grubb <sgrubb@redhat.com>
@@ -58,3 +58,9 @@ _S(34, "TCP_FASTOPEN_NO_COOKIE")
 _S(35, "TCP_ZEROCOPY_RECEIVE")
 _S(36, "TCP_INQ")
 _S(37, "TCP_TX_DELAY")
+_S(38, "TCP_AO_ADD_KEY")
+_S(39, "TCP_AO_DEL_KEY")
+_S(40, "TCP_AO_INFO")
+_S(41, "TCP_AO_GET_KEYS")
+_S(42, "TCP_AO_REPAIR")
+
