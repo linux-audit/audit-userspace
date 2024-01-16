@@ -6,28 +6,31 @@ The Linux Audit System is designed to make Linux compliant with the requirements
 RUNTIME DEPENDENCIES
 --------------------
 * coreutils
-* initscripts-service
+* initscripts-service (Recommended - soft requirement)
 * kernel >= 5.0 
 * systemd
 
-BUILD-TIME DEPENDENCIES
------------------------
+BUILD-TIME DEPENDENCIES (for tar file)
+--------------------------------------
 * gcc (or clang)
+* make
+* kernel-headers >= 5.0
+* systemd
+
+ADDITIONAL BUILD-TIME DEPENDENCIES (if using github sources)
+------------------------------------------------------------
 * autoconf
 * automake
 * libtool
-* make
-* kernel-headers >= 3.0
-* systemd-devel
 
 OPTIONAL DEPENDENCIES
 ---------------------
-* golang
-* krb5-devel
-* libcap-ng-devel
-* openldap-devel
-* python3-devel
-* swig
+* libcap-ng-devel  (dropping capabilities)
+* krb5-devel       (remote logging)
+* python3-devel    (python bindings)
+* swig             (python bindings)
+* openldap-devel   (zos-remote logging)
+* golang           (golang bindings)
 
 SUPPORTED ARCHITECTURES
 -----------------------
