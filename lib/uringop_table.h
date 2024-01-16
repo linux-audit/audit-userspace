@@ -1,5 +1,5 @@
 /* uringop_table.h --
- * Copyright 2005-23 Red Hat Inc.
+ * Copyright 2005-24 Red Hat Inc.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -14,19 +14,22 @@
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Foundation Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA
  *
  * Authors:
  *      Richard Guy Briggs <rgb@redhat.com>
  */
 
 /*
- *  From /usr/include/linux/io_uring.h
- *  kernel location here: io_uring/opdef.c
+ *  Enums defined in include/uapi/linux/io_uring.h
+ *  Operations defined here: io_uring/opdef.c
  *
  *  Note: not all ops are auditable for performance reasons. This was
  *  discussed on the linux-audit mail list:
  *  https://listman.redhat.com/archives/linux-audit/2021-June/018042.html
+ *
+ *  Operations in opdef.c will have a field, audit_skip, if they are not
+ *  auditable. Any operation missing this is auditable and needs to be added.
  */
 
 _S(9,	"sendmsg")
@@ -49,6 +52,8 @@ _S(42,  "setxattr")
 _S(43,  "fgetxattr")
 _S(44,  "getxattr")
 _S(46,  "uring_cmd")
-_S(47,  "send_zc")
 _S(48,	"sendmsg_zc")
-
+_S(50,  "waitid")
+_S(51,  "futex_wait")
+_S(52,  "futex_wake")
+_S(53,  "futex_waitv")
