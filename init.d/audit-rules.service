@@ -1,8 +1,10 @@
 [Unit]
-Description=Loads Audit Rule
+Description=Load Audit Rules
 ConditionKernelCommandLine=!audit=0
 ConditionKernelCommandLine=!audit=off
 DefaultDependencies=no
+# We need the local file system for the rules. Augenrules uses /tmp while
+# constructing rules, so we have to wait for that to be available, too.
 After=local-fs.target systemd-tmpfiles-setup.service
 
 Documentation=man:auditctl(8) https://github.com/linux-audit/audit-documentation
