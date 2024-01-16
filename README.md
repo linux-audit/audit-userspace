@@ -8,7 +8,6 @@ RUNTIME DEPENDENCIES
 * coreutils
 * initscripts-service
 * kernel >= 5.0 
-* procps-ng
 * systemd
 
 BUILD-TIME DEPENDENCIES
@@ -42,7 +41,7 @@ NOTE: **There is a moratorium on adding support for any new platforms.** Syscall
 
 MAIL LIST
 ---------
-The audit community has a [mail list](http://www.redhat.com/mailman/listinfo/linux-audit). It is the best place to ask questions because the mail archive is searchable and therefore discoverable.
+The audit community has a [mail list](https://lists.linux-audit.osci.io/archives/list/linux-audit@lists.linux-audit.osci.io/). It is the best place to ask questions because the mail archive is searchable and therefore discoverable.
 
 CONFIGURING AND COMPILING
 -------------------------
@@ -61,11 +60,7 @@ If you are packaging this, you probably want to do "make dist" instead and use t
 
 CROSS COMPILING
 ---------------
-Cross compiling is not supported. The audit system builds native binaries at
-build time and uses those to create sorted btrees for fast lookup during
-event processing and reporting. To enable cross compiling, those binaries
-would need to be rewritten in python or another scripting language. No one is
-currently working on that.
+Cross compiling is not officially supported. There have been people that have submitted patches to make it work. But it is not documented how to make it work. It is likely that you have to somehow override CC, CXX, RANLIB, AR, LD, and NM when running configure to pickup the cross compiler, linker, archive, etc.
 
 OVERVIEW
 --------
@@ -242,4 +237,8 @@ The auparse library is available to allow one to create custom reporting applica
 - Accessors to field data
 
 You can write programs in one of two ways: iterate across events, records, and fields; or use the feed API and to which a callback function is presented with a single, complete event that can be iterated across the records and fields. The former is best for working with files, while the latter is more appropriate for realtime data for a plugin.
+
+Audit Standards
+---------------
+You can find the standards to which the audit system conforms to in the ![Audit Documentation Project](https://github.com/linux-audit/audit-documentation).
 

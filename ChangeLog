@@ -1,4 +1,4 @@
-3.9
+4.0
 - Drop python2 support
 - Drop auvirt and autrace programs
 - Drop SysVinit support
