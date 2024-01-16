@@ -14,6 +14,8 @@
 - Change auditctl to use pidfd_send_signal for signaling auditd
 - Adjust watches to optimize syscalls hooked when watch file access
 - Drop nispom rules
+- Add intepretations for fsconfig, fsopen, fsmount, & move_mount
+- Many code fixups (cgzones)
 - Update syscall and interpretation tables to the 6.8 kernel
 
 3.1.2
