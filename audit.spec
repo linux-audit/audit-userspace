@@ -1,6 +1,6 @@
 Summary: User space tools for kernel auditing
 Name: audit
-Version: 4.0
+Version: 4.0.1
 Release: 1%{dist}
 License: GPL-2.0-or-later AND LGPL-2.0-or-later
 Group: System Environment/Daemons
@@ -267,6 +267,6 @@ fi
 %config(noreplace) %attr(640,root,root) /etc/audit/audit-stop.rules
 
 %changelog
-* Tue Jan 16 2024 Steve Grubb <sgrubb@redhat.com> 4.0-1
+* Tue Jan 16 2024 Steve Grubb <sgrubb@redhat.com> 4.0.1-1
 - New upstream release
 
