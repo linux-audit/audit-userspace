@@ -1,7 +1,7 @@
 Linux Audit
 ===========
 
-The Linux Audit System is designed to make Linux compliant with the requirements from Common Criteria, DSS-PCI, and other security standards by intercepting system calls and serializing audit log entries from privileged user space applications. The framework allows the configured events to be recorded to disk and distributed to plugins in realtime. Each audit event contains the date and time of event, type of event, subject identity, object acted upon, and result (success/fail) of the action if applicable.
+The Linux Audit System is designed to make Linux compliant with the requirements from Common Criteria, PCI-DSS, and other security standards by intercepting system calls and serializing audit log entries from privileged user space applications. The framework allows the configured events to be recorded to disk and distributed to plugins in realtime. Each audit event contains the date and time of event, type of event, subject identity, object acted upon, and result (success/fail) of the action if applicable.
 
 RUNTIME DEPENDENCIES
 --------------------
@@ -71,19 +71,21 @@ The following image illustrates the architecture and relationship of the compone
 
 ![audit-components](https://github.com/linux-audit/audit-userspace/blob/assets/audit-components.png)
 
-In the above diagram, auditd is in the middle. It interfaces with the kernel to receive events. It writes them to the audit logs. It also distributes events in realtime to audisp plugins. To load rules, you use the augenrules program. It in turn uses auditctl to load them into the kernel. Auditctl is used to create, load, and delete rules; configure the kernel's backlog and other parameters; and to gather status about the audit system. The kernel does the heavy lifting to generates the events. In the case of a trusted application, shadow-utils for example, it collects the event, adds origin information, timestamps, and queues the event for delivery to the audit daemon.
+In the above diagram, auditd is in the middle. It interfaces with the kernel to receive events. It writes them to the audit logs. It also distributes events in realtime to audisp plugins. To load rules on 3.x audit system, you use the augenrules program. As of audit-4.0, you would use the audit-rules.service with systemctl. They in turn uses auditctl to load rulkes into the kernel. Auditctl is used to create, load, and delete rules; configure the kernel's backlog and other parameters; and to gather status about the audit system.
+
+ The kernel does the heavy lifting to generates the events. In the case of a trusted application such as shadow-utils, the kernel recieves the event, adds origin information, timestamps, and queues the event for delivery to the audit daemon.
 
 DAEMON CONSIDERATIONS
 ---------------------
 Almost all Security Standards are concerned about what happens when logging space fills up. Because of this, the audit daemon keeps careful track of free space and emits warnings at admin defined levels called "space left" and "admin space left". The former is considered a low disk space warning which should give the admin time to do something. The latter is more serious because you are just about out.
 
-To get an accurate reading, the audit daemon should log to a disk partition that is reserved only for the audit daemon. This way someone using the logger command can't suddenly fill up the audit space and trigger an admin defined action. It is recommended to set aside a partition, /var/log/audit, for use by the audit daemon. The size of which depends on your audit retention policy.
+To get an accurate reading, the audit daemon should log to a disk partition that is reserved only for the audit daemon. This way someone using the logger command can't suddenly fill up the audit space and trigger an admin defined action. It is recommended to set aside a partition, /var/log/audit, for exclusive use by the audit daemon. The size of which depends on your audit retention policy.
 
-The audit daemon is started by systemd. Some people run the "systemd-analyze security" command. It tells you all sorts of things to do to protect your system from auditd. However, doing the things it suggests places auditd in namespaces. When that happens, the audit rules may not trigger correctly and auditd may not be able to access trusted databases. The audit service files are the result of trial and error based on well intentioned patches gone wrong. You can lock it down more, but you probably will break something.
+The audit daemon is started by systemd. Some people run the "systemd-analyze security" command. It tells you all sorts of things to do to protect your system from auditd. However, doing the things it suggests places auditd in namespaces. When that happens, the audit rules may not trigger correctly and auditd may not be able to access trusted databases. The auditd.service file is the result of trial and error based on well intentioned patches gone wrong. You can lock auditd down more, but it likely will not work as intended.
 
 RULES
 -----
-The audit package comes with pre-written rules. They should be located in /usr/share/audit/sample-rules. These rules should solve your problem most of the time. If you look at the rules, you will notice that the filenames begin with a number. This number has the following suggested meaning:
+The audit package comes with pre-written rules. For audit-3.x, they should be located in /usr/share/audit/sample-rules. For audit-4.x, they should be located in /usr/share/audit-rules. These rules should be close enough most of the time. To use them, copy select rules to /etc/auditd/rules.d. If you look at the rules, you will notice that the filenames begin with a number. This number has the following suggested meaning:
 
 ```
 10 - Kernel and auditctl configuration
@@ -95,7 +97,7 @@ The audit package comes with pre-written rules. They should be located in /usr/s
 90 - Finalize (immutable)
 ```
 
-The rules are meant to be used by the augenrules program. The augenrules program expects rules to be located in /etc/audit/rules.d/ The rules will get processed in a specific order based on their natural sort order. To use them, copy them from the /usr/share/audit/sample-rules directory to /etc/audit/rules.d. The kernel's rule engine uses a first match wins strategy. So, the order of the rules matters.
+The rules are meant to be used by the augenrules program. The augenrules program expects rules to be located in /etc/audit/rules.d. The rules will get processed in a specific order based on their natural sort order. The kernel's rule engine uses a first match wins strategy. So, the order of the rules matters.
 
 The sample rules are not meant to be used all at the same time. They are pieces of a policy that should be thought out and individual files copied to /etc/audit/rules.d/ For example, if you wanted to set a system up in the STIG configuration, copy rules 10-base-config, 30-stig, 31-privileged, and 99-finalize. You can add more if you like. But these 4 files are a baseline policy.
 
@@ -126,10 +128,15 @@ There can be optional information, depending on the kind of the event, which may
 - The system call that a process made that caused the event
 - The group ID of the subject
 - Hostname or terminal the subject used for performing the action
+- File being accessed
+- Process being executed with arguments
+- Network address
+- Keystrokes
+- Netfilter packet decisions
 
 SEARCHING AND REPORTING FROM LOGS
 ---------------------------------
-The intended way to view audit events is by using the ausearch program. Audit events are not serialized in the kernel and could be interlaced and out of order. To straighten this out, ausearch/aureport/auparse all put the records on a holding list until the event is complete. It then emits them in sequential order so they are presented in order.
+The intended way to view audit events is by using the ausearch program. Audit events are not serialized in the kernel and could be interlaced and out of order. To straighten this out, ausearch/aureport/auparse all put the records on a holding list until the event is complete. It then emits them in sequential order so they are presented in numeric order.
 
 Some fields are searchable. Typically you will search for a specific kind of event, a specific process, a specific file, or a specific user. The ausearch man page details all the different options. Here are some example searches:
 
@@ -163,7 +170,7 @@ Report all log files and their time range:
 aureport -t
 ```
 
-Sometimes aureport provides too much information. You might want files summarized by accessed by a specific user. In this case, you can combine ausearch and aureport to get the information you need. The main trick to remember is that the output of ausearch has to be in the "raw" format. For example:
+Sometimes aureport provides too much information. You might want a summary of files accessed by a specific user. In this case, you can combine ausearch and aureport to get the information you need. The main trick to remember is that the output of ausearch has to be in the "raw" format. For example:
 
 ```
 Summary of files accessed by uid 1000
@@ -179,7 +186,7 @@ Hosts user logged in from
 ausearch --start this-week -m user_login --raw | aureport --host --summary
 ```
 
-The ausearch program also has a couple more tricks worth knowing about. It has an option, --format, which can take "csv" or "text" as options. In the case of csv, it will emit a condensed audit event normalized to be suitable as a Comma Separated Value file. In this format, you can take the audit logs and do data science queries using python/pandas or the R programming language.
+The ausearch program also has a couple more tricks worth knowing about. It has an option, --format, which can take "csv" or "text" as options. In the case of csv, it will emit a condensed audit event normalized to be suitable as a Comma Separated Value file. In this format, you can take the audit logs and do data science queries using Excel/Sheets, python/pandas, or the R programming language.
 
 The other option, text, can be used to turn the audit events into simple sentences that describe what the event means. There are times when it doesn't have a mapping because the event is new. In those cases, the event may not make sense until the software is updated.
 
@@ -191,9 +198,9 @@ The audit system can output two sets of data to let you know how it's doing. The
 auditctl -s
 ```
 
-This outputs some basic information such as the kernel backlog size, the current backlog, and how many events have been lost. The backlog size is the size of the queue in records that the kernel can hold records waiting for auditd to collect them. This should be around 8k or larger for a system that really does auditing. If you use the audit system to casually collect SELinux AVC's, then you can go lower to something like 256.
+This outputs some basic information such as the kernel backlog size, the current backlog, and how many events have been lost. The backlog size is the size of the queue in records that the kernel can hold waiting for auditd to collect them. This should be around 8k or larger for a system that really does auditing. If you use the audit system to casually collect SELinux AVC's, then you can go lower to something like 256.
 
-The current backlog tells you how many events are awaiting delivery to auditd at that instant. This number should normally be low - less than 10. If this is getting bigger and approaching the backlog limit in size, then you have a problem to look into. Either you are generating too many events or an auditd plugin is taking too long to dequeue records. The auditd daemon is very fast at writing records to disk and can handle thousands per second.
+The current backlog tells you how many events are awaiting delivery to auditd at that instant. This number should normally be low - less than 10. If this is getting bigger and approaching the backlog limit in size, then you have a problem to look into. Either you are generating too many events (rules need adjusting) or an auditd plugin is taking too long to dequeue records. The auditd daemon is very fast at writing records to disk and can handle thousands per second.
 
 Another way to check performance is to use
 
@@ -239,7 +246,7 @@ The auparse library is available to allow one to create custom reporting applica
 - Functions that traverse fields in the same record
 - Accessors to field data
 
-You can write programs in one of two ways: iterate across events, records, and fields; or use the feed API and to which a callback function is presented with a single, complete event that can be iterated across the records and fields. The former is best for working with files, while the latter is more appropriate for realtime data for a plugin.
+You can write programs in one of two ways: iterate across events, records, and fields; or use the feed API to which a callback function is presented with a single, complete event that can be iterated across the records and fields. The former is best for working with files, while the latter is more appropriate for realtime data for a plugin.
 
 Audit Standards
 ---------------
