@@ -398,8 +398,13 @@ static void *outbound_thread_main(void *arg)
 
 static int safe_exec(plugin_conf_t *conf)
 {
-	char *argv[MAX_PLUGIN_ARGS+2];
+	char **argv;
 	int pid, i;
+
+	argv = calloc(conf->nargs + 2, sizeof(char *));
+	if (argv == NULL) {
+		return -1;
+	}
 
 	/* Set up IPC with child */
 	if (socketpair(AF_UNIX, SOCK_STREAM, 0, conf->plug_pipe) != 0)
@@ -408,6 +413,7 @@ static int safe_exec(plugin_conf_t *conf)
 	pid = fork();
 	if (pid > 0) {
 		conf->pid = pid;
+		free(argv);
 		return 0;	/* Parent...normal exit */
 	}
 	if (pid < 0) {
@@ -429,9 +435,11 @@ static int safe_exec(plugin_conf_t *conf)
 
 	/* Child */
 	argv[0] = (char *)conf->path;
-	for (i=1; i<(MAX_PLUGIN_ARGS+1); i++)
-		argv[i] = conf->args[i];
-	argv[i] = NULL;
+	for (i = 0; i < conf->nargs; i++) {
+		argv[i+1] = conf->args[conf->nargs-i-1];
+	}
+	argv[conf->nargs+1] = NULL;
+
 	execve(conf->path, argv, NULL);
 	exit(1);		/* Failed to exec */
 }
