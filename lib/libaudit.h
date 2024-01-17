@@ -248,12 +248,12 @@ int  audit_set_enabled(int fd, uint32_t enabled) __wur;
 int  audit_set_failure(int fd, uint32_t failure) __wur;
 int  audit_set_rate_limit(int fd, uint32_t limit);
 int  audit_set_backlog_limit(int fd, uint32_t limit);
-int audit_set_backlog_wait_time(int fd, uint32_t bwt);
-int audit_reset_lost(int fd);
-int audit_reset_backlog_wait_time_actual(int fd);
+int  audit_set_backlog_wait_time(int fd, uint32_t bwt);
+int  audit_reset_lost(int fd);
+int  audit_reset_backlog_wait_time_actual(int fd);
 int  audit_set_feature(int fd, unsigned feature, unsigned value,
-		      unsigned lock);
-int  audit_set_loginuid_immutable(int fd);
+		      unsigned lock) __wur;
+int  audit_set_loginuid_immutable(int fd) __wur;
 
 /* AUDIT_LIST_RULES */
 int  audit_request_rules_list_data(int fd);
