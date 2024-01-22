@@ -401,11 +401,6 @@ static int safe_exec(plugin_conf_t *conf)
 	char **argv;
 	int pid, i;
 
-	argv = calloc(conf->nargs + 2, sizeof(char *));
-	if (argv == NULL) {
-		return -1;
-	}
-
 	/* Set up IPC with child */
 	if (socketpair(AF_UNIX, SOCK_STREAM, 0, conf->plug_pipe) != 0)
 		return -1;
@@ -413,7 +408,6 @@ static int safe_exec(plugin_conf_t *conf)
 	pid = fork();
 	if (pid > 0) {
 		conf->pid = pid;
-		free(argv);
 		return 0;	/* Parent...normal exit */
 	}
 	if (pid < 0) {
@@ -432,6 +426,11 @@ static int safe_exec(plugin_conf_t *conf)
 	}
 	for (i=3; i<24; i++)	 /* Arbitrary number */
 		close(i);
+
+	argv = calloc(conf->nargs + 2, sizeof(char *));
+	if (argv == NULL) {
+		return -1;
+	}
 
 	/* Child */
 	argv[0] = (char *)conf->path;
