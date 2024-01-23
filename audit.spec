@@ -132,35 +132,42 @@ rm -f rules/Makefile*
 
 %post
 %systemd_post auditd.service
+# If an upgrade, restart it if it's running
+if [ $1 -eq 2 ]; then
+    state=$(systemctl status auditd | awk '/Active:/ { print $2 }')
+    if [ $state = "active" ] ; then
+        auditctl --signal stop || true
+        systemctl start auditd
+    fi
+# if an install, start it since preset says we should be running
+elif [ $1 -eq 1 ]; then
+	systemctl start auditd
+fi
 
 %post rules
+%systemd_post audit-rules.service
 # Copy default rules into place on new installation
 files=`ls /etc/audit/rules.d/ 2>/dev/null | wc -w`
 if [ "$files" -eq 0 ] ; then
 	cp %{_datadir}/%{name}-rules/10-base-config.rules /etc/audit/rules.d/audit.rules
+	# Fix up permissions
 	chmod 0600 /etc/audit/rules.d/audit.rules
+	# Make the new rules active
+	augenrules --load
 fi
-%systemd_post audit-rules.service
 
 %preun
 %systemd_preun auditd.service
+# If uninstalling, stop it
 if [ $1 -eq 0 ]; then
-    auditctl --signal stop
+    auditctl --signal stop || true
 fi
 
 %preun rules
 %systemd_preun audit-rules.service
+# If uninstalling, delete the rules loaded in the kernel
 if [ $1 -eq 0 ]; then
     auditctl -D > /dev/null 2>&1
-fi
-
-%postun
-if [ $1 -ge 1 ]; then
-    state=$(systemctl status auditd | awk '/Active:/ { print $2 }')
-    if [ $state = "active" ] ; then
-        auditctl --signal stop
-        systemctl start auditd
-    fi
 fi
 
 %files libs
