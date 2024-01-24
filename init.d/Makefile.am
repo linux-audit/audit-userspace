@@ -22,7 +22,8 @@
 #
 
 CONFIG_CLEAN_FILES = *.rej *.orig
-EXTRA_DIST = auditd.service auditd.conf auditd.cron \
+CLEANFILES = $(BUILT_SOURCES)
+EXTRA_DIST = auditd.service.in audit-rules.service.in auditd.conf auditd.cron \
 	libaudit.conf auditd.condrestart \
 	auditd.reload auditd.restart auditd.resume \
 	auditd.rotate auditd.state auditd.stop audit-rules.service \
@@ -36,14 +37,22 @@ auditrdir = $(auditdir)/rules.d
 dist_audit_DATA = auditd.conf audit-stop.rules
 sbin_SCRIPTS = augenrules
 
+BUILT_SOURCES = auditd.service audit-rules.service
+%.service: %.service.in Makefile
+	$(AM_V_GEN)sed \
+		-e 's![@]runstatedir[@]!$(runstatedir)!' \
+		-e 's![@]sbindir[@]!$(sbindir)!' \
+		-e 's![@]sysconfdir[@]!$(sysconfdir)!' \
+		$< > $@
+
 install-data-hook:
 	$(INSTALL_DATA) -D -m 640 ${srcdir}/${libconfig} ${DESTDIR}${sysconfdir}
 
 install-exec-hook:
 	mkdir -p ${DESTDIR}${initdir}
 	mkdir -p ${DESTDIR}${legacydir}
-	$(INSTALL_SCRIPT) -D -m 644 ${srcdir}/auditd.service ${DESTDIR}${initdir}
-	$(INSTALL_SCRIPT) -D -m 644 ${srcdir}/audit-rules.service ${DESTDIR}${initdir}
+	$(INSTALL_SCRIPT) -D -m 644 ${builddir}/auditd.service ${DESTDIR}${initdir}
+	$(INSTALL_SCRIPT) -D -m 644 ${builddir}/audit-rules.service ${DESTDIR}${initdir}
 	$(INSTALL_SCRIPT) -D -m 750 ${srcdir}/auditd.rotate ${DESTDIR}${legacydir}/rotate
 	$(INSTALL_SCRIPT) -D -m 750 ${srcdir}/auditd.resume ${DESTDIR}${legacydir}/resume
 	$(INSTALL_SCRIPT) -D -m 750 ${srcdir}/auditd.reload ${DESTDIR}${legacydir}/reload
