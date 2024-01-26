@@ -26,7 +26,6 @@
 
 #include <sys/types.h>
 #include "libaudit.h"
-#define MAX_PLUGIN_ARGS 3
 
 typedef enum { A_NO, A_YES } active_t;
 typedef enum { D_UNSET, D_IN, D_OUT } direction_t;
@@ -39,7 +38,8 @@ typedef struct plugin_conf
 	direction_t direction;	/* in or out kind of plugin */
 	const char *path;	/* path to binary */
 	service_t type;		/* builtin or always */
-	char *args[MAX_PLUGIN_ARGS+2];	/* args to be passed to plugin */
+	char **args;	/* args to be passed to plugin */
+	int nargs;
 	format_t format;	/* Event format */
 	int plug_pipe[2];	/* Communication pipe for events */
 	pid_t pid;		/* Used to signal children */

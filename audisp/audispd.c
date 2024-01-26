@@ -398,7 +398,7 @@ static void *outbound_thread_main(void *arg)
 
 static int safe_exec(plugin_conf_t *conf)
 {
-	char *argv[MAX_PLUGIN_ARGS+2];
+	char **argv;
 	int pid, i;
 
 	/* Set up IPC with child */
@@ -427,11 +427,18 @@ static int safe_exec(plugin_conf_t *conf)
 	for (i=3; i<24; i++)	 /* Arbitrary number */
 		close(i);
 
+	argv = calloc(conf->nargs + 2, sizeof(char *));
+	if (argv == NULL) {
+		return -1;
+	}
+
 	/* Child */
 	argv[0] = (char *)conf->path;
-	for (i=1; i<(MAX_PLUGIN_ARGS+1); i++)
-		argv[i] = conf->args[i];
-	argv[i] = NULL;
+	for (i = 0; i < conf->nargs; i++) {
+		argv[i+1] = conf->args[conf->nargs-i-1];
+	}
+	argv[conf->nargs+1] = NULL;
+
 	execve(conf->path, argv, NULL);
 	exit(1);		/* Failed to exec */
 }
