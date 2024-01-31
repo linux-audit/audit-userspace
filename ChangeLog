@@ -1,5 +1,6 @@
 4.0.1
 - Update TRUSTED_APP interpretation to look for known fields
+- In auditd plugins, allow variable amount of arguments (Attila Lakatos)
 
 4.0
 - Drop python2 support
