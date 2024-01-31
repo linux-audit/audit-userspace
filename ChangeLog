@@ -1,4 +1,5 @@
 4.0.1
+- Update TRUSTED_APP interpretation to look for known fields
 
 4.0
 - Drop python2 support
