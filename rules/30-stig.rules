@@ -91,8 +91,8 @@
 ## Might also want to watch these files if needing extra information
 #-a always,exit -F arch=b32 -F path=/var/log/tallylog -F perm=wa -F key=logins
 #-a always,exit -F arch=b64 -F path=/var/log/tallylog -F perm=wa -F key=logins
-#-a always,exit -F arch=b32 -F path=/var/run/faillock/ -F perm=wa -F key=logins
-#-a always,exit -F arch=b64 -F path=/var/run/faillock/ -F perm=wa -F key=logins
+#-a always,exit -F arch=b32 -F path=/var/run/faillock -F perm=wa -F key=logins
+#-a always,exit -F arch=b64 -F path=/var/run/faillock -F perm=wa -F key=logins
 #-a always,exit -F arch=b32 -F path=/var/log/lastlog -F perm=wa -F key=logins
 #-a always,exit -F arch=b64 -F path=/var/log/lastlog -F perm=wa -F key=logins
 
