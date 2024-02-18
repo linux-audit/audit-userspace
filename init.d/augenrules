@@ -32,7 +32,8 @@ ASuffix="prev"
 OnlyCheck=0
 LoadRules=0
 RETVAL=0
-usage="Usage: $0 [--check|--load]"
+cmd="$0"
+usage="Usage: $cmd [--check|--load]"
 
 # Delete the interim file on faults
 trap 'rm -f ${TmpRules}; exit 1' 1 2 3 13 15
@@ -45,10 +46,12 @@ try_load() {
 }
 
 # Check if audit is in immutable mode - exit if so
-if test $(auditctl -s | awk '$1 == "enabled" { print $2 }') == "2" ; then
-	echo "Audit system is in immutable mode - exiting with no changes"
+check_immutable () {
+    if test $(auditctl -s | awk '$1 == "enabled" { print $2 }') == "2" ; then
+	echo "$cmd: Audit system is in immutable mode - exiting with no changes"
 	exit 0
-fi
+    fi
+}
 
 while [ $# -ge 1 ]
 do
@@ -65,7 +68,7 @@ done
 
 # Check environment
 if [ ! -d ${SourceRulesDir} ]; then
-	echo "$0: No rules directory - ${SourceRulesDir}"
+	echo "$cmd: No rules directory - ${SourceRulesDir}"
 	rm -f "${TmpRules}"
 	try_load
 	exit 1
@@ -107,7 +110,7 @@ END     {
 
 # If empty then quit
 if [ ! -s "${TmpRules}" ]; then
-	echo "$0: No rules"
+	echo "$cmd: No rules"
 	rm -f "${TmpRules}"
 	try_load
 	exit $RETVAL
@@ -116,17 +119,19 @@ fi
 # If the same then quit
 cmp -s "${TmpRules}" ${DestinationFile} > /dev/null 2>&1
 if [ $? -eq 0 ]; then
-	echo "$0: No change"
+	echo "$cmd: No change"
 	rm -f "${TmpRules}"
+	check_immutable
 	try_load
 	exit $RETVAL
 elif [ $OnlyCheck -eq 1 ] ; then
-	echo "$0: Rules have changed and should be updated"
+	echo "$cmd: Rules have changed and should be updated"
 	rm -f "${TmpRules}"
 	exit 0
 fi
 
 # Otherwise we install the new file
+check_immutable
 if [ -f ${DestinationFile} ]; then
 	cp ${DestinationFile} ${DestinationFile}.${ASuffix}
 fi
@@ -141,3 +146,4 @@ rm -f "${TmpRules}"
 
 try_load
 exit $RETVAL
+
