@@ -136,25 +136,24 @@ static inline void swap_nodes(snode *lprev, snode *left, snode *right)
 static void old_sort_by_hits(slist *l)
 {
 	register snode* cur, *prev;
-	prev = cur = l->head;
+	int swapped;
 
-	while (cur && cur->next) {
-		// If the next node is bigger
-		if (cur->hits < cur->next->hits) {
-			if (cur == l->head) {
-				// Update the actual list head
-				l->head = cur->next;
-				prev = NULL;
+	do {
+		swapped = 0;
+		prev = NULL;
+		cur = l->head;
+
+		while (cur && cur->next) {
+			// If the next node is bigger
+			if (cur->hits < cur->next->hits) {
+				swap_nodes(prev, cur, cur->next);
+				swapped = 1;
 			}
-			swap_nodes(prev, cur, cur->next);
-
-			// start over
-			prev = cur = l->head;
-			continue;
+			prev = cur;
+			cur = cur->next;
 		}
-		prev = cur;
-		cur = cur->next;
-	}
+	} while (swapped);
+
 	// End with cur pointing at first record
 	l->cur = l->head;
 }
