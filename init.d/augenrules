@@ -44,6 +44,12 @@ try_load() {
 	fi
 }
 
+# Check if audit is in immutable mode - exit if so
+if test $(auditctl -s | awk '$1 == "enabled" { print $2 }') == "2" ; then
+	echo "Audit system is in immutable mode - exiting with no changes"
+	exit 0
+fi
+
 while [ $# -ge 1 ]
 do
 	if [ "$1" = "--check" ] ; then
