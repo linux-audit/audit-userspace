@@ -300,7 +300,7 @@ static void auparse_callback(auparse_state_t *au,
     if (debug) printf("<< auparse_callback\n");
     arglist = Py_BuildValue("OiO", cb->py_AuParser, cb_event_type,
 			    cb->user_data);
-#if PY_MINOR_VERSION >= 13
+#if PY_MINOR_VERSION >= 12
     result = PyObject_CallObject(cb->func, arglist);
 #else
     result = PyEval_CallObject(cb->func, arglist);
