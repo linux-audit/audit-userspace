@@ -118,8 +118,6 @@ static const struct nv_list formats[] =
 */
 void clear_pconfig(plugin_conf_t *config)
 {
-	int i;
-
 	config->active = A_NO;
 	config->direction = D_UNSET;
 	config->path = NULL;
