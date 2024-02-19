@@ -3,7 +3,7 @@ Description=Security Audit Logging Service
 ConditionKernelCommandLine=!audit=0
 ConditionKernelCommandLine=!audit=off
 DefaultDependencies=no
-Wants=audit-rules.service
+Requires=audit-rules.service
 ## If auditd is sending or receiving remote logging, copy this file to
 ## /etc/systemd/system/auditd.service and comment out the first After and
 ## uncomment the second so that network-online.target is part of After.
