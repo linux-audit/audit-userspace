@@ -1420,6 +1420,30 @@ static int ausearch_compare(auparse_state_t *au)
 }
 
 // Returns < 0 on error, 0 no data, > 0 success
+int ausearch_cur_event(auparse_state_t* au) {
+	int rc, records;
+
+	if (au->expr == NULL) {
+		errno = EINVAL;
+		return -1;
+	}
+
+	records = auparse_get_num_records(au);
+	for (int i = 0; i < records; i++) {
+		if (auparse_goto_record_num(au, i) != 1)
+			return -1;
+
+		if ((rc = ausearch_compare(au)) > 0) {
+			ausearch_reposition_cursors(au);
+			return 1;
+		} else if (rc < 0)
+			return rc;
+	}
+	ausearch_reposition_cursors(au);
+	return 0;
+}
+
+// Returns < 0 on error, 0 no data, > 0 success
 int ausearch_next_event(auparse_state_t *au)
 {
 	int rc;
