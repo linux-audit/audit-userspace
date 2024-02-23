@@ -3,7 +3,7 @@
 # directly supported by systemd
 
 # Check that we are root ... so non-root users stop here
-test $(id -u) = 0  ||  exit 4
+test "$(id -u)" = "0"  ||  exit 4
 
 printf "Reconfiguring auditd: "
 /sbin/auditctl --signal reload
