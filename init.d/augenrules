@@ -36,7 +36,7 @@ cmd="$0"
 usage="Usage: $cmd [--check|--load]"
 
 # Delete the interim file on faults
-trap 'rm -f ${TmpRules}; exit 1' 1 2 3 13 15
+trap 'rm -f ${TmpRules}; exit 1' HUP INT QUIT PIPE TERM
 
 try_load() {
 	if [ $LoadRules -eq 1 ] ; then
@@ -47,7 +47,7 @@ try_load() {
 
 # Check if audit is in immutable mode - exit if so
 check_immutable () {
-    if test $(auditctl -s | awk '$1 == "enabled" { print $2 }') == "2" ; then
+    if [ "$(auditctl -s | awk '$1 == "enabled" { print $2 }')" = "2" ] ; then
 	echo "$cmd: Audit system is in immutable mode - exiting with no changes"
 	exit 0
     fi
