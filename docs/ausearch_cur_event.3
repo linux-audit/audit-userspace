@@ -8,7 +8,7 @@ int ausearch_cur_event(auparse_state_t *au);
 
 .SH "DESCRIPTION"
 
-ausearch_cur_event will scan the input source and evaluate whether any record in the current event contains the data being searched for. Evaluation is done at the record level.
+ausearch_cur_event will scan the input source and evaluate whether any record in the current event contains the data being searched for. Evaluation is done at the record level. If a match is found, the cursor is repositioned; otherwise, it remains on the last successfully parsed record within the current event.
 
 .SH "RETURN VALUE"
 

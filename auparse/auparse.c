@@ -1439,7 +1439,7 @@ int ausearch_cur_event(auparse_state_t* au) {
 		} else if (rc < 0)
 			return rc;
 	}
-	ausearch_reposition_cursors(au);
+
 	return 0;
 }
 
