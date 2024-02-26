@@ -1,0 +1,25 @@
+.TH "AUSEARCH_CUR_EVENT" "3" "Feb 2024" "Red Hat" "Linux Audit API"
+.SH NAME
+ausearch_cur_event \- check if the current event meets search criteria
+.SH "SYNOPSIS"
+.B #include <auparse.h>
+.sp
+int ausearch_cur_event(auparse_state_t *au);
+
+.SH "DESCRIPTION"
+
+ausearch_cur_event will scan the input source and evaluate whether any record in the current event contains the data being searched for. Evaluation is done at the record level. If a match is found, the cursor is repositioned; otherwise, it remains on the last successfully parsed record within the current event.
+
+.SH "RETURN VALUE"
+
+Returns \-1 if an error occurs, 0 if no matches, and 1 for success.
+
+.SH "SEE ALSO"
+
+.BR ausearch_add_item (3),
+.BR ausearch_add_regex (3),
+.BR ausearch_next_event (3),
+.BR ausearch_set_stop (3).
+
+.SH AUTHOR
+Attila Lakatos

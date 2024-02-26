@@ -128,6 +128,7 @@ int auparse_normalize_key(auparse_state_t *au);
 
 /* Functions that traverse events */
 int ausearch_next_event(auparse_state_t *au);
+int ausearch_cur_event(auparse_state_t* au);
 int auparse_next_event(auparse_state_t *au);
 
 /* Accessors to event data */

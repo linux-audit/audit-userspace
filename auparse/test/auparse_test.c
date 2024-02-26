@@ -35,7 +35,7 @@ static void walk_test(auparse_state_t *au)
 		record_cnt = 1;
 		do {
 			printf("    record %d of type %d(%s) has %u fields\n",
-				record_cnt, 
+				record_cnt,
 				auparse_get_type(au),
 				audit_msg_type_to_name(auparse_get_type(au)),
 				auparse_get_num_fields(au));
@@ -79,7 +79,7 @@ void light_test(auparse_state_t *au)
 		record_cnt = 1;
 		do {
 			printf("    record %d of type %d(%s) has %u fields\n",
-				record_cnt, 
+				record_cnt,
 				auparse_get_type(au),
 				audit_msg_type_to_name(auparse_get_type(au)),
 				auparse_get_num_fields(au));
@@ -236,7 +236,7 @@ static void auparse_callback(auparse_state_t *au, auparse_cb_event_t cb_event_ty
 		record_cnt = 1;
 		do {
 			printf("    record %d of type %d(%s) has %u fields\n",
-				record_cnt, 
+				record_cnt,
 				auparse_get_type(au),
 				audit_msg_type_to_name(auparse_get_type(au)),
 				auparse_get_num_fields(au));
@@ -250,7 +250,7 @@ static void auparse_callback(auparse_state_t *au, auparse_cb_event_t cb_event_ty
 			}
 			printf("    event time: %u.%u:%lu, host=%s\n",
 					(unsigned)e->sec,
-					e->milli, e->serial, 
+					e->milli, e->serial,
 					e->host ? e->host : "?");
 			auparse_first_field(au);
 			do {
@@ -285,7 +285,7 @@ int main(void)
 			printf("%s=%s\n", auparse_get_field_name(au),
 					  auparse_get_field_str(au));
 			printf("interp auid=%s\n", auparse_interpret_field(au));
-		} else 
+		} else
 			printf("Error iterating to auid\n");
 	}
 	auparse_reset(au);
@@ -296,7 +296,7 @@ int main(void)
 					  auparse_get_field_str(au));
 			printf("interp auid=%s\n", auparse_interpret_field(au));
 			} while (auparse_find_field_next(au));
-		} else 
+		} else
 			printf("Error iterating to auid\n");
 	}
 	printf("Test 1 Done\n\n");
@@ -325,7 +325,7 @@ int main(void)
 		printf("Error - %s\n", strerror(errno));
 		return 1;
 	}
-	walk_test(au); 
+	walk_test(au);
 	auparse_destroy(au);
 	printf("Test 4 Done\n\n");
 
@@ -335,7 +335,7 @@ int main(void)
 		printf("Error - %s\n", strerror(errno));
 		return 1;
 	}
-	walk_test(au); 
+	walk_test(au);
 	auparse_destroy(au);
 	printf("Test 5 Done\n\n");
 
@@ -386,7 +386,7 @@ int main(void)
 	simple_search(AUSOURCE_FILE, AUSEARCH_STOP_EVENT);
 	auparse_destroy(au);
 	printf("Test 6 Done\n\n");
-	
+
 	printf("Starting Test 7, compound search...\n");
 	au = auparse_init(AUSOURCE_BUFFER_ARRAY, buf);
 	if (au == NULL) {
@@ -432,7 +432,7 @@ int main(void)
 				p_chunk_beg = p_chunk_end;
 			}
 		}
-		
+
 		auparse_flush_feed(au);
 		auparse_destroy(au);
 	}
@@ -458,7 +458,7 @@ int main(void)
 		while ((len = fread(buf, 1, sizeof(buf), fp))) {
 			auparse_feed(au, buf, len);
 		}
-		
+
 		fclose(fp);
 		auparse_flush_feed(au);
 		auparse_destroy(au);
