@@ -59,7 +59,7 @@ int main(void)
 
 	slist_clear(&s);
 	puts("should be empty");
-	rc = print_list();	
+	rc = print_list();
 	if (s.cnt != 0 || rc != 0) {
 		puts("test count is wrong");
 		return 1;
@@ -68,23 +68,24 @@ int main(void)
 
 	// Now test to see if the sort function works
 	// Fill the list exactly backwards
-	slist_add_if_uniq(&s, "test3");
-	slist_add_if_uniq(&s, "test3");
-	slist_add_if_uniq(&s, "test4");
-	slist_add_if_uniq(&s, "test3");
-	slist_add_if_uniq(&s, "test4");
-	slist_add_if_uniq(&s, "test2");
-	slist_add_if_uniq(&s, "test4");
-	slist_add_if_uniq(&s, "test2");
-	slist_add_if_uniq(&s, "test4");
 	slist_add_if_uniq(&s, "test1");
+	slist_add_if_uniq(&s, "test3");
+	slist_add_if_uniq(&s, "test3");
+	slist_add_if_uniq(&s, "test2");
+	slist_add_if_uniq(&s, "test4");
+	slist_add_if_uniq(&s, "test3");
+	slist_add_if_uniq(&s, "test4");
+	slist_add_if_uniq(&s, "test4");
+	slist_add_if_uniq(&s, "test2");
+	slist_add_if_uniq(&s, "test4");
 
 	slist_sort_by_hits(&s);
 	slist_first(&s);
 	do {
 		node = slist_get_cur(&s);
 		if (node->hits != (4-i)) {
-			printf("Sort test failed - i:%d != hits:%u\n", i, node->hits);
+			printf("Sort test failed - i:%d != hits:%u\n",
+			       i, node->hits);
 			return 1;
 		}
 		i++;
