@@ -122,15 +122,18 @@ int slist_add_if_uniq(slist *l, const char *str)
 	return 1;
 }
 
-// If lprev would be NULL, use l->head
-static inline void swap_nodes(snode *lprev, snode *left, snode *right)
+/*static void dump_list(slist *l)
 {
-	snode *t = right->next;
-	if (lprev)
-		lprev->next = right;
-	right->next = left;
-	left->next = t;
-}
+	if (l == NULL)
+		return;
+
+	register snode* cur = l->head;
+	puts("start dump");
+	while (cur) {
+		printf("%u\n", cur->hits);
+		cur = cur->next;
+	}
+}*/
 
 // This will sort the list from most hits to least
 static void old_sort_by_hits(slist *l)
@@ -142,11 +145,20 @@ static void old_sort_by_hits(slist *l)
 		swapped = 0;
 		prev = NULL;
 		cur = l->head;
+//		dump_list(l);
 
 		while (cur && cur->next) {
 			// If the next node is bigger
 			if (cur->hits < cur->next->hits) {
-				swap_nodes(prev, cur, cur->next);
+				// swap the nodes
+				if (prev)
+					prev->next = cur->next;
+				else
+					l->head = cur->next;
+
+				snode *temp = cur->next->next;
+				cur->next->next = cur;
+				cur->next = temp;
 				swapped = 1;
 			}
 			prev = cur;
