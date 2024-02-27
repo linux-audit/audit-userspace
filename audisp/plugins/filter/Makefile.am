@@ -22,11 +22,12 @@
 #
 
 CONFIG_CLEAN_FILES = *.loT *.rej *.orig
-EXTRA_DIST = filter-syslog.conf $(man_MANS)
+EXTRA_DIST = filter.conf audisp-filter.conf $(man_MANS)
 AM_CPPFLAGS = -I${top_srcdir} -I${top_srcdir}/lib -I${top_srcdir}/common -I${top_srcdir}/auparse
 prog_confdir = $(sysconfdir)/audit
+prog_conf = audisp-filter.conf
 plugin_confdir=$(prog_confdir)/plugins.d
-plugin_conf = filter-syslog.conf
+plugin_conf = filter.conf
 sbin_PROGRAMS = audisp-filter
 man_MANS = audisp-filter.8
 
@@ -39,7 +40,9 @@ audisp_filter_LDADD = $(CAPNG_LDADD) ${top_builddir}/common/libaucommon.la ${top
 install-data-hook:
 	mkdir -p -m 0750 ${DESTDIR}${plugin_confdir}
 	$(INSTALL_DATA) -D -m 640 ${srcdir}/$(plugin_conf) ${DESTDIR}${plugin_confdir}
+	$(INSTALL_DATA) -D -m 640 ${srcdir}/$(prog_conf) ${DESTDIR}${prog_confdir}
 
 uninstall-hook:
 	rm ${DESTDIR}${plugin_confdir}/$(plugin_conf)
+	rm ${DESTDIR}${prog_confdir}/$(prog_conf)
 
