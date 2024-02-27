@@ -87,21 +87,6 @@ static void handle_event(auparse_state_t* au, auparse_cb_event_t cb_event_type,
 
 	int rc, forward_event;
 
-	ausearch_set_stop(au, AUSEARCH_STOP_EVENT);
-
-	// add rules(expressions) to the ausearch engine
-	for (struct filter_rule* rule = list.head; rule != NULL; rule = rule->next) {
-		char* error = NULL;
-		rc = ausearch_add_expression(au, rule->expr, &error, AUSEARCH_RULE_OR);
-		if (rc != 0) {
-			syslog(LOG_ERR, "Failed to add expression '%s' to ausearch (%s)",
-				rule->expr, error);
-			free(error);
-			goto cleanup;
-		}
-		free(error);
-	}
-
 	// Determine whether to forward or drop the event
 	rc = ausearch_cur_event(au);
 	if (rc > 0) { /* matched */
@@ -110,7 +95,7 @@ static void handle_event(auparse_state_t* au, auparse_cb_event_t cb_event_type,
 		forward_event = (config.mode == ALLOWLIST) ? 1 : 0;
 	} else {
 		syslog(LOG_ERR, "The ausearch_next_event returned %d", rc);
-		goto cleanup;
+		return;
 	}
 
 	if (forward_event) {
@@ -121,13 +106,10 @@ static void handle_event(auparse_state_t* au, auparse_cb_event_t cb_event_type,
 			// Need to add new line character to signal end of the current record
 			if (write(pipefd[1], txt, strlen(txt)) == -1 || write(pipefd[1], "\n", 1) == -1) {
 				syslog(LOG_ERR, "Failed to write to pipe");
-				goto cleanup;
+				return;
 			}
 		}
 	}
-
-cleanup:
-	ausearch_clear(au);
 }
 
 static void free_args() {
@@ -147,7 +129,7 @@ static int parse_args(int argc, const char* argv[]) {
 	}
 
 	if (argc <= 3) {
-		syslog(LOG_ERR, "Not enough command line arguments", argv[0]);
+		syslog(LOG_ERR, "Not enough command line arguments");
 		return 1;
 	}
 
@@ -214,14 +196,14 @@ static char* get_line(FILE* f, char* buf, unsigned size, int* lineno,
 	return NULL;
 }
 
-static void print_rules(struct filter_list* list) {
-	struct filter_rule* rule;
-	int count = 0;
-
-	for (rule = list->head; rule != NULL; rule = rule->next, count++) {
-		printf("Rule %d on line %d: %s\n", count, rule->lineno, rule->expr);
-	}
-}
+// static void print_rules(struct filter_list* list) {
+// 	struct filter_rule* rule;
+// 	int count = 0;
+//
+// 	for (rule = list->head; rule != NULL; rule = rule->next, count++) {
+// 		printf("Rule %d on line %d: %s\n", count, rule->lineno, rule->expr);
+// 	}
+// }
 
 static void reset_rules(struct filter_list* list) {
 	list->head = list->tail = NULL;
@@ -252,7 +234,6 @@ static struct filter_rule* parse_line(char* line, int lineno) {
 	struct filter_rule* rule;
 	auparse_state_t* au;
 	const char* buf[] = { NULL };
-	int rc;
 	char* error = NULL;
 
 	/* dummy instance of the audit parsing library, we use it to
@@ -367,7 +348,7 @@ static int load_rules(struct filter_list* list) {
  */
 static void child_handler(int sig) {
 	while (waitpid(-1, NULL, WNOHANG) > 0)
-		printf("xD\n"); /* empty */
+		; /* empty */
 	stop = 1;
 }
 
@@ -427,8 +408,6 @@ int main(int argc, const char* argv[]) {
 		return 0;
 	}
 
-	// print_rules(&list);
-
 	/* Register sighandlers */
 	sa.sa_flags = 0;
 	sigemptyset(&sa.sa_mask);
@@ -486,6 +465,20 @@ int main(int argc, const char* argv[]) {
 
 		auparse_set_eoe_timeout(2);
 		auparse_add_callback(au, handle_event, NULL, NULL);
+		ausearch_set_stop(au, AUSEARCH_STOP_EVENT);
+
+		// add rules(expressions) to the ausearch engine
+		for (struct filter_rule* rule = list.head; rule != NULL; rule = rule->next) {
+			char* error = NULL;
+			int rc = ausearch_add_expression(au, rule->expr, &error, AUSEARCH_RULE_OR);
+			if (rc != 0) {
+				/* this should not happen because rules were pre-tested in parse_line() */
+				syslog(LOG_ERR, "Failed to add expression '%s' to ausearch (%s)",
+					rule->expr, error);
+			}
+			free(error);
+		}
+
 		do {
 			fd_set read_mask;
 			int retval;
@@ -523,6 +516,7 @@ int main(int argc, const char* argv[]) {
 		} while (stop == 0);
 
 		auparse_flush_feed(au);
+		ausearch_clear(au);
 		auparse_destroy(au);
 	}
 
