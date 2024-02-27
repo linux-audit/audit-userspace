@@ -256,18 +256,22 @@ fi
 %config(noreplace) %attr(640,root,root) /etc/audit/plugins.d/af_unix.conf
 %config(noreplace) %attr(640,root,root) /etc/audit/ids.conf
 %config(noreplace) %attr(640,root,root) /etc/audit/plugins.d/audisp-ids.conf
+%config(noreplace) %attr(640,root,root) /etc/audit/audisp-filter.conf
+%config(noreplace) %attr(640,root,root) /etc/audit/plugins.d/filter.conf
 %attr(644,root,root) %{_datadir}/%{name}-rules/ids-rules/*
 %attr(750,root,root) %{_sbindir}/audisp-remote
 %attr(750,root,root) %{_sbindir}/audisp-syslog
 %attr(750,root,root) %{_sbindir}/audisp-af_unix
 %attr(750,root,root) %{_sbindir}/audisp-ids
 %attr(750,root,root) %{_sbindir}/audisp-statsd
+%attr(750,root,root) %{_sbindir}/audisp-filter
 %attr(700,root,root) %dir %{_var}/spool/audit
 %attr(644,root,root) %{_mandir}/man5/audisp-remote.conf.5.gz
 %attr(644,root,root) %{_mandir}/man8/audisp-remote.8.gz
 %attr(644,root,root) %{_mandir}/man8/audisp-syslog.8.gz
 %attr(644,root,root) %{_mandir}/man8/audisp-af_unix.8.gz
 %attr(644,root,root) %{_mandir}/man8/audisp-statsd.8.gz
+%attr(644,root,root) %{_mandir}/man8/audisp-filter.8.gz
 
 %files -n audispd-plugins-zos
 %attr(644,root,root) %{_mandir}/man8/audispd-zos-remote.8.gz
