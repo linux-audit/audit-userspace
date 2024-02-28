@@ -47,6 +47,8 @@ bindings/swig/python/audit.py
 bindings/swig/python/audit_wrap.c
 bindings/swig/python3/audit.py
 bindings/swig/python3/audit_wrap.c
+init.d/auditd.service
+init.d/audit-rules.service
 lib/*tabs.h
 lib/*tables.h
 ltmain.sh
