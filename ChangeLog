@@ -1,6 +1,7 @@
 4.0.1
 - Update TRUSTED_APP interpretation to look for known fields
 - In auditd plugins, allow variable amount of arguments (Attila Lakatos)
+- Fix augenrules to work correctly when kernel is in immutable mode
 - Add ausearch_cur_event to auparse library (Attila Lakatos)
 - Add audisp-filter plugin (Attila Lakatos)
 - Improve sorting speed of aureport --summary reports
