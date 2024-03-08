@@ -524,6 +524,13 @@ static int set_program_obj(auparse_state_t *au)
 			D.thing.primary = set_field(D.thing.primary,
 					auparse_get_field_num(au));
 		}
+	} else if (type == AUDIT_MAC_POLICY_LOAD) {
+		if (auparse_find_field(au, "lsm")) {
+			D.thing.primary = set_record(0,
+					auparse_get_record_num(au));
+			D.thing.primary = set_field(D.thing.primary,
+					auparse_get_field_num(au));
+		}
 	} else if (auparse_find_field(au, "exe")) {
 		const char *exe = auparse_interpret_field(au);
 		if ((strncmp(exe, "/usr/bin/python", 15) == 0) ||
@@ -1087,6 +1094,10 @@ const char *find_config_change_object(auparse_state_t *au)
 	f = auparse_find_field(au, "actions"); // seccomp-logging
 	if (f)
 		return f;
+	auparse_first_record(au);
+	f = auparse_find_field(au, "list");	// If nothing else, the list
+	if (f)
+		return f;
 
 	return NULL;
 }
@@ -1234,8 +1245,11 @@ static int normalize_compound(auparse_state_t *au)
 				o = find_simple_object(au, AUDIT_CONFIG_CHANGE);
 				D.thing.primary = o;
 			}
-		} else
+		} else {
 			normalize_syscall(au, syscall);
+			if (otype == AUDIT_MAC_POLICY_LOAD)
+				set_program_obj(au);
+		}
 	}
 
 	free((void *)syscall);
