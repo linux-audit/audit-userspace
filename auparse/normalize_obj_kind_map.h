@@ -1,6 +1,6 @@
 /*
  * normalize_obj_kind_map.h
- * Copyright (c) 2016-18,21 Red Hat Inc.
+ * Copyright (c) 2016-24 Red Hat Inc.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -41,9 +41,10 @@ _S(NORM_WHAT_PRINTER, "printer")
 _S(NORM_WHAT_SYSTEM, "system")
 _S(NORM_WHAT_AUDIT_RULE, "admin-defined-rule")
 _S(NORM_WHAT_AUDIT_CONFIG, "audit-config")
-_S(NORM_WHAT_MAC_CONFIG, "mac-config")
+_S(NORM_WHAT_SECURITY_POLICY, "security-policy")
 _S(NORM_WHAT_MEMORY, "memory")
 _S(NORM_WHAT_KEYSTROKES, "keystrokes")
 _S(NORM_WHAT_DEVICE, "device")
 _S(NORM_WHAT_SOFTWARE, "software")
+_S(NORM_WHAT_INTEGRITY_POLICY, "integrity-policy")
 //_S(, "")
