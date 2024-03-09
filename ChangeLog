@@ -6,6 +6,7 @@
 - Add audisp-filter plugin (Attila Lakatos)
 - Improve sorting speed of aureport --summary reports
 - auditd & audit-rules.service pick up paths automatically (Laurent Bigonville)
+- Update auparse normalizer for new syscalls
 
 4.0
 - Drop python2 support
