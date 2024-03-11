@@ -59,6 +59,13 @@
 #define FAN_ALLOW 1
 #define FAN_DENY 2
 #endif
+
+// This code is at the center of many performance issues. The following
+// ensure that it is optimized the most without making all of the audit
+// subsystem bigger.
+#pragma GCC optimize("O3")
+#pragma GCC optimize("-funroll-loops")
+
 #include "auparse-defs.h"
 #include "gen_tables.h"
 #include "common.h"
