@@ -263,6 +263,6 @@ fi
 
 
 %changelog
-* Sun Aug 06 2023 Steve Grubb <sgrubb@redhat.com> 3.1.3-1
+* Mon Mar 11 2024 Steve Grubb <sgrubb@redhat.com> 3.1.3-1
 - New upstream release
 
