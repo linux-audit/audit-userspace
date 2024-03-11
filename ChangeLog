@@ -1,3 +1,5 @@
+4.0.2
+
 4.0.1
 - Update TRUSTED_APP interpretation to look for known fields
 - In auditd plugins, allow variable amount of arguments (Attila Lakatos)
