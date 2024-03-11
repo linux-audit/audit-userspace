@@ -64,7 +64,6 @@
 // ensure that it is optimized the most without making all of the audit
 // subsystem bigger.
 #pragma GCC optimize("O3")
-#pragma GCC optimize("-funroll-loops")
 
 #include "auparse-defs.h"
 #include "gen_tables.h"
