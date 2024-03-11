@@ -1,6 +1,6 @@
 Summary: User space tools for kernel auditing
 Name: audit
-Version: 3.1.3
+Version: 3.1.4
 Release: 1%{dist}
 License: GPL-2.0-or-later AND LGPL-2.0-or-later
 Group: System Environment/Daemons
@@ -263,6 +263,6 @@ fi
 
 
 %changelog
-* Mon Mar 11 2024 Steve Grubb <sgrubb@redhat.com> 3.1.3-1
+* Mon Mar 11 2024 Steve Grubb <sgrubb@redhat.com> 3.1.4-1
 - New upstream release
 
