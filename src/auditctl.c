@@ -425,7 +425,9 @@ static int pidfd_send_signal(int pidfd, int sig, siginfo_t *info,
 static int sure_kill(int pid, int signal)
 {
 	int rc = 0;
-	int pidfd = pidfd_open(pid, 0);
+	int pidfd;
+	if ((pidfd = pidfd_open(pid, 0) < 0))
+	       return -1;
 	pidfd_send_signal(pidfd, signal, NULL, 0);
 	if (signal == SIGTERM) {
 		struct pollfd pollfd;
