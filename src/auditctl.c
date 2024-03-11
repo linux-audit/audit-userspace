@@ -428,7 +428,10 @@ static int sure_kill(int pid, int signal)
 	int pidfd;
 	if ((pidfd = pidfd_open(pid, 0) < 0))
 	       return -1;
-	pidfd_send_signal(pidfd, signal, NULL, 0);
+	if (pidfd_send_signal(pidfd, signal, NULL, 0) < 0) {
+		rc = -1;
+		goto out;
+	}
 	if (signal == SIGTERM) {
 		struct pollfd pollfd;
 		pollfd.fd = pidfd;
