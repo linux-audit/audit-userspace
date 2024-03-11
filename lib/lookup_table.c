@@ -30,6 +30,12 @@
 #include <ctype.h>
 #include <errno.h>
 
+// This code is at the center of many performance issues. The following
+// ensure that it is optimized the most without making all of the audit
+// subsystem bigger.
+#pragma GCC optimize("O3")
+#pragma GCC optimize("-funroll-loops")
+
 #include "libaudit.h"
 #include "gen_tables.h"
 #include "private.h"
