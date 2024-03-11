@@ -126,7 +126,7 @@ touch -r ./audit.spec $RPM_BUILD_ROOT/etc/libaudit.conf
 touch -r ./audit.spec $RPM_BUILD_ROOT/usr/share/man/man5/libaudit.conf.5.gz
 
 %check
-#make %{?_smp_mflags} check
+make %{?_smp_mflags} check
 # Get rid of make files so that they don't get packaged.
 rm -f rules/Makefile*
 
@@ -281,6 +281,6 @@ fi
 %attr(750,root,root) %{_sbindir}/audispd-zos-remote
 
 %changelog
-* Tue Jan 16 2024 Steve Grubb <sgrubb@redhat.com> 4.0.1-1
+* Mon Mar 11 2024 Steve Grubb <sgrubb@redhat.com> 4.0.1-1
 - New upstream release
 
