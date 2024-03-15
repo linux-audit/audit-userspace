@@ -46,6 +46,9 @@ void ilist_append(ilist *l, int num, unsigned int hits, int aux)
 	int_node* newnode;
 
 	newnode = malloc(sizeof(int_node));
+	if (newnode == NULL) {
+		return;
+	}
 
 	newnode->num = num;
 	newnode->hits = hits;

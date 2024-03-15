@@ -107,6 +107,9 @@ void list_append(llist *l, lnode *node)
 	lnode* newnode;
 
 	newnode = malloc(sizeof(lnode));
+	if (newnode == NULL) {
+		return;
+	}
 
 	if (node->message)
 		newnode->message = node->message;
