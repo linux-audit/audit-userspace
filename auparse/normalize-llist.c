@@ -66,6 +66,9 @@ void cllist_append(cllist *l, uint32_t num, void *data)
 	data_node *newnode;
 
 	newnode = malloc(sizeof(data_node));
+	if (newnode == NULL) {
+		return;
+	}
 
 	newnode->num = num;
 	newnode->data = data;

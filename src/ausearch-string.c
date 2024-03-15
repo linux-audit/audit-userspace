@@ -49,6 +49,9 @@ void slist_append(slist *l, const snode *node)
 	snode* newnode;
 
 	newnode = malloc(sizeof(snode));
+	if (newnode == NULL) {
+		return;
+	}
 
 	if (node->str)
 		newnode->str = node->str;

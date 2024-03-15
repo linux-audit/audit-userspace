@@ -130,6 +130,11 @@ void increase_queue_depth(unsigned int size)
         void *tmp_q;
 
         tmp_q = realloc(q, size * sizeof(BerElement *));
+        if (tmp_q == NULL) {
+			log_err("Memory allocation error");;
+			pthread_mutex_unlock(&queue_lock);
+			return;
+		}
         q = tmp_q;
         for (i=q_depth; i<size; i++)
             q[i] = NULL;
