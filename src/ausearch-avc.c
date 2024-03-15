@@ -67,6 +67,9 @@ void alist_append(alist *l, anode *node)
 	anode* newnode;
 
 	newnode = malloc(sizeof(anode));
+	if (newnode == NULL) {
+		return;
+	}
 
 	if (node->scontext)
 		newnode->scontext = node->scontext;

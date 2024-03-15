@@ -74,6 +74,9 @@ void plist_append(conf_llist *l, plugin_conf_t *p)
 	lnode* newnode;
 
 	newnode = malloc(sizeof(lnode));
+	if (newnode == NULL) {
+		return;
+	}
 
 	if (p) {
 		void *pp = malloc(sizeof(struct plugin_conf));
