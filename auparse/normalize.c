@@ -1191,6 +1191,11 @@ static int normalize_compound(auparse_state_t *au)
 		if (f) {
 			const char *exe = auparse_interpret_field(au);
 			D.how = strdup(exe);
+			if (D.how == NULL) {
+				fprintf(stderr, "Memory allocation error");
+				free((void *)syscall);
+				return 1;
+			}
 			if ((strncmp(D.how, "/usr/bin/python", 15) == 0) ||
 			    (strncmp(D.how, "/usr/bin/sh", 11) == 0) ||
 			    (strncmp(D.how, "/usr/bin/bash", 13) == 0) ||
@@ -1999,6 +2004,10 @@ map:
 	if (f) {
 		const char *exe = auparse_interpret_field(au);
 		D.how = strdup(exe);
+		if (D.how == NULL) {
+			fprintf(stderr, "Memory allocation error");
+			return 1;
+		}
 		if ((strncmp(D.how, "/usr/bin/python", 15) == 0) ||
 		    (strncmp(D.how, "/usr/bin/sh", 11) == 0) ||
 		    (strncmp(D.how, "/usr/bin/bash", 13) == 0) ||
