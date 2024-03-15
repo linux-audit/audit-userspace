@@ -420,6 +420,9 @@ int load_interpretation_list(const char *buffer)
 		il.cnt = 0;
 
 	il.record = buf = strdup(buffer);
+	if (buf == NULL) {
+		goto err_out;
+	}
 	if (strncmp(buf, "SADDR=", 6) == 0) {
 		// We have SOCKADDR record. It has no other values.
 		// Handle it by itself.

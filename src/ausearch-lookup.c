@@ -302,6 +302,10 @@ char *unescape(const char *buf)
 		return NULL;
 
 	str = strndup(buf, ptr - buf);
+	if (str == NULL) {
+		fprintf(stderr, "Memory alocation error");
+		return NULL;
+	}
 
 	if (*buf == '(')
 		return str;
