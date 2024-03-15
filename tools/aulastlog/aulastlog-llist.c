@@ -46,6 +46,9 @@ void list_append(llist *l, lnode *node)
 	lnode* newnode;
 
 	newnode = malloc(sizeof(lnode));
+	if (newnode == NULL) {
+		return;
+	}
 
 	newnode->sec = node->sec;
 	newnode->uid = node->uid;

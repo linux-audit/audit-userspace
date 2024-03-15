@@ -1340,6 +1340,11 @@ static int fileopt(const char *file)
 		}
 		i = 0;
 		fields = malloc(nf * sizeof(char *));
+		if (fields == NULL) {
+			audit_msg(LOG_ERR, "Memory allocation error");
+			return 1;
+		}
+		
 		fields[i++] = "auditctl";
 		fields[i++] = ptr;
 		while( (ptr=audit_strsplit(NULL)) && (i < nf-1)) {
