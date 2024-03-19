@@ -116,6 +116,7 @@ static int setup_log_file_array(auparse_state_t *au)
 	if (!tmp) {
 		fprintf(stderr, "No memory\n");
 		aup_free_config(&config);
+		free(filename);
 		return 1;
 	}
 
