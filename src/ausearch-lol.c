@@ -49,6 +49,7 @@ void lol_create(lol *lo)
 	lo->array = (lolnode *)malloc(size);
 	if (lo->array == NULL) {
 		fprintf(stderr, "Memory allocation error");
+		lo->limit = 0;
 		return;
 	}
 	memset(lo->array, 0, size);
