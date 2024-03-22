@@ -1392,7 +1392,7 @@ static int fileopt(const char *file)
 		i = 0;
 		fields = malloc(nf * sizeof(char *));
 		if (fields == NULL) {
-			audit_msg(LOG_ERR, "Memory allocation error");
+			audit_msg(LOG_ERR, "Out of memory. Check %s file, %d line", __FILE__, __LINE__);
 			return 1;
 		}
 		

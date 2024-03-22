@@ -47,6 +47,7 @@ void ilist_append(ilist *l, int num, unsigned int hits, int aux)
 
 	newnode = malloc(sizeof(int_node));
 	if (newnode == NULL) {
+		printf("Out of memory. Check %s file, %d line", __FILE__, __LINE__);
 		return;
 	}
 

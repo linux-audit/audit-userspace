@@ -272,7 +272,7 @@ output_i2s(const char *prefix)
 
 	unique_values = malloc(NUM_VALUES * sizeof(*unique_values));
 	if (unique_values == NULL) {
-		fprintf(stderr, "Memory allocation error");
+		fprintf(stderr, "Out of memory. Check %s file, %d line", __FILE__, __LINE__);
 		abort();
 	}
 	n = 0;
@@ -355,7 +355,7 @@ output_i2s_transtab(const char *prefix)
 	}
 	uc_prefix = strdup(prefix);
 	if (uc_prefix == NULL) {
-		fprintf(stderr, "Memory allocation error");
+		fprintf(stderr, "Out of memory. Check %s file, %d line", __FILE__, __LINE__);
 		abort();
 	}
 	for (i = 0; uc_prefix[i] != '\0'; i++)
