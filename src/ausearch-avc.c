@@ -68,6 +68,7 @@ void alist_append(alist *l, anode *node)
 
 	newnode = malloc(sizeof(anode));
 	if (newnode == NULL) {
+		printf("Out of memory. Check %s file, %d line", __FILE__, __LINE__);
 		return;
 	}
 

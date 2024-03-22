@@ -114,7 +114,7 @@ static int setup_log_file_array(auparse_state_t *au)
 	num--;
 	tmp = malloc((num+2)*sizeof(char *));
 	if (!tmp) {
-		fprintf(stderr, "No memory\n");
+		fprintf(stderr, "Out of memory. Check %s file, %d line", __FILE__, __LINE__);
 		aup_free_config(&config);
 		free(filename);
 		return 1;

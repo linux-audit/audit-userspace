@@ -47,6 +47,7 @@ void list_append(llist *l, lnode *node)
 
 	newnode = malloc(sizeof(lnode));
 	if (newnode == NULL) {
+		printf("Out of memory. Check %s file, %d line", __FILE__, __LINE__);
 		return;
 	}
 

@@ -131,7 +131,7 @@ void increase_queue_depth(unsigned int size)
 
         tmp_q = realloc(q, size * sizeof(BerElement *));
         if (tmp_q == NULL) {
-		    log_err("Memory allocation error");;
+		    log_err("Out of memory. Check %s file, %d line", __FILE__, __LINE__);
 			pthread_mutex_unlock(&queue_lock);
 			return;
 		}
