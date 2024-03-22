@@ -1192,7 +1192,7 @@ static int normalize_compound(auparse_state_t *au)
 			const char *exe = auparse_interpret_field(au);
 			D.how = strdup(exe);
 			if (D.how == NULL) {
-				fprintf(stderr, "Memory allocation error");
+				fprintf(stderr, "Out of memory. Check %s file, %d line", __FILE__, __LINE__);
 				free((void *)syscall);
 				return 1;
 			}
@@ -2005,7 +2005,7 @@ map:
 		const char *exe = auparse_interpret_field(au);
 		D.how = strdup(exe);
 		if (D.how == NULL) {
-			fprintf(stderr, "Memory allocation error");
+			fprintf(stderr, "Out of memory. Check %s file, %d line", __FILE__, __LINE__);
 			return 1;
 		}
 		if ((strncmp(D.how, "/usr/bin/python", 15) == 0) ||

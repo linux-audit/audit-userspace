@@ -65,6 +65,7 @@ void list_append(llist *l, const struct audit_rule_data *r, size_t sz)
 
 	newnode = malloc(sizeof(lnode));
 	if (newnode == NULL) {
+		printf("Out of memory. Check %s file, %d line", __FILE__, __LINE__);
 		return;
 	}
 

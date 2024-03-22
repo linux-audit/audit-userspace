@@ -67,6 +67,7 @@ void cllist_append(cllist *l, uint32_t num, void *data)
 
 	newnode = malloc(sizeof(data_node));
 	if (newnode == NULL) {
+		printf("Out of memory. Check %s file, %d line", __FILE__, __LINE__);
 		return;
 	}
 

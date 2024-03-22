@@ -303,7 +303,7 @@ char *unescape(const char *buf)
 
 	str = strndup(buf, ptr - buf);
 	if (str == NULL) {
-		fprintf(stderr, "Memory alocation error");
+		fprintf(stderr, "Out of memory. Check %s file, %d line", __FILE__, __LINE__);
 		return NULL;
 	}
 
