@@ -65,9 +65,15 @@ int nvlist_append(nvlist *l, nvnode *node)
 		alloc_array(l);
 
 	if (l->cnt == l->size) {
-		l->array = realloc(l->array, l->size * sizeof(nvnode) * 2);
-		memset(l->array + l->size, 0, sizeof(nvnode) * l->size);
-		l->size = l->size * 2;
+		nvnode* tmp;
+		tmp = realloc(l->array, l->size * sizeof(nvnode) * 2);
+		if (tmp != NULL) {
+			l->array = tmp;
+			memset(l->array + l->size, 0, sizeof(nvnode) * l->size);
+			l->size = l->size * 2;
+		}
+		else 
+			return 1;
 	}
 
 	nvnode *newnode = &l->array[l->cnt];

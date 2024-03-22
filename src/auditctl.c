@@ -390,7 +390,7 @@ static int check_rule_mismatch(int lineno, const char *option)
 		audit_rule_syscallbyname_data(&tmprule, ptr);
 		ptr = strtok_r(NULL, ",", &saved);
 	}
-	if (memcmp(tmprule.mask, rule_new->mask, AUDIT_BITMASK_SIZE))
+	if (memcmp(tmprule.mask, rule_new->mask, AUDIT_BITMASK_SIZE * sizeof(__u32)))
 		rc = 1;
 	free(tmp);
 
