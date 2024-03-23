@@ -34,4 +34,5 @@ _S(SHMAT,	"shmat"		)
 _S(SHMDT,	"shmdt"		)
 _S(SHMGET,	"shmget"	)
 _S(SHMCTL,	"shmctl"	)
+_S(DIPC,	"dipc"		)
 
