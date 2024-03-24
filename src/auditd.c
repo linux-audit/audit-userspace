@@ -674,20 +674,6 @@ int main(int argc, char *argv[])
 	}
 	session = audit_get_session();
 
-#ifndef DEBUG
-	/* Make sure we can do our job. Containers may not give you
-	 * capabilities, so we revert to a uid check for that case. */
-	if (!audit_can_control()) {
-		if (!config.local_events && geteuid() == 0)
-			;
-		else {
-			fprintf(stderr,
-		"You must be root or have capabilities to run this program.\n");
-			return 4;
-		}
-	}
-#endif
-
 	/* Register sighandlers */
 	sa.sa_flags = 0 ;
 	sigemptyset( &sa.sa_mask ) ;
@@ -715,6 +701,21 @@ int main(int argc, char *argv[])
 		free_config(&config);
 		return 6;
 	}
+
+#ifndef DEBUG
+	/* Make sure we can do our job. Containers may not give you
+	 * capabilities, so we revert to a uid check for that case. */
+	if (!audit_can_control()) {
+		if (!config.local_events && geteuid() == 0)
+			;
+		else {
+			fprintf(stderr,
+		"You must be root or have capabilities to run this program.\n");
+			return 4;
+		}
+	}
+#endif
+
 	if (config.daemonize == D_FOREGROUND)
 		config.write_logs = 0;
 
