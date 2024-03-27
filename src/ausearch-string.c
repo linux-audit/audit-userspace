@@ -49,6 +49,10 @@ void slist_append(slist *l, const snode *node)
 	snode* newnode;
 
 	newnode = malloc(sizeof(snode));
+	if (newnode == NULL) {
+		printf("Out of memory. Check %s file, %d line", __FILE__, __LINE__);
+		return;
+	}
 
 	if (node->str)
 		newnode->str = node->str;

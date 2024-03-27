@@ -47,6 +47,11 @@ void lol_create(lol *lo)
 	lo->maxi = -1;
 	lo->limit = ARRAY_LIMIT;
 	lo->array = (lolnode *)malloc(size);
+	if (lo->array == NULL) {
+		fprintf(stderr, "Out of memory. Check %s file, %d line", __FILE__, __LINE__);
+		lo->limit = 0;
+		return;
+	}
 	memset(lo->array, 0, size);
 }
 
@@ -305,6 +310,10 @@ int lol_add_record(lol *lo, char *buff)
 	n.a1 = 0L;
 	n.type = e.type;
 	n.message = strdup(buff);
+	if(n.message == NULL) {
+		fprintf(stderr, "Out of memory. Check %s file, %d line", __FILE__, __LINE__);
+		return 0;
+	}
 	ptr = strchr(n.message, AUDIT_INTERP_SEPARATOR);
 	if (ptr) {
 		n.mlen = ptr - n.message;
@@ -359,6 +368,10 @@ int lol_add_record(lol *lo, char *buff)
 
 	// Create new event and fill it in
 	l = malloc(sizeof(llist));
+	if (l == NULL) {
+		fprintf(stderr, "Out of memory. Check %s file, %d line", __FILE__, __LINE__);
+		return 0;
+	}
 	list_create(l);
 	l->e.milli = e.milli;
 	l->e.sec = e.sec;

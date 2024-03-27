@@ -37,6 +37,10 @@ void search_list_create(nvlist *l)
 void search_list_append(nvlist *l, nvnode *node)
 {
 	nvnode* newnode = malloc(sizeof(nvnode));
+	if (newnode == NULL) {
+		printf("Out of memory. Check %s file, %d line", __FILE__, __LINE__);
+		return;
+	}
 
 	newnode->name = node->name;
 	newnode->val = node->val;

@@ -74,6 +74,10 @@ void plist_append(conf_llist *l, plugin_conf_t *p)
 	lnode* newnode;
 
 	newnode = malloc(sizeof(lnode));
+	if (newnode == NULL) {
+		printf("Out of memory. Check %s file, %d line", __FILE__, __LINE__);
+		return;
+	}
 
 	if (p) {
 		void *pp = malloc(sizeof(struct plugin_conf));

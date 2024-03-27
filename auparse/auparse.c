@@ -113,6 +113,12 @@ static int setup_log_file_array(auparse_state_t *au)
 	}
 	num--;
 	tmp = malloc((num+2)*sizeof(char *));
+	if (!tmp) {
+		fprintf(stderr, "Out of memory. Check %s file, %d line", __FILE__, __LINE__);
+		aup_free_config(&config);
+		free(filename);
+		return 1;
+	}
 
         /* Got it, now process logs from last to first */
 	if (num > 0)
@@ -489,6 +495,8 @@ auparse_state_t *auparse_init(ausource_t source, const void *b)
 			if (access_ok(b))
 				goto bad_exit;
 			tmp = malloc(2*sizeof(char *));
+			if (tmp == NULL) 
+				goto bad_exit;
 			tmp[0] = strdup(b);
 			tmp[1] = NULL;
 			au->source_list = tmp;

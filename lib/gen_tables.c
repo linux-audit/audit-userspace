@@ -271,7 +271,10 @@ output_i2s(const char *prefix)
 	}
 
 	unique_values = malloc(NUM_VALUES * sizeof(*unique_values));
-	assert(unique_values != NULL);
+	if (unique_values == NULL) {
+		fprintf(stderr, "Out of memory. Check %s file, %d line", __FILE__, __LINE__);
+		abort();
+	}
 	n = 0;
 	for (i = 0; i < NUM_VALUES; i++) {
 		if (n == 0 || unique_values[n - 1].val != values[i].val) {
@@ -351,7 +354,10 @@ output_i2s_transtab(const char *prefix)
 		printf("{%d,%zu},", values[i].val, values[i].s_offset);
 	}
 	uc_prefix = strdup(prefix);
-	assert(uc_prefix != NULL);
+	if (uc_prefix == NULL) {
+		fprintf(stderr, "Out of memory. Check %s file, %d line", __FILE__, __LINE__);
+		abort();
+	}
 	for (i = 0; uc_prefix[i] != '\0'; i++)
 		uc_prefix[i] = toupper((unsigned char)uc_prefix[i]);
 	printf("\n"

@@ -392,7 +392,7 @@ static int check_rule_mismatch(int lineno, const char *option)
 		audit_rule_syscallbyname_data(&tmprule, ptr);
 		ptr = strtok_r(NULL, ",", &saved);
 	}
-	if (memcmp(tmprule.mask, rule_new->mask, AUDIT_BITMASK_SIZE))
+	if (memcmp(tmprule.mask, rule_new->mask, AUDIT_BITMASK_SIZE * sizeof(tmprule.mask[0])))
 		rc = 1;
 	free(tmp);
 
@@ -1391,6 +1391,12 @@ static int fileopt(const char *file)
 		}
 		i = 0;
 		fields = malloc(nf * sizeof(char *));
+		if (fields == NULL) {
+			audit_msg(LOG_ERR, "Out of memory. Check %s file, %d line", __FILE__, __LINE__);
+			fclose(f);
+			return 1;
+		}
+		
 		fields[i++] = "auditctl";
 		fields[i++] = ptr;
 		while( (ptr=audit_strsplit(NULL)) && (i < nf-1)) {
