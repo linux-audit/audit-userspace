@@ -1,5 +1,5 @@
-/* audit-fgets.h -- a replacement for glibc's fgets
- * Copyright 2018-23 Red Hat Inc.
+/* common.h -- common utility functions used throughout
+ * Copyright 2018-24 Red Hat Inc.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -28,6 +28,9 @@
 // These macros originate in sys/cdefs.h
 #ifndef __attr_access
 #  define __attr_access(x)
+#endif
+#ifndef __attribute_malloc__
+#  define __attribute_malloc__
 #endif
 #ifndef __attr_dealloc
 #  define __attr_dealloc(dealloc, argno)
