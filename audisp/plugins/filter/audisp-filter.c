@@ -21,18 +21,19 @@
  *
  */
 
+#include "config.h"
 #include <errno.h>
 #include <fcntl.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <string.h>
 #include <sys/select.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
 #include <syslog.h>
 
-#include "config.h"
 #ifdef HAVE_LIBCAP_NG
 #include <cap-ng.h>
 #endif
