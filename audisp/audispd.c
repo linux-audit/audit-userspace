@@ -37,6 +37,9 @@
 #include <limits.h>
 #include <sys/uio.h>
 #include <getopt.h>
+#ifdef HAVE_ATOMIC
+#include <stdatomic.h>
+#endif
 
 #include "audispd-pconfig.h"
 #include "audispd-config.h"
@@ -46,8 +49,8 @@
 #include "private.h"
 
 /* Global Data */
-static volatile int stop = 0;
-volatile int disp_hup = 0;
+static volatile ATOMIC_INT stop = 0;
+volatile ATOMIC_INT disp_hup = 0;
 
 /* Local data */
 static daemon_conf_t daemon_config;
