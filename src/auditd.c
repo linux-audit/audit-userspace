@@ -38,6 +38,9 @@
 #include <pthread.h>
 #include <sys/utsname.h>
 #include <getopt.h>
+#ifdef HAVE_ATOMIC
+#include <stdatomic.h>
+#endif
 
 #include "libaudit.h"
 #include "auditd-event.h"
@@ -62,7 +65,7 @@
 #define SUBJ_LEN 4097
 
 /* Global Data */
-volatile int stop = 0;
+volatile ATOMIC_INT stop = 0;
 
 /* Local data */
 static int fd = -1, pipefds[2] = {-1, -1};
@@ -72,8 +75,8 @@ static const char *state_file = "/var/run/auditd.state";
 static int init_pipe[2];
 static int do_fork = 1, opt_aggregate_only = 0, config_dir_set = 0;
 static struct auditd_event *cur_event = NULL, *reconfig_ev = NULL;
-static int hup_info_requested = 0;
-static int usr1_info_requested = 0, usr2_info_requested = 0;
+static ATOMIC_INT hup_info_requested = 0;
+static ATOMIC_INT usr1_info_requested = 0, usr2_info_requested = 0;
 static char subj[SUBJ_LEN];
 static uint32_t session;
 

@@ -87,7 +87,12 @@ AC_LINK_IFELSE(
  [AC_DEFINE(HAVE_STRNDUPA, 1, [Let us know if we have it or not])],
  []
 )
-
+AC_CHECK_HEADERS([stdatomic.h], [
+    AC_DEFINE([HAVE_ATOMIC], 1, [Define to 1 if you have the <stdatomic.h> header file.])
+    AC_DEFINE([ATOMIC_INT], atomic_int, [Define atomic_int if you have the <stdatomic.h> header file.])
+  ], [
+    AC_DEFINE([ATOMIC_INT], int, [Define to the type of an int if <stdatomic.h> is not available.])
+])
 AC_MSG_CHECKING(__attr_access support)
 AC_COMPILE_IFELSE(
   [AC_LANG_SOURCE(

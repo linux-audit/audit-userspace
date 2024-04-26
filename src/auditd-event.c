@@ -36,6 +36,9 @@
 #include <limits.h>     /* POSIX_HOST_NAME_MAX */
 #include <ctype.h>	/* toupper */
 #include <libgen.h>	/* dirname */
+#ifdef HAVE_ATOMIC
+#include <stdatomic.h>
+#endif
 #include "auditd-event.h"
 #include "auditd-dispatch.h"
 #include "auditd-listen.h"
@@ -45,7 +48,7 @@
 #include "auparse-idata.h"
 
 /* This is defined in auditd.c */
-extern volatile int stop;
+extern volatile ATOMIC_INT stop;
 
 /* Local function prototypes */
 static void send_ack(const struct auditd_event *e, int ack_type,
