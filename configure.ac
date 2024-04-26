@@ -89,8 +89,10 @@ AC_LINK_IFELSE(
 AC_CHECK_HEADERS([stdatomic.h], [
     AC_DEFINE([HAVE_ATOMIC], 1, [Define to 1 if you have the <stdatomic.h> header file.])
     AC_DEFINE([ATOMIC_INT], atomic_int, [Define atomic_int if you have the <stdatomic.h> header file.])
+    AC_DEFINE([ATOMIC_UNSIGNED], atomic_uint, [Define atomic_uint if you have the <stdatomic.h> header file.])
   ], [
     AC_DEFINE([ATOMIC_INT], int, [Define to the type of an int if <stdatomic.h> is not available.])
+    AC_DEFINE([ATOMIC_UNSIGNED], unsigned, [Define to the type of an unsigned if <stdatomic.h> is not available.])
 ])
 AC_MSG_CHECKING(__attr_access support)
 AC_COMPILE_IFELSE(
