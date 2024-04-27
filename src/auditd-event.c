@@ -1015,6 +1015,9 @@ static void do_disk_error_action(const char *func, int err)
 
 static void rotate_logs_now(void)
 {
+	/* Don't rotate in debug mode */
+	if (config->daemonize == D_FOREGROUND)
+		return;
 	if (config->max_log_size_action == SZ_KEEP_LOGS)
 		shift_logs();
 	else
