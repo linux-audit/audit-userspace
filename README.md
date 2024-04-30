@@ -71,9 +71,9 @@ The following image illustrates the architecture and relationship of the compone
 
 ![audit-components](https://github.com/linux-audit/audit-userspace/blob/assets/audit-components.png)
 
-In the above diagram, auditd is in the middle. It interfaces with the kernel to receive events. It writes them to the audit logs. It also distributes events in realtime to audisp plugins. To load rules on 3.x audit system, you use the augenrules program. As of audit-4.0, you would use the audit-rules.service with systemctl. They in turn uses auditctl to load rulkes into the kernel. Auditctl is used to create, load, and delete rules; configure the kernel's backlog and other parameters; and to gather status about the audit system.
+In the above diagram, auditd is in the middle. It interfaces with the kernel to receive events. It writes them to the audit logs. It also distributes events in realtime to audisp plugins. To load rules on 3.x audit system, you use the augenrules program. As of audit-4.0, you would use the audit-rules.service with systemctl. They in turn uses auditctl to load rules into the kernel. Auditctl is used to create, load, and delete rules; configure the kernel's backlog and other parameters; and to gather status about the audit system.
 
- The kernel does the heavy lifting to generates the events. In the case of a trusted application such as shadow-utils, the kernel recieves the event, adds origin information, timestamps, and queues the event for delivery to the audit daemon.
+The kernel does the heavy lifting to generates the events. In the case of a trusted application such as shadow-utils, the kernel receives the event, adds origin information, timestamps, and queues the event for delivery to the audit daemon.
 
 DAEMON CONSIDERATIONS
 ---------------------
