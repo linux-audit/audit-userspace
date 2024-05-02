@@ -221,6 +221,8 @@ static void remove_node(Queue *queue, const QNode *node)
 		queue->front = node->next;
 		if (queue->front)
 			queue->front->prev = NULL;
+		else
+			queue->end = NULL;
 		goto out;
 	} else {
 		if (node->prev->next != node) {
@@ -252,7 +254,7 @@ out:
 	sanity_check_queue(queue, "2 remove_node");
 }
 
-// Remove from the end of the queue 
+// Remove from the end of the queue
 static void dequeue(Queue *queue)
 {
 	QNode *temp = queue->end;
@@ -263,14 +265,14 @@ static void dequeue(Queue *queue)
 	remove_node(queue, queue->end);
 
 //	if (queue->cleanup)
-//		queue->cleanup(temp->str); 
+//		queue->cleanup(temp->str);
 	free(temp->str);
 	free(temp);
- 
+
 	// decrement the total of full slots by 1
 	queue->count--;
 }
- 
+
 // Remove front of the queue because its a mismatch
 void lru_evict(Queue *queue, unsigned int key)
 {
@@ -279,7 +281,7 @@ void lru_evict(Queue *queue, unsigned int key)
 
 	if (queue_is_empty(queue))
 		return;
- 
+
 	hash->array[key] = NULL;
 	remove_node(queue, queue->front);
 
@@ -311,13 +313,13 @@ static void enqueue(Queue *queue, unsigned int key)
 	// And add the new node to the front of queue
 	temp = new_QNode();
 
-	insert_beginning(queue, temp); 
+	insert_beginning(queue, temp);
 	hash->array[key] = temp;
- 
+
 	// increment number of full slots
 	queue->count++;
 }
- 
+
 // This function is called needing a str from cache.
 //  There are two scenarios:
 // 1. Item is not in cache, so add it to the front of the queue
@@ -333,19 +335,19 @@ QNode *check_lru_cache(Queue *queue, unsigned int key)
 	}
 
 	reqPage = hash->array[key];
- 
+
 	// str is not in cache, make new spot for it
 	if (reqPage == NULL) {
 		enqueue(queue, key);
 		queue->misses++;
- 
+
 	// str is there but not at front. Move it
 	} else if (reqPage != queue->front) {
 		remove_node(queue, reqPage);
-		reqPage->next = NULL; 
-		reqPage->prev = NULL; 
+		reqPage->next = NULL;
+		reqPage->prev = NULL;
 		insert_beginning(queue, reqPage);
- 
+
 		// Increment cached object metrics
 		queue->front->uses++;
 		queue->hits++;
