@@ -116,6 +116,11 @@ static void destroy_queue(Queue *queue)
 	dump_queue_stats(queue);
 #endif
 
+	// Some static analysis scanners try to flag this as a use after
+	// free accessing queue->end. This is a false positive. It is freed.
+	// However, static analysis apps are incapable of seeing that in
+	// remove_node, end is updated to a prior node as part of detaching
+	// the current end node.
 	while (queue->count)
 		dequeue(queue);
 
@@ -252,34 +257,33 @@ out:
 	sanity_check_queue(queue, "2 remove_node");
 }
 
-// Remove from the end of the queue 
+// Remove from the end of the queue
 static void dequeue(Queue *queue)
 {
-	QNode *temp = queue->end;
-
 	if (queue_is_empty(queue))
 		return;
 
+	QNode *temp = queue->end;
 	remove_node(queue, queue->end);
 
 //	if (queue->cleanup)
 //		queue->cleanup(temp->str); 
 	free(temp->str);
 	free(temp);
- 
+
 	// decrement the total of full slots by 1
 	queue->count--;
 }
- 
+
 // Remove front of the queue because its a mismatch
 void lru_evict(Queue *queue, unsigned int key)
 {
+	if (queue_is_empty(queue))
+		return;
+
 	Hash *hash = queue->hash;
 	QNode *temp = queue->front;
 
-	if (queue_is_empty(queue))
-		return;
- 
 	hash->array[key] = NULL;
 	remove_node(queue, queue->front);
 
