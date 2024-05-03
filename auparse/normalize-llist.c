@@ -21,6 +21,7 @@
  *   Steve Grubb <sgrubb@redhat.com>
  */
 
+#include <stdio.h>
 #include <stdlib.h>
 #include "normalize-llist.h"
 
