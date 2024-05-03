@@ -1,6 +1,6 @@
 /*
 * ausearch-int.c - Minimal linked list library for integers
-* Copyright (c) 2005,2008 Red Hat Inc., Durham, North Carolina.
+* Copyright (c) 2005,2008 Red Hat Inc.
 * All Rights Reserved. 
 *
 * This software may be freely redistributed and/or modified under the
@@ -41,15 +41,13 @@ int_node *ilist_next(ilist *l)
 	return l->cur;
 }
 
-void ilist_append(ilist *l, int num, unsigned int hits, int aux)
+int ilist_append(ilist *l, int num, unsigned int hits, int aux)
 {
 	int_node* newnode;
 
 	newnode = malloc(sizeof(int_node));
-	if (newnode == NULL) {
-		printf("Out of memory. Check %s file, %d line", __FILE__, __LINE__);
-		return;
-	}
+	if (newnode == NULL)
+		return 1;
 
 	newnode->num = num;
 	newnode->hits = hits;
@@ -65,6 +63,8 @@ void ilist_append(ilist *l, int num, unsigned int hits, int aux)
 	// make newnode current
 	l->cur = newnode;
 	l->cnt++;
+
+	return 0;
 }
 
 void ilist_clear(ilist* l)

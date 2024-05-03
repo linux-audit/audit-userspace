@@ -1,6 +1,6 @@
 /*
 * audispd-llist.h - Header file for ausearch-conf_llist.c
-* Copyright (c) 2007,2013 Red Hat Inc., Durham, North Carolina.
+* Copyright (c) 2007,2013 Red Hat Inc.
 * All Rights Reserved.
 *
 * This software may be freely redistributed and/or modified under the
@@ -51,7 +51,7 @@ unsigned int plist_count_active(const conf_llist *l);
 void plist_last(conf_llist *l);
 lnode *plist_next(conf_llist *l);
 static inline lnode *plist_get_cur(conf_llist *l) { return l->cur; }
-void plist_append(conf_llist *l, plugin_conf_t *p);
+int plist_append(conf_llist *l, plugin_conf_t *p);
 void plist_clear(conf_llist* l);
 void plist_mark_all_unchecked(conf_llist* l);
 lnode *plist_find_unchecked(conf_llist* l);

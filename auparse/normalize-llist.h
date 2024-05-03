@@ -1,6 +1,6 @@
 /*
  * normalize-llist.h - Header file for normalize-llist.c
- * Copyright (c) 2016-17 Red Hat Inc., Durham, North Carolina.
+ * Copyright (c) 2016-17 Red Hat Inc.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -53,7 +53,7 @@ AUDIT_HIDDEN_START
 void cllist_create(cllist *l, void (*cleanup)(void *));
 void cllist_clear(cllist* l);
 data_node *cllist_next(cllist *l);
-void cllist_append(cllist *l, uint32_t num, void *data);
+int cllist_append(cllist *l, uint32_t num, void *data);
 
 AUDIT_HIDDEN_END
 

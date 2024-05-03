@@ -179,7 +179,8 @@ static unsigned int add_subj_attr(auparse_state_t *au, const char *str,
 	if ((auparse_find_field(au, str))) {
 		attr = set_record(0, rnum);
 		attr = set_field(attr, auparse_get_field_num(au));
-		cllist_append(&D.actor.attr, attr, NULL);
+		if (cllist_append(&D.actor.attr, attr, NULL))
+			return 1;
 		return 0;
 	} else
 		auparse_goto_record_num(au, rnum);
@@ -224,7 +225,8 @@ static unsigned int add_obj_attr(auparse_state_t *au, const char *str,
 	if ((auparse_find_field(au, str))) {
 		attr = set_record(0, rnum);
 		attr = set_field(attr, auparse_get_field_num(au));
-		cllist_append(&D.thing.attr, attr, NULL);
+		if (cllist_append(&D.thing.attr, attr, NULL))
+			return 1;
 		return 0;
 	} else
 		auparse_goto_record_num(au, rnum);
@@ -360,21 +362,23 @@ static void collect_id_obj2(auparse_state_t *au, const char *syscall)
 	}
 }
 
-static void collect_path_attrs(auparse_state_t *au)
+static int collect_path_attrs(auparse_state_t *au)
 {
 	value_t attr;
 	unsigned int rnum = auparse_get_record_num(au);
 
 	auparse_first_field(au);
 	if (add_obj_attr(au, "mode", rnum))
-		return;	// Failed opens don't have anything else
+		return 1;	// Failed opens don't have anything else
 
 	// All the rest of the fields matter
 	while ((auparse_next_field(au))) {
 		attr = set_record(0, rnum);
 		attr = set_field(attr, auparse_get_field_num(au));
-		cllist_append(&D.thing.attr, attr, NULL);
+		if (cllist_append(&D.thing.attr, attr, NULL))
+			return 1;
 	}
+	return 0;
 }
 
 static void collect_cwd_attrs(auparse_state_t *au)
