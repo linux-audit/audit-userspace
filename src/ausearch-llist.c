@@ -1,6 +1,6 @@
 /*
 * ausearch-llist.c - Minimal linked list library
-* Copyright (c) 2005-2008,2011,2016 Red Hat Inc., Durham, North Carolina.
+* Copyright (c) 2005-2008,2011,2016 Red Hat Inc.
 * Copyright (c) 2011 IBM Corp.
 * All Rights Reserved. 
 *
@@ -102,15 +102,13 @@ lnode *list_prev(llist *l)
 	return l->cur;
 }
 
-void list_append(llist *l, lnode *node)
+int list_append(llist *l, lnode *node)
 {
 	lnode* newnode;
 
 	newnode = malloc(sizeof(lnode));
-	if (newnode == NULL) {
-		printf("Out of memory. Check %s file, %d line", __FILE__, __LINE__);
-		return;
-	}
+	if (newnode == NULL)
+		return 1;
 
 	if (node->message)
 		newnode->message = node->message;
@@ -123,7 +121,7 @@ void list_append(llist *l, lnode *node)
 	newnode->type = node->type;
 	newnode->a0 = node->a0;
 	newnode->a1 = node->a1;
-	newnode->item = l->cnt; 
+	newnode->item = l->cnt;
 	newnode->next = NULL;
 
 	// if we are at top, fix this up
@@ -135,6 +133,8 @@ void list_append(llist *l, lnode *node)
 	// make newnode current
 	l->cur = newnode;
 	l->cnt++;
+
+	return 0;
 }
 
 int list_find_item(llist *l, unsigned int i)

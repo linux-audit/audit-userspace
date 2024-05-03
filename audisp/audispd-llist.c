@@ -69,15 +69,13 @@ unsigned int plist_count_active(const conf_llist *l)
 	return cnt;
 }
 
-void plist_append(conf_llist *l, plugin_conf_t *p)
+int plist_append(conf_llist *l, plugin_conf_t *p)
 {
 	lnode* newnode;
 
 	newnode = malloc(sizeof(lnode));
-	if (newnode == NULL) {
-		printf("Out of memory. Check %s file, %d line", __FILE__, __LINE__);
-		return;
-	}
+	if (newnode == NULL)
+		return 1;
 
 	if (p) {
 		void *pp = malloc(sizeof(struct plugin_conf));
@@ -98,6 +96,8 @@ void plist_append(conf_llist *l, plugin_conf_t *p)
 	// make newnode current
 	l->cur = newnode;
 	l->cnt++;
+
+	return 0;
 }
 
 void plist_clear(conf_llist* l)

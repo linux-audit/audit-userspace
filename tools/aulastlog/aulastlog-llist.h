@@ -1,6 +1,6 @@
 /*
 * aulastlog-llist.h - Header file for aulastlog-llist.c
-* Copyright (c) 2008 Red Hat Inc., Durham, North Carolina.
+* Copyright (c) 2008 Red Hat Inc.
 * All Rights Reserved.
 *
 * This software may be freely redistributed and/or modified under the
@@ -53,7 +53,7 @@ static inline void list_first(llist *l) { l->cur = l->head; }
 lnode *list_next(llist *l);
 static inline lnode *list_get_cur(llist *l) { return l->cur; }
 static inline unsigned int list_get_cnt(llist *l) { return l->cnt; }
-void list_append(llist *l, lnode *node);
+int list_append(llist *l, lnode *node);
 void list_clear(llist* l);
 int list_update_login(llist* l, time_t t);
 int list_update_host(llist* l, const char *h);

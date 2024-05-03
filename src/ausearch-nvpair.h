@@ -1,6 +1,6 @@
 /*
 * ausearch-nvpair.h - Header file for ausearch-nvpair.c
-* Copyright (c) 2006-08 Red Hat Inc., Durham, North Carolina.
+* Copyright (c) 2006-08 Red Hat Inc.
 * All Rights Reserved.
 *
 * This software may be freely redistributed and/or modified under the
@@ -48,7 +48,7 @@ void search_list_create(nvlist *l);
 static inline void search_list_first(nvlist *l) { l->cur = l->head; }
 nvnode *search_list_next(nvlist *l);
 static inline nvnode *search_list_get_cur(nvlist *l) { return l->cur; }
-void search_list_append(nvlist *l, nvnode *node);
+int search_list_append(nvlist *l, nvnode *node);
 void search_list_clear(nvlist* l);
 
 /* Given a numeric index, find that record. */

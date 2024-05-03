@@ -1,7 +1,7 @@
 /*
 * aulastlog-llist.c - Minimal linked list library
-* Copyright (c) 2008 Red Hat Inc., Durham, North Carolina.
-* All Rights Reserved. 
+* Copyright (c) 2008 Red Hat Inc..
+* All Rights Reserved.
 *
 * This software may be freely redistributed and/or modified under the
 * terms of the GNU General Public License as published by the Free
@@ -15,7 +15,7 @@
 *
 * You should have received a copy of the GNU General Public License
 * along with this program; see the file COPYING. If not, write to the
-* Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor 
+* Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor
 * Boston, MA 02110-1335, USA.
 *
 * Authors:
@@ -41,15 +41,13 @@ lnode *list_next(llist *l)
 	return l->cur;
 }
 
-void list_append(llist *l, lnode *node)
+int list_append(llist *l, lnode *node)
 {
 	lnode* newnode;
 
 	newnode = malloc(sizeof(lnode));
-	if (newnode == NULL) {
-		printf("Out of memory. Check %s file, %d line", __FILE__, __LINE__);
-		return;
-	}
+	if (newnode == NULL)
+		return 1;
 
 	newnode->sec = node->sec;
 	newnode->uid = node->uid;
@@ -62,7 +60,7 @@ void list_append(llist *l, lnode *node)
 		newnode->term = strdup(node->term);
 	else
 		newnode->term = NULL;
-	newnode->item = l->cnt; 
+	newnode->item = l->cnt;
 	newnode->next = NULL;
 
 	// if we are at top, fix this up
@@ -74,6 +72,8 @@ void list_append(llist *l, lnode *node)
 	// make newnode current
 	l->cur = newnode;
 	l->cnt++;
+
+	return 0;
 }
 
 void list_clear(llist* l)

@@ -1,6 +1,6 @@
 /*
 * auditctl-llist.h - Header file for ausearch-llist.c
-* Copyright (c) 2005 Red Hat Inc., Durham, North Carolina.
+* Copyright (c) 2005 Red Hat Inc.
 * All Rights Reserved.
 *
 * This software may be freely redistributed and/or modified under the
@@ -50,7 +50,7 @@ void list_first(llist *l);
 void list_last(llist *l);
 lnode *list_next(llist *l);
 static inline lnode *list_get_cur(llist *l) { return l->cur; }
-void list_append(llist *l, struct audit_rule_data *r, size_t sz);
+int list_append(llist *l, struct audit_rule_data *r, size_t sz);
 void list_clear(llist* l);
 
 #endif
