@@ -719,6 +719,10 @@ static int common_path_parser(search_items *s, char *path)
 			// append
 			snode sn;
 			sn.str = strdup(path);
+			if (sn.str == NULL) {
+				fprintf(stderr, "Out of memory. Check %s file, %d line\n", __FILE__, __LINE__);
+				return 8;
+			}
 			sn.key = NULL;
 			sn.hits = 1;
 			// Attempt to rebuild path if relative
@@ -1217,6 +1221,10 @@ skip:
 			saved = *term;
 			*term = 0;
 			s->hostname = strdup(str);
+			if (s->hostname == NULL) {
+				fprintf(stderr, "Out of memory. Check %s file, %d line\n", __FILE__, __LINE__);
+				return 33;
+			}
 			*term = saved;
 
 			// Lets see if there is something more
