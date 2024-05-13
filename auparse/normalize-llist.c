@@ -1,6 +1,6 @@
 /*
  * normalize-llist.c - Minimal linked list library
- * Copyright (c) 2016-17 Red Hat Inc., Durham, North Carolina.
+ * Copyright (c) 2016-17 Red Hat Inc.
  * All Rights Reserved. 
  *
  * This library is free software; you can redistribute it and/or
@@ -61,15 +61,14 @@ data_node *cllist_next(cllist *l)
 	return l->cur;
 }
 
-void cllist_append(cllist *l, uint32_t num, void *data)
+// Returns 0 on success and 1 on error
+int cllist_append(cllist *l, uint32_t num, void *data)
 {
 	data_node *newnode;
 
 	newnode = malloc(sizeof(data_node));
-	if (newnode == NULL) {
-		printf("Out of memory. Check %s file, %d line", __FILE__, __LINE__);
-		return;
-	}
+	if (newnode == NULL)
+		return 1;
 
 	newnode->num = num;
 	newnode->data = data;
@@ -84,5 +83,6 @@ void cllist_append(cllist *l, uint32_t num, void *data)
 	// make newnode current
 	l->cur = newnode;
 	l->cnt++;
+	return 0;
 }
 

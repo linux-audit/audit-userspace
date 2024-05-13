@@ -49,7 +49,7 @@ void slist_create(slist *l);
 static inline void slist_first(slist *l) { l->cur = l->head; }
 snode *slist_next(slist *l);
 static inline snode *slist_get_cur(slist *l) { return l->cur; }
-void slist_append(slist *l, snode *node);
+int slist_append(slist *l, snode *node);
 void slist_clear(slist* l);
 
 /* append a string if its not already on the list */

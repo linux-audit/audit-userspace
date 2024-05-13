@@ -1,7 +1,7 @@
 /*
 * ausearch-avc.c - Minimal linked list library for avcs
-* Copyright (c) 2006,2008,2014 Red Hat Inc., Durham, North Carolina.
-* All Rights Reserved. 
+* Copyright (c) 2006,2008,2014 Red Hat Inc.
+* All Rights Reserved.
 *
 * This software may be freely redistributed and/or modified under the
 * terms of the GNU General Public License as published by the Free
@@ -15,7 +15,7 @@
 *
 * You should have received a copy of the GNU General Public License
 * along with this program; see the file COPYING. If not, write to the
-* Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor 
+* Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor
 * Boston, MA 02110-1335, USA.
 *
 * Authors:
@@ -62,15 +62,13 @@ static void alist_last(alist *l)
 	l->cur = cur;
 }
 
-void alist_append(alist *l, anode *node)
+int alist_append(alist *l, anode *node)
 {
 	anode* newnode;
 
 	newnode = malloc(sizeof(anode));
-	if (newnode == NULL) {
-		printf("Out of memory. Check %s file, %d line", __FILE__, __LINE__);
-		return;
-	}
+	if (newnode == NULL)
+		return 1;
 
 	if (node->scontext)
 		newnode->scontext = node->scontext;
@@ -108,6 +106,8 @@ void alist_append(alist *l, anode *node)
 	// make newnode current
 	l->cur = newnode;
 	l->cnt++;
+
+	return 0;
 }
 
 int alist_find_subj(alist *l)

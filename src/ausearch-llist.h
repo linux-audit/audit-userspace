@@ -107,7 +107,7 @@ void list_last(llist *l);
 lnode *list_next(llist *l);
 lnode *list_prev(llist *l);
 static inline lnode *list_get_cur(llist *l) { return l->cur; }
-void list_append(llist *l, lnode *node);
+int list_append(llist *l, lnode *node);
 void list_clear(llist* l);
 int list_get_event(llist* l, event *e);
 

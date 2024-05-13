@@ -44,15 +44,13 @@ snode *slist_next(slist *l)
 	return l->cur;
 }
 
-void slist_append(slist *l, snode *node)
+int slist_append(slist *l, snode *node)
 {
 	snode* newnode;
 
 	newnode = malloc(sizeof(snode));
-	if (newnode == NULL) {
-		printf("Out of memory. Check %s file, %d line", __FILE__, __LINE__);
-		return;
-	}
+	if (newnode == NULL)
+		return 1;
 
 	if (node->str)
 		newnode->str = node->str;
@@ -79,6 +77,8 @@ void slist_append(slist *l, snode *node)
 	// make newnode current
 	l->cur = newnode;
 	l->cnt++;
+
+	return 0;
 }
 
 void slist_clear(slist* l)
