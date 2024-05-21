@@ -311,6 +311,7 @@ int lol_add_record(lol *lo, char *buff)
 	n.type = e.type;
 	n.message = strdup(buff);
 	if(n.message == NULL) {
+		free((char *)e.node);
 		fprintf(stderr, "Out of memory. Check %s file, %d line", __FILE__, __LINE__);
 		return 0;
 	}
@@ -369,6 +370,7 @@ int lol_add_record(lol *lo, char *buff)
 	// Create new event and fill it in
 	l = malloc(sizeof(llist));
 	if (l == NULL) {
+		free((char *)e.node);
 		fprintf(stderr, "Out of memory. Check %s file, %d line", __FILE__, __LINE__);
 		return 0;
 	}

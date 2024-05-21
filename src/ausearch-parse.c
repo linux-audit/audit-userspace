@@ -769,9 +769,11 @@ static int common_path_parser(search_items *s, char *path)
 			if ((sn.str[0] == '.') && ((sn.str[1] == '.') ||
 				(sn.str[1] == '/')) && s->cwd) {
 				char *tmp = malloc(PATH_MAX);
-				if (tmp == NULL)
+				if (tmp == NULL) {
+					free(sn.str);
 					return 6;
-				snprintf(tmp, PATH_MAX, "%s/%s", 
+				}
+				snprintf(tmp, PATH_MAX, "%s/%s",
 					s->cwd, sn.str);
 				free(sn.str);
 				sn.str = tmp;
