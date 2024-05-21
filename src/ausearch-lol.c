@@ -350,7 +350,9 @@ int lol_add_record(lol *lo, char *buff)
 	l = malloc(sizeof(llist));
 	if (l == NULL) {
 		free((char *)e.node);
-		fprintf(stderr, "Out of memory. Check %s file, %d line", __FILE__, __LINE__);
+		free(n.message);
+		fprintf(stderr, "Out of memory. Check %s file, %d line",
+			__FILE__, __LINE__);
 		return 0;
 	}
 	list_create(l);
