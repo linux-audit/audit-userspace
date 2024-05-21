@@ -444,8 +444,8 @@ static int negotiate_credentials(ev_tcp *io)
 				gss_release_name(&min_stat, &client);
 				return -1;
 			}
-			gss_release_buffer(&min_stat, &send_tok);
 		}
+		gss_release_buffer(&min_stat, &send_tok);
 	} while (maj_stat == GSS_S_CONTINUE_NEEDED);
 
 	maj_stat = gss_display_name(&min_stat, client, &recv_tok, NULL);
