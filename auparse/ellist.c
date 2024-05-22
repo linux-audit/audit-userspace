@@ -313,6 +313,8 @@ static int parse_up_record(rnode* r)
 						   if (nvlist_get_cnt(&r->nv)
 									 == 0)
 								free(buf);
+							// Tell static analysis tools n.name was freed
+							free(n.name);
 							return -1;
 						}
 						if (tmpctx[0]) {

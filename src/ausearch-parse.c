@@ -1735,14 +1735,18 @@ static int parse_sockaddr(const lnode *n, search_items *s)
 					if (s->filename) {
 						// append
 						snode sn;
+						sn.str = NULL;
 						if (un->sun_path[0])
 						    sn.str =
 							strdup(un->sun_path);
 						else if (un->sun_path[1])
 						    sn.str =
 							strdup(un->sun_path+1);
-						else
+						else {
+							// Tell static analysis tools sn.str was freed
+							free(sn.str);
 							return 6;
+						}
 
 						sn.key = NULL;
 						sn.hits = 1;
