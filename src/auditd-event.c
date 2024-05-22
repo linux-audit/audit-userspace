@@ -1490,12 +1490,8 @@ static void reconfigure(struct auditd_event *e)
 	oconf->q_depth = nconf->q_depth;
 	oconf->overflow_action = nconf->overflow_action;
 	oconf->max_restarts = nconf->max_restarts;
-	if (oconf->plugin_dir != nconf->plugin_dir ||
-		(oconf->plugin_dir && nconf->plugin_dir &&
-		strcmp(oconf->plugin_dir, nconf->plugin_dir) != 0)) {
-		free(oconf->plugin_dir);
-		oconf->plugin_dir = nconf->plugin_dir;
-	}
+	free(oconf->plugin_dir);
+	oconf->plugin_dir = nconf->plugin_dir;
 
 	/* At this point we will work on the items that are related to
 	 * a single log file. */

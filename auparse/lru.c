@@ -220,12 +220,19 @@ static void insert_beginning(Queue *queue, QNode *new_node)
 
 static void remove_node(Queue *queue, const QNode *node)
 {
-	// If we are at the beginning
 	sanity_check_queue(queue, "1 remove_node");
-	if (node->prev == NULL) {
+
+	// Queue has a single element.
+	if (queue->front == queue->end) {
+		queue->front = NULL;
+		queue->end = NULL;
+		goto out;
+	}
+
+	// If we are at the beginning (hence node->next != NULL)
+	if (queue->front == node) {
 		queue->front = node->next;
-		if (queue->front)
-			queue->front->prev = NULL;
+		queue->front->prev = NULL;
 		goto out;
 	} else {
 		if (node->prev->next != node) {
@@ -238,11 +245,10 @@ static void remove_node(Queue *queue, const QNode *node)
 		node->prev->next = node->next;
 	}
 
-	// If we are at the end
-	if (node->next == NULL) {
+	// If we are at the end (hence node->prev != NULL)
+	if (queue->end == node) {
 		queue->end = node->prev;
-		if (queue->end)
-			queue->end->next = NULL;
+		queue->end->next = NULL;
 	} else {
 		if (node->next->prev != node) {
 #ifdef DEBUG
