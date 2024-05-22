@@ -19,13 +19,14 @@
  * Authors:
  *   DJ Delorie <dj@redhat.com>
  *   Steve Grubb <sgrubb@redhat.com>
- * 
+ *
  */
 
 #include "config.h"
 #include <stdio.h>
 #include <unistd.h>
 #include <sys/stat.h>
+#include <limits.h>
 #include <errno.h>
 #include <string.h>
 #include <dirent.h>
@@ -165,18 +166,21 @@ static void close_client(struct ev_tcp *client)
 
 static int ar_write(int sock, const void *buf, int len)
 {
-	int rc = 0, w;
-	while (len > 0) {
+	int rc = 0;
+	ssize_t w;
+	while (len > 0 && len > rc) {
 		do {
-			w = write(sock, buf, len);
+			w = write(sock, buf + rc, len - rc);
 		} while (w < 0 && errno == EINTR);
+		if (w < INT_MIN || w > INT_MAX) {
+			return -1;
+		}
+
 		if (w < 0)
 			return w;
 		if (w == 0)
 			break;
 		rc += w;
-		len -= w;
-		buf = (const void *)((const char *)buf + w);
 	}
 	return rc;
 }
@@ -184,18 +188,20 @@ static int ar_write(int sock, const void *buf, int len)
 #ifdef USE_GSSAPI
 static int ar_read(int sock, void *buf, int len)
 {
-	int rc = 0, r;
-	while (len > 0) {
+	int rc = 0;
+	ssize_t r;
+	while (len > 0 && len > rc) {
 		do {
-			r = read(sock, buf, len);
+			r = read(sock, buf + rc, len - rc);
 		} while (r < 0 && errno == EINTR);
+		if (r < INT_MIN || r > INT_MAX) {
+			return -1;
+		}
 		if (r < 0)
 			return r;
 		if (r == 0)
 			break;
 		rc += r;
-		len -= r;
-		buf = (void *)((char *)buf + r);
 	}
 	return rc;
 }

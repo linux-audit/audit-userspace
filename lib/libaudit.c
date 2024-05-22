@@ -948,27 +948,41 @@ uid_t audit_getloginuid(void)
  */
 int audit_setloginuid(uid_t uid)
 {
-	char loginuid[16];
-	int o, count, rc = 0;
+	const int UID_LEN = 16;
+	char loginuid[UID_LEN];
+	int o, len, rc = 0;
 
 	errno = 0;
-	count = snprintf(loginuid, sizeof(loginuid), "%u", uid);
+	len = snprintf(loginuid, UID_LEN, "%u", uid);
+	/* Check if output was truncated due to UID_LEN not being big enough. In
+	theory, this should not happen. */
+	if (len <= 0 || len >= UID_LEN) {
+		audit_msg(LOG_ERR, "The output of snprintf was truncated (%d vs %d)", len, UID_LEN);
+		return 1;
+	}
 	o = open("/proc/self/loginuid", O_NOFOLLOW|O_WRONLY|O_TRUNC|O_CLOEXEC);
 	if (o >= 0) {
-		int block, offset = 0;
+		int offset = 0;
+		ssize_t block;
 
-		while (count > 0) {
-			block = write(o, &loginuid[offset], (unsigned)count);
+		while (len - offset > 0) {
 
-			if (block < 0) {
-				if (errno == EINTR)
-					continue;
+			do {
+				block = write(o, &loginuid[offset], len - offset);
+			} while (block < 0 && errno == EINTR);
+
+			if (block < INT_MIN || block > INT_MAX) {
+				audit_msg(LOG_ERR, "write() returned < INT_MIN (or > INT_MAX)");
+				close(o);
+				return 1;
+			} else if (block == 0) {
+				break;
+			} else if (block < 0) {
 				audit_msg(LOG_ERR, "Error writing loginuid");
 				close(o);
 				return 1;
 			}
 			offset += block;
-			count -= block;
 		}
 		close(o);
 	} else {

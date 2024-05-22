@@ -1232,21 +1232,25 @@ static int init_transport(void)
 
 static int ar_write (int sk, const void *buf, int len)
 {
-	int rc = 0, r;
-	while (len > 0) {
+	int rc = 0;
+	ssize_t w = 0;
+	while (len - rc > 0) {
 		do {
-			r = write(sk, buf, len);
-		} while (r < 0 && errno == EINTR);
-		if (r < 0) {
+			w = write(sk, (void *)((char *)buf + rc), len - rc);
+		} while (w < 0 && errno == EINTR);
+		if (w < INT_MIN || w > INT_MAX) {
+			/* this should not happen, so it's ok to syslog it */
+			syslog(LOG_ERR, "Invalid write() with rc < INT_MIN (or > INT_MAX)");
+			return -1;
+		}
+		if (w < 0) {
 			if (errno == EPIPE)
 				stop_sock();
-			return r;
+			return w;
 		}
-		if (r == 0)
+		if (w == 0)
 			break;
-		rc += r;
-		buf = (void *)((char *)buf + r);
-		len -= r;
+		rc += w;
 	}
 	return rc;
 }
