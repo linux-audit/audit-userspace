@@ -380,7 +380,9 @@ static void print_rule(const struct audit_rule_data *r)
 					printf("-w %.*s", r->values[i],
 						&r->buf[boffset]);
 				else
-					printf(" -F path=%.*s",	r->values[i],
+					printf(" -F path%s%.*s",
+						audit_operator_to_symbol(op),
+						r->values[i],
 						&r->buf[boffset]);
 				boffset += r->values[i];
 			} else if (field == AUDIT_DIR) {
@@ -388,12 +390,15 @@ static void print_rule(const struct audit_rule_data *r)
 					printf("-w %.*s", r->values[i],
 						&r->buf[boffset]);
 				else
-					printf(" -F dir=%.*s", r->values[i],
+					printf(" -F dir%s%.*s",
+						audit_operator_to_symbol(op),
+						r->values[i],
 						&r->buf[boffset]);
 
 				boffset += r->values[i];
 			} else if (field == AUDIT_EXE) {
-				printf(" -F exe=%.*s",
+				printf(" -F exe%s%.*s",
+					audit_operator_to_symbol(op),
 					r->values[i], &r->buf[boffset]);
 				boffset += r->values[i];
 			} else if (field == AUDIT_FILTERKEY) {
