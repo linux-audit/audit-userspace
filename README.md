@@ -10,6 +10,11 @@ RUNTIME DEPENDENCIES
 * kernel >= 5.0 
 * systemd
 
+NOTE: While this repository provides support for systemd to start the audit
+daemon, other init systems can be used as well. For example, [Alpine
+Linux](https://git.alpinelinux.org/aports/tree/main/audit/auditd.initd) provides
+an init script for OpenRC.
+
 BUILD-TIME DEPENDENCIES (for tar file)
 --------------------------------------
 * gcc (or clang)
