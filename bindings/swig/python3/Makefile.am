@@ -26,7 +26,6 @@ AM_CPPFLAGS = -I. -I$(top_builddir) -I${top_srcdir}/lib $(PYTHON3_INCLUDES)
 LIBS = $(top_builddir)/lib/libaudit.la
 SWIG_FLAGS = -python
 SWIG_INCLUDES = -I. -I$(top_builddir) -I${top_srcdir}/lib $(PYTHON3_INCLUDES)
-PYTHON = $(PYTHON3)
 pyexec_PYTHON = audit.py
 pyexec_LTLIBRARIES = _audit.la
 pyexec_SOLIBRARIES = _audit.so
