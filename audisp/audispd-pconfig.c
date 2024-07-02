@@ -444,10 +444,12 @@ static int service_type_parser(struct nv_pair *nv, int line,
 static int args_parser(struct nv_pair *nv, int line,
 	plugin_conf_t *config)
 {
+	int i;
+
 	config->args = calloc(nv->nvalues, sizeof(char *));
 	config->nargs = nv->nvalues;
 
-	for (int i = 0; i < nv->nvalues; i++) {
+	for (i = 0; i < nv->nvalues; i++) {
 		config->args[i] = strdup(nv->values[nv->nvalues - i - 1]);
 	}
 
