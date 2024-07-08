@@ -495,7 +495,7 @@ auparse_state_t *auparse_init(ausource_t source, const void *b)
 			if (access_ok(b))
 				goto bad_exit;
 			tmp = malloc(2*sizeof(char *));
-			if (tmp == NULL) 
+			if (tmp == NULL)
 				goto bad_exit;
 			tmp[0] = strdup(b);
 			tmp[1] = NULL;
@@ -1203,13 +1203,15 @@ static int str2event(char *s, au_event_t *e)
 }
 
 #ifndef HAVE_STRNDUPA
-static inline char *strndupa(const char *old, size_t n)
-{
-	size_t len = strnlen(old, n);
-	char *tmp = alloca(len + 1);
-	tmp[len] = 0;
-	return memcpy(tmp, old, len);
-}
+#define strndupa(s, n)								\
+	(												\
+	({												\
+		const char *__old = (s);					\
+		size_t __len = strnlen (__old, (n));		\
+		char *__new = (char *) alloca(__len + 1);	\
+		__new[__len] = '\0';						\
+		(char *) memcpy (__new, __old, __len);		\
+	}))
 #endif
 
 /* Returns 0 on success and 1 on error */
