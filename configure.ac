@@ -38,7 +38,7 @@ echo Configuring auditd $VERSION
 
 AC_CONFIG_MACRO_DIR([m4])
 AC_CANONICAL_TARGET
-AM_INIT_AUTOMAKE
+AM_INIT_AUTOMAKE([subdir-objects])
 LT_INIT
 AC_SUBST(LIBTOOL_DEPS)
 OLDLIBS="$LIBS"
@@ -123,7 +123,7 @@ AC_MSG_RESULT($DEALLOC)
 
 dnl; pthread_yield is used in zos-remote
 OLDLIBS="$LIBS"
-AC_SEARCH_LIBS(pthread_yield, pthread, 
+AC_SEARCH_LIBS(pthread_yield, pthread,
 	[AC_DEFINE(HAVE_PTHREAD_YIELD, 1, [Define to 1 if we have pthread_yield])], [])
 LIBS="$OLDLIBS"
 
