@@ -28,6 +28,7 @@ EXTRA_DIST = auparse_test.ref auparse_test.ref.py test.log test2.log test3.log t
 AM_CPPFLAGS = -I${top_srcdir}/auparse -I${top_srcdir}/lib
 
 lookup_test_SOURCES = lookup_test.c
+lookup_test_LDFLAGS = -static
 lookup_test_LDADD = ${top_builddir}/auparse/libauparse.la \
 	${top_builddir}/lib/libaudit.la ${top_builddir}/common/libaucommon.la
 
