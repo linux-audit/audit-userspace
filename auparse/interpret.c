@@ -594,7 +594,7 @@ static const char *aulookup_uid(uid_t uid, char *buf, size_t size)
 	return buf;
 }
 
-void lookup_destroy_uid_list(void)
+void aulookup_destroy_uid_list(void)
 {
 	if (uid_cache_created == 0)
 		return;
@@ -670,6 +670,11 @@ void _auparse_flush_caches(void)
 	}
 }
 
+void aulookup_metrics(unsigned int *uid, unsigned int *gid)
+{
+	*uid = uid_cache->count;
+	*gid = gid_cache->count;
+}
 static const char *print_uid(const char *val, unsigned int base)
 {
         int uid;
