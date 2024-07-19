@@ -1,4 +1,12 @@
 4.0.2
+- Fix musl C builds
+- Many code cleanups (Yugend)
+- Use atomic variables if available for signal related flags
+- Dont rotate audit logs when auditd is in debug mode
+- Fix a couple memory leaks on error paths
+- Correct output when displaying rules with exe/path/dir (Attila Lakatos)
+- Fix auparse lookup test to not use the system libaupaurse
+- Improve auparse metrics
 
 4.0.1
 - Update TRUSTED_APP interpretation to look for known fields
