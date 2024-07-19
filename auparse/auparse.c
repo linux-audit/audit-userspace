@@ -796,14 +796,19 @@ int auparse_reset(auparse_state_t *au)
 char *auparse_metrics(auparse_state_t *au)
 {
 	char *metrics;
+	unsigned int uid, gid;
+
+	aulookup_metrics(&uid, &gid);
 
 	if (asprintf(&metrics,
 		     "max lol available: %lu\n"
 		     "max lol used: %d\n"
-		     "pending lol: %d",
+		     "pending lol: %d\n"
+		     "uid cache size: %u\n"
+		     "gid cache size: %u",
 		     au->au_lo->limit,
 		     au->au_lo->maxi,
-		     au->au_ready) < 0)
+		     au->au_ready, uid, gid) < 0)
 		metrics = NULL;
 	return metrics;
 }
@@ -1050,7 +1055,7 @@ static void auparse_destroy_common(auparse_state_t *au)
 
 void auparse_destroy(auparse_state_t *au)
 {
-	lookup_destroy_uid_list();
+	aulookup_destroy_uid_list();
 	aulookup_destroy_gid_list();
 
 	auparse_destroy_common(au);
