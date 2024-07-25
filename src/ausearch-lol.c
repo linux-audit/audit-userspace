@@ -163,13 +163,14 @@ static int compare_event_time(event *e1, event *e2)
 }
 
 #ifndef HAVE_STRNDUPA
-static inline char *strndupa(const char *old, size_t n)
-{
-	size_t len = strnlen(old, n);
-	char *tmp = alloca(len + 1);
-	tmp[len] = 0;
-	return memcpy(tmp, old, len);
-}
+#define strndupa(s, n)								\
+	({												\
+		const char *__old = (s);					\
+		size_t __len = strnlen (__old, (n));		\
+		char *__new = (char *) alloca(__len + 1);	\
+		__new[__len] = '\0';						\
+		(char *) memcpy (__new, __old, __len);		\
+	})
 #endif
 
 /*
@@ -244,7 +245,7 @@ static int extract_timestamp(const char *b, event *e)
 	return 0;
 }
 
-// This function will check events to see if they are complete 
+// This function will check events to see if they are complete
 // FIXME: Can we think of other ways to determine if the event is done?
 static void check_events(lol *lo, time_t sec)
 {
