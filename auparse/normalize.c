@@ -931,6 +931,15 @@ static int normalize_syscall(auparse_state_t *au, const char *syscall)
 			D.thing.what = NORM_WHAT_SOCKET;
 			set_program_obj(au);
 			break;
+		case NORM_SECURITY_POLICY:
+			act = "adjusted-security-policy-of";
+			D.thing.what = NORM_WHAT_PROCESS;
+			set_program_obj(au);
+			if (D.how) {
+				free((void *)D.how);
+				D.how = strdup(syscall);
+			}
+			break;
 		default:
 			{
 				const char *k;

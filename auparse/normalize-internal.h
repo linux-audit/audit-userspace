@@ -73,6 +73,7 @@
 #define NORM_AV			37
 #define NORM_BPF		38
 #define NORM_EV_LISTEN		39
+#define NORM_SECURITY_POLICY	40
 
 // This enum is used to map what the system objects are
 #define NORM_WHAT_UNKNOWN	0
