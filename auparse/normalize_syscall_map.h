@@ -130,3 +130,5 @@ _S(NORM_SECURITY_POLICY, "landlock_create_ruleset")
 _S(NORM_SECURITY_POLICY, "landlock_add_rule")
 _S(NORM_SECURITY_POLICY, "landlock_restrict_self")
 _S(NORM_SECURITY_POLICY, "lsm_set_self_attr")
+_S(NORM_SECURITY_POLICY, "mseal")
+
