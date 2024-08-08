@@ -1,3 +1,5 @@
+4.0.3
+
 4.0.2
 - Fix musl C builds
 - Many code cleanups (Yugend)
