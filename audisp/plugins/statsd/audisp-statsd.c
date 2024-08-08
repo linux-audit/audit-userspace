@@ -54,7 +54,7 @@ struct audit_report
 {
 	unsigned int backlog;
 	unsigned int lost;
-	unsigned int free_space;
+	long long unsigned int free_space;
 	unsigned int plugin_current_depth;
 	unsigned int plugin_max_depth;
 	unsigned int events_total_count;
@@ -243,7 +243,7 @@ static void get_auditd_status(void)
 		while (fgets(buf, sizeof(buf), f)) {
 			if (memcmp(buf, "Logging", 7) == 0) {
 				sscanf(buf,
-				       "Logging partition free space %u",
+				       "Logging partition free space = %llu",
 				       &r.free_space);
 			} else if (memcmp(buf, "current plugin", 14) == 0) {
 				sscanf(buf,
@@ -276,7 +276,7 @@ static void send_statsd(void)
 	// incremented (events) are counters.
 	len = snprintf(message, sizeof(message),
 	  "kernel.lost:%u|g\nkernel.backlog:%u|g\n"
-	  "auditd.free_space:%u|g\nauditd.plugin_current_depth:%u|g\nauditd.plugin_max_depth:%u|g\n"
+	  "auditd.free_space:%llu|g\nauditd.plugin_current_depth:%u|g\nauditd.plugin_max_depth:%u|g\n"
 	  "events.total_count:%u|c\nevents.total_failed:%u|c\n"
 	  "events.avc_count:%u|c\nevents.fanotify_count:%u|c\n"
 	  "events.logins_success:%u|c\nevents.logins_failed:%u|c\n"

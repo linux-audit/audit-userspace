@@ -116,12 +116,12 @@ void write_logging_state(FILE *f)
 					fs_space_left ? "yes" : "no");
 		rc = fstatfs(log_fd, &buf);
 		if (rc == 0) {
-			fprintf(f, "Logging partition free space %llu MB\n",
+			fprintf(f, "Logging partition free space = %llu MB\n",
 				(long long unsigned)
 				(buf.f_bavail * buf.f_bsize)/MEGABYTE);
-			fprintf(f, "space_left setting %lu MB\n",
+			fprintf(f, "space_left setting = %lu MB\n",
 				config->space_left);
-			fprintf(f, "admin_space_left setting %lu MB\n",
+			fprintf(f, "admin_space_left setting = %lu MB\n",
 				config->admin_space_left);
 		}
 		fprintf(f, "logging suspended = %s\n",
