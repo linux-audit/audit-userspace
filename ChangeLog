@@ -8,6 +8,7 @@
 - Fix auparse lookup test to not use the system libaupaurse
 - Improve auparse metrics
 - Update auparse normalizer for recent syscalls
+- Make status report uniform
 
 4.0.1
 - Update TRUSTED_APP interpretation to look for known fields
