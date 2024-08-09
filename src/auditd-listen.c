@@ -1,4 +1,4 @@
-/* auditd-listen.c -- 
+/* auditd-listen.c --
  * Copyright 2008,2009,2011,2016,2018 Red Hat Inc.
  * All Rights Reserved.
  *
@@ -19,13 +19,14 @@
  * Authors:
  *   DJ Delorie <dj@redhat.com>
  *   Steve Grubb <sgrubb@redhat.com>
- * 
+ *
  */
 
 #include "config.h"
 #include <stdio.h>
 #include <unistd.h>
 #include <sys/stat.h>
+#include <limits.h>
 #include <errno.h>
 #include <string.h>
 #include <dirent.h>
@@ -142,7 +143,7 @@ static void release_client(struct ev_tcp *client)
 	snprintf(emsg, sizeof(emsg), "addr=%s port=%u res=success",
 		sockaddr_to_string(&client->addr),
 		sockaddr_to_port(&client->addr));
-	send_audit_event(AUDIT_DAEMON_CLOSE, emsg); 
+	send_audit_event(AUDIT_DAEMON_CLOSE, emsg);
 #ifdef USE_GSSAPI
 	if (client->remote_name)
 		free (client->remote_name);
@@ -165,18 +166,21 @@ static void close_client(struct ev_tcp *client)
 
 static int ar_write(int sock, const void *buf, int len)
 {
-	int rc = 0, w;
-	while (len > 0) {
+	int rc = 0;
+	ssize_t w;
+	while (len > 0 && len > rc) {
 		do {
-			w = write(sock, buf, len);
+			w = write(sock, buf + rc, len - rc);
 		} while (w < 0 && errno == EINTR);
+		if (w < INT_MIN || w > INT_MAX) {
+			return -1;
+		}
+
 		if (w < 0)
 			return w;
 		if (w == 0)
 			break;
 		rc += w;
-		len -= w;
-		buf = (const void *)((const char *)buf + w);
 	}
 	return rc;
 }
@@ -184,18 +188,20 @@ static int ar_write(int sock, const void *buf, int len)
 #ifdef USE_GSSAPI
 static int ar_read(int sock, void *buf, int len)
 {
-	int rc = 0, r;
-	while (len > 0) {
+	int rc = 0;
+	ssize_t r;
+	while (len > 0 && len > rc) {
 		do {
-			r = read(sock, buf, len);
+			r = read(sock, buf + rc, len - rc);
 		} while (r < 0 && errno == EINTR);
+		if (r < INT_MIN || r > INT_MAX) {
+			return -1;
+		}
 		if (r < 0)
 			return r;
 		if (r == 0)
 			break;
 		rc += r;
-		len -= r;
-		buf = (void *)((char *)buf + r);
 	}
 	return rc;
 }
@@ -462,7 +468,7 @@ static int negotiate_credentials(ev_tcp *io)
 	} else
 		io->remote_name_len = recv_tok.length;
 
-	audit_msg(LOG_INFO, "GSS-API Accepted connection from: %s", 
+	audit_msg(LOG_INFO, "GSS-API Accepted connection from: %s",
 		  io->remote_name);
 	gss_release_buffer(&min_stat, &recv_tok);
 
@@ -581,8 +587,8 @@ static void auditd_tcp_client_handler(struct ev_loop *loop,
 			struct ev_io *_io, int revents)
 {
 	struct ev_tcp *io = (struct ev_tcp *)_io;
-	int i, r;
-	int total_this_call = 0;
+	int i;
+	ssize_t total_this_call = 0, r;
 
 	io->client_active = 1;
 
@@ -596,8 +602,18 @@ read_more:
 		  io->buffer + io->bufptr,
 		  MAX_AUDIT_MESSAGE_LENGTH - io->bufptr);
 
-	if (r < 0 && errno == EAGAIN)
-		r = 0;
+	if (r < 0) {
+		if (errno == EAGAIN) {
+			r = 0; // No data available now, try again later
+		} else {
+			/* Fatal error, we need to close the connection */
+			audit_msg(LOG_WARNING, "client %s socket read error: %s",
+				sockaddr_to_addr(&io->addr), strerror(errno));
+			ev_io_stop(loop, _io);
+			close_client(io);
+			return;
+		}
+	}
 
 	/* We need to keep track of the difference between "no data
 	 * because it's closed" and "no data because we've read it
@@ -607,20 +623,12 @@ read_more:
 	}
 
 	/* If the connection is gracefully closed, the first read we
-	   try will return zero.  If the connection times out or
-	   otherwise fails, the read will return -1.  */
-	if (r <= 0) {
-		if (r < 0)
-			audit_msg(LOG_WARNING,
-				"client %s socket closed unexpectedly",
-				sockaddr_to_addr(&io->addr));
-
+	 * try will return zero. Or there is nothing to be read. */
+	if (r == 0) {
 		/* There may have been a final message without a LF.  */
 		if (io->bufptr) {
 			client_message(io, io->bufptr, io->buffer);
-
 		}
-
 		ev_io_stop(loop, _io);
 		close_client(io);
 		return;
