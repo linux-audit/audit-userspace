@@ -217,7 +217,7 @@ int __audit_send(int fd, int type, const void *data, unsigned int size, int *seq
 	req.nlh.nlmsg_flags = NLM_F_REQUEST|NLM_F_ACK;
 	req.nlh.nlmsg_seq = sequence;
 	if (size && data)
-		memcpy(NLMSG_DATA(&req.nlh), data, size);
+		memcpy(req.data, data, size);
 	memset(&addr, 0, sizeof(addr));
 	addr.nl_family = AF_NETLINK;
 	addr.nl_pid = 0;
