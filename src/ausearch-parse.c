@@ -1549,7 +1549,9 @@ static int parse_daemon1(const lnode *n, search_items *s)
 
 	// uid - optional
 	if (event_uid != -1) {
-		ptr = term;
+		// As the uid= field may happen in different orders, e.g. both before
+		// and after pid=, let us search for the uid from the beginning.
+		term = mptr;
 		str = strstr(term, " uid=");
 		if (str) {
 			ptr = str + 5;
