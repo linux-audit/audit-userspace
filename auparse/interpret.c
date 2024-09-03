@@ -94,7 +94,6 @@
 #include "epoll_ctls.h"
 #include "famtabs.h"
 #include "fcntl-cmdtabs.h"
-#include "flagtabs.h"
 #include "fsconfigs.h"
 #include "ipctabs.h"
 #include "ipccmdtabs.h"
@@ -1367,44 +1366,6 @@ static const char *print_sockaddr(const char *val)
 		out = NULL;
         free((char *)host);
 	return out;
-}
-
-/* This is only used in the RHEL4 kernel */
-static const char *print_flags(const char *val)
-{
-        int flags, cnt = 0;
-	size_t i;
-	char *out, buf[sizeof(flag_strings)+FLAG_NUM_ENTRIES+1];
-
-        errno = 0;
-        flags = strtoul(val, NULL, 16);
-        if (errno) {
-		if (asprintf(&out, "conversion error(%s)", val) < 0)
-			out = NULL;
-                return out;
-        }
-        if (flags == 0) {
-		if (asprintf(&out, "none") < 0)
-			out = NULL;
-                return out;
-        }
-	buf[0] = 0;
-        for (i=0; i<FLAG_NUM_ENTRIES; i++) {
-                if (flag_table[i].value & flags) {
-                        if (!cnt) {
-                                strcat(buf,
-				       flag_strings + flag_table[i].offset);
-                                cnt++;
-                        } else {
-                                strcat(buf, ",");
-                                strcat(buf,
-				       flag_strings + flag_table[i].offset);
-			}
-                }
-        }
-	if (buf[0] == 0)
-		snprintf(buf, sizeof(buf), "0x%s", val);
-	return strdup(buf);
 }
 
 static const char *print_promiscuous(const char *val)
@@ -3228,10 +3189,7 @@ int auparse_interp_adjust_type(int rtype, const char *name, const char *val)
 			type = AUPARSE_TYPE_ESCAPED;
 		else
 			type = AUPARSE_TYPE_UNCLASSIFIED;
-	} else if (rtype == AUDIT_PATH && *name =='f' &&
-			strcmp(name, "flags") == 0)
-		type = AUPARSE_TYPE_FLAGS;
-	else if (rtype == AUDIT_MQ_OPEN && strcmp(name, "mode") == 0)
+	} else if (rtype == AUDIT_MQ_OPEN && strcmp(name, "mode") == 0)
 		type = AUPARSE_TYPE_MODE_SHORT;
 	else if (rtype == AUDIT_CRYPTO_KEY_USER && strcmp(name, "fp") == 0)
 		type = AUPARSE_TYPE_UNCLASSIFIED;
@@ -3329,9 +3287,6 @@ unknown:
 			break;
 		case AUPARSE_TYPE_SOCKADDR:
 			out = print_sockaddr(id->val);
-			break;
-		case AUPARSE_TYPE_FLAGS:
-			out = print_flags(id->val);
 			break;
 		case AUPARSE_TYPE_PROMISC:
 			out = print_promiscuous(id->val);

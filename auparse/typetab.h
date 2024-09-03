@@ -73,7 +73,7 @@ _S(AUPARSE_TYPE_PERM,		"perm"		)
 _S(AUPARSE_TYPE_PERM,		"perm_mask"	)
 _S(AUPARSE_TYPE_MODE,		"mode"		)
 _S(AUPARSE_TYPE_SOCKADDR,	"saddr"		)
-//_S(AUPARSE_TYPE_FLAGS,		"flags"		)
+//_S(AUPARSE_TYPE_FLAGS,		"flags"		) deprecated - RHEL4
 _S(AUPARSE_TYPE_PROMISC,	"prom"		)
 _S(AUPARSE_TYPE_PROMISC,	"old_prom"	)
 _S(AUPARSE_TYPE_CAPABILITY,	"capability"	)
