@@ -1,4 +1,5 @@
 4.0.3
+- Remove a RHEL4 flag table since it's been unsupported for a while
 
 4.0.2
 - Fix musl C builds
