@@ -38,7 +38,7 @@ void free_interpretation_list(void);
 unsigned int interpretation_list_cnt(void);
 int lookup_type(const char *name);
 const char *do_interpret(rnode *r, auparse_esc_t escape_mode);
-void aulookup_destroy_uid_list(void);
+void _aulookup_destroy_uid_list(void);
 void aulookup_destroy_gid_list(void);
 void aulookup_metrics(unsigned int *uid, unsigned int *gid);
 char *au_unescape(char *buf);

@@ -593,7 +593,7 @@ static const char *aulookup_uid(uid_t uid, char *buf, size_t size)
 	return buf;
 }
 
-void aulookup_destroy_uid_list(void)
+void _aulookup_destroy_uid_list(void)
 {
 	if (uid_cache_created == 0)
 		return;
