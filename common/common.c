@@ -45,6 +45,7 @@ int audit_is_last_record(int type)
 	    type == AUDIT_EOE ||
 	    (type > AUDIT_LOGIN &&
 	     type < AUDIT_FIRST_EVENT) ||
+	    type == AUDIT_USER ||
 	    type >= AUDIT_FIRST_ANOM_MSG ||
 	    type == AUDIT_KERNEL ||
 	    (type >= AUDIT_MAC_UNLBL_ALLOW &&
