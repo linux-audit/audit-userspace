@@ -4,9 +4,9 @@ ConditionKernelCommandLine=!audit=0
 ConditionKernelCommandLine=!audit=off
 DefaultDependencies=no
 
-## The following is a "Requires" so that if rules don't load, it will
-## also fail loading the main service to be sure to get your attention.
-Requires=audit-rules.service
+## The following is a "Wants" so that if rules don't load, it will
+## not fail starting the main service. This indicates a weaker dependency.
+Wants=audit-rules.service
 
 ## If auditd is sending or receiving remote logging, copy this file to
 ## /etc/systemd/system/auditd.service and comment out the first After and
