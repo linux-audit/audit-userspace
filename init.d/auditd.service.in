@@ -16,9 +16,9 @@ Wants=audit-rules.service
 ## a minimal file that overrides only the necessary lines but inherits the
 ## original settings in case they get updated by a distribution. Please check
 ## systemd documentation if it's unclear how to override settings.
-After=local-fs.target systemd-tmpfiles-setup.service audit-rules.service
+After=local-fs.target systemd-tmpfiles-setup.service
 #After=network-online.target local-fs.target systemd-tmpfiles-setup.service
-Before=sysinit.target shutdown.target
+Before=sysinit.target shutdown.target audit-rules.service
 #Before=shutdown.target
 Conflicts=shutdown.target
 RefuseManualStop=yes
