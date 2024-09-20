@@ -4,8 +4,9 @@
 
 | Version | Supported          |
 | ------- | ------------------ |
+| 4.x     | :white_check_mark: |
 | 3.1.x   | :white_check_mark: |
-| 3.0.x   | :white_check_mark: |
+| 3.0.x   | :x: |
 | < 3.0   | :x:                |
 
 Versions less than 3.0 are distribution supported.
