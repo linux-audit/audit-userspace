@@ -12,7 +12,7 @@ The plugin directory will be scanned and every plugin that is active will be sta
 .B max_restarts
 times as found in auditd.conf.
 
-Config file names are not allowed to have more than one '.' in the name or it will be treated as a backup copy and skipped. Config file options are given one per line with an equal sign between the keyword and its value. The available options are as follows:
+Configuration files must be regular files that do not begin with a '.' character, contain at most one '.' character, and have a '.conf' suffix. Files that do not meet these criteria will be skipped. Config file options are given one per line with an equal sign between the keyword and its value. The available options are as follows:
 
 .TP
 .I active

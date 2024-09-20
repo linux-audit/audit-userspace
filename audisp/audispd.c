@@ -113,10 +113,21 @@ static void load_plugin_conf(conf_llist *plugin)
 		while ((e = readdir(d))) {
 			plugin_conf_t config;
 			char fname[PATH_MAX];
+			const char *ext, *reason = NULL;
 
-			// Don't run backup files, hidden files, or dirs
-			if (e->d_name[0] == '.' || count_dots(e->d_name) > 1)
+			if (e->d_type != DT_REG)
+				reason = "not a regular file";
+			else if (e->d_name[0] == '.')
+				reason = "hidden file";
+			else if (count_dots(e->d_name) > 1)
+				reason = "backup file";
+			else if ((ext = strrchr(e->d_name, '.')) && strcmp(ext, ".conf") != 0)
+				reason = "file without .conf suffix";
+
+			if (reason) {
+				audit_msg(LOG_DEBUG, "Skipping %s plugin due to %s", e->d_name, reason);
 				continue;
+			}
 
 			snprintf(fname, sizeof(fname), "%s/%s",
 				daemon_config.plugin_dir, e->d_name);
