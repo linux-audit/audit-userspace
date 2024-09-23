@@ -38,7 +38,7 @@ Example1: Do not syslog audit events containing unsuccessful openat syscalls.
 
 First, in the plugin config, make sure that operation mode is set to allowlist, the binary points to /sbin/audispFyslog and provide any additional arguments if needed. Next, create the plugin specific config file with the content below. Before enabling the audit plugin, always make sure the syntax is correct. This can be checked by calling audisp-filter --check path/to/config/file.
 
-.B (type r= SYSCALL && syscall r= openat && success r= yes)
+.B (type r= SYSCALL && syscall i= openat && success r= yes)
 
 
 .SH FILES

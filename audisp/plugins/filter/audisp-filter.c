@@ -102,6 +102,7 @@ static void handle_event(auparse_state_t* au, auparse_cb_event_t cb_event_type,
 	if (forward_event) {
 		const int records = auparse_get_num_records(au);
 		for (int i = 0; i < records; i++) {
+			auparse_goto_record_num(au, i);
 			const char* txt = auparse_get_record_text(au);
 
 			// Need to add new line character to signal end of the current record
