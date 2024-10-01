@@ -324,6 +324,18 @@ AM_CONDITIONAL(USE_AARCH64, test x$use_aarch64 = xyes)
 AC_MSG_RESULT($use_aarch64)
 
 withval=""
+AC_MSG_CHECKING(whether to include riscv processor support)
+AC_ARG_WITH(riscv,
+AS_HELP_STRING([--with-riscv],[enable riscv processor support]),
+use_riscv=$withval,
+use_riscv=no)
+if test x$use_riscv != xno ; then
+      AC_DEFINE(WITH_RISCV,1,[Define if you want to enable RISC-V processor support.])
+fi
+AM_CONDITIONAL(USE_RISCV, test x$use_riscv = xyes)
+AC_MSG_RESULT($use_riscv)
+
+withval=""
 AC_MSG_CHECKING(whether to use apparmor)
 AC_ARG_WITH(apparmor,
 AS_HELP_STRING([--with-apparmor],[enable AppArmor events]),
