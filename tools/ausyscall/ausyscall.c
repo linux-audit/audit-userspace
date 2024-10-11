@@ -22,6 +22,7 @@
  *   Steve Grubb <sgrubb@redhat.com>
  */
 
+#include "config.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -82,6 +83,16 @@ int main(int argc, char *argv[])
 #ifndef WITH_AARCH64
 		} else if (strcmp("aarch64", argv[i]) == 0) {
 			fputs("Aarch64 processor support is not enabled\n",
+					stderr);
+			exit(1);
+#endif
+#ifndef WITH_RISCV
+		} else if (strcmp("riscv32", argv[i]) == 0) {
+			fputs("RISC-V 32-bit (riscv32) processor support is not enabled\n",
+					stderr);
+			exit(1);
+		} else if (strcmp("riscv64", argv[i]) == 0) {
+			fputs("RISC-V 64-bit (riscv64) processor support is not enabled\n",
 					stderr);
 			exit(1);
 #endif
