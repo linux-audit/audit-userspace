@@ -21,6 +21,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <stdio.h>
+#include <inttypes.h>
 #include "ausearch-checkpt.h"
 
 #define	DBG	0	/* set to non-zero for debug */
@@ -134,8 +135,8 @@ void save_ChkPt(const char *fn)
 		return;
 	}
 	// Write the inode in decimal to make ls -i easier to use.
-	fprintf(fd, "dev=0x%X\ninode=%u\n",
-		(unsigned int)checkpt_dev, (unsigned int)checkpt_ino);
+	fprintf(fd, "dev=0x%" PRIX64 "\ninode=%" PRIu64 "\n",
+		(uint64_t)checkpt_dev, (uint64_t)checkpt_ino);
 	fprintf(fd, "output=%s %lu.%03u:%lu 0x%X\n",
 		last_event.node ? last_event.node : "-",
 		(long unsigned int)last_event.sec, last_event.milli,
@@ -218,7 +219,7 @@ int load_ChkPt(const char *fn)
 
 		if (strncmp(lbuf, "dev=", 4) == 0) {
 			errno = 0;
-			chkpt_input_dev = strtoul(&lbuf[4], NULL, 16);
+			chkpt_input_dev = (dev_t)strtoull(&lbuf[4], NULL, 16);
 			if (errno) {
 				fprintf(stderr, "Malformed dev checkpoint "
 						"line - [%s]\n", lbuf);
@@ -227,7 +228,7 @@ int load_ChkPt(const char *fn)
 			}
 		} else if (strncmp(lbuf, "inode=", 6) == 0) {
 			errno = 0;
-			chkpt_input_ino = strtoul(&lbuf[6], NULL, 0);
+			chkpt_input_ino = (ino_t)strtoull(&lbuf[6], NULL, 0);
 			if (errno) {
 				fprintf(stderr, "Malformed inode checkpoint "
 						"line - [%s]\n", lbuf);
