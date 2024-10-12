@@ -1,5 +1,12 @@
 4.0.3
 - Remove a RHEL4 flag table since it's been unsupported for a while
+- Change dependency from Requires to Wants for audit-rules.service
+- Disable ProtectKernelModules by default in auditd.service
+- Skip plugin configs that do not have .conf suffix
+- audisp-filter: iterate records correctly when forwarding
+- Update syscall table for missing syscalls
+- Modify ausearch checkpoint code to address 64 inode and device numbers
+- Fix potential segfault interpreting relative paths
 
 4.0.2
 - Fix musl C builds
