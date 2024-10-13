@@ -441,11 +441,11 @@ static int chkpt_output_decision(event * e)
 	 */
 	if ( (chkpt_input_levent.sec < e->sec) &&
 		((e->sec - chkpt_input_levent.sec) > MAX_EVENT_DELTA_SECS) ) {
-/*		fprintf(stderr, "%s %lu.%03u:%lu vs %s %lu.%03u:%lu\n",
+/*		fprintf(stderr, "%s %lld.%03u:%lu vs %s %lld.%03u:%lu\n",
 			chkpt_input_levent.host ? chkpt_input_levent.host : "-",
-			chkpt_input_levent.sec, chkpt_input_levent.milli,
+			(long long int)chkpt_input_levent.sec, chkpt_input_levent.milli,
 			chkpt_input_levent.serial,
-			e->host, e->sec, e->milli, e->serial); */
+			e->host, (long long int)e->sec, e->milli, e->serial); */
 		return 3;
 	}
 

@@ -364,7 +364,7 @@ void print_list_t(event_list_t *l)
 		printf("\n");
 		return;
 	}
-	printf("0x%p: %ld.%3.3u:%lu %s", l, l->e.sec, l->e.milli,
+	printf("0x%p: %lld.%3.3u:%lu %s", l, (long long int)l->e.sec, l->e.milli,
 			l->e.serial, l->e.host ? l->e.host : "");
 	printf(" cnt=%u", l->cnt);
 	for (r = l->head; r != NULL; r = r->next) {
