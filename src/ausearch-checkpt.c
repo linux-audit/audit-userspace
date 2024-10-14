@@ -25,12 +25,7 @@
 #include "ausearch-checkpt.h"
 
 #define	DBG	0	/* set to non-zero for debug */
-#if SIZEOF_LONG < SIZEOF_TIME_T
-#define TIME_T_SPECIFIER "%lld"
-#else
-#define TIME_T_SPECIFIER "%ld"
-#endif
-
+#define TIME_T_SPECIFIER "%" PRIdMAX
 /* Remember why we failed */
 unsigned checkpt_failure = 0;
 
