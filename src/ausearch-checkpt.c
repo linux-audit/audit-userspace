@@ -137,9 +137,9 @@ void save_ChkPt(const char *fn)
 	// Write the inode in decimal to make ls -i easier to use.
 	fprintf(fd, "dev=0x%" PRIX64 "\ninode=%" PRIu64 "\n",
 		(uint64_t)checkpt_dev, (uint64_t)checkpt_ino);
-	fprintf(fd, "output=%s %lu.%03u:%lu 0x%X\n",
+	fprintf(fd, "output=%s %lld.%03u:%lu 0x%X\n",
 		last_event.node ? last_event.node : "-",
-		(long unsigned int)last_event.sec, last_event.milli,
+		(long long int)last_event.sec, last_event.milli,
 		last_event.serial, last_event.type);
 	fclose(fd);
 }
@@ -262,9 +262,9 @@ int load_ChkPt(const char *fn)
 	{
 		fprintf(stderr, "Loaded %s - dev: 0x%X, ino: 0x%X\n",
 			fn, chkpt_input_dev, chkpt_input_ino);
-		fprintf(stderr, "output:%s %d.%03d:%lu 0x%X\n",
+		fprintf(stderr, "output:%s %lld.%03d:%lu 0x%X\n",
 			chkpt_input_levent.node ? chkpt_input_levent.node : "-",
-			chkpt_input_levent.sec, chkpt_input_levent.milli,
+			(long long int)chkpt_input_levent.sec, chkpt_input_levent.milli,
 			chkpt_input_levent.serial, chkpt_input_levent.type);
 	}
 #endif	/* DBG */
