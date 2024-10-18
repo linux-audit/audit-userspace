@@ -693,7 +693,20 @@ static int normalize_syscall(auparse_state_t *au, const char *syscall)
 		case NORM_FILE_RENAME:
 			act = "renamed";
 			D.thing.what = NORM_WHAT_FILE; // this gets overridden
-			set_prime_object2(au, "name", 4);
+			/* A sucessfull syscall from the rename family will provide
+			 * the following items:
+			 *  0 - new dir, in which the file will be located
+			 *  1 - old dir, in which the file was located
+			 *  2 - old name, the name of the original file
+			 * 	if the file was already present in the new dir:
+			 *   3 - removal of the new file
+			 *   4 - creation of the new file
+			 *  otherwise:
+			 *  3 - creation of the new file
+			 */
+
+			// The 3rd record will always contain the name of the new file
+			set_prime_object2(au, "name", 3);
 			set_file_object(au, 2); // Thing renamed is 2 after
 			simple_file_attr(au);
 			break;
