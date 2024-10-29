@@ -46,6 +46,7 @@
 #include "private.h"
 #include "auparse.h"
 #include "auparse-idata.h"
+#include "common.h"
 
 /* This is defined in auditd.c */
 extern volatile ATOMIC_INT stop;
@@ -1350,6 +1351,9 @@ static void change_runlevel(const char *level)
 	int pid;
 	struct sigaction sa;
 	static const char *init_pgm = "/sbin/init";
+
+	// Log runlevel changes to console
+	write_to_console("audit: changing runlevel to %s\n", level);
 
 	pid = fork();
 	if (pid < 0) {

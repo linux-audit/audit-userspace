@@ -29,6 +29,7 @@
 #include <stdatomic.h>
 #endif
 #include "queue.h"
+#include "common.h"
 
 static volatile event_t **q;
 static pthread_mutex_t queue_lock;
@@ -82,6 +83,9 @@ static void change_runlevel(const char *level)
 	char *argv[3];
 	int pid;
 	static const char *init_pgm = "/sbin/init";
+
+	// Log runlevel changes to console
+	write_to_console("audit: changing runlevel to %s\n", level);
 
 	pid = fork();
 	if (pid < 0) {
