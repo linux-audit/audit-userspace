@@ -50,7 +50,12 @@ char *audit_strsplit_r(char *s, char **savedpp);
 char *audit_strsplit(char *s);
 int audit_is_last_record(int type);
 
-int write_to_console(const char *fmt, ...);
+int write_to_console(const char *fmt, ...)
+#ifdef __GNUC__
+	__attribute__((format(printf, 1, 2)));
+#else
+	;
+#endif
 
 AUDIT_HIDDEN_END
 #endif

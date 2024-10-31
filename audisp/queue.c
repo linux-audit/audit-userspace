@@ -25,6 +25,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <syslog.h>
+#include <string.h>
+#include <sys/wait.h>
 #ifdef HAVE_ATOMIC
 #include <stdatomic.h>
 #endif
@@ -84,16 +86,33 @@ static void change_runlevel(const char *level)
 	int pid;
 	static const char *init_pgm = "/sbin/init";
 
-	// Log runlevel changes to console
-	write_to_console("audit: changing runlevel to %s\n", level);
+	// In case of halt, we need to log the message before we halt
+	if (strcmp(level, HALT) == 0) {
+		write_to_console("audit: will try to change runlevel to %s\n", level);
+	}
 
 	pid = fork();
 	if (pid < 0) {
 		syslog(LOG_ALERT, "Audispd failed to fork switching runlevels");
 		return;
 	}
-	if (pid)	/* Parent */
+
+	if (pid) { /* Parent */
+		int status;
+
+		// Wait until child exits
+		if (waitpid(pid, &status, 0) < 0) {
+			return;
+		}
+
+		// Check if child exited normally, runlevel change was successful
+		if (WIFEXITED(status) && WEXITSTATUS(status) == 0) {
+			write_to_console("audit: changed runlevel to %s\n", level);
+		}
+
 		return;
+	}
+
 	/* Child */
 	argv[0] = (char *)init_pgm;
 	argv[1] = (char *)level;

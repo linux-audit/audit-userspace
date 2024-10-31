@@ -47,6 +47,7 @@
 #include "auparse.h"
 #include "auparse-idata.h"
 #include "common.h"
+#include <sys/wait.h>
 
 /* This is defined in auditd.c */
 extern volatile ATOMIC_INT stop;
@@ -1352,8 +1353,10 @@ static void change_runlevel(const char *level)
 	struct sigaction sa;
 	static const char *init_pgm = "/sbin/init";
 
-	// Log runlevel changes to console
-	write_to_console("audit: changing runlevel to %s\n", level);
+	// In case of halt, we need to log the message before we halt
+	if (strcmp(level, HALT) == 0) {
+		write_to_console("audit: will try to change runlevel to %s\n", level);
+	}
 
 	pid = fork();
 	if (pid < 0) {
@@ -1361,8 +1364,23 @@ static void change_runlevel(const char *level)
 			"Audit daemon failed to fork switching runlevels");
 		return;
 	}
-	if (pid)	/* Parent */
+	if (pid) {	/* Parent */
+		int status;
+
+		// Wait until child exits
+		if (waitpid(pid, &status, 0) < 0) {
+			audit_msg(LOG_ALERT,
+				"Audit daemon failed to wait for child");
+			return;
+		}
+
+		// Check if child exited normally, runlevel change was successful
+		if (WIFEXITED(status) && WEXITSTATUS(status) == 0) {
+			write_to_console("audit: changed runlevel to %s\n", level);
+		}
+
 		return;
+	}
 	/* Child */
 	sigfillset (&sa.sa_mask);
 	sigprocmask (SIG_UNBLOCK, &sa.sa_mask, 0);
