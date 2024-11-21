@@ -22,6 +22,8 @@
 %{
         #include "../lib/audit_logging.h"
 // Have to declare these so they can be wrapped later
+extern int audit_set_enabled(int fd, uint32_t enabled);
+extern int audit_is_enabled(int fd);
 extern int audit_elf_to_machine(unsigned int elf);
 extern const char *audit_machine_to_name(int machine);
 extern const char *audit_syscall_to_name(int sc, int machine);
@@ -64,3 +66,10 @@ const char *audit_machine_to_name(int machine);
 const char *audit_syscall_to_name(int sc, int machine);
 int audit_detect_machine(void);
 const char *audit_msg_type_to_name(int msg_type);
+
+/*
+ * These are provided for simple check and set ops
+ */
+int audit_set_enabled(int fd, uint32_t enabled);
+int audit_is_enabled(int fd);
+

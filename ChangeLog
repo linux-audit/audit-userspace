@@ -7,6 +7,7 @@
 - Update syscall table for missing syscalls
 - Modify ausearch checkpoint code to address 64 inode and device numbers
 - Fix potential segfault interpreting relative paths
+- Add audit_set_enabled & audit_is_enabled back to the libaudit python bindings
 
 4.0.2
 - Fix musl C builds
