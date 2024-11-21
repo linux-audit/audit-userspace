@@ -1117,6 +1117,9 @@ static int parse_user(const lnode *n, search_items *s, anode *avc)
 			}
 		}
 	}
+
+	// Set this to be our new starting point for the next searches.
+	mptr = term;
 	// optionally get uid - some records the second uid is what we want.
 	// USER_LOGIN for example.
 	if (event_uid != -1 || event_tuid) {
@@ -1151,7 +1154,6 @@ try_again:
 		}
 	}
 skip:
-	mptr = term;
 
 	if (event_comm) {
 		// dont do this search unless needed
@@ -1206,7 +1208,6 @@ skip:
 			}
 		}
 	}
-	mptr = term;
 
 	// get hostname
 	if (event_hostname) {
@@ -1549,7 +1550,9 @@ static int parse_daemon1(const lnode *n, search_items *s)
 
 	// uid - optional
 	if (event_uid != -1) {
-		ptr = term;
+		// As the uid= field may happen in different orders, e.g. both before
+		// and after pid=, let us search for the uid from the beginning.
+		term = mptr;
 		str = strstr(term, " uid=");
 		if (str) {
 			ptr = str + 5;
