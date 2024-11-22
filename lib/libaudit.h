@@ -180,7 +180,9 @@ typedef enum {
 	MACH_ARM,
 	MACH_AARCH64,
 	MACH_PPC64LE,
-	MACH_IO_URING
+	MACH_IO_URING,
+	MACH_RISCV32,
+	MACH_RISCV64
 } machine_t;
 
 /* These are the valid audit failure tunable enum values */
