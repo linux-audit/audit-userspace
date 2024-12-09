@@ -331,7 +331,7 @@ static void key_escape(const char *orig, char *dest, auparse_esc_t escape_mode)
 static int is_hex_string(const char *str)
 {
 	while (*str) {
-		if (!isdigit((unsigned char)*str))
+		if (!isxdigit((unsigned char)*str))
 			return 0;
 		str++;
 	}
