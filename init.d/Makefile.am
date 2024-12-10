@@ -47,6 +47,7 @@ BUILT_SOURCES = auditd.service audit-rules.service
 
 install-data-hook:
 	$(INSTALL_DATA) -D -m 640 ${srcdir}/${libconfig} ${DESTDIR}${sysconfdir}
+	$(INSTALL_DATA) -m 640 -D -t ${DESTDIR}$(prefix)/lib/tmpfiles.d/audit.conf ${srcdir}/audit-tmpfiles.conf
 
 install-exec-hook:
 	mkdir -p ${DESTDIR}${initdir}
