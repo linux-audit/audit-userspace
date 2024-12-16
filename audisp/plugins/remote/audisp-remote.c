@@ -209,14 +209,32 @@ static void change_runlevel(const char *level)
 	char *argv[3];
 	int pid;
 
+	// In case of halt, we need to log the message before we halt
+	if (strcmp(level, HALT) == 0) {
+		write_to_console("audit: will try to change runlevel to %s\n", level);
+	}
+
 	pid = fork();
 	if (pid < 0) {
 		syslog(LOG_ALERT,
 		       "audisp-remote failed to fork switching runlevels");
 		return;
 	}
-	if (pid)	/* Parent */
+	if (pid) { /* Parent */
+		int status;
+
+		// Wait until child exits
+		if (waitpid(pid, &status, 0) < 0) {
+			return;
+		}
+
+		// Check if child exited normally, runlevel change was successful
+		if (WIFEXITED(status) && WEXITSTATUS(status) == 0) {
+			write_to_console("audit: changed runlevel to %s\n", level);
+		}
+
 		return;
+	}
 
 	/* Child */
 	argv[0] = (char *)INIT_PGM;

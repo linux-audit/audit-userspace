@@ -22,6 +22,9 @@
 
 #include "libaudit.h"
 #include "common.h"
+#include <fcntl.h>
+#include <unistd.h>
+#include <stdio.h>
 
 /*
  * This function returns 1 if it is the last record in an event.
@@ -55,3 +58,21 @@ int audit_is_last_record(int type)
 	return 0;
 }
 
+int write_to_console(const char *fmt, ...)
+{
+	int fd;
+	int res = 1;
+	va_list args;
+
+	if ((fd = open("/dev/console", O_WRONLY)) < 0)
+		return 0;
+
+	va_start(args, fmt);
+	if (vdprintf(fd, fmt, args) < 0) {
+		res = 0;
+	}
+	va_end(args);
+	close(fd);
+
+	return res;
+}
