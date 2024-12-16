@@ -33,6 +33,7 @@
 #include <libgen.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <sys/uio.h>
 #include <dirent.h>
 #include <sys/un.h>
 #include <fcntl.h>
@@ -43,16 +44,19 @@
 #endif
 #include "libaudit.h"
 #include "common.h"
+#include "audispd-pconfig.h"
 
 #define DEFAULT_PATH "/var/run/audispd_events"
+#define MAX_AUDIT_EVENT_FRAME_SIZE (sizeof(struct audit_dispatcher_header) + MAX_AUDIT_MESSAGE_LENGTH)
 //#define DEBUG
 
 /* Global Data */
 static volatile int stop = 0, hup = 0;
-char rx_buf[MAX_AUDIT_MESSAGE_LENGTH];
+char rx_buf[MAX_AUDIT_EVENT_FRAME_SIZE+1];
 int sock = -1, conn = -1, client = 0;
 struct pollfd pfd[3];
 unsigned mode = 0;
+format_t format = -1;
 char *path = NULL;
 
 /*
@@ -119,58 +123,106 @@ int create_af_unix_socket(const char *spath, int mode)
 
 int setup_socket(int argc, char *argv[])
 {
-	if (argc != 3) {
-		syslog(LOG_ERR, "Missing arguments, using defaults");
-		mode = 0640;
-		path = DEFAULT_PATH;
-	} else {
-		int i;
-		for (i=1; i < 3; i++) {
-			if (isdigit((unsigned char)argv[i][0])) {
-				errno = 0;
-				mode = strtoul(argv[i], NULL, 8);
-				if (errno) {
-					syslog(LOG_ERR,
-					       "Error converting %s (%s)",
-					       argv[i], strerror(errno));
-					mode = 0;
-				}
-			} else {
-				char *base;
-				path = argv[i];
-				// Make sure there are directories
-				base = strchr(path, '/');
-				if (base) {
-					DIR *d;
-					char *dir = strdup(path);
-					base = dirname(dir);
-					d = opendir(base);
-					if (d) {
-						closedir(d);
-						unlink(path);
-						free(dir);
-					} else {
-						syslog(LOG_ERR,
-						       "Couldn't open %s (%s)",
-						       base, strerror(errno));
-						free(dir);
-						exit(1);
-					}
-
+	for (int i = 1; i < argc; i++) {
+		char *arg = argv[i];
+		if (isdigit((unsigned char)arg[0])) {
+			// parse mode
+			errno = 0;
+			mode = strtoul(arg, NULL, 8);
+			if (errno) {
+				syslog(LOG_ERR,
+					"Error converting %s (%s)",
+					arg[i], strerror(errno));
+				mode = 0;
+			}
+		} else if (strchr(arg, '/') != NULL) {
+			// parse path
+			char* base;
+			path = arg;
+			// Make sure there are directories
+			base = strchr(path, '/');
+			if (base) {
+				DIR* d;
+				char* dir = strdup(path);
+				base = dirname(dir);
+				d = opendir(base);
+				if (d) {
+					closedir(d);
+					unlink(path);
+					free(dir);
 				} else {
-					syslog(LOG_ERR, "Malformed path %s",
-					       path);
+					syslog(LOG_ERR,
+						"Couldn't open %s (%s)",
+						base, strerror(errno));
+					free(dir);
 					exit(1);
 				}
+
+			} else {
+				syslog(LOG_ERR, "Malformed path %s",
+					path);
+				exit(1);
 			}
-		}
-		if (mode == 0 || path == NULL) {
-			syslog(LOG_ERR, "Bad arguments, using defaults");
-			mode = 0640;
-			path = DEFAULT_PATH;
+		} else {
+			if (strcmp(arg, "string") == 0)
+				format = F_STRING;
+			else if (strcmp(arg, "binary") == 0)
+				format = F_BINARY;
+			else
+				syslog(LOG_ERR, "Invalid format detected");
 		}
 	}
+
+	if (mode == 0 || path == NULL || format == -1) {
+		syslog(LOG_ERR, "Bad or not enough arguments, using defaults");
+		mode = 0640;
+		path = DEFAULT_PATH;
+		format = F_STRING;
+	}
+
 	return create_af_unix_socket(path, mode);
+}
+
+static int event_to_string(struct audit_dispatcher_header *hdr, char *data, char **out, int *outlen)
+{
+	char *v = NULL, *ptr, unknown[32];
+	int len;
+
+	if (hdr->ver == AUDISP_PROTOCOL_VER) {
+		const char *type;
+
+		/* Get the event formatted */
+		type = audit_msg_type_to_name(hdr->type);
+		if (type == NULL) {
+			snprintf(unknown, sizeof(unknown),
+				"UNKNOWN[%u]", hdr->type);
+			type = unknown;
+		}
+		len = asprintf(&v, "type=%s msg=%.*s\n",
+				type, hdr->size, data);
+	// Protocol 2 events are already formatted
+	} else if (hdr->ver == AUDISP_PROTOCOL_VER2) {
+		len = asprintf(&v, "%.*s\n", hdr->size, data);
+	} else
+		len = 0;
+	if (len <= 0) {
+		*out = NULL;
+		*outlen = 0;
+		return -1;
+	}
+
+	/* Strip newlines from event record */
+	ptr = v;
+	while ((ptr = strchr(ptr, 0x0A)) != NULL) {
+		if (ptr != &v[len-1])
+			*ptr = ' ';
+		else
+			break; /* Done - exit loop */
+	}
+
+	*out = v;
+	*outlen = len;
+	return 1;
 }
 
 void read_audit_record(int ifd)
@@ -179,17 +231,42 @@ void read_audit_record(int ifd)
 		int len;
 
 		// Read stdin
-		if ((len = audit_fgets(rx_buf, sizeof(rx_buf), ifd)) > 0) {
+		if ((len = audit_fgets(rx_buf, MAX_AUDIT_EVENT_FRAME_SIZE + 1, ifd)) > 0) {
 #ifdef DEBUG
 			write(1, rx_buf, len);
 #else
+			struct audit_dispatcher_header *hdr = (struct audit_dispatcher_header *)rx_buf;
+			char *data = rx_buf + sizeof(struct audit_dispatcher_header);
 			if (client) {
 				// Send it to the client
 				int rc;
 
-				do {
-					rc = write(conn, rx_buf, len);
-				} while (rc < 0 && errno == EINTR);
+				if (format == F_STRING) {
+					
+					char *str = NULL;
+					int str_len = 0;
+					if (event_to_string(hdr, data, &str, &str_len) < 0) {
+						// what to do with error?
+						continue;
+					}
+
+					do {
+						rc = write(conn, str, str_len);
+					} while (rc < 0 && errno == EINTR);
+				} else if (format == F_BINARY) {
+					struct iovec vec[2];
+
+					vec[0].iov_base = hdr;
+					vec[0].iov_len = sizeof(struct audit_dispatcher_header);
+
+					vec[1].iov_base = data;
+					vec[1].iov_len = MAX_AUDIT_MESSAGE_LENGTH;
+
+					do {
+						rc = writev(conn, vec, 2);
+					} while (rc < 0 && errno == EINTR);
+				}
+
 				if (rc < 0 && errno == EPIPE) {
 					close(conn);
 					conn = -1;
@@ -203,7 +280,7 @@ void read_audit_record(int ifd)
 #endif
 		} else if (audit_fgets_eof())
 			stop = 1;
-	} while (audit_fgets_more(sizeof(rx_buf)));
+	} while (audit_fgets_more(MAX_AUDIT_EVENT_FRAME_SIZE));
 }
 
 void accept_connection(void)
