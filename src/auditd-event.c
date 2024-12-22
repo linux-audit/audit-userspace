@@ -46,6 +46,8 @@
 #include "private.h"
 #include "auparse.h"
 #include "auparse-idata.h"
+#include "common.h"
+#include <sys/wait.h>
 
 /* This is defined in auditd.c */
 extern volatile ATOMIC_INT stop;
@@ -178,7 +180,15 @@ int init_event(struct daemon_conf *conf)
 	if (config->daemonize == D_BACKGROUND) {
 		check_log_file_size();
 		check_excess_logs();
-		check_space_left();
+		/* At this stage, auditd is not fully initialized and operational.
+		 This means we can't notify the parent process that initialization
+		 is complete. However, if space_left_action is set to SINGLE, we must
+		 avoid switching to that runlevel. Before entering the SINGLE
+		 runlevel requires auditd to finish initialization. But auditd will not
+		 start properly or signal the init system that it has started, as it is
+		 blocked by the attempt to switch to single-user mode, resulting in a
+		 deadlock. */
+		// check_space_left();
 	}
 	format_buf = (char *)malloc(FORMAT_BUF_LEN);
 	if (format_buf == NULL) {
@@ -1351,14 +1361,34 @@ static void change_runlevel(const char *level)
 	struct sigaction sa;
 	static const char *init_pgm = "/sbin/init";
 
+	// In case of halt, we need to log the message before we halt
+	if (strcmp(level, HALT) == 0) {
+		write_to_console("audit: will try to change runlevel to %s\n", level);
+	}
+
 	pid = fork();
 	if (pid < 0) {
 		audit_msg(LOG_ALERT,
 			"Audit daemon failed to fork switching runlevels");
 		return;
 	}
-	if (pid)	/* Parent */
+	if (pid) {	/* Parent */
+		int status;
+
+		// Wait until child exits
+		if (waitpid(pid, &status, 0) < 0) {
+			audit_msg(LOG_ALERT,
+				"Audit daemon failed to wait for child");
+			return;
+		}
+
+		// Check if child exited normally, runlevel change was successful
+		if (WIFEXITED(status) && WEXITSTATUS(status) == 0) {
+			write_to_console("audit: changed runlevel to %s\n", level);
+		}
+
 		return;
+	}
 	/* Child */
 	sigfillset (&sa.sa_mask);
 	sigprocmask (SIG_UNBLOCK, &sa.sa_mask, 0);
