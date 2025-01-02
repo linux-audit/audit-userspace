@@ -77,3 +77,5 @@ uninstall-hook:
 	rm ${DESTDIR}${legacydir}/stop
 	rm ${DESTDIR}${legacydir}/restart
 	rm ${DESTDIR}${legacydir}/condrestart
+	rm ${DESTDIR}$(prefix)/lib/tmpfiles.d/audit.conf/audit-tmpfiles.conf
+
