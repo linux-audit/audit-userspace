@@ -1556,7 +1556,7 @@ static int parse_daemon1(const lnode *n, search_items *s)
 		if (str) {
 			ptr = str + 5;
 			term = strchr(ptr, ' ');
-			if (term == NULL) 
+			if (term == NULL)
 				return 7;
 			saved = *term;
 			*term = 0;
@@ -1565,13 +1565,11 @@ static int parse_daemon1(const lnode *n, search_items *s)
 			if (errno)
 				return 8;
 			*term = saved;
-		} else
-			term = ptr;
+		}
 	}
 
 	// ses - optional
 	if (event_session_id != -2) {
-		ptr = term;
 		str = strstr(term, "ses=");
 		if (str) {
 			ptr = str + 4;
@@ -1585,8 +1583,7 @@ static int parse_daemon1(const lnode *n, search_items *s)
 			if (errno)
 				return 10;
 			*term = saved;
-		} else
-			term = ptr;
+		}
 	}
 
 	if (event_subject) {
