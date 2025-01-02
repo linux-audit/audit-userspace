@@ -1,5 +1,5 @@
 # Makefile.am--
-# Copyright 2004-07,2012-13,2018 Red Hat Inc.
+# Copyright 2004-2025 Red Hat Inc.
 # All Rights Reserved.
 #
 # This program is free software; you can redistribute it and/or modify
@@ -48,8 +48,8 @@ BUILT_SOURCES = auditd.service audit-rules.service
 
 install-data-hook:
 	$(INSTALL_DATA) -D -m 640 ${srcdir}/${libconfig} ${DESTDIR}${sysconfdir}
-	mkdir -p -m 755 ${DESTDIR}$(prefix)/lib/tmpfiles.d/audit.conf
-	$(INSTALL_DATA) -m 640 -D -t ${DESTDIR}$(prefix)/lib/tmpfiles.d/audit.conf ${srcdir}/audit-tmpfiles.conf
+	mkdir -p ${DESTDIR}$(prefix)/lib/tmpfiles.d/
+	$(INSTALL_DATA) -m 640 ${srcdir}/audit-tmpfiles.conf ${DESTDIR}$(prefix)/lib/tmpfiles.d/audit.conf
 
 install-exec-hook:
 	mkdir -p ${DESTDIR}${initdir}
@@ -77,5 +77,5 @@ uninstall-hook:
 	rm ${DESTDIR}${legacydir}/stop
 	rm ${DESTDIR}${legacydir}/restart
 	rm ${DESTDIR}${legacydir}/condrestart
-	rm ${DESTDIR}$(prefix)/lib/tmpfiles.d/audit.conf/audit-tmpfiles.conf
+	rm ${DESTDIR}$(prefix)/lib/tmpfiles.d/audit.conf
 
