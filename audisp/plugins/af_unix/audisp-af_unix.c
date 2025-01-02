@@ -132,7 +132,7 @@ int setup_socket(int argc, char *argv[])
 			if (errno) {
 				syslog(LOG_ERR,
 					"Error converting %s (%s)",
-					arg[i], strerror(errno));
+					argv[i], strerror(errno));
 				mode = 0;
 			}
 		} else if (strchr(arg, '/') != NULL) {
@@ -265,16 +265,15 @@ void read_audit_record(int ifd)
 					do {
 						rc = writev(conn, vec, 2);
 					} while (rc < 0 && errno == EINTR);
-				}
-
-				if (rc < 0 && errno == EPIPE) {
-					close(conn);
-					conn = -1;
-					client = 0;
-					audit_fgets_clear();
-				}
-				if (rc >= 0 && rc != len) {
+					if (rc < 0 && errno == EPIPE) {
+						close(conn);
+						conn = -1;
+						client = 0;
+						audit_fgets_clear();
+					}
+					//if (rc >= 0 && rc != len) {
 					// what to do with leftovers?
+					//}
 				}
 			}
 #endif
