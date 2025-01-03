@@ -7,6 +7,7 @@ arch/powerpc/kernel/syscalls/syscall.tbl
 arch/s390/kernel/syscalls/syscall.tbl
 arch/x86/entry/syscalls/syscall_32.tbl
 arch/x86/entry/syscalls/syscall_64.tbl
+include/uapi/asm-generic/unistd.h  (riscv32, riscv64)
 
 For src/ausearch-lookup.c:
 Inspect include/linux/net.h for socketcall updates
@@ -16,4 +17,42 @@ For adding new arches, the following might be useful to get a first pass file:
 
 cat unistd.h | grep '^#define __NR_' | tr -d ')' | tr 'NR+' ' ' | awk '{ printf "_S(%s, \"%s\")\n", $6, $3 }; '
 
+On newer kernels (4.19+):
+
+cat unistd.h | grep '^#define __NR_' | sed 's/__NR_//g' | awk '{ printf "_S(%s, \"%s\")\n", $3, $2 }; '
+
 it will still need hand editing
+
+Alternative would be to use https://pypi.org/project/system-calls/ Python pacakge.
+The latest version is available here: https://github.com/hrw/syscalls-table
+
+Another place to find syscalls (not incl. riscv yet) is in GDB:
+https://github.com/bminor/binutils-gdb/tree/master/gdb/syscalls
+
+For example (system-calls 5.19.0):
+
+#!/usr/bin/python3
+
+import system_calls
+import sys
+
+syscalls = system_calls.syscalls()
+
+table = {}
+
+for syscall_name in syscalls.names():
+    num = None
+    try:
+        num = syscalls.get(syscall_name, "riscv64")
+    except system_calls.NotSupportedSystemCall:
+        pass
+
+    if num is not None:
+        if num in table:
+            print("This is bad!")
+            sys.exit(1)
+
+        table[num] = syscall_name
+
+for key, value in sorted(table.items(), key=lambda item: int(item[0])):
+        print("_S({}, \"{}\")".format(key, value))

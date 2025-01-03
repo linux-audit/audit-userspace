@@ -47,6 +47,10 @@
 #ifdef WITH_AARCH64
 #include "aarch64_tables.h"
 #endif
+#ifdef WITH_RISCV
+#include "riscv64_tables.h"
+#include "riscv32_tables.h"
+#endif
 #include "i386_tables.h"
 #include "ppc_tables.h"
 #include "s390_tables.h"
@@ -85,6 +89,10 @@ static const struct int_transtab elftab[] = {
 #endif
 #ifdef WITH_AARCH64
     { MACH_AARCH64, AUDIT_ARCH_AARCH64},
+#endif
+#ifdef WITH_RISCV
+    { MACH_RISCV32,   AUDIT_ARCH_RISCV32 },
+    { MACH_RISCV64,   AUDIT_ARCH_RISCV64 },
 #endif
 };
 #define AUDIT_ELF_NAMES (sizeof(elftab)/sizeof(elftab[0]))
@@ -157,6 +165,14 @@ int audit_name_to_syscall(const char *sc, int machine)
 			found = aarch64_syscall_s2i(sc, &res);
 			break;
 #endif
+#ifdef WITH_RISCV
+	        case MACH_RISCV64:
+			found = riscv64_syscall_s2i(sc, &res);
+			break;
+	        case MACH_RISCV32:
+			found = riscv32_syscall_s2i(sc, &res);
+			break;
+#endif
 #endif
 		case MACH_IO_URING:
 			return audit_name_to_uringop(sc);
@@ -203,6 +219,12 @@ const char *audit_syscall_to_name(int sc, int machine)
 #ifdef WITH_AARCH64
 	        case MACH_AARCH64:
 			return aarch64_syscall_i2s(sc);
+#endif
+#ifdef WITH_RISCV
+	        case MACH_RISCV64:
+			return riscv64_syscall_i2s(sc);
+	        case MACH_RISCV32:
+			return riscv32_syscall_i2s(sc);
 #endif
 		case MACH_IO_URING:
 			return audit_uringop_to_name(sc);

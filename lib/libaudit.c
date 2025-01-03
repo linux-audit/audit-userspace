@@ -1441,6 +1441,8 @@ int audit_determine_machine(const char *arch)
 		machine = MACH_S390;
 	else if (bits == ~__AUDIT_ARCH_64BIT && machine == MACH_AARCH64)
 		machine = MACH_ARM;
+	else if (bits == ~__AUDIT_ARCH_64BIT && machine == MACH_RISCV64)
+		machine = MACH_RISCV32;
 
 	/* Check for errors - return -6
 	 * We don't allow 32 bit machines to specify 64 bit. */
@@ -1470,10 +1472,17 @@ int audit_determine_machine(const char *arch)
 				return -6; /* 64 bit only */
 			break;
 #endif
+#ifdef WITH_RISCV
+		case MACH_RISCV32:
+			if (bits == __AUDIT_ARCH_64BIT)
+				return -6;
+			break;
+#endif
 		case MACH_86_64:   /* fallthrough */
 		case MACH_PPC64:   /* fallthrough */
 		case MACH_S390X:   /* fallthrough */
 		case MACH_IO_URING:
+		case MACH_RISCV64: /* fallthrough */
 			break;
 		case MACH_PPC64LE: /* 64 bit only */
 			if (bits && bits != __AUDIT_ARCH_64BIT)

@@ -45,4 +45,8 @@ _S(MACH_AARCH64,   "armv8l")
 #ifdef WITH_IO_URING
 _S(MACH_IO_URING,   "uring")
 #endif
+#ifdef WITH_RISCV
+_S(MACH_RISCV32,   "riscv32")
+_S(MACH_RISCV64,   "riscv64")
+#endif
 
