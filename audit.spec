@@ -51,13 +51,13 @@ The audit-libs-static package contains the static libraries
 needed for developing applications that need to use static audit
 framework libraries
 
-%package python3-audit
+%package -n python3-audit
 Summary: Python3 bindings for libaudit
 License: LGPL-2.0-or-later
 BuildRequires: python3-devel python-unversioned-command swig
 Requires: %{name}-libs%{?_isa} = %{version}-%{release}
 
-%description python3-audit
+%description -n python3-audit
 The audit-libs-python3 package contains the bindings so that libaudit
 and libauparse can be used by python3.
 
