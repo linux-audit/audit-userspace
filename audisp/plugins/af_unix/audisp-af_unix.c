@@ -253,6 +253,7 @@ void read_audit_record(int ifd)
 					do {
 						rc = write(conn, str, str_len);
 					} while (rc < 0 && errno == EINTR);
+					free(str);
 				} else if (format == F_BINARY) {
 					struct iovec vec[2];
 
