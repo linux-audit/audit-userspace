@@ -426,20 +426,19 @@ int main(int argc, const char* argv[]) {
 	capng_clear(CAPNG_SELECT_BOTH);
 	if (capng_apply(CAPNG_SELECT_BOTH))
 		syslog(LOG_WARNING,
-			"%s: unable to drop capabilities, continuing with "
-			"elevated privileges",
-			argv[0]);
+			"audisp-filter: unable to drop capabilities, continuing with "
+			"elevated privileges");
 #endif
 
 	if (pipe(pipefd) == -1) {
-		syslog(LOG_ERR, "%s: unable to open a pipe (%s)",
-			argv[0], strerror(errno));
+		syslog(LOG_ERR, "audisp-filter: unable to open a pipe (%s)",
+			strerror(errno));
 		return -1;
 	}
 
 	cpid = fork();
 	if (cpid == -1) {
-		syslog(LOG_ERR, "%s: unable to create fork (%s)", argv[0], strerror(errno));
+		syslog(LOG_ERR, "audisp-filter: unable to create fork (%s)", strerror(errno));
 		return -1;
 	}
 
@@ -451,7 +450,7 @@ int main(int argc, const char* argv[]) {
 		close(pipefd[0]);
 
 		execve(config.binary, config.binary_args, NULL);
-		syslog(LOG_ERR, "%s: execve failed (%s)", argv[0], strerror(errno));
+		syslog(LOG_ERR, "audisp-filter: execve failed (%s)", strerror(errno));
 		exit(1);
 	} else {
 		/* Parent reads input and forwards data after filters have been applied
@@ -460,7 +459,7 @@ int main(int argc, const char* argv[]) {
 
 		au = auparse_init(AUSOURCE_FEED, 0);
 		if (au == NULL) {
-			syslog(LOG_ERR, "%s: failed to initialize auparse data feed", argv[0]);
+			syslog(LOG_ERR, "audisp-filter: failed to initialize auparse data feed");
 			kill(cpid, SIGTERM);
 			return -1;
 		}
