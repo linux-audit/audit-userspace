@@ -56,6 +56,7 @@ Summary: Python3 bindings for libaudit
 License: LGPL-2.0-or-later
 BuildRequires: python3-devel python-unversioned-command swig
 Requires: %{name}-libs%{?_isa} = %{version}-%{release}
+Provides: audit-libs-python3 = %{version}-%{release}
 
 %description -n python3-audit
 The audit-libs-python3 package contains the bindings so that libaudit
@@ -114,12 +115,8 @@ mkdir --mode=0700 -p $RPM_BUILD_ROOT/%{_var}/log/audit
 mkdir -p $RPM_BUILD_ROOT/%{_var}/spool/audit
 make DESTDIR=$RPM_BUILD_ROOT install
 
-# Remove these items so they don't get picked up.
-rm -f $RPM_BUILD_ROOT/%{_libdir}/libaudit.a
-rm -f $RPM_BUILD_ROOT/%{_libdir}/libauparse.a
-
 find $RPM_BUILD_ROOT -name '*.la' -delete
-find $RPM_BUILD_ROOT/%{_libdir}/python3.?/site-packages -name '*.a' -delete
+find $RPM_BUILD_ROOT/%{_libdir}/python%{python3_version}/site-packages -name '*.a' -delete || true
 
 # On platforms with 32 & 64 bit libs, we need to coordinate the timestamp
 touch -r ./audit.spec $RPM_BUILD_ROOT/etc/libaudit.conf
@@ -172,8 +169,8 @@ fi
 
 %files libs
 %license COPYING.LIB
-/%{_lib}/libaudit.so.1*
-/%{_lib}/libauparse.*
+%{_libdir}/libaudit.so.1*
+%{_libdir}/libauparse.*
 %config(noreplace) %attr(640,root,root) /etc/libaudit.conf
 %{_mandir}/man5/libaudit.conf.5.gz
 
@@ -212,9 +209,9 @@ fi
 %attr(644,root,root) %{_mandir}/man8/ausyscall.8.gz
 %attr(644,root,root) %{_mandir}/man5/auditd.conf.5.gz
 %attr(644,root,root) %{_mandir}/man5/auditd-plugins.5.gz
-%attr(755,root,root) %{_sbindir}auditd
-%attr(755,root,root) %{_sbindir}ausearch
-%attr(755,root,root) %{_sbindir}aureport
+%attr(755,root,root) %{_sbindir}/auditd
+%attr(755,root,root) %{_sbindir}/ausearch
+%attr(755,root,root) %{_sbindir}/aureport
 %attr(755,root,root) %{_bindir}/aulast
 %attr(755,root,root) %{_bindir}/aulastlog
 %attr(755,root,root) %{_bindir}/ausyscall
