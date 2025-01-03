@@ -975,7 +975,7 @@ int main(int argc, char *argv[])
 	} else {
 		/* Now tell parent that everything went OK */
 		tell_parent(SUCCESS);
-		audit_msg(LOG_NOTICE,
+		audit_msg(LOG_INFO,
 	    "Init complete, auditd %s listening for events (startup state %s)",
 			VERSION,
 			startup_states[opt_startup]);

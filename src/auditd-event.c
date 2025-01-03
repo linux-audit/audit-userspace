@@ -755,13 +755,13 @@ static void check_log_file_size(void)
 				break;
 			case SZ_ROTATE:
 				if (config->num_logs > 1) {
-					audit_msg(LOG_NOTICE,
+					audit_msg(LOG_INFO,
 					    "Audit daemon rotating log files");
 					rotate_logs(0, 0);
 				}
 				break;
 			case SZ_KEEP_LOGS:
-				audit_msg(LOG_NOTICE,
+				audit_msg(LOG_INFO,
 			    "Audit daemon rotating log files with keep option");
 					shift_logs();
 				break;
@@ -845,7 +845,7 @@ static void do_space_left_action(int admin)
 			break;
 		case FA_ROTATE:
 			if (config->num_logs > 1) {
-				audit_msg(LOG_NOTICE,
+				audit_msg(LOG_INFO,
 					"Audit daemon rotating log files");
 				rotate_logs(0, 0);
 			}
@@ -920,7 +920,7 @@ static void do_disk_full_action(void)
 			break;
 		case FA_ROTATE:
 			if (config->num_logs > 1) {
-				audit_msg(LOG_NOTICE,
+				audit_msg(LOG_INFO,
 					"Audit daemon rotating log files");
 				rotate_logs(0, 0);
 			}
