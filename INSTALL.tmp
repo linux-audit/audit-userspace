@@ -4,7 +4,7 @@ Then do this:
 
 git clone https://github.com/linux-audit/audit-userspace.git
 cd audit-userspace
-./autogen.sh
+autoreconf -fv --install
 ./configure
 make dist
 
@@ -20,11 +20,13 @@ to do something like this as root:
 --includedir=/usr/include --libdir=/usr/lib64 --libexecdir=/usr/libexec \
 --localstatedir=/var --sharedstatedir=/var/lib --mandir=/usr/share/man \
 --infodir=/usr/share/info --sbindir=/sbin --libdir=/lib64 \
---with-python=yes --with-python3=yes --with-libwrap --enable-tcp=yes \
---enable-gssapi-krb5=yes --with-arm --with-aarch64 --with-libcap-ng=yes \
---without-golang --enable-systemd
+--with-python3=yes --enable-gssapi-krb5=yes \
+--with-arm --with-aarch64 --with-riscv --with-libcap-ng=yes \
+--without-golang --enable-zos-remote \
+--enable-experimental --with-io_uring
 
 make
+make check
 make install
 
 

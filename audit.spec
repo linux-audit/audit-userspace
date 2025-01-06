@@ -9,6 +9,7 @@ Source0: http://people.redhat.com/sgrubb/audit/%{name}-%{version}.tar.gz
 BuildRequires: make gcc
 BuildRequires: kernel-headers >= 5.0
 BuildRequires: systemd
+BuildRequires: autoconf automake libtool
 
 Requires: %{name}-libs = %{version}-%{release}
 Requires: %{name}-rules%{?_isa} = %{version}-%{release}
@@ -100,9 +101,10 @@ The audit rules package contains the rules and utilities to load audit rules.
 %setup -q
 
 %build
-%configure --with-python3=yes \
-	   --enable-gssapi-krb5=yes --with-arm --with-aarch64 \
-	   --with-libcap-ng=yes --without-golang --enable-zos-remote \
+autoreconf -fv --install
+%configure --with-python3=yes --enable-gssapi-krb5=yes \
+	   --with-arm --with-aarch64 --with-riscv --with-libcap-ng=yes \
+	   --without-golang --enable-zos-remote \
 	   --enable-experimental --with-io_uring
 
 make CFLAGS="%{optflags}" %{?_smp_mflags}
