@@ -12,7 +12,7 @@
 ## 30-ospp-v42-6-owner-change-failed.rules,
 ## 30-ospp-v42-6-owner-change-success.rules
 ##
-## original copies may be found in /usr/share/audit/sample-rules/
+## original copies may be found in /usr/share/audit-rules
 
 
 ## User add delete modify. This is covered by pam. However, someone could
