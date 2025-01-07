@@ -11,6 +11,7 @@
 - Log runlevel changes to console during boot (Attila Lakatos)
 - Add audit-tmpfiles.conf to ensure /var/log/audit exists (Colin Walters)
 - Propagate event format to the audisp-af_unix plugin (Attila Lakatos)
+- Add support for RISC-V - riscv32, riscv64 (David Abdurachmanov)
 
 4.0.2
 - Fix musl C builds
