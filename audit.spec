@@ -4,8 +4,8 @@ Version: 4.0.3
 Release: 1%{dist}
 License: GPL-2.0-or-later AND LGPL-2.0-or-later
 Group: System Environment/Daemons
-URL: http://people.redhat.com/sgrubb/audit/
-Source0: http://people.redhat.com/sgrubb/audit/%{name}-%{version}.tar.gz
+URL: https://github.com/linux-audit/audit-userspace/
+Source0: https://github.com/linux-audit/audit-userspace/releases/tag/v%{version}.tar.gz
 BuildRequires: make gcc
 BuildRequires: kernel-headers >= 5.0
 BuildRequires: systemd
@@ -98,7 +98,7 @@ Recommends: %{name} = %{version}-%{release}
 The audit rules package contains the rules and utilities to load audit rules.
 
 %prep
-%setup -q
+%setup -q -n %{name}-userspace-%{version}
 
 %build
 autoreconf -fv --install
