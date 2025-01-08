@@ -23,6 +23,7 @@
 
 CONFIG_CLEAN_FILES = *.rej *.orig
 EXTRA_DIST = auditd.init auditd.service auditd.sysconfig auditd.conf \
+	audit-tmpfiles.conf \
 	auditd.cron libaudit.conf auditd.condrestart \
 	auditd.reload auditd.restart auditd.resume \
 	auditd.rotate auditd.state auditd.stop \
@@ -43,6 +44,8 @@ sbin_SCRIPTS = augenrules
 
 install-data-hook:
 	$(INSTALL_DATA) -D -m 640 ${srcdir}/${libconfig} ${DESTDIR}${sysconfdir}
+	mkdir -p ${DESTDIR}$(prefix)/lib/tmpfiles.d/
+	$(INSTALL_DATA) -m 640 ${srcdir}/audit-tmpfiles.conf ${DESTDIR}$(prefix)/lib/tmpfiles.d/audit.conf
 if ENABLE_SYSTEMD
 else
 	$(INSTALL_DATA) -D -m 640 ${srcdir}/auditd.sysconfig ${DESTDIR}${sysconfigdir}/auditd
@@ -69,6 +72,7 @@ endif
 
 uninstall-hook:
 	rm ${DESTDIR}${sysconfdir}/${libconfig}
+	rm ${DESTDIR}$(prefix)/lib/tmpfiles.d/audit.conf
 if ENABLE_SYSTEMD
 	rm ${DESTDIR}${initdir}/auditd.service
 	rm ${DESTDIR}${legacydir}/rotate

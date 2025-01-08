@@ -215,6 +215,7 @@ fi
 %attr(755,root,root) %{_bindir}/aulast
 %attr(755,root,root) %{_bindir}/aulastlog
 %attr(755,root,root) %{_bindir}/ausyscall
+%attr(640,root,root) %{_tmpfilesdir}/audit.conf
 %attr(755,root,root) %{_bindir}/auvirt
 %attr(644,root,root) %{_unitdir}/auditd.service
 %attr(750,root,root) %dir %{_libexecdir}/initscripts/legacy-actions/auditd
