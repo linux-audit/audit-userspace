@@ -16,6 +16,9 @@ Wants=audit-rules.service
 ## a minimal file that overrides only the necessary lines but inherits the
 ## original settings in case they get updated by a distribution. Please check
 ## systemd documentation if it's unclear how to override settings.
+## If using remote logging, ensure that the systemd-update-utmp.service file
+## is updated to remove the After=auditd.service directive to prevent a
+## boot-time ordering cycle.
 After=local-fs.target systemd-tmpfiles-setup.service
 #After=network-online.target local-fs.target systemd-tmpfiles-setup.service
 Before=sysinit.target shutdown.target audit-rules.service
