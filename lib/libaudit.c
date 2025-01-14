@@ -100,6 +100,7 @@ static struct libaudit_conf config;
 static int audit_failure_parser(const char *val, int line);
 static int audit_name_to_uid(const char *name, uid_t *auid);
 static int audit_name_to_gid(const char *name, gid_t *gid);
+static char* filter_supported_syscalls(const char* syscalls, int machine) __attr_dealloc_free;
 
 static const struct kw_pair keywords[] =
 {
@@ -1529,7 +1530,7 @@ int _audit_parse_syscall(const char *optarg, struct audit_rule_data *rule)
  * on the given architecture. Returns a new string with supported syscalls
  * or NULL on error.
  */
-char* filter_supported_syscalls(const char* syscalls, int machine) {
+static char* filter_supported_syscalls(const char* syscalls, int machine) {
     if (syscalls == NULL) {
         return NULL;
     }
