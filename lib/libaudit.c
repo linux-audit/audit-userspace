@@ -1530,44 +1530,44 @@ int _audit_parse_syscall(const char *optarg, struct audit_rule_data *rule)
  * on the given architecture. Returns a new string with supported syscalls
  * or NULL on error.
  */
-static char* filter_supported_syscalls(const char* syscalls, int machine) {
-    if (syscalls == NULL) {
-        return NULL;
-    }
+static char* filter_supported_syscalls(const char* syscalls, int machine)
+{
+	if (syscalls == NULL) {
+		return NULL;
+	}
 
-    // Allocate memory for the filtered syscalls string
-    char* filtered_syscalls = malloc(strlen(syscalls) + 1);
-    if (filtered_syscalls == NULL) {
-        return NULL;
-    }
-    filtered_syscalls[0] = '\0'; // Initialize as empty string
+	// Allocate memory for the filtered syscalls string
+	char* filtered_syscalls = malloc(strlen(syscalls) + 1);
+	if (filtered_syscalls == NULL) {
+		return NULL;
+	}
+	filtered_syscalls[0] = '\0'; // Initialize as empty string
 
-    // Tokenize the syscalls string and filter unsupported syscalls
-    const char* delimiter = ",";
-    char* syscalls_copy = strdup(syscalls);
-    if (syscalls_copy == NULL) {
-        free(filtered_syscalls);
-        return NULL;
-    }
-    char* token = strtok(syscalls_copy, delimiter);
-    while (token != NULL) {
-        if (audit_name_to_syscall(token, machine) != -1) {
-            strcat(filtered_syscalls, token);
-            strcat(filtered_syscalls, delimiter);
-        }
-        token = strtok(NULL, delimiter);
-    }
-    free(syscalls_copy);
+	// Tokenize the syscalls string and filter unsupported syscalls
+	const char* delimiter = ",";
+	char* syscalls_copy = strdup(syscalls);
+	if (syscalls_copy == NULL) {
+		free(filtered_syscalls);
+		return NULL;
+	}
+	char* token = strtok(syscalls_copy, delimiter);
+	while (token != NULL) {
+		if (audit_name_to_syscall(token, machine) != -1) {
+			strcat(filtered_syscalls, token);
+			strcat(filtered_syscalls, delimiter);
+		}
+		token = strtok(NULL, delimiter);
+	}
+	free(syscalls_copy);
 
-    // Remove the trailing delimiter, if present
-    size_t len = strlen(filtered_syscalls);
-    if (len > 0 && filtered_syscalls[len - 1] == ',') {
-        filtered_syscalls[len - 1] = '\0';
-    }
+	// Remove the trailing delimiter, if present
+	size_t len = strlen(filtered_syscalls);
+	if (len > 0 && filtered_syscalls[len - 1] == ',') {
+		filtered_syscalls[len - 1] = '\0';
+	}
 
-    return filtered_syscalls;
+	return filtered_syscalls;
 }
-
 
 static int audit_add_perm_syscalls(int perm, struct audit_rule_data *rule)
 {
@@ -1589,11 +1589,11 @@ static int audit_add_perm_syscalls(int perm, struct audit_rule_data *rule)
 	// on arm64, are unavailable on certain architectures. To ensure compatibility,
 	// we must avoid creating rules with unsupported syscalls.
 	char* filtered_syscalls = filter_supported_syscalls(syscalls, machine);
-    if (filtered_syscalls == NULL) {
+	if (filtered_syscalls == NULL) {
 		// use original syscalls in case we failed to parse - should not happen
 		syscalls_to_use = syscalls;
-        audit_msg(LOG_WARNING, "Filtering syscalls failed; using original syscalls.");
-    } else {
+		audit_msg(LOG_WARNING, "Filtering syscalls failed; using original syscalls.");
+	} else {
 		syscalls_to_use = filtered_syscalls;
 	}
 
