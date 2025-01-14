@@ -100,6 +100,7 @@ static struct libaudit_conf config;
 static int audit_failure_parser(const char *val, int line);
 static int audit_name_to_uid(const char *name, uid_t *auid);
 static int audit_name_to_gid(const char *name, gid_t *gid);
+static char* filter_supported_syscalls(const char* syscalls, int machine) __attr_dealloc_free;
 
 static const struct kw_pair keywords[] =
 {
@@ -1524,6 +1525,50 @@ int _audit_parse_syscall(const char *optarg, struct audit_rule_data *rule)
 	return audit_rule_syscallbyname_data(rule, optarg);
 }
 
+/*
+ * Filters unsupported syscalls from a comma-separated string based
+ * on the given architecture. Returns a new string with supported syscalls
+ * or NULL on error.
+ */
+static char* filter_supported_syscalls(const char* syscalls, int machine)
+{
+	if (syscalls == NULL) {
+		return NULL;
+	}
+
+	// Allocate memory for the filtered syscalls string
+	char* filtered_syscalls = malloc(strlen(syscalls) + 1);
+	if (filtered_syscalls == NULL) {
+		return NULL;
+	}
+	filtered_syscalls[0] = '\0'; // Initialize as empty string
+
+	// Tokenize the syscalls string and filter unsupported syscalls
+	const char* delimiter = ",";
+	char* syscalls_copy = strdup(syscalls);
+	if (syscalls_copy == NULL) {
+		free(filtered_syscalls);
+		return NULL;
+	}
+	char* token = strtok(syscalls_copy, delimiter);
+	while (token != NULL) {
+		if (audit_name_to_syscall(token, machine) != -1) {
+			strcat(filtered_syscalls, token);
+			strcat(filtered_syscalls, delimiter);
+		}
+		token = strtok(NULL, delimiter);
+	}
+	free(syscalls_copy);
+
+	// Remove the trailing delimiter, if present
+	size_t len = strlen(filtered_syscalls);
+	if (len > 0 && filtered_syscalls[len - 1] == ',') {
+		filtered_syscalls[len - 1] = '\0';
+	}
+
+	return filtered_syscalls;
+}
+
 static int audit_add_perm_syscalls(int perm, struct audit_rule_data *rule)
 {
 	// We only get here if syscall notation is being used in the rule.
@@ -1536,20 +1581,36 @@ static int audit_add_perm_syscalls(int perm, struct audit_rule_data *rule)
 		return 0;
 	}
 
+	const int machine = audit_elf_to_machine(_audit_elf);
 	const char *syscalls = audit_perm_to_name(perm);
-	int rc = _audit_parse_syscall(syscalls, rule);
+	const char *syscalls_to_use;
+
+	// The permtab table is hardcoded, but some syscalls, like rename
+	// on arm64, are unavailable on certain architectures. To ensure compatibility,
+	// we must avoid creating rules with unsupported syscalls.
+	char* filtered_syscalls = filter_supported_syscalls(syscalls, machine);
+	if (filtered_syscalls == NULL) {
+		// use original syscalls in case we failed to parse - should not happen
+		syscalls_to_use = syscalls;
+		audit_msg(LOG_WARNING, "Filtering syscalls failed; using original syscalls.");
+	} else {
+		syscalls_to_use = filtered_syscalls;
+	}
+
+	int rc = _audit_parse_syscall(syscalls_to_use, rule);
 	switch (rc)
 	{
 	case 0:
 		_audit_syscalladded = 1;
 		break;
 	case -1: // Should never happen
-		audit_msg(LOG_ERR, "Syscall name unknown: %s", syscalls);
+		audit_msg(LOG_ERR, "Syscall name unknown: %s", syscalls_to_use);
 		break;
 	default: // Error reported - do nothing here
 		break;
 	}
 
+	free(filtered_syscalls);
 	return rc;
 }
 
