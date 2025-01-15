@@ -9,7 +9,11 @@ audisp-af_unix \- plugin to push audit events to an af_unix socket
 .B args
 line of the 
 .B af_unix.conf
-file expects two arguments: the access mode and the path to the socket. The default values are 0640 and /var/run/audispd_events respectively.
+file expects three arguments: access mode, socket path, and output format. The access mode determines the permissions for the socket and defaults to 0640. The socket path specifies where the socket will be created, with the default location being /var/run/audispd_events. The output format determines the format in which events are delivered to the socket and supports two options: "string" and "binary". The "string" format delivers events in a human-readable form, while the "binary" format delivers events in their binary representation, which is essential for applications that need to process events in binary and reconstruct headers accurately. If the output format is not specified, the plugin defaults to the "string" format.
+
+The
+.B af_unix.conf
+file must also include the line \fBformat = binary\fP. This setting specifies the input format that the \fBaudisp-af_unix\fP plugin expects from the audit event dispatcher. It ensures that the input delivered to the plugin is in binary format, enabling the plugin to reconstruct headers in their proper binary structure.
 
 .SH FILES
 /etc/audit/plugins/af_unix.conf
