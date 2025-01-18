@@ -4,7 +4,7 @@ Then do this:
 
 git clone https://github.com/linux-audit/audit-userspace.git
 cd audit-userspace
-autoreconf -fv --install
+autoreconf -v --install
 ./configure
 make dist
 
