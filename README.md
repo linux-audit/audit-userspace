@@ -41,6 +41,7 @@ SUPPORTED ARCHITECTURES
 -----------------------
 * AARCH64
 * ARM (some versions)
+* MIPS
 * PPC & PPCLE
 * s390 & s390x
 * x86_64 & i386
@@ -57,7 +58,7 @@ To build from the repo after cloning and installing dependencies:
 
 ```
 cd audit
-./autogen.sh
+autoreconf -f --install
 ./configure --with-python3=yes --enable-gssapi-krb5=yes --with-arm \
     --with-aarch64 --with-libcap-ng=yes --without-golang --with-io_uring
 make
