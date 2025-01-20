@@ -1034,6 +1034,11 @@ static int space_action_parser(const struct nv_pair *nv, int line,
 				if (check_exe_name(nv->option, line))
 					return 1;
 				config->space_left_exe = strdup(nv->option);
+			} else if (failure_actions[i].option == FA_HALT) {
+				audit_msg(LOG_ERR,
+					"The HALT option in space_left_action has been deprecated"
+					" to prevent system instability from premature shutdowns.");
+				return 1;
 			}
 			config->space_left_action = failure_actions[i].option;
 			return 0;
@@ -1041,6 +1046,19 @@ static int space_action_parser(const struct nv_pair *nv, int line,
 	}
 	audit_msg(LOG_ERR, "Option %s not found - line %d", nv->value, line);
 	return 1;
+}
+
+const char *failure_action_to_str(int action)
+{
+	int i;
+
+	for (i=0; failure_actions[i].name != NULL; i++) {
+		if (failure_actions[i].option == action) {
+			return failure_actions[i].name;
+		}
+	}
+
+	return "NULL";
 }
 
 // returns 0 if OK, 1 on temp error, 2 on permanent error
