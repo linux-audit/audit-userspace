@@ -156,7 +156,7 @@ while the audit daemon is running, you should send the audit daemon SIGHUP to re
 This parameter tells the system what action to take when the system has
 detected that it is starting to get low on disk space.
 Valid values are
-.IR ignore ", " syslog ", " rotate ", " email ", " exec ", " suspend ", " single ", and " halt .
+.IR ignore ", " syslog ", " rotate ", " email ", " exec ", " suspend ", and " single .
 If set to
 .IR ignore ,
 the audit daemon does nothing.
@@ -173,9 +173,20 @@ as well as sending the message to syslog.
 .I suspend
 will cause the audit daemon to stop writing records to the disk. The daemon will still be alive. The
 .I single
-option will cause the audit daemon to put the computer system in single user mode. The
+option will cause the audit daemon to put the computer system in single user mode. Except for rotate, it will perform this action just one time. The previously available
 .I halt
-option will cause the audit daemon to shutdown the computer system. Except for rotate, it will perform this action just one time.
+option, which would cause the audit daemon to shut down the computer system, has been deprecated and should no longer be used. It was determined that halting the system at this stage could lead to unintended consequences and is considered a bad action if selected.
+
+Disk space notifications follow a three-stage progression. The
+.I space_left_action
+is the low water mark and serves as the first warning that disk space is running low. Halting at this stage is not recommended, as it prevents administrators from taking corrective action. The next stage,
+.I admin_space_left_action,
+indicates an emergency level where immediate action is required to free up disk space. Administrators should configure critical responses for this level. Finally, the
+.I disk_full_action
+occurs when the disk is completely full. At this stage, the system may have already halted, and preemptive measures configured in earlier stages will determine the system’s behavior.
+
+
+
 .TP
 .I admin_space_left
 This is a numeric value in megabytes that tells the audit daemon when

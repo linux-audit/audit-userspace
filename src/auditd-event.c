@@ -829,11 +829,28 @@ extern int sendmail(const char *subject, const char *content,
 static void do_space_left_action(int admin)
 {
 	int action;
+	char buffer[256];
+	const char *next_actions;
 
-	if (admin)
+	// Select the appropriate action and generate a meaningful message
+	// explaining what happens if disk space reaches a threshold or
+	// becomes completely full.
+	if (admin) {
 		action = config->admin_space_left_action;
-	else
+
+		snprintf(buffer, sizeof(buffer),
+			"If the disk becomes full, audit will %s.",  failure_action_to_str(config->disk_full_action));
+	}
+	else {
 		action = config->space_left_action;
+
+		snprintf(buffer, sizeof(buffer),
+			"If the admin space left threshold is reached, audit will %s. "
+			"If the disk becomes full, audit will %s.",
+			failure_action_to_str(config->admin_space_left_action),
+			failure_action_to_str(config->disk_full_action));
+	}
+	next_actions = buffer;
 
 	switch (action)
 	{
@@ -841,7 +858,7 @@ static void do_space_left_action(int admin)
 			break;
 		case FA_SYSLOG:
 			audit_msg(LOG_ALERT,
-			    "Audit daemon is low on disk space for logging");
+				"Audit daemon is low on disk space for logging. %s", next_actions);
 			break;
 		case FA_ROTATE:
 			if (config->num_logs > 1) {
@@ -851,19 +868,24 @@ static void do_space_left_action(int admin)
 			}
 			break;
 		case FA_EMAIL:
+			char content[512];
+			const char *subject;
+
 			if (admin == 0) {
-				sendmail("Audit Disk Space Alert",
-				"The audit daemon is low on disk space for logging! Please take action\nto ensure no loss of service.",
-					config->action_mail_acct);
-				audit_msg(LOG_ALERT,
-			    "Audit daemon is low on disk space for logging");
+				subject = "Audit Disk Space Alert";
+				snprintf(content, sizeof(content),
+					"The audit daemon is low on disk space for logging! Please take action\n"
+					"to ensure no loss of service.\n"
+					"%s", next_actions);
 			} else {
-				sendmail("Audit Admin Space Alert",
-				"The audit daemon is very low on disk space for logging! Immediate action\nis required to ensure no loss of service.",
-					config->action_mail_acct);
-				audit_msg(LOG_ALERT,
-			  "Audit daemon is very low on disk space for logging");
+				subject = "Audit Admin Space Alert";
+				snprintf(content, sizeof(content),
+					"The audit daemon is very low on disk space for logging! Immediate action\n"
+					"is required to ensure no loss of service.\n"
+					"%s", next_actions);
 			}
+			sendmail(subject, content, config->action_mail_acct);
+			audit_msg(LOG_ALERT, "%s", content);
 			break;
 		case FA_EXEC:
 			// Close the logging file in case the script zips or
@@ -897,6 +919,7 @@ static void do_space_left_action(int admin)
 			stop = 1;
 			break;
 		case FA_HALT:
+			// Only available for admin
 			audit_msg(LOG_ALERT,
 				"The audit daemon is now halting the system and exiting due to low disk space");
 			change_runlevel(HALT);
