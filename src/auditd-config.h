@@ -114,6 +114,6 @@ int start_config_manager(struct auditd_event *e);
 #endif
 void free_config(struct daemon_conf *config);
 
-const char *failure_action_to_str(int action);
+const char *failure_action_to_str(unsigned int action);
 
 #endif

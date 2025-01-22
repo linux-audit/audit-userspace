@@ -1048,17 +1048,11 @@ static int space_action_parser(const struct nv_pair *nv, int line,
 	return 1;
 }
 
-const char *failure_action_to_str(int action)
+const char *failure_action_to_str(unsigned int action)
 {
-	int i;
-
-	for (i=0; failure_actions[i].name != NULL; i++) {
-		if (failure_actions[i].option == action) {
-			return failure_actions[i].name;
-		}
-	}
-
-	return "NULL";
+	if (action > FA_HALT)
+		return "unknown";
+	return failure_actions[action].name;
 }
 
 // returns 0 if OK, 1 on temp error, 2 on permanent error
