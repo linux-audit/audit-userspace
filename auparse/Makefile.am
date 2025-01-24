@@ -68,7 +68,7 @@ BUILT_SOURCES = accesstabs.h captabs.h clocktabs.h clone-flagtabs.h \
 	netactiontabs.h \
 	normalize_obj_kind_maps.h normalize_record_maps.h \
 	normalize_syscall_maps.h normalize_evtypetabs.h bpftabs.h \
-	openat2-resolvetabs.h
+	openat2-resolvetabs.h xattr-atflagtabs.h
 noinst_PROGRAMS = gen_accesstabs_h gen_captabs_h gen_clock_h \
 	gen_clone-flagtabs_h \
 	gen_epoll_ctls_h gen_famtabs_h gen_fcntl-cmdtabs_h \
@@ -86,7 +86,7 @@ noinst_PROGRAMS = gen_accesstabs_h gen_captabs_h gen_clock_h \
 	gen_umounttabs_h gen_inethooktabs_h gen_netactiontabs_h \
 	gen_normalize_record_map gen_normalize_syscall_map \
 	gen_normalize_obj_kind_map gen_normalize_evtypetabs_h gen_bpftabs_h \
-	gen_openat2-resolvetabs_h
+	gen_openat2-resolvetabs_h gen_xattr-atflagtabs_h
 
 gen_accesstabs_h_SOURCES = ../lib/gen_tables.c ../lib/gen_tables.h accesstab.h
 gen_accesstabs_h_CFLAGS = '-DTABLE_H="accesstab.h"'
@@ -324,6 +324,20 @@ gen_open-flagtabs_h$(BUILD_EXEEXT): CPPFLAGS=$(CPPFLAGS_FOR_BUILD)
 gen_open-flagtabs_h$(BUILD_EXEEXT): LDFLAGS=$(LDFLAGS_FOR_BUILD)
 open-flagtabs.h: gen_open-flagtabs_h Makefile
 	./gen_open-flagtabs_h --i2s-transtab open_flag > $@
+
+gen_xattr_atflagtabs_h_SOURCES = ../lib/gen_tables.c ../lib/gen_tables.h \
+	xattr-atflagtab.h
+gen_xattr_atflagtabs_h_CFLAGS = '-DTABLE_H="xattr-atflagtab.h"'
+$(gen_xattr_atflagtabs_h_OBJECTS): CC=$(CC_FOR_BUILD)
+$(gen_xattr_atflagtabs_h_OBJECTS): CFLAGS=$(CFLAGS_FOR_BUILD)
+$(gen_xattr_atflagtabs_h_OBJECTS): CPPFLAGS=$(CPPFLAGS_FOR_BUILD)
+$(gen_xattr_atflagtabs_h_OBJECTS): LDFLAGS=$(LDFLAGS_FOR_BUILD)
+gen_xattr-atflagtabs_h$(BUILD_EXEEXT): CC=$(CC_FOR_BUILD)
+gen_xattr-atflagtabs_h$(BUILD_EXEEXT): CFLAGS=$(CFLAGS_FOR_BUILD)
+gen_xattr-atflagtabs_h$(BUILD_EXEEXT): CPPFLAGS=$(CPPFLAGS_FOR_BUILD)
+gen_xattr-atflagtabs_h$(BUILD_EXEEXT): LDFLAGS=$(LDFLAGS_FOR_BUILD)
+xattr-atflagtabs.h: gen_xattr-atflagtabs_h Makefile
+	./gen_xattr-atflagtabs_h --i2s-transtab xattr_atflag > $@
 
 gen_persontabs_h_SOURCES = ../lib/gen_tables.c ../lib/gen_tables.h persontab.h
 gen_persontabs_h_CFLAGS = '-DTABLE_H="persontab.h"'

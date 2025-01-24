@@ -130,6 +130,7 @@
 #include "netactiontabs.h"
 #include "bpftabs.h"
 #include "openat2-resolvetabs.h"
+#include "xattr-atflagtabs.h"
 
 typedef enum { AVC_UNSET, AVC_DENIED, AVC_GRANTED } avc_t;
 typedef enum { S_UNSET=-1, S_FAILED, S_SUCCESS } success_t;
@@ -1506,6 +1507,40 @@ static const char *print_open_flags(const char *val, int base)
 	return strdup(buf);
 }
 
+static const char* print_xattr_atflags(const char* val)
+{
+	unsigned int flags, i, xattr_sig;
+	int cnt = 0;
+	char* out, buf[sizeof(xattr_atflag_strings) + XATTR_ATFLAG_NUM_ENTRIES + 1];
+
+	errno = 0;
+	flags = strtoul(val, NULL, 16);
+	if (errno) {
+		if (asprintf(&out, "conversion error(%s)", val) < 0)
+			out = NULL;
+		return out;
+	}
+
+	buf[0] = 0;
+	for (i = 0; i < XATTR_ATFLAG_NUM_ENTRIES; i++) {
+		if (xattr_atflag_table[i].value & flags) {
+			if (!cnt) {
+				strcat(buf,
+					xattr_atflag_strings + xattr_atflag_table[i].offset);
+				cnt++;
+			}
+			else {
+				strcat(buf, "|");
+				strcat(buf,
+					xattr_atflag_strings + xattr_atflag_table[i].offset);
+			}
+		}
+	}
+	if (buf[0] == 0)
+		snprintf(buf, sizeof(buf), "0x%s", val);
+	return strdup(buf);
+}
+
 static const char *print_clone_flags(const char *val)
 {
 	unsigned int flags, i, clone_sig;
@@ -2516,6 +2551,8 @@ static const char *print_a0(const char *val, const idata *id)
 				return print_gid(val, 16);
 			else if (strcmp(sys, "socketcall") == 0)
 				return print_socketcall(val, 16);
+			else if (strcmp(sys, "getxattrat") == 0)
+				return print_dirfd(val);
 		}
 		else if (strcmp(sys, "linkat") == 0)
 			return print_dirfd(val);
@@ -2531,6 +2568,12 @@ static const char *print_a0(const char *val, const idata *id)
 			return print_exit_syscall(val);
 		else if (strcmp(sys, "bpf") == 0)
 			return print_bpf(val);
+		else if (strcmp(sys, "getxattrat") == 0)
+			return print_dirfd(val);
+		else if (strcmp(sys, "listxattrat") == 0)
+			return print_dirfd(val);
+		else if (strcmp(sys, "removexattrat") == 0)
+			return print_dirfd(val);
 	}
 	if (asprintf(&out, "0x%s", val) < 0)
 			out = NULL;
@@ -2688,6 +2731,8 @@ static const char *print_a2(const char *val, const idata *id)
 				return print_recv(val);
 			else if (strcmp(sys, "shmget") == 0)
 				return print_shmflags(val);
+			else if (strcmp(sys, "setxattrat") == 0)
+				return print_xattr_atflags(val);
 		} else if (*sys == 'm') {
 			if (strcmp(sys, "mmap") == 0)
 				return print_prot(val, 1);
@@ -2709,11 +2754,15 @@ static const char *print_a2(const char *val, const idata *id)
 				return print_dirfd(val);
 			else if (strncmp(sys, "renameat", 8) == 0)
 				return print_dirfd(val);
+			else if (strcmp(sys, "removexattrat") == 0)
+				return print_xattr_atflags(val);
 		} else if (*sys == 'l') {
 			if (strcmp(sys, "linkat") == 0)
 				return print_dirfd(val);
 			else if (strcmp(sys, "lseek") == 0)
 				return print_seek(val);
+			else if (strcmp(sys, "listxattrat") == 0)
+				return print_xattr_atflags(val);
 		} else if (*sys == 'c') {
 			if (strcmp(sys, "clone") == 0)
 				return print_clone_flags(val);
@@ -2724,6 +2773,8 @@ static const char *print_a2(const char *val, const idata *id)
 			return print_gid(val, 16);
 		else if (strcmp(sys, "tgkill") == 0)
 			return print_signals(val, 16);
+		else if (strstr(sys, "getxattrat"))
+			return print_xattr_atflags(val);
 	}
 normal:
 	if (asprintf(&out, "0x%s", val) < 0)
