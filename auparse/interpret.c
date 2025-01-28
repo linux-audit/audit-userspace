@@ -131,6 +131,7 @@
 #include "bpftabs.h"
 #include "openat2-resolvetabs.h"
 #include "xattr-atflagtabs.h"
+#include "access-flagtabs.h"
 
 typedef enum { AVC_UNSET, AVC_DENIED, AVC_GRANTED } avc_t;
 typedef enum { S_UNSET=-1, S_FAILED, S_SUCCESS } success_t;
@@ -1913,16 +1914,16 @@ static const char *print_recv(const char *val)
 	return strdup(buf);
 }
 
-static const char *print_access(const char *val)
+static const char* print_access_mode(const char* val)
 {
 	unsigned long mode;
-	char buf[sizeof(access_strings)+ACCESS_NUM_ENTRIES+1];
+	char buf[sizeof(access_strings) + ACCESS_NUM_ENTRIES + 1];
 	unsigned int i, cnt = 0;
 
 	errno = 0;
-        mode = strtoul(val, NULL, 16);
+	mode = strtoul(val, NULL, 16);
 	if (errno) {
-		char *out;
+		char* out;
 		if (asprintf(&out, "conversion error(%s)", val) < 0)
 			out = NULL;
 		return out;
@@ -1931,22 +1932,58 @@ static const char *print_access(const char *val)
 	if ((mode & 0xF) == 0)
 		return strdup("F_OK");
 	buf[0] = 0;
-	for (i=0; i<3; i++) {
+	for (i = 0; i < 3; i++) {
 		if (access_table[i].value & mode) {
 			if (!cnt) {
 				strcat(buf,
-				access_strings + access_table[i].offset);
+					access_strings + access_table[i].offset);
 				cnt++;
-			} else {
+			}
+			else {
 				strcat(buf, "|");
 				strcat(buf,
-				access_strings + access_table[i].offset);
+					access_strings + access_table[i].offset);
 			}
 		}
 	}
-        if (buf[0] == 0)
-                snprintf(buf, sizeof(buf), "0x%s", val);
-        return strdup(buf);
+	if (buf[0] == 0)
+		snprintf(buf, sizeof(buf), "0x%s", val);
+	return strdup(buf);
+}
+
+static const char* print_access_flags(const char* val)
+{
+	unsigned long mode;
+	char buf[sizeof(access_flag_strings) + ACCESS_FLAG_NUM_ENTRIES + 1];
+	unsigned int i, cnt = 0;
+
+	errno = 0;
+	mode = strtoul(val, NULL, 16);
+	if (errno) {
+		char* out;
+		if (asprintf(&out, "conversion error(%s)", val) < 0)
+			out = NULL;
+		return out;
+	}
+
+	buf[0] = 0;
+	for (i = 0; i < ACCESS_FLAG_NUM_ENTRIES; i++) {
+		if (access_flag_table[i].value & mode) {
+			if (!cnt) {
+				strcat(buf,
+					access_flag_strings + access_flag_table[i].offset);
+				cnt++;
+			}
+			else {
+				strcat(buf, "|");
+				strcat(buf,
+					access_flag_strings + access_flag_table[i].offset);
+			}
+		}
+	}
+	if (buf[0] == 0)
+		snprintf(buf, sizeof(buf), "0x%s", val);
+	return strdup(buf);
 }
 
 static char *print_dirfd(const char *val)
@@ -2482,35 +2519,39 @@ static const char *print_errno(const char *val)
 	return out;
 }
 
-static const char *print_a0(const char *val, const idata *id)
+static const char* print_a0(const char* val, const idata* id)
 {
-	char *out;
+	char* out;
 	int machine = id->machine, syscall = id->syscall;
-	const char *sys = audit_syscall_to_name(syscall, machine);
+	const char* sys = audit_syscall_to_name(syscall, machine);
 	if (sys) {
 		if (*sys == 'r') {
 			if (strcmp(sys, "rt_sigaction") == 0)
-		                return print_signals(val, 16);
+				return print_signals(val, 16);
 			else if (strncmp(sys, "renameat", 8) == 0)
 				return print_dirfd(val);
 			else if (strcmp(sys, "readlinkat") == 0)
 				return print_dirfd(val);
-		} else if (*sys == 'c') {
-	                if (strcmp(sys, "clock_settime") == 0)
+		}
+		else if (*sys == 'c') {
+			if (strcmp(sys, "clock_settime") == 0)
 				return print_clock_id(val);
-		} else if (*sys == 'p') {
-	                if (strcmp(sys, "personality") == 0)
+		}
+		else if (*sys == 'p') {
+			if (strcmp(sys, "personality") == 0)
 				return print_personality(val);
 			else if (strcmp(sys, "ptrace") == 0)
 				return print_ptrace(val);
 			else if (strcmp(sys, "prctl") == 0)
 				return print_prctl_opt(val);
-		} else if (*sys == 'm') {
+		}
+		else if (*sys == 'm') {
 			if (strcmp(sys, "mkdirat") == 0)
 				return print_dirfd(val);
 			else if (strcmp(sys, "mknodat") == 0)
 				return print_dirfd(val);
-		} else if (*sys == 'f') {
+		}
+		else if (*sys == 'f') {
 			if (strcmp(sys, "fchownat") == 0)
 				return print_dirfd(val);
 			else if (strcmp(sys, "futimesat") == 0)
@@ -2521,29 +2562,31 @@ static const char *print_a0(const char *val, const idata *id)
 				return print_dirfd(val);
 			else if (strcmp(sys, "futimensat") == 0)
 				return print_dirfd(val);
-		} else if (*sys == 'u') {
+		}
+		else if (*sys == 'u') {
 			if (strcmp(sys, "unshare") == 0)
 				return print_clone_flags(val);
 			else if (strcmp(sys, "unlinkat") == 0)
 				return print_dirfd(val);
 			else if (strcmp(sys, "utimensat") == 0)
 				return print_dirfd(val);
-		} else if (strcmp(sys+1, "etrlimit") == 0)
+		}
+		else if (strcmp(sys + 1, "etrlimit") == 0)
 			return print_rlimit(val);
 		else if (*sys == 's') {
 			if (strcmp(sys, "setuid") == 0)
 				return print_uid(val, 16);
-		        else if (strcmp(sys, "setreuid") == 0)
+			else if (strcmp(sys, "setreuid") == 0)
 				return print_uid(val, 16);
-	                else if (strcmp(sys, "setresuid") == 0)
+			else if (strcmp(sys, "setresuid") == 0)
 				return print_uid(val, 16);
 			else if (strcmp(sys, "setfsuid") == 0)
 				return print_uid(val, 16);
-	                else if (strcmp(sys, "setgid") == 0)
+			else if (strcmp(sys, "setgid") == 0)
 				return print_gid(val, 16);
-		else if (strcmp(sys, "setregid") == 0)
+			else if (strcmp(sys, "setregid") == 0)
 				return print_gid(val, 16);
-	                else if (strcmp(sys, "setresgid") == 0)
+			else if (strcmp(sys, "setresgid") == 0)
 				return print_gid(val, 16);
 			else if (strcmp(sys, "socket") == 0)
 				return print_socket_domain(val);
@@ -2576,7 +2619,7 @@ static const char *print_a0(const char *val, const idata *id)
 			return print_dirfd(val);
 	}
 	if (asprintf(&out, "0x%s", val) < 0)
-			out = NULL;
+		out = NULL;
 	return out;
 }
 
@@ -2636,7 +2679,7 @@ static const char *print_a1(const char *val, const idata *id)
 		else if (strcmp(sys, "open") == 0)
 			return print_open_flags(val, 16);
 		else if (strcmp(sys, "access") == 0)
-			return print_access(val);
+			return print_access_mode(val);
 		else if (strcmp(sys, "epoll_ctl") == 0)
 			return print_epoll_ctl(val);
 		else if (strcmp(sys, "kill") == 0)
@@ -2717,7 +2760,7 @@ static const char *print_a2(const char *val, const idata *id)
 			if (strcmp(sys, "fchmodat") == 0)
 				return print_mode_short(val, 16);
 			else if (strncmp(sys, "faccessat", 9) == 0)
-				return print_access(val);
+				return print_access_mode(val);
 			else if (strncmp(sys, "fsmount", 7) == 0)
 				return print_mount(val);
 		} else if (*sys == 's') {
@@ -2807,6 +2850,11 @@ static const char *print_a3(const char *val, const idata *id)
 				return print_recv(val);
 			else if (strcmp(sys, "sendmmsg") == 0)
 				return print_recv(val);
+		} else if (*sys == 'f') {
+			if (strcmp(sys, "faccessat") == 0)
+				return print_access_flags(val);
+			else if (strcmp(sys, "faccessat2") == 0)
+				return print_access_flags(val);
 		}
 	}
 	if (asprintf(&out, "0x%s", val) < 0)

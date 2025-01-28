@@ -68,7 +68,7 @@ BUILT_SOURCES = accesstabs.h captabs.h clocktabs.h clone-flagtabs.h \
 	netactiontabs.h \
 	normalize_obj_kind_maps.h normalize_record_maps.h \
 	normalize_syscall_maps.h normalize_evtypetabs.h bpftabs.h \
-	openat2-resolvetabs.h xattr-atflagtabs.h
+	openat2-resolvetabs.h xattr-atflagtabs.h access-flagtabs.h
 noinst_PROGRAMS = gen_accesstabs_h gen_captabs_h gen_clock_h \
 	gen_clone-flagtabs_h \
 	gen_epoll_ctls_h gen_famtabs_h gen_fcntl-cmdtabs_h \
@@ -86,7 +86,7 @@ noinst_PROGRAMS = gen_accesstabs_h gen_captabs_h gen_clock_h \
 	gen_umounttabs_h gen_inethooktabs_h gen_netactiontabs_h \
 	gen_normalize_record_map gen_normalize_syscall_map \
 	gen_normalize_obj_kind_map gen_normalize_evtypetabs_h gen_bpftabs_h \
-	gen_openat2-resolvetabs_h gen_xattr-atflagtabs_h
+	gen_openat2-resolvetabs_h gen_xattr-atflagtabs_h gen_access-flagtabs_h
 
 gen_accesstabs_h_SOURCES = ../lib/gen_tables.c ../lib/gen_tables.h accesstab.h
 gen_accesstabs_h_CFLAGS = '-DTABLE_H="accesstab.h"'
@@ -100,6 +100,20 @@ gen_accesstabs_h$(BUILD_EXEEXT): CPPFLAGS=$(CPPFLAGS_FOR_BUILD)
 gen_accesstabs_h$(BUILD_EXEEXT): LDFLAGS=$(LDFLAGS_FOR_BUILD)
 accesstabs.h: gen_accesstabs_h Makefile
 	./gen_accesstabs_h --i2s-transtab access > $@
+
+gen_access_flagtabs_h_SOURCES = ../lib/gen_tables.c ../lib/gen_tables.h \
+	access-flagtab.h
+gen_access_flagtabs_h_CFLAGS = '-DTABLE_H="access-flagtab.h"'
+$(gen_access_flagtabs_h_OBJECTS): CC=$(CC_FOR_BUILD)
+$(gen_access_flagtabs_h_OBJECTS): CFLAGS=$(CFLAGS_FOR_BUILD)
+$(gen_access_flagtabs_h_OBJECTS): CPPFLAGS=$(CPPFLAGS_FOR_BUILD)
+$(gen_access_flagtabs_h_OBJECTS): LDFLAGS=$(LDFLAGS_FOR_BUILD)
+gen_access-flagtabs_h$(BUILD_EXEEXT): CC=$(CC_FOR_BUILD)
+gen_access-flagtabs_h$(BUILD_EXEEXT): CFLAGS=$(CFLAGS_FOR_BUILD)
+gen_access-flagtabs_h$(BUILD_EXEEXT): CPPFLAGS=$(CPPFLAGS_FOR_BUILD)
+gen_access-flagtabs_h$(BUILD_EXEEXT): LDFLAGS=$(LDFLAGS_FOR_BUILD)
+access-flagtabs.h: gen_access-flagtabs_h Makefile
+	./gen_access-flagtabs_h --i2s-transtab access_flag > $@
 
 gen_captabs_h_SOURCES = ../lib/gen_tables.c ../lib/gen_tables.h captab.h
 gen_captabs_h_CFLAGS = '-DTABLE_H="captab.h"'
