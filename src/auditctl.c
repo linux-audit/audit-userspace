@@ -52,6 +52,14 @@
  */
 #define LINE_SIZE 6144
 
+#define NUM_HANDLERS (sizeof(opt_handlers) / sizeof(opt_handlers[0]))
+enum {
+	OPT_DEPRECATED = -3,
+	OPT_SUCCESS_NO_REPLY = -2,
+	OPT_ERROR_NO_REPLY = -1,
+	OPT_SUCCESS_REPLY = 0,
+	OPT_SUCCESS_RULE = 1
+};
 
 /* Global functions */
 static int handle_request(int status);
@@ -603,476 +611,350 @@ static const struct option long_opts[] =
   {NULL, 0, NULL, 0}
 };
 
-// FIXME: Change these to enums
-/*
- * returns: -3 deprecated, -2 success - no reply, -1 error - noreply,
- * 0 success - reply, > 0 success - rule
- */
-static int setopt(int count, int lineno, char *vars[])
+typedef struct
 {
-    int c, lidx = 0;
-    int retval = 0, rc;
+	int* count;		// number of arguments
+	char** vars;	// arguments of the command
+	int retval;		// current return value
+	int finish;		// do we need to return after parsing this option?
+	int lidx;		// index of the long option (applicable to long opts only)
+	int lineno;		// line number in the file
+} opt_handler_params_t;
 
-    optind = 0;
-    opterr = 0;
-    key[0] = 0;
-    keylen = AUDIT_MAX_KEY_LEN;
+static int opt_usage(opt_handler_params_t *args)
+{
+	usage();
+	return OPT_ERROR_NO_REPLY;
+}
 
-    while ((retval >= 0) && (c = getopt_long(count, vars,
-			"hicslDvtC:e:f:r:b:a:A:d:S:F:m:R:w:W:k:p:q:",
-			long_opts, &lidx)) != EOF) {
-	int flags = AUDIT_FILTER_UNSET;
-	rc = 10;	// Init to something impossible to see if unused.
-        switch (c) {
-        case 'h':
-		usage();
-		retval = -1;
-		break;
-	case 'i':
-		ignore = 1;
-		retval = -2;
-		break;
-	case 'c':
-		ignore = 1;
-		continue_error = 1;
-		retval = -2;
-		break;
-        case 's':
-		if (count > 3) {
+static int opt_interpret(opt_handler_params_t *args)
+{
+	ignore = 1;
+	return OPT_SUCCESS_NO_REPLY;
+}
+
+static int opt_continue(opt_handler_params_t *args)
+{
+	ignore = 1;
+	continue_error = 1;
+	return OPT_SUCCESS_NO_REPLY;
+}
+
+static int opt_status(opt_handler_params_t *args)
+{
+	int retval = args->retval;
+	if (*(args->count) > 3) {
+		audit_msg(LOG_ERR,
+			"Too many options for status command");
+		return OPT_ERROR_NO_REPLY;
+	} else if (optind == 2 && *(args->count) == 3) { 
+		if (strcmp(args->vars[optind], "-i") == 0) {
+			interpret = 1;
+			*(args->count) -= 1;
+		} else {
 			audit_msg(LOG_ERR,
-				"Too many options for status command");
-			retval = -1;
-			break;
-		} else if (optind == 2 && count == 3) { 
-			if (strcmp(vars[optind], "-i") == 0) {
-				interpret = 1;
-				count -= 1;
-			} else {
-				audit_msg(LOG_ERR,
-					"Only -i option is allowed");
-				retval = -1;
-				break;
-			}
+				"Only -i option is allowed");
+			return OPT_ERROR_NO_REPLY;
 		}
-		retval = report_status();
-		break;
-        case 'e':
-		if (optarg && ((strcmp(optarg, "0") == 0) ||
-				(strcmp(optarg, "1") == 0) ||
-				(strcmp(optarg, "2") == 0))) {
-			if (audit_set_enabled(fd, strtoul(optarg,NULL,0)) > 0)
-				audit_request_status(fd);
-			else
-				retval = -1;
+	}
+
+	return report_status();
+}
+
+static int opt_enabled(opt_handler_params_t *args)
+{
+	int retval = args->retval;
+	if (optarg && ((strcmp(optarg, "0") == 0) ||
+				   (strcmp(optarg, "1") == 0) ||
+				   (strcmp(optarg, "2") == 0))) {
+		if (audit_set_enabled(fd, strtoul(optarg, NULL, 0)) > 0)
+			audit_request_status(fd);
+		else
+			retval = OPT_ERROR_NO_REPLY;
+	} else {
+		audit_msg(LOG_ERR, "Enable must be 0, 1, or 2 was %s",
+				  optarg);
+		retval = OPT_ERROR_NO_REPLY;
+	}
+	return retval;
+}
+
+static int opt_failure(opt_handler_params_t *args)
+{
+	int retval = args->retval;
+	if (optarg && ((strcmp(optarg, "0") == 0) ||
+				   (strcmp(optarg, "1") == 0) ||
+				   (strcmp(optarg, "2") == 0))) {
+		if (audit_set_failure(fd, strtoul(optarg, NULL, 0)) > 0)
+			audit_request_status(fd);
+		else {
+			args->finish = 1;
+			return OPT_ERROR_NO_REPLY;
+		}
+	} else {
+		audit_msg(LOG_ERR, "Failure must be 0, 1, or 2 was %s",
+				  optarg);
+		retval = OPT_ERROR_NO_REPLY;
+	}
+	return retval;
+}
+
+static int opt_rate(opt_handler_params_t *args)
+{
+	int retval = args->retval;
+	if (optarg && isdigit((unsigned char)optarg[0])) {
+		uint32_t rate;
+		errno = 0;
+		rate = strtoul(optarg, NULL, 0);
+		if (errno) {
+			args->finish = 1;
+			audit_msg(LOG_ERR, "Error converting rate");
+			return OPT_ERROR_NO_REPLY;
+		}
+		if (audit_set_rate_limit(fd, rate) > 0)
+			audit_request_status(fd);
+		else {
+			args->finish = 1;
+			return OPT_ERROR_NO_REPLY;
+		}
+	} else {
+		audit_msg(LOG_ERR, "Rate must be a numeric value was %s", optarg);
+		retval = OPT_ERROR_NO_REPLY;
+	}
+	return retval;
+}
+
+static int opt_backlog(opt_handler_params_t *args)
+{
+	int retval = args->retval;
+	if (optarg && isdigit((unsigned char)optarg[0])) {
+		uint32_t limit;
+		errno = 0;
+		limit = strtoul(optarg, NULL, 0);
+		if (errno) {
+			audit_msg(LOG_ERR, "Error converting backlog");
+			args->finish = 1;
+			return OPT_ERROR_NO_REPLY;
+		}
+		if (audit_set_backlog_limit(fd, limit) > 0)
+			audit_request_status(fd);
+		else {
+			args->finish = 1;
+			return OPT_ERROR_NO_REPLY;
+		}
+	} else {
+		audit_msg(LOG_ERR,
+				  "Backlog must be a numeric value was %s",
+				  optarg);
+		retval = OPT_ERROR_NO_REPLY;
+	}
+	return retval;
+}
+
+static int opt_list(opt_handler_params_t *args)
+{
+	int retval = args->retval;
+	if (*(args->count) > 4) {
+		audit_msg(LOG_ERR,
+			"Wrong number of options for list request");
+		return OPT_ERROR_NO_REPLY;
+	}
+	if (*(args->count) == 3) {
+		if (strcmp(args->vars[optind], "-i") == 0) {
+			interpret = 1;
+			*(args->count) -= 1;
 		} else {
-			audit_msg(LOG_ERR, "Enable must be 0, 1, or 2 was %s", 
-				optarg);
-			retval = -1;
-		}
-		break;
-        case 'f':
-		if (optarg && ((strcmp(optarg, "0") == 0) ||
-				(strcmp(optarg, "1") == 0) ||
-				(strcmp(optarg, "2") == 0))) {
-			if (audit_set_failure(fd, strtoul(optarg,NULL,0)) > 0)
-				audit_request_status(fd);
-			else
-				return -1;
-		} else {
-			audit_msg(LOG_ERR, "Failure must be 0, 1, or 2 was %s", 
-				optarg);
-			retval = -1;
-		}
-		break;
-        case 'r':
-		if (optarg && isdigit((unsigned char)optarg[0])) {
-			uint32_t rate;
-			errno = 0;
-			rate = strtoul(optarg,NULL,0);
-			if (errno) {
-				audit_msg(LOG_ERR, "Error converting rate");
-				return -1;
-			}
-			if (audit_set_rate_limit(fd, rate) > 0)
-				audit_request_status(fd);
-			else
-				return -1;
-		} else {
-			audit_msg(LOG_ERR,"Rate must be a numeric value was %s",
-				optarg);
-			retval = -1;
-		}
-		break;
-        case 'b':
-		if (optarg && isdigit((unsigned char)optarg[0])) {
-			uint32_t limit;
-			errno = 0;
-			limit = strtoul(optarg,NULL,0);
-			if (errno) {
-				audit_msg(LOG_ERR, "Error converting backlog");
-				return -1;
-			}
-			if (audit_set_backlog_limit(fd, limit) > 0)
-				audit_request_status(fd);
-			else
-				return -1;
-		} else {
-			audit_msg(LOG_ERR, 
-				"Backlog must be a numeric value was %s", 
-				optarg);
-			retval = -1;
-		}
-		break;
-        case 'l':
-		if (count > 4) {
 			audit_msg(LOG_ERR,
-				"Wrong number of options for list request");
-			retval = -1;
-			break;
+				"Only -k or -i options are allowed");
+			return OPT_ERROR_NO_REPLY;
 		}
-		if (count == 3) {
-			if (strcmp(vars[optind], "-i") == 0) {
-				interpret = 1;
-				count -= 1;
-			} else {
-				audit_msg(LOG_ERR,
-					"Only -k or -i options are allowed");
-				retval = -1;
-				break;
-			}
-		} else if (count == 4) {
-			if (vars[optind] && strcmp(vars[optind], "-k") == 0) {
-				strncat(key, vars[3], keylen);
-				count -= 2;
-			} else {
-				audit_msg(LOG_ERR,
-					"Only -k or -i options are allowed");
-				retval = -1;
-				break;
-			}
-		}
-		if (audit_request_rule_list()) {
-			list_requested = 1;
-			retval = -2;
-		} else
-			retval = -1;
-		break;
-        case 'a':
-		if (strstr(optarg, "task") && _audit_syscalladded) {
+	} else if (*(args->count) == 4) {
+		if (args->vars[optind] && strcmp(args->vars[optind], "-k") == 0) {
+			strncat(key, args->vars[3], keylen);
+			*(args->count) -= 2;
+		} else {
 			audit_msg(LOG_ERR,
-				"Syscall auditing requested for task list");
-			retval = -1;
-		} else {
-			rc = audit_rule_setup(optarg, &add, &action);
-			if (rc == 3) {
-				audit_msg(LOG_ERR,
-		"Multiple rule insert/delete operations are not allowed\n");
-				retval = -1;
-			} else if (rc == 2) {
-				audit_msg(LOG_ERR,
-					"Append rule - bad keyword %s",
-					optarg);
-				retval = -1;
-			} else if (rc == 1) {
-				audit_msg(LOG_ERR,
-				    "Append rule - possible is deprecated");
-				return -3; /* deprecated - eat it */
-			} else
-				retval = 1; /* success - please send */
+					  "Only -k or -i options are allowed");
+			return OPT_ERROR_NO_REPLY;
 		}
-		break;
-        case 'A': 
-		if (strstr(optarg, "task") && _audit_syscalladded) {
-			audit_msg(LOG_ERR, 
-			   "Error: syscall auditing requested for task list");
-			retval = -1;
-		} else {
-			rc = audit_rule_setup(optarg, &add, &action);
-			if (rc == 3) {
-				audit_msg(LOG_ERR,
-		"Multiple rule insert/delete operations are not allowed");
-				retval = -1;
-			} else if (rc == 2) {
-				audit_msg(LOG_ERR,
-				"Add rule - bad keyword %s", optarg);
-				retval = -1;
-			} else if (rc == 1) {
-				audit_msg(LOG_WARNING, 
-				    "Append rule - possible is deprecated");
-				return -3; /* deprecated - eat it */
-			} else {
-				add |= AUDIT_FILTER_PREPEND;
-				retval = 1; /* success - please send */
-			}
-		}
-		break;
-        case 'd': 
-		rc = audit_rule_setup(optarg, &del, &action);
+	}
+	if (audit_request_rule_list()) {
+		list_requested = 1;
+		retval = OPT_SUCCESS_NO_REPLY;
+	} else
+		retval = OPT_ERROR_NO_REPLY;
+
+	return retval;
+}
+
+static int opt_append(opt_handler_params_t *args)
+{
+	int retval = args->retval;
+	if (strstr(optarg, "task") && _audit_syscalladded) {
+		audit_msg(LOG_ERR,
+				  "Syscall auditing requested for task list");
+		retval = OPT_ERROR_NO_REPLY;
+	} else {
+		int rc = audit_rule_setup(optarg, &add, &action);
 		if (rc == 3) {
 			audit_msg(LOG_ERR,
-		"Multiple rule insert/delete operations are not allowed");
-			retval = -1;
+				"Multiple rule insert/delete operations are not allowed\n");
+			retval = OPT_ERROR_NO_REPLY;
 		} else if (rc == 2) {
-			audit_msg(LOG_ERR, "Delete rule - bad keyword %s", 
-				optarg);
-			retval = -1;
+			audit_msg(LOG_ERR,
+					  "Append rule - bad keyword %s",
+					  optarg);
+			retval = OPT_ERROR_NO_REPLY;
 		} else if (rc == 1) {
-			audit_msg(LOG_INFO, 
-			    "Delete rule - possible is deprecated");
-			return -3; /* deprecated - eat it */
+			audit_msg(LOG_ERR,
+					  "Append rule - possible is deprecated");
+			args->finish = 1;
+			return OPT_DEPRECATED; /* deprecated - eat it */
 		} else
-			retval = 1; /* success - please send */
-		break;
-        case 'S': {
-		int unknown_arch = !_audit_elf;
+			retval = OPT_SUCCESS_RULE; /* success - please send */
+	}
+	return retval;
+}
+
+static int opt_prepend(opt_handler_params_t *args)
+{
+	int retval = args->retval, rc;
+	rc = audit_rule_setup(optarg, &del, &action);
+	if (rc == 3) {
+		audit_msg(LOG_ERR,
+				  "Multiple rule insert/delete operations are not allowed");
+		retval = OPT_ERROR_NO_REPLY;
+	} else if (rc == 2) {
+		audit_msg(LOG_ERR, "Delete rule - bad keyword %s", optarg);
+		retval = OPT_ERROR_NO_REPLY;
+	} else if (rc == 1) {
+		audit_msg(LOG_INFO,
+				  "Delete rule - possible is deprecated");
+		args->finish = 1;
+		return OPT_DEPRECATED; /* deprecated - eat it */
+	} else
+		retval = OPT_SUCCESS_RULE; /* success - please send */
+	return retval;
+}
+
+static int opt_syscall(opt_handler_params_t *args)
+{
+	int retval = args->retval, rc;
+	int unknown_arch = !_audit_elf;
 #ifdef WITH_IO_URING
-		if (((add & (AUDIT_FILTER_MASK|AUDIT_FILTER_UNSET)) ==
-				AUDIT_FILTER_URING_EXIT || (del &
-				(AUDIT_FILTER_MASK|AUDIT_FILTER_UNSET)) ==
-				AUDIT_FILTER_URING_EXIT)) {
-			// Do io_uring op
-			rc = parse_io_uring(optarg);
-			switch (rc)
-			{
-				case 0:
-					_audit_syscalladded = 1;
-					retval = 1; /* success - please send */
-					break;
-				case -1:
-					audit_msg(LOG_ERR,
-						  "io_uring op unknown: %s",
-						  optarg);
-				retval = -1;
-				break;
-			}
-			break;
-		}
-#endif
-		/* Do some checking to make sure that we are not adding a
-		 * syscall rule to a list that does not make sense. */
-		if (((add & (AUDIT_FILTER_MASK|AUDIT_FILTER_UNSET)) ==
-				AUDIT_FILTER_TASK || (del & 
-				(AUDIT_FILTER_MASK|AUDIT_FILTER_UNSET)) == 
-				AUDIT_FILTER_TASK)) {
-			audit_msg(LOG_ERR, 
-			  "Error: syscall auditing being added to task list");
-			return -1;
-		} else if (((add & (AUDIT_FILTER_MASK|AUDIT_FILTER_UNSET)) ==
-				AUDIT_FILTER_USER || (del &
-				(AUDIT_FILTER_MASK|AUDIT_FILTER_UNSET)) ==
-				AUDIT_FILTER_USER)) {
-			audit_msg(LOG_ERR, 
-			  "Error: syscall auditing being added to user list");
-			return -1;
-		} else if (((add & (AUDIT_FILTER_MASK|AUDIT_FILTER_UNSET)) ==
-				AUDIT_FILTER_FS || (del &
-				(AUDIT_FILTER_MASK|AUDIT_FILTER_UNSET)) ==
-				AUDIT_FILTER_FS)) {
-			audit_msg(LOG_ERR, 
-			  "Error: syscall auditing being added to filesystem list");
-			return -1;
-		} else if (exclude) {
-			audit_msg(LOG_ERR, 
-		    "Error: syscall auditing cannot be put on exclude list");
-			return -1;
-		} else {
-			if (unknown_arch) {
-				int machine;
-				unsigned int elf;
-				machine = audit_detect_machine();
-				if (machine < 0) {
-					audit_msg(LOG_ERR, 
-					    "Error detecting machine type");
-					return -1;
-				}
-				elf = audit_machine_to_elf(machine);
-                                if (elf == 0) {
-					audit_msg(LOG_ERR, 
-					    "Error looking up elf type %d",
-						machine);
-					return -1;
-				}
-				_audit_elf = elf;
-			}
-		}
-		rc = _audit_parse_syscall(optarg, rule_new);
-		switch (rc)
-		{
+	if (((add & (AUDIT_FILTER_MASK | AUDIT_FILTER_UNSET)) == AUDIT_FILTER_URING_EXIT ||
+		 (del & (AUDIT_FILTER_MASK | AUDIT_FILTER_UNSET)) == AUDIT_FILTER_URING_EXIT)) {
+		// Do io_uring op
+		rc = parse_io_uring(optarg);
+		switch (rc) {
 			case 0:
 				_audit_syscalladded = 1;
-				if (unknown_arch && add != AUDIT_FILTER_UNSET)
-					if (check_rule_mismatch(lineno, optarg) == -1)
-						retval = -1;
+				retval = OPT_SUCCESS_RULE; /* success - please send */
 				break;
 			case -1:
-				audit_msg(LOG_ERR, "Syscall name unknown: %s", 
-							optarg);
-				retval = -1;
-				break;
-			case -2:
-				audit_msg(LOG_ERR, "Elf type unknown: 0x%x", 
-							_audit_elf);
-				retval = -1;
-				break;
-			case -3: // Error reported - do nothing here
-				retval = -1;
-				break;
-		}}
-		break;
-        case 'F':
-		if (add != AUDIT_FILTER_UNSET)
-			flags = add & AUDIT_FILTER_MASK;
-		else if (del != AUDIT_FILTER_UNSET)
-			flags = del & AUDIT_FILTER_MASK;
-		// if the field is arch & there is a -t option...we 
-		// can allow it
-		else if ((optind >= count) || (strstr(optarg, "arch=") == NULL)
-				 || (strcmp(vars[optind], "-t") != 0)) {
-			audit_msg(LOG_ERR, "List must be given before field");
-			retval = -1;
-			break;
-		}
-
-		// Keys need to get handled differently
-		if (strncmp(optarg, "key=", 4) == 0) {
-			optarg += 4;
-			goto process_keys;
-		}
-		rc = audit_rule_fieldpair_data(&rule_new,optarg,flags);
-		if (rc != 0) {
-			audit_number_to_errmsg(rc, optarg);
-			retval = -1;
-		} else {
-			if (rule_new->fields[rule_new->field_count-1] ==
-						AUDIT_PERM)
-				_audit_permadded = 1;
-			if (rule_new->fields[rule_new->field_count-1] ==
-						AUDIT_EXE) 
-				_audit_exeadded = 1;
-		}
-
-		break;
-	case 'C':
-		if (add != AUDIT_FILTER_UNSET)
-			flags = add & AUDIT_FILTER_MASK;
-		else if (del != AUDIT_FILTER_UNSET)
-			flags = del & AUDIT_FILTER_MASK;
-
-		rc = audit_rule_interfield_comp_data(&rule_new, optarg, flags);
-		if (rc != 0) {
-			audit_number_to_errmsg(rc, optarg);
-			retval = -1;
-		} else {
-			if (rule_new->fields[rule_new->field_count - 1] ==
-			    AUDIT_PERM)
-				_audit_permadded = 1;
-		}
-		break;
-        case 'm':
-		if (count > 3) {
-			audit_msg(LOG_ERR,
-	  "The -m option must be only the only option and takes 1 parameter");
-			retval = -1;
-		} else {
-			const char*s = optarg;
-			char *umsg;
-			while (*s) {
-				if (*s < 32) {
-					audit_msg(LOG_ERR,
-					"Illegal character in audit event");
-					return -1;
-				}
-				s++;
-			}
-			if (asprintf(&umsg, "text=%s", optarg) < 0) {
-				audit_msg(LOG_ERR, "Can't create user event");
-				return -1;
-			}
-			if (audit_log_user_message( fd, AUDIT_USER,
-					umsg, NULL, NULL, NULL, 1) <= 0)
-				retval = -1;
-			else {
-				free(umsg);
-				return -2;  // success - no reply for this
-			}
-			free(umsg);
-		}
-		break;
-	case 'R':
-		audit_msg(LOG_ERR, "Error - nested rule files not supported");
-		retval = -1;
-		break;
-	case 'D':
-		if (count > 4 || count == 3) {
-			audit_msg(LOG_ERR,
-			    "Wrong number of options for Delete all request");
-			retval = -1;
-			break;
-		}
-		if (count == 4) {
-			if (strcmp(vars[optind], "-k") == 0) {
-				strncat(key, vars[3], keylen);
-				count -= 2;
-			} else {
 				audit_msg(LOG_ERR,
-					"Only the -k option is allowed");
-				retval = -1;
+						"io_uring op unknown: %s",
+						optarg);
+				retval = OPT_ERROR_NO_REPLY;
 				break;
 			}
-		}
-		retval = delete_all_rules(fd);
-		if (retval == 0) {
-			(void)audit_request_rule_list();
-			key[0] = 0;
-			retval = -2;
-		}
-		break;
-	case 'w':
-		if (add != AUDIT_FILTER_UNSET ||
-			del != AUDIT_FILTER_UNSET) {
+		return retval;
+	}
+#endif
+
+	/* Do some checking to make sure that we are not adding a
+	 * syscall rule to a list that does not make sense. */
+	if (((add & (AUDIT_FILTER_MASK | AUDIT_FILTER_UNSET)) == AUDIT_FILTER_TASK ||
+		 (del & (AUDIT_FILTER_MASK | AUDIT_FILTER_UNSET)) == AUDIT_FILTER_TASK)) {
 			audit_msg(LOG_ERR,
-				"watch option can't be given with a syscall");
-			retval = -1;
-		} else if (optarg) {
-			add = AUDIT_FILTER_EXIT;
-			action = AUDIT_ALWAYS;
-			_audit_syscalladded = 1;
-			retval = audit_setup_watch_name(&rule_new, optarg);
-		} else {
-			audit_msg(LOG_ERR, "watch option needs a path");
-			retval = -1;
-		}
-		break;
-	case 'W':
-		if (optarg) { 
-			del = AUDIT_FILTER_EXIT;
-			action = AUDIT_ALWAYS;
-			_audit_syscalladded = 1;
-			retval = audit_setup_watch_name(&rule_new, optarg);
-		} else {
-			audit_msg(LOG_ERR, "watch option needs a path");
-			retval = -1;
-		}
-		break;
-	case 'k':
-		if (!(_audit_syscalladded || _audit_permadded ||
-		      _audit_exeadded ||
-		      _audit_filterfsadded) ||
-		    (add==AUDIT_FILTER_UNSET && del==AUDIT_FILTER_UNSET)) {
+				"Error: syscall auditing being added to task list");
+			args->finish = 1;
+			return OPT_ERROR_NO_REPLY;
+	} else if (((add & (AUDIT_FILTER_MASK | AUDIT_FILTER_UNSET)) == AUDIT_FILTER_USER ||
+				(del & (AUDIT_FILTER_MASK | AUDIT_FILTER_UNSET)) == AUDIT_FILTER_USER)) {
 			audit_msg(LOG_ERR,
-		    "key option needs a watch or syscall given prior to it");
-			retval = -1;
-			break;
-		} else if (!optarg) {
-			audit_msg(LOG_ERR, "key option needs a value");
-			retval = -1;
-			break;
+				  "Error: syscall auditing being added to user list");
+			args->finish = 1;
+			return OPT_ERROR_NO_REPLY;
+	} else if (((add & (AUDIT_FILTER_MASK | AUDIT_FILTER_UNSET)) == AUDIT_FILTER_FS ||
+				(del & (AUDIT_FILTER_MASK | AUDIT_FILTER_UNSET)) == AUDIT_FILTER_FS)) {
+			audit_msg(LOG_ERR,
+				"Error: syscall auditing being added to filesystem list");
+			args->finish = 1;
+			return OPT_ERROR_NO_REPLY;
+	} else if (exclude) {
+		audit_msg(LOG_ERR,
+			"Error: syscall auditing cannot be put on exclude list");
+		args->finish = 1;
+		return OPT_ERROR_NO_REPLY;
+	} else {
+		if (unknown_arch) {
+			int machine;
+			unsigned int elf;
+			machine = audit_detect_machine();
+			if (machine < 0) {
+				audit_msg(LOG_ERR,
+						  "Error detecting machine type");
+				args->finish = 1;
+				return OPT_ERROR_NO_REPLY;
+			}
+			elf = audit_machine_to_elf(machine);
+			if (elf == 0) {
+				audit_msg(LOG_ERR,
+						  "Error looking up elf type %d",
+						  machine);
+				args->finish = 1;
+				return OPT_ERROR_NO_REPLY;
+			}
+			_audit_elf = elf;
 		}
-process_keys:
+	}
+	rc = _audit_parse_syscall(optarg, rule_new);
+	switch (rc) {
+		case 0:
+			_audit_syscalladded = 1;
+			if (unknown_arch && add != AUDIT_FILTER_UNSET)
+				if (check_rule_mismatch(args->lineno, optarg) == -1)
+					retval = OPT_ERROR_NO_REPLY;
+			break;
+		case -1:
+			audit_msg(LOG_ERR, "Syscall name unknown: %s", optarg);
+			retval = OPT_ERROR_NO_REPLY;
+			break;
+		case -2:
+			audit_msg(LOG_ERR, "Elf type unknown: 0x%x", _audit_elf);
+			retval = OPT_ERROR_NO_REPLY;
+			break;
+		case -3: // Error reported - do nothing here
+			retval = OPT_ERROR_NO_REPLY;
+			break;
+	}
+	return retval;
+}
+
+static int opt_field(opt_handler_params_t *args)
+{
+	int retval = args->retval, rc;
+	int flags = AUDIT_FILTER_UNSET;
+
+	if (add != AUDIT_FILTER_UNSET)
+		flags = add & AUDIT_FILTER_MASK;
+	else if (del != AUDIT_FILTER_UNSET)
+		flags = del & AUDIT_FILTER_MASK;
+	// if the field is arch & there is a -t option...we can allow it
+	else if ((optind >= *(args->count)) || (strstr(optarg, "arch=") == NULL) || (strcmp(args->vars[optind], "-t") != 0)) {
+		audit_msg(LOG_ERR, "List must be given before field");
+		return OPT_ERROR_NO_REPLY;
+	}
+
+	// Keys need to get handled differently
+	if (strncmp(optarg, "key=", 4) == 0) {
+		optarg += 4;
+		// goto process_keys;
 		if ((strlen(optarg)+strlen(key)+(!!key[0])) >
 							AUDIT_MAX_KEY_LEN) {
 			audit_msg(LOG_ERR, "key option exceeds size limit");
-			retval = -1;
+			retval = OPT_ERROR_NO_REPLY;
 		} else {
 			if (strchr(optarg, AUDIT_KEY_SEPARATOR))
 				audit_msg(LOG_ERR,
@@ -1084,166 +966,472 @@ process_keys:
 			strncat(key, optarg, keylen);
 			keylen = AUDIT_MAX_KEY_LEN - strlen(key);
 		}
-		break;
-	case 'p':
-		if (add == AUDIT_FILTER_UNSET && del == AUDIT_FILTER_UNSET) {
-			audit_msg(LOG_ERR,
-			"permission option needs a watch given prior to it");
-			retval = -1;
-		} else if (!optarg) {
-			audit_msg(LOG_ERR, "permission option needs a filter");
-			retval = -1;
-		} else 
-			retval = audit_setup_perms(optarg);
-		break;
-        case 'q':
-		if (_audit_syscalladded) {
-			audit_msg(LOG_ERR, 
-			   "Syscall auditing requested for make equivalent");
-			retval = -1;
-		} else {
-			char *mp, *sub;
-			retval = equiv_parse(optarg, &mp, &sub);
-			if (retval < 0) {
-				audit_msg(LOG_ERR, 
-			   "Error parsing equivalent parts");
-				retval = -1;
-			} else {
-				retval = audit_make_equivalent(fd, mp, sub);
-				if (retval <= 0) {
-					retval = -1;
-				} else
-					return -2; // success - no reply needed
-			}
-		}
-		break;
-        case 't':
-		retval = audit_trim_subtrees(fd);
-		if (retval <= 0)
-			retval = -1;
-		else
-			return -2;  // success - no reply for this
-		break;
-	case 'v':
-		printf("auditctl version %s\n", VERSION);
-		retval = -2;
-		break;
-	// Now the long options
-	case 1:
-		retval = audit_set_loginuid_immutable(fd);
-		if (retval <= 0)
-			retval = -1;
-		else
-			return -2;  // success - no reply for this
-		break;
-	case 2:
-#if HAVE_DECL_AUDIT_VERSION_BACKLOG_WAIT_TIME == 1 || \
-    HAVE_DECL_AUDIT_STATUS_BACKLOG_WAIT_TIME == 1
-		if (optarg && isdigit((unsigned char)optarg[0])) {
-			uint32_t bwt;
-			errno = 0;
-			bwt = strtoul(optarg,NULL,0);
-			if (errno) {
-				audit_msg(LOG_ERR,
-					"Error converting backlog_wait_time");
-				return -1;
-			}
-			if (audit_set_backlog_wait_time(fd, bwt) > 0)
-				audit_request_status(fd);
-			else
-				return -1;
-		} else {
-			audit_msg(LOG_ERR, 
-			    "Backlog_wait_time must be a numeric value was %s", 
-				optarg);
-			retval = -1;
-		}
-#else
-		audit_msg(LOG_ERR,
-			"backlog_wait_time is not supported on your kernel");
-		retval = -1;
-#endif
-		break;
-	case 3:
-		if ((rc = audit_reset_lost(fd)) >= 0) {
-			audit_msg(LOG_INFO, "lost: %u", rc);
-			return -2;
-		} else {
-			audit_number_to_errmsg(rc, long_opts[lidx].name);
-			retval = -1;
-		}
-		break;
-	case 4:
-#if HAVE_DECL_AUDIT_STATUS_BACKLOG_WAIT_TIME_ACTUAL == 1
-		if ((rc = audit_reset_backlog_wait_time_actual(fd)) >= 0) {
-			audit_msg(LOG_INFO, "backlog_wait_time_actual: %u", rc);
-			return -2;
-		} else {
-			audit_number_to_errmsg(rc, long_opts[lidx].name);
-			retval = -1;
-		}
-#else
-		audit_msg(LOG_ERR,
-			"reset_backlog_wait_time_actual is not supported on your kernel");
-		retval = -1;
-#endif
-		break;
-	case 5:
-		retval = send_signal(optarg);
-		break;
-        default: {
-		char *bad_opt;
-		if (optind >= 2)
-			bad_opt = vars[optind -1];
-		else
-			bad_opt = " ";
-		if (lineno)
-			audit_msg(LOG_ERR,
-			    "Option %s on line %d is invalid", bad_opt, lineno);
-		else
-			audit_msg(LOG_ERR, "Option %s is invalid", bad_opt);
-		retval = -1;
-		}
-		break;
-        }
-    }
-    /* catch extra args or errors where the user types "- s" */
-    if (optind == 1)
-	retval = -1;
-    else if ((optind < count) && (retval != -1)) {
-	audit_msg(LOG_ERR, "parameter passed without an option given");
-	retval = -1;
-    }
+		return retval;
+	}
 
-    /* See if we were adding a key */
-    if (key[0] && list_requested == 0) {
-	int flags = 0;
-	char *cmd=NULL;
+	rc = audit_rule_fieldpair_data(&rule_new, optarg, flags);
+	if (rc != 0) {
+		audit_number_to_errmsg(rc, optarg);
+		retval = OPT_ERROR_NO_REPLY;
+	} else {
+		if (rule_new->fields[rule_new->field_count - 1] ==
+			AUDIT_PERM)
+			_audit_permadded = 1;
+		if (rule_new->fields[rule_new->field_count - 1] ==
+			AUDIT_EXE)
+			_audit_exeadded = 1;
+	}
 
-	/* Get the flag */
+	return retval;
+}
+
+static int opt_compare(opt_handler_params_t *args)
+{
+	int retval = args->retval, rc;
+	int flags = AUDIT_FILTER_UNSET;
+
 	if (add != AUDIT_FILTER_UNSET)
 		flags = add & AUDIT_FILTER_MASK;
 	else if (del != AUDIT_FILTER_UNSET)
 		flags = del & AUDIT_FILTER_MASK;
 
-	/* Build the command */
-	if (asprintf(&cmd, "key=%s", key) < 0) {
-		cmd = NULL;
-		audit_msg(LOG_ERR, "Out of memory adding key");
+	rc = audit_rule_interfield_comp_data(&rule_new, optarg, flags);
+	if (rc != 0) {
+		audit_number_to_errmsg(rc, optarg);
 		retval = -1;
 	} else {
-		/* Add this to the rule */
-		int ret = audit_rule_fieldpair_data(&rule_new, cmd, flags);
-		if (ret != 0) {
-			audit_number_to_errmsg(ret, cmd);
-			retval = -1;
-		}
-		free(cmd);
+		if (rule_new->fields[rule_new->field_count - 1] ==
+			AUDIT_PERM)
+			_audit_permadded = 1;
 	}
-    }
-    if (retval == -1 && errno == ECONNREFUSED)
+	return retval;
+}
+
+static int opt_message(opt_handler_params_t *args)
+{
+	int retval = args->retval;
+	if (*(args->count) > 3) {
+		audit_msg(LOG_ERR,
+			"The -m option must be only the only option and takes 1 parameter");
+		retval = OPT_ERROR_NO_REPLY;
+	} else {
+		const char* s = optarg;
+		char* umsg;
+		while (*s) {
+			if (*s < 32) {
+				audit_msg(LOG_ERR,
+						  "Illegal character in audit event");
+				args->finish = 1;
+				return OPT_ERROR_NO_REPLY;
+			}
+			s++;
+		}
+		if (asprintf(&umsg, "text=%s", optarg) < 0) {
+			audit_msg(LOG_ERR, "Can't create user event");
+			args->finish = 1;
+			return OPT_ERROR_NO_REPLY;
+		}
+		if (audit_log_user_message(fd, AUDIT_USER, umsg, NULL, NULL, NULL, 1) <= 0)
+			retval = OPT_ERROR_NO_REPLY;
+		else {
+			free(umsg);
+			args->finish = 1;
+			return OPT_SUCCESS_NO_REPLY; // success - no reply for this
+		}
+		free(umsg);
+	}
+	return retval;
+}
+
+static int opt_read_rules(opt_handler_params_t *args)
+{
+	audit_msg(LOG_ERR, "Error - nested rule files not supported");
+	return OPT_ERROR_NO_REPLY;
+}
+
+static int opt_delete_all(opt_handler_params_t *args)
+{
+	int retval = args->retval;
+	if (*(args->count) > 4 || *(args->count) == 3) {
+		audit_msg(LOG_ERR,
+				  "Wrong number of options for Delete all request");
+		return OPT_ERROR_NO_REPLY;
+	}
+	if (*(args->count) == 4) {
+		if (strcmp(args->vars[optind], "-k") == 0) {
+			strncat(key, args->vars[3], keylen);
+			*(args->count) -= 2;
+		} else {
+			audit_msg(LOG_ERR,
+					  "Only the -k option is allowed");
+			return OPT_ERROR_NO_REPLY;
+		}
+	}
+	retval = delete_all_rules(fd);
+	if (retval == 0) {
+		(void)audit_request_rule_list();
+		key[0] = 0;
+		retval = -2;
+	}
+	return retval;
+}
+
+static int opt_watch(opt_handler_params_t *args)
+{
+	int retval = args->retval;
+	if (add != AUDIT_FILTER_UNSET || del != AUDIT_FILTER_UNSET) {
+		audit_msg(LOG_ERR,
+				  "watch option can't be given with a syscall");
+		retval = OPT_ERROR_NO_REPLY;
+	} else if (optarg) {
+		add = AUDIT_FILTER_EXIT;
+		action = AUDIT_ALWAYS;
+		_audit_syscalladded = 1;
+		retval = audit_setup_watch_name(&rule_new, optarg);
+	} else {
+		audit_msg(LOG_ERR, "watch option needs a path");
+		retval = OPT_ERROR_NO_REPLY;
+	}
+	return retval;
+}
+
+static int opt_remove_watch(opt_handler_params_t *args)
+{
+	int retval = args->retval;
+	if (optarg) {
+		del = AUDIT_FILTER_EXIT;
+		action = AUDIT_ALWAYS;
+		_audit_syscalladded = 1;
+		retval = audit_setup_watch_name(&rule_new, optarg);
+	} else {
+		audit_msg(LOG_ERR, "watch option needs a path");
+		retval = OPT_ERROR_NO_REPLY;
+	}
+	return retval;
+}
+
+static int opt_key(opt_handler_params_t *args)
+{
+	int retval = args->retval;
+	if (!(_audit_syscalladded || _audit_permadded ||
+		_audit_exeadded || _audit_filterfsadded) ||
+		(add == AUDIT_FILTER_UNSET && del == AUDIT_FILTER_UNSET)) {
+			audit_msg(LOG_ERR,
+				  "key option needs a watch or syscall given prior to it");
+			return OPT_ERROR_NO_REPLY;
+	} else if (!optarg) {
+		audit_msg(LOG_ERR, "key option needs a value");
+		return OPT_ERROR_NO_REPLY;
+	}
+
+	// FIXME refactor this to a function
+	// process_keys:
+	if ((strlen(optarg) + strlen(key) + (!!key[0])) >
+		AUDIT_MAX_KEY_LEN) {
+		audit_msg(LOG_ERR, "key option exceeds size limit");
+		retval = -1;
+	} else {
+		if (strchr(optarg, AUDIT_KEY_SEPARATOR))
+			audit_msg(LOG_ERR,
+					  "key %s has illegal character",
+					  optarg);
+		if (key[0]) { // Add the separator if we need to
+			strcat(key, key_sep);
+			keylen--;
+		}
+		strncat(key, optarg, keylen);
+		keylen = AUDIT_MAX_KEY_LEN - strlen(key);
+	}
+	return retval;
+}
+
+static int opt_perms(opt_handler_params_t *args)
+{
+	int retval = args->retval;
+	if (add == AUDIT_FILTER_UNSET && del == AUDIT_FILTER_UNSET) {
+		audit_msg(LOG_ERR,
+				  "permission option needs a watch given prior to it");
+		retval = OPT_ERROR_NO_REPLY;
+	} else if (!optarg) {
+		audit_msg(LOG_ERR, "permission option needs a filter");
+		retval = OPT_ERROR_NO_REPLY;
+	} else
+		retval = audit_setup_perms(optarg);
+	return retval;
+}
+
+static int opt_mount(opt_handler_params_t *args)
+{
+	int retval = args->retval;
+	if (_audit_syscalladded) {
+		audit_msg(LOG_ERR,
+			"Syscall auditing requested for make equivalent");
+		retval = OPT_ERROR_NO_REPLY;
+	} else {
+		char *mp, *sub;
+		retval = equiv_parse(optarg, &mp, &sub);
+		if (retval < 0) {
+			audit_msg(LOG_ERR,
+				"Error parsing equivalent parts");
+			retval = OPT_ERROR_NO_REPLY;
+		} else {
+			retval = audit_make_equivalent(fd, mp, sub);
+			if (retval <= 0) {
+				retval = OPT_ERROR_NO_REPLY;
+			} else {
+				args->finish = 1;
+				return OPT_SUCCESS_NO_REPLY; // success - no reply needed
+			}
+		}
+	}
+	return retval;
+}
+
+static int opt_trim(opt_handler_params_t *args)
+{
+
+	int retval = args->retval;
+	retval = audit_trim_subtrees(fd);
+	if (retval <= 0)
+		retval = OPT_ERROR_NO_REPLY;
+	else {
+		args->finish = 1;
+		return OPT_SUCCESS_NO_REPLY; // success - no reply needed
+	}
+}
+
+static int opt_version(opt_handler_params_t *args)
+{
+	printf("auditctl version %s\n", VERSION);
+	return OPT_SUCCESS_NO_REPLY;
+}
+
+static int opt_loginuid(opt_handler_params_t *args)
+{
+
+	int retval = audit_set_loginuid_immutable(fd);
+	if (retval <= 0)
+		retval = OPT_ERROR_NO_REPLY;
+	else
+		return OPT_SUCCESS_NO_REPLY; // success - no reply for this
+
+	return retval;
+}
+
+static int opt_wait_time(opt_handler_params_t *args)
+{
+	int retval = args->retval;
+
+#if HAVE_DECL_AUDIT_VERSION_BACKLOG_WAIT_TIME == 1 || \
+  HAVE_DECL_AUDIT_STATUS_BACKLOG_WAIT_TIME == 1
+	if (optarg && isdigit((unsigned char)optarg[0])) {
+		uint32_t bwt;
+		errno = 0;
+		bwt = strtoul(optarg, NULL, 0);
+		if (errno) {
+			audit_msg(LOG_ERR,
+					  "Error converting backlog_wait_time");
+			args->finish = 1;
+			return OPT_ERROR_NO_REPLY;
+		}
+		if (audit_set_backlog_wait_time(fd, bwt) > 0)
+			audit_request_status(fd);
+		else {
+			args->finish = 1;
+			return OPT_ERROR_NO_REPLY;
+		}
+	} else {
+		audit_msg(LOG_ERR,
+				  "Backlog_wait_time must be a numeric value was %s",
+				  optarg);
+		retval = OPT_ERROR_NO_REPLY;
+	}
+#else
+	audit_msg(LOG_ERR,
+			  "backlog_wait_time is not supported on your kernel");
+	retval = OPT_ERROR_NO_REPLY;
+#endif
+
+	return retval;
+}
+
+static int opt_reset_lost(opt_handler_params_t *args)
+{
+
+	int retval = args->retval, rc;
+
+	if ((rc = audit_reset_lost(fd)) >= 0) {
+		audit_msg(LOG_INFO, "lost: %u", rc);
+		return OPT_SUCCESS_NO_REPLY;
+	} else {
+		audit_number_to_errmsg(rc, long_opts[args->lidx].name);
+		retval = OPT_ERROR_NO_REPLY;
+	}
+
+	return retval;
+}
+
+static int opt_reset_wait_time(opt_handler_params_t *args)
+{
+
+	int retval = args->retval, rc;
+
+#if HAVE_DECL_AUDIT_STATUS_BACKLOG_WAIT_TIME_ACTUAL == 1
+	if ((rc = audit_reset_backlog_wait_time_actual(fd)) >= 0) {
+		audit_msg(LOG_INFO, "backlog_wait_time_actual: %u", rc);
+		args->finish = 1;
+		return OPT_SUCCESS_NO_REPLY;
+	} else {
+		audit_number_to_errmsg(rc, long_opts[args->lidx].name);
+		retval = OPT_ERROR_NO_REPLY;
+	}
+#else
+	audit_msg(LOG_ERR,
+			  "reset_backlog_wait_time_actual is not supported on your kernel");
+	retval = OPT_ERROR_NO_REPLY;
+#endif
+
+	return retval;
+}
+
+static int opt_send_signal(opt_handler_params_t *args)
+{
+	int retval = args->retval;
+
+	retval = send_signal(optarg);
+
+	return retval;
+}
+
+static int opt_default(opt_handler_params_t *args)
+{
+	int retval = args->retval;
+	char *bad_opt;
+	if (optind >= 2)
+		bad_opt = args->vars[optind - 1];
+	else
+		bad_opt = " ";
+	if (args->lineno)
+		audit_msg(LOG_ERR,
+			"Option %s on line %d is invalid", bad_opt, args->lineno);
+	else
+		audit_msg(LOG_ERR, "Option %s is invalid", bad_opt);
+	retval = OPT_ERROR_NO_REPLY;
+	return retval;
+}
+
+struct {
+	int option;
+	int (*handler)(opt_handler_params_t *args);
+} opt_handlers[] = {
+	// short options
+	{'h', opt_usage},
+	{'i', opt_interpret},
+	{'c', opt_continue},
+	{'s', opt_status},
+	{'e', opt_enabled},
+	{'f', opt_failure},
+	{'r', opt_rate},
+	{'b', opt_backlog},
+	{'l', opt_list},
+	{'a', opt_append},
+	{'A', opt_prepend},
+	{'S', opt_syscall},
+	{'F', opt_field},
+	{'C', opt_compare},
+	{'m', opt_message},
+	{'R', opt_read_rules},
+	{'D', opt_delete_all},
+	{'w', opt_watch},
+	{'W', opt_remove_watch},
+	{'k', opt_key},
+	{'p', opt_perms},
+	{'q', opt_mount},
+	{'t', opt_trim},
+	{'v', opt_version},
+
+	// long options
+	{1, opt_loginuid},
+	{2, opt_wait_time},
+	{3, opt_reset_lost},
+	{4, opt_reset_wait_time},
+	{5, opt_send_signal},
+};
+
+int handle_option(int option, opt_handler_params_t* args)
+{
+	for (size_t i = 0; i < NUM_HANDLERS; i++) {
+		if (opt_handlers[i].option == option) {
+			return opt_handlers[i].handler(args);
+		}
+	}
+
+	// Default handler if option is not found
+	return opt_default(args);
+}
+
+/*
+ * returns: -3 deprecated, -2 success - no reply, -1 error - noreply,
+ * 0 success - reply, > 0 success - rule
+ */
+static int setopt(int count, int lineno, char *vars[])
+{
+	int c, lidx = 0;
+	int retval = OPT_SUCCESS_REPLY;
+
+	optind = 0;
+	opterr = 0;
+	key[0] = 0;
+	keylen = AUDIT_MAX_KEY_LEN;
+
+	/* Process arguments */
+	while ((retval >= 0) && (c = getopt_long(count, vars, "hicslDvtC:e:f:r:b:a:A:d:S:F:m:R:w:W:k:p:q:", long_opts, &lidx)) != EOF) {
+
+		opt_handler_params_t params = {&count, vars, retval, 0, lidx, lineno};
+		retval = handle_option(c, &params);
+		/* if something went wrong during processing or we are done here */
+		if (params.finish)
+			return retval;
+	}
+
+	/* catch extra args or errors where the user types "- s" */
+	if (optind == 1)
+		retval = OPT_ERROR_NO_REPLY;
+	else if ((optind < count) && (retval != OPT_ERROR_NO_REPLY)) {
+		audit_msg(LOG_ERR, "parameter passed without an option given");
+		retval = OPT_ERROR_NO_REPLY;
+	}
+
+	/* See if we were adding a key */
+	if (key[0] && list_requested == 0) {
+		int flags = 0;
+		char* cmd = NULL;
+
+		/* Get the flag */
+		if (add != AUDIT_FILTER_UNSET)
+			flags = add & AUDIT_FILTER_MASK;
+		else if (del != AUDIT_FILTER_UNSET)
+			flags = del & AUDIT_FILTER_MASK;
+
+		/* Build the command */
+		if (asprintf(&cmd, "key=%s", key) < 0) {
+			cmd = NULL;
+			audit_msg(LOG_ERR, "Out of memory adding key");
+			retval = OPT_ERROR_NO_REPLY;
+		} else {
+			/* Add this to the rule */
+			int ret = audit_rule_fieldpair_data(&rule_new, cmd, flags);
+			if (ret != 0) {
+				audit_number_to_errmsg(ret, cmd);
+				retval = OPT_ERROR_NO_REPLY;
+			}
+			free(cmd);
+		}
+	}
+
+	if (retval == OPT_ERROR_NO_REPLY && errno == ECONNREFUSED)
 		audit_msg(LOG_ERR, "The audit system is disabled");
-    return retval;
+	return retval;
 }
 
 static char *get_line(FILE *f, char *buf)
@@ -1416,7 +1604,7 @@ static int fileopt(const char *file)
 		free(fields);
 
 		/* handle reply or send rule */
-		if (rc != -3) {
+		if (rc != OPT_DEPRECATED) {
 			if (handle_request(rc) == -1) {
 				if (errno != ECONNREFUSED)
 					audit_msg(LOG_ERR,
@@ -1499,7 +1687,7 @@ int main(int argc, char *argv[])
 			return 1;
 		}
 		retval = setopt(argc, 0, argv);
-		if (retval == -3) {
+		if (retval == OPT_DEPRECATED) {
 			free(rule_new);
 			return 0;
 		}
@@ -1537,15 +1725,15 @@ int main(int argc, char *argv[])
  */
 static int handle_request(int status)
 {
-	if (status == 0) {
+	if (status == OPT_SUCCESS_REPLY) {
 		if (_audit_syscalladded) {
 			audit_msg(LOG_ERR, "Error - no list specified");
 			return -1;
 		}
 		get_reply();
-	} else if (status == -2)
+	} else if (status == OPT_SUCCESS_NO_REPLY)
 		status = 0;  // report success 
-	else if (status > 0) {
+	else if (status == OPT_SUCCESS_RULE) {
 		int rc;
 		if (add != AUDIT_FILTER_UNSET) {
 			// if !task add syscall any if not specified
@@ -1605,7 +1793,7 @@ static int handle_request(int status)
 			status = -1;
 		else
 			status = 0;
-	} else
+	} else // OPT_ERROR_NO_REPLY or OPT_DEPRECATED
 		status = -1;
 
 	if (!list_requested)
