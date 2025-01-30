@@ -2532,6 +2532,8 @@ static const char* print_a0(const char* val, const idata* id)
 				return print_dirfd(val);
 			else if (strcmp(sys, "readlinkat") == 0)
 				return print_dirfd(val);
+			else if (strcmp(sys, "removexattrat") == 0)
+				return print_dirfd(val);
 		}
 		else if (*sys == 'c') {
 			if (strcmp(sys, "clock_settime") == 0)
@@ -2594,11 +2596,14 @@ static const char* print_a0(const char* val, const idata* id)
 				return print_gid(val, 16);
 			else if (strcmp(sys, "socketcall") == 0)
 				return print_socketcall(val, 16);
-			else if (strcmp(sys, "getxattrat") == 0)
+			else if (strcmp(sys, "setxattrat") == 0)
+				return print_dirfd(val);
+		} else if (*sys == 'l') {
+			if (strcmp(sys, "linkat") == 0)
+				return print_dirfd(val);
+			else if (strcmp(sys, "listxattrat") == 0)
 				return print_dirfd(val);
 		}
-		else if (strcmp(sys, "linkat") == 0)
-			return print_dirfd(val);
 		else if (strcmp(sys, "newfstatat") == 0)
 			return print_dirfd(val);
 		else if (strncmp(sys, "openat", 6) == 0)
@@ -2612,10 +2617,6 @@ static const char* print_a0(const char* val, const idata* id)
 		else if (strcmp(sys, "bpf") == 0)
 			return print_bpf(val);
 		else if (strcmp(sys, "getxattrat") == 0)
-			return print_dirfd(val);
-		else if (strcmp(sys, "listxattrat") == 0)
-			return print_dirfd(val);
-		else if (strcmp(sys, "removexattrat") == 0)
 			return print_dirfd(val);
 	}
 	if (asprintf(&out, "0x%s", val) < 0)
