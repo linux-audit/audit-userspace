@@ -1,5 +1,5 @@
-/* accesstab.h --
- * Copyright 2013 Red Hat Inc., Durham, North Carolina.
+/* access-modetab.h --
+ * Copyright Red Hat Inc.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -17,12 +17,10 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  * Authors:
- *      Steve Grubb <sgrubb@redhat.com>
- * Location: ?
+ *      Attila Lakatos <alakatos@redhat.com>
+ *      Location: fcntl.h
  */
 
-// _S(0x0U,	"F_OK"	) handled in interpret
-_S(0x1U,	"X_OK"	)
-_S(0x2U,	"W_OK"	)
-_S(0x4U,	"R_OK"	)
-
+_S(0x100,		"AT_SYMLINK_NOFOLLOW" )
+_S(0x200,		"AT_EACCESS" )
+_S(0x1000,		"AT_EMPTY_PATH" )
