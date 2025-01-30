@@ -1510,9 +1510,9 @@ static const char *print_open_flags(const char *val, int base)
 
 static const char* print_xattr_atflags(const char* val)
 {
-	unsigned int flags, i, xattr_sig;
+	unsigned int flags;
 	int cnt = 0;
-	char* out, buf[sizeof(xattr_atflag_strings) + XATTR_ATFLAG_NUM_ENTRIES + 1];
+	char* out, *p, buf[sizeof(xattr_atflag_strings) + XATTR_ATFLAG_NUM_ENTRIES + 1];
 
 	errno = 0;
 	flags = strtoul(val, NULL, 16);
@@ -1522,22 +1522,17 @@ static const char* print_xattr_atflags(const char* val)
 		return out;
 	}
 
-	buf[0] = 0;
-	for (i = 0; i < XATTR_ATFLAG_NUM_ENTRIES; i++) {
+	p = buf;
+	for (unsigned int i = 0; i < XATTR_ATFLAG_NUM_ENTRIES; i++) {
 		if (xattr_atflag_table[i].value & flags) {
-			if (!cnt) {
-				strcat(buf,
-					xattr_atflag_strings + xattr_atflag_table[i].offset);
-				cnt++;
-			}
-			else {
-				strcat(buf, "|");
-				strcat(buf,
-					xattr_atflag_strings + xattr_atflag_table[i].offset);
-			}
+			if (cnt)
+				p = stpcpy(p, "|");
+			p = stpcpy(p, xattr_atflag_strings + xattr_atflag_table[i].offset);
+			cnt++;
 		}
 	}
-	if (buf[0] == 0)
+
+	if (cnt == 0)
 		snprintf(buf, sizeof(buf), "0x%s", val);
 	return strdup(buf);
 }
