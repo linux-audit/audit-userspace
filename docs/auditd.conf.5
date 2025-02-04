@@ -432,6 +432,10 @@ record type >= AUDIT_MAC_UNLBL_ALLOW && record type <= AUDIT_MAC_CALIPSO_DEL (th
 for the stream being processed, the time of the event is over end_of_event_timeout seconds old.
 .RE
 
+.SH LOG ROTATION POLICY
+
+By default, auditd uses size-based log rotation. If you prefer time-based rotation (e.g., hourly, daily, weekly, or custom schedule), refer to auditd.cron(5) for configuration details.
+
 .SH FILES
 .TP
 .I /etc/audit/auditd.conf
@@ -440,7 +444,8 @@ Audit daemon configuration file
 .SH "SEE ALSO"
 .BR auditd (8),
 .BR audisp\-remote.conf (5),
-.BR auditd\-plugins (5).
+.BR auditd\-plugins (5),
+.BR auditd.cron (5).
 
 .SH AUTHOR
 Steve Grubb
