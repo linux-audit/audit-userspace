@@ -506,9 +506,9 @@ static int sanity_check(plugin_conf_t *config, const char *file)
 				 config->path);
 			return 1;
 		}
-		if ((buf.st_mode & (S_IRUSR|S_IWUSR|S_IXUSR|S_IRGRP|S_IXGRP)) !=
-				   (S_IRUSR|S_IWUSR|S_IXUSR|S_IRGRP|S_IXGRP)) {
-			audit_msg(LOG_ERR, "%s permissions should be 0750",
+		if ((buf.st_mode & (S_IRUSR|S_IXUSR|S_IRGRP|S_IXGRP)) !=
+				   (S_IRUSR|S_IXUSR|S_IRGRP|S_IXGRP)) {
+			audit_msg(LOG_ERR, "%s permissions should be at least 0550",
 				 config->path);
 			return 1;
 		}
