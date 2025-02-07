@@ -38,7 +38,7 @@ parameter is configured to handle low-disk-space situations appropriately.
 After modifying the main auditd configuration file, reload auditd to apply the changes:
 
 .RS
-kill -HUP $(pidof auditd)
+auditctl --signal reload
 .RE
 
 .B 4. Deploy the Rotation Script:
