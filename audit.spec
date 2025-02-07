@@ -210,6 +210,7 @@ fi
 %attr(644,root,root) %{_mandir}/man8/aulastlog.8.gz
 %attr(644,root,root) %{_mandir}/man8/ausyscall.8.gz
 %attr(644,root,root) %{_mandir}/man5/auditd.conf.5.gz
+%attr(644,root,root) %{_mandir}/man5/auditd.cron.5.gz
 %attr(644,root,root) %{_mandir}/man5/auditd-plugins.5.gz
 %attr(755,root,root) %{_sbindir}/auditd
 %attr(755,root,root) %{_sbindir}/ausearch

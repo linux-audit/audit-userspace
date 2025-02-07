@@ -1,0 +1,66 @@
+.TH AUDITD.CRON "5" "Feb 2025" "Red Hat" "System Administration Utilities"
+.SH NAME
+auditd.conf \- time-based rotation of audit logs
+.SH DESCRIPTION
+By default, the audit daemon (auditd) supports size-based log rotation, where logs are rotated once they reach a specified size, as configured in 
+.I /etc/audit/auditd.conf.
+This manual describes an alternative method: time-based log rotation using
+.B cron.
+Using this approach, audit logs can be rotated at specified intervals (hourly, daily, weekly or on a custom date), regardless of their size.
+
+.SH CONFIGURATION
+
+.B 1.Disable Size-Based Rotation:  
+
+To enable time-based log rotation, first disable \fBauditd's\fP built-in size-based rotation by setting the following parameter in
+.I /etc/audit/auditd.conf:
+
+.RS
+max_log_file_action = ignore
+.RE
+
+.B 2. Configure Log Retention:
+
+The 
+.B num_logs
+parameter determines the number of rotated log files to keep. For daily rotation, setting 
+
+.RS
+num_logs = 7
+.RE
+
+ensures that logs from the last seven days are retained. However, on busy systems, audit logs may grow rapidly, potentially leading to a lack of disk space. To prevent this, ensure that the 
+.B space_left_action
+parameter is configured to handle low-disk-space situations appropriately.
+
+.B 3. Apply Configuration Changes:
+
+After modifying the main auditd configuration file, reload auditd to apply the changes:
+
+.RS
+auditctl --signal reload
+.RE
+
+.B 4. Deploy the Rotation Script:
+
+Copy the provided
+.B auditd.cron
+script to the appropriate cron directory (
+.IR cron.daily
+or 
+.IR cron.hourly
+or
+.IR cron.weekly
+, depending on your rotation preference). Then, ensure the file has the correct SELinux labels:
+
+.RS
+cp /usr/share/doc/audit/auditd.cron /etc/cron.daily
+.RE
+
+.SH "SEE ALSO"
+.BR auditd.conf (5),
+.BR auditd (8),
+.BR cron(8).
+
+.SH AUTHOR
+Attila Lakatos

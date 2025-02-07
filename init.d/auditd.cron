@@ -5,7 +5,7 @@
 # based on time instead of log size.
 ##########
 
-/sbin/auditctl --signal usr1
+/sbin/auditctl --signal rotate
 EXITVALUE=$?
 if [ $EXITVALUE != 0 ]; then
     /usr/bin/logger -t auditd "ALERT auditctl exited abnormally with [$EXITVALUE] while rotating the logs"
