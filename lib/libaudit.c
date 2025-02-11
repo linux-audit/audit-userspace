@@ -1509,44 +1509,42 @@ int _audit_parse_syscall(const char *optarg, struct audit_rule_data *rule)
  * on the given architecture. Returns a new string with supported syscalls
  * or NULL on error.
  */
-char* filter_supported_syscalls(const char* syscalls, int machine) {
-    if (syscalls == NULL) {
-        return NULL;
-    }
+static char* filter_supported_syscalls(const char* syscalls, int machine)
+{
+	if (syscalls == NULL) {
+		return NULL;
+	}
 
-    // Allocate memory for the filtered syscalls string
-    char* filtered_syscalls = malloc(strlen(syscalls) + 1);
-    if (filtered_syscalls == NULL) {
-        return NULL;
-    }
-    filtered_syscalls[0] = '\0'; // Initialize as empty string
+	char buf[512] = "";
+	char* ptr = buf;
+	const char* delimiter = ",";
 
-    // Tokenize the syscalls string and filter unsupported syscalls
-    const char* delimiter = ",";
-    char* syscalls_copy = strdup(syscalls);
-    if (syscalls_copy == NULL) {
-        free(filtered_syscalls);
-        return NULL;
-    }
-    char* token = strtok(syscalls_copy, delimiter);
-    while (token != NULL) {
-        if (audit_name_to_syscall(token, machine) != -1) {
-            strcat(filtered_syscalls, token);
-            strcat(filtered_syscalls, delimiter);
-        }
-        token = strtok(NULL, delimiter);
-    }
-    free(syscalls_copy);
+	char* syscalls_copy = strdup(syscalls);
+	if (syscalls_copy == NULL)
+		return NULL;
 
-    // Remove the trailing delimiter, if present
-    size_t len = strlen(filtered_syscalls);
-    if (len > 0 && filtered_syscalls[len - 1] == ',') {
-        filtered_syscalls[len - 1] = '\0';
-    }
+	char* token = strtok(syscalls_copy, delimiter);
+	int first = 1; // Track if this is the first syscall being added
 
-    return filtered_syscalls;
+	while (token != NULL) {
+		if (audit_name_to_syscall(token, machine) != -1) {
+			if (!first)
+				*ptr++ = ',';
+			ptr = stpcpy(ptr, token);
+			first = 0;
+		}
+		token = strtok(NULL, delimiter);
+	}
+
+	free(syscalls_copy);
+
+	// If no valid syscalls were found, return NULL
+	if (ptr == buf) {
+		return NULL;
+	}
+
+	return strdup(buf);
 }
-
 
 static int audit_add_perm_syscalls(int perm, struct audit_rule_data *rule)
 {
