@@ -1188,8 +1188,7 @@ static int opt_mount(opt_handler_params_t *args)
 
 static int opt_trim(opt_handler_params_t *args)
 {
-	int retval = args->retval;
-	retval = audit_trim_subtrees(fd);
+	int retval = audit_trim_subtrees(fd);
 	if (retval <= 0)
 		retval = OPT_ERROR_NO_REPLY;
 	else {
