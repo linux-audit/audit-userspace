@@ -642,7 +642,6 @@ static int opt_continue(opt_handler_params_t *args)
 
 static int opt_status(opt_handler_params_t *args)
 {
-	int retval = args->retval;
 	if (*(args->count) > 3) {
 		audit_msg(LOG_ERR,
 			"Too many options for status command");
@@ -1189,15 +1188,14 @@ static int opt_mount(opt_handler_params_t *args)
 
 static int opt_trim(opt_handler_params_t *args)
 {
-
-	int retval = args->retval;
-	retval = audit_trim_subtrees(fd);
+	int retval = audit_trim_subtrees(fd);
 	if (retval <= 0)
 		retval = OPT_ERROR_NO_REPLY;
 	else {
 		args->finish = 1;
 		return OPT_SUCCESS_NO_REPLY; // success - no reply needed
 	}
+	return retval;
 }
 
 static int opt_version(opt_handler_params_t *args)

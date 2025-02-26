@@ -789,7 +789,7 @@ int audit_add_watch_dir(int type, struct audit_rule_data **rulep,
 			const char *path)
 {
 	size_t len = strlen(path);
-	struct audit_rule_data *rule = *rulep;
+	struct audit_rule_data *rule = *rulep, *tmp;
 
 	if (rule && rule->field_count) {
 		audit_msg(LOG_ERR, "Rule is not empty");
@@ -800,12 +800,16 @@ int audit_add_watch_dir(int type, struct audit_rule_data **rulep,
 		return -1;
 	}
 
-	*rulep = realloc(rule, len + sizeof(*rule));
-	if (*rulep == NULL) {
+	// Use a temporary pointer to prevent memory leaks
+	tmp = realloc(rule, len + sizeof(*rule));
+	if (tmp == NULL) {
 		free(rule);
+		*rulep = NULL;
 		audit_msg(LOG_ERR, "Cannot realloc memory!");
 		return -1;
 	}
+
+	*rulep = tmp;
 	rule = *rulep;
 	memset(rule, 0, len + sizeof(*rule));
 
@@ -829,6 +833,7 @@ int audit_add_watch_dir(int type, struct audit_rule_data **rulep,
 
 	return  0;
 }
+
 
 int audit_add_rule_data(int fd, struct audit_rule_data *rule,
                         int flags, int action)
@@ -1621,7 +1626,7 @@ int audit_rule_fieldpair_data(struct audit_rule_data **rulep, const char *pair,
 	int        field;
 	int        vlen;
 	int        offset;
-	struct audit_rule_data *rule = *rulep;
+	struct audit_rule_data *rule = *rulep, *tmp;
 
 	if (f == NULL)
 		return -EAU_FILTERMISSING;
@@ -1834,14 +1839,14 @@ int audit_rule_fieldpair_data(struct audit_rule_data **rulep, const char *pair,
 			rule->values[rule->field_count] = vlen;
 			offset = rule->buflen;
 			rule->buflen += vlen;
-			*rulep = realloc(rule, sizeof(*rule) + rule->buflen);
-			if (*rulep == NULL) {
+			tmp = realloc(rule, sizeof(*rule) + rule->buflen);
+			if (tmp == NULL) {
 				free(rule);
 				audit_msg(LOG_ERR, "Cannot realloc memory!");
 				return -3;
-			} else {
-				rule = *rulep;
 			}
+			*rulep = tmp;
+			rule = tmp;
 			strncpy(&rule->buf[offset], v, vlen);
 
 			break;
