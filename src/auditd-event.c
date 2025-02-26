@@ -852,6 +852,13 @@ static void do_space_left_action(int admin)
 	}
 	next_actions = buffer;
 
+	// If space_left is reached and FA_HALT is set in any of these fields
+	// we need to inform logged in users.
+	if (config->admin_space_left_action == FA_HALT ||
+		config->disk_full_action == FA_HALT) {
+		wall_message("The audit system is low on disk space and is now halting the system for admin corrective action.");
+	}
+
 	switch (action)
 	{
 		case FA_IGNORE:

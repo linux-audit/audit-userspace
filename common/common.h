@@ -57,6 +57,13 @@ int write_to_console(const char *fmt, ...)
 	;
 #endif
 
+void wall_message(const char *fmt, ...)
+#ifdef __GNUC__
+	__attribute__((format(printf, 1, 2)));
+#else
+	;
+#endif
+
 AUDIT_HIDDEN_END
 #endif
 

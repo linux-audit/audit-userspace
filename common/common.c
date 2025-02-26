@@ -25,6 +25,8 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <stdio.h>
+#include <utmpx.h>
+#include <fcntl.h>
 
 /*
  * This function returns 1 if it is the last record in an event.
@@ -75,4 +77,36 @@ int write_to_console(const char *fmt, ...)
 	close(fd);
 
 	return res;
+}
+
+void wall_message(const char* format, ...)
+{
+	struct utmpx* entry;
+	char message[512];
+	va_list args;
+	int fd;
+
+	// Format the message
+	va_start(args, format);
+	vsnprintf(message, sizeof(message), format, args);
+	va_end(args);
+
+	setutxent();
+
+	// Send the message to all active users
+	while ((entry = getutxent())) {
+		// Only active users have a valid terminal
+		if (entry->ut_type == USER_PROCESS) {
+			char tty_path[128];
+			snprintf(tty_path, sizeof(tty_path), "/dev/%s", entry->ut_line);
+
+			fd = open(tty_path, O_WRONLY | O_NOCTTY);
+			if (fd != -1) {
+				dprintf(fd, "\nBroadcast message from audit daemon:\n%s\n", message);
+				close(fd);
+			}
+		}
+	}
+
+	endutxent();
 }
