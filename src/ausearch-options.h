@@ -41,6 +41,7 @@ extern int event_debug;
 extern pid_t event_ppid;
 extern uint32_t event_session_id;
 extern ilist *event_type;
+extern int event_type_inverted;
 
 /* Data type to govern output format */
 extern report_t report_format;
