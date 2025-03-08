@@ -42,6 +42,15 @@ EXTRA_DIST = 10-base-config.rules 10-no-audit.rules 11-loginuid.rules \
 70-einval.rules 71-networking.rules \
 99-finalize.rules README-rules
 
-rulesdir = $(datadir)/audit-rules
+rulesdir = $(libdir)/audit-rules
 dist_rules_DATA = $(EXTRA_DIST)
 
+# Hook to create a symlink from /usr/share/audit-rules to /usr/lib/audit-rules
+install-exec-hook:
+	$(MKDIR_P) $(DESTDIR)$(libdir)/audit-rules
+	ln -snf $(DESTDIR)$(libdir)/audit-rules $(DESTDIR)$(datadir)/audit-rules
+
+# Uninstall hook to remove the symlink and the directory
+uninstall-hook:
+	rm -f $(DESTDIR)$(datadir)/audit-rules
+	rm -rf $(DESTDIR)$(libdir)/audit-rules
