@@ -875,6 +875,7 @@ static void do_space_left_action(int admin)
 			}
 			break;
 		case FA_EMAIL:
+		{
 			char content[512];
 			const char *subject;
 
@@ -894,6 +895,7 @@ static void do_space_left_action(int admin)
 			sendmail(subject, content, config->action_mail_acct);
 			audit_msg(LOG_ALERT, "%s", content);
 			break;
+		}
 		case FA_EXEC:
 			// Close the logging file in case the script zips or
 			// moves the file. We'll reopen in sigusr2 handler
