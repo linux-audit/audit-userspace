@@ -191,6 +191,8 @@ static int extract_timestamp(const char *b, event *e)
 		if (*ptr == 'n') {
 			tnode = ptr+5;
 			ptr = audit_strsplit(NULL);
+			if (ptr == NULL)
+				return 0;
 		} else
 			tnode = NULL;
 
