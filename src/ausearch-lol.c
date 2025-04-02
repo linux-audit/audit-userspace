@@ -259,7 +259,10 @@ static void check_events(lol *lo, time_t sec)
 				cur->status = L_COMPLETE;
 				ready++;
 			} else if (cur->l->e.type == AUDIT_PROCTITLE ||
-				    cur->l->e.type < AUDIT_FIRST_EVENT ||
+				    cur->l->e.type == AUDIT_EOE ||
+				    (cur->l->e.type > AUDIT_LOGIN &&
+				        cur->l->e.type < AUDIT_FIRST_EVENT) ||
+				    cur->l->e.type == AUDIT_USER ||
 				    cur->l->e.type >= AUDIT_FIRST_ANOM_MSG ||
 				    cur->l->e.type == AUDIT_KERNEL ||
 				    (cur->l->e.type >= AUDIT_MAC_UNLBL_ALLOW &&
@@ -271,6 +274,7 @@ static void check_events(lol *lo, time_t sec)
 		}
 	}
 }
+
 
 // This function adds a new record to an existing linked list
 // or creates a new one if its a new event

@@ -319,7 +319,9 @@ static void au_check_events(auparse_state_t *au, time_t sec)
                         } else if ( // FIXME: Check this v remains true
 				r->type == AUDIT_PROCTITLE ||
 				r->type == AUDIT_EOE ||
-				r->type < AUDIT_FIRST_EVENT ||
+				(r->type > AUDIT_LOGIN &&
+					r->type < AUDIT_FIRST_EVENT) ||
+				r->type == AUDIT_USER ||
 				r->type >= AUDIT_FIRST_ANOM_MSG ||
 				r->type == AUDIT_KERNEL ||
 				(r->type >= AUDIT_MAC_UNLBL_ALLOW &&
@@ -331,6 +333,7 @@ static void au_check_events(auparse_state_t *au, time_t sec)
                 }
         }
 }
+
 
 /*
  * au_terminate_all_events - Mark all events in 'BUILD' state to be COMPLETE
