@@ -180,7 +180,7 @@ event 4 has 3 records
         uid=0 (root)
         subj=system_u:system_r:init_t:s0 (system_u:system_r:init_t:s0)
         old-auid=4294967295 (unset)
-        auid=42 (gdm)
+        auid=0 (root)
         tty=(none) ((none))
         old-ses=4294967295 (4294967295)
         ses=1 (1)
@@ -201,7 +201,7 @@ event 4 has 3 records
         items=0 (0)
         ppid=1 (1)
         pid=2288 (2288)
-        auid=42 (gdm)
+        auid=0 (root)
         uid=0 (root)
         gid=0 (root)
         euid=0 (root)
@@ -381,7 +381,7 @@ event 4 has 3 records
         uid=0 (root)
         subj=system_u:system_r:init_t:s0 (system_u:system_r:init_t:s0)
         old-auid=4294967295 (unset)
-        auid=42 (gdm)
+        auid=0 (root)
         tty=(none) ((none))
         old-ses=4294967295 (4294967295)
         ses=1 (1)
@@ -402,7 +402,7 @@ event 4 has 3 records
         items=0 (0)
         ppid=1 (1)
         pid=2288 (2288)
-        auid=42 (gdm)
+        auid=0 (root)
         uid=0 (root)
         gid=0 (root)
         euid=0 (root)
@@ -579,7 +579,7 @@ event 11 has 3 records
         uid=0 (root)
         subj=system_u:system_r:init_t:s0 (system_u:system_r:init_t:s0)
         old-auid=4294967295 (unset)
-        auid=42 (gdm)
+        auid=0 (root)
         tty=(none) ((none))
         old-ses=4294967295 (4294967295)
         ses=1 (1)
@@ -600,7 +600,7 @@ event 11 has 3 records
         items=0 (0)
         ppid=1 (1)
         pid=2288 (2288)
-        auid=42 (gdm)
+        auid=0 (root)
         uid=0 (root)
         gid=0 (root)
         euid=0 (root)
@@ -691,7 +691,7 @@ Test 6 Done
 
 Starting Test 7, compound search...
 Found type = USER_START
-Found auid = 42
+Found auid = 0
 Test 7 Done
 
 Starting Test 8, regex search...
@@ -864,7 +864,7 @@ event 4 has 3 records
         uid=0 (root)
         subj=system_u:system_r:init_t:s0 (system_u:system_r:init_t:s0)
         old-auid=4294967295 (unset)
-        auid=42 (gdm)
+        auid=0 (root)
         tty=(none) ((none))
         old-ses=4294967295 (4294967295)
         ses=1 (1)
@@ -885,7 +885,7 @@ event 4 has 3 records
         items=0 (0)
         ppid=1 (1)
         pid=2288 (2288)
-        auid=42 (gdm)
+        auid=0 (root)
         uid=0 (root)
         gid=0 (root)
         euid=0 (root)
