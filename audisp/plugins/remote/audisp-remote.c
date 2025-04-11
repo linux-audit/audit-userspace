@@ -1060,19 +1060,33 @@ static int stop_sock(void)
 	if (sock >= 0) {
 #ifdef USE_GSSAPI
 		if (USE_GSS) {
-			OM_uint32 minor_status;
-			gss_delete_sec_context(&minor_status, &my_context,
-						GSS_C_NO_BUFFER);
-			my_context = GSS_C_NO_CONTEXT;
-			krb5_cc_close(kcontext, ccache);
-			ccache = NULL;
-			krb5_kt_close(kcontext, keytab);
-			keytab = NULL;
-			krb5_free_principal(kcontext, audit_princ);
-			krb5_free_default_realm(kcontext, realm_name);
-			realm_name = NULL;
-			krb5_free_context(kcontext);
-			kcontext = NULL;
+			if (my_context != GSS_C_NO_CONTEXT) {
+				OM_uint32 minor_status;
+				gss_delete_sec_context(&minor_status, &my_context,
+							GSS_C_NO_BUFFER);
+				my_context = GSS_C_NO_CONTEXT;
+			}
+
+			if (kcontext != NULL) {
+				if (ccache != NULL) {
+					krb5_cc_close(kcontext, ccache);
+					ccache = NULL;
+				}
+				if (keytab != NULL) {
+					krb5_kt_close(kcontext, keytab);
+					keytab = NULL;
+				}
+				if (audit_princ != NULL) {
+					krb5_free_principal(kcontext, audit_princ);
+					audit_princ = NULL;
+				}
+				if (realm_name != NULL) {
+					krb5_free_default_realm(kcontext, realm_name);
+					realm_name = NULL;
+				}
+				krb5_free_context(kcontext);
+				kcontext = NULL;
+			}
 		}
 #endif
 		shutdown(sock, SHUT_RDWR);
