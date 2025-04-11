@@ -465,18 +465,23 @@ static int process_log_fd(void)
 			break;
 
 		/*
+		 * If we are checkpointing, decide if we output this event.
+		 * We need to do it as early as here. The chkpt_input_levent event
+		 * might not match the entries, so we need to ensure that we don't
+		 * skip the event that is the checkpoint event. That is the marking point
+		 * from which we start outputting events. Leaving that event out will produce
+		 * empty results.
+		 */
+		if (checkpt_filename)
+			do_output = chkpt_output_decision(&entries->e);
+
+		/*
  		 * We flush all events on the last log file being processed.
  		 * Thus incomplete events are 'carried forward' to be
  		 * completed from the rest of it's records we expect to find
  		 * in the next file we are about to process.
  		 */
 		if (match(entries)) {
-			/*
-			 * If we are checkpointing, decide if we output
-			 * this event
-			 */
-			if (checkpt_filename)
-				do_output = chkpt_output_decision(&entries->e);
 
 			if (do_output == 1) {
 				found = 1;
