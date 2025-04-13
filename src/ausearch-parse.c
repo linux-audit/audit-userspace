@@ -676,7 +676,9 @@ static int parse_dir(const lnode *n, search_items *s)
 	char *str, *term;
 
 	if (event_filename) {
-	// dont do this search unless needed
+		// dont do this search unless needed
+		if (strlen(n->message) < 34)
+		    return 0;
 		str = strstr(n->message+NAME_OFFSET, " cwd=");
 		if (str) {
 			str += 5;
@@ -808,8 +810,10 @@ static int parse_path(const lnode *n, search_items *s)
 	// anything before that. Its only time and type.
 	char *str, *term = n->message+NAME_OFFSET;
 
+	// dont do this search unless needed
+	if (strlen(n->message) < 35)
+	    return 0;
 	if (event_filename) {
-		// dont do this search unless needed
 		str = strstr(term, " name=");
 		if (str) {
 			int rc;
