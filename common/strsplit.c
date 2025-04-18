@@ -1,5 +1,5 @@
 /* strsplit.c --
- * Copyright 2014,2016,2017 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2014,2016,2017,2025 Red Hat Inc.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -20,69 +20,59 @@
  *   Steve Grubb <sgrubb@redhat.com>
  *
  */
-
+#include "config.h"
 #include <string.h>
 #include "common.h"
+#pragma GCC optimize("O3")
 
+/*
+ * This function is similar to strtok_r except it is aimed at
+ * splitting strings at a space character.
+ */
 char *audit_strsplit_r(char *s, char **savedpp)
 {
 	char *ptr;
 
+	// On new string, initialize
 	if (s)
 		*savedpp = s;
-	else {
-		if (*savedpp == NULL)
-			return NULL;
-		*savedpp += 1;
-	}
-retry:	
-	ptr = strchr(*savedpp, ' ');
-	if (ptr) {
-		if (ptr == *savedpp) {
-			*savedpp += 1;
-			goto retry;
-		}
-		s = *savedpp;
-		*ptr = 0;
-		*savedpp = ptr;
-		return s;
-	} else {
-		s = *savedpp;
+
+	// Are we done?
+	if (*savedpp == NULL)
+		return NULL;
+
+	// skip leading spaces
+	while (**savedpp == ' ')
+		(*savedpp)++;
+
+	// end of string?
+	if (**savedpp == '\0') {
 		*savedpp = NULL;
-		if (*s == 0)
-			return NULL;
-		return s;
+		return NULL;
 	}
+
+	// Mark the start
+	ptr = *savedpp;
+
+	// advance until space or end
+	while (**savedpp != '\0' && **savedpp != ' ')
+		(*savedpp)++;
+
+	if (**savedpp == ' ')
+		*(*savedpp)++ = '\0'; // terminate and advance past the space
+	else
+		*savedpp = NULL; // at end of string
+
+	return ptr;
 }
 
+/*
+ * This function is similar to strtok except it is aimed at
+ * splitting strings at a space character.
+ */
 char *audit_strsplit(char *s)
 {
-	static char *str = NULL;
-	char *ptr;
-
-	if (s)
-		str = s;
-	else {
-		if (str == NULL)
-			return NULL;
-		str++;
-	}
-retry:
-	ptr = strchr(str, ' ');
-	if (ptr) {
-		if (ptr == str) {
-			str++;
-			goto retry;
-		}
-		s = str;
-		*ptr = 0;
-		str = ptr;
-		return s;
-	} else {
-		s = str;
-		str = NULL;
-		if (*s == 0)
-			return NULL;
-		return s;
-	}
+    static char *str;
+    return audit_strsplit_r(s, &str);
 }
+
