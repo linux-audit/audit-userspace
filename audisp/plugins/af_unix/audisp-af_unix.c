@@ -183,7 +183,8 @@ int setup_socket(int argc, char *argv[])
 	return create_af_unix_socket(path, mode);
 }
 
-static int event_to_string(struct audit_dispatcher_header *hdr, char *data, char **out, int *outlen)
+static int event_to_string(struct audit_dispatcher_header *hdr,
+			   char *data, char **out, int *outlen)
 {
 	char *v = NULL, *ptr, unknown[32];
 	int len;
@@ -231,21 +232,25 @@ void read_audit_record(int ifd)
 		int len;
 
 		// Read stdin
-		if ((len = audit_fgets(rx_buf, MAX_AUDIT_EVENT_FRAME_SIZE + 1, ifd)) > 0) {
+		if ((len = audit_fgets(rx_buf, MAX_AUDIT_EVENT_FRAME_SIZE + 1,
+				       ifd)) > 0) {
 #ifdef DEBUG
 			write(1, rx_buf, len);
 #else
-			struct audit_dispatcher_header *hdr = (struct audit_dispatcher_header *)rx_buf;
-			char *data = rx_buf + sizeof(struct audit_dispatcher_header);
+			struct audit_dispatcher_header *hdr =
+				(struct audit_dispatcher_header *)rx_buf;
+			char *data = rx_buf +
+				sizeof(struct audit_dispatcher_header);
 			if (client) {
 				// Send it to the client
 				int rc;
 
 				if (format == F_STRING) {
-					
+
 					char *str = NULL;
 					int str_len = 0;
-					if (event_to_string(hdr, data, &str, &str_len) < 0) {
+					if (event_to_string(hdr, data, &str,
+							    &str_len) < 0) {
 						// what to do with error?
 						continue;
 					}
@@ -258,10 +263,12 @@ void read_audit_record(int ifd)
 					struct iovec vec[2];
 
 					vec[0].iov_base = hdr;
-					vec[0].iov_len = sizeof(struct audit_dispatcher_header);
+					vec[0].iov_len =
+					 sizeof(struct audit_dispatcher_header);
 
 					vec[1].iov_base = data;
-					vec[1].iov_len = MAX_AUDIT_MESSAGE_LENGTH;
+					vec[1].iov_len =
+						MAX_AUDIT_MESSAGE_LENGTH;
 
 					do {
 						rc = writev(conn, vec, 2);
