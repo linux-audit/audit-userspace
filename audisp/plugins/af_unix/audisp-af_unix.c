@@ -58,6 +58,7 @@ struct pollfd pfd[3];
 unsigned mode = 0;
 format_t format = -1;
 char *path = NULL;
+int inbound_protocol = -1;
 
 /*
  * SIGTERM handler
@@ -148,7 +149,6 @@ int setup_socket(int argc, char *argv[])
 				d = opendir(base);
 				if (d) {
 					closedir(d);
-					unlink(path);
 					free(dir);
 				} else {
 					syslog(LOG_ERR,
@@ -157,7 +157,6 @@ int setup_socket(int argc, char *argv[])
 					free(dir);
 					exit(1);
 				}
-
 			} else {
 				syslog(LOG_ERR, "Malformed path %s",
 					path);
@@ -175,9 +174,18 @@ int setup_socket(int argc, char *argv[])
 
 	if (mode == 0 || path == NULL || format == -1) {
 		syslog(LOG_ERR, "Bad or not enough arguments, using defaults");
-		mode = 0640;
-		path = DEFAULT_PATH;
-		format = F_STRING;
+		if (mode == 0) {
+			mode = 0640;
+			syslog(LOG_INFO, "Using default mode");
+		}
+		if (path == NULL) {
+			path = DEFAULT_PATH;
+			syslog(LOG_INFO, "Using default path");
+		}
+		if (format == -1) {
+			format = F_STRING;
+			syslog(LOG_INFO, "Using default format");
+		}
 	}
 
 	return create_af_unix_socket(path, mode);
@@ -189,21 +197,28 @@ static int event_to_string(struct audit_dispatcher_header *hdr,
 	char *v = NULL, *ptr, unknown[32];
 	int len;
 
-	if (hdr->ver == AUDISP_PROTOCOL_VER) {
-		const char *type;
+	if (inbound_protocol == F_BINARY) {
+		if (hdr->ver == AUDISP_PROTOCOL_VER) {
+			const char *type;
 
-		/* Get the event formatted */
-		type = audit_msg_type_to_name(hdr->type);
-		if (type == NULL) {
-			snprintf(unknown, sizeof(unknown),
-				"UNKNOWN[%u]", hdr->type);
-			type = unknown;
-		}
-		len = asprintf(&v, "type=%s msg=%.*s\n",
-				type, hdr->size, data);
-	// Protocol 2 events are already formatted
-	} else if (hdr->ver == AUDISP_PROTOCOL_VER2) {
-		len = asprintf(&v, "%.*s\n", hdr->size, data);
+			/* Get the event formatted */
+			type = audit_msg_type_to_name(hdr->type);
+			if (type == NULL) {
+				snprintf(unknown, sizeof(unknown),
+					"UNKNOWN[%u]", hdr->type);
+				type = unknown;
+			}
+			len = asprintf(&v, "type=%s msg=%.*s\n",
+					type, hdr->size, data);
+		} else if (inbound_protocol == F_BINARY &&
+			   hdr->ver == AUDISP_PROTOCOL_VER2) {
+			// Protocol 2 events are already formatted
+			len = asprintf(&v, "%.*s", hdr->size, data);
+		} else
+			len = 0;
+	} else if (inbound_protocol == F_STRING) {
+		// Inbound strings start at the hdr
+		len = asprintf(&v, "%s", (char *)hdr);
 	} else
 		len = 0;
 	if (len <= 0) {
@@ -241,6 +256,14 @@ void read_audit_record(int ifd)
 				(struct audit_dispatcher_header *)rx_buf;
 			char *data = rx_buf +
 				sizeof(struct audit_dispatcher_header);
+			if (inbound_protocol == -1) {
+				if (hdr->ver == AUDISP_PROTOCOL_VER ||
+					hdr->ver == AUDISP_PROTOCOL_VER2)
+					inbound_protocol = F_BINARY;
+				else
+					inbound_protocol = F_STRING;
+			}
+
 			if (client) {
 				// Send it to the client
 				int rc;
@@ -347,8 +370,10 @@ void event_loop(int ifd)
 				read_audit_record(ifd);
 			}
 			// auditd closed it's socket, exit
-			if (pfd[0].revents & POLLHUP)
+			if (pfd[0].revents & POLLHUP) {
+				syslog(LOG_INFO,"Auditd closed it's socket - exiting");
 				return;
+			}
 
 			if (pfd[1].revents & (POLLIN|POLLOUT)) {
 				// someone connected, accept it
@@ -356,6 +381,8 @@ void event_loop(int ifd)
 			}
 		}
 	}
+	if (stop == 1)
+		syslog(LOG_INFO, "audisp-af_unix plugin is exiting on TERM request");
 }
 
 
@@ -387,7 +414,7 @@ int main(int argc, char *argv[])
 
 	// Initialize the socket
 	if (setup_socket(argc, argv)) {
-		syslog(LOG_ERR, "audisp-af_unix plugin exiting");
+		syslog(LOG_ERR,"audisp-af_unix plugin exiting due to errors setting up socket");
 		exit(1);
 	}
 
