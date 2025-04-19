@@ -208,7 +208,7 @@ static int event_to_string(struct audit_dispatcher_header *hdr,
 					"UNKNOWN[%u]", hdr->type);
 				type = unknown;
 			}
-			len = asprintf(&v, "type=%s msg=%.*s\n",
+			len = asprintf(&v, "type=%s msg=%.*s",
 					type, hdr->size, data);
 		} else if (inbound_protocol == F_BINARY &&
 			   hdr->ver == AUDISP_PROTOCOL_VER2) {
