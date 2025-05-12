@@ -66,7 +66,7 @@
 #pragma GCC optimize("O3")
 
 #include "auparse-defs.h"
-#include "gen_tables.h"
+#include "gen_tables64.h"
 #include "common.h"
 
 #if !HAVE_DECL_ADDR_NO_RANDOMIZE

@@ -1,5 +1,5 @@
 # Makefile.am -- 
-# Copyright 2004-2009,2013-23 Red Hat Inc.
+# Copyright 2004-2009,2013-25 Red Hat Inc.
 # All Rights Reserved.
 #
 # This library is free software; you can redistribute it and/or
@@ -24,7 +24,7 @@
 SUBDIRS = test
 CLEANFILES = $(BUILT_SOURCES)
 CONFIG_CLEAN_FILES = *.loT *.rej *.orig
-EXTRA_DIST = syscall-update.txt
+EXTRA_DIST = syscall-update.txt gen_tables64.c
 VERSION_INFO = 1:0
 AM_CFLAGS = -fPIC -DPIC -D_GNU_SOURCE ${WFLAGS}
 AM_CPPFLAGS = -I. -I${top_srcdir} -I${top_srcdir}/auparse -I${top_srcdir}/common

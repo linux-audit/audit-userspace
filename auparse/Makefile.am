@@ -1,5 +1,5 @@
 # Makefile.am -- 
-# Copyright 2006-08,2011-18,2024 Red Hat Inc.
+# Copyright 2006-08,2011-18,2024-25 Red Hat Inc.
 # All Rights Reserved.
 #
 # This library is free software; you can redistribute it and/or
@@ -141,7 +141,7 @@ gen_clock_h$(BUILD_EXEEXT): LDFLAGS=$(LDFLAGS_FOR_BUILD)
 clocktabs.h: gen_clock_h Makefile
 	./gen_clock_h --i2s clock > $@
 
-gen_clone_flagtabs_h_SOURCES = ../lib/gen_tables.c ../lib/gen_tables.h \
+gen_clone_flagtabs_h_SOURCES = ../lib/gen_tables64.c ../lib/gen_tables64.h \
 	clone-flagtab.h
 gen_clone_flagtabs_h_CFLAGS = '-DTABLE_H="clone-flagtab.h"'
 $(gen_clone_flagtabs_h_OBJECTS): CC=$(CC_FOR_BUILD)
@@ -153,7 +153,7 @@ gen_clone-flagtabs_h$(BUILD_EXEEXT): CFLAGS=$(CFLAGS_FOR_BUILD)
 gen_clone-flagtabs_h$(BUILD_EXEEXT): CPPFLAGS=$(CPPFLAGS_FOR_BUILD)
 gen_clone-flagtabs_h$(BUILD_EXEEXT): LDFLAGS=$(LDFLAGS_FOR_BUILD)
 clone-flagtabs.h: gen_clone-flagtabs_h Makefile
-	./gen_clone-flagtabs_h --i2s-transtab clone_flag > $@
+	./gen_clone-flagtabs_h --64bit --i2s-transtab clone_flag > $@
 
 gen_epoll_ctls_h_SOURCES = ../lib/gen_tables.c ../lib/gen_tables.h epoll_ctl.h
 gen_epoll_ctls_h_CFLAGS = '-DTABLE_H="epoll_ctl.h"'
