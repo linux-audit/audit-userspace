@@ -21,7 +21,7 @@
  *
  */
 #include "config.h"
-#include <string.h>
+#include <stddef.h>
 #include "common.h"
 #pragma GCC optimize("O3")
 
