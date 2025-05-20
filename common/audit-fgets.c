@@ -53,11 +53,15 @@ void audit_fgets_clear(void)
  * there is not enough to process without blocking. */
 int audit_fgets_more(size_t blen)
 {
-	char *ptr = strchr(buffer, '\n');
+        size_t avail;
+        char *nl;
+
 	assert(blen != 0);
-	if (ptr || (size_t)(current-buffer) >= blen-1)
-		return 1;
-	return 0;
+
+        avail = current - buffer;
+        /* only scan the valid region */
+        nl = memchr(buffer, '\n', avail);
+        return (nl || avail >= blen - 1);
 }
 
 /* Function to read the next chunk of data from the given fd. If we have
