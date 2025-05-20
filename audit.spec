@@ -133,7 +133,7 @@ rm -f rules/Makefile*
 %systemd_post auditd.service
 # If an upgrade, restart it if it's running
 if [ $1 -eq 2 ]; then
-    state=$(systemctl status auditd | awk '/Active:/ { print $2 }')
+    state=$(systemctl show -P ActiveState auditd)
     if [ $state = "active" ] ; then
         auditctl --signal stop || true
         systemctl start auditd
