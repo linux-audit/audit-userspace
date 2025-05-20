@@ -294,9 +294,9 @@ int audit_rule_io_uringbyname_data(struct audit_rule_data *rule,
  * takes just a *.  That structure may need to be reallocated as a result of
  * adding new fields */
 int audit_rule_fieldpair_data(struct audit_rule_data **rulep,
-                                      const char *pair, int flags);
+                                      char *pair, int flags);
 int audit_rule_interfield_comp_data(struct audit_rule_data **rulep,
-					 const char *pair, int flags);
+					 char *pair, int flags);
 /* Deallocates the audit_rule_rule object, and any associated resources */
 void audit_rule_free_data(struct audit_rule_data *rule);
 

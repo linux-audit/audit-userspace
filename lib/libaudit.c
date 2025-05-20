@@ -1080,10 +1080,10 @@ int audit_rule_io_uringbyname_data(struct audit_rule_data *rule,
 }
 
 int audit_rule_interfield_comp_data(struct audit_rule_data **rulep,
-					 const char *pair,
+					 char *pair,
 					 int flags)
 {
-	const char *f = pair;
+	char *f = pair;
 	char       *v;
 	int        op;
 	int        field1, field2;
@@ -1617,10 +1617,10 @@ static int audit_add_perm_syscalls(int perm, struct audit_rule_data *rule)
 	return rc;
 }
 
-int audit_rule_fieldpair_data(struct audit_rule_data **rulep, const char *pair,
+int audit_rule_fieldpair_data(struct audit_rule_data **rulep, char *pair,
                               int flags)
 {
-	const char *f = pair;
+	char *f = pair;
 	char       *v;
 	int        op;
 	int        field;
