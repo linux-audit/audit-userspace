@@ -69,8 +69,11 @@ int list_append(llist *l, const struct audit_rule_data *r, size_t sz)
 
 	if (r) {
 		void *rr = malloc(sz);
-		if (rr)
-			memcpy(rr, r, sz);
+		if (rr == NULL) {
+			free(newnode);
+			return 1;
+		}
+		memcpy(rr, r, sz);
 		newnode->r = rr;
 	} else
 		newnode->r = NULL;
