@@ -1,11 +1,12 @@
 4.0.4
 - auditctl: update io_uring operations table
-- update syscall table
+- update syscall table for 6.15
 - auditd.cron.5: Describe time-based log rotation setup
 - auditd: Broadcast a warning on startup if a system halt is possible (#435)
 - Fix audisp-remote segfault on connection error (#446)
 - Improve locating last event if ausearch is using checkpointing
 - af_unix plugin: fix string mode support
+- Remove const from audit_rule_fieldpair_data & audit_rule_interfield_comp_data
 
 4.0.3
 - Remove a RHEL4 flag table since it's been unsupported for a while
