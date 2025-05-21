@@ -1,0 +1,59 @@
+name: CI Matrix
+
+on:
+  push:
+    branches: [main, githubactions]
+  pull_request:
+    branches: [main, githubactions]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest, fedora:latest]
+        compiler: [gcc, clang]
+
+    container: ${{ matrix.os == 'ubuntu-latest' && '' || matrix.os == 'fedora:latest' && 'fedora:latest' }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install dependencies (Ubuntu)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            kernel-headers \
+            autoconf automake libtool build-essential \
+            libcap-ng-dev libaudit-dev \
+            bison flex ${{ matrix.compiler }}
+
+      - name: Install dependencies (Fedora)
+        if: matrix.os == 'fedora:latest'
+        run: |
+          dnf install -y \
+            kernel-headers \
+            autoconf automake libtool gcc gcc-c++ \
+            libcap-ng-devel audit-libs-devel \
+            python3-devel python-unversioned-command swig \
+            krb5-devel \
+            openldap-devel \
+            bison flex ${{ matrix.compiler }}
+
+      - name: Set compiler
+        run: |
+          echo "CC=${{ matrix.compiler }}" >> $GITHUB_ENV
+
+      - name: Build
+        run: |
+          autoreconf -f --install
+          ./configure --with-python3=yes --enable-gssapi-krb5=yes \
+            --with-arm --with-aarch64 --with-libcap-ng=yes \
+            --without-golang --enable-zos-remote \
+            --enable-experimental --with-io_uring
+          make -j$(nproc)
+
+      - name: Run tests
+        run: make check
