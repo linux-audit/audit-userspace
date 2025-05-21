@@ -2,7 +2,7 @@
 # Helper script to provide legacy auditd service options not
 # directly supported by systemd.
 
-state=$(systemctl status auditd | awk '/Active:/ { print $2 }')
+state=$(systemctl show -P ActiveState auditd)
 if [ "$state" = "active" ] ; then
 	/sbin/auditctl --signal stop
 	/bin/systemctl start auditd
