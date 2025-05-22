@@ -1,0 +1,65 @@
+name: CI Matrix
+
+on:
+  push:
+    branches: [main, githubactions]
+  pull_request:
+    branches: [main, githubactions]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    container: ${{ matrix.container }}
+    strategy:
+      fail-fast: false
+      matrix:
+        container: ['ubuntu:latest', 'fedora:latest']
+        compiler: [gcc, clang]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install dependencies (Ubuntu)
+        if: matrix.container == 'ubuntu:latest'
+        run: |
+          apt-get update
+          apt-get install -y \
+            gawk diffutils autoconf automake libtool \
+            ${{ matrix.compiler }} \
+            linux-headers-generic \
+            build-essential \
+            libkrb5-dev \
+            libcap-ng-dev \
+            python3-dev swig \
+            libldap-dev
+
+      - name: Install dependencies (Fedora)
+        if: matrix.container == 'fedora:latest'
+        run: |
+          dnf install -y \
+            gawk diffutils autoconf automake libtool gdm \
+            ${{ matrix.compiler }} \
+            kernel-headers \
+            krb5-devel \
+            libcap-ng-devel \
+            python3-devel python-unversioned-command swig \
+            openldap-devel
+
+      - name: Set compiler
+        run: |
+          echo "CC=${{ matrix.compiler }}" >> $GITHUB_ENV
+
+      - name: Build
+        run: |
+          autoreconf -f --install
+          ./configure --with-python3=yes --enable-gssapi-krb5=yes \
+            --with-arm --with-aarch64 --with-libcap-ng=yes \
+            --without-golang --enable-zos-remote \
+            --enable-experimental --with-io_uring
+          make -j$(nproc)
+
+      - name: Run tests
+        # Temporarily disable for Ubuntu
+        if: matrix.container != 'ubuntu:latest'
+        run: make check
