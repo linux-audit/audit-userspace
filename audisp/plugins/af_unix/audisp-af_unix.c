@@ -251,22 +251,22 @@ void read_audit_record(int ifd)
 				       ifd)) > 0) {
 #ifdef DEBUG
 			write(1, rx_buf, len);
-#else
-			struct audit_dispatcher_header *hdr =
-				(struct audit_dispatcher_header *)rx_buf;
-			char *data = rx_buf +
-				sizeof(struct audit_dispatcher_header);
-			if (inbound_protocol == -1) {
-				if (hdr->ver == AUDISP_PROTOCOL_VER ||
-					hdr->ver == AUDISP_PROTOCOL_VER2)
-					inbound_protocol = F_BINARY;
-				else
-					inbound_protocol = F_STRING;
-			}
-
+#endif
 			if (client) {
 				// Send it to the client
 				int rc;
+				struct audit_dispatcher_header *hdr =
+				    (struct audit_dispatcher_header *)rx_buf;
+				char *data = rx_buf +
+					sizeof(struct audit_dispatcher_header);
+
+				if (inbound_protocol == -1) {
+					if (hdr->ver == AUDISP_PROTOCOL_VER ||
+						hdr->ver == AUDISP_PROTOCOL_VER2)
+						inbound_protocol = F_BINARY;
+					else
+						inbound_protocol = F_STRING;
+				}
 
 				if (format == F_STRING) {
 
@@ -307,7 +307,6 @@ void read_audit_record(int ifd)
 					//}
 				}
 			}
-#endif
 		} else if (audit_fgets_eof())
 			stop = 1;
 	} while (audit_fgets_more(MAX_AUDIT_EVENT_FRAME_SIZE));
