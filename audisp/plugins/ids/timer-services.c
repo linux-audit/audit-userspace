@@ -25,6 +25,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <stdio.h>	// for snprintf
+#include <stdlib.h>	// for free
 #include "timer-services.h"
 #include "nvpair.h"
 #include "reactions.h"
@@ -88,15 +89,24 @@ rerun_jobs:
 	}
 }
 
-void add_timer_job(jobs_t job, const char *arg, unsigned long length)
+int add_timer_job(jobs_t job, const char *arg, unsigned long length)
 {
 	nvnode node;
 
 	node.job = job;
-	node.arg = strdup(arg);
 	node.expiration = time(NULL) + length;
+	node.arg = strdup(arg);
+	if (node.arg == NULL) {
+		if (debug)
+		    my_printf("timer-services: strdup failed adding job");
+		return 1;
+	}
 
-	nvpair_list_append(&jobs, &node);
+	if (nvpair_list_append(&jobs, &node)) {
+		free(node.arg);
+		return 1;
+	}
+	return 0;
 }
 
 void shutdown_timer_services(void)

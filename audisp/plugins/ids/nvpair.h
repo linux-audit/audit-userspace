@@ -51,7 +51,7 @@ void nvpair_list_create(nvlist *l);
 static inline void nvlist_first(nvlist *l) { l->cur = l->head; }
 //nvnode *nvlist_next(nvlist *l);
 static inline nvnode *nvpair_list_get_cur(nvlist *l) { return l->cur; }
-void nvpair_list_append(nvlist *l, nvnode *node);
+int  nvpair_list_append(nvlist *l, nvnode *node);
 void nvpair_list_delete_cur(nvlist *l);
 void nvpair_list_clear(nvlist* l);
 

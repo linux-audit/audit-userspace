@@ -46,9 +46,11 @@ void nvpair_list_create(nvlist *l)
 	return l->cur;
 }*/
 
-void nvpair_list_append(nvlist *l, nvnode *node)
+int nvpair_list_append(nvlist *l, nvnode *node)
 {
 	nvnode* newnode = malloc(sizeof(nvnode));
+	if (newnode == NULL)
+		return 1;
 
 	newnode->arg = node->arg;
 	newnode->job = node->job;
@@ -70,6 +72,8 @@ void nvpair_list_append(nvlist *l, nvnode *node)
 	// make newnode current
 	l->cur = newnode;
 	l->cnt++;
+
+	return 0;
 }
 
 int nvpair_list_find_job(nvlist *l, time_t t)

@@ -206,9 +206,7 @@ int lock_account_timed(const char *acct, unsigned long length)
 	if (rc)
 		return rc;
 
-	add_timer_job(UNLOCK_ACCOUNT, acct, length);
-
-	return 0;
+	return add_timer_job(UNLOCK_ACCOUNT, acct, length);
 }
 
 int block_ip_address(const char *addr)
@@ -227,9 +225,7 @@ int block_ip_address_timed(const char *addr, unsigned long length)
 	if (rc)
 		return rc;
 
-	add_timer_job(UNBLOCK_ADDRESS, addr, length);
-
-	return 0;
+	return add_timer_job(UNBLOCK_ADDRESS, addr, length);
 }
 
 #define MINUTES 60
