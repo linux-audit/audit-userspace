@@ -286,10 +286,8 @@ int main(void)
 						MAX_AUDIT_MESSAGE_LENGTH));
 			}
 			if (FD_ISSET(tfd, &read_mask)) {
-				unsigned long long missed;
 				//my_printf("do_timer_services");
-				do_timer_services(TIMER_INTERVAL);
-				missed=read(tfd, &missed, sizeof (missed));
+				do_timer_services(TIMER_INTERVAL, tfd);
 			}
 
 		}

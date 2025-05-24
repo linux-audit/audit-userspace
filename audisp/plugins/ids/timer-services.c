@@ -43,10 +43,20 @@ void init_timer_services(void)
 	now = time(NULL);
 }
 
-void do_timer_services(unsigned int interval)
+void do_timer_services(unsigned int interval, int timerfd)
 {
-	now += interval;
-rerun_jobs:
+	unsigned long long missed = 0;
+
+	ssize_t r = read(timerfd, &missed, sizeof(missed));
+	if (r != sizeof(missed) || missed == 0)
+		return;
+
+	now += interval * missed;
+
+	// Update with time if the timerfd delta gets too big
+	if (missed > 1 || labs(time(NULL) - now) > (time_t)interval)
+		now = time(NULL);
+
 	while (nvpair_list_find_job(&jobs, now)) {
 		nvnode *j = nvpair_list_get_cur(&jobs);
 		switch (j->job) {
@@ -75,17 +85,6 @@ rerun_jobs:
 				break;
 		}
 		nvpair_list_delete_cur(&jobs);
-	}
-
-	// Every 10 minutes resync to the clock
-	if (now%600 > interval) {
-		time_t cur = now;
-		now = time(NULL);
-		if (now > cur) {
-			if (debug)
-			    my_printf("Time jumped - rerunning jobs");
-			goto rerun_jobs;
-		}
 	}
 }
 
