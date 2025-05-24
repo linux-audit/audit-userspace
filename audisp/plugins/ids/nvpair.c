@@ -82,7 +82,7 @@ int nvpair_list_find_job(nvlist *l, time_t t)
 	l->prev = NULL;
 
 	while (node) {
-		if (node->expiration < t) {
+		if (node->expiration <= t) {
 			l->cur = node;
 			return 1;
 		}
