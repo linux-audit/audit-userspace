@@ -1,5 +1,5 @@
 /* ids.c --
- * Copyright 202-23 Steve Grubb.
+ * Copyright 202-25 Steve Grubb.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -59,7 +59,7 @@ static auparse_state_t *au = NULL;
 #define NO_ACTIONS (!hup && !stop && !dump_state)
 #define STATE_FILE "/var/run/ids-state"
 #define TIMER_INTERVAL 30	// Run every 30 seconds
-static struct ids_conf config;
+struct ids_conf config;
 
 /* Local declarations */
 static void handle_event(auparse_state_t *au,

@@ -56,7 +56,10 @@ struct ids_conf
 	unsigned int option_root_login_allowed;
 	unsigned int option_root_login_weight;
 	unsigned int option_bad_login_weight;
+	unsigned int block_address_time;
 };
+
+extern struct ids_conf config;
 
 int load_config(struct ids_conf *config);
 void reset_config(struct ids_conf *config);

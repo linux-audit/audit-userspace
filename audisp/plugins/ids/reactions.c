@@ -236,8 +236,7 @@ int block_ip_address_timed(const char *addr, unsigned long length)
 
 static void block_address(unsigned int reaction, const char *reason)
 {
-	// FIXME: This should be configurable
-	unsigned time_out = 2*MINUTES;
+	unsigned time_out = config.block_address_time;
 	int res;
 	char buf[80];
 	origin_data_t *o = current_origin();
