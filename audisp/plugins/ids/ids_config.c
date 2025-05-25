@@ -514,6 +514,13 @@ static int block_address_time_parser(struct nv_pair *nv, int line,
 			return 1;
 	}
 
+	// Set an arbitrary limit of 500 days
+	if (i > (500 * 24 * 60 * 6)) {
+		syslog(LOG_ERR,
+		       "block_address_time = %s exceeds the max of 500 days - line %d",
+		       nv->value, line);
+		return 1;
+	}
 	config->block_address_time = (unsigned int)i;
 	return 0;
 }
