@@ -230,12 +230,6 @@ int block_ip_address_timed(const char *addr, unsigned long length)
 	return add_timer_job(UNBLOCK_ADDRESS, addr, length);
 }
 
-#define MINUTES 60
-#define HOURS   60*MINUTES
-#define DAYS    24*HOURS
-#define WEEKS   7*DAYS
-#define MONTHS  30*DAYS
-
 static void block_address(unsigned int reaction, const char *reason)
 {
 	unsigned time_out = config.block_address_time;

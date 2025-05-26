@@ -494,16 +494,16 @@ static int block_address_time_parser(struct nv_pair *nv, int line,
 
 	switch (*end) {
 		case 'm':
-			i *= 60;
+			i *= MINUTES;
 			break;
 		case 'h':
-			i *= 60 * 60;
+			i *= HOURS;
 			break;
 		case 'd':
-			i *= 24 * 60 * 60;
+			i *= DAYS;
 			break;
 		case 'M':
-			i *= 30 * 24 * 60 * 60;
+			i *= MONTHS;
 			break;
 		case '\0':
 			break;
