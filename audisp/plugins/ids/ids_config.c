@@ -123,7 +123,7 @@ void reset_config(struct ids_conf *config)
 	config->option_root_login_allowed = 0;
 	config->option_root_login_weight = 5;
 	config->option_bad_login_weight = 1;
-	config->block_address_time = 43200; // 12 hours
+	config->block_address_time = 12 * HOURS;
 	config->lock_account_time = 20 * MINUTES;
 }
 
@@ -521,7 +521,7 @@ static int block_address_time_parser(struct nv_pair *nv, int line,
 	}
 
 	// Set an arbitrary limit of 500 days
-	if (i > (500 * 24 * 60 * 6)) {
+	if (i > (500 * DAYS)) {
 		syslog(LOG_ERR,
 		       "block_address_time = %s exceeds the max of 500 days - line %d",
 		       nv->value, line);
@@ -575,7 +575,7 @@ static int lock_account_time_parser(struct nv_pair *nv, int line,
 			return 1;
 	}
 
-	if (i > (500 * 24 * 60 * 6)) {
+	if (i > (500 * DAYS)) {
 		syslog(LOG_ERR,
 		 "lock_account_time = %s exceeds the max of 500 days - line %d",
 		 nv->value, line);
