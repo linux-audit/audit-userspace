@@ -7,6 +7,7 @@
 - Improve locating last event if ausearch is using checkpointing
 - af_unix plugin: fix string mode support
 - Remove const from audit_rule_fieldpair_data & audit_rule_interfield_comp_data
+- Add various updates to the experimental ids plugin
 
 4.0.3
 - Remove a RHEL4 flag table since it's been unsupported for a while
