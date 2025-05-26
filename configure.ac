@@ -159,7 +159,7 @@ else
 fi
 AM_CONDITIONAL(USE_PYTHON3, test ${use_python3} = "yes")
 
-if test "x$use_python" = "xyes" || test "x$use_python3" = "xyes" ; then
+if test "x$use_python3" = "xyes" ; then
 	AC_CHECK_PROG([SWIG],[swig],[swig], [no])
 	AS_IF([test x"$SWIG" == x"no"], [AC_MSG_ERROR([Please install swig before configuring (required by python/python3).])])
 fi
@@ -398,7 +398,6 @@ use_io_uring=no)
 if test x$use_io_uring != xno ; then
      AC_DEFINE(WITH_IO_URING,1,[Define if you want to enable io_uring support.])
 fi
-# AM_CONDITIONAL(USE_IO_URING, test x$use_io_uring = xyes)
 AC_MSG_RESULT($use_io_uring)
 
 # linux/ipx.h - deprecated in 2018

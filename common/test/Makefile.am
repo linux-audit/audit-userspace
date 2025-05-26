@@ -20,11 +20,8 @@
 #   Steve Grubb <sgrubb@redhat.com>
 #
 
-CONFIG_CLEAN_FILES = *.loT *.rej *.orig *.cur
+AM_CPPFLAGS = -I${top_srcdir}/common -I${top_srcdir}/lib
 check_PROGRAMS = fgets_test
 TESTS = $(check_PROGRAMS)
-AM_CPPFLAGS = -I${top_srcdir}/common -I${top_srcdir}/lib
-fgets_test_SOURCES = fgets-test.c
-lookup_test_LDFLAGS = -static
-lookup_test_LDADD = ${top_builddir}/common/audit_fgets.o
+fgets_test_LDADD = ${top_builddir}/common/libaucommon.la
 
