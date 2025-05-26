@@ -38,6 +38,9 @@
 #include <pthread.h>
 #include <sys/utsname.h>
 #include <getopt.h>
+#ifdef HAVE_MALLINFO2
+#include <malloc.h>
+#endif
 #ifdef HAVE_ATOMIC
 #include <stdatomic.h>
 #endif
@@ -182,6 +185,25 @@ static void child_handler2( int sig )
 	child_handler(NULL, NULL, 0);
 }
 
+#ifdef HAVE_MALLINFO2
+static struct mallinfo2 last_mi;
+static void write_memory_state(FILE *f)
+{
+	struct mallinfo2 mi = mallinfo2();
+
+	fprintf(f, "glibc arena is: %zu, was: %zu\n",
+			(size_t)mi.arena, (size_t)last_mi.arena);
+	fprintf(f, "glibc ordblks is: %zu, was: %zu\n",
+			(size_t)mi.ordblks, (size_t)last_mi.ordblks);
+	fprintf(f, "glibc uordblks is: %zu, was: %zu\n",
+			(size_t)mi.uordblks, (size_t)last_mi.uordblks);
+	fprintf(f, "glibc fordblks is: %zu, was: %zu\n",
+			(size_t)mi.fordblks, (size_t)last_mi.fordblks);
+
+	memcpy(&last_mi, &mi, sizeof(struct mallinfo2));
+}
+#endif
+
 /*
  * Used to dump internal state information
  */
@@ -204,6 +226,9 @@ static void cont_handler(struct ev_loop *loop, struct ev_signal *sig,
 	libdisp_write_queue_state(f);
 #ifdef USE_LISTENER
 	write_connection_state(f);
+#endif
+#ifdef HAVE_MALLINFO2
+	write_memory_state(f);
 #endif
 	fclose(f);
 }
