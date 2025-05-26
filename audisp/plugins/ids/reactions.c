@@ -22,6 +22,8 @@
 #include "reactions.h"
 #include "session.h"
 #include "timer-services.h"
+#include "account.h"
+//#include "auparse.h"
 
 // Returns 0 on success and 1 on failure
 static int safe_exec(const char *exe, ...)
@@ -299,32 +301,68 @@ void do_reaction(unsigned int answer, const char *reason)
 		unsigned int tmp = 1 << num;
 		if (answer & tmp) {
 			switch (tmp) {
-				// FIXME: do the reactions
+				// FIXME: Need to add audit events for these
 				case REACTION_IGNORE:
 					break;
+				// FIXME: do these reactions
 				case REACTION_LOG:
 				case REACTION_EMAIL:
+					break;
 				case REACTION_TERMINATE_PROCESS:
+					{/*
+					auparse_first_record(au);
+					if (auparse_find_field(au, "pid")) {
+					    int pid = auparse_get_field_int(au);
+					    kill_process(pid);
+					}
+					*/}
 					break;
 				case REACTION_TERMINATE_SESSION:
-				{
-					// FIXME: need to add audit events
+					{
 					session_data_t *s = current_session();
 					kill_session(s->session);
+					}
 					break;
-				}
 				case REACTION_RESTRICT_ROLE:
+					{
+					account_data_t *a = current_account();
+					if (a)
+					    restricted_role(a->name);
+					}
+					break;
 				case REACTION_PASSWORD_RESET:
+					{
+					account_data_t *a = current_account();
+					if (a)
+					    force_password_reset(a->name);
+					}
+					break;
 				case REACTION_LOCK_ACCOUNT_TIMED:
+					{
+					account_data_t *a = current_account();
+					if (a)
+					    lock_account_timed(a->name, 10000);
+					}
+					break;
 				case REACTION_LOCK_ACCOUNT:
+					{
+					account_data_t *a = current_account();
+					if (a)
+					    lock_account(a->name);
+					}
 					break;
 				case REACTION_BLOCK_ADDRESS_TIMED:
 				case REACTION_BLOCK_ADDRESS:
 					block_address(tmp, reason);
 					break;
 				case REACTION_SYSTEM_REBOOT:
+					system_reboot();
+					break;
 				case REACTION_SYSTEM_SINGLE_USER:
+					system_single_user();
+					break;
 				case REACTION_SYSTEM_HALT:
+					system_halt();
 					break;
 				default:
 					if (debug)
