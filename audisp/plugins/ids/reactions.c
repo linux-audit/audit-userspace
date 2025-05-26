@@ -335,7 +335,8 @@ void do_reaction(unsigned int answer, const char *reason)
 					{
 					account_data_t *a = current_account();
 					if (a)
-					    lock_account_timed(a->name, 10000);
+					    lock_account_timed(a->name,
+						config.lock_account_time);
 					}
 					break;
 				case REACTION_LOCK_ACCOUNT:
