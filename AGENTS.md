@@ -48,14 +48,15 @@ successful tests.
 ## Project Structure for Navigation
 
 - `/src`: This is where the code that makes up auditd, audictl, ausearch, and aureport is located
-- `/common`: A library of internal routines
+- `/common`: A library of common internal routines
 - `/lib`: This is where the code for libaudit is located
 - `/auparse`: This is where the code for libauparse is located
 - `/audisp`: This is where we find the code for the real time event dispatcher (which is linked into auditd) and its plugins.
   - `/plugins`: The main directory holding all of the auditd plugins
 - `/tools`: This holds the code for ausyscall, aulast, and aulastlog
+- `/init.d`: This holds the code related to initializing the daemon and loading rules
 - `/docs`: This holds all of the man pages
-- `/bindings`: This holds swig based python binds for libaudit and hand written python bindings for libauparse
+- `/bindings`: This holds swig based python bindings for libaudit and hand written python bindings for libauparse
 - `/contrib`: This holds an example real time plugin
 
 ## Code Style
