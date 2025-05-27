@@ -213,12 +213,21 @@ int lock_account_timed(const char *acct, unsigned long length)
 
 int block_ip_address(const char *addr)
 {
+#ifdef USE_NFTABLES
+	if (debug)
+		my_printf("reaction /sbin/nft add rule inet filter input ip saddr %s drop",
+			  addr);
+	minipause();
+	return safe_exec("/usr/sbin/nft", "add", "rule", "inet", "filter",
+			"input", "ip", "saddr", addr, "drop", NULL);
+#else
 	if (debug)
 		my_printf("reaction /sbin/iptables -I INPUT -s %s -j DROP",
-							addr);
+			  addr);
 	minipause();
 	return safe_exec("/usr/sbin/iptables", "-I", "INPUT", "-s", addr,
-			"-j","DROP", NULL);
+			 "-j","DROP", NULL);
+#endif
 }
 
 int block_ip_address_timed(const char *addr, unsigned long length)
@@ -263,12 +272,21 @@ static void block_address(unsigned int reaction, const char *reason)
 
 int unblock_ip_address(const char *addr)
 {
+#ifdef USE_NFTABLES
+	if (debug)
+		my_printf("reaction /sbin/nft delete rule inet filter input ip saddr %s drop",
+			  addr);
+	minipause();
+	return safe_exec("/usr/sbin/nft", "delete", "rule", "inet", "filter",
+			"input", "ip", "saddr", addr, "drop", NULL);
+#else
 	if (debug)
 		my_printf("reaction /sbin/iptables -D INPUT -s %s -j DROP",
-							addr);
+			  addr);
 	minipause();
 	return safe_exec("/usr/sbin/iptables", "-D", "INPUT", "-s", addr,
 			"-j","DROP", NULL);
+#endif
 }
 
 int system_reboot(void)

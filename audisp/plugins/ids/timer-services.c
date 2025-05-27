@@ -66,7 +66,7 @@ void do_timer_services(unsigned int interval, int timerfd)
 				break;
 			case UNBLOCK_ADDRESS:
 				{
-				// Send iptables rule
+				// Send firewall rule
 				int res = unblock_ip_address(j->arg);
 
 				// Log that its back in business

@@ -408,6 +408,25 @@ if test $ipx_headers = yes ; then
 	AC_DEFINE(HAVE_IPX_HEADERS,1,[IPX packet interpretation])
 fi
 
+# Determine firewall control utility
+AC_ARG_WITH([nftables],
+AS_HELP_STRING([--with-nftables],
+               [use nftables (default is nftables)]),
+with_nftables=$withval,
+with_nftables=yes)
+
+AC_MSG_CHECKING([which firewall command to use])
+if test "x$with_nftables" = xyes ; then
+	AC_DEFINE([USE_NFTABLES], [1],
+		[Define if nftables should be used to manage firewall rules])
+	fwchoice="nftables"
+else
+	AC_DEFINE([USE_IPTABLES], [1],
+		[Define if iptables should be used to manage firewall rules])
+	fwchoice="iptables"
+fi
+AC_MSG_RESULT([$fwchoice])
+
 # See if we want to support lower capabilities for plugins
 LIBCAP_NG_PATH
 
