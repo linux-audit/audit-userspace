@@ -191,12 +191,12 @@ static void write_memory_state(FILE *f)
 {
 	struct mallinfo2 mi = mallinfo2();
 
-	fprintf(f, "glibc arena (total memory) is: %zu, was: %zu\n",
-			(size_t)mi.arena, (size_t)last_mi.arena);
-	fprintf(f, "glibc uordblks (in use memory) is: %zu, was: %zu\n",
-			(size_t)mi.uordblks, (size_t)last_mi.uordblks);
-	fprintf(f, "glibc fordblks (total free space) is: %zu, was: %zu\n",
-			(size_t)mi.fordblks, (size_t)last_mi.fordblks);
+	fprintf(f, "glibc arena (total memory) is: %zu KB, was: %zu KB\n",
+			(size_t)mi.arena/1024, (size_t)last_mi.arena/1024);
+	fprintf(f, "glibc uordblks (in use memory) is: %zu KB, was: %zu KB\n",
+			(size_t)mi.uordblks/1024,(size_t)last_mi.uordblks/1024);
+	fprintf(f,"glibc fordblks (total free space) is: %zu KB, was: %zu KB\n",
+			(size_t)mi.fordblks/1024,(size_t)last_mi.fordblks/1024);
 
 	memcpy(&last_mi, &mi, sizeof(struct mallinfo2));
 }
