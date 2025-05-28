@@ -72,7 +72,7 @@ Please follow it if you wish to contribute.
 
 In practice this means:
 
-- Indent with tabs (8 spaces per tab).
+- Indent with tabs.
 - Keep lines within ~80 columns.
 - Place braces and other formatting as in the kernel style.
 
