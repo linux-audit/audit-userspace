@@ -26,7 +26,7 @@
  *
  *  Note: not all ops are auditable for performance reasons. This was
  *  discussed on the linux-audit mail list:
- *  https://listman.redhat.com/archives/linux-audit/2021-June/018042.html
+ *  https://lists.linux-audit.osci.io/archives/list/linux-audit@lists.linux-audit.osci.io/thread/7VZ6IKS4XRP2UTSHURJDPH2N6LEEZG57/
  *
  *  Operations in opdef.c will have a field, audit_skip, if they are not
  *  auditable. Any operation missing this is auditable and needs to be added.
