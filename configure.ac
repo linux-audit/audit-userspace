@@ -38,7 +38,7 @@ echo Configuring auditd $VERSION
 
 AC_CONFIG_MACRO_DIR([m4])
 AC_CANONICAL_TARGET
-AM_INIT_AUTOMAKE([subdir-objects])
+AM_INIT_AUTOMAKE([subdir-objects foreign])
 LT_INIT
 AC_SUBST(LIBTOOL_DEPS)
 OLDLIBS="$LIBS"
