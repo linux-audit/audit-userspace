@@ -236,6 +236,9 @@ plugin queue size = 2000
 plugin queue overflow detected = no
 plugin queueing suspended = no
 listening for network connections = no
+glibc arena (total memory) is: 244 KB, was: 244 KB
+glibc uordblks (in use memory) is: 90 KB, was: 90 KB
+glibc fordblks (total free space) is: 153 KB, was: 154 KB
 ```
 
 This command causes auditd to dump its internal metrics to /var/run/auditd.state. This can tell you if auditd is healthy.

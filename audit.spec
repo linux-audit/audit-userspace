@@ -282,6 +282,6 @@ fi
 %attr(750,root,root) %{_sbindir}/audispd-zos-remote
 
 %changelog
-* Tue Jan 07 2025 Steve Grubb <sgrubb@redhat.com> 4.0.4-1
+* Wed May 28 2025 Steve Grubb <sgrubb@redhat.com> 4.0.4-1
 - New upstream release
 
