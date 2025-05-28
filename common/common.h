@@ -40,12 +40,6 @@
 #endif
 AUDIT_HIDDEN_START
 
-void audit_fgets_clear(void);
-int audit_fgets_eof(void);
-int audit_fgets_more(size_t blen);
-int audit_fgets(char *buf, size_t blen, int fd)
-	__attr_access ((__write_only__, 1, 2));
-
 char *audit_strsplit_r(char *s, char **savedpp);
 char *audit_strsplit(char *s);
 int audit_is_last_record(int type);

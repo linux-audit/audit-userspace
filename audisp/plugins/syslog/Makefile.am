@@ -1,5 +1,5 @@
 # Makefile.am --
-# Copyright 2018,19 Red Hat Inc., Durham, North Carolina.
+# Copyright 2018,19 Red Hat Inc.
 # All Rights Reserved.
 #
 # This library is free software; you can redistribute it and/or
@@ -30,11 +30,11 @@ plugin_conf = syslog.conf
 sbin_PROGRAMS = audisp-syslog
 man_MANS = audisp-syslog.8
 
-audisp_syslog_DEPENDENCIES = ${top_builddir}/common/libaucommon.la
+audisp_syslog_DEPENDENCIES = ${top_builddir}/lib/libaudit.la
 audisp_syslog_SOURCES = audisp-syslog.c
 audisp_syslog_CFLAGS = -fPIE -DPIE -g -D_GNU_SOURCE -Wundef ${WFLAGS}
 audisp_syslog_LDFLAGS = -pie -Wl,-z,relro -Wl,-z,now
-audisp_syslog_LDADD = $(CAPNG_LDADD) ${top_builddir}/common/libaucommon.la ${top_builddir}/auparse/libauparse.la
+audisp_syslog_LDADD = $(CAPNG_LDADD) ${top_builddir}/auparse/libauparse.la
 
 install-data-hook:
 	mkdir -p -m 0750 ${DESTDIR}${plugin_confdir}

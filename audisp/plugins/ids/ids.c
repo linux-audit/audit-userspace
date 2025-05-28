@@ -35,7 +35,7 @@
 #include <unistd.h>
 #include <sys/timerfd.h>
 #include "auparse.h"
-#include "common.h"
+#include "libaudit.h"
 #include "ids.h"
 #include "ids_config.h"
 #include "origin.h"

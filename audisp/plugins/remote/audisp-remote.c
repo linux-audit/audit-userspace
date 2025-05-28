@@ -51,7 +51,6 @@
 #include "libaudit.h"
 #include "private.h"
 #include "remote-config.h"
-#include "common.h"
 #include "queue.h"
 
 #define CONFIG_FILE "/etc/audit/audisp-remote.conf"

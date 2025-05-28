@@ -20,7 +20,8 @@
 #
 
 AM_CPPFLAGS = -I${top_srcdir}/lib
-check_PROGRAMS = lookup_test
+check_PROGRAMS = lookup_test fgets_test
 TESTS = $(check_PROGRAMS)
 
 lookup_test_LDADD = ${top_builddir}/lib/libaudit.la
+fgets_test_LDADD = ${top_builddir}/lib/libaudit.la

@@ -43,7 +43,6 @@
 #include <cap-ng.h>
 #endif
 #include "libaudit.h"
-#include "common.h"
 #include "audispd-pconfig.h"
 
 #define DEFAULT_PATH "/var/run/audispd_events"

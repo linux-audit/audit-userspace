@@ -21,13 +21,12 @@
 #   Steve Grubb <sgrubb@redhat.com>
 #
 
-SUBDIRS = test
 CONFIG_CLEAN_FILES = *.rej *.orig
 AM_CFLAGS = -fPIC -DPIC -D_GNU_SOURCE -g
 AM_CPPFLAGS = -I${top_srcdir} -I${top_srcdir}/lib
 
 noinst_HEADERS = common.h
 libaucommon_la_DEPENDENCIES = ../config.h
-libaucommon_la_SOURCES = audit-fgets.c strsplit.c common.c
+libaucommon_la_SOURCES = strsplit.c common.c
 noinst_LTLIBRARIES = libaucommon.la
 
