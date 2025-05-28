@@ -24,6 +24,8 @@
 #include <pthread.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <semaphore.h>
+#include <errno.h>
 #include <syslog.h>
 #include <string.h>
 #include <sys/wait.h>
@@ -35,8 +37,13 @@
 
 static volatile event_t **q;
 static pthread_mutex_t queue_lock;
-static pthread_cond_t queue_nonempty;
-static unsigned int q_next, q_last, q_depth, processing_suspended, overflowed;
+static sem_t queue_nonempty;
+#ifdef HAVE_ATOMIC
+static atomic_uint q_next, q_last;
+#else
+static unsigned int q_next, q_last;
+#endif
+static unsigned int q_depth, processing_suspended, overflowed;
 static ATOMIC_UNSIGNED currently_used, max_used;
 static const char *SINGLE = "1";
 static const char *HALT = "0";
@@ -74,7 +81,14 @@ int init_queue(unsigned int size)
 
 		/* Setup IPC mechanisms */
 		pthread_mutex_init(&queue_lock, NULL);
-		pthread_cond_init(&queue_nonempty, NULL);
+		sem_init(&queue_nonempty, 0, 0);
+#ifdef HAVE_ATOMIC
+		atomic_init(&q_next, 0);
+		atomic_init(&q_last, 0);
+#else
+		q_next = 0;
+		q_last = 0;
+#endif
 		reset_suspended();
 	}
 	return 0;
@@ -176,29 +190,33 @@ int enqueue(event_t *e, struct disp_conf *config)
 	}
 
 retry:
-	// We allow 3 retries and then its over
+	/* We allow 3 retries and then its over */
 	if (retry_cnt > 3) {
 		free(e);
-
 		return do_overflow_action(config);
 	}
-	pthread_mutex_lock(&queue_lock);
 
-	// OK, have lock add event
-	n = q_next%q_depth;
+#ifdef HAVE_ATOMIC
+	n = atomic_load_explicit(&q_next, memory_order_relaxed) % q_depth;
+#else
+	n = q_next % q_depth;
+#endif
 	if (q[n] == NULL) {
 		q[n] = e;
+#ifdef HAVE_ATOMIC
+		atomic_store_explicit(&q_next, (n+1) % q_depth,
+                                      memory_order_release);
+#else
 		q_next = (n+1) % q_depth;
+#endif
 		currently_used++;
 		if (currently_used > max_used)
 			max_used = currently_used;
-		pthread_cond_signal(&queue_nonempty);
-		pthread_mutex_unlock(&queue_lock);
+		sem_post(&queue_nonempty);
 	} else {
-		pthread_mutex_unlock(&queue_lock);
 		struct timespec ts;
 		ts.tv_sec = 0;
-		ts.tv_nsec = 2 * 1000 * 1000; // 2 milliseconds
+		ts.tv_nsec = 2 * 1000 * 1000; /* 2 milliseconds */
 		nanosleep(&ts, NULL); /* Let other thread try to log it. */
 		retry_cnt++;
 		goto retry;
@@ -211,40 +229,37 @@ event_t *dequeue(void)
 	event_t *e;
 	unsigned int n;
 
-	// Wait until its got something in it
-	pthread_mutex_lock(&queue_lock);
-	if (disp_hup) {
-		pthread_mutex_unlock(&queue_lock);
+	/* Wait until there is something in the queue */
+	while (sem_wait(&queue_nonempty) == -1 && errno == EINTR)
+		;
+	if (disp_hup)
 		return NULL;
-	}
-	n = q_last%q_depth;
-	if (q[n] == NULL) {
-		pthread_cond_wait(&queue_nonempty, &queue_lock);
-		if (disp_hup) {
-			pthread_mutex_unlock(&queue_lock);
-			return NULL;
-		}
-		n = q_last%q_depth;
-	}
 
-	// OK, grab the next event
+#ifdef HAVE_ATOMIC
+	n = atomic_load_explicit(&q_last, memory_order_relaxed) % q_depth;
+#else
+	n = q_last % q_depth;
+#endif
+
 	if (q[n] != NULL) {
 		e = (event_t *)q[n];
 		q[n] = NULL;
+#ifdef HAVE_ATOMIC
+		atomic_store_explicit(&q_last, (n+1) % q_depth,
+                                     memory_order_release);
+#else
 		q_last = (n+1) % q_depth;
+#endif
+		currently_used--;
 	} else
 		e = NULL;
 
-	currently_used--;
-	pthread_mutex_unlock(&queue_lock);
-
-	// Process the event
-	return e;
+        return e;
 }
 
 void nudge_queue(void)
 {
-	pthread_cond_signal(&queue_nonempty);
+	sem_post(&queue_nonempty);
 }
 
 void increase_queue_depth(unsigned int size)
@@ -256,7 +271,8 @@ void increase_queue_depth(unsigned int size)
 
 		tmp_q = realloc(q, size * sizeof(event_t *));
 		if (tmp_q == NULL) {
-			fprintf(stderr, "Out of Memory. Check %s file, %d line", __FILE__, __LINE__);
+			fprintf(stderr, "Out of Memory. Check %s file, %d line",
+				__FILE__, __LINE__);
 			pthread_mutex_unlock(&queue_lock);
 			return;
 		}
@@ -293,7 +309,14 @@ void destroy_queue(void)
 		free((void *)q[i]);
 
 	free(q);
+	sem_destroy(&queue_nonempty);
+#ifdef HAVE_ATOMIC
+	atomic_store_explicit(&q_next, 0, memory_order_relaxed);
+	atomic_store_explicit(&q_last, 0, memory_order_relaxed);
+#else
+	q_next = 0;
 	q_last = 0;
+#endif
 	q_depth = 0;
 	processing_suspended = 1;
 	currently_used = 0;
