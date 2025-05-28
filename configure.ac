@@ -270,21 +270,6 @@ AC_CHECK_HEADER(linux/fanotify.h, [ AC_DEFINE(USE_FANOTIFY, [],
 	[Defined when fanotify headers are found]) ])
 
 withval=""
-ALLDEBUG="-g"
-AC_ARG_WITH(debug,
-[  --with-debug            turn on debugging [[default=no]]],
-[
-if test "x${withval}" = xyes; then
-        DEBUG="$ALLDEBUG"
-        OPT="-O"
-        AM_CONDITIONAL(DEBUG, true)
-else
-        DEBUG="-DNDEBUG"
-        AM_CONDITIONAL(DEBUG, false)
-fi
-],
-[ DEBUG="-DNDEBUG"; AM_CONDITIONAL(DEBUG, false) ])
-
 WFLAGS=""
 AC_MSG_CHECKING(for -Wformat-truncation)
 TMPCFLAGS="${CFLAGS}"
