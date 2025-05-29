@@ -35,13 +35,27 @@
 #include "queue.h"
 #include "common.h"
 
+/*
+ * Audisp uses a simple ring buffer to pass events from auditd to its
+ * plugin dispatcher thread.  The goal is to avoid blocking producers
+ * and consumers on a mutex.  The semaphore below tracks how many events
+ * are queued while the atomic indices maintain the next slot to use for
+ * enqueueing and dequeueing.  A mutex is only required when the queue is
+ * resized.
+ */
+
 static volatile event_t **q;
 static pthread_mutex_t queue_lock;
 static sem_t queue_nonempty;
 #ifdef HAVE_ATOMIC
+/*
+ * q_next points to the next free slot for the producer.
+ * q_last points to the next item the consumer should read.
+ * Both are updated atomically and wrap at q_depth.
+ */
 static atomic_uint q_next, q_last;
 #else
-static unsigned int q_next, q_last;
+static unsigned int q_next, q_last; /* Fallback when atomics are absent */
 #endif
 static unsigned int q_depth, processing_suspended, overflowed;
 static ATOMIC_UNSIGNED currently_used, max_used;
@@ -197,6 +211,11 @@ retry:
 	}
 
 #ifdef HAVE_ATOMIC
+	/*
+	* Load the producer index with relaxed ordering.  The semaphore
+	* ensures that a consumer will see the event once we publish it
+	* via the atomic store below.
+	*/
 	n = atomic_load_explicit(&q_next, memory_order_relaxed) % q_depth;
 #else
 	n = q_next % q_depth;
@@ -204,6 +223,11 @@ retry:
 	if (q[n] == NULL) {
 		q[n] = e;
 #ifdef HAVE_ATOMIC
+		/*
+		* Store the updated producer index with release semantics so
+		* the written event is visible to the consumer before the
+		* index changes.
+		*/
 		atomic_store_explicit(&q_next, (n+1) % q_depth,
                                       memory_order_release);
 #else
@@ -236,6 +260,7 @@ event_t *dequeue(void)
 		return NULL;
 
 #ifdef HAVE_ATOMIC
+	/* The consumer index can be loaded with relaxed ordering. */
 	n = atomic_load_explicit(&q_last, memory_order_relaxed) % q_depth;
 #else
 	n = q_last % q_depth;
@@ -245,6 +270,7 @@ event_t *dequeue(void)
 		e = (event_t *)q[n];
 		q[n] = NULL;
 #ifdef HAVE_ATOMIC
+		/* Release ensures the slot is cleared before we advance */
 		atomic_store_explicit(&q_last, (n+1) % q_depth,
                                      memory_order_release);
 #else
