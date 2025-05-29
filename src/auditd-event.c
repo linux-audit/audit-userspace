@@ -36,9 +36,6 @@
 #include <limits.h>     /* POSIX_HOST_NAME_MAX */
 #include <ctype.h>	/* toupper */
 #include <libgen.h>	/* dirname */
-#ifdef HAVE_ATOMIC
-#include <stdatomic.h>
-#endif
 #include "auditd-event.h"
 #include "auditd-dispatch.h"
 #include "auditd-listen.h"
@@ -50,7 +47,11 @@
 #include <sys/wait.h>
 
 /* This is defined in auditd.c */
+#ifdef HAVE_ATOMIC
+extern ATOMIC_INT stop;
+#else
 extern volatile ATOMIC_INT stop;
+#endif
 
 /* Local function prototypes */
 static void send_ack(const struct auditd_event *e, int ack_type,
@@ -218,7 +219,7 @@ static void *flush_thread_main(void *arg)
 	sigaddset(&sigs, SIGCONT);
 	pthread_sigmask(SIG_SETMASK, &sigs, NULL);
 
-	while (!stop) {
+	while (!AUDIT_ATOMIC_LOAD(stop)) {
 		pthread_mutex_lock(&flush_lock);
 
 		// In the event that the logging thread requests another
@@ -226,7 +227,7 @@ static void *flush_thread_main(void *arg)
 		// into a loop of fsyncs.
 		while (flush == 0) {
 			pthread_cond_wait(&do_flush, &flush_lock);
-			if (stop) {
+			if (AUDIT_ATOMIC_LOAD(stop)) {
 				pthread_mutex_unlock(&flush_lock);
 				return NULL;
 			}
@@ -925,14 +926,14 @@ static void do_space_left_action(int admin)
 			audit_msg(LOG_ALERT,
 				"The audit daemon is now changing the system to single user mode and exiting due to low disk space");
 			change_runlevel(SINGLE);
-			stop = 1;
+			AUDIT_ATOMIC_STORE(stop, 1);
 			break;
 		case FA_HALT:
 			// Only available for admin
 			audit_msg(LOG_ALERT,
 				"The audit daemon is now halting the system and exiting due to low disk space");
 			change_runlevel(HALT);
-			stop = 1;
+			AUDIT_ATOMIC_STORE(stop, 1);
 			break;
 		default:
 			audit_msg(LOG_ALERT,
@@ -983,13 +984,13 @@ static void do_disk_full_action(void)
 			audit_msg(LOG_ALERT,
 				"The audit daemon is now changing the system to single user mode and exiting due to no space left on logging partition");
 			change_runlevel(SINGLE);
-			stop = 1;
+			AUDIT_ATOMIC_STORE(stop, 1);
 			break;
 		case FA_HALT:
 			audit_msg(LOG_ALERT,
 				"The audit daemon is now halting the system and exiting due to no space left on logging partition");
 			change_runlevel(HALT);
-			stop = 1;
+			AUDIT_ATOMIC_STORE(stop, 1);
 			break;
 		default:
 			audit_msg(LOG_ALERT, "Unknown disk full action requested");
@@ -1040,13 +1041,13 @@ static void do_disk_error_action(const char *func, int err)
 			audit_msg(LOG_ALERT,
 				"The audit daemon is now changing the system to single user mode and exiting due to previously mentioned write error");
 			change_runlevel(SINGLE);
-			stop = 1;
+			AUDIT_ATOMIC_STORE(stop, 1);
 			break;
 		case FA_HALT:
 			audit_msg(LOG_ALERT,
 				"The audit daemon is now halting the system and exiting due to previously mentioned write error.");
 			change_runlevel(HALT);
-			stop = 1;
+			AUDIT_ATOMIC_STORE(stop, 1);
 			break;
 		default:
 			audit_msg(LOG_ALERT,

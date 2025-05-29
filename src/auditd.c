@@ -41,15 +41,13 @@
 #ifdef HAVE_MALLINFO2
 #include <malloc.h>
 #endif
-#ifdef HAVE_ATOMIC
-#include <stdatomic.h>
-#endif
 
 #include "libaudit.h"
 #include "auditd-event.h"
 #include "auditd-config.h"
 #include "auditd-dispatch.h"
 #include "auditd-listen.h"
+#include "common.h"
 #include "libdisp.h"
 #include "private.h"
 
@@ -59,7 +57,10 @@
 #error "LIBEV must not have EV_CHILD_ENABLE set"
 #endif
 
-#define EV_STOP() ev_unloop (ev_default_loop (EVFLAG_AUTO), EVUNLOOP_ALL), stop = 1;
+#define EV_STOP() do {\
+ev_unloop(ev_default_loop(EVFLAG_AUTO), EVUNLOOP_ALL);\
+AUDIT_ATOMIC_STORE(stop, 1);\
+} while (0)
 
 #define DEFAULT_BUF_SZ	448
 #define DMSG_SIZE (DEFAULT_BUF_SZ + 48) 
@@ -68,7 +69,11 @@
 #define SUBJ_LEN 4097
 
 /* Global Data */
+#ifdef HAVE_ATOMIC
+ATOMIC_INT stop = 0;
+#else
 volatile ATOMIC_INT stop = 0;
+#endif
 
 /* Local data */
 static int fd = -1, pipefds[2] = {-1, -1};
@@ -906,7 +911,7 @@ int main(int argc, char *argv[])
 				"ses=%u res=failed",
 				audit_getloginuid(), getpid(),
 				getuid(), session);
-		stop = 1;
+		AUDIT_ATOMIC_STORE(stop, 1);
 		send_audit_event(AUDIT_DAEMON_ABORT, emsg);
 		audit_msg(LOG_ERR,
 		"Unable to set initial audit startup state to '%s', exiting",
@@ -937,7 +942,7 @@ int main(int argc, char *argv[])
 				"ses=%u res=failed",
 				audit_getloginuid(), getpid(),
 				getuid(), session);
-		stop = 1;
+		AUDIT_ATOMIC_STORE(stop, 1);
 		send_audit_event(AUDIT_DAEMON_ABORT, emsg);
 		audit_msg(LOG_ERR, "Unable to set audit pid, exiting");
 		shutdown_events();
@@ -992,7 +997,7 @@ int main(int argc, char *argv[])
 				"ses=%u res=failed",
 				audit_getloginuid(), getpid(),
 				getuid(), session);
-		stop = 1;
+		AUDIT_ATOMIC_STORE(stop, 1);
 		send_audit_event(AUDIT_DAEMON_ABORT, emsg);
 		tell_parent(FAILURE);
 	} else {
@@ -1009,7 +1014,7 @@ int main(int argc, char *argv[])
 		close(init_pipe[1]);
 
 	// Init complete, start event loop
-	if (!stop)
+	if (!AUDIT_ATOMIC_LOAD(stop))
 		ev_loop (loop, 0);
 
 	// Event loop finished, clean up everything

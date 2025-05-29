@@ -20,9 +20,12 @@
  *      Steve Grubb <sgrubb@redhat.com>
  */
 
-#ifndef AUDIT_FGETS_HEADER
-#define AUDIT_FGETS_HEADER
+#ifndef AUDIT_COMMON_HEADER
+#define AUDIT_COMMON_HEADER
 
+#ifdef HAVE_ATOMIC
+#include <stdatomic.h>
+#endif
 #include <sys/types.h>
 #include "dso.h"
 // These macros originate in sys/cdefs.h
@@ -37,6 +40,18 @@
 #endif
 #ifndef __wur
 # define __wur
+#endif
+
+/* Wrapper macros for optional atomics
+ * Note: ATOMIC_INT and ATOMIC_UNSIGNED are defined in config.h */
+#ifdef HAVE_ATOMIC
+#  define AUDIT_ATOMIC_STORE(var, val) \
+   atomic_store_explicit(&(var), (val), memory_order_relaxed)
+#  define AUDIT_ATOMIC_LOAD(var) \
+   atomic_load_explicit(&(var), memory_order_relaxed)
+#else
+#  define AUDIT_ATOMIC_STORE(var, val) do { (var) = (val); } while (0)
+#  define AUDIT_ATOMIC_LOAD(var) (var)
 #endif
 AUDIT_HIDDEN_START
 

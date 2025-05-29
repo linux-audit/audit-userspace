@@ -29,9 +29,6 @@
 #include <syslog.h>
 #include <string.h>
 #include <sys/wait.h>
-#ifdef HAVE_ATOMIC
-#include <stdatomic.h>
-#endif
 #include "queue.h"
 #include "common.h"
 
@@ -54,15 +51,16 @@ static sem_t queue_nonempty;
  * Both are updated atomically and wrap at q_depth.
  */
 static atomic_uint q_next, q_last;
+extern ATOMIC_INT disp_hup;
 #else
 static unsigned int q_next, q_last; /* Fallback when atomics are absent */
+extern volatile ATOMIC_INT disp_hup;
 #endif
 static unsigned int q_depth, processing_suspended, overflowed;
 static ATOMIC_UNSIGNED currently_used, max_used;
 static const char *SINGLE = "1";
 static const char *HALT = "0";
 static int queue_full_warning = 0;
-extern volatile ATOMIC_INT disp_hup;
 #define QUEUE_FULL_LIMIT 5
 
 void reset_suspended(void)
@@ -212,9 +210,10 @@ retry:
 
 #ifdef HAVE_ATOMIC
 	/*
-	* Load the producer index with relaxed ordering.  The semaphore
-	* ensures that a consumer will see the event once we publish it
-	* via the atomic store below.
+	* Load the producer index with relaxed ordering.  sem_post() acts
+	* as a release barrier and sem_wait() in dequeue() provides the
+	* matching acquire barrier.  Because the threads synchronize on
+	* the semaphore, a relaxed load of q_next is sufficient here.
 	*/
 	n = atomic_load_explicit(&q_next, memory_order_relaxed) % q_depth;
 #else
@@ -224,9 +223,12 @@ retry:
 		q[n] = e;
 #ifdef HAVE_ATOMIC
 		/*
-		* Store the updated producer index with release semantics so
-		* the written event is visible to the consumer before the
-		* index changes.
+		* Store the updated producer index with release semantics.
+		* The event was written to q[n] above and sem_post() will be
+		* issued next.  sem_post() itself is a release barrier and
+		* sem_wait() in dequeue() will acquire it, so the combination
+		* guarantees the consumer sees the event before noticing that
+		* q_next advanced.
 		*/
 		atomic_store_explicit(&q_next, (n+1) % q_depth,
                                       memory_order_release);
@@ -256,11 +258,15 @@ event_t *dequeue(void)
 	/* Wait until there is something in the queue */
 	while (sem_wait(&queue_nonempty) == -1 && errno == EINTR)
 		;
-	if (disp_hup)
+	if (AUDIT_ATOMIC_LOAD(disp_hup))
 		return NULL;
 
 #ifdef HAVE_ATOMIC
-	/* The consumer index can be loaded with relaxed ordering. */
+	/*
+	* The consumer waits on sem_wait() above which provides an acquire
+	* barrier for the producer's sem_post().  Because of that
+	* synchronization a relaxed load of the consumer index is safe here.
+	*/
 	n = atomic_load_explicit(&q_last, memory_order_relaxed) % q_depth;
 #else
 	n = q_last % q_depth;
@@ -270,7 +276,12 @@ event_t *dequeue(void)
 		e = (event_t *)q[n];
 		q[n] = NULL;
 #ifdef HAVE_ATOMIC
-		/* Release ensures the slot is cleared before we advance */
+		/*
+		* Release ensures the slot is cleared before we advance the
+		* consumer index.  The following sem_post() pairs with the
+		* producer's sem_wait(), so the semaphore again provides the
+		* cross-thread ordering needed for the queue operations.
+		*/
 		atomic_store_explicit(&q_last, (n+1) % q_depth,
                                      memory_order_release);
 #else
@@ -337,6 +348,11 @@ void destroy_queue(void)
 	free(q);
 	sem_destroy(&queue_nonempty);
 #ifdef HAVE_ATOMIC
+	/*
+	* Queue teardown is single threaded and no longer interacts with the
+	* semaphore.  A relaxed store is therefore sufficient when resetting
+	* the indices.
+	*/
 	atomic_store_explicit(&q_next, 0, memory_order_relaxed);
 	atomic_store_explicit(&q_last, 0, memory_order_relaxed);
 #else

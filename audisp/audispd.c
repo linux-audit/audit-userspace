@@ -37,20 +37,23 @@
 #include <limits.h>
 #include <sys/uio.h>
 #include <getopt.h>
-#ifdef HAVE_ATOMIC
-#include <stdatomic.h>
-#endif
 
 #include "audispd-pconfig.h"
 #include "audispd-config.h"
 #include "audispd-llist.h"
 #include "queue.h"
 #include "libaudit.h"
+#include "common.h"
 #include "private.h"
 
 /* Global Data */
+#ifdef HAVE_ATOMIC
+static ATOMIC_INT stop = 0;
+ATOMIC_INT disp_hup = 0;
+#else
 static volatile ATOMIC_INT stop = 0;
 volatile ATOMIC_INT disp_hup = 0;
+#endif
 
 /* Local data */
 static daemon_conf_t daemon_config;
@@ -386,7 +389,7 @@ static void *outbound_thread_main(void *arg)
 		"After reconfigure, there are no active plugins, exiting");
 			break;
 		}
-		disp_hup = 0;
+		AUDIT_ATOMIC_STORE(disp_hup, 0);
 	}
 
 	/* Tell plugins we are going down */
@@ -498,7 +501,7 @@ static int write_to_plugin(event_t *e, const char *string, size_t string_len,
 static int event_loop(void)
 {
 	/* Figure out the format for the af_unix socket */
-	while (stop == 0) {
+	while (AUDIT_ATOMIC_LOAD(stop) == 0) {
 		event_t *e;
 		char *v, *ptr, unknown[32];
 		int len;
@@ -507,7 +510,7 @@ static int event_loop(void)
 		/* This is where we block until we have an event */
 		e = dequeue();
 		if (e == NULL) {
-			if (disp_hup)
+			if (AUDIT_ATOMIC_LOAD(disp_hup))
 				return 1;
 			continue;
 		}
@@ -551,16 +554,17 @@ static int event_loop(void)
 		do {
 			if (conf == NULL || conf->p == NULL)
 				continue;
-			if (conf->p->active == A_NO || stop)
+			if (conf->p->active == A_NO || AUDIT_ATOMIC_LOAD(stop))
 				continue;
 
 			/* Now send the event to the child */
-			if (conf->p->type == S_ALWAYS && !stop) {
+			if (conf->p->type == S_ALWAYS &&
+					!AUDIT_ATOMIC_LOAD(stop)) {
 				int rc;
 				rc = write_to_plugin(e, v, len, conf);
 				if (rc < 0 && errno == EPIPE) {
 					/* Child disappeared ? */
-					if (!stop)
+					if (!AUDIT_ATOMIC_LOAD(stop))
 						audit_msg(LOG_ERR,
 					"plugin %s terminated unexpectedly",
 								conf->p->path);
@@ -569,13 +573,15 @@ static int event_loop(void)
 					close(conf->p->plug_pipe[1]);
 					conf->p->plug_pipe[1] = -1;
 					conf->p->active = A_NO;
-					if (!stop && conf->p->restart_cnt >
-						daemon_config.max_restarts) {
+					if (!AUDIT_ATOMIC_LOAD(stop) &&
+					    conf->p->restart_cnt >
+					    daemon_config.max_restarts) {
 						audit_msg(LOG_ERR,
 					"plugin %s has exceeded max_restarts",
 								conf->p->path);
 					}
-					if (!stop && start_one_plugin(conf)) {
+					if (!AUDIT_ATOMIC_LOAD(stop) &&
+					    start_one_plugin(conf)) {
 						rc = write_to_plugin(e, v, len,
 								     conf);
 						audit_msg(LOG_NOTICE,
@@ -585,16 +591,17 @@ static int event_loop(void)
 					}
 				}
 			}
-		} while (!stop && (conf = plist_next(&plugin_conf)));
+		} while (!AUDIT_ATOMIC_LOAD(stop) &&
+			 (conf = plist_next(&plugin_conf)));
 
 		/* Done with the memory...release it */
 		free(v);
 		free(e);
-		if (disp_hup)
+		if (AUDIT_ATOMIC_LOAD(disp_hup))
 			break;
 	}
 	audit_msg(LOG_DEBUG, "Dispatcher event loop exit");
-	if (stop)
+	if (AUDIT_ATOMIC_LOAD(stop))
 		return 0;
 	else
 		return 1;
@@ -631,7 +638,7 @@ void libdisp_reconfigure(const struct daemon_conf *c)
 		libdisp_init(c);
 	else { // Otherwise we do a reconfigure
 			copy_config(c);
-			disp_hup = 1;
+			AUDIT_ATOMIC_STORE(disp_hup, 1);
 			nudge_queue();
 	}
 }
@@ -651,7 +658,7 @@ void libdisp_resume(void)
 /* Used during startup and something failed */
 void libdisp_shutdown(void)
 {
-	stop = 1;
+	AUDIT_ATOMIC_STORE(stop, 1);
 	libdisp_nudge_queue();
 }
 
