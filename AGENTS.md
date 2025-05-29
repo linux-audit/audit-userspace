@@ -75,6 +75,10 @@ In practice this means:
 - Indent with tabs.
 - Keep lines within ~80 columns.
 - Place braces and other formatting as in the kernel style.
+- Add a comment before any new function describing it, input variables, and return codes.
+- Comments within a function may be C++ style.
+- Do not do any whitespace adustment of existing code.
+- Keep existing function and variable names.
 
 ## Commit Messages
 
