@@ -442,8 +442,12 @@ static int safe_exec(plugin_conf_t *conf)
 		conf->pid = 0;
 		return -1;	/* Failed to fork */
 	}
+#ifdef HAVE_CLOSE_RANGE
+	close_range(3, ~0U, 0);	/* close all past stderr */
+#else
 	for (i=3; i<24; i++)	 /* Arbitrary number */
 		close(i);
+#endif
 
 	argv = calloc(conf->nargs + 2, sizeof(char *));
 	if (argv == NULL) {

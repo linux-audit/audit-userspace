@@ -77,6 +77,8 @@ dnl; check if faccessat is available
 AC_CHECK_FUNCS([faccessat])
 dnl; check if mallinfo2 is available
 AC_CHECK_FUNCS([mallinfo2])
+dnl; check if close_range is available
+AC_CHECK_FUNCS([close_range])
 dnl; check if strndupa is available
 AC_LINK_IFELSE(
   [AC_LANG_SOURCE(
