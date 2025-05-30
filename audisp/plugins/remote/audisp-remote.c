@@ -248,6 +248,7 @@ static void safe_exec(const char *exe, const char *message)
 {
 	char *argv[3];
 	int pid;
+	struct sigaction sa;
 
 	if (exe == NULL) {
 		syslog(LOG_ALERT,
@@ -265,6 +266,9 @@ static void safe_exec(const char *exe, const char *message)
 		return;
 
 	/* Child */
+	sigfillset (&sa.sa_mask);
+	sigprocmask (SIG_UNBLOCK, &sa.sa_mask, 0);
+
 	argv[0] = (char *)exe;
 	argv[1] = (char *)message;
 	argv[2] = NULL;

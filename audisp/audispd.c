@@ -417,6 +417,7 @@ static int safe_exec(plugin_conf_t *conf)
 {
 	char **argv;
 	int pid, i;
+	struct sigaction sa;
 
 	/* Set up IPC with child */
 	if (socketpair(AF_UNIX, SOCK_STREAM, 0, conf->plug_pipe) != 0)
@@ -434,7 +435,7 @@ static int safe_exec(plugin_conf_t *conf)
 		return -1;	/* Failed to fork */
 	}
 
-	/* Set up comm with child */
+	/* Set up comm with child. It reads stdin so put the pipe there. */
 	if (dup2(conf->plug_pipe[0], 0) < 0) {
 		close(conf->plug_pipe[0]);
 		close(conf->plug_pipe[1]);
@@ -450,6 +451,9 @@ static int safe_exec(plugin_conf_t *conf)
 	}
 
 	/* Child */
+	sigfillset (&sa.sa_mask);
+	sigprocmask (SIG_UNBLOCK, &sa.sa_mask, 0);
+
 	argv[0] = (char *)conf->path;
 	for (i = 0; i < conf->nargs; i++) {
 		argv[i+1] = conf->args[conf->nargs-i-1];
