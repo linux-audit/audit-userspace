@@ -1,5 +1,6 @@
 4.0.5
 - Make audit_fgets a public API
+- Rework audisp queue to be lockless
 
 4.0.4
 - auditctl: update io_uring operations table
