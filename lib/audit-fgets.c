@@ -1,5 +1,5 @@
 /* audit-fgets.c -- a replacement for glibc's fgets
- * Copyright 2018,2022 Red Hat Inc.
+ * Copyright 2018,2022,2025 Red Hat Inc.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -26,6 +26,19 @@
 #include <unistd.h>
 #include <errno.h>
 #include "libaudit.h"
+
+/*
+ * The theory of operation for this family of functions is that it
+ * operates like the glibc fgets function except with a descriptor.
+ * It reads from the descriptor into a buffer and then looks through
+ * the buffer to find a string terminated with a '\n'. It terminates
+ * the string with a 0 and returns it. It updates current to point
+ * to where it left off. On the next read it starts there and tries to
+ * find a '\n'. If it can't find one, it slides the buffer down and
+ * fills as much as it can from the descriptor. If the descriptor
+ * becomes invalid or there is an error reading, it makes eof true.
+ * The variable eptr marks the end of the buffer. It never changes.
+ */
 
 #define BUF_SIZE 8192
 static char buffer[2*BUF_SIZE+1] = { 0 };
