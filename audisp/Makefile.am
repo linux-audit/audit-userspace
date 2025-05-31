@@ -24,8 +24,6 @@
 SUBDIRS = plugins 
 CONFIG_CLEAN_FILES = *.rej *.orig
 AM_CPPFLAGS = -D_GNU_SOURCE -fPIC -DPIC -I${top_srcdir} -I${top_srcdir}/lib -I${top_srcdir}/src -I${top_srcdir}/src/libev -I${top_srcdir}/common
-LIBS = ${top_builddir}/lib/libaudit.la
-LDADD = -lpthread
 
 noinst_HEADERS = audispd-pconfig.h audispd-llist.h audispd-config.h \
 	queue.h libdisp.h
@@ -33,4 +31,6 @@ libdisp_la_SOURCES = audispd.c audispd-pconfig.c queue.c \
 	audispd-llist.c
 libdisp_la_CFLAGS = -fno-strict-aliasing ${WFLAGS}
 libdisp_la_LDFLAGS = -no-undefined -static
+libdisp_la_LIBADD = ${top_builddir}/lib/libaudit.la -lpthread
+libdisp_la_DEPENDENCIES = ${top_builddir}/lib/libaudit.la
 noinst_LTLIBRARIES = libdisp.la

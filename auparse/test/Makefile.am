@@ -31,16 +31,19 @@ lookup_test_SOURCES = lookup_test.c
 lookup_test_LDFLAGS = -static
 lookup_test_LDADD = ${top_builddir}/auparse/libauparse.la \
 	${top_builddir}/lib/libaudit.la ${top_builddir}/common/libaucommon.la
+lookup_test_DEPENDENCIES = ${top_builddir}/auparse/libauparse.la ${top_builddir}/lib/libaudit.la ${top_builddir}/common/libaucommon.la
 
 auparse_test_SOURCES = auparse_test.c
 auparse_test_LDFLAGS = -static
 auparse_test_LDADD = ${top_builddir}/auparse/libauparse.la \
 	${top_builddir}/lib/libaudit.la ${top_builddir}/common/libaucommon.la
+auparse_test_DEPENDENCIES = ${top_builddir}/auparse/libauparse.la ${top_builddir}/lib/libaudit.la ${top_builddir}/common/libaucommon.la
 
 auparselol_test_SOURCES = auparselol_test.c
 auparselol_test_LDFLAGS = -static
 auparselol_test_LDADD = ${top_builddir}/auparse/libauparse.la \
 	${top_builddir}/lib/libaudit.la ${top_builddir}/common/libaucommon.la
+auparselol_test_DEPENDENCIES = ${top_builddir}/auparse/libauparse.la ${top_builddir}/lib/libaudit.la ${top_builddir}/common/libaucommon.la
 
 drop_srcdir = sed 's,$(srcdir)/test,test,'
 

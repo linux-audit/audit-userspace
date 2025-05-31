@@ -1,6 +1,6 @@
 # Makefile.am--
 # Copyright (C) 2007,2008 International Business Machines  Corp.
-# Copyright (C) 2011, 2015 Red Hat., Durham, North Carolina.
+# Copyright (C) 2011, 2015 Red Hat.
 # All Rights Reserved.
 #
 # This program is free software; you can redistribute it and/or modify
@@ -25,8 +25,6 @@
 AM_CPPFLAGS = -I${top_srcdir} -I${top_srcdir}/lib -I${top_srcdir}/auparse
 CONFIG_CLEAN_FILES = *.rej *.orig
 EXTRA_DIST = zos-remote.conf audispd-zos-remote.conf
-LIBS = ${top_builddir}/auparse/libauparse.la
-LDADD = -lpthread -lldap -llber $(CAPNG_LDADD) 
 plugin_confdir=$(sysconfdir)/audit
 plugin_conf = zos-remote.conf
 dispatcher_confdir = $(plugin_confdir)/plugins.d
@@ -39,6 +37,8 @@ audispd_zos_remote_SOURCES = zos-remote-plugin.c zos-remote-log.c \
 	zos-remote-ldap.c zos-remote-config.c zos-remote-queue.c
 audispd_zos_remote_CFLAGS = -W -Wall -Wundef -D_GNU_SOURCE -fPIE -DPIE ${WFLAGS}
 audispd_zos_remote_LDFLAGS = -pie -Wl,-z,relro -Wl,-z,now
+audispd_zos_remote_LDADD = -lpthread -lldap -llber $(CAPNG_LDADD) ${top_builddir}/auparse/libauparse.la
+audispd_zos_remote_DEPENDENCIES = ${top_builddir}/auparse/libauparse.la
 
 install-data-hook:
 	mkdir -p -m 0750 ${DESTDIR}${plugin_confdir}

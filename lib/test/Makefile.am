@@ -24,4 +24,6 @@ check_PROGRAMS = lookup_test fgets_test
 TESTS = $(check_PROGRAMS)
 
 lookup_test_LDADD = ${top_builddir}/lib/libaudit.la
+lookup_test_DEPENDENCIES = ${top_builddir}/lib/libaudit.la
 fgets_test_LDADD = ${top_builddir}/lib/libaudit.la
+fgets_test_DEPENDENCIES = ${top_builddir}/lib/libaudit.la

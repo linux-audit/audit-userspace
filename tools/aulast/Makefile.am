@@ -1,5 +1,5 @@
 # Makefile.am --
-# Copyright 2008,2010,2015 Red Hat Inc., Durham, North Carolina.
+# Copyright 2008,2010,2015 Red Hat Inc.
 # All Rights Reserved.
 #
 # This library is free software; you can redistribute it and/or
@@ -24,11 +24,11 @@
 CONFIG_CLEAN_FILES = *.loT *.rej *.orig
 EXTRA_DIST = $(man_MANS)
 AM_CPPFLAGS = -I${top_srcdir} -I${top_srcdir}/lib -I${top_srcdir}/auparse
-LIBS = ${top_builddir}/auparse/libauparse.la
 AM_CFLAGS = -D_GNU_SOURCE ${WFLAGS}
 bin_PROGRAMS = aulast
 noinst_HEADERS = aulast-llist.h
 man_MANS = aulast.8
 
 aulast_SOURCES = aulast.c aulast-llist.c
-
+aulast_LDADD = ${top_builddir}/auparse/libauparse.la
+aulast_DEPENDENCIES = ${top_builddir}/auparse/libauparse.la

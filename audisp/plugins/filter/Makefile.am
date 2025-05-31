@@ -1,5 +1,5 @@
 # Makefile.am --
-# Copyright 2024 Red Hat Inc., Durham, North Carolina.
+# Copyright 2024 Red Hat Inc.
 # All Rights Reserved.
 #
 # This library is free software; you can redistribute it and/or
@@ -31,7 +31,7 @@ plugin_conf = filter.conf
 sbin_PROGRAMS = audisp-filter
 man_MANS = audisp-filter.8
 
-audisp_filter_DEPENDENCIES = ${top_builddir}/common/libaucommon.la
+audisp_filter_DEPENDENCIES = ${top_builddir}/common/libaucommon.la ${top_builddir}/auparse/libauparse.la
 audisp_filter_SOURCES = audisp-filter.c
 audisp_filter_CFLAGS = -fPIE -DPIE -g -D_GNU_SOURCE -Wundef ${WFLAGS}
 audisp_filter_LDFLAGS = -pie -Wl,-z,relro -Wl,-z,now

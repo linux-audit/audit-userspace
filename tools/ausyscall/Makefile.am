@@ -1,5 +1,5 @@
 # Makefile.am --
-# Copyright 2008,2015,2019 Red Hat Inc., Durham, North Carolina.
+# Copyright 2008,2015,2019 Red Hat Inc.
 # All Rights Reserved.
 #
 # This library is free software; you can redistribute it and/or
@@ -24,9 +24,10 @@
 CONFIG_CLEAN_FILES = *.loT *.rej *.orig
 EXTRA_DIST = $(man_MANS)
 AM_CPPFLAGS = -I${top_srcdir} -I${top_srcdir}/lib
-LIBS = ${top_builddir}/lib/libaudit.la
 AM_CFLAGS = -D_GNU_SOURCE ${WFLAGS}
 bin_PROGRAMS = ausyscall
 man_MANS = ausyscall.8
 
 ausyscall_SOURCES = ausyscall.c
+ausyscall_LDADD = ${top_builddir}/lib/libaudit.la
+ausyscall_DEPENDENCIES = ${top_builddir}/lib/libaudit.la
