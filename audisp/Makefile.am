@@ -29,7 +29,6 @@ LDADD = -lpthread
 
 noinst_HEADERS = audispd-pconfig.h audispd-llist.h audispd-config.h \
 	queue.h libdisp.h
-libdisp_la_DEPENDENCIES = ${top_builddir}/lib/libaudit.la
 libdisp_la_SOURCES = audispd.c audispd-pconfig.c queue.c \
 	audispd-llist.c
 libdisp_la_CFLAGS = -fno-strict-aliasing ${WFLAGS}
