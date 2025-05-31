@@ -1,0 +1,51 @@
+.TH "AUDIT_FGETS" "3" "May 2025" "Red Hat" "Linux Audit API"
+.SH NAME
+audit_fgets, audit_fgets_more, audit_fgets_eof, audit_fgets_clear \- buffered line reader helpers
+.SH SYNOPSIS
+.B #include <libaudit.h>
+.sp
+.BI "int audit_fgets(char *" buf ", size_t " blen ", int " fd ");"
+.br
+.BI "int audit_fgets_more(size_t " blen ");"
+.br
+.BI "int audit_fgets_eof(void);"
+.br
+.B void audit_fgets_clear(void);
+.SH DESCRIPTION
+.B audit_fgets
+reads from
+.I fd
+into
+.I buf
+up to
+.I blen
+bytes or through the next newline. Text is accumulated across calls in an internal buffer so that complete lines can be returned. The string is NUL terminated.
+.PP
+.B audit_fgets_more
+checks whether the buffer holds a newline or at least
+.I blen - 1
+bytes.
+.PP
+.B audit_fgets_eof
+indicates whether end of file was reached on
+.I fd
+.
+.PP
+.B audit_fgets_clear
+resets the internal buffer and EOF state, discarding any stored text.
+.PP
+These functions maintain static state and are therefore not thread safe.
+.SH RETURN VALUE
+.B audit_fgets
+returns -1 on error, 0 when no data is available, or the number of characters copied otherwise.
+.PP
+.B audit_fgets_more
+and
+.B audit_fgets_eof
+return 1 for true and 0 for false.
+.PP
+.B audit_fgets_clear
+returns no value.
+.SH SEE ALSO
+.BR fgets (3)
+
