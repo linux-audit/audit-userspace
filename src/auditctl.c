@@ -836,6 +836,25 @@ static int opt_prepend(opt_handler_params_t *args)
 	return retval;
 }
 
+static int opt_delete(opt_handler_params_t *args)
+{
+	int retval = args->retval, rc;
+	rc = audit_rule_setup(optarg, &del, &action);
+	if (rc == 3) {
+		audit_msg(LOG_ERR,
+		    "Multiple rule insert/delete operations are not allowed");
+		retval = OPT_ERROR_NO_REPLY;
+	} else if (rc == 2) {
+		audit_msg(LOG_ERR, "Delete rule - bad keyword %s", optarg);
+		retval = OPT_ERROR_NO_REPLY;
+	} else if (rc == 1) {
+		audit_msg(LOG_INFO, "Delete rule - possible is deprecated");
+		return OPT_DEPRECATED; /* deprecated - eat it */
+	} else
+		retval = OPT_SUCCESS_RULE; /* success - please send */
+	return retval;
+}
+
 static int opt_syscall(opt_handler_params_t *args)
 {
 	int retval = args->retval, rc;
@@ -1334,6 +1353,7 @@ struct {
 	{'l', opt_list},
 	{'a', opt_append},
 	{'A', opt_prepend},
+	{'d', opt_delete},
 	{'S', opt_syscall},
 	{'F', opt_field},
 	{'C', opt_compare},
