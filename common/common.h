@@ -63,6 +63,15 @@ char *audit_strsplit_r(char *s, char **savedpp);
 char *audit_strsplit(char *s);
 int audit_is_last_record(int type);
 
+
+#define MINUTES 60
+#define HOURS   60*MINUTES
+#define DAYS    24*HOURS
+#define WEEKS   7*DAYS
+#define MONTHS  30*DAYS
+long time_string_to_seconds(const char *time_string,
+			    const char *subsystem, int line);
+
 int write_to_console(const char *fmt, ...)
 #ifdef __GNUC__
 	__attribute__((format(printf, 1, 2)));

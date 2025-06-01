@@ -16,6 +16,7 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include "ids_config.h"
+#include "common.h"
 
 #define CONFIG_FILE "/etc/audit/ids.conf"
 extern char *audit_strsplit(char *s);
@@ -534,46 +535,11 @@ static int block_address_time_parser(struct nv_pair *nv, int line,
 static int lock_account_time_parser(struct nv_pair *nv, int line,
 		struct ids_conf *config)
 {
-	char *end;
-	unsigned long i;
+	long i;
 
-	errno = 0;
-	i = strtoul(nv->value, &end, 10);
-	if (errno || nv->value == end) {
-		syslog(LOG_ERR,
-			"Error converting %s to a number - line %d",
-			nv->value, line);
+	i = time_string_to_seconds(nv->value, "ids", line);
+	if (i < 0)
 		return 1;
-	}
-
-	if (*end && end[1]) {
-		syslog(LOG_ERR,
-			"Unexpected characters in %s - line %d",
-			nv->value, line);
-		return 1;
-	}
-
-	switch (*end) {
-		case 'm':
-			i *= MINUTES;
-			break;
-		case 'h':
-			i *= HOURS;
-			break;
-		case 'd':
-			i *= DAYS;
-			break;
-		case 'M':
-			i *= MONTHS;
-			break;
-		case '\0':
-			break;
-		default:
-			syslog(LOG_ERR,
-				"Unknown time unit in %s - line %d",
-				nv->value, line);
-			return 1;
-	}
 
 	if (i > (500 * DAYS)) {
 		syslog(LOG_ERR,

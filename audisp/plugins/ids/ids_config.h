@@ -45,12 +45,6 @@
 #define REACTION_SYSTEM_SINGLE_USER	0x4000000
 #define REACTION_SYSTEM_HALT		0x8000000
 
-#define MINUTES 60
-#define HOURS   60*MINUTES
-#define DAYS    24*HOURS
-#define WEEKS   7*DAYS
-#define MONTHS  30*DAYS
-
 struct ids_conf
 {
 	unsigned int option_origin_failed_logins_threshold;

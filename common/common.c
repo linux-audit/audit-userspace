@@ -27,6 +27,8 @@
 #include <stdio.h>
 #include <utmpx.h>
 #include <fcntl.h>
+#include <stdlib.h>	// strtol
+#include <errno.h>
 
 /*
  * This function returns 1 if it is the last record in an event.
@@ -110,3 +112,53 @@ void wall_message(const char* format, ...)
 
 	endutxent();
 }
+
+// Returns converted time in seconds on success and -1 on failure.
+long time_string_to_seconds(const char *time_string,
+			    const char *subsystem, int line)
+{
+	char *end;
+	long i;
+
+	errno = 0;
+	i = strtol(time_string, &end, 10);
+	if (errno || time_string == end) {
+		if (subsystem)
+			syslog(LOG_ERR,
+			"%s: Error converting %s to a number - line %d",
+			subsystem, time_string, line);
+		return -1;
+	}
+
+	if (*end && end[1]) {
+		if (subsystem)
+			syslog(LOG_ERR,
+			"%s: Unexpected characters in %s - line %d",
+			subsystem, time_string, line);
+		return -1;
+	}
+	switch (*end) {
+		case 'm':
+			i *= MINUTES;
+			break;
+		case 'h':
+			i *= HOURS;
+			break;
+		case 'd':
+			i *= DAYS;
+			break;
+		case 'M':
+			i *= MONTHS;
+			break;
+		case '\0':
+			break;
+		default:
+			if (subsystem)
+				syslog(LOG_ERR,
+				"%s: Unknown time unit in %s - line %d",
+				subsystem, time_string, line);
+			return -1;
+	}
+	return i;
+}
+

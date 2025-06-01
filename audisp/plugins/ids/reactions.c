@@ -23,6 +23,7 @@
 #include "session.h"
 #include "timer-services.h"
 #include "account.h"
+#include "common.h"
 //#include "auparse.h"
 
 // Returns 0 on success and 1 on failure
