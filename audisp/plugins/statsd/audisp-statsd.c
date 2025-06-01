@@ -34,6 +34,7 @@
 #include <errno.h>
 #include "libaudit.h"
 #include "auparse.h"
+#include "common.h"
 
 
 /* Global Definitions */
@@ -120,6 +121,7 @@ static char *get_line(FILE *f, char *buf, size_t len)
 static int load_config(void)
 {
 	unsigned int status = 0;
+	int line = 0;
 	char buf[128];
 	FILE *f = fopen(CONFIG, "rt");
 	if (f == NULL) {
@@ -128,6 +130,7 @@ static int load_config(void)
 	}
 
 	while (get_line(f, buf, sizeof(buf))) {
+		line++;
 		switch (buf[0])
 		{
 		case 'a':
@@ -139,9 +142,24 @@ static int load_config(void)
 			status |= 0x02;
 			break;
 		case 'i':
-			sscanf(buf, "interval = %u", &d.interval);
+		{
+			char tstr[64];
+			long t;
+
+			if (sscanf(buf, "interval = %63s", tstr) != 1) {
+				fprintf(stderr, "bad interval format\n");
+				fclose(f);
+				return 1;
+			}
+			t = time_string_to_seconds(tstr, "statsd", line);
+			if (t < 0) {
+				fclose(f);
+				return 1;
+			}
+			d.interval = (unsigned int)t;
 			status |= 0x04;
 			break;
+		}
 		case 0:
 		case '#':
 			// Comments
@@ -233,7 +251,7 @@ static void get_kernel_status(void)
  */
 static void get_auditd_status(void)
 {
-	// SIGCONT was sent previously, hopefully the report is ready now
+	// auditd generates the state report periodically on its own
 	FILE *f = fopen(STATE_REPORT, "rt");
 	if (f) {
 		char buf[80];
@@ -374,7 +392,6 @@ int main(void)
 			if (pfd[1].revents & POLLIN) {
 				unsigned long long missed;
 				missed=read(timer_fd, &missed, sizeof (missed));
-				kill(auditd_pid, SIGCONT); // Run auditd report
 				// Clear any old events if possible
 				if (auparse_feed_has_data(au))
 					auparse_feed_age_events(au);
