@@ -46,6 +46,9 @@ return 1 for true and 0 for false.
 .PP
 .B audit_fgets_clear
 returns no value.
+.SH BACKGROUND
+ The reason that this family of functions was created is because in  auditd plugins, the event stream is stdin, which is  descriptor 0.  A typical pattern is to call select, poll, or epoll to wait for a  record to arrive. As soon as it does, you need to read it. If you  use fgets, you will wind up with big problems because you cannot mix  low level descriptors with high level constructs like struct FILE.  This family of functions allows you to correctly work only using descriptors but with the convenience of fgets.
+
 .SH SEE ALSO
 .BR fgets (3)
 
