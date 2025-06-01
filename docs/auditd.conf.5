@@ -17,7 +17,9 @@ has no effect.
 .TP
 .I log_file
 This keyword specifies the full path name to the log file where audit records
-will be stored. It must be a regular file.
+will be stored. It must be a regular file. The default path is
+.I /var/log/audit/audit.log
+if not explicitly set.
 .TP
 .I write_logs
 This yes/no keyword determines whether or not to write logs to the disk.
@@ -131,7 +133,9 @@ is checked to see if the domain name can be resolved. This option must be given 
 or the default value of yes will be used.
 .TP
 .I action_mail_acct
-This option should contain a valid email address or alias. Plus addresses (rfc5233) are supported, too. The default address is root. If the email address is not local to the machine, you must make sure you have email properly configured on your machine and network. This this option requires that /usr/lib/sendmail exists on the machine. Many clients provide it as a symlink.
+This option should contain a valid email address or alias. Addresses may use RFC
+5233 style subaddressing with the '+' character. The allowed characters are
+alphanumerics, '@', '.', '-', '_', and '+'. The default address is root. If the email address is not local to the machine, you must make sure you have email properly configured on your machine and network. This this option requires that /usr/lib/sendmail exists on the machine. Many clients provide it as a symlink.
 .TP
 .I space_left
 If the free space in the filesystem containing
@@ -359,7 +363,9 @@ option will cause the audit daemon to shutdown the computer system.
 This is a non-negative number that tells the audit event dispatcher how many times it can try to restart a crashed plugin. The default is 10.
 .TP
 .I plugin_dir
-This is the location that auditd will use to search for its plugin configuration files.
+This is the location that auditd will use to search for its plugin configuration files. The default directory is
+.I /etc/audit/plugins.d
+.
 .TP
 .I end_of_event_timeout
 This is a non-negative number of seconds used by the userspace
@@ -370,7 +376,19 @@ library routines and the
 .I ausearch(8)
 utilities to consider an event is complete when parsing an event log stream. For an event stream being processed, if the time of the current event is over
 .I end_of_event_timeout
-seconds old, compared to co-located events, then the event is considered complete. See the NOTES section for more detail.
+seconds old, compared to co-located events, then the event is considered complete. The default is 2 seconds. See the NOTES section for more detail.
+.SH RELOADING
+Most parameters can be changed while the daemon is running by sending
+.B SIGHUP
+to
+.BR auditd .
+This can also be done with
+.BR auditctl\ \-\-signal\ reload .
+Options that are only read at startup include
+.I local_events
+and
+.I verify_email
+.
 .SH NOTES
 In a CAPP environment, the audit trail is considered so important that access to system resources must be denied if an audit trail cannot be created. In this environment, it would be suggested that /var/log/audit be on its own partition. This is to ensure that space detection is accurate and that no other process comes along and consumes part of it.
 .PP
