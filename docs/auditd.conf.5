@@ -377,6 +377,20 @@ library routines and the
 utilities to consider an event is complete when parsing an event log stream. For an event stream being processed, if the time of the current event is over
 .I end_of_event_timeout
 seconds old, compared to co-located events, then the event is considered complete. The default is 2 seconds. See the NOTES section for more detail.
+.TP
+.I report_interval
+This option specifies the interval between automatic state reports. The
+value is a time string composed of a number optionally followed by
+.B m
+for minutes,
+.B h
+for hours,
+.B d
+for days, or
+.B M
+for months.
+The default is 0 which disables preriodic reporting. The largest value is 40 days. When set, auditd will periodically generate the state report written to
+.I /var/run/auditd.state.
 .SH RELOADING
 Most parameters can be changed while the daemon is running by sending
 .B SIGHUP

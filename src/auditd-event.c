@@ -53,6 +53,8 @@ extern ATOMIC_INT stop;
 extern volatile ATOMIC_INT stop;
 #endif
 
+extern void update_report_timer(unsigned int interval);
+
 /* Local function prototypes */
 static void send_ack(const struct auditd_event *e, int ack_type,
 			const char *msg);
@@ -1693,6 +1695,12 @@ static void reconfigure(struct auditd_event *e)
 			need_space_check = 1;
 		free((char *)oconf->disk_full_exe);
 		oconf->disk_full_exe = nconf->disk_full_exe;
+	}
+
+	// report interval
+	if (oconf->report_interval != nconf->report_interval) {
+		oconf->report_interval = nconf->report_interval;
+		update_report_timer(oconf->report_interval);
 	}
 
 	if (need_space_check) {

@@ -87,6 +87,8 @@ static ATOMIC_INT hup_info_requested = 0;
 static ATOMIC_INT usr1_info_requested = 0, usr2_info_requested = 0;
 static char subj[SUBJ_LEN];
 static uint32_t session;
+static struct ev_timer report_timer_watcher;
+struct ev_loop *loop;
 
 /* Local function prototypes */
 int send_audit_event(int type, const char *str);
@@ -234,6 +236,26 @@ static void cont_handler(struct ev_loop *loop, struct ev_signal *sig,
 	write_memory_state(f);
 #endif
 	fclose(f);
+}
+
+static void report_timer_cb(struct ev_loop *loop __attribute__((unused)),
+			    struct ev_timer *w __attribute__((unused)),
+			    int revents __attribute__((unused)))
+{
+	raise(SIGCONT);
+}
+
+void update_report_timer(unsigned int interval)
+{
+	if (!loop)
+		return;
+	if (interval == 0)
+		ev_timer_stop(loop, &report_timer_watcher);
+	else {
+		ev_timer_stop(loop, &report_timer_watcher);
+		ev_timer_set(&report_timer_watcher, interval, interval);
+		ev_timer_start(loop, &report_timer_watcher);
+       }
 }
 
 static int extract_type(const char *str)
@@ -625,7 +647,6 @@ static void close_pipes(void)
 	close(pipefds[1]);
 }
 
-struct ev_loop *loop;
 int main(int argc, char *argv[])
 {
 	struct sigaction sa;
@@ -983,6 +1004,11 @@ int main(int argc, char *argv[])
 	ev_io_init (&pipe_watcher, pipe_handler, pipefds[0], EV_READ);
 	ev_io_start (loop, &pipe_watcher);
 
+	ev_timer_init(&report_timer_watcher, report_timer_cb, 0., 0.);
+
+	if (config.report_interval)
+		update_report_timer(config.report_interval);
+
 	if (auditd_tcp_listen_init(loop, &config)) {
 		char emsg[DEFAULT_BUF_SZ];
 		if (*subj)
@@ -1026,6 +1052,7 @@ int main(int argc, char *argv[])
 	ev_signal_stop (loop, &sigusr2_watcher);
 	ev_signal_stop (loop, &sigterm_watcher);
 	ev_signal_stop (loop, &sigcont_watcher);
+	ev_timer_stop  (loop, &report_timer_watcher);
 
 	/* Write message to log that we are going down */
 	rc = audit_request_signal_info(fd);

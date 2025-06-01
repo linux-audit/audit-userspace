@@ -77,6 +77,8 @@ struct daemon_conf
 	const char *disk_full_exe;
 	failure_action_t disk_error_action;
 	const char *disk_error_exe;
+	unsigned int report_interval;
+	// Network receiving
 	unsigned long tcp_listen_port;
 	unsigned long tcp_listen_queue;
 	unsigned long tcp_max_per_addr;

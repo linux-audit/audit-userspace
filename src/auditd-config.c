@@ -145,9 +145,11 @@ static int plugin_dir_parser(const struct nv_pair *nv, int line,
 		struct daemon_conf *config);
 static int eoe_timeout_parser(const struct nv_pair *nv, int line,
 		struct daemon_conf *config);
+static int report_interval_parser(const struct nv_pair *nv, int line,
+		struct daemon_conf *config);
 static int sanity_check(struct daemon_conf *config);
 
-static const struct kw_pair keywords[] = 
+static const struct kw_pair keywords[] =
 {
   {"local_events",             local_events_parser,		0},
   {"write_logs",               write_logs_parser,		0 },
@@ -188,6 +190,7 @@ static const struct kw_pair keywords[] =
   {"max_restarts",             max_restarts_parser,             0 },
   {"plugin_dir",               plugin_dir_parser,               0 },
   {"end_of_event_timeout",     eoe_timeout_parser,              0 },
+  {"report_interval",          report_interval_parser,          0 },
   { NULL,                      NULL,                            0 }
 };
 
@@ -341,6 +344,7 @@ void clear_config(struct daemon_conf *config)
 	config->plugin_dir = strdup("/etc/audit/plugins.d");
 	config->config_dir = NULL;
 	config->end_of_event_timeout = EOE_TIMEOUT;
+	config->report_interval = 0;
 }
 
 static log_test_t log_test = TEST_AUDITD;
@@ -1880,6 +1884,30 @@ static int eoe_timeout_parser(const struct nv_pair *nv, int line,
 		return 1;
 	}
 	config->end_of_event_timeout = i;
+	return 0;
+}
+
+static int report_interval_parser(const struct nv_pair *nv, int line,
+				  struct daemon_conf *config)
+{
+	long i;
+
+	i = time_string_to_seconds(nv->value, "auditd", line);
+	if (i < 0)
+		return 1;
+
+	if (i > 6*HOURS)
+	    audit_msg(LOG_WARNING,
+	      "Warning - report_interval is more than 6 hours apart - line %d",
+			line);
+
+	if (i > 40*DAYS) {
+		audit_msg(LOG_ERR,
+			"Error - report_interval (%s) is too large - line %d",
+			nv->value, line);
+		return 1;
+	}
+	config->report_interval = (unsigned int)i;
 	return 0;
 }
 
