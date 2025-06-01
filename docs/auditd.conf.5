@@ -1,4 +1,4 @@
-.TH AUDITD.CONF "5" "August 2018" "Red Hat" "System Administration Utilities"
+.TH AUDITD.CONF "5" "June 2025" "Red Hat" "System Administration Utilities"
 .SH NAME
 auditd.conf \- audit daemon configuration file
 .SH DESCRIPTION
@@ -131,7 +131,7 @@ is checked to see if the domain name can be resolved. This option must be given 
 or the default value of yes will be used.
 .TP
 .I action_mail_acct
-This option should contain a valid email address or alias. The default address is root. If the email address is not local to the machine, you must make sure you have email properly configured on your machine and network. Also, this option requires that /usr/lib/sendmail exists on the machine.
+This option should contain a valid email address or alias. Plus addresses (rfc5233) are supported, too. The default address is root. If the email address is not local to the machine, you must make sure you have email properly configured on your machine and network. This this option requires that /usr/lib/sendmail exists on the machine. Many clients provide it as a symlink.
 .TP
 .I space_left
 If the free space in the filesystem containing

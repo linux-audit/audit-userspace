@@ -1076,7 +1076,7 @@ static int validate_email(const char *acct)
 	for (i=0; i<len; i++) {
 		if (! (isalnum(acct[i]) || (acct[i] == '@') ||
 				(acct[i]=='.') || (acct[i]=='-') ||
-				(acct[i] == '_')) ) {
+				(acct[i] == '_') || (acct[i] == '+')) ) {
 			audit_msg(LOG_ERR, "email: %s has illegal character",
 				acct);
 			return 2;
