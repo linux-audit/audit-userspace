@@ -506,12 +506,13 @@ static int write_to_plugin(event_t *e, const char *string, size_t string_len,
 }
 
 /* Returns 0 on stop, and 1 on HUP */
+static char fmt_buf[FORMAT_BUF_LEN];
 static int event_loop(void)
 {
 	/* Figure out the format for the af_unix socket */
 	while (AUDIT_ATOMIC_LOAD(stop) == 0) {
 		event_t *e;
-		char *v, *ptr, unknown[32];
+		char *ptr, unknown[32];
 		int len;
 		lnode *conf;
 
@@ -534,23 +535,33 @@ static int event_loop(void)
 					"UNKNOWN[%u]", e->hdr.type);
 				type = unknown;
 			}
-			len = asprintf(&v, "type=%s msg=%.*s\n",
+			len = snprintf(fmt_buf, sizeof(fmt_buf),
+				       "type=%s msg=%.*s\n",
 					type, e->hdr.size, e->data);
-		// Protocol 2 events are already formatted
+		// Protocol 2 events are already formatted - just copy
 		} else if (e->hdr.ver == AUDISP_PROTOCOL_VER2) {
-			len = asprintf(&v, "%.*s\n", e->hdr.size, e->data);
+			size_t to_copy = e->hdr.size;
+
+			if (to_copy > sizeof(fmt_buf) - 2)
+				to_copy = sizeof(fmt_buf) - 2;
+
+			// was snprintf, this is faster
+			memcpy(fmt_buf, e->data, to_copy);
+
+			fmt_buf[to_copy]     = '\n';
+			fmt_buf[to_copy + 1] = '\0';
+			len = (int)(to_copy + 1);
 		} else
 			len = 0;
 		if (len <= 0) {
-			v = NULL;
 			free(e); /* Either corrupted event or no memory */
 			continue;
 		}
 
-		/* Strip newlines from event record */
-		ptr = v;
+		/* Strip newlines from event record except the last one */
+		ptr = fmt_buf;
 		while ((ptr = strchr(ptr, 0x0A)) != NULL) {
-			if (ptr != &v[len-1])
+			if (ptr != &fmt_buf[len-1])
 				*ptr = ' ';
 			else
 				break; /* Done - exit loop */
@@ -569,7 +580,7 @@ static int event_loop(void)
 			if (conf->p->type == S_ALWAYS &&
 					!AUDIT_ATOMIC_LOAD(stop)) {
 				int rc;
-				rc = write_to_plugin(e, v, len, conf);
+				rc = write_to_plugin(e, fmt_buf, len, conf);
 				if (rc < 0 && errno == EPIPE) {
 					/* Child disappeared ? */
 					if (!AUDIT_ATOMIC_LOAD(stop))
@@ -590,8 +601,8 @@ static int event_loop(void)
 					}
 					if (!AUDIT_ATOMIC_LOAD(stop) &&
 					    start_one_plugin(conf)) {
-						rc = write_to_plugin(e, v, len,
-								     conf);
+						rc = write_to_plugin(e, fmt_buf,
+								     len, conf);
 						audit_msg(LOG_NOTICE,
 						"plugin %s was restarted",
 							conf->p->path);
@@ -603,7 +614,6 @@ static int event_loop(void)
 			 (conf = plist_next(&plugin_conf)));
 
 		/* Done with the memory...release it */
-		free(v);
 		free(e);
 		if (AUDIT_ATOMIC_LOAD(disp_hup))
 			break;

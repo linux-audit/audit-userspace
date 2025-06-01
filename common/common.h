@@ -53,6 +53,10 @@
 #  define AUDIT_ATOMIC_STORE(var, val) do { (var) = (val); } while (0)
 #  define AUDIT_ATOMIC_LOAD(var) (var)
 #endif
+
+// Used in auditd-event.c and audisp.c to size buffers for formatting
+#define FORMAT_BUF_LEN (MAX_AUDIT_MESSAGE_LENGTH + _POSIX_HOST_NAME_MAX)
+
 AUDIT_HIDDEN_START
 
 char *audit_strsplit_r(char *s, char **savedpp);

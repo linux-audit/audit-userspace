@@ -95,7 +95,6 @@ static volatile int flush;
 static auparse_state_t *au = NULL;
 
 /* Local definitions */
-#define FORMAT_BUF_LEN (MAX_AUDIT_MESSAGE_LENGTH + _POSIX_HOST_NAME_MAX)
 #define MIN_SPACE_LEFT 24
 
 static inline int from_network(const struct auditd_event *e)
