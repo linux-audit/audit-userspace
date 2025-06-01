@@ -499,7 +499,6 @@ static char *get_line(FILE *f, char *buf, unsigned size, int *lineno,
 			}
 			// Reset and start with the next line
 			too_long = 0;
-			*lineno = *lineno + 1;
 		} else {
 			// If a line is too long skip it.
 			// Only output 1 warning
@@ -509,6 +508,7 @@ static char *get_line(FILE *f, char *buf, unsigned size, int *lineno,
 					*lineno, file);
 			too_long = 1;
 		}
+		*lineno = *lineno + 1;
 	}
 	return NULL;
 }
