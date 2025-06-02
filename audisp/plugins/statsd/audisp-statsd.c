@@ -371,7 +371,7 @@ int main(void)
 #ifdef HAVE_LIBCAP_NG
 	// Drop capabilities - audit control required for AUDIT_GET
 	capng_clear(CAPNG_SELECT_BOTH);
-	capng_updat(CAPNG_ADD, CAPNG_EFFECTIVE|CAPNG_PERMITTED,
+	capng_update(CAPNG_ADD, CAPNG_EFFECTIVE|CAPNG_PERMITTED,
 		    CAP_AUDIT_CONTROL);
 	if (capng_apply(CAPNG_SELECT_BOTH))
 		syslog(LOG_WARNING, "audisp-statsd failed dropping capabilities, continuing with elevated priviliges");
