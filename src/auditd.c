@@ -224,7 +224,7 @@ static void cont_handler(struct ev_loop *loop, struct ev_signal *sig,
 
 	fd = fileno(f);
 	if (fd > 0)
-		(void)fchown(fd, 0, config->log_group);
+		(void)fchown(fd, 0, config.log_group);
 	fprintf(f, "audit version = %s\n", VERSION);
 	time_t now = time(0);
 	strftime(buf, sizeof(buf), "%x %X", localtime(&now));
