@@ -31,7 +31,7 @@ sbin_PROGRAMS = audisp-statsd
 man_MANS = audisp-statsd.8
 audisp_statsd_SOURCES = audisp-statsd.c
 audisp_statsd_CFLAGS = -g -D_GNU_SOURCE ${WFLAGS}
-audisp_statsd_LDADD = ${top_builddir}/auparse/libauparse.la ${top_builddir}/lib/libaudit.la ${top_builddir}/common/libaucommon.la
+audisp_statsd_LDADD = $(CAPNG_LDADD) ${top_builddir}/auparse/libauparse.la ${top_builddir}/lib/libaudit.la ${top_builddir}/common/libaucommon.la
 audisp_statsd_DEPENDENCIES = ${top_builddir}/auparse/libauparse.la ${top_builddir}/lib/libaudit.la
 
 install-data-hook:

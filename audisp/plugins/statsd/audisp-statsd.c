@@ -32,6 +32,9 @@
 #include <poll.h>
 #include <sys/timerfd.h>
 #include <errno.h>
+#ifdef HAVE_LIBCAP_NG
+#include <cap-ng.h>
+#endif
 #include "libaudit.h"
 #include "auparse.h"
 #include "common.h"
@@ -75,7 +78,6 @@ struct audit_report
 static volatile int stop = 0;
 static volatile int hup = 0;
 static int audit_fd = -1;
-static pid_t auditd_pid = 0;
 static auparse_state_t *au = NULL;
 static int timer_fd = -1;
 static char msg[MAX_AUDIT_MESSAGE_LENGTH + 1];
@@ -366,7 +368,16 @@ int main(void)
 		return 1;
 	}
 
-	// Initialize audit
+#ifdef HAVE_LIBCAP_NG
+	// Drop capabilities - audit control required for AUDIT_GET
+	capng_clear(CAPNG_SELECT_BOTH);
+	capng_updat(CAPNG_ADD, CAPNG_EFFECTIVE|CAPNG_PERMITTED,
+		    CAP_AUDIT_CONTROL);
+	if (capng_apply(CAPNG_SELECT_BOTH))
+		syslog(LOG_WARNING, "audisp-statsd failed dropping capabilities, continuing with elevated priviliges");
+#endif
+
+	// Initialize auparse
 	clear_report();
 	au = auparse_init(AUSOURCE_FEED, 0);
 	if (au == NULL) {
@@ -382,7 +393,6 @@ int main(void)
 		syslog(LOG_ERR, "unable to open audit socket");
 		return 1;
 	}
-	auditd_pid = getppid();
 	fcntl(0, F_SETFL, O_NONBLOCK); /* Set STDIN non-blocking */
 	pfd[0].fd = 0;		// add stdin to the poll group
 	pfd[0].events = POLLIN;
