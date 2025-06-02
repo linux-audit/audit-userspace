@@ -58,6 +58,9 @@ struct audit_report
 	long long unsigned int free_space;
 	unsigned int plugin_current_depth;
 	unsigned int plugin_max_depth;
+	unsigned long long total_memory;
+	unsigned long long memory_in_use;
+	unsigned long long memory_free;
 	unsigned int events_total_count;
 	unsigned int events_total_failed;
 	unsigned int events_avc_count;
@@ -218,6 +221,9 @@ static void clear_report(void)
 	r.free_space = 0;
 	r.plugin_current_depth = 0;
 	r.plugin_max_depth = 0;
+	r.total_memory = 0;
+	r.memory_in_use = 0;
+	r.memory_free = 0;
 	r.events_total_count = 0;
         r.events_total_failed = 0;
         r.events_avc_count = 0;
@@ -271,6 +277,18 @@ static void get_auditd_status(void)
 				sscanf(buf,
 				       "max plugin queue depth used = %u",
 				       &r.plugin_max_depth);
+			} else if (memcmp(buf, "glibc arena", 11) == 0) {
+				sscanf(buf,
+				       "glibc total memory is: %llu",
+				       &r.total_memory);
+			} else if (memcmp(buf, "glibc uordblks", 13) == 0) {
+				sscanf(buf,
+				       "glibc in use memory is: %llu",
+				       &r.memory_in_use);
+			} else if (memcmp(buf, "glibc fordblks", 14) == 0) {
+				sscanf(buf,
+				       "glibc total free space is: %llu",
+				       &r.memory_free);
 				break; // This is last item, break free
 			}
 		}
@@ -295,12 +313,14 @@ static void send_statsd(void)
 	len = snprintf(message, sizeof(message),
 	  "kernel.lost:%u|g\nkernel.backlog:%u|g\n"
 	  "auditd.free_space:%llu|g\nauditd.plugin_current_depth:%u|g\nauditd.plugin_max_depth:%u|g\n"
+	  "auditd.total_memory:%llu|g\nauditd.memory_in_use:%llu|g\nauditd.memory_free:%llu|g\n"
 	  "events.total_count:%u|c\nevents.total_failed:%u|c\n"
 	  "events.avc_count:%u|c\nevents.fanotify_count:%u|c\n"
 	  "events.logins_success:%u|c\nevents.logins_failed:%u|c\n"
 	  "events.anomaly_count:%u|c\nevents.response_count:%u|c\n",
 		r.lost, r.backlog,
 		r.free_space, r.plugin_current_depth, r.plugin_max_depth,
+		r.total_memory, r.memory_in_use, r.memory_free,
 		r.events_total_count, r.events_total_failed,
 		r.events_avc_count, r.events_fanotify_count,
 		r.events_logins_success, r.events_logins_failed,

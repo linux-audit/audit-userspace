@@ -43,6 +43,15 @@ number of events in auditd pending transfer to plugins
 .TP
 .B plugin_max_depth
 historical maximum number of events backlogged while pending transfer to plugins
+.TP
+.B total_memory
+current total memory in use by glibc in KB
+.TP
+.B memory_in_use
+how much of the total memory is actively used in KB
+.TP
+.B memory_free
+amount of free memory available in the glibc arenas in KB
 .RE
 The following metrics are counters:
 .RS
