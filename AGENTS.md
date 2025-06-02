@@ -24,6 +24,7 @@ Follow the instructions below when making changes.
 
    3. Optionally, type 'make check' to run any self-tests that come with
       the package, generally using the just-built uninstalled binaries.
+   NOTE: auparse tests are failing because of a mismatch in mapping uid to accounts. Igonore these.
    ```
 
    The CI workflow uses the same commands:
@@ -112,7 +113,7 @@ intended ordering.
 ## Summary
 
 - Build with `autoreconf`, `configure`, and `make`.
-- Run `make check` to execute the self-tests.
+- Run `make check` to execute the self-tests. (auparse tests are failing because of a mismatch in mapping uid to accounts. Igonore these.)
 - Follow Linux Kernel coding style (tabs, 80 columns).
 - Keep commit messages short and descriptive.
 - Maintain rule file organization as described in `rules/README-rules`.
