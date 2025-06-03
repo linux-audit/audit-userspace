@@ -23,8 +23,7 @@
 
 CONFIG_CLEAN_FILES = *.loT *.rej *.orig
 EXTRA_DIST = syslog.conf $(man_MANS)
-# FIXME: remove common
-AM_CPPFLAGS = -I${top_srcdir} -I${top_srcdir}/lib -I${top_srcdir}/common -I${top_srcdir}/auparse -I${top_srcdir}/common
+AM_CPPFLAGS = -I${top_srcdir} -I${top_srcdir}/lib -I${top_srcdir}/common -I${top_srcdir}/auparse
 prog_confdir = $(sysconfdir)/audit
 plugin_confdir=$(prog_confdir)/plugins.d
 plugin_conf = syslog.conf
