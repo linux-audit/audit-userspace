@@ -969,11 +969,11 @@ int main(int argc, char *argv[])
 		AUDIT_ATOMIC_STORE(stop, 1);
 		send_audit_event(AUDIT_DAEMON_ABORT, emsg);
 		audit_msg(LOG_ERR, "Unable to set audit pid, exiting");
+		tell_parent(FAILURE);
 		shutdown_events();
 		if (pidfile)
 			unlink(pidfile);
 		shutdown_dispatcher();
-		tell_parent(FAILURE);
 		close_pipes();
 		free_config(&config);
 		ev_default_destroy();
