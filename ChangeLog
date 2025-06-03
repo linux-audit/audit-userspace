@@ -1,5 +1,4 @@
 4.0.5
-- Make audit_fgets a public API
 - Rework audisp queue to be lockless
 - Fix missing delete command in auditctl
 - Allow plus addresses (rfc5233) to auditd email.

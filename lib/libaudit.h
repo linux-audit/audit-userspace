@@ -305,13 +305,6 @@ int audit_can_control(void);
 int audit_can_write(void);
 int audit_can_read(void);
 
-/* Helper function for reading stdin in plugins */
-void audit_fgets_clear(void);
-int audit_fgets_eof(void);
-int audit_fgets_more(size_t blen);
-int audit_fgets(char *buf, size_t blen, int fd)
-        __attr_access ((__write_only__, 1, 2));
-
 #ifdef __cplusplus
 }
 #endif

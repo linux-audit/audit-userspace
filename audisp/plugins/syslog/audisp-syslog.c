@@ -33,6 +33,7 @@
 #include <cap-ng.h>
 #endif
 #include "libaudit.h"
+#include "common.h" // FIXME temporary
 #include "auparse.h"
 
 /* Global Data */

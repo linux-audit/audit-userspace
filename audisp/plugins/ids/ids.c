@@ -36,6 +36,7 @@
 #include <sys/timerfd.h>
 #include "auparse.h"
 #include "libaudit.h"
+#include "common.h" // FIXME temporary
 #include "ids.h"
 #include "ids_config.h"
 #include "origin.h"
