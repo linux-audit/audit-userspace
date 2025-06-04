@@ -278,20 +278,26 @@ static void replace_event_msg(struct auditd_event *e, const char *buf)
 * text buffer that's formatted for writing to disk. If there
 * is an error the return value is NULL.
 */
-static const char *format_raw(const struct audit_reply *rep)
+static int format_raw(const struct audit_reply *rep)
 {
-        char *ptr;
+	char *ptr;
+	int nlen;
 
         if (rep == NULL) {
 		if (config->node_name_format != N_NONE)
-			snprintf(format_buf, FORMAT_BUF_LEN - 32,
+			nlen = snprintf(format_buf, FORMAT_BUF_LEN - 32,
 		"node=%s type=DAEMON_ERR op=format-raw msg=NULL res=failed",
                                 config->node_name);
 		else
-			snprintf(format_buf, MAX_AUDIT_MESSAGE_LENGTH,
+			nlen = snprintf(format_buf, MAX_AUDIT_MESSAGE_LENGTH,
 			  "type=DAEMON_ERR op=format-raw msg=NULL res=failed");
+
+		if (nlen < 1) {
+			format_buf[0] = 0;
+			return 0;
+		}
 	} else {
-		int len, nlen;
+		int len;
 		const char *type, *message;
 		char unknown[32];
 		type = audit_msg_type_to_name(rep->type);
@@ -312,23 +318,33 @@ static const char *format_raw(const struct audit_reply *rep)
 		// MAX_AUDIT_MESSAGE_LENGTH is too small
 		if (config->node_name_format != N_NONE)
 			nlen = snprintf(format_buf, FORMAT_BUF_LEN - 32,
-				"node=%s type=%s msg=%.*s\n",
+				"node=%s type=%s msg=%.*s",
                                 config->node_name, type, len, message);
 		else
 		        nlen = snprintf(format_buf,
 				MAX_AUDIT_MESSAGE_LENGTH - 32,
 				"type=%s msg=%.*s", type, len, message);
 
+		if (nlen < 1) {
+			format_buf[0] = 0;
+			return 0;
+		}
+
 	        /* Replace \n with space so it looks nicer. */
 		ptr = format_buf;
-	        while ((ptr = strchr(ptr, 0x0A)) != NULL)
-		        *ptr = ' ';
+	        while (*ptr) {
+			if (*ptr == '\n')
+			        *ptr = ' ';
+			ptr++;
+		}
 
 		/* Trim trailing space off since it wastes space */
-		if (format_buf[nlen-1] == ' ')
+		if (format_buf[nlen-1] == ' ') {
 			format_buf[nlen-1] = 0;
+			nlen--;
+		}
 	}
-        return format_buf;
+        return nlen;
 }
 
 static int sep_done = 0;
@@ -423,33 +439,25 @@ static const char *format_enrich(const struct audit_reply *rep)
 	} else {
 		int rc, rtype;
 		size_t mlen, len;
-		char *message;
+
 		// Do raw format to get event started
-		format_raw(rep);
+		mlen = format_raw(rep);
 
 		// How much room is left?
-		mlen = strlen(format_buf);
 		len = FORMAT_BUF_LEN - mlen;
 		if (len <= MIN_SPACE_LEFT)
 			return format_buf;
 
-		// create copy to parse up
-		format_buf[mlen] = 0x0A;
-		format_buf[mlen+1] = 0;
-		message = strdup(format_buf);
-		format_buf[mlen] = 0;
-
 		// init auparse
 		if (au == NULL) {
-			au = auparse_init(AUSOURCE_BUFFER, message);
-			if (au == NULL) {
-				free(message);
+			au = auparse_init(AUSOURCE_BUFFER, format_buf);
+			if (au == NULL)
 				return format_buf;
-			}
+
 			auparse_set_escape_mode(au, AUPARSE_ESC_RAW);
 			auparse_set_eoe_timeout(config->end_of_event_timeout);
 		} else
-			auparse_new_buffer(au, message, mlen+1);
+			auparse_new_buffer(au, format_buf, mlen+1);
 		sep_done = 0;
 
 		// Loop over all fields while possible to add field
@@ -503,7 +511,6 @@ static const char *format_enrich(const struct audit_reply *rep)
 			default:
 				break;
 		}
-		free(message);
 	}
         return format_buf;
 }
@@ -515,7 +522,8 @@ void format_event(struct auditd_event *e)
 	switch (config->log_format)
 	{
 		case LF_RAW:
-			buf = format_raw(&e->reply);
+			format_raw(&e->reply);
+			buf = format_buf;
 			break;
 		case LF_ENRICHED:
 			buf = format_enrich(&e->reply);
