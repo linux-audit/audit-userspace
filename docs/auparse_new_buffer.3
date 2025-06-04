@@ -1,4 +1,4 @@
-.TH "AUPARSE_NEW_BUFFER" "3" "Feb 2021" "Red Hat" "Linux Audit API"
+.TH "AUPARSE_NEW_BUFFER" "3" "June 2025" "Red Hat" "Linux Audit API"
 .SH NAME
 auparse_new_buffer \- replace the buffer in the parser
 .SH "SYNOPSIS"
@@ -13,12 +13,12 @@ int auparse_new_buffer(auparse_state_t *au, const char *data, size_t data_len);
 The audit parse state
 .TP
 .I data
-a buffer of data to give to the parser, it is
+A buffer of data to give to the parser, it is
 .I data_len
-bytes long. The data is copied in the parser, upon return the caller may free or reuse the data buffer.
+bytes long. The data is copied into the parser without modifying the original. Upon return the caller may free or reuse the data buffer.
 .TP
 .I data_len
-number of bytes in
+The number of bytes in
 .I data
 
 .SH "DESCRIPTION"
