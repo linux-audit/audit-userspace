@@ -457,7 +457,7 @@ static const char *format_enrich(const struct audit_reply *rep)
 			auparse_set_escape_mode(au, AUPARSE_ESC_RAW);
 			auparse_set_eoe_timeout(config->end_of_event_timeout);
 		} else
-			auparse_new_buffer(au, format_buf, mlen+1);
+			auparse_new_buffer(au, format_buf, mlen);
 		sep_done = 0;
 
 		// Loop over all fields while possible to add field
