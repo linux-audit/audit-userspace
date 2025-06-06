@@ -25,6 +25,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
+#include <stdlib.h>
 #include "libaudit.h"
 
 /*
@@ -41,39 +42,66 @@
  */
 
 #define BUF_SIZE 8192
-static char buffer[2*BUF_SIZE+1] = { 0 };
-static char *current = buffer;
-static char *const eptr = buffer+(2*BUF_SIZE);
-static int eof = 0;
 
-int audit_fgets_eof(void)
+struct audit_fgets_state {
+	char buffer[2*BUF_SIZE+1];
+	char *current;
+	char *eptr;
+	int eof;
+};
+
+static struct audit_fgets_state global_state;
+static int global_init_done;
+
+static void audit_fgets_state_init(struct audit_fgets_state *st)
 {
-	return eof;
+	st->buffer[0] = '\0';
+	st->current = st->buffer;
+	st->eptr = st->buffer + (2*BUF_SIZE);
+	st->eof = 0;
+}
+
+struct audit_fgets_state *audit_fgets_init(void)
+{
+	struct audit_fgets_state *st = malloc(sizeof(*st));
+	if (st)
+		audit_fgets_state_init(st);
+	return st;
+}
+
+void audit_fgets_destroy(struct audit_fgets_state *st)
+{
+	free(st);
+}
+
+int audit_fgets_eof_r(struct audit_fgets_state *st)
+{
+	return st->eof;
 }
 
 /* This function dumps any accumulated text. This is to remove dangling text
  * that never got consumed for the intended purpose. */
-void audit_fgets_clear(void)
+void audit_fgets_clear_r(struct audit_fgets_state *st)
 {
-	buffer[0] = 0;
-	current = buffer;
-	eof = 0;
+	st->buffer[0] = 0;
+	st->current = st->buffer;
+	st->eof = 0;
 }
 
 /* Function to check if we have more data stored
  * and ready to process. If we have a newline or enough
  * bytes we return 1 for success. Otherwise 0 meaning that
  * there is not enough to process without blocking. */
-int audit_fgets_more(size_t blen)
+int audit_fgets_more_r(struct audit_fgets_state *st, size_t blen)
 {
 	size_t avail;
 	char *nl;
 
 	assert(blen != 0);
-	avail = current - buffer;
+	avail = st->current - st->buffer;
 
 	/* only scan the valid region */
-	nl = memchr(buffer, '\n', avail);
+	nl = memchr(st->buffer, '\n', avail);
 	return (nl || avail >= blen - 1);
 }
 
@@ -82,42 +110,42 @@ int audit_fgets_more(size_t blen)
  * copy into buf, NUL-terminate, and return the number of chars.
  * It also returns 0 for no data. And -1 if there was an error reading
  * the fd. */
-int audit_fgets(char *buf, size_t blen, int fd)
+int audit_fgets_r(struct audit_fgets_state *st, char *buf, size_t blen, int fd)
 {
-	size_t avail = current - buffer, line_len;
+	size_t avail = st->current - st->buffer, line_len;
 	char  *line_end;
 	ssize_t nread;
 
 	assert(blen != 0);
 
 	/* 1) Is there already a '\n' in the buffered data? */
-	line_end = memchr(buffer, '\n', avail);
+	line_end = memchr(st->buffer, '\n', avail);
 
 	/* 2) If not, and we still can read more, pull in more data */
-	if (line_end == NULL && !eof && current != eptr) {
+	if (line_end == NULL && !st->eof && st->current != st->eptr) {
 		do {
-			nread = read(fd, current, eptr - current);
+			nread = read(fd, st->current, st->eptr - st->current);
 		} while (nread < 0 && errno == EINTR);
 
 		if (nread < 0)
 			return -1;
 
 		if (nread == 0)
-			eof = 1;
+			st->eof = 1;
 		else {
-			current[nread] = '\0';
-			current       += nread;
-			avail         += nread;
+			st->current[nread] = '\0';
+			st->current       += nread;
+			avail             += nread;
 		}
 
 		/* see if a newline arrived in that chunk */
-		line_end = memchr(buffer, '\n', avail);
+		line_end = memchr(st->buffer, '\n', avail);
 	}
 
 	/* 3) Do we now have enough to return? */
 	if (line_end == NULL) {
 		/* not a full line—only return early if we still expect more */
-		if (!eof && avail < blen - 1 && current != eptr)
+		if (!st->eof && avail < blen - 1 && st->current != st->eptr)
 			return 0;
 
 		/* else we’ll return whatever we have (either at EOF,
@@ -127,7 +155,7 @@ int audit_fgets(char *buf, size_t blen, int fd)
 	/* 4) Compute how many chars to hand back */
 	if (line_end) {
 		/* include the '\n', but never exceed blen-1 */
-		line_len = (line_end - buffer) + 1;
+		line_len = (line_end - st->buffer) + 1;
 		if (line_len > blen - 1)
 			line_len = blen - 1;
 
@@ -137,16 +165,48 @@ int audit_fgets(char *buf, size_t blen, int fd)
 		line_len = (avail < blen - 1) ? avail : (blen - 1);
 
 	/* 5) Copy out, slide the remainder down, reset pointers */
-	memcpy(buf, buffer, line_len);
+	memcpy(buf, st->buffer, line_len);
 	buf[line_len] = '\0';
 
 	size_t remainder = avail - line_len;
 	if (remainder > 0)
-		memmove(buffer, buffer + line_len, remainder);
+		memmove(st->buffer, st->buffer + line_len, remainder);
 
-	current = buffer + remainder;
-	*current = '\0';
+	st->current = st->buffer + remainder;
+	*st->current = '\0';
 
 	return (int)line_len;
+}
+
+static inline void audit_fgets_ensure_global(void)
+{
+	if (!global_init_done) {
+		audit_fgets_state_init(&global_state);
+		global_init_done = 1;
+	}
+}
+
+int audit_fgets_eof(void)
+{
+	audit_fgets_ensure_global();
+	return audit_fgets_eof_r(&global_state);
+}
+
+void audit_fgets_clear(void)
+{
+	audit_fgets_ensure_global();
+	audit_fgets_clear_r(&global_state);
+}
+
+int audit_fgets_more(size_t blen)
+{
+	audit_fgets_ensure_global();
+	return audit_fgets_more_r(&global_state, blen);
+}
+
+int audit_fgets(char *buf, size_t blen, int fd)
+{
+	audit_fgets_ensure_global();
+	return audit_fgets_r(&global_state, buf, blen, fd);
 }
 
