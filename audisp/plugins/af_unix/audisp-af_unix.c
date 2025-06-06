@@ -207,17 +207,17 @@ static int event_to_string(struct audit_dispatcher_header *hdr,
 					"UNKNOWN[%u]", hdr->type);
 				type = unknown;
 			}
-			len = asprintf(&v, "type=%s msg=%.*s",
+			len = asprintf(&v, "type=%s msg=%.*s\n",
 					type, hdr->size, data);
 		} else if (inbound_protocol == F_BINARY &&
 			   hdr->ver == AUDISP_PROTOCOL_VER2) {
 			// Protocol 2 events are already formatted
-			len = asprintf(&v, "%.*s", hdr->size, data);
+			len = asprintf(&v, "%.*s\n", hdr->size, data);
 		} else
 			len = 0;
 	} else if (inbound_protocol == F_STRING) {
 		// Inbound strings start at the hdr
-		len = asprintf(&v, "%s", (char *)hdr);
+		len = asprintf(&v, "%s\n", (char *)hdr);
 	} else
 		len = 0;
 	if (len <= 0) {
@@ -226,7 +226,7 @@ static int event_to_string(struct audit_dispatcher_header *hdr,
 		return -1;
 	}
 
-	/* Strip newlines from event record */
+	/* Strip newlines from event record except the last one */
 	ptr = v;
 	while ((ptr = strchr(ptr, 0x0A)) != NULL) {
 		if (ptr != &v[len-1])
