@@ -2,9 +2,9 @@ name: CI Matrix
 
 on:
   push:
-    branches: [main, githubactions]
+    branches: [master]
   pull_request:
-    branches: [main, githubactions]
+    branches: [master]
 
 jobs:
   build-and-test:
@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        container: ['ubuntu:latest', 'fedora:latest']
+        container: ["ubuntu:latest", "fedora:latest"]
         compiler: [gcc, clang]
 
     steps:
