@@ -468,6 +468,8 @@ static const char *format_enrich(const struct audit_reply *rep)
 
 		// Loop over all fields while possible to add field
 		rc = auparse_first_record(au);
+		if (rc != 1)
+			format_buf[mlen] = 0; //remove newline on failure
 		rtype = auparse_get_type(au);
 		switch (rtype)
 		{	// Flush before adding to pickup new associations
