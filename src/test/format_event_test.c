@@ -29,7 +29,8 @@ int main(void)
 		return 1;
 	}
 
-	const char *msg = "audit(0.0:1): op=test auid=-1 uid=2 gid=2 ses=-1";
+	// Don't change this without adjusting offset to AUDIT_INTERP_SEPARATOR
+	const char *msg = "audit(1170021493.5:100): pid=2000 uid=2 auid=-1 gid=2 ses=-1 msg=\'op=test\'\n";
 	struct auditd_event *e;
 
 	e = create_event(NULL, NULL, NULL, 0);
@@ -62,11 +63,12 @@ int main(void)
 			len_enriched);
 		return 1;
 	}
-	if (!strchr(e->reply.message, AUDIT_INTERP_SEPARATOR)) {
+	if (e->reply.message[95] != AUDIT_INTERP_SEPARATOR) {
 		puts("missing AUDIT_INTERP_SEPARATOR");
+		printf("char 95: 0x%X\n", e->reply.message[95]);
 		return 1;
 	}
-	if (!strstr(e->reply.message, "AUID")) {
+	if (!strstr(&(e->reply.message[95]), "AUID")) {
 		puts("missing AUID interpretation");
 		return 1;
 	}

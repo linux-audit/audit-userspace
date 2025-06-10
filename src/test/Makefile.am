@@ -20,7 +20,7 @@
 #
 
 AM_CPPFLAGS = -I${top_srcdir} -I${top_srcdir}/lib -I${top_srcdir}/src -I${top_srcdir}/common -I${top_srcdir}/auparse
-check_PROGRAMS = ilist_test slist_test # format_event_test
+check_PROGRAMS = ilist_test slist_test format_event_test
 TESTS = $(check_PROGRAMS)
 ilist_test_LDADD = ${top_builddir}/src/ausearch-int.o
 ilist_test_DEPENDENCIES = ${top_builddir}/src/ausearch-int.o
