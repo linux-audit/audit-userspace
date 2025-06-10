@@ -448,11 +448,17 @@ static const char *format_enrich(const struct audit_reply *rep)
 		if (len <= MIN_SPACE_LEFT)
 			return format_buf;
 
+		// Add carriage return so auparse sees it correctly
+		format_buf[mlen] = 0x0A;
+		format_buf[mlen+1] = 0;
+
 		// init auparse
 		if (au == NULL) {
 			au = auparse_init(AUSOURCE_BUFFER, format_buf);
-			if (au == NULL)
+			if (au == NULL) {
+				format_buf[mlen] = 0; //remove newline
 				return format_buf;
+			}
 
 			auparse_set_escape_mode(au, AUPARSE_ESC_RAW);
 			auparse_set_eoe_timeout(config->end_of_event_timeout);
