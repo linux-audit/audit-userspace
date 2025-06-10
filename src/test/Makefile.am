@@ -19,10 +19,28 @@
 #   Steve Grubb <sgrubb@redhat.com>
 #
 
-AM_CPPFLAGS = -I${top_srcdir} -I${top_srcdir}/lib -I${top_srcdir}/src
-check_PROGRAMS = ilist_test slist_test
+AM_CPPFLAGS = -I${top_srcdir} -I${top_srcdir}/lib -I${top_srcdir}/src -I${top_srcdir}/common -I${top_srcdir}/auparse
+check_PROGRAMS = ilist_test slist_test # format_event_test
 TESTS = $(check_PROGRAMS)
 ilist_test_LDADD = ${top_builddir}/src/ausearch-int.o
 ilist_test_DEPENDENCIES = ${top_builddir}/src/ausearch-int.o
 slist_test_LDADD = ${top_builddir}/src/ausearch-string.o
 slist_test_DEPENDENCIES = ${top_builddir}/src/ausearch-string.o
+format_event_test_LDADD = ${top_builddir}/src/auditd-event.o \
+	${top_builddir}/src/auditd-config.o \
+	${top_builddir}/src/auditd-auditd-sendmail.o \
+	${top_builddir}/src/auditd-auditd-dispatch.o \
+	${top_builddir}/src/auditd-auditd-listen.o \
+	${top_builddir}/lib/libaudit.la ${top_builddir}/auparse/libauparse.la \
+	${top_builddir}/audisp/libdisp.la \
+	${top_builddir}/src/libev/libev.la \
+	${top_builddir}/common/libaucommon.la -lpthread -lm $(gss_libs)
+format_event_test_DEPENDENCIES = ${top_builddir}/src/auditd-event.o \
+	${top_builddir}/src/auditd-config.o \
+	${top_builddir}/src/auditd-auditd-sendmail.o \
+	${top_builddir}/src/auditd-auditd-dispatch.o \
+	${top_builddir}/src/auditd-auditd-listen.o \
+	${top_builddir}/lib/libaudit.la ${top_builddir}/auparse/libauparse.la \
+	${top_builddir}/common/libaucommon.la ${top_builddir}/audisp/libdisp.la\
+	${top_builddir}/src/libev/libev.la
+
