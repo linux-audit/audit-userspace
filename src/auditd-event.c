@@ -391,7 +391,8 @@ static int add_simple_field(auparse_state_t *au, size_t len_left, int encode)
 		enc = audit_encode_nv_string(field_name, value, vlen);
 		if (enc == NULL)
 			return 0;
-		tlen = 1 + strlen(enc) + 1;
+		vlen = strlen(enc);
+		tlen = 1 + vlen + 1;
 	} else
 		// calculate length to use
 		tlen = 1 + nlen + 1 + vlen + 1;
@@ -412,12 +413,19 @@ static int add_simple_field(auparse_state_t *au, size_t len_left, int encode)
 		num = 0;
 
 	// Add the field
-	if (encode) {
-		num += snprintf(ptr, tlen, "%s", enc);
+	if (encode) {	// encoded: "%s"
+		memcpy(ptr, enc, vlen);
+		ptr[vlen] = 0;
+		num += vlen;
 		free(enc);
-	} else
-		num += snprintf(ptr, tlen, "%s=%s", field_name, value);
-
+	} else {	// plain: "%s=%s"
+		memcpy(ptr, field_name, nlen);
+		ptr += nlen;
+		*ptr++ = '=';
+		memcpy(ptr, value, vlen);
+		ptr[vlen] = 0;
+		num += nlen + 1 + vlen;
+	}
 	return num;
 }
 
