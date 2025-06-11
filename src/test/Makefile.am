@@ -19,7 +19,7 @@
 #   Steve Grubb <sgrubb@redhat.com>
 #
 
-AM_CPPFLAGS = -I${top_srcdir} -I${top_srcdir}/lib -I${top_srcdir}/src -I${top_srcdir}/common -I${top_srcdir}/auparse
+AM_CPPFLAGS = -I${top_srcdir} -I${top_srcdir}/lib -I${top_srcdir}/src -I${top_srcdir}/common -I${top_srcdir}/auparse -I${top_srcdir}/src/libev
 check_PROGRAMS = ilist_test slist_test format_event_test
 TESTS = $(check_PROGRAMS)
 ilist_test_LDADD = ${top_builddir}/src/ausearch-int.o
