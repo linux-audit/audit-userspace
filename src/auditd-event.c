@@ -275,15 +275,18 @@ static void replace_event_msg(struct auditd_event *e, const char *buf)
 
 /*
 * This function will take an audit structure and return a
-* text buffer that's formatted for writing to disk. If there
-* is an error the return value is NULL.
+* text buffer that's formatted for writing to disk. If there is
+* an error the return value is 0 and the format_buf is truncated.
+* format_buf will have any '\n' removed on return.
 */
 static int format_raw(const struct audit_reply *rep)
 {
 	char *ptr;
 	int nlen;
 
-        if (rep == NULL) {
+	format_buf[0] = 0;
+
+	if (rep == NULL) {
 		if (config->node_name_format != N_NONE)
 			nlen = snprintf(format_buf, FORMAT_BUF_LEN - 32,
 		"node=%s type=DAEMON_ERR op=format-raw msg=NULL res=failed",
@@ -292,10 +295,8 @@ static int format_raw(const struct audit_reply *rep)
 			nlen = snprintf(format_buf, MAX_AUDIT_MESSAGE_LENGTH,
 			  "type=DAEMON_ERR op=format-raw msg=NULL res=failed");
 
-		if (nlen < 1) {
-			format_buf[0] = 0;
+		if (nlen < 1)
 			return 0;
-		}
 	} else {
 		int len;
 		const char *type, *message;
@@ -325,10 +326,8 @@ static int format_raw(const struct audit_reply *rep)
 				MAX_AUDIT_MESSAGE_LENGTH - 32,
 				"type=%s msg=%.*s", type, len, message);
 
-		if (nlen < 1) {
-			format_buf[0] = 0;
+		if (nlen < 1)
 			return 0;
-		}
 
 	        /* Replace \n with space so it looks nicer. */
 		ptr = format_buf;
@@ -430,9 +429,11 @@ static int add_simple_field(auparse_state_t *au, size_t len_left, int encode)
 }
 
 /*
-* This function will take an audit structure and return a
-* text buffer that's formatted and enriched. If there is an
-* error the return value is NULL.
+* This function will take an audit structure and return a text
+* buffer that's formatted and enriched. If there is an error the
+* return value is the raw formatted buffer (which may be truncated if it
+* had an error)or an error message in the format_buffer. The return
+* value is never NULL.
 */
 static const char *format_enrich(const struct audit_reply *rep)
 {
@@ -459,12 +460,13 @@ static const char *format_enrich(const struct audit_reply *rep)
 		// Add carriage return so auparse sees it correctly
 		format_buf[mlen] = 0x0A;
 		format_buf[mlen+1] = 0;
+		mlen++;	// Increase the length so auparse copies the '\n'
 
 		// init auparse
 		if (au == NULL) {
 			au = auparse_init(AUSOURCE_BUFFER, format_buf);
 			if (au == NULL) {
-				format_buf[mlen] = 0; //remove newline
+				format_buf[mlen-1] = 0; //remove newline
 				return format_buf;
 			}
 
@@ -472,12 +474,14 @@ static const char *format_enrich(const struct audit_reply *rep)
 			auparse_set_eoe_timeout(config->end_of_event_timeout);
 		} else
 			auparse_new_buffer(au, format_buf, mlen);
+
 		sep_done = 0;
 
 		// Loop over all fields while possible to add field
 		rc = auparse_first_record(au);
 		if (rc != 1)
-			format_buf[mlen] = 0; //remove newline on failure
+			format_buf[mlen-1] = 0; //remove newline on failure
+
 		rtype = auparse_get_type(au);
 		switch (rtype)
 		{	// Flush before adding to pickup new associations
@@ -514,6 +518,9 @@ static const char *format_enrich(const struct audit_reply *rep)
 					break;
 			}
 			rc = auparse_next_field(au);
+			//remove newline when nothing added
+			if (rc < 1 && sep_done == 0)
+				format_buf[mlen-1] = 0;
 		}
 
 		switch(rtype)
@@ -528,6 +535,7 @@ static const char *format_enrich(const struct audit_reply *rep)
 				break;
 		}
 	}
+
         return format_buf;
 }
 
