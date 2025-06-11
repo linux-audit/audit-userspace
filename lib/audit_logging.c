@@ -123,25 +123,45 @@ char *audit_encode_value(char *final, const char *buf, unsigned int size)
 }
 
 char *audit_encode_nv_string(const char *name, const char *value,
-		unsigned int vlen)
+			     unsigned int vlen)
 {
-	char *str;
+	size_t nlen, len;
+	char *str, *ptr;
+	int encode = 0;
 
-	if (vlen == 0 && value)
+	if (value == NULL) {
+		value = "?";
+		vlen = 1;
+	}
+
+	if (vlen == 0)
 		vlen = strlen(value);
 
-	if (value && audit_value_needs_encoding(value, vlen)) {
-		char *tmp = malloc(2*vlen + 1);
-		if (tmp) {
-			audit_encode_value(tmp, value, vlen);
-			if (asprintf(&str, "%s=%s", name, tmp) < 0)
-				str = NULL;
-			free(tmp);
-		} else
-			str = NULL;
-	} else
-		if (asprintf(&str, "%s=\"%s\"", name, value ? value : "?") < 0)
-			str = NULL;
+	nlen = strlen(name);
+
+	if (audit_value_needs_encoding(value, vlen)) {
+		encode = 1; // name + '=' + 2*value len + termination
+		len = nlen + 1 + (2 * vlen) + 1;
+	} else // name + 2 double quotes + value + termination
+		len = nlen + 2 + vlen + 1;
+
+	str = malloc(len);
+	if (str == NULL)
+		return NULL;
+
+	ptr = stpcpy(str, name);
+	*ptr++ = '=';
+
+	if (encode)
+		audit_encode_value(ptr, value, vlen);
+	else {
+		*ptr++ = '"';
+		memcpy(ptr, value, vlen);
+		ptr += vlen;
+		*ptr++ = '"';
+		*ptr = '\0';
+	}
+
 	return str;
 }
 
