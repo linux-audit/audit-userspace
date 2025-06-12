@@ -36,8 +36,8 @@ typedef enum { LF_RAW, LF_NOLOG, LF_ENRICHED } logging_formats;
 typedef enum { FT_NONE, FT_INCREMENTAL, FT_INCREMENTAL_ASYNC, FT_DATA, FT_SYNC } flush_technique;
 typedef enum { FA_IGNORE, FA_SYSLOG, FA_ROTATE, FA_EMAIL, FA_EXEC, FA_SUSPEND,
 		FA_SINGLE, FA_HALT } failure_action_t;
-typedef enum { SZ_IGNORE, SZ_SYSLOG, SZ_SUSPEND, SZ_ROTATE, 
-		SZ_KEEP_LOGS } size_action;
+typedef enum { SZ_IGNORE, SZ_SYSLOG, SZ_EXEC, SZ_SUSPEND, SZ_ROTATE,
+               SZ_KEEP_LOGS } size_action;
 typedef enum { TEST_AUDITD, TEST_SEARCH } log_test_t;
 typedef enum { N_NONE, N_HOSTNAME, N_FQD, N_NUMERIC, N_USER } node_t;
 typedef enum { O_IGNORE, O_SYSLOG, O_SUSPEND, O_SINGLE,
@@ -63,6 +63,7 @@ struct daemon_conf
 	const char *node_name;
 	unsigned long max_log_size;
 	size_action max_log_size_action;
+	const char *max_log_file_exe;
 	unsigned long space_left;
 	unsigned int space_left_percent;
 	failure_action_t space_left_action;

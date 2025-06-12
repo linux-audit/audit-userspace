@@ -230,6 +230,7 @@ static const struct nv_list size_actions[] =
 {
   {"ignore",  SZ_IGNORE },
   {"syslog",  SZ_SYSLOG },
+  {"exec",    SZ_EXEC },
   {"suspend", SZ_SUSPEND },
   {"rotate",  SZ_ROTATE },
   {"keep_logs", SZ_KEEP_LOGS},
@@ -313,6 +314,7 @@ void clear_config(struct daemon_conf *config)
 	config->node_name = NULL;
 	config->max_log_size = 0L;
 	config->max_log_size_action = SZ_IGNORE;
+	config->max_log_file_exe = NULL;
 	config->space_left = 0L;
 	config->space_left_percent = 0;
 	config->space_left_action = FA_IGNORE;
@@ -798,6 +800,52 @@ static int max_log_size_parser(const struct nv_pair *nv, int line,
 	return 0;
 }
 
+static int check_exe_name(const char *val, int line)
+{
+	struct stat buf;
+
+	if (val == NULL) {
+		audit_msg(LOG_ERR, "Executable path needed for line %d", line);
+		return -1;
+	}
+
+	if (*val != '/') {
+		audit_msg(LOG_ERR, "Absolute path needed for %s - line %d",
+			val, line);
+		return -1;
+	}
+
+	if (stat(val, &buf) < 0) {
+		audit_msg(LOG_ERR, "Unable to stat %s (%s) - line %d", val,
+			strerror(errno), line);
+		return -1;
+	}
+	if (!S_ISREG(buf.st_mode)) {
+		audit_msg(LOG_ERR, "%s is not a regular file - line %d", val,
+			line);
+		return -1;
+	}
+	if (buf.st_uid != 0) {
+		audit_msg(LOG_ERR, "%s is not owned by root - line %d", val,
+			line);
+		return -1;
+	}
+	if ((buf.st_mode & (S_IRWXU|S_IRWXG|S_IRWXO)) !=
+			   (S_IRWXU|S_IRGRP|S_IXGRP) &&
+	    (buf.st_mode & (S_IRWXU|S_IRWXG|S_IRWXO)) !=
+			   (S_IRWXU|S_IRGRP|S_IXGRP|S_IROTH|S_IXOTH) &&
+	    (buf.st_mode & (S_IRWXU|S_IRWXG|S_IRWXO)) !=
+			   (S_IRUSR|S_IXUSR|S_IRGRP|S_IXGRP|S_IROTH|S_IXOTH) &&
+	    (buf.st_mode & (S_IRWXU|S_IRWXG|S_IRWXO)) !=
+			   (S_IRUSR|S_IXUSR|S_IRGRP|S_IXGRP|S_IROTH|S_IXOTH)) {
+		audit_msg(LOG_ERR,
+			"%s permissions should be 0750, 0755, 0555 or 0550 - line %d",
+			val, line);
+		return -1;
+	}
+	return 0;
+}
+
 static int max_log_size_action_parser(const struct nv_pair *nv, int line, 
 		struct daemon_conf *config)
 {
@@ -807,6 +855,11 @@ static int max_log_size_action_parser(const struct nv_pair *nv, int line,
 		nv->value);
 	for (i=0; size_actions[i].name != NULL; i++) {
 		if (strcasecmp(nv->value, size_actions[i].name) == 0) {
+			if (size_actions[i].option == SZ_EXEC) {
+				if (check_exe_name(nv->option, line))
+					return 1;
+				config->max_log_file_exe = strdup(nv->option);
+			}
 			config->max_log_size_action = size_actions[i].option;
 			return 0;
 		}
@@ -971,52 +1024,6 @@ static int space_left_parser(const struct nv_pair *nv, int line,
 		config->space_left = 0L;
 	} else
 		config->space_left = i;
-	return 0;
-}
-
-static int check_exe_name(const char *val, int line)
-{
-	struct stat buf;
-
-	if (val == NULL) {
-		audit_msg(LOG_ERR, "Executable path needed for line %d", line);
-		return -1;
-	}
-
-	if (*val != '/') {
-		audit_msg(LOG_ERR, "Absolute path needed for %s - line %d",
-			val, line);
-		return -1;
-	}
-
-	if (stat(val, &buf) < 0) {
-		audit_msg(LOG_ERR, "Unable to stat %s (%s) - line %d", val,
-			strerror(errno), line);
-		return -1;
-	}
-	if (!S_ISREG(buf.st_mode)) {
-		audit_msg(LOG_ERR, "%s is not a regular file - line %d", val,
-			line);
-		return -1;
-	}
-	if (buf.st_uid != 0) {
-		audit_msg(LOG_ERR, "%s is not owned by root - line %d", val,
-			line);
-		return -1;
-	}
-	if ((buf.st_mode & (S_IRWXU|S_IRWXG|S_IRWXO)) !=
-			   (S_IRWXU|S_IRGRP|S_IXGRP) &&
-	    (buf.st_mode & (S_IRWXU|S_IRWXG|S_IRWXO)) !=
-			   (S_IRWXU|S_IRGRP|S_IXGRP|S_IROTH|S_IXOTH) &&
-	    (buf.st_mode & (S_IRWXU|S_IRWXG|S_IRWXO)) !=
-			   (S_IRUSR|S_IXUSR|S_IRGRP|S_IXGRP|S_IROTH|S_IXOTH) &&
-	    (buf.st_mode & (S_IRWXU|S_IRWXG|S_IRWXO)) !=
-			   (S_IRUSR|S_IXUSR|S_IRGRP|S_IXGRP|S_IROTH|S_IXOTH)) {
-		audit_msg(LOG_ERR,
-			"%s permissions should be 0750, 0755, 0555 or 0550 - line %d",
-			val, line);
-		return -1;
-	}
 	return 0;
 }
 
@@ -2033,14 +2040,15 @@ void free_config(struct daemon_conf *config)
 	free((void *)config->log_file);
 	free((void *)config->node_name);
 	free((void *)config->action_mail_acct);
+	free((void *)config->max_log_file_exe);
 	free((void *)config->space_left_exe);
-        free((void *)config->admin_space_left_exe);
-        free((void *)config->disk_full_exe);
-        free((void *)config->disk_error_exe);
-        free((void *)config->krb5_principal);
-        free((void *)config->krb5_key_file);
+	free((void *)config->admin_space_left_exe);
+	free((void *)config->disk_full_exe);
+	free((void *)config->disk_error_exe);
+	free((void *)config->krb5_principal);
+	free((void *)config->krb5_key_file);
 	free((void *)config->plugin_dir);
-        free((void *)config_dir);
+	free((void *)config_dir);
 	free(config_file);
         config_file = NULL;
 	config->config_dir = NULL;

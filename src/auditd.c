@@ -174,7 +174,7 @@ static void user2_handler( struct ev_loop *loop, struct ev_signal *sig, int reve
 }
 
 /*
- * Used with email alerts to cleanup
+ * Used with email alerts and max_log_size_exec to cleanup
  */
 static void child_handler(struct ev_loop *loop, struct ev_signal *sig,
 			int revents)
@@ -184,6 +184,10 @@ static void child_handler(struct ev_loop *loop, struct ev_signal *sig,
 	while ((pid = waitpid(-1, NULL, WNOHANG)) > 0) {
 		if (pid == dispatcher_pid())
 			dispatcher_reaped();
+		else if (pid == auditd_get_exec_pid()) {
+			resume_logging();
+			auditd_clear_exec_pid();
+		}
 	}
 }
 

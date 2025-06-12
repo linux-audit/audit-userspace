@@ -71,10 +71,9 @@ static void rotate_logs(unsigned int num_logs, unsigned int keep_logs);
 static void shift_logs(void);
 static int  open_audit_log(void);
 static void change_runlevel(const char *level);
-static void safe_exec(const char *exe);
+static pid_t safe_exec(const char *exe);
 static void reconfigure(struct auditd_event *e);
 static void init_flush_thread(void);
-
 
 /* Local Data */
 static struct daemon_conf *config;
@@ -86,6 +85,7 @@ static int fs_admin_space_warning = 0;
 static int fs_space_left = 1;
 static int logging_suspended = 0;
 static unsigned int known_logs = 0;
+static pid_t exec_child_pid = -1;
 static const char *SINGLE = "1";
 static const char *HALT = "0";
 static char *format_buf = NULL;
@@ -105,6 +105,16 @@ static inline int from_network(const struct auditd_event *e)
 int dispatch_network_events(void)
 {
 	return config->distribute_network_events;
+}
+
+pid_t auditd_get_exec_pid(void)
+{
+       return exec_child_pid;
+}
+
+void auditd_clear_exec_pid(void)
+{
+       exec_child_pid = -1;
 }
 
 void write_logging_state(FILE *f)
@@ -773,6 +783,15 @@ static void check_log_file_size(void)
 			case SZ_SYSLOG:
 				audit_msg(LOG_ERR,
 			    "Audit daemon log file is larger than max size");
+				break;
+			case SZ_EXEC:
+				if (log_file)
+					fclose(log_file);
+				log_file = NULL;
+				log_fd = -1;
+				logging_suspended = 1;
+				exec_child_pid =
+					safe_exec(config->max_log_file_exe);
 				break;
 			case SZ_SUSPEND:
 				audit_msg(LOG_ERR,
@@ -1467,35 +1486,41 @@ static void change_runlevel(const char *level)
 	exit(1);
 }
 
-static void safe_exec(const char *exe)
+/*
+ * This function executes a new process. It returns -1 on failure to fork.
+ * It returns a positive number to the parent. This positive number is the
+ * pid of the child. If the child fails to exec the new process, it exits
+ * with a 1. The exit code can be picked up in the sigchld handler.
+ */
+static pid_t safe_exec(const char *exe)
 {
 	char *argv[2];
-	int pid;
+	pid_t pid;
 	struct sigaction sa;
 
 	if (exe == NULL) {
 		audit_msg(LOG_ALERT,
 			"Safe_exec passed NULL for program to execute");
-		return;
+		return -1;
 	}
 
 	pid = fork();
 	if (pid < 0) {
 		audit_msg(LOG_ALERT,
 			"Audit daemon failed to fork doing safe_exec");
-		return;
+		return -1;
 	}
-	if (pid)	/* Parent */
-		return;
+	if (pid) /* Parent */
+	return pid;
 	/* Child */
-        sigfillset (&sa.sa_mask);
-        sigprocmask (SIG_UNBLOCK, &sa.sa_mask, 0);
+	sigfillset(&sa.sa_mask);
+	sigprocmask(SIG_UNBLOCK, &sa.sa_mask, 0);
 
 	argv[0] = (char *)exe;
 	argv[1] = NULL;
 	execve(exe, argv, NULL);
 	audit_msg(LOG_ALERT, "Audit daemon failed to exec %s", exe);
-	exit(1);
+	exit(1); /* FIXME: Maybe this should error instead of exit */
 }
 
 static void reconfigure(struct auditd_event *e)
@@ -1606,6 +1631,19 @@ static void reconfigure(struct auditd_event *e)
 	if (oconf->max_log_size != nconf->max_log_size) {
 		oconf->max_log_size = nconf->max_log_size;
 		need_size_check = 1;
+	}
+
+	// max log exe
+	if (oconf->max_log_file_exe || nconf->max_log_file_exe) {
+		if (nconf->max_log_file_exe == NULL)
+                       ;
+		else if (oconf->max_log_file_exe == NULL && nconf->max_log_file_exe)
+			need_size_check = 1;
+		else if (strcmp(oconf->max_log_file_exe,
+				nconf->max_log_file_exe))
+			need_size_check = 1;
+		free((char *)oconf->max_log_file_exe);
+		oconf->max_log_file_exe = nconf->max_log_file_exe;
 	}
 
 	if (need_size_check) {

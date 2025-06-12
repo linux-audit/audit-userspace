@@ -1,5 +1,5 @@
-/* auditd-event.h -- 
- * Copyright 2004,2005,2008,2016,2018 Red Hat Inc., Durham, North Carolina.
+/* auditd-event.h --
+ * Copyright 2004,2005,2008,2016,2018 Red Hat Inc.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -18,7 +18,7 @@
  *
  * Authors:
  *   Steve Grubb <sgrubb@redhat.com>
- * 
+ *
  */
 
 #ifndef AUDITD_EVENT_H
@@ -43,7 +43,11 @@ int dispatch_network_events(void);
 void write_logging_state(FILE *f);
 void shutdown_events(void);
 int init_event(struct daemon_conf *config);
+pid_t auditd_get_exec_pid(void);
+void auditd_clear_exec_pid(void);
 void resume_logging(void);
+pid_t auditd_get_exec_pid(void);
+void auditd_clear_exec_pid(void);
 void cleanup_event(struct auditd_event *e);
 void format_event(struct auditd_event *e);
 void enqueue_event(struct auditd_event *e);

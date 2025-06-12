@@ -110,12 +110,18 @@ is reached, it will trigger a configurable action. The value given must be numer
 .I max_log_file_action
 This parameter tells the system what action to take when the system has
 detected that the max file size limit has been reached. Valid values are
-.IR ignore ", " syslog ", " suspend ", " rotate " and "keep_logs.
+.IR ignore ", " syslog ", " exec ", " suspend ", " rotate " and "keep_logs.
 If set to
 .IR ignore ,
 the audit daemon does nothing.
 .IR syslog
 means that it will issue a warning to syslog.
+.IR exec
+/path-to-script will execute the script. You cannot pass parameters to the script. The script is also responsible for telling the auditd daemon to resume logging once its completed its action. This can be done by adding 
+.I auditdctl --signal resume
+to the script. Also note that logging is stpped which this script runs. Whatever it does needs to be real quick because events are backing up in the kernel. The script
+.B MUST
+delete or rename /var/log/audit/audit.log or when logging resumes, it will retrigger executing the script.
 .IR suspend
 will cause the audit daemon to stop writing records to the disk. The daemon will still be alive. The
 .IR rotate
