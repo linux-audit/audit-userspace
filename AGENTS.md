@@ -52,6 +52,7 @@ successful tests.
 - `/common`: A library of common internal routines
 - `/lib`: This is where the code for libaudit is located
 - `/auparse`: This is where the code for libauparse is located
+- `/auplugin`: This is where the code for libauplugin is located
 - `/audisp`: This is where we find the code for the real time event dispatcher (which is linked into auditd) and its plugins.
   - `/plugins`: The main directory holding all of the auditd plugins
 - `/tools`: This holds the code for ausyscall, aulast, and aulastlog
