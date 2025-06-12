@@ -173,6 +173,7 @@ fi
 %license COPYING.LIB
 %{_libdir}/libaudit.so.1*
 %{_libdir}/libauparse.*
+%{_libdir}/libauplugin.so.1*
 %config(noreplace) %attr(640,root,root) /etc/libaudit.conf
 %{_mandir}/man5/libaudit.conf.5.gz
 
@@ -180,11 +181,13 @@ fi
 %doc contrib/plugin
 %{_libdir}/libaudit.so
 %{_libdir}/libauparse.so
+%{_libdir}/libauplugin.so
 %{_includedir}/libaudit.h
 %{_includedir}/audit_logging.h
 %{_includedir}/audit-records.h
 %{_includedir}/auparse.h
 %{_includedir}/auparse-defs.h
+%{_includedir}/auplugin.h
 %{_datadir}/aclocal/audit.m4
 %{_libdir}/pkgconfig/audit.pc
 %{_libdir}/pkgconfig/auparse.pc
@@ -195,6 +198,7 @@ fi
 %license COPYING.LIB
 %{_libdir}/libaudit.a
 %{_libdir}/libauparse.a
+%{_libdir}/libauplugin.a
 
 %files -n python3-audit
 %defattr(-,root,root,-)

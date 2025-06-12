@@ -23,7 +23,7 @@
 CONFIG_CLEAN_FILES = *.loT *.rej *.orig
 EXTRA_DIST = audisp-ids.conf ids.conf TODO README.md
 SUBDIRS = rules
-AM_CPPFLAGS = -I${top_srcdir} -I${top_srcdir}/lib -I${top_srcdir}/auparse -I${top_srcdir}/common
+AM_CPPFLAGS = -I${top_srcdir} -I${top_srcdir}/lib -I${top_srcdir}/auparse -I${top_srcdir}/common -I${top_srcdir}/auplugin
 prog_confdir = $(sysconfdir)/audit
 prog_conf = ids.conf
 plugin_confdir=$(prog_confdir)/plugins.d
@@ -33,13 +33,13 @@ noinst_HEADERS = account.h avl.h ids_config.h gcc-attributes.h ids.h \
 	model_bad_event.h model_behavior.h nvpair.h origin.h \
 	reactions.h session.h timer-services.h
 
-audisp_ids_DEPENDENCIES = ${top_builddir}/lib/libaudit.la ${top_builddir}/auparse/libauparse.la ${top_builddir}/common/libaucommon.la
+audisp_ids_DEPENDENCIES = ${top_builddir}/lib/libaudit.la ${top_builddir}/auparse/libauparse.la ${top_builddir}/common/libaucommon.la ${top_builddir}/auplugin/libauplugin.la
 audisp_ids_SOURCES = account.c avl.c ids.c ids_config.c model_bad_event.c \
 	model_behavior.c nvpair.c origin.c reactions.c session.c \
 	timer-services.c
 audisp_ids_CFLAGS = -D_GNU_SOURCE ${WFLAGS}
 audisp_ids_LDADD = ${top_builddir}/lib/libaudit.la \
-	${top_builddir}/auparse/libauparse.la ${top_builddir}/common/libaucommon.la 
+	${top_builddir}/auparse/libauparse.la ${top_builddir}/common/libaucommon.la  ${top_builddir}/auplugin/libauplugin.la
 
 install-data-hook:
 	mkdir -p -m 0750 ${DESTDIR}${plugin_confdir}

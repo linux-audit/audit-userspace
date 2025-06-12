@@ -4,7 +4,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "audit-fgets.c"
+#include <auplugin.h>
 
 static void test_simple_line(void)
 {

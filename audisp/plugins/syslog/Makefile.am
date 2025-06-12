@@ -23,18 +23,18 @@
 
 CONFIG_CLEAN_FILES = *.loT *.rej *.orig
 EXTRA_DIST = syslog.conf $(man_MANS)
-AM_CPPFLAGS = -I${top_srcdir} -I${top_srcdir}/lib -I${top_srcdir}/common -I${top_srcdir}/auparse
+AM_CPPFLAGS = -I${top_srcdir} -I${top_srcdir}/lib -I${top_srcdir}/common -I${top_srcdir}/auparse -I${top_srcdir}/auplugin
 prog_confdir = $(sysconfdir)/audit
 plugin_confdir=$(prog_confdir)/plugins.d
 plugin_conf = syslog.conf
 sbin_PROGRAMS = audisp-syslog
 man_MANS = audisp-syslog.8
 
-audisp_syslog_DEPENDENCIES = ${top_builddir}/lib/libaudit.la ${top_builddir}/auparse/libauparse.la
+audisp_syslog_DEPENDENCIES = ${top_builddir}/lib/libaudit.la ${top_builddir}/auparse/libauparse.la ${top_builddir}/auplugin/libauplugin.la
 audisp_syslog_SOURCES = audisp-syslog.c
 audisp_syslog_CFLAGS = -fPIE -DPIE -g -D_GNU_SOURCE -Wundef ${WFLAGS}
 audisp_syslog_LDFLAGS = -pie -Wl,-z,relro -Wl,-z,now
-audisp_syslog_LDADD = $(CAPNG_LDADD) ${top_builddir}/lib/libaudit.la ${top_builddir}/auparse/libauparse.la
+audisp_syslog_LDADD = $(CAPNG_LDADD) ${top_builddir}/lib/libaudit.la ${top_builddir}/auparse/libauparse.la ${top_builddir}/auplugin/libauplugin.la
 
 install-data-hook:
 	mkdir -p -m 0750 ${DESTDIR}${plugin_confdir}

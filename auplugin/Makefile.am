@@ -1,27 +1,34 @@
-# Copyright 2008 Red Hat Inc.
+# Makefile.am --
+# Copyright 2025 Red Hat Inc.
 # All Rights Reserved.
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
 # License as published by the Free Software Foundation; either
 # version 2.1 of the License, or (at your option) any later version.
-#
+# 
 # This library is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
-#
+# 
 # You should have received a copy of the GNU Lesser General Public
-# License along with this library; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-#
+# License along with this program; see the file COPYING.lib. If not, write to
+# the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor 
+# Boston, MA 02110-1335, USA.
+# 
 # Authors:
-#   Miloslav Trmač <mitr@redhat.com>
+#   Steve Grubb <sgrubb@redhat.com>
 #
 
-AM_CPPFLAGS = -I${top_srcdir}/lib
-check_PROGRAMS = lookup_test
-TESTS = $(check_PROGRAMS)
+SUBDIRS = test
+VERSION_INFO = 1:0
+AM_CFLAGS = -fPIC -DPIC -D_GNU_SOURCE ${WFLAGS}
+AM_CPPFLAGS = -I${top_srcdir} -I${top_srcdir}/auplugin
 
-lookup_test_LDADD = ${top_builddir}/lib/libaudit.la
-lookup_test_DEPENDENCIES = ${top_builddir}/lib/libaudit.la
+lib_LTLIBRARIES = libauplugin.la
+include_HEADERS = auplugin.h
+
+libauplugin_la_SOURCES = audit-fgets.c
+libauplugin_la_LDFLAGS = -Wl,-z,relro -version-info $(VERSION_INFO)
+

@@ -305,24 +305,6 @@ int audit_can_control(void);
 int audit_can_write(void);
 int audit_can_read(void);
 
-/* Opaque handle used by audit_fgets_r */
-typedef struct audit_fgets_state audit_fgets_state_t;
-
-/* Helper function for reading stdin in plugins */
-void audit_fgets_clear(void);
-int audit_fgets_eof(void);
-int audit_fgets_more(size_t blen);
-int audit_fgets(char *buf, size_t blen, int fd)
-	__attr_access ((__write_only__, 1, 2));
-
-void audit_fgets_destroy(audit_fgets_state_t *st);
-audit_fgets_state_t *audit_fgets_init(void)
-	__attribute_malloc__ __attr_dealloc (audit_fgets_destroy, 1);
-void audit_fgets_clear_r(audit_fgets_state_t *st);
-int audit_fgets_eof_r(audit_fgets_state_t *st);
-int audit_fgets_more_r(audit_fgets_state_t *st, size_t blen);
-int audit_fgets_r(audit_fgets_state_t *st, char *buf, size_t blen, int fd)
-        __attr_access ((__write_only__, 2, 3));
 
 #ifdef __cplusplus
 }

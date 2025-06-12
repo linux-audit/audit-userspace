@@ -23,7 +23,7 @@
 
 CONFIG_CLEAN_FILES = *.loT *.rej *.orig
 EXTRA_DIST = au-remote.conf audisp-remote.conf notes.txt $(man_MANS)
-AM_CPPFLAGS = -I${top_srcdir} -I${top_srcdir}/lib -I${top_srcdir}/common
+AM_CPPFLAGS = -I${top_srcdir} -I${top_srcdir}/lib -I${top_srcdir}/common -I${top_srcdir}/auplugin
 prog_confdir = $(sysconfdir)/audit
 prog_conf = audisp-remote.conf
 plugin_confdir=$(prog_confdir)/plugins.d
@@ -34,11 +34,11 @@ man_MANS = audisp-remote.8 audisp-remote.conf.5
 check_PROGRAMS = test-queue
 TESTS = $(check_PROGRAMS)
 
-audisp_remote_DEPENDENCIES = ${top_builddir}/lib/libaudit.la ${top_builddir}/common/libaucommon.la
+audisp_remote_DEPENDENCIES = ${top_builddir}/lib/libaudit.la ${top_builddir}/common/libaucommon.la ${top_builddir}/auplugin/libauplugin.la
 audisp_remote_SOURCES = audisp-remote.c remote-config.c queue.c
 audisp_remote_CFLAGS = -fPIE -DPIE -g -D_REENTRANT -D_GNU_SOURCE -Wundef ${WFLAGS}
 audisp_remote_LDFLAGS = -pie -Wl,-z,relro -Wl,-z,now
-audisp_remote_LDADD = $(CAPNG_LDADD) $(gss_libs) ${top_builddir}/lib/libaudit.la ${top_builddir}/common/libaucommon.la
+audisp_remote_LDADD = $(CAPNG_LDADD) $(gss_libs) ${top_builddir}/lib/libaudit.la ${top_builddir}/common/libaucommon.la ${top_builddir}/auplugin/libauplugin.la
 
 test_queue_SOURCES = queue.c test-queue.c
 

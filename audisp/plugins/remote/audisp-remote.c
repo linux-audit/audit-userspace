@@ -49,6 +49,7 @@
 #include <cap-ng.h>
 #endif
 #include "libaudit.h"
+#include "auplugin.h"
 #include "private.h"
 #include "remote-config.h"
 #include "queue.h"
