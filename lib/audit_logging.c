@@ -142,8 +142,8 @@ char *audit_encode_nv_string(const char *name, const char *value,
 	if (audit_value_needs_encoding(value, vlen)) {
 		encode = 1; // name + '=' + 2*value len + termination
 		len = nlen + 1 + (2 * vlen) + 1;
-	} else // name + 2 double quotes + value + termination
-		len = nlen + 2 + vlen + 1;
+	} else // 2 double quotes + name + '=' + value + termination
+		len = 2 + nlen + 1 + vlen + 1;
 
 	str = malloc(len);
 	if (str == NULL)
