@@ -102,7 +102,7 @@ AC_COMPILE_IFELSE(
   [AC_LANG_SOURCE(
     [[
       #include <stdio.h>
-      int audit_fgets(char *buf, size_t blen, int fd)
+      int auplugin_fgets(char *buf, size_t blen, int fd)
         __attr_access ((__write_only__, 1, 2));
       int main(void) { return 0; }]])],
   [ACCESS="yes"],

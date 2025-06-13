@@ -275,7 +275,7 @@ int main(void)
 			if (FD_ISSET(0, &read_mask)) {
 				do {
 					int len;
-					if ((len = audit_fgets(tmp,
+					if ((len = auplugin_fgets(tmp,
 						MAX_AUDIT_MESSAGE_LENGTH,
 								0)) > 0) {
 					/*	char *buf = strndup(tmp, 40);
@@ -283,7 +283,7 @@ int main(void)
 						free(buf); */
 						auparse_feed(au, tmp, len);
 					}
-				} while (audit_fgets_more(
+				} while (auplugin_fgets_more(
 						MAX_AUDIT_MESSAGE_LENGTH));
 			}
 			if (FD_ISSET(tfd, &read_mask)) {
@@ -292,7 +292,7 @@ int main(void)
 			}
 
 		}
-		if (audit_fgets_eof())
+		if (auplugin_fgets_eof())
 			break;
 	} while (stop == 0);
 

@@ -250,14 +250,14 @@ int main(int argc, const char *argv[])
 		 if (!stop && !hup && retval > 0) {
 			if (FD_ISSET(0, &read_mask)) {
 				do {
-					if (audit_fgets(tmp,
+					if (auplugin_fgets(tmp,
 					    MAX_AUDIT_MESSAGE_LENGTH, 0) > 0)
 						write_syslog(tmp);
-				} while (audit_fgets_more(
+				} while (auplugin_fgets_more(
 						MAX_AUDIT_MESSAGE_LENGTH));
 			}
 		}
-		if (audit_fgets_eof())
+		if (auplugin_fgets_eof())
 			break;
 	} while (stop == 0);
 

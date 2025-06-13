@@ -43,17 +43,17 @@
 
 #define BUF_SIZE 8192
 
-struct audit_fgets_state {
+struct auplugin_fgets_state {
 	char buffer[2*BUF_SIZE+1];
 	char *current;
 	char *eptr;
 	int eof;
 };
 
-static struct audit_fgets_state global_state;
+static struct auplugin_fgets_state global_state;
 static int global_init_done;
 
-static void audit_fgets_state_init(struct audit_fgets_state *st)
+static void auplugin_fgets_state_init(struct auplugin_fgets_state *st)
 {
 	st->buffer[0] = '\0';
 	st->current = st->buffer;
@@ -61,27 +61,27 @@ static void audit_fgets_state_init(struct audit_fgets_state *st)
 	st->eof = 0;
 }
 
-struct audit_fgets_state *audit_fgets_init(void)
+struct auplugin_fgets_state *auplugin_fgets_init(void)
 {
-	struct audit_fgets_state *st = malloc(sizeof(*st));
+	struct auplugin_fgets_state *st = malloc(sizeof(*st));
 	if (st)
-		audit_fgets_state_init(st);
+		auplugin_fgets_state_init(st);
 	return st;
 }
 
-void audit_fgets_destroy(struct audit_fgets_state *st)
+void auplugin_fgets_destroy(struct auplugin_fgets_state *st)
 {
 	free(st);
 }
 
-int audit_fgets_eof_r(struct audit_fgets_state *st)
+int auplugin_fgets_eof_r(struct auplugin_fgets_state *st)
 {
 	return st->eof;
 }
 
 /* This function dumps any accumulated text. This is to remove dangling text
  * that never got consumed for the intended purpose. */
-void audit_fgets_clear_r(struct audit_fgets_state *st)
+void auplugin_fgets_clear_r(struct auplugin_fgets_state *st)
 {
 	st->buffer[0] = 0;
 	st->current = st->buffer;
@@ -92,7 +92,7 @@ void audit_fgets_clear_r(struct audit_fgets_state *st)
  * and ready to process. If we have a newline or enough
  * bytes we return 1 for success. Otherwise 0 meaning that
  * there is not enough to process without blocking. */
-int audit_fgets_more_r(struct audit_fgets_state *st, size_t blen)
+int auplugin_fgets_more_r(struct auplugin_fgets_state *st, size_t blen)
 {
 	size_t avail;
 	char *nl;
@@ -110,7 +110,7 @@ int audit_fgets_more_r(struct audit_fgets_state *st, size_t blen)
  * copy into buf, NUL-terminate, and return the number of chars.
  * It also returns 0 for no data. And -1 if there was an error reading
  * the fd. */
-int audit_fgets_r(struct audit_fgets_state *st, char *buf, size_t blen, int fd)
+int auplugin_fgets_r(struct auplugin_fgets_state *st, char *buf, size_t blen, int fd)
 {
 	size_t avail = st->current - st->buffer, line_len;
 	char  *line_end;
@@ -178,35 +178,35 @@ int audit_fgets_r(struct audit_fgets_state *st, char *buf, size_t blen, int fd)
 	return (int)line_len;
 }
 
-static inline void audit_fgets_ensure_global(void)
+static inline void auplugin_fgets_ensure_global(void)
 {
 	if (!global_init_done) {
-		audit_fgets_state_init(&global_state);
+		auplugin_fgets_state_init(&global_state);
 		global_init_done = 1;
 	}
 }
 
-int audit_fgets_eof(void)
+int auplugin_fgets_eof(void)
 {
-	audit_fgets_ensure_global();
-	return audit_fgets_eof_r(&global_state);
+	auplugin_fgets_ensure_global();
+	return auplugin_fgets_eof_r(&global_state);
 }
 
-void audit_fgets_clear(void)
+void auplugin_fgets_clear(void)
 {
-	audit_fgets_ensure_global();
-	audit_fgets_clear_r(&global_state);
+	auplugin_fgets_ensure_global();
+	auplugin_fgets_clear_r(&global_state);
 }
 
-int audit_fgets_more(size_t blen)
+int auplugin_fgets_more(size_t blen)
 {
-	audit_fgets_ensure_global();
-	return audit_fgets_more_r(&global_state, blen);
+	auplugin_fgets_ensure_global();
+	return auplugin_fgets_more_r(&global_state, blen);
 }
 
-int audit_fgets(char *buf, size_t blen, int fd)
+int auplugin_fgets(char *buf, size_t blen, int fd)
 {
-	audit_fgets_ensure_global();
-	return audit_fgets_r(&global_state, buf, blen, fd);
+	auplugin_fgets_ensure_global();
+	return auplugin_fgets_r(&global_state, buf, blen, fd);
 }
 

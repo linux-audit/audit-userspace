@@ -1,18 +1,18 @@
-.TH "AUDIT_FGETS" "3" "May 2025" "Red Hat" "Linux Audit API"
+.TH "AUPLUGIN_FGETS" "3" "June 2025" "Red Hat" "Linux Audit API"
 .SH NAME
-audit_fgets, audit_fgets_more, audit_fgets_eof, audit_fgets_clear \- buffered line reader helpers
+auplugin_fgets, auplugin_fgets_more, auplugin_fgets_eof, auplugin_fgets_clear \- buffered line reader helpers
 .SH SYNOPSIS
 .B #include <auplugin.h>
 .sp
-.BI "int audit_fgets(char *" buf ", size_t " blen ", int " fd ");"
+.BI "int auplugin_fgets(char *" buf ", size_t " blen ", int " fd ");"
 .br
-.BI "int audit_fgets_more(size_t " blen ");"
+.BI "int auplugin_fgets_more(size_t " blen ");"
 .br
-.BI "int audit_fgets_eof(void);"
+.BI "int auplugin_fgets_eof(void);"
 .br
-.B void audit_fgets_clear(void);
+.B void auplugin_fgets_clear(void);
 .SH DESCRIPTION
-.B audit_fgets
+.B auplugin_fgets
 reads from
 .I fd
 into
@@ -21,30 +21,30 @@ up to
 .I blen
 bytes or through the next newline. Text is accumulated across calls in an internal buffer so that complete lines can be returned. The string is NUL terminated.
 .PP
-.B audit_fgets_more
+.B auplugin_fgets_more
 checks whether the buffer holds a newline or at least
 .I blen - 1
 bytes.
 .PP
-.B audit_fgets_eof
+.B auplugin_fgets_eof
 indicates whether end of file was reached on
 .I fd
 .
 .PP
-.B audit_fgets_clear
+.B auplugin_fgets_clear
 resets the internal buffer and EOF state, discarding any stored text.
 .PP
 These functions maintain static state and are therefore not thread safe.
 .SH RETURN VALUE
-.B audit_fgets
+.B auplugin_fgets
 returns -1 on error, 0 when no data is available, or the number of characters copied otherwise.
 .PP
-.B audit_fgets_more
+.B auplugin_fgets_more
 and
-.B audit_fgets_eof
+.B auplugin_fgets_eof
 return 1 for true and 0 for false.
 .PP
-.B audit_fgets_clear
+.B auplugin_fgets_clear
 returns no value.
 .SH BACKGROUND
  The reason that this family of functions was created is because in  auditd plugins, the event stream is stdin, which is  descriptor 0.  A typical pattern is to call select, poll, or epoll to wait for a  record to arrive. As soon as it does, you need to read it. If you  use fgets, you will wind up with big problems because you cannot mix  low level descriptors with high level constructs like struct FILE.  This family of functions allows you to correctly work only using descriptors but with the convenience of fgets.

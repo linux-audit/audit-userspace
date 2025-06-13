@@ -247,7 +247,7 @@ void read_audit_record(int ifd)
 		int len;
 
 		// Read stdin
-		if ((len = audit_fgets(rx_buf, MAX_AUDIT_EVENT_FRAME_SIZE + 1,
+		if ((len = auplugin_fgets(rx_buf,MAX_AUDIT_EVENT_FRAME_SIZE + 1,
 				       ifd)) > 0) {
 #ifdef DEBUG
 			write(1, rx_buf, len);
@@ -300,16 +300,16 @@ void read_audit_record(int ifd)
 						close(conn);
 						conn = -1;
 						client = 0;
-						audit_fgets_clear();
+						auplugin_fgets_clear();
 					}
 					//if (rc >= 0 && rc != len) {
 					// what to do with leftovers?
 					//}
 				}
 			}
-		} else if (audit_fgets_eof())
+		} else if (auplugin_fgets_eof())
 			stop = 1;
-	} while (audit_fgets_more(MAX_AUDIT_EVENT_FRAME_SIZE));
+	} while (auplugin_fgets_more(MAX_AUDIT_EVENT_FRAME_SIZE));
 }
 
 void accept_connection(void)
@@ -362,7 +362,7 @@ void event_loop(int ifd)
 				close(conn);
 				conn = -1;
 				client = 0;
-				audit_fgets_clear();
+				auplugin_fgets_clear();
 			}
 			if (pfd[0].revents & POLLIN) {
 				// Inbound audit event

@@ -40,21 +40,21 @@
 extern "C" {
 #endif
 
-typedef struct audit_fgets_state audit_fgets_state_t;
+typedef struct auplugin_fgets_state auplugin_fgets_state_t;
 
-void audit_fgets_clear(void);
-int audit_fgets_eof(void);
-int audit_fgets_more(size_t blen);
-int audit_fgets(char *buf, size_t blen, int fd)
+void auplugin_fgets_clear(void);
+int auplugin_fgets_eof(void);
+int auplugin_fgets_more(size_t blen);
+int auplugin_fgets(char *buf, size_t blen, int fd)
 	__attr_access ((__write_only__, 1, 2));
 
-void audit_fgets_destroy(audit_fgets_state_t *st);
-audit_fgets_state_t *audit_fgets_init(void)
-	__attribute_malloc__ __attr_dealloc (audit_fgets_destroy, 1);
-void audit_fgets_clear_r(audit_fgets_state_t *st);
-int audit_fgets_eof_r(audit_fgets_state_t *st);
-int audit_fgets_more_r(audit_fgets_state_t *st, size_t blen);
-int audit_fgets_r(audit_fgets_state_t *st, char *buf, size_t blen, int fd)
+void auplugin_fgets_destroy(auplugin_fgets_state_t *st);
+auplugin_fgets_state_t *auplugin_fgets_init(void)
+	__attribute_malloc__ __attr_dealloc (auplugin_fgets_destroy, 1);
+void auplugin_fgets_clear_r(auplugin_fgets_state_t *st);
+int auplugin_fgets_eof_r(auplugin_fgets_state_t *st);
+int auplugin_fgets_more_r(auplugin_fgets_state_t *st, size_t blen);
+int auplugin_fgets_r(auplugin_fgets_state_t *st, char *buf, size_t blen, int fd)
 	__attr_access ((__write_only__, 2, 3));
 
 #ifdef __cplusplus
