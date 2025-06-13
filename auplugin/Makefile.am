@@ -24,7 +24,7 @@
 SUBDIRS = test
 VERSION_INFO = 1:0
 AM_CFLAGS = -fPIC -DPIC -D_GNU_SOURCE ${WFLAGS}
-AM_CPPFLAGS = -I${top_srcdir} -I${top_srcdir}/auplugin
+AM_CPPFLAGS = -I${top_srcdir} -I${top_srcdir}/lib -I${top_srcdir}/auplugin
 
 lib_LTLIBRARIES = libauplugin.la
 include_HEADERS = auplugin.h
