@@ -214,8 +214,8 @@ Another way to check performance is to use
 auditctl --signal state
 cat /var/run/auditd.state
 
-audit version = 3.1.2
-current time = 08/24/23 20:21:31
+audit version = 4.0.5
+current time = 06/02/25 20:21:31
 process priority = -4
 writing to logs = yes
 current log size = 2423 KB
@@ -231,17 +231,17 @@ admin space action performed = no
 disk error detected = no
 Number of active plugins = 1
 current plugin queue depth = 0
-max plugin queue depth used = 4
+max plugin queue depth used = 5
 plugin queue size = 2000
 plugin queue overflow detected = no
 plugin queueing suspended = no
 listening for network connections = no
-glibc arena (total memory) is: 244 KB, was: 244 KB
-glibc uordblks (in use memory) is: 90 KB, was: 90 KB
-glibc fordblks (total free space) is: 153 KB, was: 154 KB
+glibc arena (total memory) is: 388 KB, was: 388 KB
+glibc uordblks (in use memory) is: 92 KB, was: 90 KB
+glibc fordblks (total free space) is: 295 KB, was: 297 KB
 ```
 
-This command causes auditd to dump its internal metrics to /var/run/auditd.state. This can tell you if auditd is healthy.
+This command causes auditd to dump its internal metrics to /var/run/auditd.state. This can tell you if auditd is healthy. Also, you can make auditd periodically update the state file by adjusting the report_interval setting in auditd.conf (note - only available in audit-4.0.5 and later). See the man page for details. Setting this allows for the conitinuous updating for metrics collection.
 
 AUPARSE
 -------
