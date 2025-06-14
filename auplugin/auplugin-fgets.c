@@ -26,7 +26,9 @@
 #include <unistd.h>
 #include <errno.h>
 #include <stdlib.h>
+#include <sys/mman.h>
 #include "libaudit.h"
+#include "auplugin.h"
 
 /*
  * The theory of operation for this family of functions is that it
@@ -44,10 +46,13 @@
 #define BUF_SIZE 8192
 
 struct auplugin_fgets_state {
-	char buffer[2*BUF_SIZE+1];
+	char internal[2*BUF_SIZE+1];
+	char *buffer;
 	char *current;
 	char *eptr;
 	int eof;
+	enum auplugin_mem mem_type;
+	size_t buff_size;
 };
 
 static struct auplugin_fgets_state global_state;
@@ -55,10 +60,13 @@ static int global_init_done;
 
 static void auplugin_fgets_state_init(struct auplugin_fgets_state *st)
 {
-	st->buffer[0] = '\0';
+	st->buffer = st->internal;
+	st->internal[0] = '\0';
 	st->current = st->buffer;
 	st->eptr = st->buffer + (2*BUF_SIZE);
 	st->eof = 0;
+	st->mem_type = MEM_SELF_MANAGED;
+	st->buff_size = 2*BUF_SIZE;
 }
 
 struct auplugin_fgets_state *auplugin_fgets_init(void)
@@ -69,8 +77,22 @@ struct auplugin_fgets_state *auplugin_fgets_init(void)
 	return st;
 }
 
+
 void auplugin_fgets_destroy(struct auplugin_fgets_state *st)
 {
+	if (st->buffer != st->internal) {
+		switch (st->mem_type) {
+		case MEM_MALLOC:
+			free(st->buffer);
+			break;
+		case MEM_MMAP:
+			munmap(st->buffer, st->buff_size);
+			break;
+		case MEM_SELF_MANAGED:
+		default:
+			break;
+		}
+	}
 	free(st);
 }
 
@@ -208,5 +230,22 @@ int auplugin_fgets(char *buf, size_t blen, int fd)
 {
 	auplugin_fgets_ensure_global();
 	return auplugin_fgets_r(&global_state, buf, blen, fd);
+}
+
+void auplugin_setvbuf_r(struct auplugin_fgets_state *st, void *buf,
+			size_t buff_size, enum auplugin_mem how)
+{
+	st->buffer = buf ? buf : st->internal;
+	st->current = st->buffer;
+	st->eptr = st->buffer + buff_size;
+	st->eof = 0;
+	st->mem_type = how;
+	st->buff_size = buff_size;
+}
+
+void auplugin_setvbuf(void *buf, size_t buff_size, enum auplugin_mem how)
+{
+        auplugin_fgets_ensure_global();
+        auplugin_setvbuf_r(&global_state, buf, buff_size, how);
 }
 

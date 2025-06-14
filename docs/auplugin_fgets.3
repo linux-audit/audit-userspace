@@ -1,6 +1,6 @@
 .TH "AUPLUGIN_FGETS" "3" "June 2025" "Red Hat" "Linux Audit API"
 .SH NAME
-auplugin_fgets, auplugin_fgets_more, auplugin_fgets_eof, auplugin_fgets_clear \- buffered line reader helpers
+auplugin_fgets, auplugin_fgets_more, auplugin_fgets_eof, auplugin_fgets_clear, auplugin_setvbuf, auplugin_setvbuf_r \- buffered line reader helpers
 .SH SYNOPSIS
 .B #include <auplugin.h>
 .sp
@@ -11,6 +11,10 @@ auplugin_fgets, auplugin_fgets_more, auplugin_fgets_eof, auplugin_fgets_clear \-
 .BI "int auplugin_fgets_eof(void);"
 .br
 .B void auplugin_fgets_clear(void);
+.br
+.BI "void auplugin_setvbuf(void *" buf ", size_t buff_size, enum auplugin_mem " how ");"
+.br
+.BI "void auplugin_setvbuf_r(auplugin_fgets_state_t *" st ", void *" buf ", size_t buff_size, enum auplugin_mem " how ");"
 .SH DESCRIPTION
 .B auplugin_fgets
 reads from
@@ -33,6 +37,25 @@ indicates whether end of file was reached on
 .PP
 .B auplugin_fgets_clear
 resets the internal buffer and EOF state, discarding any stored text.
+.PP
+.B auplugin_setvbuf
+points the internal buffer at
+.I buf
+and sets how it will be released when
+.B auplugin_fgets_destroy
+is called. The
+.I how
+parameter should be one of
+.B MEM_MALLOC,
+.B MEM_MMAP,
+or
+.B MEM_SELF_MANAGED.
+The default is
+.B MEM_SELF_MANAGED
+which means no action is taken on the memory block.
+The reentrant form
+.B auplugin_setvbuf_r
+operates on an explicit state handle.
 .PP
 These functions maintain static state and are therefore not thread safe.
 .SH RETURN VALUE

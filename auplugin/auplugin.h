@@ -42,11 +42,19 @@ extern "C" {
 
 typedef struct auplugin_fgets_state auplugin_fgets_state_t;
 
+enum auplugin_mem {
+	MEM_MALLOC,
+	MEM_MMAP,
+	MEM_SELF_MANAGED
+};
+
 void auplugin_fgets_clear(void);
 int auplugin_fgets_eof(void);
 int auplugin_fgets_more(size_t blen);
 int auplugin_fgets(char *buf, size_t blen, int fd)
 	__attr_access ((__write_only__, 1, 2));
+void auplugin_setvbuf(void *buf, size_t buff_size, enum auplugin_mem how)
+	__attr_access ((__read_only__, 1, 2));
 
 void auplugin_fgets_destroy(auplugin_fgets_state_t *st);
 auplugin_fgets_state_t *auplugin_fgets_init(void)
@@ -56,6 +64,9 @@ int auplugin_fgets_eof_r(auplugin_fgets_state_t *st);
 int auplugin_fgets_more_r(auplugin_fgets_state_t *st, size_t blen);
 int auplugin_fgets_r(auplugin_fgets_state_t *st, char *buf, size_t blen, int fd)
 	__attr_access ((__write_only__, 2, 3));
+void auplugin_setvbuf_r(auplugin_fgets_state_t *st, void *buf, size_t buff_size,
+			enum auplugin_mem how)
+			__attr_access ((__read_only__, 2, 3));
 
 #ifdef __cplusplus
 }
