@@ -12,9 +12,9 @@ auplugin_fgets, auplugin_fgets_more, auplugin_fgets_eof, auplugin_fgets_clear, a
 .br
 .B void auplugin_fgets_clear(void);
 .br
-.BI "void auplugin_setvbuf(void *" buf ", size_t buff_size, enum auplugin_mem " how ");"
+.BI "int auplugin_setvbuf(void *" buf ", size_t buff_size, enum auplugin_mem " how ");"
 .br
-.BI "void auplugin_setvbuf_r(auplugin_fgets_state_t *" st ", void *" buf ", size_t buff_size, enum auplugin_mem " how ");"
+.BI "int auplugin_setvbuf_r(auplugin_fgets_state_t *" st ", void *" buf ", size_t buff_size, enum auplugin_mem " how ");"
 .SH DESCRIPTION
 .B auplugin_fgets
 reads from
@@ -69,6 +69,9 @@ return 1 for true and 0 for false.
 .PP
 .B auplugin_fgets_clear
 returns no value.
+.PP
+.B auplugin_setvbuf
+returns 0 on success and 1 on failure.
 .SH BACKGROUND
  The reason that this family of functions was created is because in  auditd plugins, the event stream is stdin, which is  descriptor 0.  A typical pattern is to call select, poll, or epoll to wait for a  record to arrive. As soon as it does, you need to read it. If you  use fgets, you will wind up with big problems because you cannot mix  low level descriptors with high level constructs like struct FILE.  This family of functions allows you to correctly work only using descriptors but with the convenience of fgets.
 

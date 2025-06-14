@@ -232,20 +232,23 @@ int auplugin_fgets(char *buf, size_t blen, int fd)
 	return auplugin_fgets_r(&global_state, buf, blen, fd);
 }
 
-void auplugin_setvbuf_r(struct auplugin_fgets_state *st, void *buf,
+int auplugin_setvbuf_r(struct auplugin_fgets_state *st, void *buf,
 			size_t buff_size, enum auplugin_mem how)
 {
-	st->buffer = buf ? buf : st->internal;
+	if (st == NULL || buf == NULL || buff_size == 0)
+		return 1;
+	st->buffer = buf;
 	st->current = st->buffer;
 	st->eptr = st->buffer + buff_size;
 	st->eof = 0;
 	st->mem_type = how;
 	st->buff_size = buff_size;
+	return 0;
 }
 
-void auplugin_setvbuf(void *buf, size_t buff_size, enum auplugin_mem how)
+int auplugin_setvbuf(void *buf, size_t buff_size, enum auplugin_mem how)
 {
         auplugin_fgets_ensure_global();
-        auplugin_setvbuf_r(&global_state, buf, buff_size, how);
+        return auplugin_setvbuf_r(&global_state, buf, buff_size, how);
 }
 
