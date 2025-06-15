@@ -268,6 +268,9 @@ static void replace_event_msg(struct auditd_event *e, const char *buf)
 	if (buf) {
 		size_t len = strlen(buf);
 
+		if (e->reply.message != e->reply.msg.data)
+			free((void *)e->reply.message);
+
 		if (len < MAX_AUDIT_MESSAGE_LENGTH - 1)
 			e->reply.message = strdup(buf);
 		else {
