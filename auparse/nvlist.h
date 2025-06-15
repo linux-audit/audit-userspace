@@ -48,7 +48,7 @@ void nvlist_create(nvlist *l);
 void nvlist_clear(nvlist *l, int free_interp);
 nvnode *nvlist_next(nvlist *l);
 int nvlist_get_cur_type(rnode *r);
-const char *nvlist_interp_cur_val(rnode *r, auparse_esc_t escape_mode);
+const char *nvlist_interp_cur_val(auparse_state_t *au, rnode *r);
 int nvlist_append(nvlist *l, const nvnode *node);
 void nvlist_interp_fixup(const nvlist *l);
 

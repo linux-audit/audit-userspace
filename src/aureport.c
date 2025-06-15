@@ -42,6 +42,27 @@
 #include "ausearch-lol.h"
 #include "ausearch-lookup.h"
 #include "auparse-idata.h"
+
+typedef struct interp_nvnode {
+	char *name;
+	char *val;
+	char *interp_val;
+	unsigned int item;
+} interp_nvnode;
+
+typedef struct interp_nvlist {
+	interp_nvnode *array;
+	unsigned int cur;
+	unsigned int cnt;
+	unsigned int size;
+	char *record;
+	char *end;
+} interp_nvlist;
+
+typedef struct {
+	interp_nvlist interpretations;
+} interp_state_t;
+static interp_state_t interp_au;
 #include "ausearch-parse.h"
 
 
@@ -98,6 +119,8 @@ int main(int argc, char *argv[])
 	set_aumessage_mode(MSG_STDERR, DBG_NO);
 	(void) umask( umask( 077 ) | 027 );
 	very_first_event.sec = 0;
+	memset(&interp_au, 0, sizeof(interp_au));
+	interp_au.interpretations.cnt = 0xFFFF;
 	reset_counters();
 
 	/* Load config so we know where logs are and eoe_timeout */
@@ -235,13 +258,16 @@ static void process_event(llist *entries)
 {
 	if (scan(entries)) {
 		// If its a single event or SYSCALL load interpretations
-		if ((entries->cnt == 1) || 
-				(entries->head->type == AUDIT_SYSCALL))
-			_auparse_load_interpretations(entries->head->interp);
+		if ((entries->cnt == 1) ||
+				(entries->head->type == AUDIT_SYSCALL)) {
+			_auparse_load_interpretations(
+					(auparse_state_t *)&interp_au,
+					entries->head->interp);
+		}
 		// This is the per entry action item
 		if (per_event_processing(entries))
 			found = 1;
-		_auparse_free_interpretations();
+               _auparse_free_interpretations((auparse_state_t *)&interp_au);
 	}
 }
 

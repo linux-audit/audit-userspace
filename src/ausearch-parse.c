@@ -41,6 +41,27 @@
 #include "auparse-idata.h"
 #include "ausearch-nvpair.h"
 
+typedef struct interp_nvnode {
+	char *name;
+	char *val;
+	char *interp_val;
+	unsigned int item;
+} interp_nvnode;
+
+typedef struct interp_nvlist {
+	interp_nvnode *array;
+	unsigned int cur;
+	unsigned int cnt;
+	unsigned int size;
+	char *record;
+	char *end;
+} interp_nvlist;
+
+typedef struct {
+	interp_nvlist interpretations;
+} interp_state_t;
+static interp_state_t interp_au;
+
 #define NAME_OFFSET 28
 static const char key_sep[2] = { AUDIT_KEY_SEPARATOR, 0 };
 
@@ -209,10 +230,19 @@ int extract_search_items(llist *l)
  */
 static nvlist uid_nvl;
 static int uid_list_created=0;
+static int interp_init = 0;
 static const char *lookup_uid(const char *field, uid_t uid)
 {
 	const char *value;
-	value = _auparse_lookup_interpretation(field);
+
+	if (!interp_init) {
+		memset(&interp_au, 0, sizeof(interp_au));
+		interp_au.interpretations.cnt = 0xFFFF;
+		interp_init = 1;
+	}
+
+	value = _auparse_lookup_interpretation((auparse_state_t *)&interp_au,
+					       field);
 	if (value)
 		return value;
 	if (uid == 0)

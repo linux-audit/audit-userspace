@@ -26,6 +26,7 @@
 
 #include "config.h"
 #include "dso.h"
+#include "auparse.h"
 #include "auparse-defs.h"
 
 typedef struct _idata {
@@ -40,11 +41,12 @@ typedef struct _idata {
 
 
 int auparse_interp_adjust_type(int rtype, const char *name, const char *val);
-char *auparse_do_interpretation(int type, const idata *id,
-	auparse_esc_t escape_mode);
-void _auparse_load_interpretations(const char *buf);
-void _auparse_free_interpretations(void);
-const char *_auparse_lookup_interpretation(const char *name);
+char *auparse_do_interpretation(auparse_state_t *au, int type, const idata *id,
+				auparse_esc_t escape_mode);
+void _auparse_load_interpretations(auparse_state_t *au, const char *buf);
+void _auparse_free_interpretations(auparse_state_t *au);
+const char *_auparse_lookup_interpretation(auparse_state_t *au,
+	const char *name) __attribute_malloc__ __attr_dealloc_free;
 void _auparse_flush_caches(void);
 
 #endif

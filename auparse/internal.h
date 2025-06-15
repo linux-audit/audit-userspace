@@ -1,5 +1,5 @@
 /* internal.h -- 
- * Copyright 2006-07,2013-17 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2006-07,2013-17,2025 Red Hat Inc.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -28,6 +28,7 @@
 #include "data_buf.h"
 #include "normalize-llist.h"
 #include "dso.h"
+#include "nvlist.h"
 #include <stdio.h>
 
 /* This is what state the parser is in */
@@ -173,6 +174,7 @@ struct opaque
 	int au_ready;		// For speed, we note how many EBS_COMPLETE
 				// events we hold at any point in time. Thus
 				// we don't have to scan the list
+	nvlist interpretations;		// Per-parser interpretations list
 	auparse_esc_t escape_mode;
 	message_t message_mode;		// Where to send error messages
 	debug_message_t debug_message;	// Whether or not messages are debug or not

@@ -68,7 +68,8 @@ void auparse_add_callback(auparse_state_t *au, auparse_callback_ptr callback,
 			void *user_data, user_destroy user_destroy_func);
 void auparse_set_escape_mode(auparse_state_t *au, auparse_esc_t mode);
 int auparse_reset(auparse_state_t *au);
-char *auparse_metrics(const auparse_state_t *au) __attr_dealloc_free;
+char *auparse_metrics(const auparse_state_t *au)
+	__attribute_malloc__ __attr_dealloc_free;
 
 /* Functions that are part of the search interface */
 int ausearch_add_expression(auparse_state_t *au, const char *expression,
@@ -145,7 +146,7 @@ unsigned int auparse_get_num_records(const auparse_state_t *au);
 int auparse_first_record(auparse_state_t *au);
 int auparse_next_record(auparse_state_t *au);
 unsigned int auparse_get_record_num(const auparse_state_t *au);
-int auparse_goto_record_num(const auparse_state_t *au, unsigned int num);
+int auparse_goto_record_num(auparse_state_t *au, unsigned int num);
 
 /* Accessors to record data */
 int auparse_get_type(const auparse_state_t *au);
@@ -158,7 +159,7 @@ unsigned int auparse_get_num_fields(const auparse_state_t *au);
 const char *auparse_get_record_text(const auparse_state_t *au);
 const char *auparse_get_record_interpretations(const auparse_state_t *au);
 const char *auparse_find_field(auparse_state_t *au, const char *name);
-const char *auparse_find_field_next(const auparse_state_t *au);
+const char *auparse_find_field_next(auparse_state_t *au);
 unsigned int auparse_get_field_num(const auparse_state_t *au);
 int auparse_goto_field_num(const auparse_state_t *au, unsigned int num);
 

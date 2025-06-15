@@ -32,6 +32,27 @@
 #include "ausearch-options.h"
 #include "ausearch-nvpair.h"
 #include "auparse-idata.h"
+typedef struct interp_nvnode {
+	char *name;
+	char *val;
+	char *interp_val;
+	unsigned int item;
+} interp_nvnode;
+
+typedef struct interp_nvlist {
+	interp_nvnode *array;
+	unsigned int cur;
+	unsigned int cnt;
+	unsigned int size;
+	char *record;
+	char *end;
+} interp_nvlist;
+
+typedef struct {
+	interp_nvlist interpretations;
+} interp_state_t;
+static interp_state_t interp_au;
+static int interp_init = 0;
 
 /* This is the name/value pair used by search tables */
 struct nv_pair {
@@ -73,12 +94,19 @@ const char *aulookup_syscall(llist *l, char *buf, size_t size)
 {
 	const char *sys;
 
+	if (!interp_init) {
+		memset(&interp_au, 0, sizeof(interp_au));
+		interp_au.interpretations.cnt = 0xFFFF;
+		interp_init = 1;
+	}
+
 	if (report_format <= RPT_DEFAULT) {
 		snprintf(buf, size, "%d", l->s.syscall);
 		return buf;
 	}
 
-	sys = _auparse_lookup_interpretation("syscall");
+	sys = _auparse_lookup_interpretation((auparse_state_t *)&interp_au,
+					     "syscall");
 	if (sys) {
 		snprintf(buf, size, "%s", sys);
 		free((void *)sys);
@@ -197,6 +225,12 @@ const char *aulookup_uid(uid_t uid, char *buf, size_t size)
 	const char *name;
 	int rc;
 
+	if (!interp_init) {
+		memset(&interp_au, 0, sizeof(interp_au));
+		interp_au.interpretations.cnt = 0xFFFF;
+		interp_init = 1;
+	}
+
 	if (report_format <= RPT_DEFAULT) {
 		snprintf(buf, size, "%d", uid);
 		return buf;
@@ -206,7 +240,8 @@ const char *aulookup_uid(uid_t uid, char *buf, size_t size)
 		return buf;
 	}
 
-	name = _auparse_lookup_interpretation("auid");
+	name = _auparse_lookup_interpretation((auparse_state_t *)&interp_au,
+					      "auid");
 	if (name) {
 		snprintf(buf, size, "%s", name);
 		free((void *)name);
