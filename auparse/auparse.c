@@ -22,12 +22,6 @@
  */
 
 #include "config.h"
-#include "expression.h"
-#include "internal.h"
-#include "auparse.h"
-#include "interpret.h"
-#include "auparse-idata.h"
-#include "libaudit.h"
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
@@ -35,6 +29,12 @@
 #include <fcntl.h>
 #include <stdio_ext.h>
 #include <limits.h>
+#include "internal.h"
+#include "expression.h"
+#include "auparse.h"
+#include "interpret.h"
+#include "auparse-idata.h"
+#include "libaudit.h"
 #include "common.h"
 
 //#define LOL_EVENTS_DEBUG01	1	// add debug for list of list event
@@ -568,6 +568,7 @@ auparse_state_t *auparse_init(ausource_t source, const void *b)
 	au->find_field = NULL;
 	au->search_where = AUSEARCH_STOP_EVENT;
 	au->tmp_translation = NULL;
+	init_interpretation_list(au);
 	init_normalizer(&au->norm_data);
 
 	return au;
