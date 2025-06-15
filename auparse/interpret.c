@@ -520,7 +520,7 @@ void free_interpretation_list(auparse_state_t *au)
 {
 	nvlist *il = &au->interpretations;
 
-	if (il->cnt != NEVER_LOADED) {
+	if (il->cnt != NEVER_LOADED || il->array) {
 		nvlist_clear(il, 0);
 		il->cnt = NEVER_LOADED;
 	}
