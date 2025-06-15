@@ -54,6 +54,7 @@ int main(void)
 	format_event(e);
 	len_enriched = strlen(e->reply.message);
 	printf("ENRICHED: %s\n", e->reply.message);
+	cleanup_event(e);
 
 	//shutdown_events();
 	if (len_enriched <= len_raw) {
@@ -71,7 +72,6 @@ int main(void)
 		puts("missing AUID interpretation");
 		return 1;
 	}
-	cleanup_event(e);
 	return 0;
 }
 
