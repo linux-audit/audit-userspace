@@ -395,7 +395,6 @@ char *au_unescape(char *buf)
 }
 
 /////////// Interpretation list functions ///////////////
-#define NEVER_LOADED 0xFFFF
 void init_interpretation_list(auparse_state_t *au)
 {
 	if (au == NULL)

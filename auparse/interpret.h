@@ -29,6 +29,8 @@
 #include "rnode.h"
 #include <time.h>
 
+#define NEVER_LOADED 0xFFFF
+
 /* Make these hidden to prevent conflicts */
 AUDIT_HIDDEN_START
 

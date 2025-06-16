@@ -141,6 +141,7 @@ typedef struct data
 
 struct opaque
 {
+	nvlist interpretations;		// Per-parser interpretations list
 	ausource_t source;		// Source type
 	char **source_list;		// Array of buffers, or array of
 					//	 file names
@@ -174,7 +175,6 @@ struct opaque
 	int au_ready;		// For speed, we note how many EBS_COMPLETE
 				// events we hold at any point in time. Thus
 				// we don't have to scan the list
-	nvlist interpretations;		// Per-parser interpretations list
 	auparse_esc_t escape_mode;
 	message_t message_mode;		// Where to send error messages
 	debug_message_t debug_message;	// Whether or not messages are debug or not
