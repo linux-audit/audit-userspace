@@ -227,9 +227,14 @@ void regex_search(const char *expr)
 	auparse_destroy(au);
 }
 
+typedef struct {
+	int *event_cnt;
+	int interpret;
+} callback_data_t;
+
 static void auparse_callback(auparse_state_t *au, auparse_cb_event_t cb_event_type, void *user_data)
 {
-	int *event_cnt = (int *)user_data;
+	callback_data_t *data = (callback_data_t *)user_data;
 	int record_cnt;
 
 	if (cb_event_type == AUPARSE_CB_EVENT_READY) {
@@ -237,7 +242,7 @@ static void auparse_callback(auparse_state_t *au, auparse_cb_event_t cb_event_ty
 			printf("can't get first record\n");
 			return;
 		}
-		printf("event %d has %u records\n", *event_cnt,
+		printf("event %d has %u records\n", *(data->event_cnt),
 					auparse_get_num_records(au));
 		record_cnt = 1;
 		do {
@@ -260,15 +265,21 @@ static void auparse_callback(auparse_state_t *au, auparse_cb_event_t cb_event_ty
 					e->host ? e->host : "?");
 			auparse_first_field(au);
 			do {
-				printf("        %s=%s (%s)\n",
-						auparse_get_field_name(au),
-						auparse_get_field_str(au),
-						auparse_interpret_field(au));
+				if (data->interpret) {
+					printf("        %s=%s (%s)\n",
+							auparse_get_field_name(au),
+							auparse_get_field_str(au),
+							auparse_interpret_field(au));
+				} else {
+					printf("        %s=%s\n",
+							auparse_get_field_name(au),
+							auparse_get_field_str(au));
+				}
 			} while (auparse_next_field(au) > 0);
 			printf("\n");
 			record_cnt++;
 		} while(auparse_next_record(au) > 0);
-		(*event_cnt)++;
+		(*(data->event_cnt))++;
         }
 }
 
@@ -415,12 +426,13 @@ int main(void)
 	printf("Starting Test 9, buffer feed...\n");
 	{
 		int event_cnt = 1;
+		callback_data_t cb_data = { &event_cnt, 1 };
 		size_t len, chunk_len = 3;
 		const char **cur_buf, *p_beg, *p_end, *p_chunk_beg,
 			*p_chunk_end;
 
 		au = auparse_init(AUSOURCE_FEED, 0);
-		auparse_add_callback(au, auparse_callback, &event_cnt, NULL);
+		auparse_add_callback(au, auparse_callback, &cb_data, NULL);
 		for (cur_buf = buf, p_beg = *cur_buf; *cur_buf;
 						 cur_buf++, p_beg = *cur_buf) {
 			len = strlen(p_beg);
@@ -447,15 +459,15 @@ int main(void)
 		/* Note: this should match Test 4 exactly */
 		printf("Starting Test 10, file feed...\n");
 	{
-		int *event_cnt = malloc(sizeof(int));
+		int event_cnt = 1;
+		callback_data_t cb_data = { &event_cnt, 0 };
 		size_t len;
 		char filename[] = "./test.log";
 		char buf[4];
 		FILE *fp;
 
-		*event_cnt = 1;
 		au = auparse_init(AUSOURCE_FEED, 0);
-		auparse_add_callback(au, auparse_callback, event_cnt, free);
+		auparse_add_callback(au, auparse_callback, &cb_data, NULL);
 		if ((fp = fopen(filename, "r")) == NULL) {
 			fprintf(stderr, "could not open '%s', %s\n",
 						filename, strerror(errno));
