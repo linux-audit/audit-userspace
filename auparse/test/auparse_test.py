@@ -26,7 +26,7 @@ def none_to_null(s):
 walked_fields = 0
 FIELDS_EXPECTED = 403
 
-def walk_test(au):
+def walk_test(au, interpret=False):
     global walked_fields
     event_cnt = 1
 
@@ -53,7 +53,10 @@ def walk_test(au):
             print("    event time: %d.%d:%d, host=%s" % (event.sec, event.milli, event.serial, none_to_null(event.host)))
             au.first_field()
             while True:
-                print("        %s=%s (%s)" % (au.get_field_name(), au.get_field_str(), au.interpret_field()))
+                if interpret:
+                    print("        %s=%s (%s)" % (au.get_field_name(), au.get_field_str(), au.interpret_field()))
+                else:
+                    print("        %s=%s" % (au.get_field_name(), au.get_field_str()))
                 walked_fields += 1
                 if not au.next_field(): break
             print("")
@@ -123,7 +126,7 @@ def compound_search(au, how):
     else:
         print("Found %s = %s" % (au.get_field_name(), au.get_field_str()))
 
-def feed_callback(au, cb_event_type, event_cnt):
+def feed_callback(au, cb_event_type, event_cnt, interpret=False):
     if cb_event_type == auparse.AUPARSE_CB_EVENT_READY:
         if not au.first_record():
             print("Error getting first record")
@@ -146,7 +149,10 @@ def feed_callback(au, cb_event_type, event_cnt):
             print("    event time: %d.%d:%d, host=%s" % (event.sec, event.milli, event.serial, none_to_null(event.host)))
             au.first_field()
             while True:
-                print("        %s=%s (%s)" % (au.get_field_name(), au.get_field_str(), au.interpret_field()))
+                if interpret:
+                    print("        %s=%s (%s)" % (au.get_field_name(), au.get_field_str(), au.interpret_field()))
+                else:
+                    print("        %s=%s" % (au.get_field_name(), au.get_field_str()))
                 if not au.next_field(): break
             print("")
             record_cnt += 1
@@ -166,7 +172,7 @@ print("Test 1 Done\n")
 
 # Reset, now lets go to beginning and walk the list manually */
 print("Starting Test 2, walk events, records, and fields...")
-walk_test(au)
+walk_test(au, interpret=True)
 print("Test 2 Done\n")
 
 # Reset, now lets go to beginning and walk the list manually */
@@ -234,7 +240,7 @@ print("Test 8 Done\n")
 print("Starting Test 9, buffer feed...")
 au = auparse.AuParser(auparse.AUSOURCE_FEED);
 event_cnt = 1
-au.add_callback(feed_callback, [event_cnt])
+au.add_callback(lambda au, cb_event_type, event_cnt: feed_callback(au, cb_event_type, event_cnt, interpret=False), [event_cnt])
 chunk_len = 3
 for s in buf:
     s_len = len(s)
@@ -251,7 +257,7 @@ print("Test 9 Done\n")
 print("Starting Test 10, file feed...")
 au = auparse.AuParser(auparse.AUSOURCE_FEED);
 event_cnt = 1
-au.add_callback(feed_callback, [event_cnt])
+au.add_callback(lambda au, cb_event_type, event_cnt: feed_callback(au, cb_event_type, event_cnt, interpret=False), [event_cnt])
 f = open(srcdir + "/test.log");
 while True:
     data = f.read(4)
