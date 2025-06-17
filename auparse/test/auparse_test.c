@@ -20,7 +20,7 @@ static const char *buf[] = {
 unsigned int walked_fields = 0;
 #define FIELDS_EXPECTED 403
 
-static void walk_test(auparse_state_t *au)
+static void walk_test(auparse_state_t *au, int interpret)
 {
 	int event_cnt = 1, record_cnt;
 
@@ -53,10 +53,16 @@ static void walk_test(auparse_state_t *au)
 				e->milli, e->serial, e->host ? e->host : "?");
 			auparse_first_field(au);
 			do {
-				printf("        %s=%s (%s)\n",
-						auparse_get_field_name(au),
-						auparse_get_field_str(au),
-						auparse_interpret_field(au));
+				if (interpret) {
+					printf("        %s=%s (%s)\n",
+							auparse_get_field_name(au),
+							auparse_get_field_str(au),
+							auparse_interpret_field(au));
+				} else {
+					printf("        %s=%s\n",
+							auparse_get_field_name(au),
+							auparse_get_field_str(au));
+				}
                 walked_fields++;
 			} while (auparse_next_field(au) > 0);
 			printf("\n");
@@ -304,7 +310,7 @@ int main(void)
 	/* Reset, now lets go to beginning and walk the list manually */
 	printf("Starting Test 2, walk events, records, and fields...\n");
 	auparse_reset(au);
-	walk_test(au);
+	walk_test(au, 1);
 	auparse_destroy(au);
 	printf("Test 2 Done\n\n");
 
@@ -325,7 +331,7 @@ int main(void)
 		printf("Error - %s\n", strerror(errno));
 		return 1;
 	}
-	walk_test(au);
+	walk_test(au, 0);
 	auparse_destroy(au);
 	printf("Test 4 Done\n\n");
 
@@ -335,7 +341,7 @@ int main(void)
 		printf("Error - %s\n", strerror(errno));
 		return 1;
 	}
-	walk_test(au);
+	walk_test(au, 0);
 	auparse_destroy(au);
 	printf("Test 5 Done\n\n");
 
@@ -473,7 +479,7 @@ int main(void)
 	}
 
 	walked_fields = 0;
-	walk_test(au);
+	walk_test(au, 0);
 	auparse_destroy(au);
 
 	if (walked_fields != FIELDS_EXPECTED) {
