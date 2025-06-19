@@ -24,7 +24,6 @@ Follow the instructions below when making changes.
 
    3. Optionally, type 'make check' to run any self-tests that come with
       the package, generally using the just-built uninstalled binaries.
-   NOTE: auparse tests are failing because of a mismatch in mapping uid to accounts. Igonore these.
    ```
 
    The CI workflow uses the same commands:
@@ -39,7 +38,6 @@ Follow the instructions below when making changes.
        make -j$(nproc)
 
    - name: Run tests
-     if: matrix.container != 'ubuntu:latest'
      run: make check
    ```
 
