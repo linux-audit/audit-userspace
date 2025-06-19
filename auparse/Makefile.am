@@ -22,7 +22,7 @@
 #   Richard Guy Briggs <rgb@redhat.com>
 #
 
-SUBDIRS = test
+SUBDIRS = . test
 EXTRA_DIST = expression-design.txt
 CLEANFILES = $(BUILT_SOURCES)
 CONFIG_CLEAN_FILES = *.loT *.rej *.orig

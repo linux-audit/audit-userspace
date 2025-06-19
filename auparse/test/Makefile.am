@@ -21,9 +21,15 @@
 #
 
 CONFIG_CLEAN_FILES = *.loT *.rej *.orig *.cur
-check_PROGRAMS = auparse_test auparselol_test lookup_test databuf_test
-dist_check_SCRIPTS = auparse_test.py
-EXTRA_DIST = auparse_test.ref auparse_test.ref.py test.log test2.log test3.log test4.log auditd_raw.sed
+noinst_PROGRAMS = auparse_test auparselol_test lookup_test databuf_test
+TESTS = run_auparse_tests.sh run_auparselol_test.sh lookup_test databuf_test
+dist_check_SCRIPTS = run_auparse_tests.sh run_auparselol_test.sh
+if USE_PYTHON3
+TESTS += auparse_test.py
+dist_check_SCRIPTS += auparse_test.py
+endif
+EXTRA_DIST = auparse_test.ref auparse_test.ref.py test.log test2.log test3.log test4.log auditd_raw.sed run_auparse_tests.sh auparse_test.py run_auparselol_test.sh
+CLEANFILES = run_auparse_tests.sh run_auparselol_test.sh
 
 AM_CPPFLAGS = -I${top_srcdir}/auparse -I${top_srcdir}/lib
 
@@ -53,26 +59,6 @@ databuf_test_DEPENDENCIES = ${top_builddir}/auparse/libauparse.la ${top_builddir
 
 drop_srcdir = sed 's,$(srcdir)/test,test,'
 
-check-local: auparse_test auparselol_test lookup_test databuf_test
-	test "$(top_srcdir)" = "$(top_builddir)" || \
-			cp $(top_srcdir)/auparse/test/test*.log .
-	LC_ALL=C \
-	./auparse_test > auparse_test.cur
-	diff -u $(top_srcdir)/auparse/test/auparse_test.ref auparse_test.cur
-	./auparselol_test -f test3.log --check | sort > auparse_test.cur
-	sed -f $(top_srcdir)/auparse/test/auditd_raw.sed test3.log | sort > auparse_test.raw
-	diff -u auparse_test.raw auparse_test.cur
-if USE_PYTHON3
-	cp ${top_builddir}/bindings/swig/python3/.libs/_audit.so ${top_builddir}/bindings/swig/python3
-	PYTHONPATH=${top_builddir}/bindings/python/python3/.libs/ \
-	PYTHONDONTWRITEBYTECODE=1 \
-	LD_LIBRARY_PATH=${top_builddir}/auparse/.libs \
-		srcdir=$(srcdir) $(srcdir)/auparse_test.py \
-		| $(drop_srcdir) > auparse_test.cur
-	diff -u $(top_srcdir)/auparse/test/auparse_test.ref.py auparse_test.cur
-endif
-	./lookup_test
-	echo -e "===================\nAuparse Test Passes\n==================="
 
 diffcheck: auparse_test auparselol_test
 	./auparse_test > auparse_test.cur
