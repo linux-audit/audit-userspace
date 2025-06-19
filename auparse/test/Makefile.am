@@ -21,7 +21,7 @@
 #
 
 CONFIG_CLEAN_FILES = *.loT *.rej *.orig *.cur
-check_PROGRAMS = auparse_test auparselol_test lookup_test
+check_PROGRAMS = auparse_test auparselol_test lookup_test databuf_test
 dist_check_SCRIPTS = auparse_test.py
 EXTRA_DIST = auparse_test.ref auparse_test.ref.py test.log test2.log test3.log test4.log auditd_raw.sed
 
@@ -45,9 +45,15 @@ auparselol_test_LDADD = ${top_builddir}/auparse/libauparse.la \
 	${top_builddir}/lib/libaudit.la ${top_builddir}/common/libaucommon.la
 auparselol_test_DEPENDENCIES = ${top_builddir}/auparse/libauparse.la ${top_builddir}/lib/libaudit.la ${top_builddir}/common/libaucommon.la
 
+databuf_test_SOURCES = databuf_test.c
+databuf_test_LDFLAGS = -static
+databuf_test_LDADD = ${top_builddir}/auparse/libauparse.la \
+	${top_builddir}/lib/libaudit.la ${top_builddir}/common/libaucommon.la
+databuf_test_DEPENDENCIES = ${top_builddir}/auparse/libauparse.la ${top_builddir}/lib/libaudit.la ${top_builddir}/common/libaucommon.la
+
 drop_srcdir = sed 's,$(srcdir)/test,test,'
 
-check-local: auparse_test auparselol_test lookup_test
+check-local: auparse_test auparselol_test lookup_test databuf_test
 	test "$(top_srcdir)" = "$(top_builddir)" || \
 			cp $(top_srcdir)/auparse/test/test*.log .
 	LC_ALL=C \
