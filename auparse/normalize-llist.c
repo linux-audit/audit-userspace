@@ -28,6 +28,7 @@ void cllist_create(cllist *l, void (*cleanup)(void *))
 {
 	l->head = NULL;
 	l->cur = NULL;
+	l->tail = NULL;
 	l->cleanup = cleanup;
 	l->cnt = 0;
 }
@@ -50,6 +51,7 @@ void cllist_clear(cllist *l)
 	}
 	l->head = NULL;
 	l->cur = NULL;
+	l->tail = NULL;
 	l->cnt = 0;
 }
 
@@ -78,9 +80,10 @@ int cllist_append(cllist *l, uint32_t num, void *data)
 	if (l->head == NULL)
 		l->head = newnode;
 	else	// Otherwise add pointer to newnode
-		l->cur->next = newnode;
+		l->tail->next = newnode;
 
-	// make newnode current
+	// update tail and make newnode current
+	l->tail = newnode;
 	l->cur = newnode;
 	l->cnt++;
 	return 0;

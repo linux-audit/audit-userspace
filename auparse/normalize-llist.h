@@ -41,6 +41,7 @@ typedef struct _data_node {
 typedef struct {
   data_node *head;		// List head
   data_node *cur;		// Pointer to current node
+  data_node *tail;		// Pointer to last node
   void (*cleanup)(void *); // Function to call when releasing memory
   unsigned int cnt;	// How many items in this list
 } cllist;
