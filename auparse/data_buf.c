@@ -1,5 +1,5 @@
 /* data_buf.c --
- * Copyright 2007,2011 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2007,2011 Red Hat Inc
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -193,50 +193,55 @@ void databuf_free(DataBuf *db)
 
 int databuf_append(DataBuf *db, const char *src, size_t src_size)
 {
-    size_t new_size;
+	size_t new_len, required_size;
 
-    DATABUF_VALIDATE(db);
+	DATABUF_VALIDATE(db);
 
-    if (src == NULL || src_size == 0) return 0;
+	if (src == NULL || src_size == 0)
+		return 0;
 
-    new_size = db->len+src_size;
+	new_len = db->len + src_size;
 
 #ifdef DEBUG
-    if (debug) databuf_print(db, 1, "databuf_append() size=%zd", src_size);
+	if (debug)
+		databuf_print(db, 1, "databuf_append() size=%zd", src_size);
 #endif
-    if ((new_size > db->alloc_size) ||
-        ((db->flags & DATABUF_FLAG_PRESERVE_HEAD) &&
-			!databuf_tail_available(db, src_size))) {
-        /* not enough room, we must realloc */
-        void *new_alloc;
 
-        databuf_shift_data_to_beginning(db);
-        if ((new_alloc = realloc(db->alloc_ptr, new_size))) {
-            db->alloc_ptr  = new_alloc;
-            db->alloc_size = new_size;
-        } else {
-            return -1;           /* realloc failed */
+	/* If we can shift data to the beginning do so before any size checks */
+	if (!(db->flags & DATABUF_FLAG_PRESERVE_HEAD) &&
+				!databuf_tail_available(db, src_size))
+		databuf_shift_data_to_beginning(db);
+
+	required_size = db->offset + new_len;
+	if (required_size > db->alloc_size) {
+		void *new_alloc;
+		size_t new_alloc_size = db->alloc_size ?
+			db->alloc_size * 2 : required_size;
+
+		if (new_alloc_size < required_size)
+			new_alloc_size = required_size;
+
+		new_alloc = realloc(db->alloc_ptr, new_alloc_size);
+		if (!new_alloc)
+			return -1;           /* realloc failed */
+
+		db->alloc_ptr  = new_alloc;
+		db->alloc_size = new_alloc_size;
         }
-    } else {
-        /* we can fit within current allocation, but can we append? */
-        if (!databuf_tail_available(db, src_size)) {
-            /* we can't append in place, must create room at tail by shifting
-               data forward to the beginning of the  allocation block */
-            databuf_shift_data_to_beginning(db);
-        }
-    }
 #ifdef DEBUG
-    if (debug) databuf_print(db, 1, "databuf_append() about to memmove()");
+	if (debug)
+		databuf_print(db, 1, "databuf_append() about to memmove()");
 #endif
-    /* pointers all set up and room available, move the data and update */
-    memmove(databuf_end(db), src, src_size);
-    db->len = new_size;
-    db->max_len = MAX(db->max_len, new_size);
+	/* pointers all set up and room available, move the data and update */
+	memmove(databuf_end(db), src, src_size);
+	db->len = new_len;
+	db->max_len = MAX(db->max_len, new_len);
 #ifdef DEBUG
-    if (debug) databuf_print(db, 1, "databuf_append() conclusion");
+	if (debug)
+		databuf_print(db, 1, "databuf_append() conclusion");
 #endif
-    DATABUF_VALIDATE(db);
-    return 1;
+	DATABUF_VALIDATE(db);
+	return 1;
 }
 
 int databuf_replace(DataBuf *db, const char *src, size_t src_size)
