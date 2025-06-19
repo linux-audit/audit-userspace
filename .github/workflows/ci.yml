@@ -60,6 +60,4 @@ jobs:
           make -j$(nproc)
 
       - name: Run tests
-        # Temporarily disable for Ubuntu
-        if: matrix.container != 'ubuntu:latest'
         run: make check
