@@ -24,10 +24,6 @@ CONFIG_CLEAN_FILES = *.loT *.rej *.orig *.cur
 noinst_PROGRAMS = auparse_test auparselol_test lookup_test databuf_test
 TESTS = run_auparse_tests.sh run_auparselol_test.sh lookup_test databuf_test
 dist_check_SCRIPTS = run_auparse_tests.sh run_auparselol_test.sh
-if USE_PYTHON3
-TESTS += auparse_test.py
-dist_check_SCRIPTS += auparse_test.py
-endif
 EXTRA_DIST = auparse_test.ref auparse_test.ref.py test.log test2.log test3.log test4.log auditd_raw.sed run_auparse_tests.sh auparse_test.py run_auparselol_test.sh
 CLEANFILES = run_auparse_tests.sh run_auparselol_test.sh
 
