@@ -35,6 +35,28 @@
 #include "auparse-idata.h"
 #include "auditd-config.h"
 
+typedef struct interp_nvnode {
+	char *name;
+	char *val;
+	char *interp_val;
+	unsigned int item;
+} interp_nvnode;
+
+typedef struct interp_nvlist {
+	interp_nvnode *array;
+	unsigned int cur;
+	unsigned int cnt;
+	unsigned int size;
+	char *record;
+	char *end;
+} interp_nvlist;
+
+typedef struct {
+	interp_nvlist interpretations;
+} interp_state_t;
+static interp_state_t interp_au;
+static int interp_init = 0;
+
 /* Local functions */
 static void output_raw(llist *l);
 static void output_default(llist *l);
@@ -65,7 +87,13 @@ static int loaded = 0;
 void ausearch_load_interpretations(const lnode *n)
 {
 	if (loaded == 0) {
-		_auparse_load_interpretations(au, n->interp);
+		if (!interp_init) {
+			memset(&interp_au, 0, sizeof(interp_au));
+			interp_au.interpretations.cnt = 0xFFFF;
+			interp_init = 1;
+		}
+		_auparse_load_interpretations((auparse_state_t *)&interp_au,
+                                             n->interp);
 		loaded = 1;
 	}
 }
@@ -73,7 +101,7 @@ void ausearch_load_interpretations(const lnode *n)
 void ausearch_free_interpretations(void)
 {
 	if (loaded) {
-		_auparse_free_interpretations(au);
+		_auparse_free_interpretations((auparse_state_t *)&interp_au);
 		loaded = 0;
 	}
 }
@@ -385,7 +413,8 @@ static void report_interpret(char *name, char *val, int comma, int rtype)
 	id.val = val;
 	id.cwd = NULL;
 
-	char *out = auparse_do_interpretation(au, type, &id, escape_mode);
+	char *out = auparse_do_interpretation((auparse_state_t *)&interp_au,
+						type, &id, escape_mode);
 	if (type == AUPARSE_TYPE_UNCLASSIFIED)
 		printf("%s%c", val, comma ? ',' : ' ');
 	else if (name[0] == 'k' && strcmp(name, "key") == 0) {
