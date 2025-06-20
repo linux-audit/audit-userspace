@@ -3266,6 +3266,10 @@ int auparse_interp_adjust_type(int rtype, const char *name, const char *val)
 {
 	int type;
 
+	/* Skip leading spaces in name */
+	while (*name == ' ')
+		name++;
+
 	/* This set of statements overrides or corrects the detection.
 	 * In almost all cases its a double use of a field. */
 	if (rtype == AUDIT_EXECVE && *name == 'a' && strcmp(name, "argc") &&
