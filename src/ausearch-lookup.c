@@ -32,26 +32,7 @@
 #include "ausearch-options.h"
 #include "ausearch-nvpair.h"
 #include "auparse-idata.h"
-typedef struct interp_nvnode {
-	char *name;
-	char *val;
-	char *interp_val;
-	unsigned int item;
-} interp_nvnode;
-
-typedef struct interp_nvlist {
-	interp_nvnode *array;
-	unsigned int cur;
-	unsigned int cnt;
-	unsigned int size;
-	char *record;
-	char *end;
-} interp_nvlist;
-
-typedef struct {
-	interp_nvlist interpretations;
-} interp_state_t;
-static interp_state_t interp_au;
+#include "auparse-stub.h"
 static int interp_init = 0;
 
 /* This is the name/value pair used by search tables */
@@ -96,7 +77,7 @@ const char *aulookup_syscall(llist *l, char *buf, size_t size)
 
 	if (!interp_init) {
 		memset(&interp_au, 0, sizeof(interp_au));
-		interp_au.interpretations.cnt = 0xFFFF;
+		interp_au.interpretations.cnt = NEVER_LOADED;
 		interp_init = 1;
 	}
 
@@ -227,7 +208,7 @@ const char *aulookup_uid(uid_t uid, char *buf, size_t size)
 
 	if (!interp_init) {
 		memset(&interp_au, 0, sizeof(interp_au));
-		interp_au.interpretations.cnt = 0xFFFF;
+		interp_au.interpretations.cnt = NEVER_LOADED;
 		interp_init = 1;
 	}
 

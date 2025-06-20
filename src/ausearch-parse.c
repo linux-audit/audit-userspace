@@ -39,28 +39,9 @@
 #include "ausearch-lookup.h"
 #include "ausearch-parse.h"
 #include "auparse-idata.h"
+#include "auparse-stub.h"
 #include "ausearch-nvpair.h"
 
-typedef struct interp_nvnode {
-	char *name;
-	char *val;
-	char *interp_val;
-	unsigned int item;
-} interp_nvnode;
-
-typedef struct interp_nvlist {
-	interp_nvnode *array;
-	unsigned int cur;
-	unsigned int cnt;
-	unsigned int size;
-	char *record;
-	char *end;
-} interp_nvlist;
-
-typedef struct {
-	interp_nvlist interpretations;
-} interp_state_t;
-static interp_state_t interp_au;
 
 #define NAME_OFFSET 28
 static const char key_sep[2] = { AUDIT_KEY_SEPARATOR, 0 };
@@ -237,7 +218,7 @@ static const char *lookup_uid(const char *field, uid_t uid)
 
 	if (!interp_init) {
 		memset(&interp_au, 0, sizeof(interp_au));
-		interp_au.interpretations.cnt = 0xFFFF;
+		interp_au.interpretations.cnt = NEVER_LOADED;
 		interp_init = 1;
 	}
 

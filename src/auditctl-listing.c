@@ -32,27 +32,8 @@
 #include "private.h"
 #include "auditctl-llist.h"
 #include "auparse-idata.h"
+#include "auparse-stub.h"
 
-typedef struct interp_nvnode {
-	char *name;
-	char *val;
-	char *interp_val;
-	unsigned int item;
-} interp_nvnode;
-
-typedef struct interp_nvlist {
-	interp_nvnode *array;
-	unsigned int cur;
-	unsigned int cnt;
-	unsigned int size;
-	char *record;
-	char *end;
-} interp_nvlist;
-
-typedef struct {
-	interp_nvlist interpretations;
-} interp_state_t;
-static interp_state_t interp_au;
 
 #ifndef IORING_OP_LAST
 #define IORING_OP_LAST 37
@@ -589,7 +570,7 @@ int audit_print_reply(const struct audit_reply *rep, int fd)
 	static int init_done = 0;
 	if (!init_done) {
 		memset(&interp_au, 0, sizeof(interp_au));
-		interp_au.interpretations.cnt = 0xFFFF;
+		interp_au.interpretations.cnt = NEVER_LOADED;
 		init_done = 1;
 	}
 	_audit_elf = 0;

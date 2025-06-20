@@ -42,27 +42,8 @@
 #include "ausearch-lol.h"
 #include "ausearch-lookup.h"
 #include "auparse-idata.h"
+#include "auparse-stub.h"
 
-typedef struct interp_nvnode {
-	char *name;
-	char *val;
-	char *interp_val;
-	unsigned int item;
-} interp_nvnode;
-
-typedef struct interp_nvlist {
-	interp_nvnode *array;
-	unsigned int cur;
-	unsigned int cnt;
-	unsigned int size;
-	char *record;
-	char *end;
-} interp_nvlist;
-
-typedef struct {
-	interp_nvlist interpretations;
-} interp_state_t;
-static interp_state_t interp_au;
 #include "ausearch-parse.h"
 
 
@@ -120,7 +101,7 @@ int main(int argc, char *argv[])
 	(void) umask( umask( 077 ) | 027 );
 	very_first_event.sec = 0;
 	memset(&interp_au, 0, sizeof(interp_au));
-	interp_au.interpretations.cnt = 0xFFFF;
+	interp_au.interpretations.cnt = NEVER_LOADED;
 	reset_counters();
 
 	/* Load config so we know where logs are and eoe_timeout */

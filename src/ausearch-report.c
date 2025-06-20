@@ -33,28 +33,9 @@
 #include "ausearch-lookup.h"
 #include "auparse.h"
 #include "auparse-idata.h"
+#include "auparse-stub.h"
 #include "auditd-config.h"
 
-typedef struct interp_nvnode {
-	char *name;
-	char *val;
-	char *interp_val;
-	unsigned int item;
-} interp_nvnode;
-
-typedef struct interp_nvlist {
-	interp_nvnode *array;
-	unsigned int cur;
-	unsigned int cnt;
-	unsigned int size;
-	char *record;
-	char *end;
-} interp_nvlist;
-
-typedef struct {
-	interp_nvlist interpretations;
-} interp_state_t;
-static interp_state_t interp_au;
 static int interp_init = 0;
 
 /* Local functions */
@@ -89,7 +70,7 @@ void ausearch_load_interpretations(const lnode *n)
 	if (loaded == 0) {
 		if (!interp_init) {
 			memset(&interp_au, 0, sizeof(interp_au));
-			interp_au.interpretations.cnt = 0xFFFF;
+			interp_au.interpretations.cnt = NEVER_LOADED;
 			interp_init = 1;
 		}
 		_auparse_load_interpretations((auparse_state_t *)&interp_au,
