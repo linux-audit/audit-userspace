@@ -889,23 +889,30 @@ static char *print_escaped(const char *val)
 }
 
 // This code is loosely based on glibc-2.27 realpath.
-static char working[PATH_MAX];
 static char *path_norm(const char *name)
 {
-	char *rpath, *dest;
+	char *working, *rpath, *dest;
+	char *ret;
 	const char *start, *end, *rpath_limit;
 	int old_errno = errno;
 
+	working = malloc(PATH_MAX);
+	if (working == NULL)
+		return NULL;
+
 	errno = EINVAL;
 	if (name == NULL)
-		return NULL;
+		goto err_out;
 	if (name[0] == 0)
-		return NULL;
+		goto err_out;
 	errno = old_errno;
 
 	// If not absolute, give it back as is
-	if (name[0] == '.')
-		return strdup(name);
+	if (name[0] == '.') {
+		ret = strdup(name);
+		free(working);
+		return ret;
+	}
 
 	rpath = working;
 	dest = rpath;
@@ -946,7 +953,12 @@ static char *path_norm(const char *name)
 			*dest = 0;
 		}
 	}
-	return strdup(working);
+	ret = strdup(working);
+	free(working);
+	return ret;
+err_out:
+	free(working);
+	return NULL;
 }
 
 static const char *print_escaped_ext(const idata *id)
