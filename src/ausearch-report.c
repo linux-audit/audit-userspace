@@ -261,7 +261,7 @@ no_print:
 
 		// look back to last space - this is name
 		name = ptr;
-		while (*name != ' ' && name > str)
+		while (name > str && name[-1] != ' ')
 			--name;
 		*ptr++ = 0;
 
