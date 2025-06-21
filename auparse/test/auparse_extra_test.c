@@ -61,10 +61,15 @@ static void test_compare(void)
 	assert(au != NULL);
 	assert(auparse_next_event(au) > 0);
 	const au_event_t *e1 = auparse_get_timestamp(au);
+	assert(e1 != NULL);
+	au_event_t copy = *e1;
+
 	assert(auparse_next_event(au) > 0);
 	const au_event_t *e2 = auparse_get_timestamp(au);
-	assert(auparse_node_compare(e1, e2) == 0);
-	assert(auparse_timestamp_compare(e1, e2) < 0);
+	assert(e2 != NULL);
+
+	assert(auparse_node_compare(&copy, e2) == 0);
+	assert(auparse_timestamp_compare(&copy, e2) < 0);
 	auparse_destroy(au);
 }
 
