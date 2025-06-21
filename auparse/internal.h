@@ -142,7 +142,6 @@ typedef struct data
 
 struct opaque
 {
-	nvlist interpretations;		// Per-parser interpretations list
 	ausource_t source;		// Source type
 	char **source_list;		// Array of buffers, or array of
 					//	 file names
@@ -181,6 +180,7 @@ struct opaque
 	debug_message_t debug_message;	// Whether or not messages are debug or not
 	const char *tmp_translation;	// Pointer to manage mem for field translation
 	normalize_data norm_data;
+	nvlist interpretations;		// Per-parser interpretations list
 	Queue *uid_cache;               // per-parser UID cache
 	int uid_cache_created;
 	Queue *gid_cache;               // per-parser GID cache
@@ -190,7 +190,8 @@ struct opaque
 AUDIT_HIDDEN_START
 
 // auditd-config.c
-int aup_load_config(auparse_state_t *au, struct daemon_conf *config, log_test_t lt);
+int aup_load_config(auparse_state_t *au, struct daemon_conf *config,
+		    log_test_t lt);
 void aup_free_config(struct daemon_conf *config);
 
 // normalize.c

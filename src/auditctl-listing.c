@@ -32,14 +32,13 @@
 #include "private.h"
 #include "auditctl-llist.h"
 #include "auparse-idata.h"
-#include "auparse-stub.h"
-
 
 #ifndef IORING_OP_LAST
 #define IORING_OP_LAST 37
 #endif
 
 /* Global vars */
+static auparse_state_t *au = NULL;
 static llist l;
 static int printed;
 extern int list_requested, interpret;
@@ -469,7 +468,7 @@ static void print_rule(const struct audit_rule_data *r)
 					type = auparse_interp_adjust_type(
 						AUDIT_SYSCALL, name, val);
 					out = auparse_do_interpretation(
-						interp_au, type, &id,
+						au, type, &id,
 						AUPARSE_ESC_TTY);
 					printf(" -F %s%s%s", name,
 						audit_operator_to_symbol(op),
@@ -568,8 +567,8 @@ int audit_print_reply(const struct audit_reply *rep, int fd)
 {
 	static int init_done = 0;
 	if (!init_done) {
-		interp_au = auparse_init(AUSOURCE_BUFFER, "");
-		if (interp_au == NULL)
+		au = auparse_init(AUSOURCE_BUFFER, "");
+		if (au == NULL)
 			return 0;
 		init_done = 1;
 	}

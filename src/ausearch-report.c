@@ -33,10 +33,10 @@
 #include "ausearch-lookup.h"
 #include "auparse.h"
 #include "auparse-idata.h"
-#include "auparse-stub.h"
 #include "auditd-config.h"
 
 static int interp_init = 0;
+static auparse_state_t *au = NULL;
 
 /* Local functions */
 static void output_raw(llist *l);
@@ -52,7 +52,7 @@ static void text_event(auparse_state_t *au,
 
 extern time_t lol_get_eoe_timeout(void);
 
-static auparse_state_t *au = NULL;
+static auparse_state_t *feed_au = NULL;
 
 
 /* The machine based on elf type */
@@ -69,20 +69,20 @@ void ausearch_load_interpretations(const lnode *n)
 {
 	if (loaded == 0) {
 		if (!interp_init) {
-			interp_au = auparse_init(AUSOURCE_BUFFER, "");
-			if (interp_au == NULL)
+			au = auparse_init(AUSOURCE_BUFFER, "");
+			if (au == NULL)
 				return;
 			interp_init = 1;
 		}
-		 _auparse_load_interpretations(interp_au, n->interp);
+		_auparse_load_interpretations(au, n->interp);
 		loaded = 1;
 	}
 }
 
 void ausearch_free_interpretations(void)
 {
-	if (loaded && interp_au) {
-		_auparse_free_interpretations(interp_au);
+	if (loaded && au) {
+		_auparse_free_interpretations(au);
 		loaded = 0;
 	}
 }
@@ -394,7 +394,7 @@ static void report_interpret(char *name, char *val, int comma, int rtype)
 	id.val = val;
 	id.cwd = NULL;
 
-	char *out = auparse_do_interpretation(interp_au,type,&id,escape_mode);
+	char *out = auparse_do_interpretation(au, type, &id, escape_mode);
 	if (type == AUPARSE_TYPE_UNCLASSIFIED)
 		printf("%s%c", val, comma ? ',' : ' ');
 	else if (name[0] == 'k' && strcmp(name, "key") == 0) {
@@ -819,30 +819,30 @@ static void feed_auparse(llist *l, auparse_callback_ptr callback)
 		fprintf(stderr, "Error - no elements in record.");
 		return;
 	}
-	if (au == NULL) {
-		au = auparse_init(AUSOURCE_FEED, 0);
-		auparse_set_escape_mode(au, escape_mode);
+	if (feed_au == NULL) {
+		feed_au = auparse_init(AUSOURCE_FEED, 0);
+		auparse_set_escape_mode(feed_au, escape_mode);
 		auparse_set_eoe_timeout(lol_get_eoe_timeout());
-		auparse_add_callback(au, callback, NULL, NULL);
-	}
+		auparse_add_callback(feed_au, callback, NULL, NULL);
+       }
 	do {
 		// Records need to be terminated by a newline
 		// Temporarily replace it.
 		if (l->fmt == LF_ENRICHED)
 			n->message[n->mlen] = AUDIT_INTERP_SEPARATOR;
 		n->message[n->tlen] = 0x0a;
-		auparse_feed(au, n->message, n->tlen+1);
+		auparse_feed(feed_au, n->message, n->tlen+1);
 		if (l->fmt == LF_ENRICHED)
 			n->message[n->mlen] = 0;
 		n->message[n->tlen] = 0;
 	} while ((n=list_next(l)));
 
-	auparse_flush_feed(au);
+	auparse_flush_feed(feed_au);
 }
 
 void output_auparse_finish(void)
 {
-	if (au)
-		auparse_destroy(au);
-	au = NULL;
+	if (feed_au)
+		auparse_destroy(feed_au);
+	feed_au = NULL;
 }

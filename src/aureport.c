@@ -42,13 +42,12 @@
 #include "ausearch-lol.h"
 #include "ausearch-lookup.h"
 #include "auparse-idata.h"
-#include "auparse-stub.h"
-
 #include "ausearch-parse.h"
 
 
 extern event very_first_event;
 event very_last_event;
+static auparse_state_t *au = NULL;
 static FILE *log_fd = NULL;
 static lol lo;
 static int found = 0;
@@ -100,8 +99,8 @@ int main(int argc, char *argv[])
 	set_aumessage_mode(MSG_STDERR, DBG_NO);
 	(void) umask( umask( 077 ) | 027 );
 	very_first_event.sec = 0;
-	interp_au = auparse_init(AUSOURCE_BUFFER, "");
-	if (interp_au == NULL) {
+	au = auparse_init(AUSOURCE_BUFFER, "");
+	if (au == NULL) {
 		fprintf(stderr, "cannot init parser\n");
 		return 1;
 	}
@@ -245,13 +244,13 @@ static void process_event(llist *entries)
 		// If its a single event or SYSCALL load interpretations
 		if ((entries->cnt == 1) ||
 				(entries->head->type == AUDIT_SYSCALL)) {
-			_auparse_load_interpretations(interp_au,
+			_auparse_load_interpretations(au,
 					entries->head->interp);
 		}
 		// This is the per entry action item
 		if (per_event_processing(entries))
 			found = 1;
-		_auparse_free_interpretations(interp_au);
+		_auparse_free_interpretations(au);
 	}
 }
 

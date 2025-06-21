@@ -39,7 +39,6 @@
 #include "ausearch-lookup.h"
 #include "ausearch-parse.h"
 #include "auparse-idata.h"
-#include "auparse-stub.h"
 #include "ausearch-nvpair.h"
 
 
@@ -212,18 +211,19 @@ int extract_search_items(llist *l)
 static nvlist uid_nvl;
 static int uid_list_created=0;
 static int interp_init = 0;
+static auparse_state_t *au = NULL;
 static const char *lookup_uid(const char *field, uid_t uid)
 {
 	const char *value;
 
 	if (!interp_init) {
-		interp_au = auparse_init(AUSOURCE_BUFFER, "");
-		if (interp_au == NULL)
+		au = auparse_init(AUSOURCE_BUFFER, "");
+		if (au == NULL)
 			return NULL;
 		interp_init = 1;
 	}
 
-	value = _auparse_lookup_interpretation(interp_au, field);
+	value = _auparse_lookup_interpretation(au, field);
 	if (value)
 		return value;
 	if (uid == 0)
