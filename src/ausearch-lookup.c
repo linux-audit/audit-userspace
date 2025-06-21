@@ -76,8 +76,9 @@ const char *aulookup_syscall(llist *l, char *buf, size_t size)
 	const char *sys;
 
 	if (!interp_init) {
-		memset(&interp_au, 0, sizeof(interp_au));
-		interp_au.interpretations.cnt = NEVER_LOADED;
+		interp_au = auparse_init(AUSOURCE_BUFFER, "");
+		if (interp_au == NULL)
+			return NULL;
 		interp_init = 1;
 	}
 
@@ -86,8 +87,8 @@ const char *aulookup_syscall(llist *l, char *buf, size_t size)
 		return buf;
 	}
 
-	sys = _auparse_lookup_interpretation((auparse_state_t *)&interp_au,
-					     "syscall");
+	sys = _auparse_lookup_interpretation(interp_au,
+						"syscall");
 	if (sys) {
 		snprintf(buf, size, "%s", sys);
 		free((void *)sys);
@@ -207,8 +208,9 @@ const char *aulookup_uid(uid_t uid, char *buf, size_t size)
 	int rc;
 
 	if (!interp_init) {
-		memset(&interp_au, 0, sizeof(interp_au));
-		interp_au.interpretations.cnt = NEVER_LOADED;
+		interp_au = auparse_init(AUSOURCE_BUFFER, "");
+		if (interp_au == NULL)
+			return NULL;
 		interp_init = 1;
 	}
 
@@ -221,8 +223,7 @@ const char *aulookup_uid(uid_t uid, char *buf, size_t size)
 		return buf;
 	}
 
-	name = _auparse_lookup_interpretation((auparse_state_t *)&interp_au,
-					      "auid");
+	name = _auparse_lookup_interpretation(interp_au, "auid");
 	if (name) {
 		snprintf(buf, size, "%s", name);
 		free((void *)name);

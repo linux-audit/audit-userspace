@@ -69,20 +69,20 @@ void ausearch_load_interpretations(const lnode *n)
 {
 	if (loaded == 0) {
 		if (!interp_init) {
-			memset(&interp_au, 0, sizeof(interp_au));
-			interp_au.interpretations.cnt = NEVER_LOADED;
+			interp_au = auparse_init(AUSOURCE_BUFFER, "");
+			if (interp_au == NULL)
+				return;
 			interp_init = 1;
 		}
-		_auparse_load_interpretations((auparse_state_t *)&interp_au,
-                                             n->interp);
+		 _auparse_load_interpretations(interp_au, n->interp);
 		loaded = 1;
 	}
 }
 
 void ausearch_free_interpretations(void)
 {
-	if (loaded) {
-		_auparse_free_interpretations((auparse_state_t *)&interp_au);
+	if (loaded && interp_au) {
+		_auparse_free_interpretations(interp_au);
 		loaded = 0;
 	}
 }
@@ -394,8 +394,7 @@ static void report_interpret(char *name, char *val, int comma, int rtype)
 	id.val = val;
 	id.cwd = NULL;
 
-	char *out = auparse_do_interpretation((auparse_state_t *)&interp_au,
-						type, &id, escape_mode);
+	char *out = auparse_do_interpretation(interp_au,type,&id,escape_mode);
 	if (type == AUPARSE_TYPE_UNCLASSIFIED)
 		printf("%s%c", val, comma ? ',' : ' ');
 	else if (name[0] == 'k' && strcmp(name, "key") == 0) {

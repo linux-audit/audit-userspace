@@ -469,9 +469,8 @@ static void print_rule(const struct audit_rule_data *r)
 					type = auparse_interp_adjust_type(
 						AUDIT_SYSCALL, name, val);
 					out = auparse_do_interpretation(
-						(auparse_state_t *)&interp_au,
-                                                type, &id,
-                                                AUPARSE_ESC_TTY);
+						interp_au, type, &id,
+						AUPARSE_ESC_TTY);
 					printf(" -F %s%s%s", name,
 						audit_operator_to_symbol(op),
 								out);
@@ -569,8 +568,9 @@ int audit_print_reply(const struct audit_reply *rep, int fd)
 {
 	static int init_done = 0;
 	if (!init_done) {
-		memset(&interp_au, 0, sizeof(interp_au));
-		interp_au.interpretations.cnt = NEVER_LOADED;
+		interp_au = auparse_init(AUSOURCE_BUFFER, "");
+		if (interp_au == NULL)
+			return 0;
 		init_done = 1;
 	}
 	_audit_elf = 0;

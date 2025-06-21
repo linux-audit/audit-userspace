@@ -1,34 +1,12 @@
 #ifndef AUPARSE_STUB_H
 #define AUPARSE_STUB_H
 
+#include "auparse.h"
 #include "auparse-idata.h"
 
 /*
- * Stub definitions for using interpretation helpers without auparse
- * initialization. Each translation unit that needs them gets its own
- * static copy.
+ * Provide a shared parser instance for interpretation helpers.
  */
-
-typedef struct interp_nvnode {
-	char *name;
-	char *val;
-	char *interp_val;
-	unsigned int item;
-} interp_nvnode;
-
-typedef struct interp_nvlist {
-	interp_nvnode *array;
-	unsigned int cur;
-	unsigned int cnt;
-	unsigned int size;
-	char *record;
-	char *end;
-} interp_nvlist;
-
-typedef struct {
-	interp_nvlist interpretations;
-} interp_state_t;
-
-static interp_state_t interp_au;
+static auparse_state_t *interp_au = NULL;
 
 #endif /* AUPARSE_STUB_H */

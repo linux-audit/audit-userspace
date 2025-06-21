@@ -220,7 +220,6 @@ skip_checkpt:
 	free((char *)event_tuid);
 	free((char *)event_teuid);
 	free((char *)event_tauid);
-	auparse_destroy(NULL);
 	output_auparse_finish();
 	if (rc)
 		return rc;

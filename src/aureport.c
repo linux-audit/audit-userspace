@@ -100,8 +100,11 @@ int main(int argc, char *argv[])
 	set_aumessage_mode(MSG_STDERR, DBG_NO);
 	(void) umask( umask( 077 ) | 027 );
 	very_first_event.sec = 0;
-	memset(&interp_au, 0, sizeof(interp_au));
-	interp_au.interpretations.cnt = NEVER_LOADED;
+	interp_au = auparse_init(AUSOURCE_BUFFER, "");
+	if (interp_au == NULL) {
+		fprintf(stderr, "cannot init parser\n");
+		return 1;
+	}
 	reset_counters();
 
 	/* Load config so we know where logs are and eoe_timeout */
@@ -242,14 +245,13 @@ static void process_event(llist *entries)
 		// If its a single event or SYSCALL load interpretations
 		if ((entries->cnt == 1) ||
 				(entries->head->type == AUDIT_SYSCALL)) {
-			_auparse_load_interpretations(
-					(auparse_state_t *)&interp_au,
+			_auparse_load_interpretations(interp_au,
 					entries->head->interp);
 		}
 		// This is the per entry action item
 		if (per_event_processing(entries))
 			found = 1;
-               _auparse_free_interpretations((auparse_state_t *)&interp_au);
+		_auparse_free_interpretations(interp_au);
 	}
 }
 

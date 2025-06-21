@@ -217,13 +217,13 @@ static const char *lookup_uid(const char *field, uid_t uid)
 	const char *value;
 
 	if (!interp_init) {
-		memset(&interp_au, 0, sizeof(interp_au));
-		interp_au.interpretations.cnt = NEVER_LOADED;
+		interp_au = auparse_init(AUSOURCE_BUFFER, "");
+		if (interp_au == NULL)
+			return NULL;
 		interp_init = 1;
 	}
 
-	value = _auparse_lookup_interpretation((auparse_state_t *)&interp_au,
-					       field);
+	value = _auparse_lookup_interpretation(interp_au, field);
 	if (value)
 		return value;
 	if (uid == 0)
