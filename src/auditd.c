@@ -228,7 +228,11 @@ static void cont_handler(struct ev_loop *loop, struct ev_signal *sig,
 
 	int sr_fd = fileno(f);
 	if (sr_fd > 0)
-		(void)fchown(sr_fd, 0, config.log_group);
+		if (fchown(sr_fd, 0, config.log_group)) {
+			audit_msg(LOG_INFO,
+			    "fchown on state report failed (%s) continuing",
+			    strerror(errno));
+		}
 	fprintf(f, "audit version = %s\n", VERSION);
 	time_t now = time(0);
 	strftime(buf, sizeof(buf), "%x %X", localtime(&now));
