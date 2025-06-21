@@ -137,7 +137,7 @@ int nvlist_get_cur_type(rnode *r)
 	return auparse_interp_adjust_type(r->type, node->name, node->val);
 }
 
-const char *nvlist_interp_cur_val(rnode *r, auparse_esc_t escape_mode)
+const char *nvlist_interp_cur_val(auparse_state_t *au, rnode *r)
 {
 	nvlist *l = &r->nv;
 	if (l->cnt == 0)
@@ -145,7 +145,7 @@ const char *nvlist_interp_cur_val(rnode *r, auparse_esc_t escape_mode)
 	nvnode *node = &l->array[l->cur];
 	if (node->interp_val)
 		return node->interp_val;
-	return do_interpret(r, escape_mode);
+	return do_interpret(au, r);
 }
 
 // This function determines if a chunk of memory is part of the parsed up

@@ -34,16 +34,17 @@
 /* Make these hidden to prevent conflicts */
 AUDIT_HIDDEN_START
 
-void init_interpretation_list(void);
-int load_interpretation_list(const char *buf);
-void free_interpretation_list(void);
-unsigned int interpretation_list_cnt(void);
+void init_interpretation_list(auparse_state_t *au);
+int load_interpretation_list(auparse_state_t *au, const char *buf);
+void free_interpretation_list(auparse_state_t *au);
+unsigned int interpretation_list_cnt(const auparse_state_t *au);
 int lookup_type(const char *name);
-const char *do_interpret(rnode *r, auparse_esc_t escape_mode);
-void _aulookup_destroy_uid_list(void);
-void aulookup_destroy_gid_list(void);
-void aulookup_metrics(unsigned int *uid, unsigned int *gid);
-char *au_unescape(char *buf);
+const char *do_interpret(auparse_state_t *au, rnode *r);
+void _aulookup_destroy_uid_list(auparse_state_t *au);
+void aulookup_destroy_gid_list(auparse_state_t *au);
+void aulookup_metrics(const auparse_state_t *au, unsigned int *uid,
+			unsigned int *gid);
+char *au_unescape(char *buf)  __attribute_malloc__ __attr_dealloc_free;
 
 AUDIT_HIDDEN_END
 

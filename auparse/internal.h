@@ -1,5 +1,5 @@
 /* internal.h -- 
- * Copyright 2006-07,2013-17 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2006-07,2013-17,2025 Red Hat Inc.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -28,6 +28,8 @@
 #include "data_buf.h"
 #include "normalize-llist.h"
 #include "dso.h"
+#include "nvlist.h"
+#include "lru.h"
 #include <stdio.h>
 
 /* This is what state the parser is in */
@@ -140,6 +142,7 @@ typedef struct data
 
 struct opaque
 {
+	nvlist interpretations;		// Per-parser interpretations list
 	ausource_t source;		// Source type
 	char **source_list;		// Array of buffers, or array of
 					//	 file names
@@ -178,6 +181,10 @@ struct opaque
 	debug_message_t debug_message;	// Whether or not messages are debug or not
 	const char *tmp_translation;	// Pointer to manage mem for field translation
 	normalize_data norm_data;
+	Queue *uid_cache;               // per-parser UID cache
+	int uid_cache_created;
+	Queue *gid_cache;               // per-parser GID cache
+	int gid_cache_created;
 };
 
 AUDIT_HIDDEN_START

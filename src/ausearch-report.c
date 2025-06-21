@@ -33,7 +33,10 @@
 #include "ausearch-lookup.h"
 #include "auparse.h"
 #include "auparse-idata.h"
+#include "auparse-stub.h"
 #include "auditd-config.h"
+
+static int interp_init = 0;
 
 /* Local functions */
 static void output_raw(llist *l);
@@ -49,6 +52,9 @@ static void text_event(auparse_state_t *au,
 
 extern time_t lol_get_eoe_timeout(void);
 
+static auparse_state_t *au = NULL;
+
+
 /* The machine based on elf type */
 static unsigned long machine = -1;
 static int cur_syscall = -1;
@@ -62,7 +68,13 @@ static int loaded = 0;
 void ausearch_load_interpretations(const lnode *n)
 {
 	if (loaded == 0) {
-		_auparse_load_interpretations(n->interp);
+		if (!interp_init) {
+			memset(&interp_au, 0, sizeof(interp_au));
+			interp_au.interpretations.cnt = NEVER_LOADED;
+			interp_init = 1;
+		}
+		_auparse_load_interpretations((auparse_state_t *)&interp_au,
+                                             n->interp);
 		loaded = 1;
 	}
 }
@@ -70,7 +82,7 @@ void ausearch_load_interpretations(const lnode *n)
 void ausearch_free_interpretations(void)
 {
 	if (loaded) {
-		_auparse_free_interpretations();
+		_auparse_free_interpretations((auparse_state_t *)&interp_au);
 		loaded = 0;
 	}
 }
@@ -382,7 +394,8 @@ static void report_interpret(char *name, char *val, int comma, int rtype)
 	id.val = val;
 	id.cwd = NULL;
 
-	char *out = auparse_do_interpretation(type, &id, escape_mode);
+	char *out = auparse_do_interpretation((auparse_state_t *)&interp_au,
+						type, &id, escape_mode);
 	if (type == AUPARSE_TYPE_UNCLASSIFIED)
 		printf("%s%c", val, comma ? ',' : ' ');
 	else if (name[0] == 'k' && strcmp(name, "key") == 0) {
@@ -797,7 +810,6 @@ static void text_event(auparse_state_t *au,
 
 /* This function will push an event into auparse. The callback arg will
  * perform all formatting for the intended report option. */
-static auparse_state_t *au = NULL;
 static void feed_auparse(llist *l, auparse_callback_ptr callback)
 {
 	const lnode *n;

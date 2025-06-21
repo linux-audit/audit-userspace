@@ -22,12 +22,6 @@
  */
 
 #include "config.h"
-#include "expression.h"
-#include "internal.h"
-#include "auparse.h"
-#include "interpret.h"
-#include "auparse-idata.h"
-#include "libaudit.h"
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
@@ -35,6 +29,12 @@
 #include <fcntl.h>
 #include <stdio_ext.h>
 #include <limits.h>
+#include "internal.h"
+#include "expression.h"
+#include "auparse.h"
+#include "interpret.h"
+#include "auparse-idata.h"
+#include "libaudit.h"
 #include "common.h"
 
 //#define LOL_EVENTS_DEBUG01	1	// add debug for list of list event
@@ -45,12 +45,6 @@ static int debug = 0;
 #endif
 
 static time_t	eoe_timeout = EOE_TIMEOUT;
-
-static void init_lib(void) __attribute__ ((constructor));
-static void init_lib(void)
-{
-	init_interpretation_list();
-}
 
 /* like strchr except string is delimited by length, not null byte */
 static char *strnchr(const char *s, int c, size_t n)
@@ -574,6 +568,11 @@ auparse_state_t *auparse_init(ausource_t source, const void *b)
 	au->find_field = NULL;
 	au->search_where = AUSEARCH_STOP_EVENT;
 	au->tmp_translation = NULL;
+	au->uid_cache = NULL;
+	au->uid_cache_created = 0;
+	au->gid_cache = NULL;
+	au->gid_cache_created = 0;
+	init_interpretation_list(au);
 	init_normalizer(&au->norm_data);
 
 	return au;
@@ -633,8 +632,8 @@ static void consume_feed(auparse_state_t *au, int flush)
 			au->le = l;  // make this current the event of interest
 			aup_list_first(l);
 			r = aup_list_get_cur(l);
-			free_interpretation_list();
-			load_interpretation_list(r->interp);
+			free_interpretation_list(au);
+			load_interpretation_list(au, r->interp);
 			aup_list_first_field(l);
 
 			if (au->callback) {
@@ -722,22 +721,22 @@ void auparse_set_escape_mode(auparse_state_t *au, auparse_esc_t mode)
  * buf is a string of name value pairs to be used for interpreting.
  * Calling this function automatically releases the previous list.
  */
-void _auparse_load_interpretations(const char *buf)
+void _auparse_load_interpretations(auparse_state_t *au, const char *buf)
 {
-	free_interpretation_list();
+	free_interpretation_list(au);
 
 	if (buf == NULL)
 		return;
 
-	load_interpretation_list(buf);
+	load_interpretation_list(au, buf);
 }
 
 /*
  * Non-public function. Subject to change.
  */
-void _auparse_free_interpretations(void)
+void _auparse_free_interpretations(auparse_state_t *au)
 {
-	free_interpretation_list();
+	free_interpretation_list(au);
 }
 
 int auparse_reset(auparse_state_t *au)
@@ -782,7 +781,7 @@ int auparse_reset(auparse_state_t *au)
 		default:
 			return -1;
 	}
-	free_interpretation_list();
+	free_interpretation_list((auparse_state_t *)au);
 	return 0;
 }
 
@@ -791,7 +790,7 @@ char *auparse_metrics(const auparse_state_t *au)
 	char *metrics;
 	unsigned int uid, gid;
 
-	aulookup_metrics(&uid, &gid);
+	aulookup_metrics(au, &uid, &gid);
 
 	if (asprintf(&metrics,
 		     "max lol available: %lu\n"
@@ -1038,7 +1037,7 @@ static void auparse_destroy_common(auparse_state_t *au)
 		fclose(au->in);
 		au->in = NULL;
 	}
-	free_interpretation_list();
+       free_interpretation_list(au);
 	clear_normalizer(&au->norm_data);
 	au_lol_clear(au->au_lo, 0);
 	free((void *)au->tmp_translation);
@@ -1048,8 +1047,8 @@ static void auparse_destroy_common(auparse_state_t *au)
 
 void auparse_destroy(auparse_state_t *au)
 {
-	_aulookup_destroy_uid_list();
-	aulookup_destroy_gid_list();
+	_aulookup_destroy_uid_list(au);
+	aulookup_destroy_gid_list(au);
 
 	auparse_destroy_common(au);
 }
@@ -1551,8 +1550,8 @@ static int au_auparse_next_event(auparse_state_t *au)
 
 		aup_list_first(l);
 		r = aup_list_get_cur(l);
-		free_interpretation_list();
-		load_interpretation_list(r->interp);
+		free_interpretation_list(au);
+		load_interpretation_list(au, r->interp);
 		aup_list_first_field(l);
 		au->le = l;
 #ifdef	LOL_EVENTS_DEBUG01
@@ -1603,8 +1602,8 @@ static int au_auparse_next_event(auparse_state_t *au)
 
 				aup_list_first(l);
 				r = aup_list_get_cur(l);
-				free_interpretation_list();
-				load_interpretation_list(r->interp);
+				free_interpretation_list(au);
+				load_interpretation_list(au, r->interp);
 				aup_list_first_field(l);
 				au->le = l;
 #ifdef	LOL_EVENTS_DEBUG01
@@ -1707,8 +1706,8 @@ static int au_auparse_next_event(auparse_state_t *au)
 
 			aup_list_first(l);
 			r = aup_list_get_cur(l);
-			free_interpretation_list();
-			load_interpretation_list(r->interp);
+			free_interpretation_list(au);
+			load_interpretation_list(au, r->interp);
 			aup_list_first_field(l);
 			au->le = l;
 #ifdef	LOL_EVENTS_DEBUG01
@@ -1842,7 +1841,7 @@ int auparse_first_record(auparse_state_t *au)
 			return rc;
 	}
 	r = aup_list_get_cur(au->le);
-	if (r && r->item == 0 && interpretation_list_cnt()) {
+	if (r && r->item == 0 && interpretation_list_cnt(au)) {
 		// If we are on the first record and the list has previously
 		// been loaded, just pull cursor back and avoid loading the
 		// interpretation list.
@@ -1851,8 +1850,8 @@ int auparse_first_record(auparse_state_t *au)
 	}
 	aup_list_first(au->le);
 	r = aup_list_get_cur(au->le);
-	free_interpretation_list();
-	load_interpretation_list(r->interp);
+	free_interpretation_list(au);
+	load_interpretation_list(au, r->interp);
 	aup_list_first_field(au->le);
 
 	return 1;
@@ -1867,7 +1866,7 @@ int auparse_next_record(auparse_state_t *au)
 {
 	rnode *r;
 
-	free_interpretation_list();
+	free_interpretation_list(au);
 	// Its OK if au->le == NULL because get_cnt handles it
 	if (aup_list_get_cnt(au->le) == 0) {
 		int rc = auparse_first_record(au);
@@ -1876,19 +1875,19 @@ int auparse_next_record(auparse_state_t *au)
 	}
 	r = aup_list_next(au->le);
 	if (r) {
-		load_interpretation_list(r->interp);
+		load_interpretation_list(au, r->interp);
 		return 1;
 	} else
 		return 0;
 }
 
 
-int auparse_goto_record_num(const auparse_state_t *au, unsigned int num)
+int auparse_goto_record_num(auparse_state_t *au, unsigned int num)
 {
 	rnode *r;
 
 	r = aup_list_get_cur(au->le);
-	if (r && r->item == num && interpretation_list_cnt()) {
+	if (r && r->item == num && interpretation_list_cnt(au)) {
 		// If we are on the first record and the list has previously
 		// been loaded, just pull cursor back and avoid loading the
 		// interpretation list.
@@ -1897,14 +1896,15 @@ int auparse_goto_record_num(const auparse_state_t *au, unsigned int num)
 	}
 
 	/* Check if a request is out of range */
-	free_interpretation_list();
+	free_interpretation_list(au);
+
 	// Its OK if au->le == NULL because get_cnt handles it
 	if (num >= aup_list_get_cnt(au->le))
 		return 0;
 
 	r = aup_list_goto_rec(au->le, num);
 	if (r != NULL) {
-		load_interpretation_list(r->interp);
+		load_interpretation_list(au, r->interp);
 		aup_list_first_field(au->le);
 		return 1;
 	} else
@@ -2065,7 +2065,7 @@ const char *auparse_find_field(auparse_state_t *au, const char *name)
 }
 
 /* Increment 1 location and then scan for next field */
-const char *auparse_find_field_next(const auparse_state_t *au)
+const char *auparse_find_field_next(auparse_state_t *au)
 {
 	if (au->le == NULL)
 		return NULL;
@@ -2089,8 +2089,8 @@ const char *auparse_find_field_next(const auparse_state_t *au)
 			r = aup_list_next(au->le);
 			if (r) {
 				aup_list_first_field(au->le);
-				free_interpretation_list();
-				load_interpretation_list(r->interp);
+				free_interpretation_list(au);
+				load_interpretation_list(au, r->interp);
 			}
 		}
 	}
@@ -2193,7 +2193,7 @@ const char *auparse_interpret_field(auparse_state_t *au)
 		rnode *r = aup_list_get_cur(au->le);
 		if (r) {
 			r->cwd = NULL;
-			return nvlist_interp_cur_val(r, au->escape_mode);
+			return nvlist_interp_cur_val(au, r);
 		}
 	}
 	return NULL;
@@ -2213,7 +2213,7 @@ const char *auparse_interpret_realpath(const auparse_state_t *au)
 
 			// Tell it to make a realpath
 			r->cwd = au->le->cwd;
-                        return nvlist_interp_cur_val(r, au->escape_mode);
+			return nvlist_interp_cur_val((auparse_state_t *)au, r);
 		}
         }
 	return NULL;
@@ -2233,7 +2233,7 @@ static const char *auparse_interpret_sock_parts(auparse_state_t *au,
 		if (nvlist_get_cur_type(r) != AUPARSE_TYPE_SOCKADDR)
 			return NULL;
 		// Get interpretation
-		const char *val = nvlist_interp_cur_val(r, au->escape_mode);
+		const char *val=nvlist_interp_cur_val((auparse_state_t *)au,r);
 		if (val == NULL)
 			return NULL;
 		// make a copy since we modify it

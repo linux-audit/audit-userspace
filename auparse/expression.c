@@ -1018,7 +1018,7 @@ eval_interpreted_value(const auparse_state_t *au, rnode *record,
 		if (nvlist_find_name(&record->nv, expr->v.p.field.name) == 0)
 			return NULL;
 		*free_it = 0;
-		res = nvlist_interp_cur_val(record, au->escape_mode);
+		res = nvlist_interp_cur_val((auparse_state_t *)au, record);
 		if (res == NULL)
 			res = nvlist_get_cur_val(&record->nv);
 		return (char *)res;

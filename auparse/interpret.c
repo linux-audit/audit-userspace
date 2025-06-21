@@ -139,9 +139,6 @@ typedef enum { S_UNSET=-1, S_FAILED, S_SUCCESS } success_t;
 static char *print_escaped(const char *val);
 static const char *print_signals(const char *val, unsigned int base);
 
-// FIXME: move next declaration to auparse_state_t
-static nvlist il;  // Interpretations list
-
 /*
  * This function will take a pointer to a 2 byte Ascii character buffer and
  * return the actual hex value.
@@ -398,32 +395,35 @@ char *au_unescape(char *buf)
 }
 
 /////////// Interpretation list functions ///////////////
-#define NEVER_LOADED 0xFFFF
-void init_interpretation_list(void)
+void init_interpretation_list(auparse_state_t *au)
 {
-	nvlist_create(&il);
-	il.cnt = NEVER_LOADED;
+	if (au == NULL)
+		return;
+	nvlist_create(&au->interpretations);
+	au->interpretations.cnt = NEVER_LOADED;
 }
 
 /*
  * Returns 0 on error and 1 on success
  */
-int load_interpretation_list(const char *buffer)
+int load_interpretation_list(auparse_state_t *au, const char *buffer)
 {
 	char *saved = NULL, *ptr;
 	char *buf, *val;
 	nvnode n;
 
+	nvlist *il = &au->interpretations;
+
 	if (buffer == NULL)
 		return 0;
 
-	if (il.cnt == NEVER_LOADED)
-		il.cnt = 0;
+	if (il->cnt == NEVER_LOADED)
+		il->cnt = 0;
 
-	il.record = buf = strdup(buffer);
-	if (buf == NULL) {
+	il->record = buf = strdup(buffer);
+	if (buf == NULL)
 		goto err_out;
-	}
+
 	if (strncmp(buf, "SADDR=", 6) == 0) {
 		// We have SOCKADDR record. It has no other values.
 		// Handle it by itself.
@@ -435,16 +435,16 @@ int load_interpretation_list(const char *buffer)
 				// Just change the case
 				n.name = strcpy(buf, "saddr");
 				n.val = val;
-				if (nvlist_append(&il, &n))
+				if (nvlist_append(il, &n))
 					goto err_out;
-				nvlist_interp_fixup(&il);
+				nvlist_interp_fixup(il);
 				return 1;
 			}
 		}
 err_out:
 		free(buf);
-		il.record = NULL;
-		il.cnt = NEVER_LOADED;
+		il->record = NULL;
+		il->cnt = NEVER_LOADED;
 		return 0;
 	} else {
 		// We handle everything else in this branch
@@ -475,16 +475,16 @@ err_out:
 				tmp = 0;
 
 			n.val = val;
-			if (nvlist_append(&il, &n))
+			if (nvlist_append(il, &n))
 				continue; // assuming we loaded something
-			nvlist_interp_fixup(&il);
+			nvlist_interp_fixup(il);
 			if (ptr)
 				*ptr = tmp;
 		} while ((ptr = audit_strsplit_r(NULL, &saved)));
 	}
 
 	// If for some reason it was useless, delete buf
-	if (il.cnt == 0)
+	if (il->cnt == 0)
 		goto err_out;
 
 	return 1;
@@ -493,16 +493,17 @@ err_out:
 /*
  * Returns malloc'ed buffer on success and NULL if no match
  */
-const char *_auparse_lookup_interpretation(const char *name)
+const char *_auparse_lookup_interpretation(auparse_state_t *au,const char *name)
 {
 	nvnode *n;
 
-	if (il.cnt == NEVER_LOADED)
-		return NULL;
+	nvlist *il = &au->interpretations;
 
-	nvlist_first(&il);
-	if (nvlist_find_name(&il, name)) {
-		n = nvlist_get_cur(&il);
+	if (il->cnt == NEVER_LOADED)
+		return NULL;
+	nvlist_first(il);
+	if (nvlist_find_name(il, name)) {
+		n = nvlist_get_cur(il);
 		// This is only called from src/ausearch-lookup.c
 		// it only looks up auid and syscall. One needs
 		// escape, the other does not.
@@ -514,7 +515,7 @@ const char *_auparse_lookup_interpretation(const char *name)
 	return NULL;
 }
 
-void free_interpretation_list(void)
+void free_interpretation_list(auparse_state_t *au)
 {
 	nvlist_clear(&il, 0);
 	il.cnt = NEVER_LOADED;
@@ -523,11 +524,13 @@ void free_interpretation_list(void)
 // This uses a sentinel to determine if the list has ever been loaded.
 // If never loaded, returns 0. Otherwise it returns 1 higher than how
 // many interpretations are loaded.
-unsigned int interpretation_list_cnt(void)
+unsigned int interpretation_list_cnt(const auparse_state_t *au)
 {
-	if (il.cnt == NEVER_LOADED)
+	const nvlist *il = &au->interpretations;
+
+	if (il->cnt == NEVER_LOADED)
 		return 0;
-	return il.cnt+1;
+	return il->cnt + 1;
 }
 
 //////////// Start Field Value Interpretations /////////////
@@ -546,9 +549,8 @@ static const char *aulookup_success(int s)
 	}
 }
 
-static Queue *uid_cache = NULL;
-static int uid_cache_created = 0;
-static const char *aulookup_uid(uid_t uid, char *buf, size_t size)
+static const char *aulookup_uid(auparse_state_t *au, uid_t uid,
+				 char *buf, size_t size)
 {
 	char *name = NULL;
 	unsigned int key;
@@ -563,12 +565,12 @@ static const char *aulookup_uid(uid_t uid, char *buf, size_t size)
 	}
 
 	// Check the cache first
-	if (uid_cache_created == 0) {
-		uid_cache = init_lru(19, NULL, "uid");
-		uid_cache_created = 1;
+	if (au->uid_cache_created == 0) {
+		au->uid_cache = init_lru(19, NULL, "uid");
+		au->uid_cache_created = 1;
 	}
-	key = compute_subject_key(uid_cache, uid);
-	q_node = check_lru_cache(uid_cache, key);
+	key = compute_subject_key(au->uid_cache, uid);
+	q_node = check_lru_cache(au->uid_cache, key);
 	if (q_node) {
 		if (q_node->id == uid)
 			name = q_node->str;
@@ -576,8 +578,8 @@ static const char *aulookup_uid(uid_t uid, char *buf, size_t size)
 			// This getpw use is OK because its for protocol 1
 			// compatibility.  Add it to cache.
 			struct passwd *pw;
-			lru_evict(uid_cache, key);
-			q_node = check_lru_cache(uid_cache, key);
+			lru_evict(au->uid_cache, key);
+			q_node = check_lru_cache(au->uid_cache, key);
 			pw = getpwuid(uid);
 			if (pw) {
 				q_node->str = strdup(pw->pw_name);
@@ -593,18 +595,17 @@ static const char *aulookup_uid(uid_t uid, char *buf, size_t size)
 	return buf;
 }
 
-void _aulookup_destroy_uid_list(void)
+void _aulookup_destroy_uid_list(auparse_state_t *au)
 {
-	if (uid_cache_created == 0)
+	if (au->uid_cache_created == 0)
 		return;
 
-	destroy_lru(uid_cache);
-	uid_cache_created = 0;
+	destroy_lru(au->uid_cache);
+	au->uid_cache_created = 0;
 }
 
-static Queue *gid_cache = NULL;
-static int gid_cache_created = 0;
-static const char *aulookup_gid(gid_t gid, char *buf, size_t size)
+static const char *aulookup_gid(auparse_state_t *au, gid_t gid,
+                               char *buf, size_t size)
 {
 	char *name = NULL;
 	unsigned int key;
@@ -619,20 +620,20 @@ static const char *aulookup_gid(gid_t gid, char *buf, size_t size)
 	}
 
 	// Check the cache first
-	if (gid_cache_created == 0) {
-		gid_cache = init_lru(19, NULL, "gid");
-		gid_cache_created = 1;
+	if (au->gid_cache_created == 0) {
+		au->gid_cache = init_lru(19, NULL, "gid");
+		au->gid_cache_created = 1;
 	}
-	key = compute_subject_key(gid_cache, gid);
-	q_node = check_lru_cache(gid_cache, key);
+	key = compute_subject_key(au->gid_cache, gid);
+	q_node = check_lru_cache(au->gid_cache, key);
 	if (q_node) {
 		if (q_node->id == gid)
 			name = q_node->str;
 		else {
 			// Add it to cache
 			struct group *gr;
-			lru_evict(gid_cache, key);
-			q_node = check_lru_cache(gid_cache, key);
+			lru_evict(au->gid_cache, key);
+			q_node = check_lru_cache(au->gid_cache, key);
 			gr = getgrgid(gid);
 			if (gr) {
 				q_node->str = strdup(gr->gr_name);
@@ -648,33 +649,35 @@ static const char *aulookup_gid(gid_t gid, char *buf, size_t size)
 	return buf;
 }
 
-void aulookup_destroy_gid_list(void)
+void aulookup_destroy_gid_list(auparse_state_t *au)
 {
-	if (gid_cache_created == 0)
+	if (au->gid_cache_created == 0)
 		return;
 
-	destroy_lru(gid_cache);
-	gid_cache_created = 0;
+	destroy_lru(au->gid_cache);
+	au->gid_cache_created = 0;
 }
 
-void _auparse_flush_caches(void)
+void _auparse_flush_caches(auparse_state_t *au)
 {
-	if (uid_cache_created) {
-		destroy_lru(uid_cache);
-		uid_cache_created = 0;
+	if (au->uid_cache_created) {
+		destroy_lru(au->uid_cache);
+		au->uid_cache_created = 0;
 	}
-	if (gid_cache_created) {
-		destroy_lru(gid_cache);
-		gid_cache_created = 0;
+	if (au->gid_cache_created) {
+		destroy_lru(au->gid_cache);
+		au->gid_cache_created = 0;
 	}
 }
 
-void aulookup_metrics(unsigned int *uid, unsigned int *gid)
+void aulookup_metrics(const auparse_state_t *au,
+			unsigned int *uid, unsigned int *gid)
 {
-	*uid = uid_cache->count;
-	*gid = gid_cache->count;
+	*uid = au->uid_cache ? au->uid_cache->count : 0;
+	*gid = au->gid_cache ? au->gid_cache->count : 0;
 }
-static const char *print_uid(const char *val, unsigned int base)
+static const char *print_uid(auparse_state_t *au,
+				const char *val, unsigned int base)
 {
         int uid;
         char name[64];
@@ -688,10 +691,11 @@ static const char *print_uid(const char *val, unsigned int base)
                 return out;
         }
 
-        return strdup(aulookup_uid(uid, name, sizeof(name)));
+	return strdup(aulookup_uid(au, uid, name, sizeof(name)));
 }
 
-static const char *print_gid(const char *val, unsigned int base)
+static const char *print_gid(auparse_state_t *au,
+				const char *val, unsigned int base)
 {
         int gid;
         char name[64];
@@ -705,7 +709,7 @@ static const char *print_gid(const char *val, unsigned int base)
                 return out;
         }
 
-        return strdup(aulookup_gid(gid, name, sizeof(name)));
+	return strdup(aulookup_gid(au, gid, name, sizeof(name)));
 }
 
 static const char *print_arch(const char *val, unsigned int machine)
@@ -882,23 +886,30 @@ static char *print_escaped(const char *val)
 }
 
 // This code is loosely based on glibc-2.27 realpath.
-static char working[PATH_MAX];
 static char *path_norm(const char *name)
 {
-	char *rpath, *dest;
+	char *working, *rpath, *dest;
+	char *ret;
 	const char *start, *end, *rpath_limit;
 	int old_errno = errno;
 
+	working = malloc(PATH_MAX);
+	if (working == NULL)
+		return NULL;
+
 	errno = EINVAL;
 	if (name == NULL)
-		return NULL;
+		goto err_out;
 	if (name[0] == 0)
-		return NULL;
+		goto err_out;
 	errno = old_errno;
 
 	// If not absolute, give it back as is
-	if (name[0] == '.')
-		return strdup(name);
+	if (name[0] == '.') {
+		ret = strdup(name);
+		free(working);
+		return ret;
+	}
 
 	rpath = working;
 	dest = rpath;
@@ -939,7 +950,12 @@ static char *path_norm(const char *name)
 			*dest = 0;
 		}
 	}
-	return strdup(working);
+	ret = strdup(working);
+	free(working);
+	return ret;
+err_out:
+	free(working);
+	return NULL;
 }
 
 static const char *print_escaped_ext(const idata *id)
@@ -2512,7 +2528,8 @@ static const char *print_errno(const char *val)
 	return out;
 }
 
-static const char* print_a0(const char* val, const idata* id)
+static const char* print_a0(auparse_state_t *au, const char* val,
+				const idata* id)
 {
 	char* out;
 	int machine = id->machine, syscall = id->syscall;
@@ -2570,23 +2587,23 @@ static const char* print_a0(const char* val, const idata* id)
 			return print_rlimit(val);
 		else if (*sys == 's') {
 			if (strcmp(sys, "setuid") == 0)
-				return print_uid(val, 16);
+				return print_uid(au, val, 16);
 			else if (strcmp(sys, "setreuid") == 0)
-				return print_uid(val, 16);
+				return print_uid(au, val, 16);
 			else if (strcmp(sys, "setresuid") == 0)
-				return print_uid(val, 16);
+				return print_uid(au, val, 16);
 			else if (strcmp(sys, "setfsuid") == 0)
-				return print_uid(val, 16);
+				return print_uid(au, val, 16);
 			else if (strcmp(sys, "setgid") == 0)
-				return print_gid(val, 16);
+				return print_gid(au, val, 16);
 			else if (strcmp(sys, "setregid") == 0)
-				return print_gid(val, 16);
+				return print_gid(au, val, 16);
 			else if (strcmp(sys, "setresgid") == 0)
-				return print_gid(val, 16);
+				return print_gid(au, val, 16);
 			else if (strcmp(sys, "socket") == 0)
 				return print_socket_domain(val);
 			else if (strcmp(sys, "setfsgid") == 0)
-				return print_gid(val, 16);
+				return print_gid(au, val, 16);
 			else if (strcmp(sys, "socketcall") == 0)
 				return print_socketcall(val, 16);
 			else if (strcmp(sys, "setxattrat") == 0)
@@ -2617,7 +2634,8 @@ static const char* print_a0(const char* val, const idata* id)
 	return out;
 }
 
-static const char *print_a1(const char *val, const idata *id)
+static const char *print_a1(auparse_state_t *au, const char *val,
+				const idata *id)
 {
 	char *out;
 	int machine = id->machine, syscall = id->syscall;
@@ -2641,7 +2659,7 @@ static const char *print_a1(const char *val, const idata *id)
 			if (strcmp(sys, "chmod") == 0)
 				return print_mode_short(val, 16);
 			else if (strstr(sys, "chown"))
-				return print_uid(val, 16);
+				return print_uid(au, val, 16);
 			else if (strcmp(sys, "creat") == 0)
 				return print_mode_short(val, 16);
 		}
@@ -2649,13 +2667,13 @@ static const char *print_a1(const char *val, const idata *id)
 			return print_sock_opt_level(val);
 		else if (*sys == 's') {
 	                if (strcmp(sys, "setreuid") == 0)
-				return print_uid(val, 16);
+				return print_uid(au, val, 16);
 			else if (strcmp(sys, "setresuid") == 0)
-				return print_uid(val, 16);
+				return print_uid(au, val, 16);
 	                else if (strcmp(sys, "setregid") == 0)
-				return print_gid(val, 16);
+				return print_gid(au, val, 16);
 			else if (strcmp(sys, "setresgid") == 0)
-				return print_gid(val, 16);
+				return print_gid(au, val, 16);
 	                else if (strcmp(sys, "socket") == 0)
 				return print_socket_type(val);
 			else if (strcmp(sys, "setns") == 0)
@@ -2697,7 +2715,8 @@ static const char *print_a1(const char *val, const idata *id)
 	return out;
 }
 
-static const char *print_a2(const char *val, const idata *id)
+static const char *print_a2(auparse_state_t *au, const char *val,
+				const idata *id)
 {
 	char *out;
 	int machine = id->machine, syscall = id->syscall;
@@ -2717,7 +2736,7 @@ static const char *print_a2(const char *val, const idata *id)
 			switch (id->a1)
 			{
 				case F_SETOWN:
-					return print_uid(val, 16);
+					return print_uid(au, val, 16);
 				case F_SETFD:
 					if (ival == FD_CLOEXEC)
 						return strdup("FD_CLOEXEC");
@@ -2759,9 +2778,9 @@ static const char *print_a2(const char *val, const idata *id)
 				return print_mount(val);
 		} else if (*sys == 's') {
 			if (strcmp(sys, "setresuid") == 0)
-				return print_uid(val, 16);
+				return print_uid(au, val, 16);
 	                else if (strcmp(sys, "setresgid") == 0)
-				return print_gid(val, 16);
+				return print_gid(au, val, 16);
 			else if (strcmp(sys, "socket") == 0)
 				return print_socket_proto(val);
 	                else if (strcmp(sys, "sendmsg") == 0)
@@ -2807,7 +2826,7 @@ static const char *print_a2(const char *val, const idata *id)
 				return print_clone_flags(val);
 		}
 		else if (strstr(sys, "chown"))
-			return print_gid(val, 16);
+			return print_gid(au, val, 16);
 		else if (strcmp(sys, "tgkill") == 0)
 			return print_signals(val, 16);
 		else if (strstr(sys, "getxattrat"))
@@ -2819,7 +2838,8 @@ normal:
 	return out;
 }
 
-static const char *print_a3(const char *val, const idata *id)
+static const char *print_a3(auparse_state_t *au, const char *val,
+				const idata *id)
 {
 	char *out;
 	int machine = id->machine, syscall = id->syscall;
@@ -3232,7 +3252,7 @@ int lookup_type(const char *name)
  * This is the main entry point for the auparse library. Call chain is:
  * auparse_interpret_field -> nvlist_interp_cur_val -> do_interpret
  */
-const char *do_interpret(rnode *r, auparse_esc_t escape_mode)
+const char *do_interpret(auparse_state_t *au, rnode *r)
 {
 	nvlist *nv = &r->nv;
 	int type;
@@ -3249,7 +3269,7 @@ const char *do_interpret(rnode *r, auparse_esc_t escape_mode)
 	id.val = nvlist_get_cur_val(nv);
 	type = auparse_interp_adjust_type(r->type, id.name, id.val);
 
-	out = auparse_do_interpretation(type, &id, escape_mode);
+	out = auparse_do_interpretation(au, type, &id, au->escape_mode);
 	n = nvlist_get_cur(nv);
 	n->interp_val = (char *)out;
 
@@ -3320,16 +3340,18 @@ int auparse_interp_adjust_type(int rtype, const char *name, const char *val)
  * This can be called by either interpret() or from ausearch-report or
  * auditctl-listing.c. Returns a malloc'ed buffer that the caller must free.
  */
-char *auparse_do_interpretation(int type, const idata *id,
-	auparse_esc_t escape_mode)
+char *auparse_do_interpretation(auparse_state_t *au, int type, const idata *id,
+				auparse_esc_t escape_mode)
 {
 	const char *out;
 
+	nvlist *il = &au->interpretations;
+
 	// Check the interpretations list first
-	if (interpretation_list_cnt()) {
-		nvlist_first(&il);
-		if (nvlist_find_name(&il, id->name)) {
-			nvnode* node = &il.array[il.cur];
+	if (interpretation_list_cnt(au)) {
+		nvlist_first(il);
+		if (nvlist_find_name(il, id->name)) {
+			nvnode* node = &il->array[il->cur];
 			const char *val = node->interp_val;
 
 			if (val) {
@@ -3350,10 +3372,10 @@ unknown:
 
 	switch(type) {
 		case AUPARSE_TYPE_UID:
-			out = print_uid(id->val, 10);
+			out = print_uid(au, id->val, 10);
 			break;
 		case AUPARSE_TYPE_GID:
-			out = print_gid(id->val, 10);
+			out = print_gid(au, id->val, 10);
 			break;
 		case AUPARSE_TYPE_SYSCALL:
 			out = print_syscall(id);
@@ -3393,16 +3415,16 @@ unknown:
 			out = print_success(id->val);
 			break;
 		case AUPARSE_TYPE_A0:
-			out = print_a0(id->val, id);
+			out = print_a0(au, id->val, id);
 			break;
 		case AUPARSE_TYPE_A1:
-			out = print_a1(id->val, id);
+			out = print_a1(au, id->val, id);
 			break;
 		case AUPARSE_TYPE_A2:
-			out = print_a2(id->val, id);
+			out = print_a2(au, id->val, id);
 			break;
 		case AUPARSE_TYPE_A3:
-			out = print_a3(id->val, id);
+			out = print_a3(au, id->val, id);
 			break;
 		case AUPARSE_TYPE_SIGNAL:
 			out = print_signals(id->val, 10);
@@ -3496,7 +3518,8 @@ unknown:
 		}
 		if (str == NULL) {
 			// This is the normal path
-			unsigned int cnt = need_escaping(out, len, escape_mode);
+			unsigned int cnt = need_escaping(out, len,
+							 escape_mode);
 			if (cnt) {
 				char *dest = malloc(len + 1 + (3*cnt));
 				if (dest)
@@ -3513,7 +3536,8 @@ unknown:
 				unsigned int klen = str - ptr;
 				char tmp = *str;
 				*str = 0;
-				cnt += need_escaping(ptr, klen, escape_mode);
+				cnt += need_escaping(ptr, klen,
+						     escape_mode);
 				*str = tmp;
 				ptr = str;
 				// If we are not at the end...
