@@ -21,7 +21,7 @@
 #   Steve Grubb <sgrubb@redhat.com>
 #
 
-SUBDIRS = test
+SUBDIRS = . test
 CLEANFILES = $(BUILT_SOURCES)
 CONFIG_CLEAN_FILES = *.loT *.rej *.orig
 EXTRA_DIST = syscall-update.txt gen_tables64.c

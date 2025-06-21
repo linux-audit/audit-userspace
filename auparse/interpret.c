@@ -517,12 +517,8 @@ const char *_auparse_lookup_interpretation(auparse_state_t *au,const char *name)
 
 void free_interpretation_list(auparse_state_t *au)
 {
-	nvlist *il = &au->interpretations;
-
-	if (il->cnt != NEVER_LOADED || il->array) {
-		nvlist_clear(il, 0);
-		il->cnt = NEVER_LOADED;
-	}
+	nvlist_clear(&il, 0);
+	il.cnt = NEVER_LOADED;
 }
 
 // This uses a sentinel to determine if the list has ever been loaded.

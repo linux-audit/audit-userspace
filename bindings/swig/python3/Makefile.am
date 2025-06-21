@@ -30,7 +30,6 @@ pyexec_PYTHON = audit.py
 pyexec_LTLIBRARIES = _audit.la
 _audit_la_CFLAGS = -shared
 _audit_la_LDFLAGS = -module -avoid-version -Wl,-z,relro
-_audit_la_HEADERS: $(top_builddir)/config.h 
 _audit_la_DEPENDENCIES =${top_srcdir}/lib/audit_logging.h ${top_builddir}/lib/libaudit.la
 _audit_la_LIBADD = ${top_builddir}/lib/libaudit.la
 nodist__audit_la_SOURCES  = audit_wrap.c

@@ -244,6 +244,7 @@ static int process_logs(void)
 		clear_config (&config);
 
 		strncpy(dirname, user_file, MAXPATHLEN-32);
+		dirname[MAXPATHLEN-32] = '\0';
 		if (dirname[strlen(dirname)-1] != '/')
 				strcat(dirname, "/");
 		strcat (dirname, "audit.log");

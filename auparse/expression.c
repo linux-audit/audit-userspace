@@ -1079,13 +1079,13 @@ compare_values(const auparse_state_t *au, const rnode *record,
 		break;
 
 	case EF_TIMESTAMP_EX:
-		if (au->le->e.sec < expr->v.p.value.timestamp.sec)
+		if (au->le->e.sec < expr->v.p.value.timestamp_ex.sec)
 			res = -1;
-		else if (au->le->e.sec > expr->v.p.value.timestamp.sec)
+		else if (au->le->e.sec > expr->v.p.value.timestamp_ex.sec)
 			res = 1;
-		else if (au->le->e.milli < expr->v.p.value.timestamp.milli)
+		else if (au->le->e.milli < expr->v.p.value.timestamp_ex.milli)
 			res = -1;
-		else if (au->le->e.milli > expr->v.p.value.timestamp.milli)
+		else if (au->le->e.milli > expr->v.p.value.timestamp_ex.milli)
 			res = 1;
 		else if (au->le->e.serial < expr->v.p.value.timestamp_ex.serial)
 			res = -1;
