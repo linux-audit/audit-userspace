@@ -497,7 +497,7 @@ static const char *format_enrich(const struct audit_reply *rep)
 		{	// Flush before adding to pickup new associations
 			case AUDIT_ADD_USER:
 			case AUDIT_ADD_GROUP:
-				_auparse_flush_caches();
+				_auparse_flush_caches(au);
 				break;
 			default:
 				break;
@@ -539,7 +539,7 @@ static const char *format_enrich(const struct audit_reply *rep)
 			case AUDIT_DEL_USER:
 			case AUDIT_DEL_GROUP:
 			case AUDIT_GRP_MGMT:
-				_auparse_flush_caches();
+				_auparse_flush_caches(au);
 				break;
 			default:
 				break;

@@ -553,9 +553,8 @@ static const char *aulookup_success(int s)
 	}
 }
 
-static Queue *uid_cache = NULL;
-static int uid_cache_created = 0;
-static const char *aulookup_uid(uid_t uid, char *buf, size_t size)
+static const char *aulookup_uid(auparse_state_t *au, uid_t uid,
+				 char *buf, size_t size)
 {
 	char *name = NULL;
 	unsigned int key;
@@ -570,12 +569,12 @@ static const char *aulookup_uid(uid_t uid, char *buf, size_t size)
 	}
 
 	// Check the cache first
-	if (uid_cache_created == 0) {
-		uid_cache = init_lru(19, NULL, "uid");
-		uid_cache_created = 1;
+	if (au->uid_cache_created == 0) {
+		au->uid_cache = init_lru(19, NULL, "uid");
+		au->uid_cache_created = 1;
 	}
-	key = compute_subject_key(uid_cache, uid);
-	q_node = check_lru_cache(uid_cache, key);
+	key = compute_subject_key(au->uid_cache, uid);
+	q_node = check_lru_cache(au->uid_cache, key);
 	if (q_node) {
 		if (q_node->id == uid)
 			name = q_node->str;
@@ -583,8 +582,8 @@ static const char *aulookup_uid(uid_t uid, char *buf, size_t size)
 			// This getpw use is OK because its for protocol 1
 			// compatibility.  Add it to cache.
 			struct passwd *pw;
-			lru_evict(uid_cache, key);
-			q_node = check_lru_cache(uid_cache, key);
+			lru_evict(au->uid_cache, key);
+			q_node = check_lru_cache(au->uid_cache, key);
 			pw = getpwuid(uid);
 			if (pw) {
 				q_node->str = strdup(pw->pw_name);
@@ -600,18 +599,17 @@ static const char *aulookup_uid(uid_t uid, char *buf, size_t size)
 	return buf;
 }
 
-void _aulookup_destroy_uid_list(void)
+void _aulookup_destroy_uid_list(auparse_state_t *au)
 {
-	if (uid_cache_created == 0)
+	if (au->uid_cache_created == 0)
 		return;
 
-	destroy_lru(uid_cache);
-	uid_cache_created = 0;
+	destroy_lru(au->uid_cache);
+	au->uid_cache_created = 0;
 }
 
-static Queue *gid_cache = NULL;
-static int gid_cache_created = 0;
-static const char *aulookup_gid(gid_t gid, char *buf, size_t size)
+static const char *aulookup_gid(auparse_state_t *au, gid_t gid,
+                               char *buf, size_t size)
 {
 	char *name = NULL;
 	unsigned int key;
@@ -626,20 +624,20 @@ static const char *aulookup_gid(gid_t gid, char *buf, size_t size)
 	}
 
 	// Check the cache first
-	if (gid_cache_created == 0) {
-		gid_cache = init_lru(19, NULL, "gid");
-		gid_cache_created = 1;
+	if (au->gid_cache_created == 0) {
+		au->gid_cache = init_lru(19, NULL, "gid");
+		au->gid_cache_created = 1;
 	}
-	key = compute_subject_key(gid_cache, gid);
-	q_node = check_lru_cache(gid_cache, key);
+	key = compute_subject_key(au->gid_cache, gid);
+	q_node = check_lru_cache(au->gid_cache, key);
 	if (q_node) {
 		if (q_node->id == gid)
 			name = q_node->str;
 		else {
 			// Add it to cache
 			struct group *gr;
-			lru_evict(gid_cache, key);
-			q_node = check_lru_cache(gid_cache, key);
+			lru_evict(au->gid_cache, key);
+			q_node = check_lru_cache(au->gid_cache, key);
 			gr = getgrgid(gid);
 			if (gr) {
 				q_node->str = strdup(gr->gr_name);
@@ -655,33 +653,35 @@ static const char *aulookup_gid(gid_t gid, char *buf, size_t size)
 	return buf;
 }
 
-void aulookup_destroy_gid_list(void)
+void aulookup_destroy_gid_list(auparse_state_t *au)
 {
-	if (gid_cache_created == 0)
+	if (au->gid_cache_created == 0)
 		return;
 
-	destroy_lru(gid_cache);
-	gid_cache_created = 0;
+	destroy_lru(au->gid_cache);
+	au->gid_cache_created = 0;
 }
 
-void _auparse_flush_caches(void)
+void _auparse_flush_caches(auparse_state_t *au)
 {
-	if (uid_cache_created) {
-		destroy_lru(uid_cache);
-		uid_cache_created = 0;
+	if (au->uid_cache_created) {
+		destroy_lru(au->uid_cache);
+		au->uid_cache_created = 0;
 	}
-	if (gid_cache_created) {
-		destroy_lru(gid_cache);
-		gid_cache_created = 0;
+	if (au->gid_cache_created) {
+		destroy_lru(au->gid_cache);
+		au->gid_cache_created = 0;
 	}
 }
 
-void aulookup_metrics(unsigned int *uid, unsigned int *gid)
+void aulookup_metrics(const auparse_state_t *au,
+			unsigned int *uid, unsigned int *gid)
 {
-	*uid = uid_cache->count;
-	*gid = gid_cache->count;
+	*uid = au->uid_cache ? au->uid_cache->count : 0;
+	*gid = au->gid_cache ? au->gid_cache->count : 0;
 }
-static const char *print_uid(const char *val, unsigned int base)
+static const char *print_uid(auparse_state_t *au,
+				const char *val, unsigned int base)
 {
         int uid;
         char name[64];
@@ -695,10 +695,11 @@ static const char *print_uid(const char *val, unsigned int base)
                 return out;
         }
 
-        return strdup(aulookup_uid(uid, name, sizeof(name)));
+	return strdup(aulookup_uid(au, uid, name, sizeof(name)));
 }
 
-static const char *print_gid(const char *val, unsigned int base)
+static const char *print_gid(auparse_state_t *au,
+				const char *val, unsigned int base)
 {
         int gid;
         char name[64];
@@ -712,7 +713,7 @@ static const char *print_gid(const char *val, unsigned int base)
                 return out;
         }
 
-        return strdup(aulookup_gid(gid, name, sizeof(name)));
+	return strdup(aulookup_gid(au, gid, name, sizeof(name)));
 }
 
 static const char *print_arch(const char *val, unsigned int machine)
@@ -2531,7 +2532,8 @@ static const char *print_errno(const char *val)
 	return out;
 }
 
-static const char* print_a0(const char* val, const idata* id)
+static const char* print_a0(auparse_state_t *au, const char* val,
+				const idata* id)
 {
 	char* out;
 	int machine = id->machine, syscall = id->syscall;
@@ -2589,23 +2591,23 @@ static const char* print_a0(const char* val, const idata* id)
 			return print_rlimit(val);
 		else if (*sys == 's') {
 			if (strcmp(sys, "setuid") == 0)
-				return print_uid(val, 16);
+				return print_uid(au, val, 16);
 			else if (strcmp(sys, "setreuid") == 0)
-				return print_uid(val, 16);
+				return print_uid(au, val, 16);
 			else if (strcmp(sys, "setresuid") == 0)
-				return print_uid(val, 16);
+				return print_uid(au, val, 16);
 			else if (strcmp(sys, "setfsuid") == 0)
-				return print_uid(val, 16);
+				return print_uid(au, val, 16);
 			else if (strcmp(sys, "setgid") == 0)
-				return print_gid(val, 16);
+				return print_gid(au, val, 16);
 			else if (strcmp(sys, "setregid") == 0)
-				return print_gid(val, 16);
+				return print_gid(au, val, 16);
 			else if (strcmp(sys, "setresgid") == 0)
-				return print_gid(val, 16);
+				return print_gid(au, val, 16);
 			else if (strcmp(sys, "socket") == 0)
 				return print_socket_domain(val);
 			else if (strcmp(sys, "setfsgid") == 0)
-				return print_gid(val, 16);
+				return print_gid(au, val, 16);
 			else if (strcmp(sys, "socketcall") == 0)
 				return print_socketcall(val, 16);
 			else if (strcmp(sys, "setxattrat") == 0)
@@ -2636,7 +2638,8 @@ static const char* print_a0(const char* val, const idata* id)
 	return out;
 }
 
-static const char *print_a1(const char *val, const idata *id)
+static const char *print_a1(auparse_state_t *au, const char *val,
+				const idata *id)
 {
 	char *out;
 	int machine = id->machine, syscall = id->syscall;
@@ -2660,7 +2663,7 @@ static const char *print_a1(const char *val, const idata *id)
 			if (strcmp(sys, "chmod") == 0)
 				return print_mode_short(val, 16);
 			else if (strstr(sys, "chown"))
-				return print_uid(val, 16);
+				return print_uid(au, val, 16);
 			else if (strcmp(sys, "creat") == 0)
 				return print_mode_short(val, 16);
 		}
@@ -2668,13 +2671,13 @@ static const char *print_a1(const char *val, const idata *id)
 			return print_sock_opt_level(val);
 		else if (*sys == 's') {
 	                if (strcmp(sys, "setreuid") == 0)
-				return print_uid(val, 16);
+				return print_uid(au, val, 16);
 			else if (strcmp(sys, "setresuid") == 0)
-				return print_uid(val, 16);
+				return print_uid(au, val, 16);
 	                else if (strcmp(sys, "setregid") == 0)
-				return print_gid(val, 16);
+				return print_gid(au, val, 16);
 			else if (strcmp(sys, "setresgid") == 0)
-				return print_gid(val, 16);
+				return print_gid(au, val, 16);
 	                else if (strcmp(sys, "socket") == 0)
 				return print_socket_type(val);
 			else if (strcmp(sys, "setns") == 0)
@@ -2716,7 +2719,8 @@ static const char *print_a1(const char *val, const idata *id)
 	return out;
 }
 
-static const char *print_a2(const char *val, const idata *id)
+static const char *print_a2(auparse_state_t *au, const char *val,
+				const idata *id)
 {
 	char *out;
 	int machine = id->machine, syscall = id->syscall;
@@ -2736,7 +2740,7 @@ static const char *print_a2(const char *val, const idata *id)
 			switch (id->a1)
 			{
 				case F_SETOWN:
-					return print_uid(val, 16);
+					return print_uid(au, val, 16);
 				case F_SETFD:
 					if (ival == FD_CLOEXEC)
 						return strdup("FD_CLOEXEC");
@@ -2778,9 +2782,9 @@ static const char *print_a2(const char *val, const idata *id)
 				return print_mount(val);
 		} else if (*sys == 's') {
 			if (strcmp(sys, "setresuid") == 0)
-				return print_uid(val, 16);
+				return print_uid(au, val, 16);
 	                else if (strcmp(sys, "setresgid") == 0)
-				return print_gid(val, 16);
+				return print_gid(au, val, 16);
 			else if (strcmp(sys, "socket") == 0)
 				return print_socket_proto(val);
 	                else if (strcmp(sys, "sendmsg") == 0)
@@ -2826,7 +2830,7 @@ static const char *print_a2(const char *val, const idata *id)
 				return print_clone_flags(val);
 		}
 		else if (strstr(sys, "chown"))
-			return print_gid(val, 16);
+			return print_gid(au, val, 16);
 		else if (strcmp(sys, "tgkill") == 0)
 			return print_signals(val, 16);
 		else if (strstr(sys, "getxattrat"))
@@ -2838,7 +2842,8 @@ normal:
 	return out;
 }
 
-static const char *print_a3(const char *val, const idata *id)
+static const char *print_a3(auparse_state_t *au, const char *val,
+				const idata *id)
 {
 	char *out;
 	int machine = id->machine, syscall = id->syscall;
@@ -3371,10 +3376,10 @@ unknown:
 
 	switch(type) {
 		case AUPARSE_TYPE_UID:
-			out = print_uid(id->val, 10);
+			out = print_uid(au, id->val, 10);
 			break;
 		case AUPARSE_TYPE_GID:
-			out = print_gid(id->val, 10);
+			out = print_gid(au, id->val, 10);
 			break;
 		case AUPARSE_TYPE_SYSCALL:
 			out = print_syscall(id);
@@ -3414,16 +3419,16 @@ unknown:
 			out = print_success(id->val);
 			break;
 		case AUPARSE_TYPE_A0:
-			out = print_a0(id->val, id);
+			out = print_a0(au, id->val, id);
 			break;
 		case AUPARSE_TYPE_A1:
-			out = print_a1(id->val, id);
+			out = print_a1(au, id->val, id);
 			break;
 		case AUPARSE_TYPE_A2:
-			out = print_a2(id->val, id);
+			out = print_a2(au, id->val, id);
 			break;
 		case AUPARSE_TYPE_A3:
-			out = print_a3(id->val, id);
+			out = print_a3(au, id->val, id);
 			break;
 		case AUPARSE_TYPE_SIGNAL:
 			out = print_signals(id->val, 10);

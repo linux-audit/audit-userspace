@@ -47,7 +47,7 @@ void _auparse_load_interpretations(auparse_state_t *au, const char *buf);
 void _auparse_free_interpretations(auparse_state_t *au);
 const char *_auparse_lookup_interpretation(auparse_state_t *au,
 	const char *name) __attribute_malloc__ __attr_dealloc_free;
-void _auparse_flush_caches(void);
+void _auparse_flush_caches(auparse_state_t *au);
 
 #endif
 

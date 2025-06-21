@@ -568,6 +568,10 @@ auparse_state_t *auparse_init(ausource_t source, const void *b)
 	au->find_field = NULL;
 	au->search_where = AUSEARCH_STOP_EVENT;
 	au->tmp_translation = NULL;
+	au->uid_cache = NULL;
+	au->uid_cache_created = 0;
+	au->gid_cache = NULL;
+	au->gid_cache_created = 0;
 	init_interpretation_list(au);
 	init_normalizer(&au->norm_data);
 
@@ -786,7 +790,7 @@ char *auparse_metrics(const auparse_state_t *au)
 	char *metrics;
 	unsigned int uid, gid;
 
-	aulookup_metrics(&uid, &gid);
+	aulookup_metrics(au, &uid, &gid);
 
 	if (asprintf(&metrics,
 		     "max lol available: %lu\n"
@@ -1043,8 +1047,8 @@ static void auparse_destroy_common(auparse_state_t *au)
 
 void auparse_destroy(auparse_state_t *au)
 {
-	_aulookup_destroy_uid_list();
-	aulookup_destroy_gid_list();
+	_aulookup_destroy_uid_list(au);
+	aulookup_destroy_gid_list(au);
 
 	auparse_destroy_common(au);
 }

@@ -29,6 +29,7 @@
 #include "normalize-llist.h"
 #include "dso.h"
 #include "nvlist.h"
+#include "lru.h"
 #include <stdio.h>
 
 /* This is what state the parser is in */
@@ -180,6 +181,10 @@ struct opaque
 	debug_message_t debug_message;	// Whether or not messages are debug or not
 	const char *tmp_translation;	// Pointer to manage mem for field translation
 	normalize_data norm_data;
+	Queue *uid_cache;               // per-parser UID cache
+	int uid_cache_created;
+	Queue *gid_cache;               // per-parser GID cache
+	int gid_cache_created;
 };
 
 AUDIT_HIDDEN_START
