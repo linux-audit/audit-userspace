@@ -39,6 +39,7 @@ typedef struct _idata {
 	const char *val;	// value of field being interpreted
 } idata;
 
+#define NEVER_LOADED 0xFFFF
 
 int auparse_interp_adjust_type(int rtype, const char *name, const char *val);
 char *auparse_do_interpretation(auparse_state_t *au, int type, const idata *id,

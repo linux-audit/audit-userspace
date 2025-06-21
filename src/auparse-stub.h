@@ -1,6 +1,8 @@
 #ifndef AUPARSE_STUB_H
 #define AUPARSE_STUB_H
 
+#include "auparse-idata.h"
+
 /*
  * Stub definitions for using interpretation helpers without auparse
  * initialization. Each translation unit that needs them gets its own
@@ -26,8 +28,6 @@ typedef struct interp_nvlist {
 typedef struct {
 	interp_nvlist interpretations;
 } interp_state_t;
-
-#define NEVER_LOADED 0xFFFF
 
 static interp_state_t interp_au;
 
