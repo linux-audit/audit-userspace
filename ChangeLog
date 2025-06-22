@@ -4,6 +4,7 @@
 - af_unix plugin: Restore terminating newlines
 - Add support for "exec" action in max_log_file_action in auditd
 - Refactor auparse code to be multi-thread safe
+- Add memory pool to netlink event processing to reduce memory churn
 
 4.0.5
 - Rework audisp queue to be lockless
