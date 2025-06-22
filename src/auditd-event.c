@@ -54,6 +54,11 @@ extern volatile ATOMIC_INT stop;
 #endif
 
 extern void update_report_timer(unsigned int interval);
+/*
+ * This function is provided by auditd.c and marked weak so test utilities
+ * that don't link auditd.c can still link this file.
+ */
+extern int event_is_prealloc(struct auditd_event *e) __attribute__((weak));
 
 /* Local function prototypes */
 static void send_ack(const struct auditd_event *e, int ack_type,
@@ -580,7 +585,8 @@ void cleanup_event(struct auditd_event *e)
 	// into the middle of the reply allocation. Check for it.
 	if (e->reply.message != e->reply.msg.data)
 		free((void *)e->reply.message);
-	free(e);
+	if (!event_is_prealloc || !event_is_prealloc(e))
+		free(e);
 }
 
 /* This function takes a  reconfig event and sends it to the handler */

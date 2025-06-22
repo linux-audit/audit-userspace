@@ -82,6 +82,12 @@ static const char *pidfile = "/var/run/auditd.pid";
 static const char *state_file = "/var/run/auditd.state";
 static int init_pipe[2];
 static int do_fork = 1, opt_aggregate_only = 0, config_dir_set = 0;
+/*
+ * Small pool of reusable event structures. The netlink handler needs
+ * one event while processing the current record and a second for
+ * reconfigure work. Keeping them here avoids repeated allocations.
+ */
+struct auditd_event event_pool[2];
 static struct auditd_event *cur_event = NULL, *reconfig_ev = NULL;
 static ATOMIC_INT hup_info_requested = 0;
 static ATOMIC_INT usr1_info_requested = 0, usr2_info_requested = 0;
@@ -95,6 +101,9 @@ int send_audit_event(int type, const char *str);
 static void clean_exit(void);
 static int get_reply(int fd, struct audit_reply *rep, int seq);
 static char *getsubj(char *subj);
+/* Manage access to the preallocated event pool */
+static struct auditd_event *alloc_pool_event(void);
+int event_is_prealloc(struct auditd_event *e);
 
 enum startup_state {startup_disable=0, startup_enable, startup_nochange,
 	startup_INVALID};
@@ -536,6 +545,30 @@ static void tell_parent(int status)
 	} while (rc < 0 && errno == EINTR);
 }
 
+/*
+ * alloc_pool_event - return an unused entry from event_pool
+ *
+ * The pool holds two structures so the netlink handler and the
+ * configuration worker can each have one. NULL is returned if both
+ * are already in use.
+ */
+static struct auditd_event *alloc_pool_event(void)
+{
+	if (cur_event != &event_pool[0] && reconfig_ev != &event_pool[0])
+		return &event_pool[0];
+	if (cur_event != &event_pool[1] && reconfig_ev != &event_pool[1])
+		return &event_pool[1];
+	return NULL;
+}
+
+/*
+ * event_is_prealloc - true if 'e' points into event_pool
+ */
+int event_is_prealloc(struct auditd_event *e)
+{
+	return e == &event_pool[0] || e == &event_pool[1];
+}
+
 static void netlink_handler(struct ev_loop *loop, struct ev_io *io,
 			int revents)
 {
@@ -546,7 +579,8 @@ static void netlink_handler(struct ev_loop *loop, struct ev_io *io,
 	// FIXME: backing down to 3 until IPC is faster
 	while (rc > 0 && cnt < 3) {
 		if (cur_event == NULL) {
-			if ((cur_event = malloc(sizeof(*cur_event))) == NULL) {
+			cur_event = alloc_pool_event();
+				if (cur_event == NULL) {
 				char emsg[DEFAULT_BUF_SZ];
 				if (*subj)
 					snprintf(emsg, sizeof(emsg),
@@ -1079,9 +1113,8 @@ int main(int argc, char *argv[])
 		} 
 	} 
 	if (rc <= 0)
-		send_audit_event(AUDIT_DAEMON_END, 
+		send_audit_event(AUDIT_DAEMON_END,
 		"op=terminate auid=-1 uid=-1 ses=-1 pid=-1 subj=? res=success");
-	free(cur_event);
 
 	// Tear down IO watchers Part 2
 	if (!opt_aggregate_only)
