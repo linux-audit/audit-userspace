@@ -152,5 +152,7 @@ void destroy_queue(void)
     }
 
     free(q);
+    pthread_mutex_destroy(&queue_lock);
+    pthread_cond_destroy(&queue_nonempty);
 }
 
