@@ -346,6 +346,7 @@ void destroy_queue(void)
 		free((void *)q[i]);
 
 	free(q);
+	pthread_mutex_destroy(&queue_lock);
 	sem_destroy(&queue_nonempty);
 #ifdef HAVE_ATOMIC
 	/*
