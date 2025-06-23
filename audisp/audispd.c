@@ -43,7 +43,7 @@
 #include "audispd-llist.h"
 #include "queue.h"
 #include "libaudit.h"
-#include "common.h"
+#include "common.h"	// For ATOMIC_LOAD/STORE
 #include "private.h"
 
 /* Global Data */

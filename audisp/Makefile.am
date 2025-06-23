@@ -23,7 +23,7 @@
 
 SUBDIRS = plugins 
 CONFIG_CLEAN_FILES = *.rej *.orig
-AM_CPPFLAGS = -D_GNU_SOURCE -fPIC -DPIC -I${top_srcdir} -I${top_srcdir}/lib -I${top_srcdir}/src -I${top_srcdir}/src/libev -I${top_srcdir}/common
+AM_CPPFLAGS = -D_GNU_SOURCE -fPIC -DPIC -I${top_srcdir} -I${top_srcdir}/lib -I${top_srcdir}/src -I${top_srcdir}/common
 
 noinst_HEADERS = audispd-pconfig.h audispd-llist.h audispd-config.h \
 	queue.h libdisp.h
