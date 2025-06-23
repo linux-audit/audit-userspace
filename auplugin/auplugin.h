@@ -25,6 +25,8 @@
 #define _AUPLUGIN_H_
 
 #include <stddef.h>
+#include <libaudit.h>
+#include <auparse.h>
 
 #ifndef __attr_access
 # define __attr_access(x)
@@ -40,6 +42,8 @@
 extern "C" {
 #endif
 
+#define MAX_AUDIT_EVENT_FRAME_SIZE (sizeof(struct audit_dispatcher_header) + MAX_AUDIT_MESSAGE_LENGTH)
+
 typedef struct auplugin_fgets_state auplugin_fgets_state_t;
 
 enum auplugin_mem {
@@ -47,6 +51,8 @@ enum auplugin_mem {
 	MEM_MMAP,
 	MEM_SELF_MANAGED
 };
+
+typedef void (*auplugin_callback_ptr)(const char *record);
 
 void auplugin_fgets_clear(void);
 int auplugin_fgets_eof(void);
@@ -67,6 +73,11 @@ int auplugin_fgets_r(auplugin_fgets_state_t *st, char *buf, size_t blen, int fd)
 int auplugin_setvbuf_r(auplugin_fgets_state_t *st, void *buf, size_t buff_size,
 			enum auplugin_mem how)
 			__attr_access ((__read_only__, 2, 3));
+
+int auplugin_init(int inbound_fd, unsigned queue_size);
+void auplugin_stop(void);
+int auplugin_event_loop(auplugin_callback_ptr callback);
+int auplugin_event_feed(auparse_callback_ptr callback);
 
 #ifdef __cplusplus
 }

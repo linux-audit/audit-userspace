@@ -24,11 +24,12 @@
 SUBDIRS = test
 VERSION_INFO = 1:0
 AM_CFLAGS = -fPIC -DPIC -D_GNU_SOURCE ${WFLAGS}
-AM_CPPFLAGS = -I${top_srcdir} -I${top_srcdir}/lib -I${top_srcdir}/auplugin
+AM_CPPFLAGS = -I${top_srcdir} -I${top_srcdir}/lib -I${top_srcdir}/common -I${top_srcdir}/auparse -I${top_srcdir}/auplugin -I${top_srcdir}/audisp -I${top_srcdir}/src
 
 lib_LTLIBRARIES = libauplugin.la
 include_HEADERS = auplugin.h
 
-libauplugin_la_SOURCES = auplugin-fgets.c
+libauplugin_la_SOURCES = auplugin-fgets.c auplugin.c
 libauplugin_la_LDFLAGS = -Wl,-z,relro -version-info $(VERSION_INFO)
+libauplugin_la_LIBADD = ${top_builddir}/auparse/libauparse.la -lpthread
 

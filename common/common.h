@@ -23,6 +23,7 @@
 #ifndef AUDIT_COMMON_HEADER
 #define AUDIT_COMMON_HEADER
 
+#include <limits.h> /* POSIX_HOST_NAME_MAX */
 #ifdef HAVE_ATOMIC
 #include <stdatomic.h>
 #endif

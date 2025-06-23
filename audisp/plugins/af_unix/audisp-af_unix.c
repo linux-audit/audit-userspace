@@ -47,7 +47,6 @@
 #include "audispd-pconfig.h"
 
 #define DEFAULT_PATH "/var/run/audispd_events"
-#define MAX_AUDIT_EVENT_FRAME_SIZE (sizeof(struct audit_dispatcher_header) + MAX_AUDIT_MESSAGE_LENGTH)
 //#define DEBUG
 
 /* Global Data */
