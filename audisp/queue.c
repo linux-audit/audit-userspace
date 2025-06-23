@@ -44,12 +44,12 @@
 static volatile event_t **q;
 static pthread_mutex_t queue_lock;
 static sem_t queue_nonempty;
-#ifdef HAVE_ATOMIC
 /*
  * q_next points to the next free slot for the producer.
  * q_last points to the next item the consumer should read.
  * Both are updated atomically and wrap at q_depth.
  */
+#ifdef HAVE_ATOMIC
 static atomic_uint q_next, q_last;
 extern ATOMIC_INT disp_hup;
 #else

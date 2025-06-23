@@ -29,20 +29,25 @@
 #include <errno.h>
 #include <syslog.h>
 #include <string.h>
-#include "common.h"	// For ATOMICs
+#include "common.h"	// For ATOMICs & VISIBILITY
 #include "libdisp.h"	// For event_t
-//#include "queue.h"
+AUDIT_HIDDEN_START
+#include "queue.h"
+AUDIT_HIDDEN_END
 #include "auplugin.h"
 
 /* Local data */
 #ifdef HAVE_ATOMIC
 static ATOMIC_INT stop = 0;
+ATOMIC_INT disp_hup = 0;	// Needed by queue
 #else
 static volatile ATOMIC_INT stop = 0; /* Fallback when atomics are absent */
+volatile ATOMIC_INT disp_hup = 0;
 #endif
 
 static int fd;
 static pthread_t outbound_thread;
+static daemon_conf_t q_config;
 
 /* Local function prototypes */
 static void *outbound_thread_loop(void *arg);
@@ -51,7 +56,12 @@ static void *outbound_thread_feed(void *arg);
 int auplugin_init(int inbound_fd, unsigned queue_size)
 {
 	fd = inbound_fd;
-//	init_queue(queue_size);
+	q_config.q_depth = queue_size;
+	q_config.overflow_action = O_IGNORE;
+	q_config.max_restarts = 0;
+	q_config.plugin_dir = NULL;
+
+	init_queue(queue_size);
 
 	return 0;
 }
@@ -95,7 +105,7 @@ static int common_inbound(void)
 					e->data[MAX_AUDIT_MESSAGE_LENGTH-1] = 0;
 					e->hdr.size = len;
 					e->hdr.ver = AUDISP_PROTOCOL_VER2;
-//					enqueue(e);
+					enqueue(e, &q_config);
 				}
 			} else if (auplugin_fgets_eof()) {
 				AUDIT_ATOMIC_STORE(stop, 1);
@@ -157,10 +167,9 @@ static void *outbound_thread_loop(void *arg)
 
         /* Start event loop */
 	while (AUDIT_ATOMIC_LOAD(stop) == 0) {
-		event_t *e;
 		/* This is where we block until we have an event */
 		// If we are blocked here, how do we age events? nudge queue?
-//		e = dequeue();
+		event_t *e = dequeue();
 		if (e == NULL) {
 			if (AUDIT_ATOMIC_LOAD(stop))
 				break;
@@ -175,7 +184,7 @@ static void *outbound_thread_loop(void *arg)
 	}
 
 	// This side destroys the queue since it knows when it's done
-//	destroy_queue();
+	destroy_queue();
 
 	return NULL;
 }
@@ -189,10 +198,9 @@ static void *outbound_thread_feed(void *arg)
 
         /* Start event loop */
 	while (AUDIT_ATOMIC_LOAD(stop) == 0) {
-		event_t *e;
 		/* This is where we block until we have an event */
 		// If we are blocked here, how do we age events? nudge queue?
-//		event_t *e = dequeue();
+		event_t *e = dequeue();
 		if (e == NULL) {
 			if (AUDIT_ATOMIC_LOAD(stop))
 				break;
@@ -209,7 +217,7 @@ static void *outbound_thread_feed(void *arg)
 	auparse_destroy(au);
 
 	// This side destroys the queue since it knows when it's done
-//	destroy_queue();
+	destroy_queue();
 
 	return NULL;
 }

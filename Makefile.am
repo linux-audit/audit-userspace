@@ -22,8 +22,8 @@
 #   Rickard E. (Rik) Faith <faith@redhat.com>
 #
 
-SUBDIRS = common lib auparse auplugin audisp src/libev src tools \
-	bindings init.d m4 docs rules
+SUBDIRS = common lib auparse audisp auplugin audisp/plugins src/libev \
+	src tools bindings init.d m4 docs rules
 EXTRA_DIST = ChangeLog AUTHORS NEWS README.md INSTALL \
 	audit.spec COPYING COPYING.LIB \
 	contrib/avc_snap contrib/plugin/Makefile \
