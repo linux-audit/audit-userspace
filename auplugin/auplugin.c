@@ -53,6 +53,10 @@ static daemon_conf_t q_config;
 static void *outbound_thread_loop(void *arg);
 static void *outbound_thread_feed(void *arg);
 
+/*
+ * This function is inmtended to initialize the plugin infrastructure
+ * to be used later. It returns 0 on success and -1 on failure.
+ */
 int auplugin_init(int inbound_fd, unsigned queue_size)
 {
 	fd = inbound_fd;
@@ -61,22 +65,30 @@ int auplugin_init(int inbound_fd, unsigned queue_size)
 	q_config.max_restarts = 0;
 	q_config.plugin_dir = NULL;
 
-	init_queue(queue_size);
-
-	return 0;
+	return init_queue(queue_size);
 }
 
+/*
+ * This function is used to tell auplugin that it's time to exit.
+ */
 void auplugin_stop(void)
 {
 	AUDIT_ATOMIC_STORE(stop, 1);
 }
 
+/*
+ * This functio defines a comment set of tasks that the inbound event
+ * handler must perform. Namely waiting for an event and then enqueuing
+ * it for the outbound worker. This function does not exit until a
+ * SIGTERM signal is detected. It leaves cleaning up the queue to the
+ * outbound thread since it doesn't know if it's still access it.
+ */
 static char rx_buf[MAX_AUDIT_EVENT_FRAME_SIZE+1];
-static int common_inbound(void)
+static void common_inbound(void)
 {
 	fd_set read_mask;
 
-	// Set inbound to non-blocking mode
+	// Set inbound descriptor to non-blocking mode
 	fcntl(fd, F_SETFL, O_NONBLOCK);
 	FD_ZERO(&read_mask);
 	FD_SET(fd, &read_mask);
@@ -95,7 +107,7 @@ static int common_inbound(void)
 		    do {
 			int len;
 			if ((len = auplugin_fgets(rx_buf,
-				    MAX_AUDIT_EVENT_FRAME_SIZE + 1,fd)) > 0) {
+				    MAX_AUDIT_EVENT_FRAME_SIZE + 1, fd)) > 0) {
 				// Got one - enqueue it
 				event_t *e = (event_t *)calloc(1,
 					 sizeof(event_t));
@@ -114,19 +126,37 @@ static int common_inbound(void)
 		    } while (auplugin_fgets_more(MAX_AUDIT_EVENT_FRAME_SIZE));
 		}
 	} while (!AUDIT_ATOMIC_LOAD(stop));
-
-	return 0;
 }
 
-int auplugin_event_loop(auplugin_callback_ptr callback)
+/*
+ * This function is the entrypoint for event processing when you want to
+ * get the event records one by one. The caller should pass a function
+ * pointer to a function that has only one argument which is a const char *
+ * that will contain the event record as a string. The called function
+ * should NOT free it. This function does not return until SIGTERM has
+ * been signalled via auplugin_stop(). There is nothing significant to
+ * return to the caller.
+ */
+void auplugin_event_loop(auplugin_callback_ptr callback)
 {
 	/* Create outbound thread */
 	pthread_create(&outbound_thread, NULL, outbound_thread_loop, callback);
 	pthread_detach(outbound_thread);
 
-	return common_inbound();
+	common_inbound();
 }
 
+/*
+ * This function is the entrypoint for event processing when you want to
+ * get the event records as a callback function to auparse. It takes care
+ * of setting up auparse and feeding it from what can be dequeued. The
+ * callback function will have a pointer to the auparse_state_t variable
+ * that can be used to iterate across the event. The called function should
+ * only use function related to iterating across a record. Calling any other
+ * auparse function can have unknown consequences. This function does not
+ * return until SIGTERM has been signalled via auplugin_stop(). It will
+ * return 0 for success and -1 if something went wrong setting up auparse.
+ */
 int auplugin_event_feed(auparse_callback_ptr callback)
 {
 	auparse_state_t *au = auparse_init(AUSOURCE_FEED, 0);
@@ -141,7 +171,8 @@ int auplugin_event_feed(auparse_callback_ptr callback)
 	pthread_create(&outbound_thread, NULL, outbound_thread_feed, au);
 	pthread_detach(outbound_thread);
 
-	return common_inbound();
+	common_inbound();
+	return 0;
 }
 
 static void common_outbound_thread_init(void)
@@ -159,7 +190,9 @@ static void common_outbound_thread_init(void)
         pthread_sigmask(SIG_SETMASK, &sigs, NULL);
 }
 
-/* outbound thread - dequeue data to  */
+/*
+ * outbound thread - dequeue data to a callback function that takes a string
+ */
 static void *outbound_thread_loop(void *arg)
 {
 	common_outbound_thread_init();
@@ -189,7 +222,9 @@ static void *outbound_thread_loop(void *arg)
 	return NULL;
 }
 
-/* outbound thread - dequeue data to  */
+/*
+ * outbound thread - dequeue data to auparse_feed
+ */
 static void *outbound_thread_feed(void *arg)
 {
 	int len;
