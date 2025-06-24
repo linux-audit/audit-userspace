@@ -1,0 +1,49 @@
+.TH "AUPLUGIN" "3" "June 2025" "Red Hat" "Linux Audit API"
+.SH NAME
+auplugin_init, auplugin_stop, auplugin_event_loop, auplugin_event_feed \- plugin event processing helpers
+.SH SYNOPSIS
+.B #include <auplugin.h>
+.sp
+.BI "int auplugin_init(int " inbound_fd ", unsigned " queue_size ");"
+.br
+.B void auplugin_stop(void);
+.br
+.BI "void auplugin_event_loop(auplugin_callback_ptr " callback ");"
+.br
+.BI "int auplugin_event_feed(auparse_callback_ptr " callback ");"
+.SH DESCRIPTION
+.B auplugin_init
+initializes the plugin framework. The
+.I inbound_fd
+parameter specifies the file descriptor that will provide audit
+messages, typically standard input. The
+.I queue_size
+argument controls the maximum number of events that may be queued for
+processing. The function returns 0 on success or \-1 if initialization
+fails.
+.PP
+.B auplugin_stop
+signals the framework to terminate. It is normally called from a
+SIGTERM handler or other shutdown logic.
+.PP
+.B auplugin_event_loop
+starts a worker thread to deliver queued events to the supplied
+.I callback
+function one record at a time. The function blocks in the caller until
+.B auplugin_stop
+is invoked.
+.PP
+.B auplugin_event_feed
+behaves like
+.BR auplugin_event_loop ,
+except that queued events are fed to libauparse. The provided
+.I callback
+must match the
+.B auparse_callback_ptr
+type. The function returns 0 on success or \-1 if libauparse could not
+be initialized.
+.SH SEE ALSO
+.BR auplugin_fgets (3),
+.BR auparse_feed (3)
+.SH AUTHOR
+Steve Grubb
