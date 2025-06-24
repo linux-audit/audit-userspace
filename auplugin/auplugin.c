@@ -90,15 +90,15 @@ static void common_inbound(void)
 
 	// Set inbound descriptor to non-blocking mode
 	fcntl(fd, F_SETFL, O_NONBLOCK);
-	FD_ZERO(&read_mask);
-	FD_SET(fd, &read_mask);
 
 	do {
 		int ret_val;
+		FD_ZERO(&read_mask);
+		FD_SET(fd, &read_mask);
 
 		// Wait for next event
 		do {
-			 ret_val = select(1, &read_mask, NULL, NULL, NULL);
+			 ret_val = select(fd+1, &read_mask, NULL, NULL, NULL);
 		} while (ret_val == -1 && errno == EINTR &&
 			 !AUDIT_ATOMIC_LOAD(stop));
 
