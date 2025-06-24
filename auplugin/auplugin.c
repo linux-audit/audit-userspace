@@ -65,6 +65,12 @@ int auplugin_init(int inbound_fd, unsigned queue_size)
 	q_config.max_restarts = 0;
 	q_config.plugin_dir = NULL;
 
+	// Set inbound descriptor to non-blocking mode
+	if (fcntl(fd, F_SETFL, O_NONBLOCK) == -1) {
+		syslog(LOG_ERR, "fcntl failed: %m");
+		return -1;
+	}
+
 	return init_queue(queue_size);
 }
 
@@ -87,9 +93,6 @@ static char rx_buf[MAX_AUDIT_EVENT_FRAME_SIZE+1];
 static void common_inbound(void)
 {
 	fd_set read_mask;
-
-	// Set inbound descriptor to non-blocking mode
-	fcntl(fd, F_SETFL, O_NONBLOCK);
 
 	do {
 		int ret_val;
@@ -125,6 +128,9 @@ static void common_inbound(void)
 					e->hdr.ver = AUDISP_PROTOCOL_VER2;
 					enqueue(e, &q_config);
 				}
+			} else if (len < 0) {
+				AUDIT_ATOMIC_STORE(stop, 1);
+				syslog(LOG_ERR, "auplugin_fgets failed: %m");
 			} else if (auplugin_fgets_eof()) {
 				AUDIT_ATOMIC_STORE(stop, 1);
 				syslog(LOG_INFO, "Stopping on end of file");
@@ -145,8 +151,16 @@ static void common_inbound(void)
  */
 void auplugin_event_loop(auplugin_callback_ptr callback)
 {
+	int rc;
+
 	/* Create outbound thread */
-	pthread_create(&outbound_thread, NULL, outbound_thread_loop, callback);
+	rc = pthread_create(&outbound_thread, NULL,
+			    outbound_thread_loop, callback);
+	if (rc) {
+		syslog(LOG_ERR, "pthread_create failed: %m");
+		destroy_queue();
+		return;
+	}
 	pthread_detach(outbound_thread);
 
 	common_inbound();
@@ -165,6 +179,7 @@ void auplugin_event_loop(auplugin_callback_ptr callback)
  */
 int auplugin_event_feed(auparse_callback_ptr callback)
 {
+	int rc;
 	auparse_state_t *au = auparse_init(AUSOURCE_FEED, 0);
         if (au == NULL) {
                 printf("plugin is exiting due to auparse init errors");
@@ -174,7 +189,15 @@ int auplugin_event_feed(auparse_callback_ptr callback)
         auparse_add_callback(au, callback, NULL, NULL);
 
 	/* Create outbound thread */
-	pthread_create(&outbound_thread, NULL, outbound_thread_feed, au);
+	rc = pthread_create(&outbound_thread, NULL, outbound_thread_feed, au);
+		rc = pthread_create(&outbound_thread, NULL, outbound_thread_feed, au);
+	if (rc) {
+		syslog(LOG_ERR, "pthread_create failed: %m");
+		auparse_destroy(au);
+		destroy_queue();
+
+		return -1;
+	}
 	pthread_detach(outbound_thread);
 
 	common_inbound();
