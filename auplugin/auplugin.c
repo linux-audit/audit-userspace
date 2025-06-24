@@ -102,6 +102,12 @@ static void common_inbound(void)
 		} while (ret_val == -1 && errno == EINTR &&
 			 !AUDIT_ATOMIC_LOAD(stop));
 
+		// If a real error (shouldn't happen) log it and exit
+		if (ret_val < 0 && errno != EINTR) {
+			syslog(LOG_ERR, "select error: %m");
+			AUDIT_ATOMIC_STORE(stop, 1);
+		}
+
 		// Inbound is readable
 		if (ret_val > 0) {
 		    do {
