@@ -52,8 +52,11 @@ enum auplugin_mem {
 	MEM_SELF_MANAGED
 };
 
+/* Callback prototypes */
 typedef void (*auplugin_callback_ptr)(const char *record);
+typedef void (*auplugin_timer_callback_ptr)(unsigned int interval);
 
+/* fgets family of functions prototypes */
 void auplugin_fgets_clear(void);
 int auplugin_fgets_eof(void);
 int auplugin_fgets_more(size_t blen);
@@ -74,11 +77,13 @@ int auplugin_setvbuf_r(auplugin_fgets_state_t *st, void *buf, size_t buff_size,
 			enum auplugin_mem how)
 			__attr_access ((__read_only__, 2, 3));
 
+/* auplugin family of functions prototypes */
 int auplugin_init(int inbound_fd, unsigned queue_size);
 void auplugin_stop(void);
 void auplugin_event_loop(auplugin_callback_ptr callback);
-int auplugin_event_feed(auparse_callback_ptr callback);
-
+int auplugin_event_feed(auparse_callback_ptr callback,
+			unsigned int timer_interval,
+			auplugin_timer_callback_ptr timer_cb);
 #ifdef __cplusplus
 }
 #endif

@@ -294,6 +294,44 @@ event_t *dequeue(void)
         return e;
 }
 
+event_t *dequeue_timed(const struct timespec *abstime, int *timed_out)
+{
+	event_t *e;
+	unsigned int n;
+
+	*timed_out = 0;
+
+	while (sem_timedwait(&queue_nonempty, abstime) == -1 && errno == EINTR)
+		;
+	if (errno == ETIMEDOUT) {
+		*timed_out = 1;
+		return NULL;
+	}
+	if (AUDIT_ATOMIC_LOAD(disp_hup))
+		return NULL;
+
+#ifdef HAVE_ATOMIC
+	n = atomic_load_explicit(&q_last, memory_order_relaxed) % q_depth;
+#else
+	n = q_last % q_depth;
+#endif
+
+	if (q[n] != NULL) {
+		e = (event_t *)q[n];
+		q[n] = NULL;
+#ifdef HAVE_ATOMIC
+		atomic_store_explicit(&q_last, (n+1) % q_depth,
+				      memory_order_release);
+#else
+		q_last = (n+1) % q_depth;
+#endif
+		currently_used--;
+	} else
+		e = NULL;
+
+	return e;
+}
+
 void nudge_queue(void)
 {
 	sem_post(&queue_nonempty);

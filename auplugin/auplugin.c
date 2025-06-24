@@ -54,6 +54,8 @@ volatile ATOMIC_INT disp_hup = 0;
 static int fd;
 static pthread_t outbound_thread;
 static daemon_conf_t q_config;
+static unsigned int timer_interval;
+static auplugin_timer_callback_ptr timer_cb;
 
 /* Local function prototypes */
 static void *outbound_thread_loop(void *arg);
@@ -183,9 +185,13 @@ void auplugin_event_loop(auplugin_callback_ptr callback)
  * return until SIGTERM has been signalled via auplugin_stop(). It will
  * return 0 for success and -1 if something went wrong setting up auparse.
  */
-int auplugin_event_feed(auparse_callback_ptr callback)
+int auplugin_event_feed(auparse_callback_ptr callback, unsigned int t_interval,
+			auplugin_timer_callback_ptr t_cb)
 {
 	int rc;
+	if (callback == NULL)
+		return -1;
+
 	auparse_state_t *au = auparse_init(AUSOURCE_FEED, 0);
         if (au == NULL) {
                 printf("plugin is exiting due to auparse init errors");
@@ -193,10 +199,11 @@ int auplugin_event_feed(auparse_callback_ptr callback)
         }
         auparse_set_eoe_timeout(2);
         auparse_add_callback(au, callback, NULL, NULL);
+	timer_interval = t_interval;
+	timer_cb = t_cb;
 
 	/* Create outbound thread */
 	rc = pthread_create(&outbound_thread, NULL, outbound_thread_feed, au);
-		rc = pthread_create(&outbound_thread, NULL, outbound_thread_feed, au);
 	if (rc) {
 		syslog(LOG_ERR, "pthread_create failed: %m");
 		auparse_destroy(au);
@@ -268,11 +275,27 @@ static void *outbound_thread_feed(void *arg)
         /* Start event loop */
 	while (AUDIT_ATOMIC_LOAD(stop) == 0) {
 		/* This is where we block until we have an event */
-		// If we are blocked here, how do we age events? nudge queue?
-		event_t *e = dequeue();
+		event_t *e;
+		int timed = 0;
+		if (timer_interval) {
+			struct timespec ts;
+
+			clock_gettime(CLOCK_REALTIME, &ts);
+			ts.tv_sec += timer_interval;
+			e = dequeue_timed(&ts, &timed);
+		} else
+			e = dequeue();
+
 		if (e == NULL) {
+			if (timed) {
+				if (timer_cb)
+					timer_cb(timer_interval);
+				auparse_feed_age_events(au);
+				continue;
+			}
 			if (AUDIT_ATOMIC_LOAD(stop))
 				break;
+			continue;
 		}
 		if (e->hdr.ver != AUDISP_PROTOCOL_VER2) {
 			// should never be anything but v2

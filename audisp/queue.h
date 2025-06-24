@@ -24,6 +24,7 @@
 #define QUEUE_HEADER
 
 #include <stdio.h>
+#include <time.h>
 #include "libdisp.h"
 #include "audispd-config.h"
 
@@ -32,6 +33,7 @@ void reset_suspended(void);
 int init_queue(unsigned int size);
 int enqueue(event_t *e, struct disp_conf *config);
 event_t *dequeue(void);
+event_t *dequeue_timed(const struct timespec *abstime, int *timed_out);
 void nudge_queue(void);
 void increase_queue_depth(unsigned int size);
 void write_queue_state(FILE *f);
