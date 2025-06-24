@@ -525,7 +525,7 @@ static void print_rule(const struct audit_rule_data *r)
 void audit_print_init(void)
 {
 	printed = 0;
-	list_create(&l);
+	list_create(&l, free);
 }
 
 static const char *get_enable(unsigned e)
@@ -590,7 +590,7 @@ int audit_print_reply(const struct audit_reply *rep, int fd)
 					print_rule((const struct audit_rule_data *)n->data);
 					n = list_next(&l);
 				}
-				list_clear(&l, free);
+				list_clear(&l);
 			}
 			break;
 		case NLMSG_ERROR:
@@ -645,10 +645,15 @@ int audit_print_reply(const struct audit_reply *rep, int fd)
 #endif
 		case AUDIT_LIST_RULES:
 			list_requested = 0;
-			if (key_match(rep->ruledata))
-				 list_append(&l, rep->ruledata,
-					sizeof(struct audit_rule_data) +
-					rep->ruledata->buflen, NULL);
+			if (key_match(rep->ruledata)) {
+				size_t sz = sizeof(struct audit_rule_data) +
+							rep->ruledata->buflen;
+				struct audit_rule_data *rule = malloc(sz);
+				if (rule) {
+					memcpy(rule, rep->ruledata, sz);
+					list_append(&l, rule, sz);
+				}
+			}
 			printed = 1;
 			return 1;
 		default:
