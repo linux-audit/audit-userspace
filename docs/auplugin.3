@@ -19,8 +19,7 @@ parameter specifies the file descriptor that will provide audit
 messages, typically standard input. The
 .I queue_size
 argument controls the maximum number of events that may be queued for
-processing. The function returns 0 on success or \-1 if initialization
-fails.
+processing. The library maintains global state for its queue and worker threads. Only one plugin instance is supported, so callers must not invoke auplugin_init() concurrently from multiple threads. The function returns 0 on success or \-1 if initialization fails.
 .PP
 .B auplugin_stop
 signals the framework to terminate. It is normally called from a

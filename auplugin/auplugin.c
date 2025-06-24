@@ -36,6 +36,12 @@ AUDIT_HIDDEN_START
 AUDIT_HIDDEN_END
 #include "auplugin.h"
 
+/*
+ * The library maintains global state for its queue and worker threads.
+ * Only one plugin instance is supported, so callers must not invoke
+ * auplugin_init() concurrently from multiple threads.
+ */
+
 /* Local data */
 #ifdef HAVE_ATOMIC
 static ATOMIC_INT stop = 0;
