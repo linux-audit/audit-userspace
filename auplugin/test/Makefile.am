@@ -20,7 +20,7 @@
 # Authors:
 #   Steve Grubb <sgrubb@redhat.com>
 
-AM_CPPFLAGS = -I${top_srcdir}/auplugin
+AM_CPPFLAGS = -I${top_srcdir}/auplugin -I${top_srcdir}/lib -I${top_srcdir}/auparse
 check_PROGRAMS = fgets_test
 TESTS = $(check_PROGRAMS)
 
