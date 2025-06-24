@@ -294,19 +294,16 @@ event_t *dequeue(void)
         return e;
 }
 
-event_t *dequeue_timed(const struct timespec *abstime, int *timed_out)
+event_t *dequeue_timed(const struct timespec *timeout)
 {
 	event_t *e;
 	unsigned int n;
 
-	*timed_out = 0;
-
-	while (sem_timedwait(&queue_nonempty, abstime) == -1 && errno == EINTR)
+	while (sem_timedwait(&queue_nonempty, timeout) == -1 && errno == EINTR)
 		;
-	if (errno == ETIMEDOUT) {
-		*timed_out = 1;
+	if (errno == ETIMEDOUT)
 		return NULL;
-	}
+
 	if (AUDIT_ATOMIC_LOAD(disp_hup))
 		return NULL;
 

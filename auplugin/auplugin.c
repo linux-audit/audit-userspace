@@ -276,18 +276,17 @@ static void *outbound_thread_feed(void *arg)
 	while (AUDIT_ATOMIC_LOAD(stop) == 0) {
 		/* This is where we block until we have an event */
 		event_t *e;
-		int timed = 0;
 		if (timer_interval) {
 			struct timespec ts;
 
 			clock_gettime(CLOCK_REALTIME, &ts);
 			ts.tv_sec += timer_interval;
-			e = dequeue_timed(&ts, &timed);
+			e = dequeue_timed(&ts);
 		} else
 			e = dequeue();
 
 		if (e == NULL) {
-			if (timed) {
+			if (timer_interval && errno == ETIMEDOUT) {
 				if (timer_cb)
 					timer_cb(timer_interval);
 				auparse_feed_age_events(au);
