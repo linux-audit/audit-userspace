@@ -125,7 +125,7 @@ touch -r ./audit.spec $RPM_BUILD_ROOT/etc/libaudit.conf
 touch -r ./audit.spec $RPM_BUILD_ROOT/usr/share/man/man5/libaudit.conf.5.gz
 
 %check
-make %{?_smp_mflags} check
+make check
 # Get rid of make files so that they don't get packaged.
 rm -f rules/Makefile*
 
