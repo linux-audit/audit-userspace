@@ -30,7 +30,7 @@
 #endif
 #include "auditctl-listing.h"
 #include "private.h"
-#include "auditctl-llist.h"
+#include "generic-llist.h"
 #include "auparse-idata.h"
 
 #ifndef IORING_OP_LAST
@@ -585,12 +585,12 @@ int audit_print_reply(const struct audit_reply *rep, int fd)
 			else {
 				lnode *n;
 				list_first(&l);
-				n = l.cur;
+				n = list_get_cur(&l);
 				while (n) {
-					print_rule(n->r);
+					print_rule((const struct audit_rule_data *)n->data);
 					n = list_next(&l);
 				}
-				list_clear(&l);
+				list_clear(&l, free);
 			}
 			break;
 		case NLMSG_ERROR:
@@ -648,7 +648,7 @@ int audit_print_reply(const struct audit_reply *rep, int fd)
 			if (key_match(rep->ruledata))
 				 list_append(&l, rep->ruledata,
 					sizeof(struct audit_rule_data) +
-					rep->ruledata->buflen);
+					rep->ruledata->buflen, NULL);
 			printed = 1;
 			return 1;
 		default:

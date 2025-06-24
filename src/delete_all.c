@@ -27,7 +27,7 @@
 #include "libaudit.h"
 #include "private.h"
 
-#include "auditctl-llist.h"
+#include "generic-llist.h"
 
 extern int key_match(const struct audit_rule_data *r);
 
@@ -86,15 +86,15 @@ int delete_all_rules(int fd)
 			if (key_match(rep.ruledata))
 				list_append(&l, rep.ruledata, 
 					sizeof(struct audit_rule_data) +
-					rep.ruledata->buflen);
+					rep.ruledata->buflen, NULL);
 
 		}
 	}
 	list_first(&l);
-	n = l.cur;
+	n = list_get_cur(&l);
 	while (n) {
 		/* Bounce it right back with delete */
-		rc = audit_send(fd, AUDIT_DEL_RULE, n->r, n->size);
+		rc = audit_send(fd, AUDIT_DEL_RULE, n->data, n->size);
 		if (rc < 0) {
 			audit_msg(LOG_ERR, "Error deleting rule (%s)",
 				strerror(-rc)); 
@@ -102,7 +102,7 @@ int delete_all_rules(int fd)
 		}
 		n = list_next(&l);
 	}
-	list_clear(&l);
+	list_clear(&l, NULL);
 
 	return 0;
 }
