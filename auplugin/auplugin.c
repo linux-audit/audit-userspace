@@ -171,7 +171,7 @@ int auplugin_event_feed(auparse_callback_ptr callback)
                 return -1;
         }
         auparse_set_eoe_timeout(2);
-        auparse_add_callback(au, callback, au, NULL);
+        auparse_add_callback(au, callback, NULL, NULL);
 
 	/* Create outbound thread */
 	pthread_create(&outbound_thread, NULL, outbound_thread_feed, au);
@@ -233,7 +233,6 @@ static void *outbound_thread_loop(void *arg)
  */
 static void *outbound_thread_feed(void *arg)
 {
-	int len;
 	auparse_state_t *au  = (auparse_state_t *)arg;
 	common_outbound_thread_init();
 
