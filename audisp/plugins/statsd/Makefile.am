@@ -22,7 +22,7 @@
 #
 CONFIG_CLEAN_FILES = *.loT *.rej *.orig
 EXTRA_DIST = au-statsd.conf audisp-statsd.conf  $(man_MANS)
-AM_CPPFLAGS = -I${top_srcdir} -I${top_srcdir}/lib -I${top_srcdir}/auparse -I${top_srcdir}/common
+AM_CPPFLAGS = -I${top_srcdir} -I${top_srcdir}/lib -I${top_srcdir}/auparse -I${top_srcdir}/common -I${top_srcdir}/auplugin
 prog_confdir = $(sysconfdir)/audit
 prog_conf = audisp-statsd.conf
 plugin_confdir=$(prog_confdir)/plugins.d
@@ -31,8 +31,11 @@ sbin_PROGRAMS = audisp-statsd
 man_MANS = audisp-statsd.8
 audisp_statsd_SOURCES = audisp-statsd.c
 audisp_statsd_CFLAGS = -g -D_GNU_SOURCE ${WFLAGS}
-audisp_statsd_LDADD = $(CAPNG_LDADD) ${top_builddir}/auparse/libauparse.la ${top_builddir}/lib/libaudit.la ${top_builddir}/common/libaucommon.la
-audisp_statsd_DEPENDENCIES = ${top_builddir}/auparse/libauparse.la ${top_builddir}/lib/libaudit.la
+audisp_statsd_LDADD = $(CAPNG_LDADD) ${top_builddir}/auparse/libauparse.la \
+       ${top_builddir}/lib/libaudit.la ${top_builddir}/common/libaucommon.la \
+       ${top_builddir}/auplugin/libauplugin.la
+audisp_statsd_DEPENDENCIES = ${top_builddir}/auparse/libauparse.la \
+       ${top_builddir}/lib/libaudit.la ${top_builddir}/auplugin/libauplugin.la
 
 install-data-hook:
 	mkdir -p -m 0750 ${DESTDIR}${plugin_confdir}
