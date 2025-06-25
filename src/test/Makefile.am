@@ -20,7 +20,7 @@
 #
 
 AM_CPPFLAGS = -I${top_srcdir} -I${top_srcdir}/lib -I${top_srcdir}/src
-check_PROGRAMS = ilist_test slist_test format_event_test
+check_PROGRAMS = ilist_test slist_test format_event_test generic_llist_test
 TESTS = $(check_PROGRAMS)
 ilist_test_LDADD = ${top_builddir}/src/ausearch-int.o
 ilist_test_DEPENDENCIES = ${top_builddir}/src/ausearch-int.o
@@ -39,3 +39,4 @@ format_event_test_LDADD = ${top_builddir}/lib/libaudit.la \
 	${top_builddir}/src/libev/libev.la \
 	${top_builddir}/common/libaucommon.la -lpthread -lm $(gss_libs)
 
+generic_llist_test_SOURCES = generic_llist_test.c ${top_srcdir}/src/generic-llist.c
