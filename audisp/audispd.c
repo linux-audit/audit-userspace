@@ -123,9 +123,7 @@ static void load_plugin_conf(conf_llist *plugin)
 			plugin_conf_t config;
 			const char *ext, *reason = NULL;
 
-			if (e->d_type != DT_REG)
-				reason = "not a regular file";
-			else if (e->d_name[0] == '.')
+			if (e->d_name[0] == '.')
 				reason = "hidden file";
 			else if (count_dots(e->d_name) > 1)
 				reason = "backup file";
