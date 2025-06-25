@@ -428,7 +428,8 @@ AC_CONFIG_FILES([Makefile common/Makefile lib/Makefile lib/audit.pc
        auparse/test/Makefile auparse/test/run_auparse_tests.sh
        auparse/test/run_auparselol_test.sh
        auparse/auparse.pc src/Makefile src/libev/Makefile src/test/Makefile
-       docs/Makefile rules/Makefile init.d/Makefile audisp/Makefile
+       docs/Makefile rules/Makefile init.d/Makefile 
+       audisp/Makefile audisp/test/Makefile
        audisp/plugins/Makefile audisp/plugins/af_unix/Makefile
        audisp/plugins/remote/Makefile audisp/plugins/zos-remote/Makefile
        audisp/plugins/syslog/Makefile audisp/plugins/filter/Makefile
