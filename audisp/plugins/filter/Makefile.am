@@ -23,7 +23,7 @@
 
 CONFIG_CLEAN_FILES = *.loT *.rej *.orig
 EXTRA_DIST = filter.conf audisp-filter.conf $(man_MANS)
-AM_CPPFLAGS = -I${top_srcdir} -I${top_srcdir}/lib -I${top_srcdir}/common -I${top_srcdir}/auparse
+AM_CPPFLAGS = -I${top_srcdir} -I${top_srcdir}/lib -I${top_srcdir}/common -I${top_srcdir}/auparse -I${top_srcdir}/auplugin
 prog_confdir = $(sysconfdir)/audit
 prog_conf = audisp-filter.conf
 plugin_confdir=$(prog_confdir)/plugins.d
@@ -31,11 +31,11 @@ plugin_conf = filter.conf
 sbin_PROGRAMS = audisp-filter
 man_MANS = audisp-filter.8
 
-audisp_filter_DEPENDENCIES = ${top_builddir}/common/libaucommon.la ${top_builddir}/auparse/libauparse.la
+audisp_filter_DEPENDENCIES = ${top_builddir}/common/libaucommon.la ${top_builddir}/auparse/libauparse.la ${top_builddir}/auplugin/libauplugin.la
 audisp_filter_SOURCES = audisp-filter.c
 audisp_filter_CFLAGS = -fPIE -DPIE -g -D_GNU_SOURCE -Wundef ${WFLAGS}
 audisp_filter_LDFLAGS = -pie -Wl,-z,relro -Wl,-z,now
-audisp_filter_LDADD = $(CAPNG_LDADD) ${top_builddir}/common/libaucommon.la ${top_builddir}/auparse/libauparse.la
+audisp_filter_LDADD = $(CAPNG_LDADD) ${top_builddir}/common/libaucommon.la ${top_builddir}/auparse/libauparse.la ${top_builddir}/auplugin/libauplugin.la
 
 install-data-hook:
 	mkdir -p -m 0750 ${DESTDIR}${plugin_confdir}

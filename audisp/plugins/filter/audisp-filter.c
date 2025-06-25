@@ -29,7 +29,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
-#include <sys/select.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
 #include <syslog.h>
@@ -40,6 +39,7 @@
 #include "auparse.h"
 #include "common.h"
 #include "libaudit.h"
+#include "auplugin.h"
 
 struct filter_rule {
 	char* expr;
@@ -81,12 +81,36 @@ static struct filter_conf config = {
 	.only_check = 0
 };
 
-static void handle_event(auparse_state_t* au, auparse_cb_event_t cb_event_type,
-	void* user_data) {
-	if (cb_event_type != AUPARSE_CB_EVENT_READY)
-		return;
+static void reload_config(void);
 
-	int rc, forward_event;
+static void handle_event(auparse_state_t* au, auparse_cb_event_t cb_event_type,
+			 void* user_data)
+{
+	static int rules_loaded = 0;
+	char *error = NULL;
+
+	if (!rules_loaded || hup) {
+		if (hup) {
+			reload_config();
+			hup = 0;
+			ausearch_clear(au);
+		}
+		ausearch_set_stop(au, AUSEARCH_STOP_EVENT);
+		for (struct filter_rule *rule = list.head; rule;
+							rule = rule->next) {
+			int rc = ausearch_add_expression(au, rule->expr, &error,
+							AUSEARCH_RULE_OR);
+			if (rc)
+				syslog(LOG_ERR,
+					"Failed adding '%s' to ausearch (%s)",
+					rule->expr, error);
+			free(error);
+			error = NULL;
+		}
+		rules_loaded = 1;
+	}
+
+        int rc, forward_event;
 
 	// Determine whether to forward or drop the event
 	rc = ausearch_cur_event(au);
@@ -106,7 +130,8 @@ static void handle_event(auparse_state_t* au, auparse_cb_event_t cb_event_type,
 			const char* txt = auparse_get_record_text(au);
 
 			// Need to add new line character to signal end of the current record
-			if (write(pipefd[1], txt, strlen(txt)) == -1 || write(pipefd[1], "\n", 1) == -1) {
+			if (write(pipefd[1], txt, strlen(txt)) == -1 ||
+			    write(pipefd[1], "\n", 1) == -1) {
 				syslog(LOG_ERR, "Failed to write to pipe");
 				return;
 			}
@@ -114,7 +139,8 @@ static void handle_event(auparse_state_t* au, auparse_cb_event_t cb_event_type,
 	}
 }
 
-static void free_args() {
+static void free_args()
+{
 	if (config.binary_args) {
 		for (int i = 0; config.binary_args[i] != NULL; i++) {
 			free(config.binary_args[i]);
@@ -123,7 +149,8 @@ static void free_args() {
 	}
 }
 
-static int parse_args(int argc, const char* argv[]) {
+static int parse_args(int argc, const char* argv[])
+{
 	if (argc == 3 && (strcmp("--check", argv[1]) == 0)) {
 		config.config_file = argv[2];
 		config.only_check = 1;
@@ -173,7 +200,8 @@ static int parse_args(int argc, const char* argv[]) {
 }
 
 static char* get_line(FILE* f, char* buf, unsigned size, int* lineno,
-	const char* file) {
+	const char* file)
+{
 	int too_long = 0;
 
 	while (fgets_unlocked(buf, size, f)) {
@@ -191,7 +219,9 @@ static char* get_line(FILE* f, char* buf, unsigned size, int* lineno,
 			// If a line is too long skip it.
 			// Only output 1 warning
 			if (!too_long)
-				syslog(LOG_WARNING, "Skipping line %d in %s: too long", *lineno, file);
+				syslog(LOG_WARNING,
+				       "Skipping line %d in %s: too long",
+				       *lineno, file);
 			too_long = 1;
 		}
 	}
@@ -207,13 +237,18 @@ static char* get_line(FILE* f, char* buf, unsigned size, int* lineno,
 // 	}
 // }
 
-static void reset_rules(struct filter_list* list) {
+static void reset_rules(struct filter_list* list)
+{
 	list->head = list->tail = NULL;
 }
 
-static void free_rule(struct filter_rule* rule) { free(rule->expr); }
+static void free_rule(struct filter_rule* rule)
+{
+	free(rule->expr);
+}
 
-static void free_rules(struct filter_list* list) {
+static void free_rules(struct filter_list* list)
+{
 	struct filter_rule* current = list->head, * to_delete;
 	while (current != NULL) {
 		to_delete = current;
@@ -223,7 +258,8 @@ static void free_rules(struct filter_list* list) {
 	}
 }
 
-static void append_rule(struct filter_list* list, struct filter_rule* rule) {
+static void append_rule(struct filter_list* list, struct filter_rule* rule)
+{
 	if (list->head == NULL) {
 		list->head = list->tail = rule;
 	} else {
@@ -232,7 +268,8 @@ static void append_rule(struct filter_list* list, struct filter_rule* rule) {
 	}
 }
 
-static struct filter_rule* parse_line(char* line, int lineno) {
+static struct filter_rule* parse_line(char* line, int lineno)
+{
 	struct filter_rule* rule;
 	auparse_state_t* au;
 	const char* buf[] = { NULL };
@@ -283,7 +320,8 @@ static struct filter_rule* parse_line(char* line, int lineno) {
 /*
  * Load rules from config into our linked list
  */
-static int load_rules(struct filter_list* list) {
+static int load_rules(struct filter_list* list)
+{
 	int fd, lineno = 0;
 	struct stat st;
 	char buf[1024];
@@ -295,7 +333,8 @@ static int load_rules(struct filter_list* list) {
 	/* open the file */
 	if ((fd = open(config.config_file, O_RDONLY)) < 0) {
 		if (errno != ENOENT) {
-			syslog(LOG_ERR, "Error opening config file (%s)", strerror(errno));
+			syslog(LOG_ERR, "Error opening config file (%s)",
+			       strerror(errno));
 			return 1;
 		}
 		syslog(LOG_ERR, "Config file %s doesn't exist, skipping",
@@ -348,29 +387,35 @@ static int load_rules(struct filter_list* list) {
 /*
  * SIGCHLD handler: reap exiting processes
  */
-static void child_handler(int sig) {
+static void child_handler(int sig)
+{
 	while (waitpid(-1, NULL, WNOHANG) > 0)
 		; /* empty */
 	stop = 1;
+	auplugin_stop();
 }
 
 /*
  * SIGTERM handler
  */
-static void term_handler(int sig) {
+static void term_handler(int sig)
+{
 	kill(cpid, sig);
 	stop = 1;
+	auplugin_stop();
 }
 
 /*
  * SIGHUP handler: re-read config
  */
-static void hup_handler(int sig) {
+static void hup_handler(int sig)
+{
 	kill(cpid, sig);
 	hup = 1;
 }
 
-static void reload_config(void) {
+static void reload_config(void)
+{
 	hup = 0;
 	struct filter_list new_list;
 
@@ -387,10 +432,9 @@ static void reload_config(void) {
 	syslog(LOG_INFO, "Successfully reloaded rules");
 }
 
-int main(int argc, const char* argv[]) {
-	auparse_state_t* au = NULL;
+int main(int argc, const char* argv[])
+{
 	struct sigaction sa;
-	char buffer[MAX_AUDIT_MESSAGE_LENGTH];
 
 	/* validate args */
 	if (parse_args(argc, argv))
@@ -457,71 +501,17 @@ int main(int argc, const char* argv[]) {
 		 */
 		close(pipefd[0]);
 
-		au = auparse_init(AUSOURCE_FEED, 0);
-		if (au == NULL) {
-			syslog(LOG_ERR, "audisp-filter: failed to initialize auparse data feed");
+		if (auplugin_init(0, 128)) {
+			syslog(LOG_ERR,
+			       "audisp-filter: failed to init auplugin");
 			kill(cpid, SIGTERM);
 			return -1;
 		}
-
-		auparse_set_eoe_timeout(2);
-		auparse_add_callback(au, handle_event, NULL, NULL);
-		ausearch_set_stop(au, AUSEARCH_STOP_EVENT);
-
-		// add rules(expressions) to the ausearch engine
-		for (struct filter_rule* rule = list.head; rule != NULL; rule = rule->next) {
-			char* error = NULL;
-			int rc = ausearch_add_expression(au, rule->expr, &error, AUSEARCH_RULE_OR);
-			if (rc != 0) {
-				/* this should not happen because rules were pre-tested in parse_line() */
-				syslog(LOG_ERR, "Failed to add expression '%s' to ausearch (%s)",
-					rule->expr, error);
-			}
-			free(error);
-		}
-
-		do {
-			fd_set read_mask;
-			int retval;
-			int read_size = 1; /* Set to 1 so it's not EOF */
-
-			/* Load configuration */
-			if (hup) {
-				reload_config();
-			}
-			do {
-				FD_ZERO(&read_mask);
-				FD_SET(0, &read_mask);
-
-				if (auparse_feed_has_data(au)) {
-					struct timeval tv;
-					tv.tv_sec = 1;
-					tv.tv_usec = 0;
-					retval = select(1, &read_mask, NULL, NULL, &tv);
-				} else
-					retval = select(1, &read_mask, NULL, NULL, NULL);
-
-				/* If we timed out & have events, shake them loose */
-				if (retval == 0 && auparse_feed_has_data(au))
-					auparse_feed_age_events(au);
-			} while (retval == -1 && errno == EINTR && !hup && !stop);
-
-			/* Now the event loop */
-			if (!stop && !hup && retval > 0) {
-				while ((read_size = read(0, buffer, MAX_AUDIT_MESSAGE_LENGTH)) > 0) {
-					auparse_feed(au, buffer, read_size);
-				}
-			}
-			if (read_size == 0) /* EOF */
-				break;
-		} while (stop == 0);
-
-		auparse_flush_feed(au);
-		ausearch_clear(au);
-		auparse_destroy(au);
+		auplugin_event_feed(handle_event, 1, NULL);
 	}
 
 	free_rules(&list);
 	free_args();
 	return 0;
 }
+
