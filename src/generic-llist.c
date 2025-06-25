@@ -48,13 +48,22 @@ int list_append(llist *l, const void *data, size_t size)
 	newnode->data = (void *)data;
 	newnode->size = size;
 	newnode->next = NULL;
-	newnode->prev = l->cur;
 
 	if (l->head == NULL) {
+		// Empty list - new node becomes head
+		newnode->prev = NULL;
 		l->head = newnode;
 	}
 	else {
-		l->cur->next = newnode;
+		// Find the last node
+		lnode *last = l->head;
+		while (last->next != NULL) {
+			last = last->next;
+		}
+
+		// Append after the last node
+		newnode->prev = last;
+		last->next = newnode;
 	}
 
 	l->cur = newnode;
@@ -77,7 +86,7 @@ void list_remove_node(llist *l, lnode *node)
 		node->next->prev = node->prev;
 
 	if (l->cur == node)
-		l->cur = node->prev ? node->prev : node->next;
+		l->cur = node->next ? node->next : node->prev;
 
 	l->free_fn(node->data);
 	free(node);
@@ -91,7 +100,8 @@ void list_clear(llist *l)
 	current = l->head;
 	while (current) {
 		next = current->next;
-		list_remove_node(l, current);
+		l->free_fn(current->data);
+		free(current);
 		current = next;
 	}
 	l->head = NULL;
@@ -120,6 +130,8 @@ int list_update_cur(llist *l, void (*update_fn)(void *))
 lnode *list_find(llist *l, const void *data,
 				 int (*cmp_fn)(const void *, const void *))
 {
+	if (l == NULL || data == NULL || cmp_fn == NULL)
+		return NULL;
 	lnode *node = l->head;
 
 	while (node) {
