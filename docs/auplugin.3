@@ -39,13 +39,23 @@ except that queued events are fed to libauparse. The provided
 .I callback
 must match the
 .B auparse_callback_ptr
-type. When
+type. The
 .I timer_interval
-is non-zero,
-.I timer_cb
-is invoked after each timeout and
+argument specifies how many seconds the worker thread will wait for new
+records. A value of 0 disables the timer logic. When the interval elapses,
 .B auparse_feed_age_events
-is called to flush any aged events. The function returns 0 on success or \-1 if libauparse could not be initialized.
+is called to flush aged events. If
+.I timer_cb
+is not
+.B NULL,
+it is invoked with the interval before the flush. Passing a
+.I timer_cb
+of
+.B NULL
+keeps the default behaviour of calling
+.B auparse_feed_age_events
+only. The function returns 0 on success or \-1 if
+libauparse could not be initialized.
 .SH SEE ALSO
 .BR auplugin_fgets (3),
 .BR auparse_feed (3)
