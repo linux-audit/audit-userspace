@@ -4,7 +4,7 @@ auplugin_init, auplugin_stop, auplugin_event_loop, auplugin_event_feed \- plugin
 .SH SYNOPSIS
 .B #include <auplugin.h>
 .sp
-.BI "int auplugin_init(int " inbound_fd ", unsigned " queue_size ");"
+.BI "int auplugin_init(int " inbound_fd ", unsigned " queue_size ", int " q_flags ", const char *" path ");"
 .br
 .B void auplugin_stop(void);
 .br
@@ -19,7 +19,19 @@ parameter specifies the file descriptor that will provide audit
 messages, typically standard input. The
 .I queue_size
 argument controls the maximum number of events that may be queued for
-processing. The library maintains global state for its queue and worker threads. Only one plugin instance is supported, so callers must not invoke auplugin_init() concurrently from multiple threads. The function returns 0 on success or \-1 if initialization fails.
+processing. The
+.I q_flags
+parameter selects in-memory or file-backed storage using the
+.B AUPLUGIN_Q_*
+constants defined in
+.BR auplugin.h .
+If
+.I q_flags
+includes
+.B AUPLUGIN_Q_IN_FILE,
+.I path
+specifies the backing file.
+The library maintains global state for its queue and worker threads. Only one plugin instance is supported, so callers must not invoke auplugin_init() concurrently from multiple threads. The function returns 0 on success or \-1 if initialization fails.
 .PP
 .B auplugin_stop
 signals the framework to terminate. It is normally called from a
@@ -56,6 +68,16 @@ keeps the default behaviour of calling
 .B auparse_feed_age_events
 only. The function returns 0 on success or \-1 if
 libauparse could not be initialized.
+.PP
+Plugins can query queue statistics with
+.BR auplugin_queue_depth ,
+.BR auplugin_queue_max_depth ,
+and
+.BR auplugin_queue_overflow .
+Register a callback with
+.BR auplugin_register_stats_callback ,
+and invoke it using
+.BR auplugin_report_stats .
 .SH SEE ALSO
 .BR auplugin_fgets (3),
 .BR auparse_feed (3)

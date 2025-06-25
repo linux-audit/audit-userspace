@@ -204,7 +204,7 @@ int main(void)
 	init_accounts();
 	init_sessions();
 
-	if (auplugin_init(0, 64))
+	if (auplugin_init(0, 128, AUPLUGIN_Q_IN_MEMORY, NULL))
 		return -1;
 
 	auplugin_event_feed(handle_event, TIMER_INTERVAL, do_timer_services);

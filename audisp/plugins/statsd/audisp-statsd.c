@@ -385,7 +385,7 @@ int main(void)
 		return 1;
 	}
 
-	if (auplugin_init(0, 128)) {
+	if (auplugin_init(0, 128, AUPLUGIN_Q_IN_MEMORY, NULL)) {
 		close(audit_fd);
 		close(d.sock);
 		syslog(LOG_ERR, "failed to init auplugin");

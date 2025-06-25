@@ -56,6 +56,7 @@ static pthread_t outbound_thread;
 static daemon_conf_t q_config;
 static unsigned int timer_interval;
 static auplugin_timer_callback_ptr timer_cb;
+static auplugin_stats_callback_ptr stats_cb;
 
 /* Local function prototypes */
 static void *outbound_thread_loop(void *arg);
@@ -65,7 +66,8 @@ static void *outbound_thread_feed(void *arg);
  * This function is inmtended to initialize the plugin infrastructure
  * to be used later. It returns 0 on success and -1 on failure.
  */
-int auplugin_init(int inbound_fd, unsigned queue_size)
+int auplugin_init(int inbound_fd, unsigned queue_size, int q_flags,
+		  const char *path)
 {
 	fd = inbound_fd;
 	q_config.q_depth = queue_size;
@@ -79,7 +81,7 @@ int auplugin_init(int inbound_fd, unsigned queue_size)
 		return -1;
 	}
 
-	return init_queue(queue_size);
+	return init_queue_extended(queue_size, q_flags, path);
 }
 
 /*
@@ -311,5 +313,33 @@ static void *outbound_thread_feed(void *arg)
 	destroy_queue();
 
 	return NULL;
+}
+
+void auplugin_register_stats_callback(auplugin_stats_callback_ptr cb)
+{
+	stats_cb = cb;
+}
+
+void auplugin_report_stats(void)
+{
+	if (stats_cb) {
+		stats_cb(queue_current_depth(), queue_max_depth(),
+			 queue_overflowed_p());
+	}
+}
+
+unsigned int auplugin_queue_depth(void)
+{
+	return queue_current_depth();
+}
+
+unsigned int auplugin_queue_max_depth(void)
+{
+	return queue_max_depth();
+}
+
+int auplugin_queue_overflow(void)
+{
+	return queue_overflowed_p();
 }
 

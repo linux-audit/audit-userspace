@@ -501,7 +501,7 @@ int main(int argc, const char* argv[])
 		 */
 		close(pipefd[0]);
 
-		if (auplugin_init(0, 128)) {
+		if (auplugin_init(0, 128, AUPLUGIN_Q_IN_MEMORY, NULL)) {
 			syslog(LOG_ERR,
 			       "audisp-filter: failed to init auplugin");
 			kill(cpid, SIGTERM);

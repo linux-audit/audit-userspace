@@ -1,5 +1,5 @@
 /* queue.c --
- * Copyright 2007,2013,2015,2018,2022 Red Hat Inc.
+ * Copyright 2007,2013,2015,2018,2022,2025 Red Hat Inc.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -28,6 +28,7 @@
 #include <errno.h>
 #include <syslog.h>
 #include <string.h>
+#include <fcntl.h>
 #include <sys/wait.h>
 #include "queue.h"
 #include "common.h"
@@ -61,6 +62,8 @@ static ATOMIC_UNSIGNED currently_used, max_used;
 static const char *SINGLE = "1";
 static const char *HALT = "0";
 static int queue_full_warning = 0;
+static int persist_fd = -1;
+static int persist_sync = 0;
 #define QUEUE_FULL_LIMIT 5
 
 void reset_suspended(void)
@@ -69,7 +72,7 @@ void reset_suspended(void)
 	queue_full_warning = 0;
 }
 
-int init_queue(unsigned int size)
+int init_queue_extended(unsigned int size, int flags, const char *path)
 {
 	// The global variables are initialized to zero by the
 	// compiler. We can sometimes get here by a reconfigure.
@@ -103,7 +106,23 @@ int init_queue(unsigned int size)
 #endif
 		reset_suspended();
 	}
+	if (flags & Q_IN_FILE) {
+		int oflag = O_WRONLY | O_APPEND;
+		if (flags & Q_CREAT)
+			oflag |= O_CREAT;
+		if (flags & Q_EXCL)
+			oflag |= O_EXCL;
+		persist_fd = open(path, oflag, 0600);
+		if (persist_fd < 0)
+			return -1;
+		persist_sync = (flags & Q_SYNC) ? 1 : 0;
+	}
 	return 0;
+}
+
+int init_queue(unsigned int size)
+{
+	return init_queue_extended(size, Q_IN_MEMORY, NULL);
 }
 
 static void change_runlevel(const char *level)
@@ -238,6 +257,11 @@ retry:
 		currently_used++;
 		if (currently_used > max_used)
 			max_used = currently_used;
+		if (persist_fd >= 0) {
+			write(persist_fd, e->data, e->hdr.size);
+			if (persist_sync)
+				fdatasync(persist_fd);
+		}
 		sem_post(&queue_nonempty);
 	} else {
 		struct timespec ts;
@@ -383,6 +407,10 @@ void destroy_queue(void)
 	free(q);
 	pthread_mutex_destroy(&queue_lock);
 	sem_destroy(&queue_nonempty);
+	if (persist_fd >= 0) {
+		close(persist_fd);
+		persist_fd = -1;
+	}
 #ifdef HAVE_ATOMIC
 	/*
 	* Queue teardown is single threaded and no longer interacts with the
@@ -400,5 +428,20 @@ void destroy_queue(void)
 	currently_used = 0;
 	max_used = 0;
 	overflowed = 0;
+}
+
+unsigned int queue_current_depth(void)
+{
+       return currently_used;
+}
+
+unsigned int queue_max_depth(void)
+{
+       return max_used;
+}
+
+int queue_overflowed_p(void)
+{
+       return overflowed;
 }
 

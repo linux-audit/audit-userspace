@@ -55,6 +55,17 @@ auditd has an internal queue to hold events for plugins. (See the \fIq_depth\fP 
 
 auditctl --signal cont ; sleep 1 ; cat /var/run/auditd.state
 
+Plugins using
+.BR libauplugin
+can retrieve their own queue metrics with
+.BR auplugin_queue_depth ,
+.BR auplugin_queue_max_depth ,
+and
+.BR auplugin_queue_overflow .
+The
+.BR auplugin_register_stats_callback
+function allows reporting these values from a signal handler.
+
 If auditd's internal queue fills, it cannot dequeue any events from the kernel backlog. If the kernel's backlog fills, it looks at the value of backlog_wait_time to delay all processes that generate an event to see if there is eventually room to add the event. This will likely be noticed as slowing down various processes on the machine. The kernel's audit subsystem can be checked by running:
 
 auditctl -s
