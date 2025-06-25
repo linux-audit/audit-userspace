@@ -30,7 +30,7 @@
 #endif
 #include "auditctl-listing.h"
 #include "private.h"
-#include "auditctl-llist.h"
+#include "generic-llist.h"
 #include "auparse-idata.h"
 
 #ifndef IORING_OP_LAST
@@ -525,7 +525,7 @@ static void print_rule(const struct audit_rule_data *r)
 void audit_print_init(void)
 {
 	printed = 0;
-	list_create(&l);
+	list_create(&l, free);
 }
 
 static const char *get_enable(unsigned e)
@@ -585,9 +585,9 @@ int audit_print_reply(const struct audit_reply *rep, int fd)
 			else {
 				lnode *n;
 				list_first(&l);
-				n = l.cur;
+				n = list_get_cur(&l);
 				while (n) {
-					print_rule(n->r);
+					print_rule((const struct audit_rule_data *)n->data);
 					n = list_next(&l);
 				}
 				list_clear(&l);
@@ -645,10 +645,15 @@ int audit_print_reply(const struct audit_reply *rep, int fd)
 #endif
 		case AUDIT_LIST_RULES:
 			list_requested = 0;
-			if (key_match(rep->ruledata))
-				 list_append(&l, rep->ruledata,
-					sizeof(struct audit_rule_data) +
-					rep->ruledata->buflen);
+			if (key_match(rep->ruledata)) {
+				size_t sz = sizeof(struct audit_rule_data) +
+							rep->ruledata->buflen;
+				struct audit_rule_data *rule = malloc(sz);
+				if (rule) {
+					memcpy(rule, rep->ruledata, sz);
+					list_append(&l, rule, sz);
+				}
+			}
 			printed = 1;
 			return 1;
 		default:

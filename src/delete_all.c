@@ -21,13 +21,14 @@
  */
 #include "config.h"
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <errno.h>
 
 #include "libaudit.h"
 #include "private.h"
 
-#include "auditctl-llist.h"
+#include "generic-llist.h"
 
 extern int key_match(const struct audit_rule_data *r);
 
@@ -48,7 +49,7 @@ int delete_all_rules(int fd)
 
 	FD_ZERO(&read_mask);
 	FD_SET(fd, &read_mask);
-	list_create(&l);
+	list_create(&l, free);
 
 	for (i = 0; i < timeout; i++) {
 		struct timeval t;
@@ -83,18 +84,22 @@ int delete_all_rules(int fd)
 			if (rep.type != AUDIT_LIST_RULES)
 				continue;
 
-			if (key_match(rep.ruledata))
-				list_append(&l, rep.ruledata, 
-					sizeof(struct audit_rule_data) +
-					rep.ruledata->buflen);
-
+			if (key_match(rep.ruledata)) {
+				size_t sz = sizeof(struct audit_rule_data) +
+							rep.ruledata->buflen;
+				struct audit_rule_data *rule = malloc(sz);
+				if (rule) {
+					memcpy(rule, rep.ruledata, sz);
+					list_append(&l, rule, sz);
+				}
+			}
 		}
 	}
 	list_first(&l);
-	n = l.cur;
+	n = list_get_cur(&l);
 	while (n) {
 		/* Bounce it right back with delete */
-		rc = audit_send(fd, AUDIT_DEL_RULE, n->r, n->size);
+		rc = audit_send(fd, AUDIT_DEL_RULE, n->data, n->size);
 		if (rc < 0) {
 			audit_msg(LOG_ERR, "Error deleting rule (%s)",
 				strerror(-rc)); 

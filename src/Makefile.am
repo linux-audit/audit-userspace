@@ -26,7 +26,7 @@ SUBDIRS = test
 AM_CPPFLAGS = -I${top_srcdir} -I${top_srcdir}/lib -I${top_srcdir}/src/libev -I${top_srcdir}/auparse -I${top_srcdir}/audisp -I${top_srcdir}/common
 sbin_PROGRAMS = auditd auditctl aureport ausearch
 AM_CFLAGS = -D_GNU_SOURCE -Wno-pointer-sign ${WFLAGS}
-noinst_HEADERS = auditd-config.h auditd-event.h auditd-listen.h ausearch-llist.h ausearch-options.h auditctl-llist.h aureport-options.h ausearch-parse.h aureport-scan.h ausearch-lookup.h ausearch-int.h auditd-dispatch.h ausearch-string.h ausearch-nvpair.h ausearch-common.h ausearch-avc.h ausearch-time.h ausearch-lol.h auditctl-listing.h ausearch-checkpt.h 
+noinst_HEADERS = auditd-config.h auditd-event.h auditd-listen.h ausearch-llist.h ausearch-options.h aureport-options.h ausearch-parse.h aureport-scan.h ausearch-lookup.h ausearch-int.h auditd-dispatch.h ausearch-string.h ausearch-nvpair.h ausearch-common.h ausearch-avc.h ausearch-time.h ausearch-lol.h auditctl-listing.h ausearch-checkpt.h generic-llist.h
 
 auditd_SOURCES = auditd.c auditd-event.c auditd-config.c auditd-reconfig.c auditd-sendmail.c auditd-dispatch.c
 if ENABLE_LISTENER
@@ -37,7 +37,7 @@ auditd_LDFLAGS = -pie -Wl,-z,relro -Wl,-z,now
 auditd_DEPENDENCIES = libev/libev.a
 auditd_LDADD = @LIBWRAP_LIBS@ ${top_builddir}/src/libev/libev.la ${top_builddir}/audisp/libdisp.la ${top_builddir}/lib/libaudit.la ${top_builddir}/auparse/libauparse.la -lpthread -lm $(gss_libs) ${top_builddir}/common/libaucommon.la
 
-auditctl_SOURCES = auditctl.c auditctl-llist.c delete_all.c auditctl-listing.c
+auditctl_SOURCES = auditctl.c generic-llist.c delete_all.c auditctl-listing.c
 auditctl_CFLAGS = -fPIE -DPIE -g -D_GNU_SOURCE ${WFLAGS}
 auditctl_LDFLAGS = -pie -Wl,-z,relro -Wl,-z,now
 auditctl_LDADD = ${top_builddir}/lib/libaudit.la ${top_builddir}/auparse/libauparse.la ${top_builddir}/common/libaucommon.la
