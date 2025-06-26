@@ -111,11 +111,16 @@ static void load_plugin_conf(conf_llist *plugin)
 	/* read configs */
 	d = opendir(daemon_config.plugin_dir);
 	if (d) {
+		int dfd = dirfd(d);
+		if (dfd < 0) {
+			closedir(d);
+			return;
+		}
+
 		struct dirent *e;
 
 		while ((e = readdir(d))) {
 			plugin_conf_t config;
-			char fname[PATH_MAX];
 			const char *ext, *reason = NULL;
 
 			if (e->d_type != DT_REG)
@@ -132,11 +137,8 @@ static void load_plugin_conf(conf_llist *plugin)
 				continue;
 			}
 
-			snprintf(fname, sizeof(fname), "%s/%s",
-				daemon_config.plugin_dir, e->d_name);
-
 			clear_pconfig(&config);
-			if (load_pconfig(&config, fname) == 0) {
+			if (load_pconfig(&config, dfd, e->d_name) == 0) {
 				/* Push onto config list only if active */
 				if (config.active == A_YES)
 					plist_append(plugin, &config);

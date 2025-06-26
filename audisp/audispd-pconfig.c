@@ -134,7 +134,7 @@ void clear_pconfig(plugin_conf_t *config)
 	config->restart_cnt = 0;
 }
 
-int load_pconfig(plugin_conf_t *config, char *file)
+int load_pconfig(plugin_conf_t *config, int dirfd, char *file)
 {
 	int fd, rc, mode, lineno = 1;
 	struct stat st;
@@ -143,9 +143,12 @@ int load_pconfig(plugin_conf_t *config, char *file)
 
 	clear_pconfig(config);
 
-	/* open the file */
-	mode = O_RDONLY;
-	rc = open(file, mode);
+	/* O_NONBLOCK avoids blocking when opening a FIFO file accidentially.
+	 * It does however block if someone symlinks /dev/ttyX into the plugin directory.
+	 * We do not pass O_NOFOLLOW, which allows for symlinked configs.
+	 */
+	mode = O_RDONLY | O_NONBLOCK;
+	rc = openat(dirfd, file, mode);
 	if (rc < 0) {
 		if (errno != ENOENT) {
 			audit_msg(LOG_ERR, "Error opening %s (%s)", file,
@@ -159,7 +162,7 @@ int load_pconfig(plugin_conf_t *config, char *file)
 	fd = rc;
 
 	/* check the file's permissions: owned by root, not world writable,
-	 * not symlink.
+	 * pointing to regular file.
 	 */
 	if (fstat(fd, &st) < 0) {
 		audit_msg(LOG_ERR, "Error fstat'ing config file (%s)",
@@ -179,8 +182,16 @@ int load_pconfig(plugin_conf_t *config, char *file)
 		close(fd);
 		return 1;
 	}
+	// this checks if the actual file is a regular file. The initial open might have followed a symlink, which is acceptable.
 	if (!S_ISREG(st.st_mode)) {
 		audit_msg(LOG_ERR, "Error - %s is not a regular file",
+			file);
+		close(fd);
+		return 1;
+	}
+
+	if (fcntl(fd, F_SETFL, mode & (~O_NONBLOCK)) < 0) {
+		audit_msg(LOG_ERR, "Error - Failed to remove nonblock flag for %s",
 			file);
 		close(fd);
 		return 1;
