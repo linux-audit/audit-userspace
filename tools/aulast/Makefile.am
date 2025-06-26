@@ -21,6 +21,7 @@
 #   Steve Grubb <sgrubb@redhat.com>
 # 
 
+SUBDIRS = test
 CONFIG_CLEAN_FILES = *.loT *.rej *.orig
 EXTRA_DIST = $(man_MANS)
 AM_CPPFLAGS = -I${top_srcdir} -I${top_srcdir}/lib -I${top_srcdir}/auparse
