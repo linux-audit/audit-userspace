@@ -62,9 +62,15 @@ int inbound_protocol = -1;
 
 /*
  * SIGTERM handler
+ *
+ * Only honor the signal if it comes from the parent process so that other
+ * tasks (cough, systemctl, cough) can't make the plugin exit without
+ * the dispatcher in agreement. Otherwise it will restart the plugin.
  */
-static void term_handler(int sig)
+static void term_handler(int sig, siginfo_t *info, void *ucontext)
 {
+	if (info && info->si_pid != getppid())
+		return;
 	stop = 1;
 }
 
@@ -252,7 +258,7 @@ void read_audit_record(int ifd)
 #ifdef DEBUG
 			write(1, rx_buf, len);
 #endif
-			if (client) {
+			if (client && !stop) {
 				// Send it to the client
 				int rc;
 				struct audit_dispatcher_header *hdr =
@@ -309,7 +315,7 @@ void read_audit_record(int ifd)
 			}
 		} else if (auplugin_fgets_eof())
 			stop = 1;
-	} while (auplugin_fgets_more(MAX_AUDIT_EVENT_FRAME_SIZE));
+	} while (!stop && auplugin_fgets_more(MAX_AUDIT_EVENT_FRAME_SIZE));
 }
 
 void accept_connection(void)
@@ -349,8 +355,12 @@ void event_loop(int ifd)
 
 		rc = poll(pfd, 2 + client, -1);
 		if (rc < 0) {
+			if (stop)
+				return;
+
 			if (errno == EINTR)
 				continue;
+
 			syslog(LOG_WARNING, "Poll error (%s), exiting",
 			       strerror(errno));
 			return;
@@ -370,7 +380,8 @@ void event_loop(int ifd)
 			}
 			// auditd closed it's socket, exit
 			if (pfd[0].revents & POLLHUP) {
-				syslog(LOG_INFO,"Auditd closed it's socket - exiting");
+				syslog(LOG_INFO,
+				       "Auditd closed it's socket - exiting");
 				return;
 			}
 
@@ -381,7 +392,8 @@ void event_loop(int ifd)
 		}
 	}
 	if (stop == 1)
-		syslog(LOG_INFO, "audisp-af_unix plugin is exiting on TERM request");
+		syslog(LOG_INFO,
+		       "audisp-af_unix plugin is exiting on TERM request");
 }
 
 
@@ -399,10 +411,11 @@ int main(int argc, char *argv[])
 		sigaction( i, &sa, NULL );
 
 	/* Set handler for the ones we care about */
-	sa.sa_handler = term_handler;
-	sigaction(SIGTERM, &sa, NULL);
 	sa.sa_handler = hup_handler;
 	sigaction(SIGHUP, &sa, NULL);
+	sa.sa_sigaction = term_handler;
+	sa.sa_flags = SA_SIGINFO;
+	sigaction(SIGTERM, &sa, NULL);
 	/* Set STDIN non-blocking */
 	(void) umask( umask( 077 ) | 027 );
 	ifd = 0;
