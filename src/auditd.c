@@ -127,10 +127,11 @@ static void usage(void)
 
 /*
  * SIGTERM handler
- */ 
+ */
 static void term_handler(struct ev_loop *loop, struct ev_signal *sig,
 			int revents)
 {
+	libdisp_shutdown();
 	EV_STOP ();
 }
 
@@ -1122,11 +1123,8 @@ int main(int argc, char *argv[])
 	ev_io_stop (loop, &pipe_watcher);
 	close_pipes();
 
-	// Give DAEMON_END event a little time to be sent in case
-	// of remote logging
+	// Give DAEMON_END event a little time
 	usleep(10000); // 10 milliseconds
-	libdisp_shutdown();
-	usleep(20000); // 20 milliseconds
 
 	// Tear down IO watchers Part 3
 	ev_signal_stop(loop, &sigchld_watcher);
