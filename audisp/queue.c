@@ -72,6 +72,47 @@ void reset_suspended(void)
 	queue_full_warning = 0;
 }
 
+static int queue_load_file(int fd)
+{
+	FILE *f;
+	char buf[MAX_AUDIT_MESSAGE_LENGTH];
+	unsigned int count = 0;
+
+	if (fd < 0)
+		return -1;
+
+	f = fdopen(dup(fd), "r");
+	if (f == NULL)
+		return -1;
+
+	while (count < q_depth && fgets(buf, sizeof(buf), f)) {
+		event_t *e = calloc(1, sizeof(*e));
+		if (e == NULL)
+			break;
+		strncpy(e->data, buf, MAX_AUDIT_MESSAGE_LENGTH);
+		e->data[MAX_AUDIT_MESSAGE_LENGTH-1] = '\0';
+		e->hdr.size = strlen(e->data);
+		e->hdr.ver = AUDISP_PROTOCOL_VER2;
+		q[count] = e;
+		sem_post(&queue_nonempty);
+		count++;
+	}
+
+	#ifdef HAVE_ATOMIC
+	atomic_store_explicit(&q_next, count % q_depth, memory_order_relaxed);
+	atomic_store_explicit(&q_last, 0, memory_order_relaxed);
+	#else
+	q_next = count % q_depth;
+	q_last = 0;
+	#endif
+	currently_used = count;
+	if (max_used < count)
+		max_used = count;
+
+	fclose(f);
+	return 0;
+}
+
 int init_queue_extended(unsigned int size, int flags, const char *path)
 {
 	// The global variables are initialized to zero by the
@@ -107,7 +148,7 @@ int init_queue_extended(unsigned int size, int flags, const char *path)
 		reset_suspended();
 	}
 	if (flags & Q_IN_FILE) {
-		int oflag = O_WRONLY | O_APPEND;
+		int oflag = O_RDWR | O_APPEND;
 		if (flags & Q_CREAT)
 			oflag |= O_CREAT;
 		if (flags & Q_EXCL)
@@ -116,6 +157,7 @@ int init_queue_extended(unsigned int size, int flags, const char *path)
 		if (persist_fd < 0)
 			return -1;
 		persist_sync = (flags & Q_SYNC) ? 1 : 0;
+		queue_load_file(persist_fd);
 	}
 	return 0;
 }
@@ -408,6 +450,8 @@ void destroy_queue(void)
 	pthread_mutex_destroy(&queue_lock);
 	sem_destroy(&queue_nonempty);
 	if (persist_fd >= 0) {
+		if (currently_used == 0)
+			ftruncate(persist_fd, 0);
 		close(persist_fd);
 		persist_fd = -1;
 	}
