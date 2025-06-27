@@ -112,12 +112,17 @@ int log_audit_event(int type, const char *text, int res)
 				      NULL, NULL, NULL, res);
 }
 
-
 /*
  * SIGTERM handler
+ *
+ * Only honor the signal if it comes from the parent process so that other
+ * tasks (cough, systemctl, cough) can't make the plugin exit without
+ * the dispatcher in agreement. Otherwise it will restart the plugin.
  */
-static void term_handler(int sig __attribute__((unused)))
+static void term_handler(int sig __attribute__((unused)), siginfo_t *info, void *ucontext)
 {
+	if (info && info->si_pid != getppid())
+		return;
         stop = 1;
 	auplugin_stop();
 }
@@ -184,14 +189,15 @@ int main(void)
 	sa.sa_flags = 0;
 	sigemptyset(&sa.sa_mask);
 	/* Set handler for the ones we care about */
-	sa.sa_handler = term_handler;
-	sigaction(SIGTERM, &sa, NULL);
 	sa.sa_handler = child_handler;
 	sigaction(SIGCHLD, &sa, NULL);
 	sa.sa_handler = hup_handler;
 	sigaction(SIGHUP, &sa, NULL);
 	sa.sa_handler = sigusr1_handler;
 	sigaction(SIGUSR1, &sa, NULL);
+	sa.sa_sigaction = term_handler;
+	sa.sa_flags = SA_SIGINFO;
+	sigaction(SIGTERM, &sa, NULL);
 	(void) umask(0177);
 
 	if (load_config(&config))

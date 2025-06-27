@@ -85,10 +85,17 @@ static void handle_event(auparse_state_t *au, auparse_cb_event_t cb_event_type,
 
 
 /*
- * SIGTERM handler: exit time
+ * SIGTERM handler
+ *
+ * Only honor the signal if it comes from the parent process so that other
+ * tasks (cough, systemctl, cough) can't make the plugin exit without
+ * the dispatcher in agreement. Otherwise it will restart the plugin.
  */
-static void term_handler(int sig __attribute__((unused)))
+static void term_handler(int sig __attribute__((unused)), siginfo_t *info, void *ucontext)
 {
+	if (info && info->si_pid != getppid())
+		return;
+
 	stop = 1;
 	auplugin_stop();
 }
@@ -356,10 +363,11 @@ int main(void)
 	sigemptyset(&sa.sa_mask);
 
 	/* Set handler for the ones we care about */
-	sa.sa_handler = term_handler;
-	sigaction(SIGTERM, &sa, NULL);
 	sa.sa_handler = hup_handler;
 	sigaction(SIGHUP, &sa, NULL);
+	sa.sa_sigaction= term_handler;
+	sa.sa_flags = SA_SIGINFO;
+	sigaction(SIGTERM, &sa, NULL);
 
 	// Create the socket
 	d.sock = make_socket();
