@@ -79,6 +79,21 @@ Register a callback with
 .BR auplugin_register_stats_callback ,
 and invoke it using
 .BR auplugin_report_stats .
+.SH SIGNAL HANDLING
+Plugins should establish signal handlers with sigaction(2) before entering the event loop. The SIGTERM handler should call auplugin_stop() to shut down the worker thread. Handlers for other signals, such as SIGHUP or SIGUSR1, should set global flags that are processed in the event or timer callbacks.
+.PP
+Example:
+.nf
+static volatile sig_atomic_t reload;
+static void handler(int sig)
+{
+    if (sig == SIGTERM)
+        auplugin_stop();
+    else if (sig == SIGHUP)
+        reload = 1;
+}
+.fi
+.PP
 .SH SEE ALSO
 .BR auplugin_fgets (3),
 .BR auparse_feed (3)
