@@ -52,8 +52,8 @@ int mode = 0;
 /* Local Data */
 static FILE *l = NULL;	// Log file
 static volatile int stop = 0;
-static volatile int hup = 0;
-static volatile int dump_state = 0;
+volatile int hup = 0;
+volatile int dump_state = 0;
 static auparse_state_t *au = NULL;
 #define NO_ACTIONS (!hup && !stop && !dump_state)
 #define STATE_FILE "/var/run/ids-state"
@@ -145,7 +145,7 @@ static void hup_handler(int sig __attribute__((unused)))
 }
 
 
-static void reload_config(void)
+void reload_config(void)
 {
 	hup = 0;
 	free_config(&config);
@@ -159,7 +159,7 @@ static void sigusr1_handler(int sig __attribute__((unused)))
 }
 
 
-static void output_state(void)
+void output_state(void)
 {
 	FILE *f = fopen(STATE_FILE, "wt");
 	dump_state = 0;
@@ -240,8 +240,12 @@ static void handle_event(auparse_state_t *p,
 		auparse_cb_event_t cb_event_type,
 		void *user_data __attribute__((unused)))
 {
-	if (cb_event_type != AUPARSE_CB_EVENT_READY)
-		return;
+	// Service signal requests before event processing
+	if (dump_state)
+		output_state();
+
+	if (hup)
+		reload_config();
 
 	//my_printf("handle_event %s", auparse_get_type_name(au));
 

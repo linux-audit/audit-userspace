@@ -45,6 +45,12 @@ void init_timer_services(void)
 
 void do_timer_services(unsigned int interval)
 {
+	// Process any pending signal actions
+	if (dump_state)
+		output_state();
+	if (hup)
+		reload_config();
+
 	now += interval;
 
 	if (labs(time(NULL) - now) > (time_t)interval)

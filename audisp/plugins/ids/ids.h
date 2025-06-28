@@ -16,5 +16,9 @@ extern int debug;
 extern void my_printf(const char *fmt, ...)
 	 __attribute__ (( format(printf, 1, 2) ));
 extern int log_audit_event(int type, const char *text, int res);
+extern volatile int hup;
+extern volatile int dump_state;
+void reload_config(void);
+void output_state(void);
 
 #endif
