@@ -50,7 +50,7 @@ typedef struct plugin_conf
 } plugin_conf_t;
 
 void clear_pconfig(plugin_conf_t *config);
-int  load_pconfig(plugin_conf_t *config, char *file);
+int  load_pconfig(plugin_conf_t *config, int dirfd, char *file);
 void free_pconfig(plugin_conf_t *config);
 
 #endif

@@ -31,6 +31,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <libgen.h>
+#include <limits.h>
 #include "audispd-pconfig.h"
 #include "private.h"
 
@@ -134,7 +135,7 @@ void clear_pconfig(plugin_conf_t *config)
 	config->restart_cnt = 0;
 }
 
-int load_pconfig(plugin_conf_t *config, char *file)
+int load_pconfig(plugin_conf_t *config, int dirfd, char *file)
 {
 	int fd, rc, mode, lineno = 1;
 	struct stat st;
@@ -143,9 +144,10 @@ int load_pconfig(plugin_conf_t *config, char *file)
 
 	clear_pconfig(config);
 
-	/* open the file */
-	mode = O_RDONLY;
-	rc = open(file, mode);
+	/* O_PATH avoids blocking, as no read/seek is done.
+	 * We do not pass O_NOFOLLOW, which allows for symlinked configs.
+	 */
+	rc = openat(dirfd, file, O_PATH);
 	if (rc < 0) {
 		if (errno != ENOENT) {
 			audit_msg(LOG_ERR, "Error opening %s (%s)", file,
@@ -159,7 +161,7 @@ int load_pconfig(plugin_conf_t *config, char *file)
 	fd = rc;
 
 	/* check the file's permissions: owned by root, not world writable,
-	 * not symlink.
+	 * pointing to regular file.
 	 */
 	if (fstat(fd, &st) < 0) {
 		audit_msg(LOG_ERR, "Error fstat'ing config file (%s)",
@@ -179,12 +181,29 @@ int load_pconfig(plugin_conf_t *config, char *file)
 		close(fd);
 		return 1;
 	}
+	// this checks if the actual file is a regular file. The initial open might have followed a symlink, which is acceptable.
 	if (!S_ISREG(st.st_mode)) {
 		audit_msg(LOG_ERR, "Error - %s is not a regular file",
 			file);
 		close(fd);
 		return 1;
 	}
+
+	// reopen with read perms
+	char fname[PATH_MAX];
+	snprintf(fname, PATH_MAX, "/proc/self/fd/%i", fd);
+	mode = O_RDONLY;
+	rc = open(fname, mode);
+
+	if (rc < 0) {
+		audit_msg(LOG_ERR, "Error - Failed to reopen %s for reading",
+			file);
+		close(fd);
+		return 1;
+	}
+
+	close(fd);
+	fd = rc;
 
 	/* it's ok, read line by line */
 	f = fdopen(fd, "rm");
