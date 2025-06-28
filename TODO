@@ -1,11 +1,8 @@
 Future roadmap (subject to change):
 ===================================
-4.0.x
+4.1
 * Multi-thread audisp-remote
 * Look into lazy parsing of audit records in auparse
-* Change ausearch to output name="" unless its a real null. (mount) ausearch-report.c, 523. FIXME
-
-4.1
 * Basic HIDS based on reactive audit component
 * Support multiple time streams when searching
 * If searching user/group doesn't map to uid/gid, do translated string search
