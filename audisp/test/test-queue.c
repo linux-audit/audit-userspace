@@ -22,10 +22,8 @@ static event_t *make_event(const char *str)
 	e->hdr.ver = AUDISP_PROTOCOL_VER;
 	e->hdr.hlen = sizeof(struct audit_dispatcher_header);
 	e->hdr.type = 0;
-	e->hdr.size = strlen(str);
-	if (e->hdr.size >= MAX_AUDIT_MESSAGE_LENGTH)
-		e->hdr.size = MAX_AUDIT_MESSAGE_LENGTH - 1;
-	strncpy(e->data, str, e->hdr.size);
+	e->hdr.size = strnlen(str, MAX_AUDIT_MESSAGE_LENGTH - 1);
+	memcpy(e->data, str, e->hdr.size);
 	e->data[e->hdr.size] = '\0';
 	return e;
 }
