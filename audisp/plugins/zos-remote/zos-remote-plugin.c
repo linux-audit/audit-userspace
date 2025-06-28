@@ -60,12 +60,17 @@ static pthread_t submission_thread;
 pid_t mypid = 0;
 
 /*
- * SIGTERM handler 
+ * SIGTERM handler
+ *
+ * Only honor the signal if it comes from the parent process so that other
+ * tasks (cough, systemctl, cough) can't make the plugin exit without
+ * the dispatcher in agreement. Otherwise it will restart the plugin.
  */
-static void term_handler(int sig)
+static void term_handler(int sig, siginfo_t *info, void *ucontext)
 {
 	UNUSED(sig);
-        log_info("Got Termination signal - shutting down plugin");
+	if (info && info->si_pid != getppid())
+		return;
         stop = 1;
         nudge_queue();
 }
@@ -427,14 +432,15 @@ int main(int argc, char *argv[])
          */
         sa.sa_flags = 0;
         sigemptyset(&sa.sa_mask);
-        sa.sa_handler = term_handler;
-        sigaction(SIGTERM, &sa, NULL);
         sa.sa_handler = hup_handler;
         sigaction(SIGHUP, &sa, NULL);
         sa.sa_handler = alarm_handler;
         sigaction(SIGALRM, &sa, NULL);
+        sa.sa_sigaction = term_handler;
+        sa.sa_flags = SA_SIGINFO;
+        sigaction(SIGTERM, &sa, NULL);
 
-        /* 
+        /*
          * the main program accepts a single (optional) argument:
          * it's configuration file (this is NOT the plugin configuration
          * usually located at /etc/audit/plugins.d)
