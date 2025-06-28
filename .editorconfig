@@ -1,0 +1,26 @@
+
+root = true
+
+[{*.{c,h,spec},Makefile,Makefile.*}]
+charset = utf-8
+end_of_line = lf
+indent_style = tab
+indent_size = 8
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+[*.py]
+charset = utf-8
+end_of_line = lf
+indent_style = space
+indent_size = 4
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+[*.{ac,m4,yml}]
+charset = utf-8
+end_of_line = lf
+indent_style = space
+indent_size = 2
+trim_trailing_whitespace = true
+insert_final_newline = true
