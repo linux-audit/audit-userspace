@@ -66,7 +66,8 @@ pid_t mypid = 0;
  * tasks (cough, systemctl, cough) can't make the plugin exit without
  * the dispatcher in agreement. Otherwise it will restart the plugin.
  */
-static void term_handler(int sig, siginfo_t *info, void *ucontext)
+static void term_handler(int sig, siginfo_t *info,
+			 void *ucontext __attribute__((unused)))
 {
 	UNUSED(sig);
 	if (info && info->si_pid != getppid())
