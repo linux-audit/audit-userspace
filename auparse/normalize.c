@@ -654,11 +654,15 @@ static int normalize_syscall(auparse_state_t *au, const char *syscall)
 		case NORM_FILE_CHOWN:
 			act = "changed-file-ownership-of";
 			D.thing.what = NORM_WHAT_FILE; // this gets overridden
-			if (strcmp(syscall, "fchown") == 0)
+			if (strcmp(syscall, "fchown") == 0) {
 				offset = -1;
-			collect_own_obj2(au, syscall);
-			set_file_object(au, offset); // FIXME: fchown has no cwd
-			simple_file_attr(au);
+				collect_own_obj2(au, syscall);
+				/* fchown has no cwd or path information */
+			} else {
+				collect_own_obj2(au, syscall);
+				set_file_object(au, offset);
+				simple_file_attr(au);
+			}
 			break;
 		case NORM_FILE_LDMOD:
 			act = "loaded-kernel-module";

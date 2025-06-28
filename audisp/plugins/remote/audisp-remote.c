@@ -543,7 +543,7 @@ int main(int argc, char *argv[])
 	syslog(LOG_NOTICE, "Audisp-remote started with queue_size: %zu",
 		q_queue_length(queue));
 
-	while (stop == 0) { //FIXME break out when socket is closed
+	while (stop == 0) {
 		fd_set rfd, wfd;
 		struct timeval tv;
 		char event[MAX_AUDIT_MESSAGE_LENGTH];
@@ -1558,7 +1558,7 @@ static int check_message_ascii(void)
 	char buf[64];
 
 	rc = ar_read(sock, buf, sizeof(buf));
-	if (rc < 0 || remote_ended)
+	if (rc <= 0 || remote_ended)
 		stop = 1;
 
 	return 0;

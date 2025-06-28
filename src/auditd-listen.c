@@ -532,8 +532,15 @@ static void client_ack(void *ack_data, const unsigned char *header,
 			free(utok.value);
 			return;
 		}
-		// FIXME: Should we check the return code of this?
-		send_token(io->io.fd, &etok);
+
+		if (send_token(io->io.fd, &etok) < 0) {
+			audit_msg(LOG_ERR,
+				"GSS-API error sending token to %s",
+				sockaddr_to_addr(&io->addr));
+			free(utok.value);
+			(void) gss_release_buffer(&minor_status, &etok);
+			return;
+		}
 		free(utok.value);
 		(void) gss_release_buffer(&minor_status, &etok);
 
