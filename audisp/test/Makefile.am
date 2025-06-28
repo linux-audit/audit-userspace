@@ -19,20 +19,13 @@
 # 
 # Authors:
 #   Steve Grubb <sgrubb@redhat.com>
-#
 
-SUBDIRS = test
-VERSION_INFO = 1:0
-AM_CFLAGS = -fPIC -DPIC -D_GNU_SOURCE ${WFLAGS}
-AM_CPPFLAGS = -I${top_srcdir} -I${top_srcdir}/lib -I${top_srcdir}/common \
-	-I${top_srcdir}/auparse -I${top_srcdir}/auplugin \
-	-I${top_srcdir}/audisp -I${top_srcdir}/src
+AM_CPPFLAGS = -D_GNU_SOURCE -I${top_srcdir} -I${top_srcdir}/audisp \
+	-I${top_srcdir}/common -I${top_srcdir}/src -I${top_srcdir}/lib
+check_PROGRAMS = audisp-queue-test
+TESTS = $(check_PROGRAMS)
 
-lib_LTLIBRARIES = libauplugin.la
-include_HEADERS = auplugin.h
-
-libauplugin_la_SOURCES = auplugin-fgets.c auplugin.c 
-libauplugin_la_LDFLAGS = -Wl,-z,relro -version-info $(VERSION_INFO)
-libauplugin_la_LIBADD = ${top_builddir}/audisp/libqueue.la \
-	${top_builddir}/auparse/libauparse.la -lpthread
+audisp_queue_test_SOURCES = test-queue.c
+audisp_queue_test_LDADD = ${top_builddir}/audisp/libqueue.la \
+	${top_builddir}/common/libaucommon.la -lpthread
 

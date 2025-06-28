@@ -29,8 +29,6 @@
 #include <sys/socket.h>
 #include <netdb.h>
 #include <signal.h>
-#include <poll.h>
-#include <sys/timerfd.h>
 #include <errno.h>
 #ifdef HAVE_LIBCAP_NG
 #include <cap-ng.h>
@@ -38,7 +36,7 @@
 #include "libaudit.h"
 #include "auparse.h"
 #include "common.h"
-
+#include "auplugin.h"
 
 /* Global Definitions */
 #define STATE_REPORT "/var/run/auditd.state"
@@ -78,9 +76,6 @@ struct audit_report
 static volatile int stop = 0;
 static volatile int hup = 0;
 static int audit_fd = -1;
-static auparse_state_t *au = NULL;
-static int timer_fd = -1;
-static char msg[MAX_AUDIT_MESSAGE_LENGTH + 1];
 static struct daemon_config d;
 static struct audit_report r;
 
@@ -90,19 +85,27 @@ static void handle_event(auparse_state_t *au, auparse_cb_event_t cb_event_type,
 
 
 /*
- * SIGTERM handler: exit time
+ * SIGTERM handler
+ *
+ * Only honor the signal if it comes from the parent process so that other
+ * tasks (cough, systemctl, cough) can't make the plugin exit without
+ * the dispatcher in agreement. Otherwise it will restart the plugin.
  */
-static void term_handler(int sig)
+static void term_handler(int sig __attribute__((unused)), siginfo_t *info, void *ucontext)
 {
-	stop = sig;
+	if (info && info->si_pid != getppid())
+		return;
+
+	stop = 1;
+	auplugin_stop();
 }
 
 /*
  * SIGHUP handler: re-read config
  */
-static void hup_handler(int sig)
+static void hup_handler(int sig __attribute__((unused)))
 {
-	hup = sig;
+	hup = 1;
 }
 
 /*
@@ -333,13 +336,17 @@ static void send_statsd(void)
 		       d.addrlen);
 }
 
+static void statsd_timer(unsigned int interval __attribute__((unused)))
+{
+	get_kernel_status();
+	get_auditd_status();
+	send_statsd();
+	clear_report();
+}
 
 int main(void)
 {
 	struct sigaction sa;
-	struct pollfd pfd[2];
-	struct itimerspec itval;
-	int rc;
 
 	if (geteuid() != 0) {
 		fprintf(stderr, "You need to be root to run this\n");
@@ -356,10 +363,11 @@ int main(void)
 	sigemptyset(&sa.sa_mask);
 
 	/* Set handler for the ones we care about */
-	sa.sa_handler = term_handler;
-	sigaction(SIGTERM, &sa, NULL);
 	sa.sa_handler = hup_handler;
 	sigaction(SIGHUP, &sa, NULL);
+	sa.sa_sigaction= term_handler;
+	sa.sa_flags = SA_SIGINFO;
+	sigaction(SIGTERM, &sa, NULL);
 
 	// Create the socket
 	d.sock = make_socket();
@@ -377,74 +385,24 @@ int main(void)
 		syslog(LOG_WARNING, "audisp-statsd failed dropping capabilities, continuing with elevated priviliges");
 #endif
 
-	// Initialize auparse
 	clear_report();
-	au = auparse_init(AUSOURCE_FEED, 0);
-	if (au == NULL) {
-		close(d.sock);
-		syslog(LOG_ERR, "exiting due to auparse init errors");
-		return 1;
-	}
-	auparse_set_eoe_timeout(5);
-	auparse_add_callback(au, handle_event, NULL, NULL);
 	audit_fd = audit_open();
 	if (audit_fd < 0) {
 		close(d.sock);
 		syslog(LOG_ERR, "unable to open audit socket");
 		return 1;
 	}
-	fcntl(0, F_SETFL, O_NONBLOCK); /* Set STDIN non-blocking */
-	pfd[0].fd = 0;		// add stdin to the poll group
-	pfd[0].events = POLLIN;
 
-	// Initialize interval timer
-	timer_fd = timerfd_create (CLOCK_MONOTONIC, 0);
-	if (timer_fd < 0) {
-		syslog(LOG_ERR, "unable to open a timerfd");
+	if (auplugin_init(0, 128, AUPLUGIN_Q_IN_MEMORY, NULL)) {
+		close(audit_fd);
+		close(d.sock);
+		syslog(LOG_ERR, "failed to init auplugin");
 		return 1;
 	}
-	pfd[1].fd = timer_fd;
-	pfd[1].events = POLLIN;
-	itval.it_interval.tv_sec = d.interval;
-	itval.it_interval.tv_nsec = 0;
-	itval.it_value.tv_sec = itval.it_interval.tv_sec;
-	itval.it_value.tv_nsec = 0;
-	timerfd_settime(timer_fd, 0, &itval, NULL);
 
-	// Start event loop
-	while (!stop) {
-		rc = poll(pfd, 2, -1);
-		if (rc < 0) {
-			if (errno == EINTR)
-				continue;
-		} else if (rc > 0) {
-			// timer
-			if (pfd[1].revents & POLLIN) {
-				unsigned long long missed;
-				missed=read(timer_fd, &missed, sizeof (missed));
-				// Clear any old events if possible
-				if (auparse_feed_has_data(au))
-					auparse_feed_age_events(au);
-				get_kernel_status();
-				get_auditd_status();
-				send_statsd();
-				clear_report();
-			}
-			// audit event
-			if (pfd[0].revents & POLLIN) {
-				int len;
-				while ((len = read(0, msg,
-					    MAX_AUDIT_MESSAGE_LENGTH)) > 0) {
-					msg[len] = 0;
-					auparse_feed(au, msg, len);
-				}
-			}
-		}
-	}
+	auplugin_event_feed(handle_event, d.interval, statsd_timer);
 
 	// tear down everything
-	close(timer_fd);
-	auparse_destroy(au);
 	close(audit_fd);
 	close(d.sock);
 

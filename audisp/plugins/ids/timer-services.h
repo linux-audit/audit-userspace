@@ -27,7 +27,7 @@
 typedef enum {UNLOCK_ACCOUNT, UNBLOCK_ADDRESS} jobs_t;
 
 void init_timer_services(void);
-void do_timer_services(unsigned int interval, int timerfd);
+void do_timer_services(unsigned int interval);
 int add_timer_job(jobs_t job, const char *arg, unsigned long length);
 void shutdown_timer_services(void);
 

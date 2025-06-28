@@ -25,6 +25,8 @@
 #define _AUPLUGIN_H_
 
 #include <stddef.h>
+#include <libaudit.h>
+#include <auparse.h>
 
 #ifndef __attr_access
 # define __attr_access(x)
@@ -40,6 +42,8 @@
 extern "C" {
 #endif
 
+#define MAX_AUDIT_EVENT_FRAME_SIZE (sizeof(struct audit_dispatcher_header) + MAX_AUDIT_MESSAGE_LENGTH)
+
 typedef struct auplugin_fgets_state auplugin_fgets_state_t;
 
 enum auplugin_mem {
@@ -48,6 +52,23 @@ enum auplugin_mem {
 	MEM_SELF_MANAGED
 };
 
+enum {
+       AUPLUGIN_Q_IN_MEMORY = 1 << 0,
+       AUPLUGIN_Q_IN_FILE   = 1 << 1,
+       AUPLUGIN_Q_CREAT     = 1 << 2,
+       AUPLUGIN_Q_EXCL      = 1 << 3,
+       AUPLUGIN_Q_SYNC      = 1 << 4,
+       AUPLUGIN_Q_RESIZE    = 1 << 5,
+};
+
+/* Callback prototypes */
+typedef void (*auplugin_callback_ptr)(const char *record);
+typedef void (*auplugin_timer_callback_ptr)(unsigned int interval);
+typedef void (*auplugin_stats_callback_ptr)(unsigned int depth,
+					    unsigned int max_depth,
+					    int overflow);
+
+/* fgets family of functions prototypes */
 void auplugin_fgets_clear(void);
 int auplugin_fgets_eof(void);
 int auplugin_fgets_more(size_t blen);
@@ -67,6 +88,20 @@ int auplugin_fgets_r(auplugin_fgets_state_t *st, char *buf, size_t blen, int fd)
 int auplugin_setvbuf_r(auplugin_fgets_state_t *st, void *buf, size_t buff_size,
 			enum auplugin_mem how)
 			__attr_access ((__read_only__, 2, 3));
+
+/* auplugin family of functions prototypes */
+int auplugin_init(int inbound_fd, unsigned queue_size, int q_flags,
+		  const char *path);
+void auplugin_stop(void);
+void auplugin_event_loop(auplugin_callback_ptr callback);
+int auplugin_event_feed(auparse_callback_ptr callback,
+			unsigned int timer_interval,
+			auplugin_timer_callback_ptr timer_cb);
+void auplugin_register_stats_callback(auplugin_stats_callback_ptr cb);
+void auplugin_report_stats(void);
+unsigned int auplugin_queue_depth(void);
+unsigned int auplugin_queue_max_depth(void);
+int auplugin_queue_overflow(void);
 
 #ifdef __cplusplus
 }

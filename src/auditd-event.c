@@ -33,7 +33,6 @@
 #include <time.h>
 #include <sys/time.h>
 #include <sys/vfs.h>
-#include <limits.h>     /* POSIX_HOST_NAME_MAX */
 #include <ctype.h>	/* toupper */
 #include <libgen.h>	/* dirname */
 #include "auditd-event.h"

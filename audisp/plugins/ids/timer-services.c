@@ -43,18 +43,11 @@ void init_timer_services(void)
 	now = time(NULL);
 }
 
-void do_timer_services(unsigned int interval, int timerfd)
+void do_timer_services(unsigned int interval)
 {
-	unsigned long long missed = 0;
+	now += interval;
 
-	ssize_t r = read(timerfd, &missed, sizeof(missed));
-	if (r != sizeof(missed) || missed == 0)
-		return;
-
-	now += interval * missed;
-
-	// Update with time if the timerfd delta gets too big
-	if (missed > 1 || labs(time(NULL) - now) > (time_t)interval)
+	if (labs(time(NULL) - now) > (time_t)interval)
 		now = time(NULL);
 
 	while (nvpair_list_find_job(&jobs, now)) {

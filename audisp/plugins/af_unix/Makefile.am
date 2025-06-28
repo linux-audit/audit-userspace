@@ -25,7 +25,8 @@ CONFIG_CLEAN_FILES = *.rej *.orig
 CONF_FILES = af_unix.conf
 EXTRA_DIST = $(CONF_FILES) $(man_MANS)
 
-AM_CPPFLAGS = -I${top_srcdir} -I${top_srcdir}/lib -I${top_srcdir}/audisp -I${top_srcdir}/auplugin
+AM_CPPFLAGS = -I${top_srcdir} -I${top_srcdir}/lib -I${top_srcdir}/audisp \
+	-I${top_srcdir}/auplugin -I${top_srcdir}/auparse
 LIBS = ${top_builddir}/lib/libaudit.la
 prog_confdir = $(sysconfdir)/audit
 plugin_confdir=$(prog_confdir)/plugins.d

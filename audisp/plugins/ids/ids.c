@@ -27,13 +27,11 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <string.h>
-#include <sys/select.h>
 #include <errno.h>
 #include <stdarg.h>
 #include <sys/wait.h>
 #include <sys/stat.h> // umask
 #include <unistd.h>
-#include <sys/timerfd.h>
 #include "auparse.h"
 #include "libaudit.h"
 #include "auplugin.h"
@@ -63,7 +61,7 @@ static auparse_state_t *au = NULL;
 struct ids_conf config;
 
 /* Local declarations */
-static void handle_event(auparse_state_t *au,
+static void handle_event(auparse_state_t *p,
 		auparse_cb_event_t cb_event_type, void *user_data);
 
 void my_printf(const char *fmt, ...)
@@ -114,13 +112,19 @@ int log_audit_event(int type, const char *text, int res)
 				      NULL, NULL, NULL, res);
 }
 
-
 /*
  * SIGTERM handler
+ *
+ * Only honor the signal if it comes from the parent process so that other
+ * tasks (cough, systemctl, cough) can't make the plugin exit without
+ * the dispatcher in agreement. Otherwise it will restart the plugin.
  */
-static void term_handler(int sig __attribute__((unused)))
+static void term_handler(int sig __attribute__((unused)), siginfo_t *info, void *ucontext)
 {
+	if (info && info->si_pid != getppid())
+		return;
         stop = 1;
+	auplugin_stop();
 }
 
 
@@ -179,24 +183,21 @@ static void output_state(void)
 
 int main(void)
 {
-	char tmp[MAX_AUDIT_MESSAGE_LENGTH+1];
 	struct sigaction sa;
-	struct itimerspec itval;
-	int tfd;
-	fd_set read_mask;
 
 	/* Register sighandlers */
 	sa.sa_flags = 0;
 	sigemptyset(&sa.sa_mask);
 	/* Set handler for the ones we care about */
-	sa.sa_handler = term_handler;
-	sigaction(SIGTERM, &sa, NULL);
 	sa.sa_handler = child_handler;
 	sigaction(SIGCHLD, &sa, NULL);
 	sa.sa_handler = hup_handler;
 	sigaction(SIGHUP, &sa, NULL);
 	sa.sa_handler = sigusr1_handler;
 	sigaction(SIGUSR1, &sa, NULL);
+	sa.sa_sigaction = term_handler;
+	sa.sa_flags = SA_SIGINFO;
+	sigaction(SIGTERM, &sa, NULL);
 	(void) umask(0177);
 
 	if (load_config(&config))
@@ -209,99 +210,13 @@ int main(void)
 	init_accounts();
 	init_sessions();
 
-	/* Initialize the auparse library */
-	au = auparse_init(AUSOURCE_FEED, 0);
-	if (au == NULL) {
-		my_printf("ids is exiting due to auparse init errors");
+	if (auplugin_init(0, 128, AUPLUGIN_Q_IN_MEMORY, NULL))
 		return -1;
-	}
-	auparse_set_eoe_timeout(2);
-	auparse_add_callback(au, handle_event, NULL, NULL);
 
-	init_timer_services();
-	tfd = timerfd_create (CLOCK_MONOTONIC, TFD_NONBLOCK|TFD_CLOEXEC);
-	if (tfd < 0) {
-		my_printf("ids is exiting due to timerfd_create failing");
-		return -1;
-	}
-	itval.it_interval.tv_sec = TIMER_INTERVAL;
-	itval.it_interval.tv_nsec = 0;
-	itval.it_value.tv_sec = itval.it_interval.tv_sec;
-	itval.it_value.tv_nsec = 0;
-	timerfd_settime(tfd, 0, &itval, NULL);
-
-	do {
-		int retval;
-
-		/* Handle dump_state */
-		if (dump_state)
-			output_state();
-
-		/* Load configuration */
-		if (hup)
-			reload_config();
-
-		/* Probably not needed, but maybe reload took some time?  */
-		if (stop)
-			break;
-
-		do {
-			FD_ZERO(&read_mask);
-			FD_SET(0, &read_mask);
-			FD_SET(tfd, &read_mask);
-
-			if (auparse_feed_has_data(au)) {
-				// We'll do a 1 second timeout to try to
-				// age events as quick as possible
-				struct timeval tv;
-				tv.tv_sec = 1;
-				tv.tv_usec = 0;
-				//my_printf("auparse_feed_has_data");
-				retval= select(tfd+1, &read_mask,
-					       NULL, NULL, &tv);
-			} else
-				retval= select(tfd+1, &read_mask,
-					       NULL, NULL, NULL);
-
-			/* If we timed out & have events, shake them loose */
-			if (retval == 0 && auparse_feed_has_data(au)) {
-				//my_printf("auparse_feed_age_events");
-				auparse_feed_age_events(au);
-			}
-		} while (retval == -1 && errno == EINTR && NO_ACTIONS);
-
-		/* Now the event loop */
-		 if (NO_ACTIONS && retval > 0) {
-			if (FD_ISSET(0, &read_mask)) {
-				do {
-					int len;
-					if ((len = auplugin_fgets(tmp,
-						MAX_AUDIT_MESSAGE_LENGTH,
-								0)) > 0) {
-					/*	char *buf = strndup(tmp, 40);
-					     my_printf("auparse_feed %s", buf);
-						free(buf); */
-						auparse_feed(au, tmp, len);
-					}
-				} while (auplugin_fgets_more(
-						MAX_AUDIT_MESSAGE_LENGTH));
-			}
-			if (FD_ISSET(tfd, &read_mask)) {
-				//my_printf("do_timer_services");
-				do_timer_services(TIMER_INTERVAL, tfd);
-			}
-
-		}
-		if (auplugin_fgets_eof())
-			break;
-	} while (stop == 0);
+	auplugin_event_feed(handle_event, TIMER_INTERVAL, do_timer_services);
 
 	shutdown_timer_services();
-	close(tfd);
 
-	/* Flush any accumulated events from queue */
-	auparse_flush_feed(au);
-	auparse_destroy(au);
 	destroy_sessions();
 	destroy_accounts();
 	destroy_origins();
@@ -321,7 +236,7 @@ int main(void)
 
 
 /* This function receives a single complete event from the auparse library. */
-static void handle_event(auparse_state_t *au,
+static void handle_event(auparse_state_t *p,
 		auparse_cb_event_t cb_event_type,
 		void *user_data __attribute__((unused)))
 {
@@ -329,6 +244,9 @@ static void handle_event(auparse_state_t *au,
 		return;
 
 	//my_printf("handle_event %s", auparse_get_type_name(au));
+
+	/* Save for metrics reporting */
+	au = p;
 
 	/* Do this once for all models */
 	if (auparse_normalize(au, NORM_OPT_NO_ATTRS))

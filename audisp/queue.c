@@ -1,5 +1,5 @@
 /* queue.c --
- * Copyright 2007,2013,2015,2018,2022 Red Hat Inc.
+ * Copyright 2007,2013,2015,2018,2022,2025 Red Hat Inc.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -28,6 +28,7 @@
 #include <errno.h>
 #include <syslog.h>
 #include <string.h>
+#include <fcntl.h>
 #include <sys/wait.h>
 #include "queue.h"
 #include "common.h"
@@ -44,12 +45,12 @@
 static volatile event_t **q;
 static pthread_mutex_t queue_lock;
 static sem_t queue_nonempty;
-#ifdef HAVE_ATOMIC
 /*
  * q_next points to the next free slot for the producer.
  * q_last points to the next item the consumer should read.
  * Both are updated atomically and wrap at q_depth.
  */
+#ifdef HAVE_ATOMIC
 static atomic_uint q_next, q_last;
 extern ATOMIC_INT disp_hup;
 #else
@@ -61,6 +62,8 @@ static ATOMIC_UNSIGNED currently_used, max_used;
 static const char *SINGLE = "1";
 static const char *HALT = "0";
 static int queue_full_warning = 0;
+static int persist_fd = -1;
+static int persist_sync = 0;
 #define QUEUE_FULL_LIMIT 5
 
 void reset_suspended(void)
@@ -69,7 +72,48 @@ void reset_suspended(void)
 	queue_full_warning = 0;
 }
 
-int init_queue(unsigned int size)
+static int queue_load_file(int fd)
+{
+	FILE *f;
+	char buf[MAX_AUDIT_MESSAGE_LENGTH];
+	unsigned int count = 0;
+
+	if (fd < 0)
+		return -1;
+
+	f = fdopen(dup(fd), "r");
+	if (f == NULL)
+		return -1;
+
+	while (count < q_depth && fgets(buf, sizeof(buf), f)) {
+		event_t *e = calloc(1, sizeof(*e));
+		if (e == NULL)
+			break;
+		strncpy(e->data, buf, MAX_AUDIT_MESSAGE_LENGTH);
+		e->data[MAX_AUDIT_MESSAGE_LENGTH-1] = '\0';
+		e->hdr.size = strlen(e->data);
+		e->hdr.ver = AUDISP_PROTOCOL_VER2;
+		q[count] = e;
+		sem_post(&queue_nonempty);
+		count++;
+	}
+
+	#ifdef HAVE_ATOMIC
+	atomic_store_explicit(&q_next, count % q_depth, memory_order_relaxed);
+	atomic_store_explicit(&q_last, 0, memory_order_relaxed);
+	#else
+	q_next = count % q_depth;
+	q_last = 0;
+	#endif
+	currently_used = count;
+	if (max_used < count)
+		max_used = count;
+
+	fclose(f);
+	return 0;
+}
+
+int init_queue_extended(unsigned int size, int flags, const char *path)
 {
 	// The global variables are initialized to zero by the
 	// compiler. We can sometimes get here by a reconfigure.
@@ -103,7 +147,24 @@ int init_queue(unsigned int size)
 #endif
 		reset_suspended();
 	}
+	if (flags & Q_IN_FILE) {
+		int oflag = O_RDWR | O_APPEND;
+		if (flags & Q_CREAT)
+			oflag |= O_CREAT;
+		if (flags & Q_EXCL)
+			oflag |= O_EXCL;
+		persist_fd = open(path, oflag, 0600);
+		if (persist_fd < 0)
+			return -1;
+		persist_sync = (flags & Q_SYNC) ? 1 : 0;
+		queue_load_file(persist_fd);
+	}
 	return 0;
+}
+
+int init_queue(unsigned int size)
+{
+	return init_queue_extended(size, Q_IN_MEMORY, NULL);
 }
 
 static void change_runlevel(const char *level)
@@ -238,6 +299,11 @@ retry:
 		currently_used++;
 		if (currently_used > max_used)
 			max_used = currently_used;
+		if (persist_fd >= 0) {
+			write(persist_fd, e->data, e->hdr.size);
+			if (persist_sync)
+				fdatasync(persist_fd);
+		}
 		sem_post(&queue_nonempty);
 	} else {
 		struct timespec ts;
@@ -294,6 +360,41 @@ event_t *dequeue(void)
         return e;
 }
 
+event_t *dequeue_timed(const struct timespec *timeout)
+{
+	event_t *e;
+	unsigned int n;
+
+	while (sem_timedwait(&queue_nonempty, timeout) == -1 && errno == EINTR)
+		;
+	if (errno == ETIMEDOUT)
+		return NULL;
+
+	if (AUDIT_ATOMIC_LOAD(disp_hup))
+		return NULL;
+
+#ifdef HAVE_ATOMIC
+	n = atomic_load_explicit(&q_last, memory_order_relaxed) % q_depth;
+#else
+	n = q_last % q_depth;
+#endif
+
+	if (q[n] != NULL) {
+		e = (event_t *)q[n];
+		q[n] = NULL;
+#ifdef HAVE_ATOMIC
+		atomic_store_explicit(&q_last, (n+1) % q_depth,
+				      memory_order_release);
+#else
+		q_last = (n+1) % q_depth;
+#endif
+		currently_used--;
+	} else
+		e = NULL;
+
+	return e;
+}
+
 void nudge_queue(void)
 {
 	sem_post(&queue_nonempty);
@@ -348,6 +449,12 @@ void destroy_queue(void)
 	free(q);
 	pthread_mutex_destroy(&queue_lock);
 	sem_destroy(&queue_nonempty);
+	if (persist_fd >= 0) {
+		if (currently_used == 0)
+			ftruncate(persist_fd, 0);
+		close(persist_fd);
+		persist_fd = -1;
+	}
 #ifdef HAVE_ATOMIC
 	/*
 	* Queue teardown is single threaded and no longer interacts with the
@@ -365,5 +472,20 @@ void destroy_queue(void)
 	currently_used = 0;
 	max_used = 0;
 	overflowed = 0;
+}
+
+unsigned int queue_current_depth(void)
+{
+       return currently_used;
+}
+
+unsigned int queue_max_depth(void)
+{
+       return max_used;
+}
+
+int queue_overflowed_p(void)
+{
+       return overflowed;
 }
 
