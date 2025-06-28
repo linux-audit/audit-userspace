@@ -308,6 +308,7 @@ test_repeated_add_remove_with_find(void)
 
 	list_clear(&l);
 	TEST_PASS();
+	return 1;
 }
 
 /*
@@ -428,6 +429,7 @@ test_complex_session_management(void)
 
 	list_clear(&l);
 	TEST_PASS();
+	return 1;
 }
 
 int
