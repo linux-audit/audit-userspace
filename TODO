@@ -1,10 +1,6 @@
 Future roadmap (subject to change):
 ===================================
 4.0.x
-* Rework auparse tests to not depend on system specific uid/gid mappings
-* Streamline packet reception (netlink_handler) to use static memory array
-* Make auparse threadsafe
-* Add plugin libary to automatically multithread plugins
 * Multi-thread audisp-remote
 * Look into lazy parsing of audit records in auparse
 * Change ausearch to output name="" unless its a real null. (mount) ausearch-report.c, 523. FIXME
