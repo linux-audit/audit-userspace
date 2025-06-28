@@ -22,6 +22,7 @@
 
 AM_CPPFLAGS = -D_GNU_SOURCE -I${top_srcdir} -I${top_srcdir}/audisp \
 	-I${top_srcdir}/common -I${top_srcdir}/src -I${top_srcdir}/lib
+AM_CFLAGS = -D_GNU_SOURCE -Wno-pointer-sign ${WFLAGS}
 check_PROGRAMS = audisp-queue-test
 TESTS = $(check_PROGRAMS)
 

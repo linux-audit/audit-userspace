@@ -21,6 +21,7 @@
 #   Steve Grubb <sgrubb@redhat.com>
 
 AM_CPPFLAGS = -I${top_srcdir}/auplugin -I${top_srcdir}/lib -I${top_srcdir}/auparse
+AM_CFLAGS = -D_GNU_SOURCE -Wno-pointer-sign ${WFLAGS}
 check_PROGRAMS = fgets_test metrics_test
 TESTS = $(check_PROGRAMS)
 

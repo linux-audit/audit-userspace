@@ -20,6 +20,7 @@
 #
 
 AM_CPPFLAGS = -I${top_srcdir}/lib
+AM_CFLAGS = -D_GNU_SOURCE -Wno-pointer-sign ${WFLAGS}
 check_PROGRAMS = lookup_test
 TESTS = $(check_PROGRAMS)
 
