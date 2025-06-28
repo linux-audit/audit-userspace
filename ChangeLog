@@ -6,6 +6,7 @@
 - Refactor auparse code to be multi-thread safe
 - Add memory pool to netlink event processing to reduce memory churn
 - Make all plugins ignore SIGTERM if not from auditd (issue #469)
+- Add libauplugin, refactor audisp-filter, ids, and audisp-statsd to use it
 
 4.0.5
 - Rework audisp queue to be lockless
