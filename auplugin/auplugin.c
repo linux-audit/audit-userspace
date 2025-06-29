@@ -63,7 +63,7 @@ static void *outbound_thread_loop(void *arg);
 static void *outbound_thread_feed(void *arg);
 
 /*
- * This function is inmtended to initialize the plugin infrastructure
+ * This function is intended to initialize the plugin infrastructure
  * to be used later. It returns 0 on success and -1 on failure.
  */
 int auplugin_init(int inbound_fd, unsigned queue_size, int q_flags,
@@ -93,7 +93,7 @@ void auplugin_stop(void)
 }
 
 /*
- * This functio defines a comment set of tasks that the inbound event
+ * This function defines a comment set of tasks that the inbound event
  * handler must perform. Namely waiting for an event and then enqueuing
  * it for the outbound worker. This function does not exit until a
  * SIGTERM signal is detected. It leaves cleaning up the queue to the
