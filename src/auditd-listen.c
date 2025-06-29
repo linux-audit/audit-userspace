@@ -1188,34 +1188,70 @@ static void periodic_reconfigure(const struct daemon_conf *config)
 }
 
 void auditd_tcp_listen_reconfigure(const struct daemon_conf *nconf,
-				     struct daemon_conf *oconf)
+				    struct daemon_conf *oconf)
 {
+	struct ev_loop *loop = ev_default_loop(EVFLAG_AUTO);
 	use_libwrap = nconf->use_libwrap;
-
+	
 	/* Look at network things that do not need restarting */
 	if (oconf->tcp_client_min_port != nconf->tcp_client_min_port ||
-		    oconf->tcp_client_max_port != nconf->tcp_client_max_port ||
-		    oconf->tcp_max_per_addr != nconf->tcp_max_per_addr) {
+		oconf->tcp_client_max_port != nconf->tcp_client_max_port ||
+		oconf->tcp_max_per_addr != nconf->tcp_max_per_addr) {
 		oconf->tcp_client_min_port = nconf->tcp_client_min_port;
 		oconf->tcp_client_max_port = nconf->tcp_client_max_port;
 		oconf->tcp_max_per_addr = nconf->tcp_max_per_addr;
 		auditd_set_ports(oconf->tcp_client_min_port,
-				oconf->tcp_client_max_port,
-				oconf->tcp_max_per_addr);
+		oconf->tcp_client_max_port,
+		oconf->tcp_max_per_addr);
 	}
 	if (oconf->tcp_client_max_idle != nconf->tcp_client_max_idle) {
 		oconf->tcp_client_max_idle = nconf->tcp_client_max_idle;
 		periodic_reconfigure(oconf);
 	}
+
 	if (oconf->tcp_listen_port != nconf->tcp_listen_port ||
-			oconf->tcp_listen_queue != nconf->tcp_listen_queue) {
-		oconf->tcp_listen_port = nconf->tcp_listen_port;
-		oconf->tcp_listen_queue = nconf->tcp_listen_queue;
-		// FIXME: need to restart the network stuff
+			oconf->tcp_listen_queue != nconf->tcp_listen_queue ||
+			oconf->transport != nconf->transport) {
+		int port_chg = oconf->tcp_listen_port !=
+						nconf->tcp_listen_port;
+		int queue_chg = oconf->tcp_listen_queue !=
+						nconf->tcp_listen_queue;
+		int trans_chg = oconf->transport != nconf->transport;
+		if (port_chg && oconf->tcp_listen_port == 0 &&
+				    nconf->tcp_listen_port != 0) {
+			audit_msg(LOG_NOTICE,
+					"starting TCP listener on %lu",
+					nconf->tcp_listen_port);
+			oconf->tcp_listen_port = nconf->tcp_listen_port;
+			oconf->tcp_listen_queue = nconf->tcp_listen_queue;
+			oconf->transport = nconf->transport;
+			if (auditd_tcp_listen_init(loop, oconf))
+				audit_msg(LOG_ERR, "failed to start listener");
+		} else if (port_chg) {
+			if (nconf->tcp_listen_port == 0)
+				audit_msg(LOG_NOTICE,
+				    "TCP listener disabled; restart required");
+			else
+				audit_msg(LOG_NOTICE,
+				    "tcp_listen_port change requires restart");
+			oconf->tcp_listen_port = nconf->tcp_listen_port;
+			oconf->tcp_listen_queue = nconf->tcp_listen_queue;
+		} else if (trans_chg) {
+			audit_msg(LOG_NOTICE,
+					 "transport change requires restart");
+		} else if (queue_chg) {
+			audit_msg(LOG_NOTICE,
+			    "tcp_listen_queue changed - restarting listener");
+			auditd_tcp_listen_uninit(loop, oconf);
+			oconf->tcp_listen_queue = nconf->tcp_listen_queue;
+			if (auditd_tcp_listen_init(loop, oconf))
+				audit_msg(LOG_ERR,"failed to restart listener");
+		}
 	}
+
 	free((void *)oconf->krb5_principal);
-	// Copying the config for now. Should compare if the same
-	// and recredential if needed.
+	// Copying the config for now. Should compare if the same and
+	// recredential if needed.
 	oconf->krb5_principal = nconf->krb5_principal;
 }
 
