@@ -276,7 +276,9 @@ records from remote systems. The audit daemon may be linked with
 tcp_wrappers. You may want to control access with an entry in the
 hosts.allow and deny files. If this is deployed on a systemd based
 OS, then you may need to adjust the 'After' directive. See the note in
-the auditd.service file.
+the auditd.service file.  Networking can be enabled by adding this
+option and sending auditd a SIGHUP.  Changing the port or disabling
+networking requires restarting the daemon so that clients reconnect.
 .TP
 .I tcp_listen_queue
 This is a numeric value which indicates how many pending (requested
@@ -284,7 +286,9 @@ but unaccepted) connections are allowed.  The default is 5.  Setting
 this too small may cause connections to be rejected if too many hosts
 start up at exactly the same time, such as after a power failure. This
 setting is only used for aggregating servers. Clients logging to a remote
-server should keep this commented out.
+server should keep this commented out.  Changing this value while the
+daemon is running restarts the listener and drops any current
+connections.
 .TP
 .I tcp_max_per_addr
 This is a numeric value which indicates how many concurrent connections from
@@ -318,7 +322,9 @@ If set to
 .IR TCP ",
 only clear text tcp connections will be used. If set to
 .IR KRB5 ",
-then Kerberos 5 will be used for authentication and encryption. The default value is TCP.
+then Kerberos 5 will be used for authentication and encryption. The
+default value is TCP.  Changes to this option take effect only after
+restart so that clients can reconnect.
 .TP
 .I enable_krb5
 This option is deprecated. Use the
