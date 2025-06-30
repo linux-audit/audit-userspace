@@ -300,7 +300,10 @@ retry:
 		if (currently_used > max_used)
 			max_used = currently_used;
 		if (persist_fd >= 0) {
-			write(persist_fd, e->data, e->hdr.size);
+			if (write(persist_fd, e->data, e->hdr.size) < 0) {
+				/* Log error but continue - persistence is not critical */
+				syslog(LOG_WARNING, "Failed to write event to persistent queue");
+			}
 			if (persist_sync)
 				fdatasync(persist_fd);
 		}
@@ -450,8 +453,12 @@ void destroy_queue(void)
 	pthread_mutex_destroy(&queue_lock);
 	sem_destroy(&queue_nonempty);
 	if (persist_fd >= 0) {
-		if (currently_used == 0)
-			ftruncate(persist_fd, 0);
+		if (currently_used == 0) {
+			if (ftruncate(persist_fd, 0) < 0) {
+				/* Log error but continue - cleanup is not critical */
+				syslog(LOG_WARNING, "Failed to truncate persistent queue file");
+			}
+		}
 		close(persist_fd);
 		persist_fd = -1;
 	}
