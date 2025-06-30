@@ -82,6 +82,9 @@ In practice this means:
 - Do not do any whitespace adustment of existing code.
 - Keep existing function and variable names.
 
+## MAN(3) Style
+Any new man(3) pages must follow the glibc style. Specifically this means: In SYNOPSIS, the header file is bold. Function prototype is bold, but its argument are not bold, they are underlined. The arguments in DESCRIPTION are also underlined.
+
 ## Commit Messages
 
 - Use a concise one-line summary followed by a blank line and additional
@@ -117,6 +120,7 @@ intended ordering.
 - Run `make check` to execute the self-tests. (auparse tests are failing
   because of a mismatch in mapping uid to accounts. Igonore these.)
 - Follow Linux Kernel coding style (tabs, 80 columns).
+- Follow glibc style for man(3) pages.
 - Keep commit messages short and descriptive.
 - Always add comments to explain new code.
 - Maintain rule file organization as described in `rules/README-rules`.
