@@ -2,13 +2,15 @@
 .SH NAME
 audit_delete_rule_data \- Delete audit rule
 .SH "SYNOPSIS"
+.nf
 .B #include <libaudit.h>
-.sp
-int audit_delete_rule_data(int fd, struct audit_rule_data *rule, int flags, int action);
+.PP
+.BI "int audit_delete_rule_data(int " fd ", struct audit_rule_data *" rule ", int " flags ", int " action );"
+.fi
 
 .SH "DESCRIPTION"
 
-audit_delete_rule_data is used to delete rules that are currently loaded in the kernel. To delete a rule, you must set up the rules identical to the one being deleted. See audit_add_rule_data for flag and action definitions.
+audit_delete_rule_data is used to delete rules that are currently loaded in the kernel. The file descriptor is given in \fIfd\fP and the rule description in \fIrule\fP. To delete a rule, you must set up the rules identical to the one being deleted. See audit_add_rule_data for \fIflags\fP and \fIaction\fP definitions.
 
 .SH "RETURN VALUE"
 

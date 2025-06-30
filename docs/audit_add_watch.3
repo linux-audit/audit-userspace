@@ -2,13 +2,15 @@
 .SH NAME
 audit_add_watch \- create a rule layout for a watch
 .SH "SYNOPSIS"
+.nf
 .B #include <libaudit.h>
-.sp
-int audit_add_watch(struct audit_rule_data **rulep, const char *path);
+.PP
+.BI "int audit_add_watch(struct audit_rule_data **" rulep ", const char *" path );"
+.fi
 
 .SH "DESCRIPTION"
 
-audit_add_watch will create a watch rule in the pointer to a pointer rulep. All that you need to pass it is the full path to a file and it will initialize the audit_rule_data structure for a watch.
+audit_add_watch will create a watch rule in the pointer to a pointer \fIrulep\fP. All that you need to pass it is the full \fIpath\fP to a file and it will initialize the audit_rule_data structure for a watch.
 
 .SH "RETURN VALUE"
 

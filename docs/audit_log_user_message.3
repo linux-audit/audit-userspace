@@ -2,11 +2,11 @@
 .SH NAME
 audit_log_user_message \- log a general user message
 .SH SYNOPSIS
+.nf
 .B #include <libaudit.h>
-.sp
-int audit_log_user_message(int audit_fd, int type, const char *message,
-const char *hostname, const char *addr, const char *tty,
-int result)
+.PP
+.BI "int audit_log_user_message(int " audit_fd ", int " type ", const char *" message ", const char *" hostname ", const char *" addr ", const char *" tty ", int " result )"
+.fi
 
 .SH DESCRIPTION
 This function will log a message to the audit system using a predefined message format. This function should be used by all ELF console apps that do not manipulate accounts or groups. If the application is written in Python or another interpreter, then use the
@@ -14,13 +14,13 @@ This function will log a message to the audit system using a predefined message 
 function instead. The function parameters are as follows:
 
 .nf
-audit_fd - The fd returned by audit_open
-type - type of message, ex: AUDIT_USYS_CONFIG, AUDIT_USER_LOGIN
-message - the message text being sent
-hostname - the hostname if known, NULL if unknown
-addr - The network address of the user, NULL if unknown
-tty - The tty of the user, if NULL will attempt to figure out
-result - 1 is "success" and 0 is "failed"
+\fIaudit_fd\fP - The fd returned by audit_open
+\fItype\fP - type of message, ex: AUDIT_USYS_CONFIG, AUDIT_USER_LOGIN
+\fImessage\fP - the message text being sent
+\fIhostname\fP - the hostname if known, NULL if unknown
+\fIaddr\fP - The network address of the user, NULL if unknown
+\fItty\fP - The tty of the user, if NULL will attempt to figure out
+\fIresult\fP - 1 is "success" and 0 is "failed"
 .fi
 
 .SH "RETURN VALUE"

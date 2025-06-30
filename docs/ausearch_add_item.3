@@ -2,13 +2,15 @@
 .SH NAME
 ausearch_add_item \- build up search rule
 .SH "SYNOPSIS"
+.nf
 .B #include <auparse.h>
-.sp
-int ausearch_add_item(auparse_state_t *au, const char *field, const char *op, const char *value, ausearch_rule_t how);
+.PP
+.BI "int ausearch_add_item(auparse_state_t *" au ", const char *" field ", const char *" op ", const char *" value ", ausearch_rule_t " how );"
+.fi
 
 .SH "DESCRIPTION"
 
-ausearch_add_item adds one search condition to the current audit search expression. The search conditions can then be used to scan logs, files, or buffers for something of interest. The field value is the field name that the value will be checked for. The op variable describes what kind of check is to be done. Legal op values are:
+ausearch_add_item adds one search condition to the current audit search expression. The search conditions can then be used to scan logs, files, or buffers for something of interest. The \fIfield\fP value is the field name that the \fIvalue\fP will be checked for. The \fIop\fP variable describes what kind of check is to be done. Legal \fIop\fP values are:
 
 .RS
 .TP
@@ -24,7 +26,7 @@ ausearch_add_item adds one search condition to the current audit search expressi
 
 The value parameter is compared to the uninterpreted field value. If you are trying to match against a field who's type is AUPARSE_TYPE_ESCAPED, you will want to use the ausearch_add_interpreted_item() function instead.
 
-The how value determines how this search condition will affect the existing search expression if one is already defined. The possible values are:
+The \fIhow\fP value determines how this search condition will affect the existing search expression if one is already defined. The possible values are:
 .RS
 .TP
 .I AUSEARCH_RULE_CLEAR

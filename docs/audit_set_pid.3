@@ -2,14 +2,15 @@
 .SH NAME
 audit_set_pid \- Set audit daemon process ID
 .SH "SYNOPSIS"
-
+.nf
 .B #include <libaudit.h>
-.sp
-int audit_set_pid(int fd, uint32_t pid, rep_wait_t wmode);
+.PP
+.BI "int audit_set_pid(int " fd ", uint32_t " pid ", rep_wait_t " wmode );"
+.fi
 
 .SH "DESCRIPTION"
 
-audit_set_pid tells the kernel what the pid is of the audit daemon. When the pid is set to 0, the kernel will log all events to syslog. Otherwise it will try to send events to the netlink connection that has the same pid given by this function. If for some reason the process goes away, the kernel will automatically set the value to 0 itself. Usually this function is called by the audit daemon and not an external program. If wmode is WAIT_YES, the function will wait for an ACK from the kernel.
+audit_set_pid tells the kernel what the pid is of the audit daemon. The \fIfd\fP argument is an open descriptor to the audit netlink socket. When \fIpid\fP is set to 0, the kernel will log all events to syslog. Otherwise it will try to send events to the netlink connection that has the same \fIpid\fP given by this function. If for some reason the process goes away, the kernel will automatically set the value to 0 itself. Usually this function is called by the audit daemon and not an external program. If \fIwmode\fP is WAIT_YES, the function will wait for an ACK from the kernel.
 
 .SH "RETURN VALUE"
 

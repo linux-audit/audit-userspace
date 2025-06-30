@@ -2,9 +2,11 @@
 .SH NAME
 audit_get_session \- Get a program's login session id value
 .SH SYNOPSIS
+.nf
 .B #include <libaudit.h>
-.sp
-uin32_t audit_get_session(void);
+.PP
+.BI "uint32_t audit_get_session(void);"
+.fi
 
 .SH DESCRIPTION
 This function returns the task's session id attribute.

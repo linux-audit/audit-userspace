@@ -2,15 +2,16 @@
 .SH NAME
 audit_request_status \- Request status of the audit system
 .SH "SYNOPSIS"
-
+.nf
 .B #include <libaudit.h>
-.sp
-int audit_request_status(int fd);
+.PP
+.BI "int audit_request_status(int " fd );"
+.fi
 
 .SH "DESCRIPTION"
 
 .PP
-audit_request_status requests that the kernel send status structure describing various settings. The audit_status structure is as follows:
+audit_request_status requests that the kernel send status structure describing various settings on the descriptor given in \fIfd\fP. The audit_status structure is as follows:
 
 .RS
 .ta 4n 10n 24n

@@ -2,9 +2,11 @@
 .SH NAME
 audit_getloginuid \- Get a program's loginuid value
 .SH SYNOPSIS
+.nf
 .B #include <libaudit.h>
-.sp
-uid_t audit_getloginuid(void);
+.PP
+.BI "uid_t audit_getloginuid(void);"
+.fi
 
 .SH DESCRIPTION
 This function returns the task attribute loginuid.

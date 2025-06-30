@@ -2,14 +2,15 @@
 .SH NAME
 audit_set_rate_limit \- Set audit rate limit
 .SH "SYNOPSIS"
-
+.nf
 .B #include <libaudit.h>
-.sp
-int audit_set_rate_limit(int fd, uint32_t limit);
+.PP
+.BI "int audit_set_rate_limit(int " fd ", uint32_t " limit );"
+.fi
 
 .SH "DESCRIPTION"
 
-audit_set_rate_limit will set the maximum number of messages that the kernel will send per second. This can be used to throttle the rate if systems become unresponsive. Of course the trade off is that events will be dropped. The default value is 0, meaning no limit.
+audit_set_rate_limit will set the maximum number of messages that the kernel will send per second. This can be used to throttle the rate if systems become unresponsive. Of course the trade off is that events will be dropped. The \fIlimit\fP argument controls how many messages may be sent each second. The default value is 0, meaning no limit.
 
 .SH "RETURN VALUE"
 

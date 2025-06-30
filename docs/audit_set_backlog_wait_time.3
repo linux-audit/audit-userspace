@@ -2,14 +2,15 @@
 .SH NAME
 audit_set_backlog_wait_time \- Set the audit backlog wait time
 .SH "SYNOPSIS"
-
+.nf
 .B #include <libaudit.h>
-.sp
-int audit_set_backlog_wait_time(int fd, uint32_t bwt);
+.PP
+.BI "int audit_set_backlog_wait_time(int " fd ", uint32_t " bwt );"
+.fi
 
 .SH "DESCRIPTION"
 
-audit_set_backlog_wait_time sets the time that the kernel will wait before attempting to send more audit events to be transferred to the audit daemon when the backlog_limit is reached. This gives the audit daemon a chance to drain the kernel queue. The default value is 60000 or 60 * HZ setting in the kernel.
+audit_set_backlog_wait_time sets the time that the kernel will wait before attempting to send more audit events on the descriptor given in \fIfd\fP. The \fIbwt\fP parameter specifies the delay in jiffies before attempting to transfer more events when the backlog_limit is reached. This gives the audit daemon a chance to drain the kernel queue. The default value is 60000 or 60 * HZ setting in the kernel.
 
 .SH "RETURN VALUE"
 
