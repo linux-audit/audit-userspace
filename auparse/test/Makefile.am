@@ -28,6 +28,7 @@ TESTS = run_auparse_tests.sh run_auparselol_test.sh lookup_test \
 dist_check_SCRIPTS = run_auparse_tests.sh run_auparselol_test.sh
 EXTRA_DIST = auparse_test.ref auparse_test.ref.py test.log test2.log test3.log test4.log auditd_raw.sed run_auparse_tests.sh auparse_test.py run_auparselol_test.sh
 CLEANFILES = run_auparse_tests.sh run_auparselol_test.sh
+DISTCLEANFILES = $(CLEANFILES)
 
 AM_CPPFLAGS = -I${top_srcdir}/auparse -I${top_srcdir}/lib
 AM_CFLAGS = -D_GNU_SOURCE -Wno-pointer-sign ${WFLAGS}

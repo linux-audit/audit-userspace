@@ -2,9 +2,6 @@
 set -e
 
 srcdir="@srcdir@"
-if [ "$srcdir" != "." ]; then
-    cp "$srcdir"/test3.log .
-fi
-./auparselol_test -f test3.log --check | sort > auparse_test.cur
-sed -f "$srcdir"/auditd_raw.sed test3.log | sort > auparse_test.raw
+./auparselol_test -f "srcdir"/test3.log --check | sort > auparse_test.cur
+sed -f "$srcdir"/auditd_raw.sed "srcdir"/test3.log | sort > auparse_test.raw
 diff -u auparse_test.raw auparse_test.cur
