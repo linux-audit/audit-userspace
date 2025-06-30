@@ -900,6 +900,7 @@ static char *path_norm(const char *name)
 	working = malloc(PATH_MAX);
 	if (working == NULL)
 		return NULL;
+	*working = 0;
 
 	errno = EINVAL;
 	if (name == NULL)
