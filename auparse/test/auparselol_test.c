@@ -73,13 +73,13 @@ auparse_callback(auparse_state_t * au, auparse_cb_event_t cb_event_type,
              */
             if (flags & F_CHECK) {
                 if (e->host != NULL)
-                    printf("node=%s type=%s msg=audit(%u.%3.3u:%lu):",
+                    printf("node=%s type=%s msg=audit(%llu.%3.3u:%lu):",
                            e->host, auparse_get_type_name(au),
-                           (unsigned) e->sec, e->milli, e->serial);
+                           (unsigned long long) e->sec, e->milli, e->serial);
                 else
-                    printf("type=%s msg=audit(%u.%3.3u:%lu):",
+                   printf("type=%s msg=audit(%llu.%3.3u:%lu):",
                            auparse_get_type_name(au),
-                           (unsigned) e->sec, e->milli, e->serial);
+                           (unsigned long long) e->sec, e->milli, e->serial);
                 auparse_first_field(au);        /* Move to first field */
                 do {
                     const char *fname = auparse_get_field_name(au);
@@ -97,8 +97,8 @@ auparse_callback(auparse_state_t * au, auparse_cb_event_t cb_event_type,
             printf("fields=%u\t", auparse_get_num_fields(au));
             printf("type=%d (%s) ", auparse_get_type(au),
                    auparse_get_type_name(au));
-            printf("event_tid=%u.%3.3u:%lu ",
-                   (unsigned) e->sec, e->milli, e->serial);
+           printf("event_tid=%llu.%3.3u:%lu ",
+                   (unsigned long long) e->sec, e->milli, e->serial);
             if (flags & F_VERBOSE) {
                 char *fv, *ifv = NULL;
                 auparse_first_field(au);        /* Move to first field */

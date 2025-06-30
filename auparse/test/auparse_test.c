@@ -48,9 +48,9 @@ static void walk_test(auparse_state_t *au, int interpret)
 				printf("Error getting timestamp - aborting\n");
 				exit(1);
 			}
-			printf("    event time: %u.%u:%lu, host=%s\n",
-				(unsigned)e->sec,
-				e->milli, e->serial, e->host ? e->host : "?");
+                       printf("    event time: %llu.%u:%lu, host=%s\n",
+                               (unsigned long long)e->sec,
+                               e->milli, e->serial, e->host ? e->host : "?");
 			auparse_first_field(au);
 			do {
 				if (interpret) {
@@ -98,10 +98,10 @@ void light_test(auparse_state_t *au)
 				printf("Error getting timestamp - aborting\n");
 				exit(1);
 			}
-			printf("    event time: %u.%u:%lu, host=%s\n",
-					(unsigned)e->sec,
-					e->milli, e->serial,
-					e->host ? e->host : "?");
+                       printf("    event time: %llu.%u:%lu, host=%s\n",
+                                       (unsigned long long)e->sec,
+                                       e->milli, e->serial,
+                                       e->host ? e->host : "?");
 			printf("\n");
 			record_cnt++;
 		} while(auparse_next_record(au) > 0);
@@ -259,10 +259,10 @@ static void auparse_callback(auparse_state_t *au, auparse_cb_event_t cb_event_ty
 			if (e == NULL) {
 				return;
 			}
-			printf("    event time: %u.%u:%lu, host=%s\n",
-					(unsigned)e->sec,
-					e->milli, e->serial,
-					e->host ? e->host : "?");
+                       printf("    event time: %llu.%u:%lu, host=%s\n",
+                                       (unsigned long long)e->sec,
+                                       e->milli, e->serial,
+                                       e->host ? e->host : "?");
 			auparse_first_field(au);
 			do {
 				if (data->interpret) {
