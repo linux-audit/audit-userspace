@@ -155,9 +155,10 @@ int auplugin_fgets_r(struct auplugin_fgets_state *st, char *buf, size_t blen, in
 		if (nread == 0)
 			st->eof = 1;
 		else {
-			st->current[nread] = '\0';
-			st->current       += nread;
-			avail             += nread;
+			size_t got = (size_t)nread;
+			st->current[got] = '\0';
+			st->current += got;
+			avail += got;
 		}
 
 		/* see if a newline arrived in that chunk */
