@@ -2,10 +2,33 @@
 .SH NAME
 ausearch_add_expression \- build up search expression
 .SH "SYNOPSIS"
+.nf
 .B #include <auparse.h>
+.PP
+.BI "int ausearch_add_expression(auparse_state_t *" au ", const char *" expression ", char **" error ", ausearch_rule_t " how );"
+.fi
 
-.BI "int ausearch_add_expression(auparse_state_t *" au, const char *" expression, char **" error, ausearch_rule_t how);\fR  .SH "DESCRIPTION"  .B ausearch_add_item adds an expression to the current audit search expression. The search conditions can then be used to scan" logs, " files, or buffers for something of interest. The .I expression parameter contains an" expression, as specified in .BR ausearch\-expression (5).  The .I how parameter determines how this search expression will affect the existing search" expression, if one is already defined. The possible values are: .RS .TP .I AUSEARCH_RULE_CLEAR Clear the current search" expression, if" any, and use only this search expression. .TP .I AUSEARCH_RULE_OR If a search expression .I E is already" configured, replace it by (E || this_search_expression)\fR. .TP .I AUSEARCH_RULE_AND If a search expression .I E is already" configured, replace it by (E &&" this_search_expression);"
-the caller must free the error message using
+.SH "DESCRIPTION"
+.B ausearch_add_item
+adds an expression to the current audit search expression. The search conditions can then be used to scan logs, files, or buffers for something of interest. The \fIexpression\fP parameter contains an expression, as specified in
+.BR ausearch\-expression (5).
+The \fIhow\fP parameter determines how this search expression will affect the existing search expression, if one is already defined. The possible values are:
+.RS
+.TP
+.I AUSEARCH_RULE_CLEAR
+Clear the current search expression, if any, and use only this search expression.
+.TP
+.I AUSEARCH_RULE_OR
+If a search expression
+.I E
+is already configured, replace it by \fB(\fIE\fB || this_search_expression)\fR.
+.TP
+.I AUSEARCH_RULE_AND
+If a search expression
+.I E
+is already configured, replace it by \fB(\fIE\fB && this_search_expression)\fR.
+.RE
+The caller must free the error message using
 .BR free (3).
 If an error message is not available or can not be allocated, \fB*\fIerror\fR
 is set to \fBNULL\fR.

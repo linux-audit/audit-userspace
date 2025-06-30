@@ -5,7 +5,7 @@ auparse_add_callback \- add a callback handler for notifications
 .B #include <auparse.h>
 .sp
 .nf
-.BI "void auparse_add_callback(auparse_state_t *" au, auparse_callback_ptr" callback, void *" user_data, user_destroy" user_destroy_func);"
+.BI "void auparse_add_callback(auparse_state_t *" au ", auparse_callback_ptr " callback ", void *" user_data ", user_destroy " user_destroy_func ");"
 .fi
 .SH "DESCRIPTION"
 auparse_add_callback adds a callback function to the parse state which is invoked to notify the application of parsing events. This is part of the event feed API.

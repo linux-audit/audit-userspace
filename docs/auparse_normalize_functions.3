@@ -7,25 +7,43 @@ auparse_normalize_get_event_kind, auparse_normalize_subject_kind, auparse_normal
 .nf
 .B #include <auparse.h>
 .sp
-.BI "Metadata Functions: .B const char * auparse_normalize_get_event_kind(const auparse_state_t *" au);"
-.B const char *auparse_normalize_subject_kind(const auparse_state_t *au);
-.B const char *auparse_normalize_get_action(const auparse_state_t *au);
-.B const char *auparse_normalize_object_kind(const auparse_state_t *au);
-.B const char *auparse_normalize_how(const auparse_state_t *au);
+Metadata Functions:
+.br
+.BI "const char *auparse_normalize_get_event_kind(const auparse_state_t *" au ");"
+.br
+.BI "const char *auparse_normalize_subject_kind(const auparse_state_t *" au ");"
+.br
+.BI "const char *auparse_normalize_get_action(const auparse_state_t *" au ");"
+.br
+.BI "const char *auparse_normalize_object_kind(const auparse_state_t *" au ");"
+.br
+.BI "const char *auparse_normalize_how(const auparse_state_t *" au ");"
 .sp
 Positioning Functions:
-.B int auparse_normalize_session(auparse_state_t *au);
-.B int auparse_normalize_subject_primary(auparse_state_t *au);
-.B int auparse_normalize_subject_secondary(auparse_state_t *au);
-.B int auparse_normalize_subject_first_attribute(auparse_state_t *au);
-.B int auparse_normalize_subject_next_attribute(auparse_state_t *au);
-.B int auparse_normalize_object_primary(auparse_state_t *au);
-.B int auparse_normalize_object_secondary(auparse_state_t *au);
-.B int auparse_normalize_object_primary2(auparse_state_t *au);
-.B int auparse_normalize_object_first_attribute(auparse_state_t *au);
-.B int auparse_normalize_object_next_attribute(auparse_state_t *au);
-.B int auparse_normalize_get_results(auparse_state_t *au);
-.B int auparse_normalize_key(auparse_state_t *au);
+.br
+.BI "int auparse_normalize_session(auparse_state_t *" au ");"
+.br
+.BI "int auparse_normalize_subject_primary(auparse_state_t *" au ");"
+.br
+.BI "int auparse_normalize_subject_secondary(auparse_state_t *" au ");"
+.br
+.BI "int auparse_normalize_subject_first_attribute(auparse_state_t *" au ");"
+.br
+.BI "int auparse_normalize_subject_next_attribute(auparse_state_t *" au ");"
+.br
+.BI "int auparse_normalize_object_primary(auparse_state_t *" au ");"
+.br
+.BI "int auparse_normalize_object_secondary(auparse_state_t *" au ");"
+.br
+.BI "int auparse_normalize_object_primary2(auparse_state_t *" au ");"
+.br
+.BI "int auparse_normalize_object_first_attribute(auparse_state_t *" au ");"
+.br
+.BI "int auparse_normalize_object_next_attribute(auparse_state_t *" au ");"
+.br
+.BI "int auparse_normalize_get_results(auparse_state_t *" au ");"
+.br
+.BI "int auparse_normalize_key(auparse_state_t *" au ");"
 .fi
 .SH "DESCRIPTION"
 After calling the
