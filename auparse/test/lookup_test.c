@@ -37,36 +37,14 @@
 // only headers with i2s can be tested.
 
 
-/* Number of lookups of random strings */
+/* Number of lookups of random values */
 #define RAND_ITERATIONS 1000
-
-/* Maximum size of randomly generated strings, including the terminating NUL. */
-#define S_LEN 8
 
 struct entry {
 	int val;
 	const char *s;
 };
 #define _S(V, S) { (V), (S) },
-
-/* Generate a random string into DEST[S_LEN]. */
-static void
-gen_id(char *dest)
-{
-	size_t i, len;
-
-	assert(S_LEN >= 2);
-	len = 1 + rand() % (S_LEN - 1);
-	assert('A' == 0x41 && 'a' == 0x61); /* ASCII */
-	for (i = 0; i < len; i++) {
-		/* Don't start with a digit, audit_name_to_msg_type() interprets
-		   those strings specially. */
-		do {
-			dest[i] = 0x21 + rand() % (0x7F - 0x21);
-		} while (i == 0 && dest[i] >= '0' && dest[i] <= '9');
-	}
-	dest[i] = '\0';
-}
 
 static int debug = 0;
 
@@ -105,26 +83,6 @@ static int debug = 0;
 			assert(I2S(val) == NULL);			\
 		test_i2s_found:						\
 			;						\
-		}							\
-	} while (0)
-
-#define TEST_S2I(ERR_VALUE)						\
-	do {								\
-		size_t i;						\
-		char buf[S_LEN];					\
-									\
-		for (i = 0; i < sizeof(t) / sizeof(*t); i++)		\
-			assert(S2I(t[i].s) == t[i].val);		\
-		for (i = 0; i < RAND_ITERATIONS; i++) {			\
-			/* Blindly assuming this will not generate a	\
-			   meaningful identifier. */			\
-			gen_id(buf);					\
-			if (S2I(buf) != (ERR_VALUE)) {			\
-				fprintf(stderr,				\
-					"Unexpected match `%s'\n",	\
-					buf);				\
-				abort();				\
-			}						\
 		}							\
 	} while (0)
 
