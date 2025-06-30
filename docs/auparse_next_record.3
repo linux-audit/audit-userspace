@@ -4,7 +4,7 @@ auparse_next_record \- move record cursor
 .SH "SYNOPSIS"
 .B #include <auparse.h>
 .sp
-int auparse_next_record(auparse_state_t *au);
+.BI "int auparse_next_record(auparse_state_t *" au);"
 
 .SH "DESCRIPTION"
 auparse_next_record will move the internal library cursors to point to the next record of the current event. You should not call this function from a feed interface callback function. Doing so will deadlock the code. In that scenario, you should check the number of records in the current event with auparse_get_num_records and only call this if there are more records.

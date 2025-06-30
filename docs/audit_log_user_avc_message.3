@@ -4,21 +4,20 @@ audit_log_user_avc_message \- log a user avc message
 .SH SYNOPSIS
 .B #include <libaudit.h>
 .sp
-.B int audit_log_user_avc_message(int audit_fd, int type, const char *message,
-const char *hostname, const char *addr, const char *tty, uid_t auid)
+.BI "int audit_log_user_avc_message(int" audit_fd, int" type, const char *" message, const char *" hostname, const char *" addr, const char *" tty, uid_t" auid);"
 
 .SH DESCRIPTION
 
 This function will log a message to the audit system using a predefined message format. This function should be used by all apps that are SE Linux object managers. The function parameters are as follows:
 
 .nf
-audit_fd - The fd returned by audit_open
-type - type of message, ex: AUDIT_USER_AVC
-message - the message being sent
-hostname - the hostname if known
-addr - The network address of the user
-tty - The tty of the user, if NULL will attempt to figure out
-auid - The auid of the person related to the avc message
+\fIaudit_fd\fP - The fd returned by audit_open
+\fItype\fP - type of message, ex: AUDIT_USER_AVC
+\fImessage\fP - the message being sent
+\fIhostname\fP - the hostname if known
+\fIaddr\fP - The network address of the user
+\fItty\fP - The tty of the user, if NULL will attempt to figure out
+\fIauid\fP - The auid of the person related to the avc message
 .fi
 
 These values should correspond to who the message is about.

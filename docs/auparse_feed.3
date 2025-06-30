@@ -5,7 +5,7 @@ auparse_feed \- feed data into parser
 .B #include <auparse.h>
 .sp
 .nf
-int auparse_feed(auparse_state_t *au, const char *data, size_t data_len);
+.BI "int auparse_feed(auparse_state_t *" au, const char *" data, size_t" data_len);"
 .fi
 
 .TP
@@ -76,7 +76,7 @@ auparse_callback(auparse_state_t *au, auparse_cb_event_t cb_event_type,
 }
 
 main(int argc, char **argv)
-{	
+{
     char *filename = argv[1];
     FILE *fp;
     char buf[256];

@@ -4,7 +4,7 @@ auparse_get_timestamp \- access timestamp of the event
 .SH "SYNOPSIS"
 .B #include <auparse.h>
 .sp
-const au_event_t *auparse_get_timestamp(const auparse_state_t *au);
+.BI "const au_event_t * auparse_get_timestamp(const auparse_state_t *" au);"
 
 .SH "DESCRIPTION"
 
@@ -26,8 +26,8 @@ Returns NULL if an error occurs; otherwise, a valid pointer to the data.
 
 .SH "SEE ALSO"
 
-.BR auparse_get_time (3), 
-.BR auparse_get_milli (3), 
+.BR auparse_get_time (3),
+.BR auparse_get_milli (3),
 .BR auparse_get_serial (3),
 .BR auparse_get_node (3),
 .BR auparse_timestamp_compare (3).

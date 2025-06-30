@@ -4,17 +4,17 @@ audit_log_user_command \- log a user command
 .SH SYNOPSIS
 .B #include <libaudit.h>
 .sp
-.B int audit_log_user_command(int audit_fd, int type, const char *command, const char *tty, int result);
+.BI "int audit_log_user_command(int" audit_fd, int" type, const char *" command, const char *" tty, int" result);"
 
 .SH DESCRIPTION
 This function will log a command to the audit system using a predefined message format. It encodes the command as the audit system expects for untrusted strings. This function should be used by all apps need to record commands. The function parameters are as follows:
 
 .nf
-audit_fd - The fd returned by audit_open
-type - type of message, ex: AUDIT_USYS_CONFIG, AUDIT_USER_LOGIN
-command - the command being logged
-tty - The tty of the user, if NULL will attempt to figure out
-result - 1 is "success" and 0 is "failed"
+\fIaudit_fd\fP - The fd returned by audit_open
+\fItype\fP - type of message, ex: AUDIT_USYS_CONFIG, AUDIT_USER_LOGIN
+\fIcommand\fP - the command being logged
+\fItty\fP - The tty of the user, if NULL will attempt to figure out
+\fIresult\fP - 1 is "success" and 0 is "failed"
 .fi
 
 .SH "RETURN VALUE"

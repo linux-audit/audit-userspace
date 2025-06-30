@@ -7,8 +7,7 @@ auparse_normalize_get_event_kind, auparse_normalize_subject_kind, auparse_normal
 .nf
 .B #include <auparse.h>
 .sp
-Metadata Functions:
-.B const char *auparse_normalize_get_event_kind(const auparse_state_t *au);
+.BI "Metadata Functions: .B const char * auparse_normalize_get_event_kind(const auparse_state_t *" au);"
 .B const char *auparse_normalize_subject_kind(const auparse_state_t *au);
 .B const char *auparse_normalize_get_action(const auparse_state_t *au);
 .B const char *auparse_normalize_object_kind(const auparse_state_t *au);
@@ -29,7 +28,7 @@ Positioning Functions:
 .B int auparse_normalize_key(auparse_state_t *au);
 .fi
 .SH "DESCRIPTION"
-After calling the 
+After calling the
 .B auparse_normalize
 function, you will probably want to access the audit event data. These function provide access to the results of the normalization. There are 2 kinds of function, metadata and positioning.
 
@@ -43,7 +42,7 @@ The positioning functions return < 0 on error, 0 if uninitialized, and 1 on succ
 .SH "SEE ALSO"
 auparse_normalize(3), auparse_get_field_str(3), auparse_interpret_field(3).
 
-.BR 
+.BR
 
 .SH AUTHOR
 Steve Grubb

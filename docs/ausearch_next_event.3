@@ -4,7 +4,7 @@ ausearch_next_event \- find the next event that meets search criteria
 .SH "SYNOPSIS"
 .B #include <auparse.h>
 .sp
-int ausearch_next_event(auparse_state_t *au);
+.BI "int ausearch_next_event(auparse_state_t *" au);"
 
 .SH "DESCRIPTION"
 
@@ -16,8 +16,8 @@ Returns \-1 if an error occurs, 0 if no matches, and 1 for success.
 
 .SH "SEE ALSO"
 
-.BR ausearch_add_item (3), 
-.BR ausearch_add_regex (3), 
+.BR ausearch_add_item (3),
+.BR ausearch_add_regex (3),
 .BR ausearch_set_stop (3).
 
 .SH AUTHOR

@@ -4,7 +4,7 @@ auparse_init \- initialize an instance of the audit parsing library
 .SH "SYNOPSIS"
 .B #include <auparse.h>
 .sp
-auparse_state_t *auparse_init(ausource_t source, const void *b);
+.BI "auparse_state_t * auparse_init(ausource_t" source, const void *" b);"
 
 .SH "DESCRIPTION"
 
@@ -31,7 +31,7 @@ Returns a NULL pointer if an error occurs; otherwise, the return value is an opa
 
 .SH "SEE ALSO"
 
-.BR auparse_reset (3), 
+.BR auparse_reset (3),
 .BR auparse_destroy (3).
 .BR auparse_feed (3).
 

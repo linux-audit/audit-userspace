@@ -4,7 +4,7 @@ auparse_get_time \- get event's time
 .SH "SYNOPSIS"
 .B #include <auparse.h>
 .sp
-time_t auparse_get_time(const auparse_state_t *au);
+.BI "time_t auparse_get_time(const auparse_state_t *" au);"
 
 .SH "DESCRIPTION"
 
@@ -16,8 +16,8 @@ Returns 0 if an error occurs; otherwise, the valid time value in time_t format.
 
 .SH "SEE ALSO"
 
-.BR time (3), 
-.BR auparse_get_timestamp (3), 
+.BR time (3),
+.BR auparse_get_timestamp (3),
 .BR auparse_get_milli (3).
 .BR auparse_get_serial (3).
 .BR auparse_get_node (3).

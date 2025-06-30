@@ -5,9 +5,7 @@ auparse_add_callback \- add a callback handler for notifications
 .B #include <auparse.h>
 .sp
 .nf
-.B void
-auparse_add_callback(auparse_state_t *au, auparse_callback_ptr callback,
-                     void *user_data, user_destroy user_destroy_func);
+.BI "void auparse_add_callback(auparse_state_t *" au, auparse_callback_ptr" callback, void *" user_data, user_destroy" user_destroy_func);"
 .fi
 .SH "DESCRIPTION"
 auparse_add_callback adds a callback function to the parse state which is invoked to notify the application of parsing events. This is part of the event feed API.
@@ -45,13 +43,13 @@ void destroy(void *user_data);
 .sp
 The destroy() function should be prepared to accept user_data possibly being NULL.
 .PP
-The 
+The
 .I cb_event_type
 argument indicates why the callback was invoked. It's possible values are:
 .br
 .TP
 .B AUPARSE_CB_EVENT_READY
-A complete event has been parsed and is ready to be examined. This is logically equivalent to the parse state immediately following 
+A complete event has been parsed and is ready to be examined. This is logically equivalent to the parse state immediately following
 .I auparse_next_event()
 .PP
 See auparse_feed(3) for a complete code example.
@@ -62,7 +60,7 @@ None.
 
 .SH "SEE ALSO"
 
-.BR auparse_feed (3), 
+.BR auparse_feed (3),
 .BR auparse_flush_feed (3).
 
 .SH AUTHOR
