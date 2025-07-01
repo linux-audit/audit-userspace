@@ -542,8 +542,8 @@ static int event_loop(void)
 		} else if (e->hdr.ver == AUDISP_PROTOCOL_VER2) {
 			size_t to_copy = e->hdr.size;
 
-			if (to_copy > sizeof(fmt_buf) - 2)
-				to_copy = sizeof(fmt_buf) - 2;
+			if (to_copy > MAX_AUDIT_MESSAGE_LENGTH)
+				to_copy = MAX_AUDIT_MESSAGE_LENGTH;
 
 			// was snprintf, this is faster
 			memcpy(fmt_buf, e->data, to_copy);
