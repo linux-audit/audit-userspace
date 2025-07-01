@@ -153,8 +153,11 @@ static void load_plugin_conf(conf_llist *plugin)
 
 static int start_one_plugin(lnode *conf)
 {
-	if (conf->p->restart_cnt > daemon_config.max_restarts)
-		return 1;
+	if (conf->p->restart_cnt > daemon_config.max_restarts) {
+		/* Do not mark active when max restarts exceeded */
+		conf->p->active = A_NO;
+		return 0;
+	}
 
 	if (conf->p->type == S_ALWAYS) {
 		if (safe_exec(conf->p)) {
