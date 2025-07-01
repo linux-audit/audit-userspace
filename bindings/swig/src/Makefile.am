@@ -14,7 +14,7 @@
 #
 # You should have received a copy of the GNU Lesser General Public
 # License along with this program; see the file COPYING.lib. If not, write to
-# the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor 
+# the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor
 # Boston, MA 02110-1335, USA.
 #
 # Authors:
@@ -22,6 +22,5 @@
 #
 
 EXTRA_DIST = auditswig.i
-SWIG_SOURCES = auditswig.i
 CONFIG_CLEAN_FILES = *.loT *.rej *.orig
 
