@@ -1,4 +1,4 @@
-/* internal.h -- 
+/* internal.h --
  * Copyright 2006-07,2013-17,2025 Red Hat Inc.
  * All Rights Reserved.
  *
@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- * 
+ *
  * Authors:
  *	Steve Grubb <sgrubb@redhat.com>
  */
@@ -51,7 +51,7 @@ typedef enum { EVENT_EMPTY, EVENT_ACCUMULATING, EVENT_EMITTED } auparser_state_t
  *      event1_record4
  *      event3_record0
  *      ...
- *      
+ *
  * The auditd system does guarantee that the records that make up an event will
  * appear in order. Thus, when processing event streams, we need to maintain
  * a list of events with their own list of records hence List of List (LOL)
@@ -152,7 +152,7 @@ struct opaque
 	char *next_buf;			// The current buffer being broken down
 	unsigned int off;		// The current offset into next_buf
 	char *cur_buf;			// The current buffer being parsed
-	int line_pushed;		// True if retrieve_next_line() 
+	int line_pushed;		// True if retrieve_next_line()
 					//	returns same input
 	event_list_t *le;		// Linked list of record in same event
 	struct expr *expr;		// Search expression or NULL
@@ -170,7 +170,7 @@ struct opaque
 
 	// function to call when user_data is destroyed
 	void (*callback_user_data_destroy)(void *user_data);
-	
+
 	au_lol *au_lo;		// List of events
 	int au_ready;		// For speed, we note how many EBS_COMPLETE
 				// events we hold at any point in time. Thus
@@ -182,9 +182,7 @@ struct opaque
 	normalize_data norm_data;
 	nvlist interpretations;		// Per-parser interpretations list
 	Queue *uid_cache;               // per-parser UID cache
-	int uid_cache_created;
 	Queue *gid_cache;               // per-parser GID cache
-	int gid_cache_created;
 };
 
 AUDIT_HIDDEN_START

@@ -569,9 +569,8 @@ static const char *aulookup_uid(auparse_state_t *au, uid_t uid,
 	}
 
 	// Check the cache first
-	if (au->uid_cache_created == 0) {
+	if (au->uid_cache == NULL) {
 		au->uid_cache = init_lru(19, NULL, "uid");
-		au->uid_cache_created = 1;
 	}
 	key = compute_subject_key(au->uid_cache, uid);
 	q_node = check_lru_cache(au->uid_cache, key);
@@ -601,11 +600,8 @@ static const char *aulookup_uid(auparse_state_t *au, uid_t uid,
 
 void _aulookup_destroy_uid_list(auparse_state_t *au)
 {
-	if (au->uid_cache_created == 0)
-		return;
-
 	destroy_lru(au->uid_cache);
-	au->uid_cache_created = 0;
+	au->uid_cache = NULL;
 }
 
 static const char *aulookup_gid(auparse_state_t *au, gid_t gid,
@@ -624,9 +620,8 @@ static const char *aulookup_gid(auparse_state_t *au, gid_t gid,
 	}
 
 	// Check the cache first
-	if (au->gid_cache_created == 0) {
+	if (au->gid_cache == NULL) {
 		au->gid_cache = init_lru(19, NULL, "gid");
-		au->gid_cache_created = 1;
 	}
 	key = compute_subject_key(au->gid_cache, gid);
 	q_node = check_lru_cache(au->gid_cache, key);
@@ -655,23 +650,16 @@ static const char *aulookup_gid(auparse_state_t *au, gid_t gid,
 
 void aulookup_destroy_gid_list(auparse_state_t *au)
 {
-	if (au->gid_cache_created == 0)
-		return;
-
 	destroy_lru(au->gid_cache);
-	au->gid_cache_created = 0;
+	au->gid_cache = NULL;
 }
 
 void _auparse_flush_caches(auparse_state_t *au)
 {
-	if (au->uid_cache_created) {
-		destroy_lru(au->uid_cache);
-		au->uid_cache_created = 0;
-	}
-	if (au->gid_cache_created) {
-		destroy_lru(au->gid_cache);
-		au->gid_cache_created = 0;
-	}
+	destroy_lru(au->uid_cache);
+	au->uid_cache = NULL;
+	destroy_lru(au->gid_cache);
+	au->gid_cache = NULL;
 }
 
 void aulookup_metrics(const auparse_state_t *au,

@@ -569,9 +569,7 @@ auparse_state_t *auparse_init(ausource_t source, const void *b)
 	au->search_where = AUSEARCH_STOP_EVENT;
 	au->tmp_translation = NULL;
 	au->uid_cache = NULL;
-	au->uid_cache_created = 0;
 	au->gid_cache = NULL;
-	au->gid_cache_created = 0;
 	init_interpretation_list(au);
 	init_normalizer(&au->norm_data);
 
