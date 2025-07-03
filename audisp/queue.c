@@ -292,7 +292,7 @@ retry:
 		* q_next advanced.
 		*/
 		atomic_store_explicit(&q_next, (n+1) % q_depth,
-                                      memory_order_release);
+			memory_order_release);
 #else
 		q_next = (n+1) % q_depth;
 #endif
@@ -319,14 +319,12 @@ retry:
 	return 0;
 }
 
-event_t *dequeue(void)
+/* Common dequeue logic after semaphore wait */
+static event_t *dequeue_common(void)
 {
 	event_t *e;
 	unsigned int n;
 
-	/* Wait until there is something in the queue */
-	while (sem_wait(&queue_nonempty) == -1 && errno == EINTR)
-		;
 	if (AUDIT_ATOMIC_LOAD(disp_hup))
 		return NULL;
 
@@ -352,42 +350,7 @@ event_t *dequeue(void)
 		* cross-thread ordering needed for the queue operations.
 		*/
 		atomic_store_explicit(&q_last, (n+1) % q_depth,
-                                     memory_order_release);
-#else
-		q_last = (n+1) % q_depth;
-#endif
-		currently_used--;
-	} else
-		e = NULL;
-
-        return e;
-}
-
-event_t *dequeue_timed(const struct timespec *timeout)
-{
-	event_t *e;
-	unsigned int n;
-
-	while (sem_timedwait(&queue_nonempty, timeout) == -1 && errno == EINTR)
-		;
-	if (errno == ETIMEDOUT)
-		return NULL;
-
-	if (AUDIT_ATOMIC_LOAD(disp_hup))
-		return NULL;
-
-#ifdef HAVE_ATOMIC
-	n = atomic_load_explicit(&q_last, memory_order_relaxed) % q_depth;
-#else
-	n = q_last % q_depth;
-#endif
-
-	if (q[n] != NULL) {
-		e = (event_t *)q[n];
-		q[n] = NULL;
-#ifdef HAVE_ATOMIC
-		atomic_store_explicit(&q_last, (n+1) % q_depth,
-				      memory_order_release);
+			memory_order_release);
 #else
 		q_last = (n+1) % q_depth;
 #endif
@@ -396,6 +359,26 @@ event_t *dequeue_timed(const struct timespec *timeout)
 		e = NULL;
 
 	return e;
+}
+
+event_t *dequeue(void)
+{
+	/* Wait until there is something in the queue */
+	while (sem_wait(&queue_nonempty) == -1 && errno == EINTR)
+		;
+
+	return dequeue_common();
+}
+
+event_t *dequeue_timed(const struct timespec *timeout)
+{
+	/* Wait until there is something in the queue */
+	while (sem_timedwait(&queue_nonempty, timeout) == -1 && errno == EINTR)
+		;
+	if (errno == ETIMEDOUT)
+		return NULL;
+
+	return dequeue_common();
 }
 
 void nudge_queue(void)
