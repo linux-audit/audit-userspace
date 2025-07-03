@@ -109,3 +109,5 @@ src/test/test-suite.log
 tools/aulast/test/aulast_llist_test
 tools/aulast/test/aulast_llist_test.log
 tools/aulast/test/test-suite.log
+audisp/test/audisp-llist-test
+audisp/test/audisp-llist-test.log
