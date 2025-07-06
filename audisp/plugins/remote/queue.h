@@ -40,7 +40,7 @@ enum {
 	Q_RESIZE = 1 << 5,	// resize the queue if needed
 };
 
-/* MAX_AUDIT_MESSAGE_LENGTH, aligned to 4 KB so that an average q_append() only
+/* MAX_AUDIT_MESSAGE_LENGTH, aligned to 4 KiB so that an average q_append() only
    writes to two disk disk blocks (1 aligned data block, 1 header block). */
 #define QUEUE_ENTRY_SIZE (3*4096)
 

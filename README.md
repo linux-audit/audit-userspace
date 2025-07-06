@@ -218,13 +218,13 @@ audit version = 4.0.5
 current time = 06/02/25 20:21:31
 process priority = -4
 writing to logs = yes
-current log size = 2423 KB
-max log size = 8192 KB
+current log size = 2423 KiB
+max log size = 8192 KiB
 logs detected last rotate/shift = 0
 space left on partition = yes
-Logging partition free space 45565 MB
-space_left setting 75 MB
-admin_space_left setting 50 MB
+Logging partition free space 45565 MiB
+space_left setting 75 MiB
+admin_space_left setting 50 MiB
 logging suspended = no
 file system space action performed = no
 admin space action performed = no
@@ -236,9 +236,9 @@ plugin queue size = 2000
 plugin queue overflow detected = no
 plugin queueing suspended = no
 listening for network connections = no
-glibc arena (total memory) is: 388 KB, was: 388 KB
-glibc uordblks (in use memory) is: 92 KB, was: 90 KB
-glibc fordblks (total free space) is: 295 KB, was: 297 KB
+glibc arena (total memory) is: 388 KiB, was: 388 KiB
+glibc uordblks (in use memory) is: 92 KiB, was: 90 KiB
+glibc fordblks (total free space) is: 295 KiB, was: 297 KiB
 ```
 
 This command causes auditd to dump its internal metrics to /var/run/auditd.state. This can tell you if auditd is healthy. Also, you can make auditd periodically update the state file by adjusting the report_interval setting in auditd.conf (note - only available in audit-4.0.5 and later). See the man page for details. Setting this allows for the conitinuous updating for metrics collection.

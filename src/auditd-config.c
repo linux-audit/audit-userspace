@@ -1919,7 +1919,7 @@ static int report_interval_parser(const struct nv_pair *nv, int line,
 }
 
 /*
- * Query file system and calculate in MB the given percentage is.
+ * Query file system and calculate in MiB the given percentage is.
  * Returns 0 on error and a number otherwise.
  */
 static unsigned long calc_percent(float percent, int fd)
@@ -1932,7 +1932,7 @@ static unsigned long calc_percent(float percent, int fd)
 		unsigned long free_space;
 		// All blocks * percentage = free blocks threshold
 		fsblkcnt_t free_blocks = buf.f_blocks * (percent/100.0);
-		// That is then converted into megabytes and returned
+		// That is then converted into mebibytes and returned
 		free_space = (buf.f_bsize * free_blocks) / MEGABYTE;
 
 		return free_space;
@@ -1942,7 +1942,7 @@ static unsigned long calc_percent(float percent, int fd)
 
 /*
  * This function translates a percentage of disk space to the
- * actual MB value for space left actions.
+ * actual MiB value for space left actions.
  */
 void setup_percentages(struct daemon_conf *config, int fd)
 {

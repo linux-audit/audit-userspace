@@ -128,21 +128,21 @@ void write_logging_state(FILE *f)
 		int rc;
 		struct statfs buf;
 
-		fprintf(f, "current log size = %llu KB\n",
+		fprintf(f, "current log size = %llu KiB\n",
 			(long long unsigned)log_size/1024);
-		fprintf(f, "max log size = %lu KB\n",
+		fprintf(f, "max log size = %lu KiB\n",
 				config->max_log_size * (MEGABYTE/1024));
 		fprintf(f,"logs detected last rotate/shift = %u\n", known_logs);
 		fprintf(f, "space left on partition = %s\n",
 					fs_space_left ? "yes" : "no");
 		rc = fstatfs(log_fd, &buf);
 		if (rc == 0) {
-			fprintf(f, "Logging partition free space = %llu MB\n",
+			fprintf(f, "Logging partition free space = %llu MiB\n",
 				(long long unsigned)
 				(buf.f_bavail * buf.f_bsize)/MEGABYTE);
-			fprintf(f, "space_left setting = %lu MB\n",
+			fprintf(f, "space_left setting = %lu MiB\n",
 				config->space_left);
-			fprintf(f, "admin_space_left setting = %lu MB\n",
+			fprintf(f, "admin_space_left setting = %lu MiB\n",
 				config->admin_space_left);
 		}
 		fprintf(f, "logging suspended = %s\n",

@@ -7,7 +7,7 @@ The queue file format starts with a fixed header, followed by an array
 of slots for strings.  Due to the fixed size of each slot the file format
 is rather inefficient, but it is also very simple.
 
-The file is preallocated and the string slots will be aligned to a 4KB
+The file is preallocated and the string slots will be aligned to a 4KiB
 boundary, so it should be necessary to only write one block to disk
 when audisp-remote receives a (short) audit record.
 
