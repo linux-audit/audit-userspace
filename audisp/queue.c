@@ -36,10 +36,11 @@
 /*
  * Audisp uses a simple ring buffer to pass events from auditd to its
  * plugin dispatcher thread.  The goal is to avoid blocking producers
- * and consumers on a mutex.  The semaphore below tracks how many events
- * are queued while the atomic indices maintain the next slot to use for
- * enqueueing and dequeueing.  A mutex is only required when the queue is
- * resized.
+ * and consumers on a mutex.  Multiple producers may enqueue events
+ * concurrently, so the queue indices are updated atomically.  The
+ * semaphore below tracks how many events are queued while the atomic
+ * indices maintain the next slot to use for enqueueing and dequeueing.
+ * A mutex is only required when the queue is resized.
  */
 
 static volatile event_t **q;
@@ -260,7 +261,7 @@ static int do_overflow_action(struct disp_conf *config)
  */
 int enqueue(event_t *e, struct disp_conf *config)
 {
-	unsigned int n, retry_cnt = 0;
+	unsigned int n, idx, retry_cnt = 0;
 
 	if (processing_suspended) {
 		free(e);
@@ -277,51 +278,48 @@ retry:
 
 #ifdef HAVE_ATOMIC
 	/*
-	* Load the producer index with relaxed ordering.  sem_post() acts
-	* as a release barrier and sem_wait() in dequeue() provides the
-	* matching acquire barrier.  Because the threads synchronize on
-	* the semaphore, a relaxed load of q_next is sufficient here.
-	*/
-	n = atomic_load_explicit(&q_next, memory_order_relaxed) % q_depth;
+	 * Multiple producers update the queue head concurrently.  Use a
+	 * compare-and-swap loop to reserve the next slot and ensure that
+	 * each event gets a unique index.
+	 */
+	do {
+		n = atomic_load_explicit(&q_next, memory_order_relaxed);
+		idx = n % q_depth;
+		if (q[idx] != NULL) {
+			struct timespec ts;
+			ts.tv_sec = 0;
+			ts.tv_nsec = 2 * 1000 * 1000; /* 2 milliseconds */
+			nanosleep(&ts, NULL);
+			retry_cnt++;
+			goto retry;
+		}
+	} while (!atomic_compare_exchange_weak_explicit(&q_next, &n, (n + 1) % q_depth, memory_order_acq_rel, memory_order_relaxed));
 #else
 	n = q_next % q_depth;
-#endif
-	if (q[n] == NULL) {
-		q[n] = e;
-#ifdef HAVE_ATOMIC
-		/*
-		* Store the updated producer index with release semantics.
-		* The event was written to q[n] above and sem_post() will be
-		* issued next.  sem_post() itself is a release barrier and
-		* sem_wait() in dequeue() will acquire it, so the combination
-		* guarantees the consumer sees the event before noticing that
-		* q_next advanced.
-		*/
-		atomic_store_explicit(&q_next, (n+1) % q_depth,
-			memory_order_release);
-#else
-		q_next = (n+1) % q_depth;
-#endif
-		currently_used++;
-		if (currently_used > max_used)
-			max_used = currently_used;
-		if (persist_fd >= 0) {
-			if (write(persist_fd, e->data, e->hdr.size) < 0) {
-				/* Log error but continue - persistence is not critical */
-				syslog(LOG_WARNING, "Failed to write event to persistent queue");
-			}
-			if (persist_sync)
-				fdatasync(persist_fd);
-		}
-		sem_post(&queue_nonempty);
-	} else {
+	idx = n;
+	if (q[idx] != NULL) {
 		struct timespec ts;
 		ts.tv_sec = 0;
 		ts.tv_nsec = 2 * 1000 * 1000; /* 2 milliseconds */
-		nanosleep(&ts, NULL); /* Let other thread try to log it. */
+		nanosleep(&ts, NULL);
 		retry_cnt++;
 		goto retry;
 	}
+	q_next = (n + 1) % q_depth;
+#endif
+	q[idx] = e;
+	currently_used++;
+	if (currently_used > max_used)
+		max_used = currently_used;
+	if (persist_fd >= 0) {
+		if (write(persist_fd, e->data, e->hdr.size) < 0) {
+			/* Log error but continue - persistence is not critical */
+			syslog(LOG_WARNING, "Failed to write event to persistent queue");
+		}
+		if (persist_sync)
+			fdatasync(persist_fd);
+	}
+	sem_post(&queue_nonempty);
 	return 0;
 }
 
