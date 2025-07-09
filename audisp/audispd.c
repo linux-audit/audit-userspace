@@ -639,7 +639,12 @@ int libdisp_active(void)
 	return plist_count(&plugin_conf);
 }
 
-/* returns 0 on success and -1 on error */
+/*
+ * returns 0 on success,
+ * 1 if the event could not be queued due to overflow or
+ * when processing is suspended, and
+ * -1 on other errors
+ */
 int libdisp_enqueue(event_t *e)
 {
 	return enqueue(e, &daemon_config);

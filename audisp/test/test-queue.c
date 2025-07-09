@@ -10,8 +10,10 @@
 
 #ifdef HAVE_ATOMIC
 ATOMIC_INT disp_hup = 0;
+ATOMIC_INT dropped = 0;
 #else
 volatile ATOMIC_INT disp_hup = 0;
+volatile ATOMIC_INT dropped = 0;
 #endif
 
 static event_t *make_event(const char *str)
@@ -103,8 +105,15 @@ static void *producer(void *a)
 	struct prod_arg *pa = a;
 	for (int i = 0; i < pa->count; i++) {
 		event_t *e = make_event(pa->lines[i % pa->count]);
-		if (e)
-			enqueue(e, pa->conf);
+		if (e) {
+			if (enqueue(e, pa->conf)) {
+#ifdef HAVE_ATOMIC
+				atomic_fetch_add_explicit(&dropped, 1, memory_order_relaxed);
+#else
+				dropped++;
+#endif
+			}
+		}
 	}
 	return NULL;
 }
@@ -145,19 +154,24 @@ static int concurrency_test(const char *logfile)
 	pthread_create(&prod[0], NULL, producer, &pa);
 	pthread_create(&prod[1], NULL, producer, &pa);
 
-	while (consumed < target) {
-		event_t *e = dequeue();
+	struct timespec ts = { .tv_sec = 0, .tv_nsec = 10000000 };
+	while (consumed < target - dropped) {
+		event_t* e = dequeue_timed(&ts);
 		if (e) {
 			consumed++;
 			free(e);
+			continue;
 		}
 	}
 
 	pthread_join(prod[0], NULL);
 	pthread_join(prod[1], NULL);
 
-	if (queue_current_depth() != 0) {
-		fprintf(stderr, "concurrency_test: depth not zero\n");
+	int expected = target - dropped;
+	if (consumed != expected || queue_current_depth() != 0) {
+		fprintf(stderr,
+				"concurrency_test: %d consumed, %d expected, %d dropped\n",
+				consumed, expected, dropped);
 		rc = 1;
 	} else {
 		rc = 0;

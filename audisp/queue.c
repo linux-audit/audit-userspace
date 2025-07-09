@@ -252,21 +252,27 @@ static int do_overflow_action(struct disp_conf *config)
 	return rc;
 }
 
-/* returns 0 on success and -1 on error */
+/*
+ * returns 0 on success,
+ * 1 if the event could not be queued due to overflow or
+ * when processing is suspended, and
+ * -1 on other errors
+ */
 int enqueue(event_t *e, struct disp_conf *config)
 {
 	unsigned int n, retry_cnt = 0;
 
 	if (processing_suspended) {
 		free(e);
-		return 0;
+		return 1;
 	}
 
 retry:
 	/* We allow 3 retries and then its over */
 	if (retry_cnt > 3) {
 		free(e);
-		return do_overflow_action(config);
+		do_overflow_action(config);
+		return 1;
 	}
 
 #ifdef HAVE_ATOMIC

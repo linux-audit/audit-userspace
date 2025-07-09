@@ -62,7 +62,12 @@ void reconfigure_dispatcher(const struct daemon_conf *config)
 	libdisp_reconfigure(config);
 }
 
-/* Returns -1 on err, 0 on success */
+/*
+ * Returns 0 on success,
+ * 1 if the event could not be queued due to overflow or
+ * when processing is suspended, and
+ * -1 on other errors
+ */
 int dispatch_event(const struct audit_reply *rep, int protocol_ver)
 {
 	event_t *e;
