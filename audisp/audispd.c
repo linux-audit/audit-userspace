@@ -397,6 +397,7 @@ static void *outbound_thread_main(void *arg)
 
 	/* Tell plugins we are going down */
 	signal_plugins(SIGTERM);
+	usleep(10000); // 10 milliseconds - let plugins wrap up
 
 	/* Release configs */
 	plist_first(&plugin_conf);
@@ -411,7 +412,7 @@ static void *outbound_thread_main(void *arg)
 	destroy_queue();
 	free(daemon_config.plugin_dir);
 	daemon_config.plugin_dir = NULL;
-	audit_msg(LOG_DEBUG, "Finished cleaning up dispatcher");
+	audit_msg(LOG_INFO, "Dispatcher plugins cleaned up");
 
 	return 0;
 }
@@ -474,6 +475,9 @@ static int safe_exec(plugin_conf_t *conf)
 static void signal_plugins(int sig)
 {
 	lnode *conf;
+
+	if (sig == SIGTERM)
+		audit_msg(LOG_INFO, "Terminating plugins");
 
 	plist_first(&plugin_conf);
 	conf = plist_get_cur(&plugin_conf);
