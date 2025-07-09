@@ -372,10 +372,13 @@ event_t *dequeue(void)
 
 event_t *dequeue_timed(const struct timespec *timeout)
 {
+	int result;
+
 	/* Wait until there is something in the queue */
-	while (sem_timedwait(&queue_nonempty, timeout) == -1 && errno == EINTR)
+	while ((result = sem_timedwait(&queue_nonempty, timeout)) == -1 && errno == EINTR)
 		;
-	if (errno == ETIMEDOUT)
+
+	if (result == -1)
 		return NULL;
 
 	return dequeue_common();
