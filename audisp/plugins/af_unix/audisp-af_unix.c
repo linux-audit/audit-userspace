@@ -355,7 +355,7 @@ void event_loop(int ifd)
 		rc = poll(pfd, 2 + client, -1);
 		if (rc < 0) {
 			if (stop)
-				return;
+				break;
 
 			if (errno == EINTR)
 				continue;
@@ -373,15 +373,15 @@ void event_loop(int ifd)
 				client = 0;
 				auplugin_fgets_clear();
 			}
-			if (pfd[0].revents & POLLIN) {
-				// Inbound audit event
-				read_audit_record(ifd);
-			}
 			// auditd closed it's socket, exit
 			if (pfd[0].revents & POLLHUP) {
 				syslog(LOG_INFO,
 				       "Auditd closed it's socket - exiting");
 				return;
+			}
+			if (pfd[0].revents & POLLIN) {
+				// Inbound audit event
+				read_audit_record(ifd);
 			}
 
 			if (pfd[1].revents & (POLLIN|POLLOUT)) {

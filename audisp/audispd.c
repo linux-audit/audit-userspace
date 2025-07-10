@@ -397,7 +397,7 @@ static void *outbound_thread_main(void *arg)
 
 	/* Tell plugins we are going down */
 	signal_plugins(SIGTERM);
-	usleep(10000); // 10 milliseconds - let plugins wrap up
+	usleep(15000); // 15 milliseconds - let plugins wrap up
 
 	/* Release configs */
 	plist_first(&plugin_conf);
