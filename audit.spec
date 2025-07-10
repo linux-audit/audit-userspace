@@ -29,7 +29,7 @@ License: LGPL-2.0-or-later
 BuildRequires: libcap-ng-devel
 
 %description libs
-The audit-libs package contains the dynamic libraries needed for 
+The audit-libs package contains the dynamic libraries needed for
 applications to use the audit framework.
 
 %package libs-devel
@@ -286,6 +286,6 @@ fi
 %attr(750,root,root) %{_sbindir}/audispd-zos-remote
 
 %changelog
-Tue Jun 03 2025 Steve Grubb <sgrubb@redhat.com> 4.0.6-1
+Thu Jul 10 2025 Steve Grubb <sgrubb@redhat.com> 4.1.0-1
 - New upstream release
 
