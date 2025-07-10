@@ -25,6 +25,7 @@
 
 // Next include is to pick up the function attribute macros
 #include <features.h>
+#include <sys/types.h>
 #include <audit-records.h>
 
 #ifdef __cplusplus
