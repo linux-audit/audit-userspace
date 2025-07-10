@@ -38,8 +38,12 @@
  * plugin dispatcher thread.  The goal is to avoid blocking producers
  * and consumers on a mutex.  The semaphore below tracks how many events
  * are queued while the atomic indices maintain the next slot to use for
- * enqueueing and dequeueing.  A mutex is only required when the queue is
- * resized.
+ * enqueueing and dequeueing. A mutex is only required when the queue is
+ * resized. The queue is not safe for multiple producers. Atomic load/store of
+ * the index alone does not guarantee exclusive access to a ring buffer entry.
+ * A compare‑exchange or other reservation mechanism (or simply a mutex) is
+ * required to make the queue race‑free. However, auditd is the only producer
+ * and audisp is the only consumer, so the queue is safe in practice.
  */
 
 static volatile event_t **q;

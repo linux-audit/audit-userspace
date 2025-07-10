@@ -150,9 +150,9 @@ static int concurrency_test(const char *logfile)
 	}
 
 	struct prod_arg pa = { .lines = lines, .count = n, .conf = &conf };
-	target = n * 2;
+	target = n;
 	pthread_create(&prod[0], NULL, producer, &pa);
-	pthread_create(&prod[1], NULL, producer, &pa);
+	// pthread_create(&prod[1], NULL, producer, &pa);
 
 	struct timespec ts = { .tv_sec = 0, .tv_nsec = 10000000 };
 	while (consumed < target - dropped) {
@@ -165,7 +165,7 @@ static int concurrency_test(const char *logfile)
 	}
 
 	pthread_join(prod[0], NULL);
-	pthread_join(prod[1], NULL);
+	// pthread_join(prod[1], NULL);
 
 	int expected = target - dropped;
 	if (consumed != expected || queue_current_depth() != 0) {
