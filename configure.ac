@@ -29,7 +29,7 @@ define([AC_INIT_NOTICE],
 ])
 
 AC_REVISION($Revision: 1.3 $)dnl
-AC_INIT([audit], [4.0.6])
+AC_INIT([audit], [4.1.0])
 AC_PREREQ([2.50])dnl
 AC_CONFIG_HEADERS([config.h])
 
@@ -428,7 +428,7 @@ AC_CONFIG_FILES([Makefile common/Makefile lib/Makefile lib/audit.pc
        auparse/test/Makefile auparse/test/run_auparse_tests.sh
        auparse/test/run_auparselol_test.sh
        auparse/auparse.pc src/Makefile src/libev/Makefile src/test/Makefile
-       docs/Makefile rules/Makefile init.d/Makefile 
+       docs/Makefile rules/Makefile init.d/Makefile
        audisp/Makefile audisp/test/Makefile
        audisp/plugins/Makefile audisp/plugins/af_unix/Makefile
        audisp/plugins/remote/Makefile audisp/plugins/zos-remote/Makefile
