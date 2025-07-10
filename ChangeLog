@@ -1,4 +1,6 @@
-4.1.0.
+4.1.1
+
+4.1.0
 - Fix auditd -s enable hang issue (Yan Zhu)
 - Optimize event formatting in auditd
 - af_unix plugin: Restore terminating newlines
