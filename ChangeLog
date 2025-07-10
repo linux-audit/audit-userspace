@@ -1,4 +1,4 @@
-4.0.6
+4.1.0.
 - Fix auditd -s enable hang issue (Yan Zhu)
 - Optimize event formatting in auditd
 - af_unix plugin: Restore terminating newlines
@@ -8,6 +8,8 @@
 - Make all plugins ignore SIGTERM if not from auditd (issue #469)
 - Add libauplugin, refactor audisp-filter, ids, and audisp-statsd to use it
 - In auditd, safely reconfigure the network settings after SIGHUP
+- Make test suite machine independent
+- Persistent queue support with metrics helpers
 
 4.0.5
 - Rework audisp queue to be lockless
