@@ -43,6 +43,8 @@
 // malloc and free assignments
 #ifndef __attr_dealloc
 # define __attr_dealloc(dealloc, argno)
+#endif
+#ifndef __attr_dealloc_free
 # define __attr_dealloc_free
 #endif
 #ifndef __attribute_malloc__
