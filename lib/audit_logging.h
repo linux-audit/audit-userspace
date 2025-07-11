@@ -25,6 +25,7 @@
 
 // Next include is to pick up the function attribute macros
 #include <features.h>
+#include <sys/types.h>
 #include <audit-records.h>
 
 #ifdef __cplusplus
@@ -39,6 +40,8 @@ extern "C" {
 #endif
 #ifndef __attr_dealloc
 # define __attr_dealloc(dealloc, argno)
+#endif
+#ifndef __attr_dealloc_free
 # define __attr_dealloc_free
 #endif
 // Warn unused result
