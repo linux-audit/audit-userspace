@@ -111,3 +111,5 @@ if USE_PYTHON3
 	$(RM) ${top_builddir}/bindings/swig/python3/_audit.so
 endif
 	test "$(top_srcdir)" = "$(top_builddir)" || $(RM) test*.log
+
+.NOTPARALLEL:
