@@ -37,7 +37,7 @@ format_event_test_LDADD = ${top_builddir}/lib/libaudit.la \
 	${top_builddir}/auparse/libauparse.la \
 	${top_builddir}/audisp/libdisp.la \
 	${top_builddir}/src/libev/libev.la \
-	${top_builddir}/common/libaucommon.la -lpthread -lm $(gss_libs)
+	${top_builddir}/common/libaucommon.la -lpthread -lm $(gss_libs) $(LIBWRAP_LIBS)
 if ENABLE_LISTENER
 format_event_test_SOURCES += \
         ${top_srcdir}/src/auditd-listen.c
