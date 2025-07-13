@@ -1,0 +1,57 @@
+.TH "AUDIT_GET_FEATURES" "3" "July 2025" "Red Hat" "Linux Audit API"
+.SH NAME
+audit_get_features, audit_set_feature \- query or change kernel audit features
+.SH SYNOPSIS
+.B #include <libaudit.h>
+.sp
+.BI "uint32_t audit_get_features(void);"
+.br
+.BI "int audit_set_feature(int " fd ", unsigned " feature ", unsigned " value ", unsigned " lock );"
+.SH DESCRIPTION
+.BR audit_get_features ()
+returns a bitmap describing which kernel audit features are supported.  The bitmap is cached internally and retrieved from the kernel on the first call.
+.PP
+.BR audit_set_feature ()
+changes a feature bit for the kernel using the descriptor
+.I fd
+which must be an open audit netlink socket.
+.I feature
+selects the bit to modify.  If
+.I value
+is nonzero the feature is enabled, otherwise it is disabled.  If
+.I lock
+is nonzero the feature setting is locked until reboot.
+.PP
+The feature bits currently defined are:
+.TP
+.B AUDIT_FEATURE_BITMAP_BACKLOG_LIMIT
+Kernel supports changing the backlog queue depth.
+.TP
+.B AUDIT_FEATURE_BITMAP_BACKLOG_WAIT_TIME
+Kernel supports delaying syscalls when the queue is full.
+.TP
+.B AUDIT_FEATURE_BITMAP_EXECUTABLE_PATH
+Kernel will include the executable path on EXECVE records.
+.TP
+.B AUDIT_FEATURE_BITMAP_EXCLUDE_EXTEND
+Exclude rules may be used with more fields than just message type.
+.TP
+.B AUDIT_FEATURE_BITMAP_SESSIONID_FILTER
+Session identifier filtering is supported.
+.TP
+.B AUDIT_FEATURE_BITMAP_LOST_RESET
+Allows resetting the lost event counter.
+.TP
+.B AUDIT_FEATURE_BITMAP_FILTER_FS
+Kernel supports file system field filtering.
+.SH RETURN VALUE
+.BR audit_get_features
+returns the feature bitmap or 0 if feature queries are unsupported.  
+.BR audit_set_feature
+returns \<= 0 on error, otherwise it is the netlink sequence id number.
+.SH SEE ALSO
+.BR audit_request_features (3),
+.BR audit_reset_lost (3),
+.BR audit_open (3).
+.SH AUTHOR
+Steve Grubb

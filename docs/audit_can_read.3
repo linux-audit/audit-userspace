@@ -1,0 +1,30 @@
+.TH "AUDIT_CAN_CONTROL" "3" "July 2025" "Red Hat" "Linux Audit API"
+.SH NAME
+audit_can_control, audit_can_write, audit_can_read \- test audit related capabilities
+.SH SYNOPSIS
+.B #include <libaudit.h>
+.sp
+.BI "int audit_can_control(void);"
+.br
+.BI "int audit_can_write(void);"
+.br
+.BI "int audit_can_read(void);"
+.SH DESCRIPTION
+.BR audit_can_control ()
+returns 1 if the calling process possesses the
+.BR CAP_AUDIT_CONTROL
+capability, otherwise 0.
+.BR audit_can_write ()
+returns 1 if
+.BR CAP_AUDIT_WRITE
+is available.  
+.BR audit_can_read ()
+returns 1 if
+.BR CAP_AUDIT_READ
+is present.  When libcap-ng support is not available these functions return 1 only when the effective UID is 0.
+.SH RETURN VALUE
+These functions return 1 when the capability is present and 0 otherwise.
+.SH SEE ALSO
+.BR audit_open (3).
+.SH AUTHOR
+Steve Grubb

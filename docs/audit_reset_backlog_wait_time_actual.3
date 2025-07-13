@@ -1,0 +1,28 @@
+.TH "AUDIT_RESET_BACKLOG_WAIT_TIME_ACTUAL" "3" "July 2025" "Red Hat" "Linux Audit API"
+.SH NAME
+audit_reset_backlog_wait_time_actual \- reset backlog wait time actual counter
+.SH SYNOPSIS
+.B #include <libaudit.h>
+.sp
+.BI "int audit_reset_backlog_wait_time_actual(int " fd ");"
+.SH DESCRIPTION
+.BR audit_reset_backlog_wait_time_actual ()
+resets the kernel's running total of how long system calls have waited for
+space in the audit event queue.  The
+.I fd
+must be an open audit netlink socket.  This call is useful when administrators
+enable backlog waiting via the
+.BR audit_set_backlog_wait_time (3)
+option to preserve events in tight memory situations.  Periodically clearing
+the counter allows detection of renewed backlog waiting after changing the
+queue size or wait time.  The kernel must support the
+.BR AUDIT_STATUS_BACKLOG_WAIT_TIME_ACTUAL
+field for this call to succeed.
+.SH RETURN VALUE
+The return value is <= 0 on error, otherwise it is the netlink sequence id number.
+.SH SEE ALSO
+.BR audit_set_backlog_wait_time (3),
+.BR audit_open (3),
+.BR auditctl (8).
+.SH AUTHOR
+Steve Grubb

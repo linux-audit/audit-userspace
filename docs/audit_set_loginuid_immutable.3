@@ -1,0 +1,23 @@
+.TH "AUDIT_SET_LOGINUID_IMMUTABLE" "3" "July 2025" "Red Hat" "Linux Audit API"
+.SH NAME
+audit_set_loginuid_immutable \- make loginuid value immutable
+.SH SYNOPSIS
+.B #include <libaudit.h>
+.sp
+.BI "int audit_set_loginuid_immutable(int " fd );"
+.SH DESCRIPTION
+.BR audit_set_loginuid_immutable ()
+locks the loginuid so that it can no longer be changed.  The descriptor
+.I fd
+must be an open audit netlink socket.  This call is equivalent to using
+.BR audit_set_feature ()
+to enable and lock the
+.BR AUDIT_FEATURE_LOGINUID_IMMUTABLE
+bit.
+.SH RETURN VALUE
+The return value is <= 0 on error, otherwise it is the netlink sequence id number.
+.SH SEE ALSO
+.BR audit_set_feature (3),
+.BR audit_open (3).
+.SH AUTHOR
+Steve Grubb

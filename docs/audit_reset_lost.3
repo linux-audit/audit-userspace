@@ -1,0 +1,22 @@
+.TH "AUDIT_RESET_LOST" "3" "July 2025" "Red Hat" "Linux Audit API"
+.SH NAME
+audit_reset_lost \- reset lost event counter
+.SH SYNOPSIS
+.B #include <libaudit.h>
+.sp
+.BI "int audit_reset_lost(int " fd ");"
+.SH DESCRIPTION
+.BR audit_reset_lost ()
+resets the kernel's lost event counter using the descriptor
+.I fd
+which must be an open audit netlink socket.  This call requires that the kernel
+support
+.BR AUDIT_FEATURE_BITMAP_LOST_RESET .
+.SH RETURN VALUE
+The return value is <= 0 on error, otherwise it is the netlink sequence id number.
+.SH SEE ALSO
+.BR audit_get_features (3),
+.BR audit_open (3),
+.BR auditctl (8).
+.SH AUTHOR
+Steve Grubb

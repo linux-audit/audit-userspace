@@ -1,0 +1,22 @@
+.TH "AUDIT_REQUEST_FEATURES" "3" "July 2025" "Red Hat" "Linux Audit API"
+.SH NAME
+audit_request_features \- request audit feature bitmap
+.SH SYNOPSIS
+.B #include <libaudit.h>
+.sp
+.BI "int audit_request_features(int " fd ");"
+.SH DESCRIPTION
+.BR audit_request_features ()
+requests that the kernel send a structure describing supported audit features on
+.I fd
+which must be an open audit netlink socket.
+.SH RETURN VALUE
+The return value is <= 0 on error, otherwise it is the netlink sequence id number.  This function can have any error that
+.BR sendto (2)
+would encounter.
+.SH SEE ALSO
+.BR audit_get_features (3),
+.BR audit_open (3),
+.BR auditd (8).
+.SH AUTHOR
+Steve Grubb
