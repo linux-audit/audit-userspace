@@ -275,6 +275,12 @@ static void safe_exec(const char *exe, const char *message)
 	/* Child */
 	sigfillset (&sa.sa_mask);
 	sigprocmask (SIG_UNBLOCK, &sa.sa_mask, 0);
+#ifdef HAVE_CLOSE_RANGE
+	close_range(3, ~0U, 0); /* close all past stderr */
+#else
+	for (i=3; i<24; i++)     /* Arbitrary number */
+		close(i);
+#endif
 
 	argv[0] = (char *)exe;
 	argv[1] = (char *)message;

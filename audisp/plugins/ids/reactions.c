@@ -53,6 +53,12 @@ static int safe_exec(const char *exe, ...)
 	/* Child */
 	sigfillset (&sa.sa_mask);
 	sigprocmask (SIG_UNBLOCK, &sa.sa_mask, 0);
+#ifdef HAVE_CLOSE_RANGE
+	close_range(3, ~0U, 0); /* close all past stderr */
+#else
+	for (i=3; i<24; i++)     /* Arbitrary number */
+		close(i);
+#endif
 
 	va_start(ap, exe);
 	for (i = 1; va_arg(ap, char *) != NULL; i++);
