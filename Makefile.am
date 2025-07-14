@@ -26,9 +26,14 @@ SUBDIRS = common lib auparse audisp auplugin audisp/plugins src/libev \
 	src tools bindings init.d m4 docs rules
 EXTRA_DIST = ChangeLog AUTHORS NEWS README.md INSTALL \
 	audit.spec COPYING COPYING.LIB \
-	contrib/avc_snap contrib/plugin/Makefile \
+	contrib/avc_snap \
+	contrib/plugin/Makefile \
 	contrib/plugin/audisp-example.c \
-	contrib/plugin/audisp-example.conf
+	contrib/plugin/audisp-example.conf \
+	contrib/libauplugin/Makefile \
+	contrib/libauplugin/auplugin-example.c \
+	contrib/libauplugin/auplugin-example.conf
+
 CONFIG_CLEAN_FILES = debug*.list config/*
 
 clean-generic:
