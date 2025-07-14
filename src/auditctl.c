@@ -818,21 +818,30 @@ static int opt_append(opt_handler_params_t *args)
 static int opt_prepend(opt_handler_params_t *args)
 {
 	int retval = args->retval, rc;
-	rc = audit_rule_setup(optarg, &del, &action);
-	if (rc == 3) {
+
+	if (strstr(optarg, "task") && _audit_syscalladded) {
 		audit_msg(LOG_ERR,
-				  "Multiple rule insert/delete operations are not allowed");
-		retval = OPT_ERROR_NO_REPLY;
-	} else if (rc == 2) {
-		audit_msg(LOG_ERR, "Delete rule - bad keyword %s", optarg);
-		retval = OPT_ERROR_NO_REPLY;
-	} else if (rc == 1) {
-		audit_msg(LOG_INFO,
-				  "Delete rule - possible is deprecated");
-		args->finish = 1;
-		return OPT_DEPRECATED; /* deprecated - eat it */
-	} else
-		retval = OPT_SUCCESS_RULE; /* success - please send */
+			 "Error: syscall auditing requested for task list");
+		retval = -1;
+	} else {
+		rc = audit_rule_setup(optarg, &add, &action);
+		if (rc == 3) {
+			audit_msg(LOG_ERR,
+		"Multiple rule insert/delete operations are not allowed");
+			retval = -1;
+		} else if (rc == 2) {
+			audit_msg(LOG_ERR, "Add rule - bad keyword %s",
+				  optarg);
+			retval = -1;
+		} else if (rc == 1) {
+			audit_msg(LOG_WARNING,
+				  "Append rule - possible is deprecated");
+			return -3; /* deprecated - eat it */
+		} else {
+			add |= AUDIT_FILTER_PREPEND;
+			retval = 1; /* success - please send */
+		}
+	}
 	return retval;
 }
 
