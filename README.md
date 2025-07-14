@@ -257,6 +257,27 @@ The auparse library is available to allow one to create custom reporting applica
 
 You can write programs in one of two ways: iterate across events, records, and fields; or use the feed API to which a callback function is presented with a single, complete event that can be iterated across the records and fields. The former is best for working with files, while the latter is more appropriate for realtime data for a plugin.
 
+AUPLUGIN
+--------
+The auplugin library helps developers write auditd plugins. It multithreads
+a plugin with a queue inbetween the threads. One thread pulls event records
+from auditd, then equeues them. The other thread sees the events and calls
+back a function of your choosing. This keeps auditd running at top speed
+since plugins keep their socket drained. The library offers functions to
+manage an event queue and dispatch audit records to a callback for
+processing.  Its functionality falls into several categories:
+
+- Initialization and shutdown helpers
+- Event loop processing or feeding events through libauparse
+- Queue statistics and management helpers
+- Buffered line readers for descriptor based input
+
+Plugins generally follow one of two patterns.  They can use
+`auplugin_event_loop()` with a record callback when raw records are
+sufficient.  Alternatively `auplugin_event_feed()` queues the records
+for libauparse and presents fully formed events to the callback.  The
+latter is typically used when plugin logic needs structured event data.
+
 Audit Standards
 ---------------
 You can find the standards to which the audit system conforms to in the ![Audit Documentation Project](https://github.com/linux-audit/audit-documentation).
