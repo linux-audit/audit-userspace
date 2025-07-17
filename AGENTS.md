@@ -117,8 +117,7 @@ intended ordering.
 ## Summary
 
 - Build with `autoreconf`, `configure`, and `make`.
-- Run `make check` to execute the self-tests. (auparse tests are failing
-  because of a mismatch in mapping uid to accounts. Igonore these.)
+- Run `make check` to execute the self-tests.
 - Follow Linux Kernel coding style (tabs, 80 columns).
 - Follow glibc style for man(3) pages.
 - Keep commit messages short and descriptive.

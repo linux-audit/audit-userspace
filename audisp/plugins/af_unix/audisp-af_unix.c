@@ -197,7 +197,7 @@ int setup_socket(int argc, char *argv[])
 }
 
 static int event_to_string(struct audit_dispatcher_header *hdr,
-			   char *data, char **out, int *outlen)
+				char *data, char **out, int *outlen)
 {
 	char *v = NULL, *ptr, unknown[32];
 	int len;
@@ -246,75 +246,161 @@ static int event_to_string(struct audit_dispatcher_header *hdr,
 	return 1;
 }
 
+/*
+ * read_binary_record - read a binary dispatcher record
+ * @fd:  input descriptor
+ * @hdr: pointer to header storage
+ * @data: pointer to data storage
+ *
+ * This function reads exactly sizeof(*hdr) bytes followed by hdr->size
+ * bytes from @fd.  It returns the total bytes read or -1 on error and
+ * 0 when EOF is reached.
+ */
+static int read_binary_record(int fd, struct audit_dispatcher_header *hdr,
+                              char *data)
+{
+	size_t len = sizeof(*hdr);
+	char *ptr = (char *)hdr;
+	ssize_t rc;
+
+	while (len) {
+		rc = read(fd, ptr, len);
+		if (rc <= 0) {
+			if (rc < 0 && errno == EINTR)
+				continue;
+			return rc;
+		}
+		ptr += rc;
+		len -= rc;
+	}
+
+	if (hdr->size > MAX_AUDIT_MESSAGE_LENGTH)
+		hdr->size = MAX_AUDIT_MESSAGE_LENGTH;
+
+	len = hdr->size;
+	ptr = data;
+	while (len) {
+		rc = read(fd, ptr, len);
+		if (rc <= 0) {
+			if (rc < 0 && errno == EINTR)
+				continue;
+			return rc;
+		}
+		ptr += rc;
+		len -= rc;
+	}
+
+	return sizeof(*hdr) + hdr->size;
+}
+
 void read_audit_record(int ifd)
 {
-	do {
-		int len;
+	int len;
 
-		// Read stdin
-		if ((len = auplugin_fgets(rx_buf,MAX_AUDIT_EVENT_FRAME_SIZE + 1,
-				       ifd)) > 0) {
-#ifdef DEBUG
-			write(1, rx_buf, len);
-#endif
-			if (client && !stop) {
-				// Send it to the client
-				int rc;
-				struct audit_dispatcher_header *hdr =
-				    (struct audit_dispatcher_header *)rx_buf;
-				char *data = rx_buf +
-					sizeof(struct audit_dispatcher_header);
+	if (inbound_protocol == F_BINARY || inbound_protocol == -1) {
+		struct audit_dispatcher_header *hdr =
+				(struct audit_dispatcher_header *)rx_buf;
+		char *data = rx_buf + sizeof(*hdr);
 
-				if (inbound_protocol == -1) {
-					if (hdr->ver == AUDISP_PROTOCOL_VER ||
-						hdr->ver == AUDISP_PROTOCOL_VER2)
-						inbound_protocol = F_BINARY;
-					else
-						inbound_protocol = F_STRING;
-				}
+		len = read_binary_record(ifd, hdr, data);
+		if (len <= 0) {
+			if (len == 0)
+				stop = 1;
+			return;
+		}
+		if (inbound_protocol == -1)
+			inbound_protocol = F_BINARY;
 
-				if (format == F_STRING) {
+		if (client && !stop) {
+			int rc;
 
-					char *str = NULL;
-					int str_len = 0;
-					if (event_to_string(hdr, data, &str,
-							    &str_len) < 0) {
-						// what to do with error?
-						continue;
-					}
+			if (format == F_STRING) {
+				char *str = NULL;
+				int str_len = 0;
 
-					do {
-						rc = write(conn, str, str_len);
-					} while (rc < 0 && errno == EINTR);
-					free(str);
-				} else if (format == F_BINARY) {
-					struct iovec vec[2];
+				if (event_to_string(hdr, data, &str,
+							&str_len) < 0)
+					return;
 
-					vec[0].iov_base = hdr;
-					vec[0].iov_len =
-					 sizeof(struct audit_dispatcher_header);
+				do {
+					rc = write(conn, str, str_len);
+				} while (rc < 0 && errno == EINTR);
+				free(str);
+			} else if (format == F_BINARY) {
+				struct iovec vec[2];
 
-					vec[1].iov_base = data;
-					vec[1].iov_len =
-						MAX_AUDIT_MESSAGE_LENGTH;
+				vec[0].iov_base = hdr;
+				vec[0].iov_len = sizeof(*hdr);
 
-					do {
-						rc = writev(conn, vec, 2);
-					} while (rc < 0 && errno == EINTR);
-					if (rc < 0 && errno == EPIPE) {
-						close(conn);
-						conn = -1;
-						client = 0;
-						auplugin_fgets_clear();
-					}
-					//if (rc >= 0 && rc != len) {
-					// what to do with leftovers?
-					//}
+				vec[1].iov_base = data;
+				vec[1].iov_len = hdr->size;
+
+				do {
+					rc = writev(conn, vec, 2);
+				} while (rc < 0 && errno == EINTR);
+				if (rc < 0 && errno == EPIPE) {
+					close(conn);
+					conn = -1; // FIXME: is this right?
+					client = 0;
+					auplugin_fgets_clear();
 				}
 			}
-		} else if (auplugin_fgets_eof())
-			stop = 1;
-	} while (!stop && auplugin_fgets_more(MAX_AUDIT_EVENT_FRAME_SIZE));
+		}
+	} else {
+		do {
+			len = auplugin_fgets(rx_buf,
+					MAX_AUDIT_EVENT_FRAME_SIZE + 1, ifd);
+			if (len > 0) {
+				if (inbound_protocol == -1)
+					inbound_protocol = F_STRING;
+				if (client && !stop) {
+					int rc;
+					char *data = rx_buf +
+					 sizeof(struct audit_dispatcher_header);
+					struct audit_dispatcher_header *hdr =
+					 (struct audit_dispatcher_header *)rx_buf;
+
+					if (format == F_STRING) {
+						char *str = NULL;
+						int str_len = 0;
+						if (event_to_string(hdr, data,
+								    &str,
+								&str_len) < 0)
+							continue;
+
+						do {
+							rc = write(conn, str,
+								   str_len);
+						} while (rc < 0 && errno == EINTR);
+						free(str);
+					} else if (format == F_BINARY) {
+						struct iovec vec[2];
+
+						vec[0].iov_base = hdr;
+						vec[0].iov_len =
+								sizeof(*hdr);
+
+						vec[1].iov_base = data;
+						vec[1].iov_len =
+						    MAX_AUDIT_MESSAGE_LENGTH;
+
+						do {
+							rc = writev(conn, vec,
+									2);
+						} while (rc < 0 && errno == EINTR);
+						if (rc < 0 && errno == EPIPE) {
+							close(conn);
+							conn = -1;
+							client = 0;
+							auplugin_fgets_clear();
+						}
+					}
+				}
+			} else if (auplugin_fgets_eof())
+				stop = 1;
+		} while (!stop &&
+			auplugin_fgets_more(MAX_AUDIT_EVENT_FRAME_SIZE));
+	}
 }
 
 void accept_connection(void)
