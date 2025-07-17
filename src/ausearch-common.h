@@ -30,6 +30,7 @@
 #include <time.h>
 #include "ausearch-string.h"
 #include "auparse-defs.h"
+#include "common.h"
 
 /*
  * MAX_EVENT_DELTA_SECS is the maximum number of seconds it would take for

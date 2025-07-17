@@ -76,22 +76,10 @@ extern void output_auparse_finish(void);
  */
 extern time_t arg_eoe_timeout;
 
-static int is_pipe(int fd)
-{
-	struct stat st;
-	int pipe_mode=0;
-
-	if (fstat(fd, &st) == 0) {
-		if (S_ISFIFO(st.st_mode)) 
-			pipe_mode = 1;
-	}
-	return pipe_mode;
-}
-
 int main(int argc, char *argv[])
 {
 	struct rlimit limit;
-	int rc;
+	int rc, has_stdin;
 	struct stat sb;
 
 	/* Check params and build regexpr */
@@ -123,6 +111,10 @@ int main(int argc, char *argv[])
 				config.log_file);
 		}
 	}
+
+	has_stdin = check_stdin_data();
+	if (has_stdin < 0)
+		return 1;
 
 	/* Set timeout from the config file */
 	lol_set_eoe_timeout((time_t)config.end_of_event_timeout);
@@ -179,16 +171,15 @@ int main(int argc, char *argv[])
 				free_config(&config);
 				break;
 		}
-	} else if (force_logs)
+	} else if (force_logs || !has_stdin)
 		rc = process_logs();
-	else if (is_pipe(0)) {
+	else {
 		rc = process_stdin();
 		if (checkpt_filename)
 	       	        fprintf(stderr,
 			    "Warning - checkpointing stdin is not supported");
 		goto skip_checkpt; // Don't overwrite chkpt when reading a pipe
-	} else
-		rc = process_logs();
+	}
 
 	/* Generate a checkpoint if required */
 	if (checkpt_filename) {

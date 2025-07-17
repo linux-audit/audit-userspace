@@ -87,6 +87,9 @@ void wall_message(const char *fmt, ...)
 	;
 #endif
 
+int is_pipe(int fd);
+int check_stdin_data(void);
+
 AUDIT_HIDDEN_END
 #endif
 

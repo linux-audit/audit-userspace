@@ -29,6 +29,8 @@
 #include <fcntl.h>
 #include <stdlib.h>	// strtol
 #include <errno.h>
+#include <poll.h>
+#include <sys/stat.h>
 
 /*
  * This function returns 1 if it is the last record in an event.
@@ -162,3 +164,43 @@ long time_string_to_seconds(const char *time_string,
 	return i;
 }
 
+int is_pipe(int fd)
+{
+	struct stat st;
+
+	return (!fstat(fd, &st) && S_ISFIFO(st.st_mode));
+}
+
+/*
+ * Check if stdin is a pipe, and it is, check if it has data on it.
+ *
+ * Return:
+ *  0: no data to read
+ *  1: has data to read
+ * -errno: error from poll() or -EPIPE if errno wasn't set
+ */
+int check_stdin_data(void)
+{
+	struct pollfd in = {
+		.fd = STDIN_FILENO,
+		.events = POLLIN,
+	};
+	int ret;
+
+	if (!is_pipe(in.fd))
+		return 0;
+
+	/* this is stdin, so a 0 timeout should be enough for this check */
+	ret = poll(&in, 1, 0);
+	if (ret < 0 || (in.revents & POLLERR)) {
+		ret = errno ? -errno : -EPIPE;
+		fprintf(stderr, "<error %d polling data from stdin>\n", ret);
+
+		return ret;
+	}
+
+	if (!ret || !(in.revents & POLLIN))
+		return 0;
+
+	return 1;
+}
