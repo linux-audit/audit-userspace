@@ -298,7 +298,7 @@ void lru_evict(Queue *queue, unsigned int key)
 	QNode *temp = queue->front;
 
        if (hash->array[key] != temp) {
-		msg(LOG_ERR, "lru_evict called with mismatched key %s",
+		syslog(LOG_ERR, "lru_evict called with mismatched key %s",
 			queue->name);
 		abort();
 	}
