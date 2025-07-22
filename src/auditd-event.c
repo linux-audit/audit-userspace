@@ -1526,7 +1526,7 @@ static pid_t safe_exec(const char *exe)
 #ifdef HAVE_CLOSE_RANGE
 	close_range(3, ~0U, 0); /* close all past stderr */
 #else
-	for (i=3; i<24; i++)     /* Arbitrary number */
+	for (int i=3; i<24; i++)     /* Arbitrary number */
 		close(i);
 #endif
 
