@@ -24,13 +24,10 @@
 #include "config.h"
 #include <stdlib.h>
 #include <string.h>
+#include <syslog.h>
 #include "lru.h"
 
 //#define DEBUG
-
-#ifdef DEBUG
-#include <syslog.h>
-#endif
 
 // Local declarations
 static void dequeue(Queue *queue);
