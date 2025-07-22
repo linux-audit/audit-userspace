@@ -297,11 +297,13 @@ void lru_evict(Queue *queue, unsigned int key)
 	Hash *hash = queue->hash;
 	QNode *temp = queue->front;
 
+#ifdef DEBUG
        if (hash->array[key] != temp) {
 		syslog(LOG_ERR, "lru_evict called with mismatched key %s",
 			queue->name);
 		abort();
 	}
+#endif
 
 	hash->array[key] = NULL;
 	remove_node(queue, queue->front);
