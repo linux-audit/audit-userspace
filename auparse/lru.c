@@ -24,6 +24,7 @@
 #include "config.h"
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 #include "lru.h"
 
 //#define DEBUG
@@ -275,14 +276,32 @@ static void dequeue(Queue *queue)
 	queue->count--;
 }
 
-// Remove front of the queue because its a mismatch
+/*
+ * lru_evict - remove the cache entry that should be at the front of the
+ *             queue
+ * @queue: pointer to the LRU queue
+ * @key:   hash index for the entry to evict
+ *
+ * The caller must first move the desired entry to the front of the queue by
+ * calling check_lru_cache() with the same key. This ensures that @key refers
+ * to the front node. If the node at the front does not match @key, the
+ * program will abort as this is a usage error.
+ */
 void lru_evict(Queue *queue, unsigned int key)
 {
 	if (queue_is_empty(queue))
 		return;
 
+	assert(key < queue->total);
+
 	Hash *hash = queue->hash;
 	QNode *temp = queue->front;
+
+       if (hash->array[key] != temp) {
+		msg(LOG_ERR, "lru_evict called with mismatched key %s",
+			queue->name);
+		abort();
+	}
 
 	hash->array[key] = NULL;
 	remove_node(queue, queue->front);
