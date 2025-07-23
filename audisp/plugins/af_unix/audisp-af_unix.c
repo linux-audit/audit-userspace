@@ -527,7 +527,10 @@ int main(int argc, char *argv[])
 	// close up and delete socket
 	if (conn >= 0) close(conn);
 	if (sock >= 0) close(sock);
-	unlink(path);
+	if (unlink(path) == -1) {
+		syslog(LOG_WARNING, "Failed to unlink socket %s (%s)",
+			path, strerror(errno));
+	}
 
 	return 0;
 }
