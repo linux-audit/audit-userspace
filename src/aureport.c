@@ -69,21 +69,10 @@ extern int force_logs;
 extern time_t arg_eoe_timeout;
 
 
-static int is_pipe(int fd)
-{
-	struct stat st;
-
-	if (fstat(fd, &st) == 0) {
-		if (S_ISFIFO(st.st_mode))
-			return 1;
-	}
-	return 0;
-}
-
 int main(int argc, char *argv[])
 {
 	struct rlimit limit;
-	int rc;
+	int rc, has_stdin;
 
 	/* Check params and build regexpr */
 	setlocale (LC_ALL, "");
@@ -110,6 +99,10 @@ int main(int argc, char *argv[])
         if (load_config(&config, TEST_SEARCH))
 		fprintf(stderr, "NOTE - using built-in logs: %s\n",
 				config.log_file);
+
+	has_stdin = check_stdin_data();
+	if (has_stdin < 0)
+		return 1;
 
 	/* Set timeout from the config file */
 	lol_set_eoe_timeout((time_t)config.end_of_event_timeout);
@@ -143,12 +136,10 @@ int main(int argc, char *argv[])
 					break;
 			}
 		}
-	} else if (force_logs)
+	} else if (force_logs || !has_stdin)
 		rc = process_logs();
-	else if (is_pipe(0))
-		rc = process_stdin();
 	else
-		rc = process_logs();
+		rc = process_stdin();
 	lol_clear(&lo);
 	if (rc)
 		return rc;

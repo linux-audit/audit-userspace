@@ -199,17 +199,6 @@ static int sync_error_handler (const char *why)
 	return 0;
 }
 
-static int is_pipe(int fd)
-{
-	struct stat st;
-
-	if (fstat(fd, &st) == 0) {
-		if (S_ISFIFO(st.st_mode))
-			return 1;
-	}
-	return 0;
-}
-
 static void change_runlevel(const char *level)
 {
 	char *argv[3];
