@@ -3,6 +3,9 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 #include <auplugin.h>
 
 static void test_basic_state(void)
@@ -41,9 +44,48 @@ static void test_basic_state(void)
 	auplugin_fgets_destroy(st);
 }
 
+static void test_mmap_file(void)
+{
+	const char *srcdir = getenv("srcdir") ? getenv("srcdir") : ".";
+	char path[512];
+	int fd;
+	auplugin_fgets_state_t *st;
+	char buff[256];
+	int lines = 0;
+
+	snprintf(path, sizeof(path), "%s/../../auparse/test/test.log", srcdir);
+	fd = open(path, O_RDONLY);
+	assert(fd >= 0);
+
+	st = auplugin_fgets_init();
+	assert(st);
+
+	struct stat sb;
+	assert(fstat(fd, &sb) == 0);
+	void *base = mmap(NULL, sb.st_size, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0);
+	if (base == MAP_FAILED)
+		exit(1);
+	assert(auplugin_setvbuf_r(st, base, sb.st_size, MEM_MMAP_FILE) == 0);
+
+	do {
+		int res = auplugin_fgets_r(st, buff, sizeof(buff), fd);
+		if (res > 0) {
+			if (lines == 0)
+				assert(strncmp(buff, "type=AVC", 8) == 0);
+			lines++;
+		}
+	} while (!auplugin_fgets_eof_r(st));
+
+	assert(lines == 14);
+
+	auplugin_fgets_destroy(st);
+	close(fd);
+}
+
 int main(void)
 {
 	test_basic_state();
+	test_mmap_file();
 	printf("audit-fgets_r tests: all passed\n");
 	return 0;
 }
