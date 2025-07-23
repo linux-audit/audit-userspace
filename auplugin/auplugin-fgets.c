@@ -50,6 +50,7 @@ struct auplugin_fgets_state {
 	char *buffer;
 	char *current;
 	char *eptr;
+	char *orig;
 	int eof;
 	enum auplugin_mem mem_type;
 	size_t buff_size;
@@ -64,6 +65,7 @@ static void auplugin_fgets_state_init(struct auplugin_fgets_state *st)
 	st->internal[0] = '\0';
 	st->current = st->buffer;
 	st->eptr = st->buffer + (2*BUF_SIZE);
+	st->orig = st->buffer;
 	st->eof = 0;
 	st->mem_type = MEM_SELF_MANAGED;
 	st->buff_size = 2*BUF_SIZE;
@@ -86,6 +88,7 @@ void auplugin_fgets_destroy(struct auplugin_fgets_state *st)
 			free(st->buffer);
 			break;
 		case MEM_MMAP:
+		case MEM_MMAP_FILE:
 			munmap(st->buffer, st->buff_size);
 			break;
 		case MEM_SELF_MANAGED:
@@ -105,8 +108,16 @@ int auplugin_fgets_eof_r(struct auplugin_fgets_state *st)
  * that never got consumed for the intended purpose. */
 void auplugin_fgets_clear_r(struct auplugin_fgets_state *st)
 {
-	st->buffer[0] = 0;
-	st->current = st->buffer;
+	// For MEM_MMAP_FILE, it effectively rewinds the buffer making the
+	// whole buffer available again. This is different than all others
+	// because we can't just dump a file.
+	if (st->mem_type == MEM_MMAP_FILE) {
+		st->buffer = st->orig;
+		st->current = st->eptr;
+	} else {
+		st->buffer[0] = 0;
+		st->current = st->buffer;
+	}
 	st->eof = 0;
 }
 
@@ -192,8 +203,15 @@ int auplugin_fgets_r(struct auplugin_fgets_state *st, char *buf, size_t blen, in
 	buf[line_len] = '\0';
 
 	size_t remainder = avail - line_len;
-	if (remainder > 0)
-		memmove(st->buffer, st->buffer + line_len, remainder);
+	/* For MEM_MMAP_FILE, can't slide it down, so move buffer beginning */
+	if (st->mem_type == MEM_MMAP_FILE) {
+		st->buffer += line_len;
+		if (st->buffer >= st->eptr)
+			st->eof = 1;
+	} else {
+		if (remainder > 0)
+			memmove(st->buffer, st->buffer + line_len, remainder);
+	}
 
 	st->current = st->buffer + remainder;
 	*st->current = '\0';
@@ -239,7 +257,15 @@ int auplugin_setvbuf_r(struct auplugin_fgets_state *st, void *buf,
 	if (st == NULL || buf == NULL || buff_size == 0)
 		return 1;
 	st->buffer = buf;
-	st->current = st->buffer;
+	st->orig = buf;
+	if (how == MEM_MMAP_FILE)
+		/* Setting st->current to the end of the supplied mmap region
+		 * is done so that auplugin_fgets_r sees the buffer as already
+		 * filled with buff_size bytes of data and there is no space
+		 * left for additional reads. This prevents any read() calls. */
+		st->current = (char *)buf + buff_size;
+	else
+		st->current = st->buffer;
 	st->eptr = st->buffer + buff_size;
 	st->eof = 0;
 	st->mem_type = how;

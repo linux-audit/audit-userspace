@@ -50,9 +50,10 @@ extern "C" {
 typedef struct auplugin_fgets_state auplugin_fgets_state_t;
 
 enum auplugin_mem {
+	MEM_SELF_MANAGED,
 	MEM_MALLOC,
 	MEM_MMAP,
-	MEM_SELF_MANAGED
+	MEM_MMAP_FILE
 };
 
 enum {

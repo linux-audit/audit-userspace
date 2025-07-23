@@ -36,7 +36,9 @@ indicates whether end of file was reached on
 .
 .PP
 .B auplugin_fgets_clear
-resets the internal buffer and EOF state, discarding any stored text.
+resets the internal buffer and EOF state, discarding any stored text. When the memory type is
+.B MEM_MMAP_FILE
+, the buffer is rewound to the beginning making the entire file available again.
 .PP
 .B auplugin_setvbuf
 points the internal buffer at
@@ -46,13 +48,18 @@ and sets how it will be released when
 is called. The
 .I how
 parameter should be one of
+.B MEM_SELF_MANAGED,
 .B MEM_MALLOC,
 .B MEM_MMAP,
 or
-.B MEM_SELF_MANAGED.
+.B MEM_MMAP_FILE.
 The default is
 .B MEM_SELF_MANAGED
 which means no action is taken on the memory block.
+When
+.B MEM_MMAP_FILE
+is used, the buffer is treated as a preloaded buffer (the entire file) and no reads will be performed on the descriptor provided to
+.BR auplugin_fgets_r .
 The reentrant form
 .B auplugin_setvbuf_r
 operates on an explicit state handle.
