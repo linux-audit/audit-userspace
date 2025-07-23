@@ -605,14 +605,12 @@ static int event_loop(void)
 						audit_msg(LOG_ERR,
 					"plugin %s has exceeded max_restarts",
 								conf->p->path);
-					}
-					if (!AUDIT_ATOMIC_LOAD(stop) &&
-					    start_one_plugin(conf)) {
+					} else if (!AUDIT_ATOMIC_LOAD(stop) && start_one_plugin(conf)) {
 						rc = write_to_plugin(e, fmt_buf,
 								     len, conf);
 						audit_msg(LOG_NOTICE,
-						"plugin %s was restarted",
-							conf->p->path);
+						"plugin %s was restarted (%ux)",
+							conf->p->path, conf->p->restart_cnt);
 						conf->p->active = A_YES;
 					}
 				}
