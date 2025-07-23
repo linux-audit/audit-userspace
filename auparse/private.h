@@ -23,7 +23,7 @@
 #define _PRIVATE_H_
 
 #include "auparse.h"
-#include "libaudit.h"
+#include "common.h"
 #include "dso.h"
 
 AUDIT_HIDDEN_START

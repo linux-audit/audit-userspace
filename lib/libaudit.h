@@ -202,11 +202,6 @@ typedef enum {
 	FAIL_TERMINATE
 } auditfail_t;
 
-/* Messages */
-typedef enum { MSG_STDERR, MSG_SYSLOG, MSG_QUIET } message_t;
-typedef enum { DBG_NO, DBG_YES } debug_message_t;
-void set_aumessage_mode(message_t mode, debug_message_t debug);
-
 /* General */
 typedef enum { GET_REPLY_BLOCKING=0, GET_REPLY_NONBLOCKING } reply_t;
 int  audit_get_reply(int fd, struct audit_reply *rep, reply_t block,

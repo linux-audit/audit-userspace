@@ -27,6 +27,6 @@ AM_CPPFLAGS = -I${top_srcdir} -I${top_srcdir}/lib
 
 noinst_HEADERS = common.h
 libaucommon_la_DEPENDENCIES = ../config.h
-libaucommon_la_SOURCES = strsplit.c common.c
+libaucommon_la_SOURCES = strsplit.c common.c message.c
 noinst_LTLIBRARIES = libaucommon.la
 

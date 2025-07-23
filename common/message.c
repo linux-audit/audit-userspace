@@ -24,7 +24,8 @@
 #include <errno.h>
 #include <stdio.h>
 #include <stdarg.h>
-#include "libaudit.h"
+#include <syslog.h>
+#include "common.h"
 #include "private.h"
 
 /* The message mode refers to where informational messages go

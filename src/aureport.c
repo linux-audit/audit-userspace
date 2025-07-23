@@ -43,6 +43,7 @@
 #include "ausearch-lookup.h"
 #include "auparse-idata.h"
 #include "ausearch-parse.h"
+#include "common.h"
 
 
 extern event very_first_event;

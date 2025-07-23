@@ -38,6 +38,7 @@
 #include <locale.h>
 #include <signal.h>
 #include "libaudit.h"
+#include "common.h"
 #include "auditd-config.h"
 #include "ausearch-options.h"
 #include "ausearch-lol.h"

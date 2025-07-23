@@ -36,7 +36,7 @@ DISTCLEANFILES = $(pkgconfig_DATA)
 lib_LTLIBRARIES = libaudit.la
 include_HEADERS = libaudit.h audit_logging.h audit-records.h
 
-libaudit_la_SOURCES = libaudit.c message.c netlink.c \
+libaudit_la_SOURCES = libaudit.c netlink.c \
         lookup_table.c audit_logging.c deprecated.c \
         dso.h private.h errormsg.h
 libaudit_la_LIBADD = $(CAPNG_LDADD) ${top_builddir}/common/libaucommon.la

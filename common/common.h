@@ -73,6 +73,7 @@ int audit_is_last_record(int type);
 long time_string_to_seconds(const char *time_string,
 			    const char *subsystem, int line);
 
+/* Messages */
 int write_to_console(const char *fmt, ...)
 #ifdef __GNUC__
 	__attribute__((format(printf, 1, 2)));
@@ -86,6 +87,10 @@ void wall_message(const char *fmt, ...)
 #else
 	;
 #endif
+
+typedef enum { MSG_STDERR, MSG_SYSLOG, MSG_QUIET } message_t;
+typedef enum { DBG_NO, DBG_YES } debug_message_t;
+void set_aumessage_mode(message_t mode, debug_message_t debug);
 
 AUDIT_HIDDEN_END
 #endif
