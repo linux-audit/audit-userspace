@@ -58,8 +58,8 @@ nvnode *nvlist_next(nvlist *l)
 // 0 on success and 1 on error
 int nvlist_append(nvlist *l, const nvnode *node)
 {
-	if (node->name == NULL)
-		return 1;
+	if ((node->name == NULL) ||
+		(node->val == NULL))
 
 	if (l->array == NULL)
 		alloc_array(l);

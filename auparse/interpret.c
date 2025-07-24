@@ -3277,7 +3277,11 @@ const char *do_interpret(auparse_state_t *au, rnode *r)
  */
 int auparse_interp_adjust_type(int rtype, const char *name, const char *val)
 {
-	int type;
+	int type = AUPARSE_TYPE_UNCLASSIFIED;
+
+	if (!name || !val) {
+		return type;
+	}
 
 	/* This set of statements overrides or corrects the detection.
 	 * In almost all cases its a double use of a field. */
