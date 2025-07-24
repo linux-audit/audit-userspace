@@ -62,12 +62,12 @@ int main(void)
 			len_enriched);
 		return 1;
 	}
-	if (e->reply.message[95] != AUDIT_INTERP_SEPARATOR) {
+	if (e->reply.message[96] != AUDIT_INTERP_SEPARATOR) {
 		puts("missing AUDIT_INTERP_SEPARATOR");
-		printf("char 95: 0x%X\n", e->reply.message[95]);
+		printf("char 96: 0x%X\n", e->reply.message[96]);
 		return 1;
 	}
-	if (!strstr(&(e->reply.message[95]), "AUID")) {
+	if (!strstr(&(e->reply.message[96]), "AUID")) {
 		puts("missing AUID interpretation");
 		return 1;
 	}

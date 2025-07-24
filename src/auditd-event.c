@@ -469,6 +469,18 @@ static const char *format_enrich(const struct audit_reply *rep)
 		// Do raw format to get event started
 		mlen = format_raw(rep);
 
+		// Always add a space at the end of the raw message if not already present
+		if (mlen > 0) {
+			size_t last_char = mlen;
+			// Look for the last non-newline character
+			while (last_char > 0 && (format_buf[last_char-1] == '\n' || format_buf[last_char-1] == '\r'))
+				last_char--;
+			if (last_char > 0 && format_buf[last_char-1] != ' ' && mlen < FORMAT_BUF_LEN - 1) {
+				format_buf[last_char] = ' ';
+				mlen++;
+			}
+		}
+
 		// How much room is left?
 		len = FORMAT_BUF_LEN - mlen;
 		if (len <= MIN_SPACE_LEFT)
