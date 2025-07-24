@@ -443,8 +443,7 @@ static int safe_exec(plugin_conf_t *conf)
 	if (dup2(conf->plug_pipe[0], 0) < 0) {
 		close(conf->plug_pipe[0]);
 		close(conf->plug_pipe[1]);
-		conf->pid = 0;
-		return -1;	/* Failed to fork */
+		exit(1);
 	}
 #ifdef HAVE_CLOSE_RANGE
 	close_range(3, ~0U, 0);	/* close all past stderr */
@@ -455,7 +454,7 @@ static int safe_exec(plugin_conf_t *conf)
 
 	argv = calloc(conf->nargs + 2, sizeof(char *));
 	if (argv == NULL) {
-		return -1;
+		exit(1);
 	}
 
 	/* Child */
@@ -469,6 +468,7 @@ static int safe_exec(plugin_conf_t *conf)
 	argv[conf->nargs+1] = NULL;
 
 	execve(conf->path, argv, NULL);
+	free(argv);		/* Free memory before exit */
 	exit(1);		/* Failed to exec */
 }
 
