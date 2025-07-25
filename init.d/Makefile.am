@@ -28,7 +28,7 @@ EXTRA_DIST = auditd.service.in audit-rules.service.in  auditd.conf auditd.cron \
 	libaudit.conf auditd.condrestart \
 	auditd.reload auditd.restart auditd.resume \
 	auditd.rotate auditd.state auditd.stop audit-rules.service \
-	audit-stop.rules augenrules
+	audit-stop.rules augenrules audit.bash_completion
 libconfig = libaudit.conf
 initdir = $(prefix)/lib/systemd/system
 legacydir = $(libexecdir)/initscripts/legacy-actions/auditd
@@ -54,6 +54,7 @@ install-data-hook:
 install-exec-hook:
 	mkdir -p ${DESTDIR}${initdir}
 	mkdir -p ${DESTDIR}${legacydir}
+	mkdir -p ${DESTDIR}${sysconfdir}/bash_completion.d
 	$(INSTALL_SCRIPT) -D -m 644 ${builddir}/auditd.service ${DESTDIR}${initdir}
 	$(INSTALL_SCRIPT) -D -m 644 ${builddir}/audit-rules.service ${DESTDIR}${initdir}
 	$(INSTALL_SCRIPT) -D -m 750 ${srcdir}/auditd.rotate ${DESTDIR}${legacydir}/rotate
@@ -64,8 +65,8 @@ install-exec-hook:
 	$(INSTALL_SCRIPT) -D -m 750 ${srcdir}/auditd.restart ${DESTDIR}${legacydir}/restart
 	$(INSTALL_SCRIPT) -D -m 750 ${srcdir}/auditd.condrestart ${DESTDIR}${legacydir}/condrestart
 	chmod 0755 $(DESTDIR)$(sbindir)/augenrules
-
-
+	$(INSTALL_SCRIPT) -D -m 644 ${srcdir}/audit.bash_completion \
+		${DESTDIR}${sysconfdir}/bash_completion.d/
 uninstall-hook:
 	rm ${DESTDIR}${sysconfdir}/${libconfig}
 	rm ${DESTDIR}${initdir}/auditd.service
@@ -78,4 +79,4 @@ uninstall-hook:
 	rm ${DESTDIR}${legacydir}/restart
 	rm ${DESTDIR}${legacydir}/condrestart
 	rm ${DESTDIR}$(prefix)/lib/tmpfiles.d/audit.conf
-
+	rm ${DESTDIR}${sysconfdir}/bash_completion.d/audit.bash_completion

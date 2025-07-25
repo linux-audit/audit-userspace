@@ -1,0 +1,125 @@
+# Bash completion for audit utilities
+# Installed to /etc/bash_completion.d/audit
+
+_ausearch_opts="--event --arch --comm --debug --checkpoint --eoe-timeout \
+--exit --escape --extra-keys --extra-labels --extra-obj2 --extra-time \
+--file --format --gid-all --input --input-logs --just-one --key \
+--line-buffered --message --node --object --pid --ppid --raw --syscall \
+--context --session --subject --success --end --start --terminal \
+--uid-all --uid-effective --uid --loginuid --uuid --version --word \
+--executable"
+
+_aureport_opts="--auth --avc --comm --config --crypto --debug --eoe-timeout \
+--event --escape --file --failed --host --help --interpret --input \
+--input-logs --integrity --key --login --mods --mac --anomaly --node \
+--no-config --pid --response --syscall --success --summary --log \
+--tty --end --start --user --version --virt --executable"
+
+_augenrules_opts="--check --load"
+
+_auditctl_opts="-b --backlog_wait_time --reset_backlog_wait_time_actual -c -D \
+-e -f -h -i --loginuid-immutable -q -r --reset-lost -R --signal -t -l -m \
+-s -v -a -A -C -d -D -F -S -w -W"
+
+_ausearch_complete()
+{
+	local cur prev
+	COMPREPLY=()
+	cur="${COMP_WORDS[COMP_CWORD]}"
+	prev="${COMP_WORDS[COMP_CWORD-1]}"
+
+	case "$prev" in
+		-if|--input)
+			_filedir
+			return 0
+			;;
+		-ts|--start|-te|--end)
+			local times="now recent this-hour boot today yesterday this-week \
+week-ago this-month this-year checkpoint"
+			COMPREPLY=( $(compgen -W "$times" -- "$cur") )
+			return 0
+			;;
+		-m|--message)
+			local types
+			types=$(ausearch -m 2>&1 | grep -oE '\b[A-Z_]+\b' | sort)
+			COMPREPLY=( $(compgen -W "$types" -- "$cur") )
+			return 0
+			;;
+	esac
+
+	COMPREPLY=( $(compgen -W "$_ausearch_opts" -- "$cur") )
+}
+
+_aureport_complete()
+{
+	local cur prev
+	COMPREPLY=()
+	cur="${COMP_WORDS[COMP_CWORD]}"
+	prev="${COMP_WORDS[COMP_CWORD-1]}"
+
+	case "$prev" in
+		-if|--input)
+			_filedir
+			return 0
+			;;
+		-ts|--start|-te|--end)
+			local times="now recent this-hour boot today yesterday this-week \
+week-ago this-month this-year"
+			COMPREPLY=( $(compgen -W "$times" -- "$cur") )
+			return 0
+			;;
+	esac
+
+	COMPREPLY=( $(compgen -W "$_aureport_opts" -- "$cur") )
+}
+
+_augenrules_complete()
+{
+	local cur
+	COMPREPLY=()
+	cur="${COMP_WORDS[COMP_CWORD]}"
+	COMPREPLY=( $(compgen -W "$_augenrules_opts" -- "$cur") )
+}
+
+_auditctl_complete()
+{
+	local cur prev
+	COMPREPLY=()
+	cur="${COMP_WORDS[COMP_CWORD]}"
+	prev="${COMP_WORDS[COMP_CWORD-1]}"
+
+	case "$prev" in
+		-S)
+			local syscalls
+			syscalls=$(ausyscall --dump 2>/dev/null | cut -f2)
+			COMPREPLY=( $(compgen -W "$syscalls" -- "$cur") )
+			return 0
+			;;
+		-R)
+			_filedir
+			return 0
+			;;
+		--signal)
+			COMPREPLY=( $(compgen -W "stop reload rotate resume state" -- "$cur") )
+			return 0
+			;;
+		-f|-e)
+			COMPREPLY=( $(compgen -W "0 1 2" -- "$cur") )
+			return 0
+			;;
+		-m)
+			local types
+			types=$(ausearch -m 2>&1 | grep -oE '\b[A-Z_]+\b' | sort)
+			COMPREPLY=( $(compgen -W "$types" -- "$cur") )
+			return 0
+			;;
+	esac
+
+	COMPREPLY=( $(compgen -W "$_auditctl_opts" -- "$cur") )
+}
+
+complete -F _ausearch_complete ausearch
+complete -F _aureport_complete aureport
+complete -F _augenrules_complete augenrules
+complete -F _auditctl_complete auditctl
+
