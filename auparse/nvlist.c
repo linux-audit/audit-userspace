@@ -60,6 +60,7 @@ int nvlist_append(nvlist *l, const nvnode *node)
 {
 	if ((node->name == NULL) ||
 		(node->val == NULL))
+		return 1;
 
 	if (l->array == NULL)
 		alloc_array(l);
