@@ -594,6 +594,7 @@ static int parse_io_uring(const char *optarg)
 
 static const struct option long_opts[] =
 {
+  {"help", 0, NULL, 'h'},
 #if HAVE_DECL_AUDIT_FEATURE_VERSION == 1
   {"loginuid-immutable", 0, NULL, 1},
 #endif
