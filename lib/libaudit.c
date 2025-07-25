@@ -119,12 +119,28 @@ static int audit_priority(int xerrno)
 		return LOG_WARNING;
 }
 
+static const char *get_progname(void)
+{
+	static char progname[256];
+	if (progname[0] == 0) {
+		char tname[256];
+		ssize_t len = readlink("/proc/self/exe",tname,sizeof(tname)-1);
+		if (len != -1) {
+			tname[len] = '\0';
+			strcpy(progname, basename(progname));
+		} else
+			strcpy(progname, "unknown");
+	}
+	return progname;
+}
+
 int audit_request_status(int fd)
 {
 	int rc = audit_send(fd, AUDIT_GET, NULL, 0);
-	if (rc < 0) 
+	if (rc < 0)
 		audit_msg(audit_priority(errno),
-			"Error sending status request (%s)", strerror(-rc));
+			"%s: Error sending status request (%s)",
+			get_progname(), strerror(-rc));
 	return rc;
 }
 
