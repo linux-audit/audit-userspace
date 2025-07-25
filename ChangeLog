@@ -2,6 +2,7 @@
 - Add libauplugin example program and improve its documentation
 - auditctl -A option was deleting - now prepends like it used to
 - Adjust af_unix and dispatcher to send exact record size in binary mode
+- Add bash completions for ausearch, aureport, auditctl, and augenrules
 
 4.1.0
 - Fix auditd -s enable hang issue (Yan Zhu)
