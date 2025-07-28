@@ -107,6 +107,7 @@ int main(int argc, char *argv[])
 	setrlimit(RLIMIT_FSIZE, &limit);
 	setrlimit(RLIMIT_CPU, &limit);
 	set_aumessage_mode(MSG_STDERR, DBG_NO);
+	set_allow_links(1); // auditd might have -l flag, ausearch should be lenient here
 	(void) umask( umask( 077 ) | 027 );
 
 	/* Load config so we know where logs are and eoe_timeout */
