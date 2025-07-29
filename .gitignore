@@ -96,6 +96,8 @@ auplugin/test/fgets_test.log
 auplugin/test/metrics_test
 auplugin/test/metrics_test.log
 auplugin/test/test-suite.log
+auplugin/test/fgets_r_test
+auplugin/test/fgets_r_test.log
 lib/test/lookup_test
 lib/test/lookup_test.log
 lib/test/test-suite.log
