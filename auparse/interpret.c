@@ -2567,6 +2567,10 @@ static const char* print_a0(auparse_state_t *au, const char* val,
 				return print_dirfd(val);
 			else if (strcmp(sys, "futimensat") == 0)
 				return print_dirfd(val);
+			else if (strcmp(sys, "file_getattr") == 0)
+				return print_dirfd(val);
+			else if (strcmp(sys, "file_setattr") == 0)
+				return print_dirfd(val);
 		}
 		else if (*sys == 'u') {
 			if (strcmp(sys, "unshare") == 0)
