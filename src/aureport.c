@@ -98,6 +98,7 @@ int main(int argc, char *argv[])
 	setrlimit(RLIMIT_FSIZE, &limit);
 	setrlimit(RLIMIT_CPU, &limit);
 	set_aumessage_mode(MSG_STDERR, DBG_NO);
+	set_allow_links(1); // auditd might have -l flag, aureport should be lenient here
 	(void) umask( umask( 077 ) | 027 );
 	very_first_event.sec = 0;
 	au = auparse_init(AUSOURCE_BUFFER, "");
