@@ -3,6 +3,8 @@
 - auditctl -A option was deleting - now prepends like it used to
 - Adjust af_unix and dispatcher to send exact record size in binary mode
 - Add bash completions for ausearch, aureport, auditctl, and augenrules
+- ausearch/aureport: allow symlinked config
+- Add support for file_getattr and file_setattr syscalls
 
 4.1.0
 - Fix auditd -s enable hang issue (Yan Zhu)
