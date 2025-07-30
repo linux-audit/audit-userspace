@@ -1,3 +1,5 @@
+4.1.2
+
 4.1.1
 - Add libauplugin example program and improve its documentation
 - auditctl -A option was deleting - now prepends like it used to
