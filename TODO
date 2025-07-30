@@ -4,10 +4,10 @@ Future roadmap (subject to change):
 * Multi-thread audisp-remote
 * Look into lazy parsing of audit records in auparse
 * Basic HIDS based on reactive audit component
-* Support multiple time streams when searching
-* If searching user/group doesn't map to uid/gid, do translated string search
 
 4.2
+* If searching user/group doesn't map to uid/gid, do translated string search
+* Support multiple time streams when searching
 * Support TLS PSK as remote logging transport
 * audisp-remote, add config to say what home network is so laptops don't try if their not on a network that can reach the server.
 
