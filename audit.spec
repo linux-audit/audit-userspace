@@ -136,11 +136,11 @@ if [ $1 -eq 2 ]; then
     state=$(systemctl show -P ActiveState auditd)
     if [ $state = "active" ] ; then
         auditctl --signal stop || true
-        systemctl start auditd
+        systemctl start auditd || true
     fi
 # if an install, start it since preset says we should be running
 elif [ $1 -eq 1 ]; then
-	systemctl start auditd
+	systemctl start auditd || true
 fi
 
 %post rules
@@ -287,6 +287,6 @@ fi
 %attr(750,root,root) %{_sbindir}/audispd-zos-remote
 
 %changelog
-Thu Jul 10 2025 Steve Grubb <sgrubb@redhat.com> 4.1.1-1
+Wed Jul 30 2025 Steve Grubb <sgrubb@redhat.com> 4.1.1-1
 - New upstream release
 
