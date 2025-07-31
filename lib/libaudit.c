@@ -40,6 +40,7 @@
 #include <limits.h>	/* for PATH_MAX */
 #include <sys/types.h>
 #include <sys/socket.h> /* AF_MAX */
+#include <libgen.h>	/* For basename */
 #ifdef HAVE_LIBCAP_NG
 #include <cap-ng.h>
 #endif
