@@ -1,10 +1,9 @@
-Linux Audit
-===========
+# Linux Audit
 
 The Linux Audit System is designed to make Linux compliant with the requirements from Common Criteria, PCI-DSS, and other security standards by intercepting system calls and serializing audit log entries from privileged user space applications. The framework allows the configured events to be recorded to disk and distributed to plugins in realtime. Each audit event contains the date and time of event, type of event, subject identity, object acted upon, and result (success/fail) of the action if applicable.
 
-RUNTIME DEPENDENCIES
---------------------
+## RUNTIME DEPENDENCIES
+
 * coreutils
 * initscripts-service (Recommended - soft requirement)
 * kernel >= 5.0 
@@ -15,21 +14,18 @@ daemon, other init systems can be used as well. For example, [Alpine
 Linux](https://git.alpinelinux.org/aports/tree/main/audit/auditd.initd) provides
 an init script for OpenRC.
 
-BUILD-TIME DEPENDENCIES (for tar file)
---------------------------------------
+## BUILD-TIME DEPENDENCIES (for tar file)
 * gcc (or clang)
 * make
 * kernel-headers >= 5.0
 * systemd
 
-ADDITIONAL BUILD-TIME DEPENDENCIES (if using github sources)
-------------------------------------------------------------
+## ADDITIONAL BUILD-TIME DEPENDENCIES (if using github sources)
 * autoconf
 * automake
 * libtool
 
-OPTIONAL DEPENDENCIES
----------------------
+## OPTIONAL DEPENDENCIES
 * libcap-ng-devel  (dropping capabilities)
 * krb5-devel       (remote logging)
 * python3-devel    (python bindings)
@@ -37,8 +33,7 @@ OPTIONAL DEPENDENCIES
 * openldap-devel   (zos-remote logging)
 * golang           (golang bindings)
 
-SUPPORTED ARCHITECTURES
------------------------
+## SUPPORTED ARCHITECTURES
 * AARCH64
 * ARM (some versions)
 * MIPS
@@ -48,12 +43,10 @@ SUPPORTED ARCHITECTURES
 
 NOTE: **There is a moratorium on adding support for any new platforms.** Syscalls and other lookup tables get updated frequently. Without an active community maintaining the code, it is not sustainable to add more. If you would like to see more platforms supported, please consider working on bugs and code cleanups and then maybe we can add more. Any submitted pull requests adding a new platform with be marked with a 'wont_fix' label. It will be left available in case anyone wants to use it. But it is unsupported.
 
-MAIL LIST
----------
+## MAIL LIST
 The audit community has a [mail list](https://lists.linux-audit.osci.io/archives/list/linux-audit@lists.linux-audit.osci.io/). It is the best place to ask questions because the mail archive is searchable and therefore discoverable.
 
-CONFIGURING AND COMPILING
--------------------------
+## CONFIGURING AND COMPILING
 To build from the repo after cloning and installing dependencies:
 
 ```
@@ -67,12 +60,10 @@ make install
 
 If you are packaging this, you probably want to do "make dist" instead and use the resulting tar file with your package building framework. A spec file is included in the git repo as an example of packaging it using rpm. This spec file is not known to be the official spec file used by any distribution. It's just an example.
 
-CROSS COMPILING
----------------
+## CROSS COMPILING
 Cross compiling is not officially supported. There have been people that have submitted patches to make it work. But it is not documented how to make it work. It is likely that you have to somehow override CC, CXX, RANLIB, AR, LD, and NM when running configure to pickup the cross compiler, linker, archive, etc. If you have patches that fix any problems, they will be merged. If you have suggestions for how to improve cross compiling documentation, file an issue stating how to improve instructions.
 
-OVERVIEW
---------
+## OVERVIEW
 The following image illustrates the architecture and relationship of the components in this project:
 
 ![audit-components](https://github.com/linux-audit/audit-userspace/blob/assets/audit-components.png)
@@ -81,16 +72,16 @@ In the above diagram, auditd is in the middle. It interfaces with the kernel to 
 
 The kernel does the heavy lifting to generates the events. In the case of a trusted application such as shadow-utils, the kernel receives the event, adds origin information, timestamps, and queues the event for delivery to the audit daemon.
 
-DAEMON CONSIDERATIONS
----------------------
+## DAEMON CONSIDERATIONS
+### Disk Full
 Almost all Security Standards are concerned about what happens when logging space fills up. Because of this, the audit daemon keeps careful track of free space and emits warnings at admin defined levels called "space left" and "admin space left". The former is considered a low disk space warning which should give the admin time to do something. The latter is more serious because you are just about out.
 
 To get an accurate reading, the audit daemon should log to a disk partition that is reserved only for the audit daemon. This way someone using the logger command can't suddenly fill up the audit space and trigger an admin defined action. It is recommended to set aside a partition, /var/log/audit, for exclusive use by the audit daemon. The size of which depends on your audit retention policy.
 
+### Systemd Security Settings
 The audit daemon is started by systemd. Some people run the "systemd-analyze security" command. It tells you all sorts of things to do to protect your system from auditd. However, doing the things it suggests places auditd in namespaces. When that happens, the audit rules may not trigger correctly and auditd may not be able to access trusted databases. The auditd.service file is the result of trial and error based on well intentioned patches gone wrong. You can lock auditd down more, but it likely will not work as intended.
 
-RULES
------
+## RULES
 The audit package comes with pre-written rules. For audit-3.x, they should be located in /usr/share/audit/sample-rules. For audit-4.x, they should be located in /usr/share/audit-rules. These rules should be close enough most of the time. To use them, copy select rules to /etc/auditd/rules.d. If you look at the rules, you will notice that the filenames begin with a number. This number has the following suggested meaning:
 
 ```
@@ -109,8 +100,7 @@ The sample rules are not meant to be used all at the same time. They are pieces 
 
 If you want to learn more about writing custom rules, look for the audit.rules and auditctl man pages.
 
-EVENTS
-------
+## EVENTS
 The audit events come in two flavors: simple and compound. A simple event is sent from a trusted application such as sshd. It has only one record in the event. A compound event has multiple records in the same event. These multiple records are considered to be in the same event because they have the same timestamp and serial number.
 
 Audit events all start with the following preamble:
@@ -140,8 +130,7 @@ There can be optional information, depending on the kind of the event, which may
 - Keystrokes
 - Netfilter packet decisions
 
-SEARCHING AND REPORTING FROM LOGS
----------------------------------
+## SEARCHING AND REPORTING FROM LOGS
 The intended way to view audit events is by using the ausearch program. Audit events are not serialized in the kernel and could be interlaced and out of order. To straighten this out, ausearch/aureport/auparse all put the records on a holding list until the event is complete. It then emits them in sequential order so they are presented in numeric order.
 
 Some fields are searchable. Typically you will search for a specific kind of event, a specific process, a specific file, or a specific user. The ausearch man page details all the different options. Here are some example searches:
@@ -196,8 +185,7 @@ The ausearch program also has a couple more tricks worth knowing about. It has a
 
 The other option, text, can be used to turn the audit events into simple sentences that describe what the event means. There are times when it doesn't have a mapping because the event is new. In those cases, the event may not make sense until the software is updated.
 
-PERFORMANCE AND MONITORING
---------------------------
+## PERFORMANCE AND MONITORING
 The audit system can output two sets of data to let you know how it's doing. The first method is to use:
 
 ```
@@ -243,8 +231,7 @@ glibc fordblks (total free space) is: 295 KiB, was: 297 KiB
 
 This command causes auditd to dump its internal metrics to /run/audit/auditd.state. This can tell you if auditd is healthy. Also, you can make auditd periodically update the state file by adjusting the report_interval setting in auditd.conf (note - only available in audit-4.0.5 and later). See the man page for details. Setting this allows for the conitinuous updating for metrics collection.
 
-AUPARSE
--------
+## AUPARSE
 The auparse library is available to allow one to create custom reporting applications. The library is patterned after a dbase or foxpro database library and has the following categories of functions:
 
 - General functions that affect operation of the library
@@ -257,8 +244,7 @@ The auparse library is available to allow one to create custom reporting applica
 
 You can write programs in one of two ways: iterate across events, records, and fields; or use the feed API to which a callback function is presented with a single, complete event that can be iterated across the records and fields. The former is best for working with files, while the latter is more appropriate for realtime data for a plugin.
 
-AUPLUGIN
---------
+## AUPLUGIN
 The auplugin library helps developers write auditd plugins. It multithreads
 a plugin with a queue inbetween the threads. One thread pulls event records
 from auditd, then equeues them. The other thread sees the events and calls
@@ -278,7 +264,6 @@ sufficient.  Alternatively `auplugin_event_feed()` queues the records
 for libauparse and presents fully formed events to the callback.  The
 latter is typically used when plugin logic needs structured event data.
 
-Audit Standards
----------------
+## Audit Standards
 You can find the standards to which the audit system conforms to in the ![Audit Documentation Project](https://github.com/linux-audit/audit-documentation).
 
