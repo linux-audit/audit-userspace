@@ -40,7 +40,6 @@
 #include <limits.h>	/* for PATH_MAX */
 #include <sys/types.h>
 #include <sys/socket.h> /* AF_MAX */
-#include <libgen.h>	/* For basename */
 #ifdef HAVE_LIBCAP_NG
 #include <cap-ng.h>
 #endif
@@ -118,21 +117,6 @@ static int audit_priority(int xerrno)
 		return LOG_DEBUG;
 	else
 		return LOG_WARNING;
-}
-
-static const char *get_progname(void)
-{
-	static char progname[256];
-	if (progname[0] == 0) {
-		char tname[256];
-		ssize_t len = readlink("/proc/self/exe",tname,sizeof(tname)-1);
-		if (len != -1) {
-			tname[len] = '\0';
-			strcpy(progname, basename(progname));
-		} else
-			strcpy(progname, "unknown");
-	}
-	return progname;
 }
 
 int audit_request_status(int fd)

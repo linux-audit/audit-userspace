@@ -64,6 +64,10 @@ char *audit_strsplit_r(char *s, char **savedpp);
 char *audit_strsplit(char *s);
 int audit_is_last_record(int type);
 
+extern const char *SINGLE;
+extern const char *HALT;
+void change_runlevel(const char *level);
+const char *get_progname(void);
 
 #define MINUTES 60
 #define HOURS   60*MINUTES

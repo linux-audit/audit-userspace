@@ -43,7 +43,6 @@
 #include "auparse.h"
 #include "auparse-idata.h"
 #include "common.h"
-#include <sys/wait.h>
 
 /* This is defined in auditd.c */
 #ifdef HAVE_ATOMIC
@@ -74,7 +73,6 @@ static void rotate_logs_now(void);
 static void rotate_logs(unsigned int num_logs, unsigned int keep_logs);
 static void shift_logs(void);
 static int  open_audit_log(void);
-static void change_runlevel(const char *level);
 static pid_t safe_exec(const char *exe);
 static void reconfigure(struct auditd_event *e);
 static void init_flush_thread(void);
@@ -90,8 +88,6 @@ static int fs_space_left = 1;
 static int logging_suspended = 0;
 static unsigned int known_logs = 0;
 static pid_t exec_child_pid = -1;
-static const char *SINGLE = "1";
-static const char *HALT = "0";
 static char *format_buf = NULL;
 static off_t log_size = 0;
 static pthread_t flush_thread;
@@ -1445,53 +1441,6 @@ retry:
 	/* Set it to line buffering */
 	setlinebuf(log_file);
 	return 0;
-}
-
-static void change_runlevel(const char *level)
-{
-	char *argv[3];
-	int pid;
-	struct sigaction sa;
-	static const char *init_pgm = "/sbin/init";
-
-	// In case of halt, we need to log the message before we halt
-	if (strcmp(level, HALT) == 0) {
-		write_to_console("audit: will try to change runlevel to %s\n", level);
-	}
-
-	pid = fork();
-	if (pid < 0) {
-		audit_msg(LOG_ALERT,
-			"Audit daemon failed to fork switching runlevels");
-		return;
-	}
-	if (pid) {	/* Parent */
-		int status;
-
-		// Wait until child exits
-		if (waitpid(pid, &status, 0) < 0) {
-			audit_msg(LOG_ALERT,
-				"Audit daemon failed to wait for child");
-			return;
-		}
-
-		// Check if child exited normally, runlevel change was successful
-		if (WIFEXITED(status) && WEXITSTATUS(status) == 0) {
-			write_to_console("audit: changed runlevel to %s\n", level);
-		}
-
-		return;
-	}
-	/* Child */
-	sigfillset (&sa.sa_mask);
-	sigprocmask (SIG_UNBLOCK, &sa.sa_mask, 0);
-
-	argv[0] = (char *)init_pgm;
-	argv[1] = (char *)level;
-	argv[2] = NULL;
-	execve(init_pgm, argv, NULL);
-	audit_msg(LOG_ALERT, "Audit daemon failed to exec %s", init_pgm);
-	exit(1);
 }
 
 /*

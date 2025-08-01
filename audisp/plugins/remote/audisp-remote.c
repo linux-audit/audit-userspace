@@ -76,9 +76,6 @@ remote_conf_t config;
 static int warned = 0;
 
 /* Constants */
-static const char *SINGLE = "1";
-static const char *HALT = "0";
-static const char *INIT_PGM = "/sbin/init";
 static const char *SPOOL_FILE = "/var/spool/audit/remote.log";
 
 /* Local function declarations */
@@ -208,47 +205,6 @@ static int is_pipe(int fd)
 			return 1;
 	}
 	return 0;
-}
-
-static void change_runlevel(const char *level)
-{
-	char *argv[3];
-	int pid;
-
-	// In case of halt, we need to log the message before we halt
-	if (strcmp(level, HALT) == 0) {
-		write_to_console("audit: will try to change runlevel to %s\n", level);
-	}
-
-	pid = fork();
-	if (pid < 0) {
-		syslog(LOG_ALERT,
-		       "audisp-remote failed to fork switching runlevels");
-		return;
-	}
-	if (pid) { /* Parent */
-		int status;
-
-		// Wait until child exits
-		if (waitpid(pid, &status, 0) < 0) {
-			return;
-		}
-
-		// Check if child exited normally, runlevel change was successful
-		if (WIFEXITED(status) && WEXITSTATUS(status) == 0) {
-			write_to_console("audit: changed runlevel to %s\n", level);
-		}
-
-		return;
-	}
-
-	/* Child */
-	argv[0] = (char *)INIT_PGM;
-	argv[1] = (char *)level;
-	argv[2] = NULL;
-	execve(INIT_PGM, argv, NULL);
-	syslog(LOG_ALERT, "audisp-remote failed to exec %s", INIT_PGM);
-	exit(1);
 }
 
 static void safe_exec(const char *exe, const char *message)
