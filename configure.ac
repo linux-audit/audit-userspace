@@ -235,6 +235,16 @@ AC_MSG_CHECKING(whether to include audisp ZOS remote plugin)
 AM_CONDITIONAL(ENABLE_ZOS_REMOTE, test "x$enable_zos_remote" != "xno")
 AC_MSG_RESULT($enable_zos_remote)
 
+# legacy actions
+AC_MSG_CHECKING(whether to install legacy actions)
+AC_ARG_ENABLE(legacy-actions,
+	      [AS_HELP_STRING([--disable-legacy-actions],
+			      [Disable legacy actions])],
+	      install_legacy_actions=$enableval,
+	      install_legacy_actions=yes)
+AM_CONDITIONAL(INSTALL_LEGACY_ACTIONS, test "x$install_legacy_actions" != "xno")
+AC_MSG_RESULT($install_legacy_actions)
+
 #gssapi
 AC_ARG_ENABLE(gssapi_krb5,
 	[AS_HELP_STRING([--enable-gssapi-krb5],[Enable GSSAPI Kerberos 5 support @<:@default=no@:>@])],

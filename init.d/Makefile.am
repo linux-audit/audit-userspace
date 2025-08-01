@@ -53,10 +53,14 @@ install-data-hook:
 
 install-exec-hook:
 	mkdir -p ${DESTDIR}${initdir}
-	mkdir -p ${DESTDIR}${legacydir}
 	mkdir -p ${DESTDIR}${sysconfdir}/bash_completion.d
 	$(INSTALL_SCRIPT) -D -m 644 ${builddir}/auditd.service ${DESTDIR}${initdir}
 	$(INSTALL_SCRIPT) -D -m 644 ${builddir}/audit-rules.service ${DESTDIR}${initdir}
+	chmod 0755 $(DESTDIR)$(sbindir)/augenrules
+	$(INSTALL_SCRIPT) -D -m 644 ${srcdir}/audit.bash_completion \
+		${DESTDIR}${sysconfdir}/bash_completion.d/
+if INSTALL_LEGACY_ACTIONS
+	mkdir -p ${DESTDIR}${legacydir}
 	$(INSTALL_SCRIPT) -D -m 750 ${srcdir}/auditd.rotate ${DESTDIR}${legacydir}/rotate
 	$(INSTALL_SCRIPT) -D -m 750 ${srcdir}/auditd.resume ${DESTDIR}${legacydir}/resume
 	$(INSTALL_SCRIPT) -D -m 750 ${srcdir}/auditd.reload ${DESTDIR}${legacydir}/reload
@@ -64,9 +68,8 @@ install-exec-hook:
 	$(INSTALL_SCRIPT) -D -m 750 ${srcdir}/auditd.stop ${DESTDIR}${legacydir}/stop
 	$(INSTALL_SCRIPT) -D -m 750 ${srcdir}/auditd.restart ${DESTDIR}${legacydir}/restart
 	$(INSTALL_SCRIPT) -D -m 750 ${srcdir}/auditd.condrestart ${DESTDIR}${legacydir}/condrestart
-	chmod 0755 $(DESTDIR)$(sbindir)/augenrules
-	$(INSTALL_SCRIPT) -D -m 644 ${srcdir}/audit.bash_completion \
-		${DESTDIR}${sysconfdir}/bash_completion.d/
+endif
+
 uninstall-hook:
 	rm ${DESTDIR}${sysconfdir}/${libconfig}
 	rm ${DESTDIR}${initdir}/auditd.service
