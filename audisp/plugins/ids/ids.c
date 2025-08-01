@@ -56,7 +56,7 @@ volatile int hup = 0;
 volatile int dump_state = 0;
 static auparse_state_t *au = NULL;
 #define NO_ACTIONS (!hup && !stop && !dump_state)
-#define STATE_FILE "/var/run/ids-state"
+#define STATE_FILE AUDIT_RUN_DIR"/ids-state"
 #define TIMER_INTERVAL 30	// Run every 30 seconds
 struct ids_conf config;
 

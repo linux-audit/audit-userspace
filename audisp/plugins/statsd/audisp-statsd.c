@@ -39,7 +39,7 @@
 #include "auplugin.h"
 
 /* Global Definitions */
-#define STATE_REPORT "/var/run/auditd.state"
+#define STATE_REPORT AUDIT_RUN_DIR"/auditd.state"
 #define CONFIG "/etc/audit/audisp-statsd.conf"
 
 struct daemon_config

@@ -30,7 +30,7 @@ Documentation=man:auditd(8) https://github.com/linux-audit/audit-documentation
 
 [Service]
 Type=forking
-PIDFile=@runstatedir@/auditd.pid
+PIDFile=@runstatedir@/audit/auditd.pid
 ExecStart=@sbindir@/auditd
 Restart=on-failure
 ## Do not restart for intentional exits. See EXIT CODES section in auditd(8).

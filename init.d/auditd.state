@@ -6,7 +6,7 @@
 test "$(id -u)" = "0"  ||  exit 4
 
 PATH=/sbin:/bin:/usr/bin:/usr/sbin
-state_file="/var/run/auditd.state"
+state_file="/run/audit/auditd.state"
 
 printf "Getting auditd internal state: "
 /sbin/auditctl --signal state

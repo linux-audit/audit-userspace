@@ -61,6 +61,8 @@ AC_CHECK_SIZEOF([long])
 AC_CHECK_SIZEOF([time_t])
 dnl; next is needed for old compilers and plugins/ids/Makefile.am
 AM_PROG_CC_C_O
+AC_DEFINE_UNQUOTED([AUDIT_RUN_DIR], ["$runstatedir/audit"],
+       [Directory for audit runtime state files])
 AC_CHECK_DECLS([AUDIT_FEATURE_VERSION], [], [], [[#include <linux/audit.h>]])
 AC_CHECK_MEMBERS([struct audit_status.feature_bitmap], [], [], [[#include <linux/audit.h>]])
 AC_CHECK_DECLS([AUDIT_VERSION_BACKLOG_WAIT_TIME], [], [], [[#include <linux/audit.h>]])

@@ -78,8 +78,8 @@ volatile ATOMIC_INT stop = 0;
 /* Local data */
 static int fd = -1, pipefds[2] = {-1, -1};
 static struct daemon_conf config;
-static const char *pidfile = "/var/run/auditd.pid";
-static const char *state_file = "/var/run/auditd.state";
+static const char *pidfile = AUDIT_RUN_DIR"/auditd.pid";
+static const char *state_file = AUDIT_RUN_DIR"/auditd.state";
 static int init_pipe[2];
 static int do_fork = 1, opt_aggregate_only = 0, config_dir_set = 0;
 /*
@@ -104,6 +104,7 @@ static char *getsubj(char *subj);
 /* Manage access to the preallocated event pool */
 static struct auditd_event *alloc_pool_event(void);
 int event_is_prealloc(struct auditd_event *e);
+static int make_audit_run_dir(void);
 
 enum startup_state {startup_disable=0, startup_enable, startup_nochange,
 	startup_INVALID};
@@ -399,6 +400,24 @@ int send_audit_event(int type, const char *str)
 		e->reply.len = DMSG_SIZE;
 
 	distribute_event(e);
+	return 0;
+}
+
+
+static int make_audit_run_dir(void)
+{
+	struct stat st;
+
+	if (stat(AUDIT_RUN_DIR, &st) < 0) {
+		if (mkdir(AUDIT_RUN_DIR, 0755) < 0) {
+			audit_msg(LOG_ERR,
+				"Cannot create run directory %s (%s)",
+				AUDIT_RUN_DIR, strerror(errno));
+			return -1;
+		}
+	} else if (!S_ISDIR(st.st_mode))
+		return -1;
+
 	return 0;
 }
 
@@ -841,13 +860,19 @@ int main(int argc, char *argv[])
 			tell_parent(FAILURE);
 			free_config(&config);
 			return 1;
-		} 
+		}
 		openlog("auditd", LOG_PID, LOG_DAEMON);
 	}
 
 	/* Init netlink */
 	if ((fd = audit_open()) < 0) {
-        	audit_msg(LOG_ERR, "Cannot open netlink audit socket");
+		audit_msg(LOG_ERR, "Cannot open netlink audit socket");
+		tell_parent(FAILURE);
+		free_config(&config);
+		return 1;
+	}
+
+	if (make_audit_run_dir() < 0) {
 		tell_parent(FAILURE);
 		free_config(&config);
 		return 1;

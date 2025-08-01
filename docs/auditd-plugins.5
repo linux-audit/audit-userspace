@@ -53,7 +53,7 @@ option tells the dispatcher to completely change the event into a string suitabl
 .SH NOTE
 auditd has an internal queue to hold events for plugins. (See the \fIq_depth\fP setting in \fIauditd.conf\fP.) Plugins have to watch for and dequeue events as fast as possible and queue them internally if they can't be immediately processed. If the plugin is not able to dequeue records, the auditd internal queue will get filled. At any time, as root, you can run the following to check auditd's metrics:
 
-auditctl --signal cont ; sleep 1 ; cat /var/run/auditd.state
+auditctl --signal cont ; sleep 1 ; cat /run/audit/auditd.state
 
 Plugins using
 .BR libauplugin

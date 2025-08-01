@@ -51,7 +51,7 @@ causes auditd to immediately rotate the logs. It will consult the max_log_file_a
 causes auditd to attempt to resume logging and passing events to plugins. This is usually needed after logging has been suspended or the internal queue is overflowed. Either of these conditions depends on the applicable configuration settings.
 .TP
 .B SIGCONT
-causes auditd to dump a report of internal state to /var/run/auditd.state.
+causes auditd to dump a report of internal state to /run/audit/auditd.state.
 
 .SH EXIT CODES
 .TP
@@ -86,7 +86,7 @@ There is an error in the configuration file
 .B /etc/audit/audit-stop.rules
 - These rules are loaded when the audit daemon stops.
 .P
-.B /var/run/auditd.state
+.B /run/audit/auditd.state
 - report about internal state.
 
 .SH NOTES

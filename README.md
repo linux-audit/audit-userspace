@@ -212,7 +212,7 @@ Another way to check performance is to use
 
 ```
 auditctl --signal state
-cat /var/run/auditd.state
+cat /run/audit/auditd.state
 
 audit version = 4.0.5
 current time = 06/02/25 20:21:31
@@ -241,7 +241,7 @@ glibc uordblks (in use memory) is: 92 KiB, was: 90 KiB
 glibc fordblks (total free space) is: 295 KiB, was: 297 KiB
 ```
 
-This command causes auditd to dump its internal metrics to /var/run/auditd.state. This can tell you if auditd is healthy. Also, you can make auditd periodically update the state file by adjusting the report_interval setting in auditd.conf (note - only available in audit-4.0.5 and later). See the man page for details. Setting this allows for the conitinuous updating for metrics collection.
+This command causes auditd to dump its internal metrics to /run/audit/auditd.state. This can tell you if auditd is healthy. Also, you can make auditd periodically update the state file by adjusting the report_interval setting in auditd.conf (note - only available in audit-4.0.5 and later). See the man page for details. Setting this allows for the conitinuous updating for metrics collection.
 
 AUPARSE
 -------

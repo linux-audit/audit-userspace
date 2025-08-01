@@ -46,7 +46,7 @@
 #include "auplugin.h"
 #include "audispd-pconfig.h"
 
-#define DEFAULT_PATH "/var/run/audispd_events"
+#define DEFAULT_PATH AUDIT_RUN_DIR"/audispd_events"
 //#define DEBUG
 
 /* Global Data */
