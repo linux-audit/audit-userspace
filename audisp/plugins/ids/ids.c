@@ -76,7 +76,7 @@ void my_printf(const char *fmt, ...)
 		fputc('\n', stderr);
 	} else if (mode == 3) {
 		if (l == NULL) {
-			l = fopen("/var/run/audisp-ids.log", "wt");
+			l = fopen(AUDIT_RUN_DIR"/audisp-ids.log", "w");
 			if (l == NULL) {
 				va_end(ap);
 				return;
