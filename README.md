@@ -86,9 +86,9 @@ The systemctl application was designed to interact with systemd to control syste
 
 Many people have to run in environments that require compliance to regulatory standards. One of these requirements is to record anyone's interaction with the audit trail. See [FAU_GEN1.1](https://www.niap-ccevs.org/static_html/protection-profile/469/OS%204.3%20PP/index.html#fau) clause "a" and "c" bullet point 2. This means direct file access, changes to audit configuration, or starting/stopping the daemon. We can place watches on the files to meet the requirements. However, who stopped the daemon is trickier.
 
-Prior to systemd, people used sysvinit and then upstart. Both of those used a service command to wrap the need to send signals to the daemon to direct it to do something. SIGHUP meant reload the configuration. SIGTERM meant halt the daemon. To meet Common Criteria requirements, the Linux kernel notices any signal heading to the audit daemon and records the login uid of whoever sent it. When the audit daemon receives this signal, it querries the kernel so that it can create an event with this information.
+Prior to systemd, people used sysvinit and then upstart. Both of those used a service command to wrap the need to send signals to the daemon to direct it to do something. SIGHUP meant reload the configuration. SIGTERM meant halt the daemon. To meet Common Criteria requirements, the Linux kernel notices any signal heading to the audit daemon and records the login uid of whoever sent it. When the audit daemon receives this signal, it queries the kernel so that it can create an event with this information.
 
-As noted above, systemctl uses dbus to ask systemd to send the signal. Dbus loses the login uid information of who sent the signal. So, when auditd querries the kernel, the login uid is -1 which means unknown. Therefore any use of systemctl to interact with the audit daemon is non-compliant with many security standards. To solve this, the defaualt auditd service file includes the setting:
+As noted above, systemctl uses dbus to ask systemd to send the signal. Dbus loses the login uid information of who sent the signal. So, when auditd queries the kernel, the login uid is -1 which means unknown. Therefore any use of systemctl to interact with the audit daemon is non-compliant with many security standards. To solve this, the default auditd service file includes the setting:
 
 ```
 RefuseManualStop=yes
@@ -252,7 +252,7 @@ glibc uordblks (in use memory) is: 92 KiB, was: 90 KiB
 glibc fordblks (total free space) is: 295 KiB, was: 297 KiB
 ```
 
-This command causes auditd to dump its internal metrics to /run/audit/auditd.state. This can tell you if auditd is healthy. Also, you can make auditd periodically update the state file by adjusting the report_interval setting in auditd.conf (note - only available in audit-4.0.5 and later). See the man page for details. Setting this allows for the conitinuous updating for metrics collection.
+This command causes auditd to dump its internal metrics to /run/audit/auditd.state. This can tell you if auditd is healthy. Also, you can make auditd periodically update the state file by adjusting the report_interval setting in auditd.conf (note - only available in audit-4.0.5 and later). See the man page for details. Setting this allows for the continuous updating for metrics collection.
 
 ## AUPARSE
 The auparse library is available to allow one to create custom reporting applications. The library is patterned after a dbase or foxpro database library and has the following categories of functions:
@@ -268,9 +268,9 @@ The auparse library is available to allow one to create custom reporting applica
 You can write programs in one of two ways: iterate across events, records, and fields; or use the feed API to which a callback function is presented with a single, complete event that can be iterated across the records and fields. The former is best for working with files, while the latter is more appropriate for realtime data for a plugin.
 
 ## AUPLUGIN
-The auplugin library helps developers write auditd plugins. It multithreads
-a plugin with a queue inbetween the threads. One thread pulls event records
-from auditd, then equeues them. The other thread sees the events and calls
+The auplugin library helps developers write auditd plugins. It multi-threads
+a plugin with a queue in between the threads. One thread pulls event records
+from auditd, then enqueues them. The other thread sees the events and calls
 back a function of your choosing. This keeps auditd running at top speed
 since plugins keep their socket drained. The library offers functions to
 manage an event queue and dispatch audit records to a callback for
