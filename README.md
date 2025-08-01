@@ -86,21 +86,21 @@ The systemctl application was designed to interact with systemd to control syste
 
 Many people have to run in environments that require compliance to regulatory standards. One of these requirements is to record anyone's interaction with the audit trail. This means direct file access, changes to audit configuration, or starting/stopping the daemon. We can place watches on the files to meet the requirements. However, who stopped the daemon is trickier.
 
-Prior to systemd, people used sysvinit and then upstart. Both of those used a service command to wrap the need to send signals to the daemon to direct it to do something. SIGHUP meant reload the configuration. SIGTERM meant halt the daemon. To meet Common Criteria requirements, the Linux kernel notices any sugnal heading to the audit daemon and records the login uid of whoever sent it. When the audit daemon receives this signal, it querries the kernel so that it can create an event with this information.
+Prior to systemd, people used sysvinit and then upstart. Both of those used a service command to wrap the need to send signals to the daemon to direct it to do something. SIGHUP meant reload the configuration. SIGTERM meant halt the daemon. To meet Common Criteria requirements, the Linux kernel notices any signal heading to the audit daemon and records the login uid of whoever sent it. When the audit daemon receives this signal, it querries the kernel so that it can create an event with this information.
 
-As noted above, systemctl uses dbus to ask systemd to send the signal. Dbus loses the login uid information of who sent the signal. So, when auditd querries the kernel, the uid is -1 which means unknown. Therefore any use of systemctl to interact with the audit daemon is non-compliant with many security standards. To solve this, the defaualt systemd service file includes the setting:
+As noted above, systemctl uses dbus to ask systemd to send the signal. Dbus loses the login uid information of who sent the signal. So, when auditd querries the kernel, the login uid is -1 which means unknown. Therefore any use of systemctl to interact with the audit daemon is non-compliant with many security standards. To solve this, the defaualt auditd service file includes the setting:
 
 ```
 RefuseManualStop=yes
 ```
 
-This causes systemctl to refuse stopping the audit system. This lets us use the old service command to send signals in the user's login context so that the audit trail is not broken. To work correctly, the service command must support legacy actions. The audit daemon ships these which must be installed to
+This causes systemctl to refuse stopping the audit system. This requires us use the old service command to send signals in the user's login context so that the audit trail is not broken. To work correctly, the service command must support legacy actions. The audit daemon ships these which must be installed to
 
 ```
 /usr/libexec/initscripts/legacy-actions/
 ```
 
-These scripts are wrappers to "auditctl --signal" which locates the audit daemon and then sends the right signal to it. A lot of distributions want to get rid of this legacy mode of action, but it cannot be done away with. The original plan was to move dbus into the kernel where it could see both ends of a socket and transfer credentials if both parties agreed. This was shotdown back around 2010 and now we're stuck.
+These scripts are wrappers to "auditctl --signal" which locates the audit daemon and then sends the right signal to it. A lot of distributions want to get rid of this legacy mode of action, but it cannot be done away with. The original plan was to move dbus into the kernel where it could see both ends of a socket and transfer credentials if both parties agreed. This was shotdown back around 2010 and now we're stuck. (This also means the Linux desktop cannot meet common criteria or any serious security standards since it loses who originated any action.)
 
 The main point is that if you use systemctl and only systemctl to manage auditd, you not in compliance with security standards that require monitoring the configuration of the audit trail.
 
