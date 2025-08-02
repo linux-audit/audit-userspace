@@ -278,6 +278,7 @@ static int audit_setup_watch_name(struct audit_rule_data **rulep, char *path)
 	int type = AUDIT_WATCH;
 	size_t len;
 	struct stat buf;
+	unsigned int i;
 
 	if (check_path(path))
 		return -1;
@@ -294,13 +295,28 @@ static int audit_setup_watch_name(struct audit_rule_data **rulep, char *path)
 		if (S_ISDIR(buf.st_mode))
 			type = AUDIT_DIR;
 	}
-	/* FIXME: might want to check to see that rule is empty */
-	if (audit_add_watch_dir(type, rulep, path)) 
+	/* Ensure the rule is empty before adding a watch */
+	if ((*rulep)->field_count || (*rulep)->action || (*rulep)->flags ||
+	    (*rulep)->buflen)
+		goto err;
+	for (i = 0; i < AUDIT_MAX_FIELDS; i++)
+		if ((*rulep)->fields[i] || (*rulep)->values[i] ||
+		    (*rulep)->fieldflags[i])
+			goto err;
+	for (i = 0; i < AUDIT_BITMASK_SIZE; i++)
+		if ((*rulep)->mask[i])
+			goto err;
+	if (audit_add_watch_dir(type, rulep, path))
 		return -1;
 
 	if (add != AUDIT_FILTER_UNSET)
 		audit_msg(LOG_INFO, "Old style watch rules are slower");
 	return 1;
+err:
+	audit_msg(LOG_ERR, "Watches may not include fields or actions");
+	audit_rule_free_data(*rulep);
+	*rulep = audit_rule_create_data();
+	return -1;
 }
 
 /*
