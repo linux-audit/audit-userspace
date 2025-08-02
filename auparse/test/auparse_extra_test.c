@@ -2,6 +2,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include "libaudit.h"
 #include "auparse.h"
 
@@ -73,12 +74,39 @@ static void test_compare(void)
 	auparse_destroy(au);
 }
 
+/* Test parsing of timestamp expressions for millisecond range. */
+static void test_timestamp_milli(void)
+{
+	auparse_state_t *au;
+	char *err = NULL;
+	int rc;
+
+	au = auparse_init(AUSOURCE_FILE, "./test.log");
+	assert(au != NULL);
+
+	rc = ausearch_add_expression(au,
+				"\\timestamp == ts:1.999",
+				&err, AUSEARCH_RULE_CLEAR);
+	assert(rc == 0);
+	assert(err == NULL);
+
+	rc = ausearch_add_expression(au,
+				"\\timestamp == ts:1.1000",
+				&err, AUSEARCH_RULE_CLEAR);
+	assert(rc == -1);
+	assert(err != NULL);
+	free(err);
+
+	auparse_destroy(au);
+}
+
 int main(void)
 {
 	test_new_buffer();
 	test_feed_state();
 	test_normalize();
 	test_compare();
+	test_timestamp_milli();
 	printf("extra auparse tests: all passed\n");
 	return 0;
 }

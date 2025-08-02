@@ -135,6 +135,7 @@ const char *audit_perm_to_name(int perm);
 AUDIT_HIDDEN_END
 
 // libaudit.c
+struct audit_rule_data;	// Forward declaration to prevent warnings
 int _audit_parse_syscall(const char *optarg, struct audit_rule_data *rule);
 extern int _audit_permadded;
 extern int _audit_archadded;
