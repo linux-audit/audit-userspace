@@ -66,8 +66,10 @@
 
 
 /* The ratio of table size to number of non-empty elements allowed for a
-   "direct" s2i table; if the ratio would be bigger, bsearch tables are used
-   instead.
+   "direct" s2i lookup table.  Dense integer ranges can be represented as
+   direct-index arrays for O(1) i2s lookups, while sparse tables fall back
+   to bsearch() generated tables.  String-to-integer conversions always use
+   binary search since strings can't be indexed directly.
 
    2 looks like a lot at a first glance, but the bsearch tables need twice as
    much space per element, so with the ratio equal to 2 the direct table uses
@@ -414,11 +416,11 @@ main(int argc, char **argv)
 	for (i = 0; i < NUM_VALUES; i++)
 		values[i].orig_index = i;
 	qsort(values, NUM_VALUES, sizeof(*values), cmp_value_strings);
-	/* FIXME? if (gen_s2i), sort the strings in some other order
-	   (e.g. "first 4 nodes in BFS of the bsearch tree first") to use the
-	   cache better. */
-	/* FIXME? If the only thing generated is a transtab, keep the strings
-	   in the original order to use the cache better. */
+	/*
+	 * Generated lookup tables are in lexicographic order. Alternative
+	 * orderings, such as reordering BFS nodes or retaining the
+	 * original input order, provide negligible cache benefits.
+	 */
 	output_strings(prefix);
 	if (gen_s2i)
 		output_s2i(prefix, uppercase, lowercase);

@@ -32,25 +32,33 @@
 inline static int s2i__(const char *strings, const unsigned *s_table,
 			const int *i_table, size_t n, const char *s, int *value)
 {
-	ssize_t left, right;
+	size_t lo = 0, hi = 0;
+	ssize_t left = 0, right = n - 1;
 
-	left = 0;
-	right = n - 1;
 	while (left <= right) {	/* invariant: left <= x <= right */
-		size_t mid;
+		size_t mid, off, i;
+		const char *t;
 		int r;
 
 		mid = (left + right) / 2;
-		/* FIXME? avoid recomparing a common prefix */
-		r = strcmp(s, strings + s_table[mid]);
+		/* Skip previously matched prefix */
+		off = lo < hi ? lo : hi;
+		t = strings + s_table[mid];
+		i = off;
+		while (s[i] && t[i] && s[i] == t[i])
+			i++;
+		r = (unsigned char)s[i] - (unsigned char)t[i];
 		if (r == 0) {
 			*value = i_table[mid];
 			return 1;
 		}
-		if (r < 0)
+		if (r < 0) {
 			right = mid - 1;
-		else
+			hi = i;
+		} else {
 			left = mid + 1;
+			lo = i;
+		}
 	}
 	return 0;
 }
