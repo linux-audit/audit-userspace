@@ -12,6 +12,7 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <signal.h>
+#include <sys/wait.h>
 #include <syslog.h>
 #include <time.h>  // nanosleep
 #include <errno.h>
@@ -47,8 +48,20 @@ static int safe_exec(const char *exe, ...)
 			"Audit IDS failed to fork doing safe_exec");
 		return 1;
 	}
-	if (pid)        /* Parent */
-		return 0; // FIXME: should we waitpid to know if it succeeded?
+	if (pid) {       /* Parent */
+		int status;
+
+		if (waitpid(pid, &status, 0) < 0) {
+			syslog(LOG_ALERT,
+				"Audit IDS waitpid failed for %s", exe);
+			return 1;
+		}
+		if (WIFEXITED(status) && WEXITSTATUS(status) == 0)
+			return 0;
+
+		syslog(LOG_ALERT, "Audit IDS %s exited abnormally", exe);
+		return 1;
+	}
 
 	/* Child */
 	sigfillset (&sa.sa_mask);
