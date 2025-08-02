@@ -139,7 +139,10 @@ static void hup_handler( int sig )
 
 static void reload_config(void)
 {
-	stop_transport(); // FIXME: We should only stop transport if necessary
+	if (transport_ok)
+		stop_transport();
+	transport_ok = 0;
+	remote_ended = 1;
 	hup = 0;
 }
 
