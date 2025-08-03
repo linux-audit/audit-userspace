@@ -976,6 +976,32 @@ static int opt_syscall(opt_handler_params_t *args)
 	return retval;
 }
 
+/*
+ * process_key_option - append key string while enforcing limits
+ * @optarg: key string to append
+ * @key: destination key buffer
+ * @keylen: remaining buffer length
+ * Returns 0 on success or OPT_ERROR_NO_REPLY on error.
+ */
+static int process_key_option(const char *optarg, char *key,
+			      unsigned int *keylen)
+{
+	if ((strlen(optarg) + strlen(key) + (!!key[0])) >
+			AUDIT_MAX_KEY_LEN) {
+		audit_msg(LOG_ERR, "key option exceeds size limit");
+		return OPT_ERROR_NO_REPLY;
+	}
+	if (strchr(optarg, AUDIT_KEY_SEPARATOR))
+		audit_msg(LOG_ERR, "key %s has illegal character", optarg);
+	if (key[0]) {
+		strcat(key, key_sep);
+		(*keylen)--;
+	}
+	strncat(key, optarg, *keylen);
+	*keylen = AUDIT_MAX_KEY_LEN - strlen(key);
+	return 0;
+}
+
 static int opt_field(opt_handler_params_t *args)
 {
 	int retval = args->retval, rc;
@@ -994,22 +1020,9 @@ static int opt_field(opt_handler_params_t *args)
 	// Keys need to get handled differently
 	if (strncmp(optarg, "key=", 4) == 0) {
 		optarg += 4;
-		// goto process_keys;
-		if ((strlen(optarg)+strlen(key)+(!!key[0])) >
-							AUDIT_MAX_KEY_LEN) {
-			audit_msg(LOG_ERR, "key option exceeds size limit");
-			retval = OPT_ERROR_NO_REPLY;
-		} else {
-			if (strchr(optarg, AUDIT_KEY_SEPARATOR))
-				audit_msg(LOG_ERR,
-				    "key %s has illegal character", optarg);
-			if (key[0]) { // Add the separator if we need to
-				strcat(key, key_sep);
-				keylen--;
-			}
-			strncat(key, optarg, keylen);
-			keylen = AUDIT_MAX_KEY_LEN - strlen(key);
-		}
+		rc = process_key_option(optarg, key, &keylen);
+		if (rc)
+			retval = rc;
 		return retval;
 	}
 
@@ -1156,7 +1169,7 @@ static int opt_remove_watch(opt_handler_params_t *args)
 
 static int opt_key(opt_handler_params_t *args)
 {
-	int retval = args->retval;
+	int rc, retval = args->retval;
 	if (!(_audit_syscalladded || _audit_permadded ||
 		_audit_exeadded || _audit_filterfsadded) ||
 		(add == AUDIT_FILTER_UNSET && del == AUDIT_FILTER_UNSET)) {
@@ -1168,24 +1181,9 @@ static int opt_key(opt_handler_params_t *args)
 		return OPT_ERROR_NO_REPLY;
 	}
 
-	// FIXME refactor this to a function
-	// process_keys:
-	if ((strlen(optarg) + strlen(key) + (!!key[0])) >
-		AUDIT_MAX_KEY_LEN) {
-		audit_msg(LOG_ERR, "key option exceeds size limit");
-		retval = -1;
-	} else {
-		if (strchr(optarg, AUDIT_KEY_SEPARATOR))
-			audit_msg(LOG_ERR,
-					  "key %s has illegal character",
-					  optarg);
-		if (key[0]) { // Add the separator if we need to
-			strcat(key, key_sep);
-			keylen--;
-		}
-		strncat(key, optarg, keylen);
-		keylen = AUDIT_MAX_KEY_LEN - strlen(key);
-	}
+	rc = process_key_option(optarg, key, &keylen);
+	if (rc)
+		retval = rc;
 	return retval;
 }
 
