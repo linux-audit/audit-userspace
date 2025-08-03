@@ -1959,12 +1959,12 @@ static int parse_avc(const lnode *n, search_items *s)
 			term = n->message;
 			goto other_avc;
 		}
-		if (event_success != S_UNSET) {
+		// Do not override syscall success if already set.
+		// Syscall pass/fail is the authoritative value.
+		if (event_success != S_UNSET && s->success == S_UNSET) {
 			*term = 0;
-			// FIXME. Do not override syscall success if already
-			// set. Syscall pass/fail is the authoritative value.
 			if (strstr(str, "denied")) {
-				s->success = S_FAILED; 
+				s->success = S_FAILED;
 				an.avc_result = AVC_DENIED;
 			} else {
 				s->success = S_SUCCESS;
