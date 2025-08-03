@@ -1483,7 +1483,7 @@ static pid_t safe_exec(const char *exe)
 	argv[1] = NULL;
 	execve(exe, argv, NULL);
 	audit_msg(LOG_ALERT, "Audit daemon failed to exec %s", exe);
-	exit(1); /* FIXME: Maybe this should error instead of exit */
+	_exit(EXIT_FAILURE); // Avoid running the atexit handlers
 }
 
 static void reconfigure(struct auditd_event *e)
