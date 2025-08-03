@@ -413,9 +413,10 @@ int q_peek(struct queue *q, char *buf, size_t size)
 		data = q->buffer;
 		end = memchr(q->buffer, '\0', q->entry_size);
 		if (end == NULL) {
-			/* FIXME: silently drop this entry? */
-			errno = EBADMSG;
-			return -1;
+			syslog(LOG_WARNING, "queue entry missing terminator");
+			if (q_drop_head(q) != 0)
+				return -1;
+			return q_peek(q, buf, size); // Return next one
 		}
 		data_size = (end - data) + 1;
 
