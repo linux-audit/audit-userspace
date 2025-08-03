@@ -340,7 +340,7 @@ void read_audit_record(int ifd)
 				} while (rc < 0 && errno == EINTR);
 				if (rc < 0 && errno == EPIPE) {
 					close(conn);
-					conn = -1; // FIXME: is this right?
+					conn = -1; // socket closed, will trigger reconnection later
 					client = 0;
 					auplugin_fgets_clear();
 				}
