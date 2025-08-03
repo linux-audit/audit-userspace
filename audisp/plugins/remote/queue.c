@@ -32,6 +32,7 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <syslog.h>
 #include "queue.h"
 
 struct queue
