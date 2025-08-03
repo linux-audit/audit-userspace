@@ -1454,10 +1454,12 @@ static int recv_msg_tcp (unsigned char *header, char *msg, uint32_t *mlen)
 	}
 
 	if (! AUDIT_RMW_IS_MAGIC (header, AUDIT_RMW_HEADER_SIZE)) {
-		/* FIXME: the right thing to do here is close the socket
-		 *  and start a new one.  */
+		/* close the socket and start a new one.  */
 		sync_error_handler ("bad magic number");
+		stop_transport();
+		init_transport();
 		return -1;
+
 	}
 
 	AUDIT_RMW_UNPACK_HEADER (header, hver, mver, type, rlen, seq);
