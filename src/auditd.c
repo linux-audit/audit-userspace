@@ -593,13 +593,12 @@ static void netlink_handler(struct ev_loop *loop, struct ev_io *io,
 {
 	int rc = 1, cnt = 0;
 
-	// Try to get all the events that are waiting but yield after 5 to
-	// let other handlers run. Five should cover PATH events.
-	// FIXME: backing down to 3 until IPC is faster
-	while (rc > 0 && cnt < 3) {
+	// Try to get all the events that are waiting but yield after 4 to
+	// let other handlers run. Four should cover file watch events.
+	while (rc > 0 && cnt < 4) {
 		if (cur_event == NULL) {
 			cur_event = alloc_pool_event();
-				if (cur_event == NULL) {
+			if (cur_event == NULL) {
 				char emsg[DEFAULT_BUF_SZ];
 				if (*subj)
 					snprintf(emsg, sizeof(emsg),
