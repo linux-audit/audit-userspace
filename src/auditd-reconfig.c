@@ -113,8 +113,7 @@ static void *config_thread_main(void *arg)
 		audit_format_signal_info(txt, sizeof(txt),
 					 "reconfigure state=no-change",
 				         &e->reply, "failed");
-		// FIXME: need to figure out sending this
-		//send_audit_event(AUDIT_DAEMON_CONFIG, txt);
+		send_audit_event(AUDIT_DAEMON_CONFIG, txt);
 		free_config(&new_config);
 		free(e);
 	}
