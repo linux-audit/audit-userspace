@@ -113,6 +113,10 @@ struct auditd_remote_message_wrapper {
 	seq = _AUDIT_RMW_GETN32 (header,12);
 
 /* General */
+extern int audit_send(int fd, int type, const void *data, unsigned int size);
+extern int __audit_send(int fd, int type, const void *data, unsigned int size, int *seq);
+
+AUDIT_HIDDEN_START
 /* Internal syslog messaging */
 void audit_msg(int priority, const char *fmt, ...) 
 #ifdef __GNUC__
@@ -120,11 +124,6 @@ void audit_msg(int priority, const char *fmt, ...)
 #else
 	;
 #endif
-
-extern int audit_send(int fd, int type, const void *data, unsigned int size);
-extern int __audit_send(int fd, int type, const void *data, unsigned int size, int *seq);
-
-AUDIT_HIDDEN_START
 
 // This is the main messaging function used internally
 extern int audit_send_user_message(int fd, int type, hide_t hide_err,

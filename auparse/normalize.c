@@ -1093,7 +1093,7 @@ static const char *normalize_determine_evkind(int type)
 	return evtype_i2s(kind);
 }
 
-const char *find_config_change_object(auparse_state_t *au)
+static const char *find_config_change_object(auparse_state_t *au)
 {
 	const char *f;
 
