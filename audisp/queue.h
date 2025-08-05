@@ -25,6 +25,7 @@
 
 #include <stdio.h>
 #include <time.h>
+#include "dso.h"
 #include "libdisp.h"
 #include "audispd-config.h"
 
@@ -37,6 +38,7 @@ enum {
 	Q_RESIZE    = 1 << 5,
 };
 
+AUDIT_HIDDEN_START
 void reset_suspended(void);
 int init_queue(unsigned int size);
 int init_queue_extended(unsigned int size, int flags, const char *path);
@@ -51,6 +53,7 @@ void destroy_queue(void);
 unsigned int queue_current_depth(void);
 unsigned int queue_max_depth(void);
 int queue_overflowed_p(void);
+AUDIT_HIDDEN_END
 
 #endif
 
