@@ -1111,6 +1111,7 @@ static int validate_email(const char *acct)
 		hints.ai_flags = AI_ADDRCONFIG | AI_CANONNAME;
 		hints.ai_socktype = SOCK_STREAM;
 
+		h_errno = 0;
 		rc2 = getaddrinfo(ptr1+1, NULL, &hints, &ai);
 		if (rc2 != 0) {
 			if ((h_errno == HOST_NOT_FOUND) ||
@@ -1118,9 +1119,6 @@ static int validate_email(const char *acct)
 				audit_msg(LOG_ERR,
 			"validate_email: failed looking up host for %s (%s)",
 					ptr1+1, gai_strerror(rc2));
-				// FIXME: How can we tell that we truly have
-				// a permanent failure and what is that? For
-				// now treat all as temp failure.
 			} else if (h_errno == TRY_AGAIN) {
 				audit_msg(LOG_DEBUG,
 		"validate_email: temporary failure looking up domain for %s",
