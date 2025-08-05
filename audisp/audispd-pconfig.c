@@ -93,13 +93,6 @@ static const struct nv_list active[] =
   { NULL,  0 }
 };
 
-static const struct nv_list directions[] =
-{
-//  {"in",   D_IN },	FIXME: not supported yet
-  {"out",  D_OUT },
-  { NULL,  0 }
-};
-
 static const struct nv_list service_type[] =
 {
   {"builtin",  S_BUILTIN },
@@ -120,7 +113,7 @@ static const struct nv_list formats[] =
 void clear_pconfig(plugin_conf_t *config)
 {
 	config->active = A_NO;
-	config->direction = D_UNSET;
+	config->direction = D_OUT;
 	config->path = NULL;
 	config->type = S_ALWAYS;
 	config->args = NULL;
@@ -386,19 +379,12 @@ static int active_parser(struct nv_pair *nv, int line,
 	return 1;
 }
 
+// This is deprecated. All plugins are outbound.
 static int direction_parser(struct nv_pair *nv, int line,
 		plugin_conf_t *config)
 {
-	int i;
-
-	for (i=0; directions[i].name != NULL; i++) {
-		if (strcasecmp(nv->values[0], directions[i].name) == 0) {
-			config->direction = directions[i].option;
-			return 0;
-		}
-	}
-	audit_msg(LOG_ERR, "Option %s not found - line %d", nv->values[0], line);
-	return 1;
+	config->direction = D_OUT;
+	return 0;
 }
 
 static const char *BUILTIN_PATH="/sbin/audisp-af_unix";

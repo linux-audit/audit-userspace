@@ -28,7 +28,7 @@
 #include "libaudit.h"
 
 typedef enum { A_NO, A_YES } active_t;
-typedef enum { D_UNSET, D_IN, D_OUT } direction_t;
+typedef enum { D_UNSET, D_OUT } direction_t;
 typedef enum { S_ALWAYS, S_BUILTIN } service_t;
 typedef enum { F_BINARY, F_STRING } format_t;
 
