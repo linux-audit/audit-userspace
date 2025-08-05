@@ -520,8 +520,7 @@ void print_per_event_item(llist *l)
 			} while (alist_next_avc(l->s.avc));
 			break;
 		case RPT_CONFIG:
-			// FIXME:who, action, what, outcome, event
-			// NOW: type auid success event
+			// type auid success event
 			printf("%s %s %s %lu\n",
 				audit_msg_type_to_name(l->head->type),
 				aulookup_uid(l->s.loginuid, name, sizeof(name)),

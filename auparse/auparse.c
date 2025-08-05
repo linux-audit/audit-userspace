@@ -618,8 +618,6 @@ static void consume_feed(auparse_state_t *au, int flush)
 		/* Terminate all outstanding events, as we are at end of input
 		 * (ie mark BUILDING events as COMPLETE events) then if we
 		 * have a callback execute the callback on each event
-		 * FIXME: Should we implement a 'checkpoint' concept as per
-		 * ausearch or accept these 'partial' events?
 		 */
 		event_list_t	*l;
 

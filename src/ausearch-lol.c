@@ -248,7 +248,6 @@ static int extract_timestamp(const char *b, event *e)
 }
 
 // This function will check events to see if they are complete
-// FIXME: Can we think of other ways to determine if the event is done?
 static void check_events(lol *lo, time_t sec)
 {
 	int i;
