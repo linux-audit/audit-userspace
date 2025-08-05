@@ -54,27 +54,16 @@ static int test_passed = 0;
 
 /* Helper function to create a sample plugin config */
 static plugin_conf_t *create_test_plugin(const char *name, active_t active,
-                                        direction_t direction, const char *path)
+					const char *path)
 {
 	plugin_conf_t *config = malloc(sizeof(plugin_conf_t));
 	if (!config)
 		return NULL;
 
-	memset(config, 0, sizeof(plugin_conf_t));
+	clear_pconfig(config);
 	config->active = active;
-	config->direction = direction;
 	config->path = path ? strdup(path) : NULL;
-	config->type = S_ALWAYS;
-	config->args = NULL;
-	config->nargs = 0;
-	config->format = F_STRING;
-	config->plug_pipe[0] = -1;
-	config->plug_pipe[1] = -1;
-	config->pid = 0;
-	config->inode = 0;
-	config->checked = 0;
 	config->name = name ? strdup(name) : NULL;
-	config->restart_cnt = 0;
 
 	return config;
 }
@@ -128,10 +117,10 @@ test_plugin_configuration_management(void)
 		TEST_FAIL("new list should have 0 active plugins");
 
 	// Create test plugins with different configurations
-	config1 = create_test_plugin("audit-remote", A_YES, D_OUT, "/usr/sbin/audit-remote");
-	config2 = create_test_plugin("audit-syslog", A_NO, D_OUT, "/usr/sbin/audit-syslog");
-	config3 = create_test_plugin("audit-af_unix", A_YES, D_OUT, "/usr/sbin/audit-af_unix");
-	config4 = create_test_plugin("audit-custom-plugin", A_YES, D_IN, "/usr/sbin/audit-custom-plugin");
+	config1 = create_test_plugin("audit-remote", A_YES, "/usr/sbin/audit-remote");
+	config2 = create_test_plugin("audit-syslog", A_NO, "/usr/sbin/audit-syslog");
+	config3 = create_test_plugin("audit-af_unix", A_YES, "/usr/sbin/audit-af_unix");
+	config4 = create_test_plugin("audit-custom-plugin", A_YES, "/usr/sbin/audit-custom-plugin");
 
 	if (!config1 || !config2 || !config3 || !config4)
 		TEST_FAIL("failed to create test plugin configs");
@@ -256,9 +245,9 @@ test_plugin_hup_signal_handling(void)
 	plist_create(&new_plugin_list);
 
 	// Create old configuration
-	old_config1 = create_test_plugin("audit-remote", A_YES, D_OUT, "/usr/sbin/audit-remote");
-	old_config2 = create_test_plugin("audit-syslog", A_YES, D_OUT, "/usr/sbin/audit-syslog");
-	old_config3 = create_test_plugin("audit-af_unix", A_NO, D_OUT, "/usr/sbin/audit-af_unix");
+	old_config1 = create_test_plugin("audit-remote", A_YES, "/usr/sbin/audit-remote");
+	old_config2 = create_test_plugin("audit-syslog", A_YES, "/usr/sbin/audit-syslog");
+	old_config3 = create_test_plugin("audit-af_unix", A_NO, "/usr/sbin/audit-af_unix");
 
 	if (!old_config1 || !old_config2 || !old_config3)
 		TEST_FAIL("failed to create old plugin configs");
@@ -268,9 +257,9 @@ test_plugin_hup_signal_handling(void)
 	plist_append(&old_plugin_list, old_config3);
 
 	// Create new configuration (remove audit-af_unix, add audit-custom-plugin, keep others)
-	new_config1 = create_test_plugin("audit-remote", A_YES, D_OUT, "/usr/sbin/audit-remote");
-	new_config2 = create_test_plugin("audit-syslog", A_NO, D_OUT, "/usr/sbin/audit-syslog"); // Changed to inactive
-	new_config4 = create_test_plugin("audit-custom-plugin", A_YES, D_IN, "/usr/sbin/audit-custom-plugin");
+	new_config1 = create_test_plugin("audit-remote", A_YES, "/usr/sbin/audit-remote");
+	new_config2 = create_test_plugin("audit-syslog", A_NO, "/usr/sbin/audit-syslog"); // Changed to inactive
+	new_config4 = create_test_plugin("audit-custom-plugin", A_YES, "/usr/sbin/audit-custom-plugin");
 
 	if (!new_config1 || !new_config2 || !new_config4)
 		TEST_FAIL("failed to create new plugin configs");
@@ -376,11 +365,11 @@ test_plugin_iteration_and_startup(void)
 	plist_create(&plugin_list);
 
 	// Create mixed active/inactive plugins
-	configs[0] = create_test_plugin("plugin1", A_YES, D_OUT, "/usr/sbin/plugin1");
-	configs[1] = create_test_plugin("plugin2", A_NO, D_OUT, "/usr/sbin/plugin2");
-	configs[2] = create_test_plugin("plugin3", A_YES, D_IN, "/usr/sbin/plugin3");
-	configs[3] = create_test_plugin("plugin4", A_YES, D_OUT, "/usr/sbin/plugin4");
-	configs[4] = create_test_plugin("plugin5", A_NO, D_IN, "/usr/sbin/plugin5");
+	configs[0] = create_test_plugin("plugin1", A_YES, "/usr/sbin/plugin1");
+	configs[1] = create_test_plugin("plugin2", A_NO, "/usr/sbin/plugin2");
+	configs[2] = create_test_plugin("plugin3", A_YES, "/usr/sbin/plugin3");
+	configs[3] = create_test_plugin("plugin4", A_YES, "/usr/sbin/plugin4");
+	configs[4] = create_test_plugin("plugin5", A_NO, "/usr/sbin/plugin5");
 
 	for (i = 0; i < 5; i++) {
 		if (!configs[i])
@@ -419,7 +408,7 @@ test_plugin_iteration_and_startup(void)
 		TEST_FAIL("last plugin should be plugin5");
 
 	// Test adding plugin at end using plist_last()
-	plugin_conf_t *config_new = create_test_plugin("plugin6", A_YES, D_OUT, "/usr/sbin/plugin6");
+	plugin_conf_t *config_new = create_test_plugin("plugin6", A_YES, "/usr/sbin/plugin6");
 	if (!config_new)
 		TEST_FAIL("failed to create new plugin config");
 
@@ -539,7 +528,7 @@ test_memory_management_and_edge_cases(void)
 	for (int i = 0; i < large_count; i++) {
 		char name[32];
 		snprintf(name, sizeof(name), "plugin%d", i);
-		large_configs[i] = create_test_plugin(name, (i % 2) ? A_YES : A_NO, D_OUT, "/usr/sbin/test");
+		large_configs[i] = create_test_plugin(name, (i % 2) ? A_YES : A_NO, "/usr/sbin/test");
 
 		if (!large_configs[i])
 			TEST_FAIL("failed to create large config");
