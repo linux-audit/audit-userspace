@@ -28,14 +28,12 @@
 #include "libaudit.h"
 
 typedef enum { A_NO, A_YES } active_t;
-typedef enum { D_UNSET, D_OUT } direction_t;
 typedef enum { S_ALWAYS, S_BUILTIN } service_t;
 typedef enum { F_BINARY, F_STRING } format_t;
 
 typedef struct plugin_conf
 {
 	active_t active;	/* Current state - active or not */
-	direction_t direction;	/* in or out kind of plugin */
 	const char *path;	/* path to binary */
 	service_t type;		/* builtin or always */
 	char **args;	/* args to be passed to plugin */

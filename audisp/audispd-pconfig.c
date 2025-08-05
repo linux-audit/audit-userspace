@@ -113,7 +113,6 @@ static const struct nv_list formats[] =
 void clear_pconfig(plugin_conf_t *config)
 {
 	config->active = A_NO;
-	config->direction = D_OUT;
 	config->path = NULL;
 	config->type = S_ALWAYS;
 	config->args = NULL;
@@ -383,7 +382,6 @@ static int active_parser(struct nv_pair *nv, int line,
 static int direction_parser(struct nv_pair *nv, int line,
 		plugin_conf_t *config)
 {
-	config->direction = D_OUT;
 	return 0;
 }
 
