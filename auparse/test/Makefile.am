@@ -33,32 +33,40 @@ DISTCLEANFILES = $(CLEANFILES)
 AM_CPPFLAGS = -I${top_srcdir}/auparse -I${top_srcdir}/lib -I${top_srcdir}/common
 AM_CFLAGS = -D_GNU_SOURCE -Wno-pointer-sign ${WFLAGS}
 
+if HAVE_ASAN
+AM_CFLAGS = -D_GNU_SOURCE -Wno-pointer-sign ${WFLAGS} ${ASAN_FLAGS}
+AM_LDFLAGS = ${ASAN_FLAGS}
+else
+AM_CFLAGS = -D_GNU_SOURCE -Wno-pointer-sign ${WFLAGS}
+endif
+STATIC_LINK = -static
+
 lookup_test_SOURCES = lookup_test.c
-lookup_test_LDFLAGS = -static
+lookup_test_LDFLAGS =  ${STATIC_LINK}
 lookup_test_LDADD = ${top_builddir}/auparse/libauparse.la \
 	${top_builddir}/lib/libaudit.la ${top_builddir}/common/libaucommon.la
 lookup_test_DEPENDENCIES = ${top_builddir}/auparse/libauparse.la ${top_builddir}/lib/libaudit.la ${top_builddir}/common/libaucommon.la
 
 auparse_test_SOURCES = auparse_test.c
-auparse_test_LDFLAGS = -static
+auparse_test_LDFLAGS =  ${STATIC_LINK}
 auparse_test_LDADD = ${top_builddir}/auparse/libauparse.la \
 	${top_builddir}/lib/libaudit.la ${top_builddir}/common/libaucommon.la
 auparse_test_DEPENDENCIES = ${top_builddir}/auparse/libauparse.la ${top_builddir}/lib/libaudit.la ${top_builddir}/common/libaucommon.la
 
 auparselol_test_SOURCES = auparselol_test.c
-auparselol_test_LDFLAGS = -static
+auparselol_test_LDFLAGS =  ${STATIC_LINK}
 auparselol_test_LDADD = ${top_builddir}/auparse/libauparse.la \
 	${top_builddir}/lib/libaudit.la ${top_builddir}/common/libaucommon.la
 auparselol_test_DEPENDENCIES = ${top_builddir}/auparse/libauparse.la ${top_builddir}/lib/libaudit.la ${top_builddir}/common/libaucommon.la
 
 databuf_test_SOURCES = databuf_test.c
-databuf_test_LDFLAGS = -static
+databuf_test_LDFLAGS =  ${STATIC_LINK}
 databuf_test_LDADD = ${top_builddir}/auparse/libauparse.la \
 	${top_builddir}/lib/libaudit.la ${top_builddir}/common/libaucommon.la
 databuf_test_DEPENDENCIES = ${top_builddir}/auparse/libauparse.la ${top_builddir}/lib/libaudit.la ${top_builddir}/common/libaucommon.la
 
 auparse_extra_test_SOURCES = auparse_extra_test.c
-auparse_extra_test_LDFLAGS = -static
+auparse_extra_test_LDFLAGS =  ${STATIC_LINK}
 auparse_extra_test_LDADD = ${top_builddir}/auparse/libauparse.la \
 	${top_builddir}/lib/libaudit.la ${top_builddir}/common/libaucommon.la
 auparse_extra_test_DEPENDENCIES = ${top_builddir}/auparse/libauparse.la ${top_builddir}/lib/libaudit.la ${top_builddir}/common/libaucommon.la

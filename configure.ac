@@ -301,6 +301,19 @@ AC_LINK_IFELSE([AC_LANG_PROGRAM([[]], [[]])],[WFLAGS="${WFLAGS} -Wno-unused-but-
 CFLAGS="${TMPCFLAGS}"
 AC_SUBST(WFLAGS)
 
+AC_MSG_CHECKING([for -fsanitize=address])
+TMPCFLAGS="${CFLAGS}"
+TMPLDFLAGS="${LDFLAGS}"
+CFLAGS="${CFLAGS} -fsanitize=address"
+LDFLAGS="${LDFLAGS} -fsanitize=address"
+AC_LINK_IFELSE([AC_LANG_PROGRAM([[]], [[]])],
+[ASAN_FLAGS="-fsanitize=address"; have_asan=yes; AC_MSG_RESULT(yes)],
+[have_asan=no; AC_MSG_RESULT(no)])
+CFLAGS="${TMPCFLAGS}"
+LDFLAGS="${TMPLDFLAGS}"
+AC_SUBST(ASAN_FLAGS)
+AM_CONDITIONAL(HAVE_ASAN, test x$have_asan = xyes)
+
 withval=""
 AC_MSG_CHECKING(whether to include arm eabi processor support)
 AC_ARG_WITH(arm,
