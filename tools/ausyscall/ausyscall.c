@@ -31,6 +31,7 @@
 
 #define LAST_SYSCALL 1400	// IA64 is in the 1300's right now
 
+void usage(void) __attribute__((noreturn));
 void usage(void)
 {
   fprintf(stderr, "usage: ausyscall [arch] name | number | --dump | --exact\n");

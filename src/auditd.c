@@ -113,6 +113,7 @@ static const char *startup_states[] = {"disable", "enable", "nochange"};
 /*
  * Output a usage message
  */
+static void usage(void) __attribute__((noreturn));
 static void usage(void)
 {
 	fprintf(stderr,
