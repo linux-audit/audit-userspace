@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include "libaudit.h"
 #include "auparse.h"
+#include "auparse-idata.h"
 
 static void test_new_buffer(void)
 {
@@ -100,6 +101,42 @@ static void test_timestamp_milli(void)
 	auparse_destroy(au);
 }
 
+/* Fuzz path_norm via AUPARSE_TYPE_ESCAPED_FILE interpretations. */
+static void test_path_norm(void)
+{
+	const char chars[] = "/a.";
+	char fuzz[10];
+	unsigned seeds = 1;
+	size_t i;
+	idata id = {
+		.name = "name",
+	};
+	char *out, val[2*sizeof(fuzz)+1];
+	auparse_state_t *au;
+
+	id.cwd = strdup("2F");
+	for (i = 0; i < sizeof(fuzz) - 1; i++)
+		seeds *= 3;
+	au = auparse_init(AUSOURCE_FILE, "/dev/null");
+	assert(au != NULL);
+	for (unsigned s = 0; s < seeds; s++) {
+		unsigned k = s;
+		for (i = 0; i < sizeof(fuzz) - 1; i++, k /= 3)
+			fuzz[i] = chars[k % 3];
+
+		fuzz[sizeof(fuzz) - 1] = '\0';
+		audit_encode_value(val, fuzz, sizeof(fuzz));
+		id.val = val;
+		out = auparse_do_interpretation(au, AUPARSE_TYPE_ESCAPED_FILE,
+						&id, AUPARSE_ESC_RAW);
+		assert(out != NULL);
+		printf("Normalizing path %s to %s\n", val, out);
+		free(out);
+	}
+	free(id.cwd);
+	auparse_destroy(au);
+}
+
 int main(void)
 {
 	test_new_buffer();
@@ -107,6 +144,7 @@ int main(void)
 	test_normalize();
 	test_compare();
 	test_timestamp_milli();
+	test_path_norm();
 	printf("extra auparse tests: all passed\n");
 	return 0;
 }
