@@ -117,7 +117,7 @@ static int full_pwrite(int fd, const void *buf, size_t size, off_t offset)
 struct fh_state {
 	uint32_t queue_head;	/* 0-based index of the first non-empty entry */
 	uint32_t queue_length;	/* [0, num_entries] */
-};
+}; __attribute__((packed));
 
 /* All integer values are in network byte order (big endian) */
 struct file_header
@@ -131,7 +131,7 @@ struct file_header
 	uint32_t num_entries;	/* Total number of entries allocated */
 	uint32_t entry_size;
 	struct fh_state s;
-};
+}; __attribute__((packed));
 
 /* Contains a '\0' byte to unambiguously mark the file as a binary file. */
 static const uint8_t fh_magic[14] = "\0audisp-remote";
