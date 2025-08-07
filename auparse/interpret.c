@@ -925,7 +925,8 @@ static char *path_norm(const char *name)
 		else if (end - start == 2 && start[0] == '.' &&
 					 start[1] == '.') {
 			// Back up to previous component, ignore if root
-			while (dest > rpath && (--dest)[-1] != '/');
+			while (dest > rpath && dest[-1] != '/')
+				--dest;
 		} else {
 			// we need to insert a '/' if we are at the beginning
 			// and the path is absolute or we've found the next component
