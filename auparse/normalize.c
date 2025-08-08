@@ -622,9 +622,6 @@ static int normalize_syscall(auparse_state_t *au, const char *syscall)
 	if (objtype == NORM_UNKNOWN)
 		normalize_syscall_map_s2i(syscall, &objtype);
 
-// FIXME: Need to address: landlock_*, lsm_*, map_shadow_stack, pkey_*,
-// kexec_file_load, They likely need new NORM_* types. Also, these suggest
-// that NORM_WHAT_ may need some new types.
 	switch (objtype)
 	{
 		case NORM_FILE:
