@@ -121,10 +121,9 @@ static unsigned int set_subject_what(auparse_state_t *au)
 		if (n && strcmp(n, "acct") == 0) {
 			const char *acct = auparse_interpret_field(au);
 			if (acct) {
-				// FIXME: Make this a LRU item
-				struct passwd *pw = getpwnam(acct);
-				if (pw) {
-					uid = pw->pw_uid;
+				uid_t lu = lookup_uid_from_name(au, acct);
+				if (lu != (uid_t)-1) {
+					uid = lu;
 					goto check;
 				}
 			}
@@ -1500,18 +1499,18 @@ static value_t find_simple_obj_primary2(auparse_state_t *au, int type)
 
 static void collect_simple_subj_attr(auparse_state_t *au)
 {
-        if (D.opt == NORM_OPT_NO_ATTRS)
-                return;
+	if (D.opt == NORM_OPT_NO_ATTRS)
+		return;
 
-        auparse_first_record(au);
+	auparse_first_record(au);
 	add_subj_attr(au, "pid", 0); // Just pass 0 since simple is 1 record
 	add_subj_attr(au, "subj", 0);
 }
 
 static void collect_userspace_subj_attr(auparse_state_t *au, int type)
 {
-        if (D.opt == NORM_OPT_NO_ATTRS)
-                return;
+	if (D.opt == NORM_OPT_NO_ATTRS)
+		return;
 
 	// Just pass 0 since simple is 1 record
 	add_subj_attr(au, "hostname", 0);
@@ -2042,8 +2041,8 @@ map:
 		    (strncmp(D.how, "/usr/bin/sh", 11) == 0) ||
 		    (strncmp(D.how, "/usr/bin/bash", 13) == 0) ||
 		    (strncmp(D.how, "/usr/bin/perl", 13) == 0)) {
-                        // comm should be the previous field if its there at all
-                        int fnum;
+			// comm should be the previous field if its there at all
+			int fnum;
 			if ((fnum = auparse_get_field_num(au)) > 0)
 				auparse_goto_field_num(au, fnum - 1);
 			else

@@ -192,6 +192,8 @@ int aup_load_config(auparse_state_t *au, struct daemon_conf *config,
 		    log_test_t lt);
 void aup_free_config(struct daemon_conf *config);
 
+/* Resolve @name to a uid, caching the result for future lookups. */
+uid_t lookup_uid_from_name(auparse_state_t *au, const char *name);
 // normalize.c
 void init_normalizer(normalize_data *d);
 void clear_normalizer(normalize_data *d);

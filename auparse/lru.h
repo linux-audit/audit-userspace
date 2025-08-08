@@ -24,6 +24,7 @@
 #ifndef LRU_HEADER
 #define LRU_HEADER
 #include "dso.h"
+#include <sys/types.h>
 
 /* Make these hidden to prevent conflicts */
 AUDIT_HIDDEN_START
@@ -35,8 +36,8 @@ typedef struct QNode
 	struct QNode *prev;
 	struct QNode *next;
 	unsigned long uses;
-	unsigned int id;
-	void *str;        // the data in the cache
+	uid_t uid;        // cached uid
+	char *name;       // cached name
 } QNode;
 
 // Collection of pointers to Queue Nodes
@@ -56,18 +57,17 @@ typedef struct Queue
 	unsigned long evictions;// number of times cached object was not usable
 	QNode *front;
 	QNode *end;
-	Hash *hash;
-	const char *name;	// Used for reporting
+	Hash *uid_hash;   // indexed by uid % size
+	Hash *name_hash;  // indexed by djb2(name) % size
+	const char *name;       // Used for reporting
 	void (*cleanup)(void *); // Function to call when releasing memory
 } Queue;
 
 Queue *init_lru(unsigned int qsize, void (*cleanup)(void *),
 		const char *name);
 void destroy_lru(Queue *queue);
-void lru_evict(Queue *queue, unsigned int key);
-QNode *check_lru_cache(Queue *q, unsigned int key);
-unsigned int compute_subject_key(const Queue *queue, unsigned int uid);
-
+QNode *check_lru_uid(Queue *q, uid_t uid);
+QNode *check_lru_name(Queue *q, const char *name);
 AUDIT_HIDDEN_END
 
 #endif

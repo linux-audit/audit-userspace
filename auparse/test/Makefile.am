@@ -22,15 +22,16 @@
 
 CONFIG_CLEAN_FILES = *.loT *.rej *.orig *.cur
 noinst_PROGRAMS = auparse_test auparselol_test lookup_test databuf_test \
-	auparse_extra_test
+	auparse_extra_test lru_cache_test uid_name_wrap_test
 TESTS = run_auparse_tests.sh run_auparselol_test.sh lookup_test \
-	databuf_test auparse_extra_test
+	databuf_test auparse_extra_test lru_cache_test uid_name_wrap_test
 dist_check_SCRIPTS = run_auparse_tests.sh run_auparselol_test.sh
 EXTRA_DIST = auparse_test.ref auparse_test.ref.py test.log test2.log test3.log test4.log auditd_raw.sed run_auparse_tests.sh auparse_test.py run_auparselol_test.sh
 CLEANFILES = run_auparse_tests.sh run_auparselol_test.sh
 DISTCLEANFILES = $(CLEANFILES)
 
-AM_CPPFLAGS = -I${top_srcdir}/auparse -I${top_srcdir}/lib -I${top_srcdir}/common
+AM_CPPFLAGS = -I${top_srcdir}/auparse -I${top_srcdir}/lib -I${top_srcdir}/common \
+	-I${top_srcdir}/src
 
 if HAVE_ASAN
 AM_CFLAGS = -D_GNU_SOURCE -Wno-pointer-sign ${WFLAGS} ${ASAN_FLAGS}
@@ -69,6 +70,18 @@ auparse_extra_test_LDFLAGS =  ${STATIC_LINK}
 auparse_extra_test_LDADD = ${top_builddir}/auparse/libauparse.la \
 	${top_builddir}/lib/libaudit.la ${top_builddir}/common/libaucommon.la
 auparse_extra_test_DEPENDENCIES = ${top_builddir}/auparse/libauparse.la ${top_builddir}/lib/libaudit.la ${top_builddir}/common/libaucommon.la
+
+lru_cache_test_SOURCES = lru_cache_test.c
+lru_cache_test_LDFLAGS = ${STATIC_LINK}
+lru_cache_test_LDADD = ${top_builddir}/auparse/libauparse.la \
+	${top_builddir}/lib/libaudit.la ${top_builddir}/common/libaucommon.la
+lru_cache_test_DEPENDENCIES = ${top_builddir}/auparse/libauparse.la ${top_builddir}/lib/libaudit.la ${top_builddir}/common/libaucommon.la
+
+uid_name_wrap_test_SOURCES = uid_name_wrap_test.c
+uid_name_wrap_test_LDFLAGS = ${STATIC_LINK}
+uid_name_wrap_test_LDADD = ${top_builddir}/auparse/libauparse.la \
+	${top_builddir}/lib/libaudit.la ${top_builddir}/common/libaucommon.la
+uid_name_wrap_test_DEPENDENCIES = ${top_builddir}/auparse/libauparse.la ${top_builddir}/lib/libaudit.la ${top_builddir}/common/libaucommon.la
 
 drop_srcdir = sed 's,$(srcdir)/test,test,'
 
