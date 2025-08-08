@@ -79,7 +79,9 @@ static int audit_avc_init(search_items *s)
 }
 
 /*
- * This function will take the list and extract the searchable fields from it.
+ * This function will take the audit event as a list and extract the
+ * searchable fields from it. It does this by iterating over each record
+ * in the event and branching to the right parser for each record type.
  * It returns 0 on success and 1 on failure.
  */
 int extract_search_items(llist *l)
@@ -1938,8 +1940,11 @@ static int parse_integrity(const lnode *n, search_items *s)
 }
 
 
-/* FIXME: If they are in permissive mode or hit an auditallow, there can 
- * be more than 1 avc in the same syscall. For now, we pickup just the first.
+/*
+ * If they are in permissive mode or hit an auditallow, there can be
+ * more than 1 avc in the same syscall/event. Each one will be it's own
+ * record. We will see each AVC one record at a time. The first one will
+ * initialize the anode list and subsequent ones will just add to it.
  */
 static int parse_avc(const lnode *n, search_items *s)
 {
@@ -2041,7 +2046,7 @@ other_avc:
 			*term = 0;
 			s->comm = strdup(str);
 			*term = '"';
-		} else { 
+		} else {
 			s->comm = unescape(str);
 			if (s->comm == NULL) {
 				rc = 11;
@@ -2116,6 +2121,7 @@ other_avc:
 	if (term)
 		*term = ' ';
 
+	// This can be called multiple times. Only first time it initializes.
 	if (audit_avc_init(s) == 0) {
 		alist_append(s->avc, &an);
 	} else {
