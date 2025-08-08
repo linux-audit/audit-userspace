@@ -1,6 +1,6 @@
 /*
 * aureport-scan.c - Extract interesting fields and check for match
-* Copyright (c) 2005-06,2008,2011,2014-15 Red Hat Inc., Durham, North Carolina.
+* Copyright (c) 2005-06,2008,2011,2014-15 Red Hat Inc.
 * All Rights Reserved. 
 *
 * This software may be freely redistributed and/or modified under the
@@ -36,6 +36,9 @@
 static void do_summary_total(llist *l);
 static int per_event_summary(llist *l);
 static int per_event_detailed(llist *l);
+static void aggregate_anom_item(llist *l);
+static void aggregate_resp_item(llist *l);
+static void aggregate_crypto_item(llist *l);
 
 summary_data sd;
 
@@ -108,7 +111,65 @@ void destroy_counters(void)
 	ilist_clear(&sd.resp_list);
 	ilist_create(&sd.crypto_list);
 	ilist_create(&sd.virt_list);
-	ilist_create(&sd.integ_list);
+        ilist_create(&sd.integ_list);
+}
+
+/* Aggregate counts and key fields for anomaly events.
+ * l - pointer to event list
+ */
+static void aggregate_anom_item(llist *l)
+{
+        if (list_find_msg_range(l, AUDIT_FIRST_ANOM_MSG,
+                                AUDIT_LAST_ANOM_MSG)) {
+                ilist_add_if_uniq(&sd.anom_list, l->head->type, 0);
+        } else if (list_find_msg_range(l, AUDIT_FIRST_KERN_ANOM_MSG,
+                                AUDIT_LAST_KERN_ANOM_MSG) ||
+                        list_find_msg(l, AUDIT_SECCOMP)) {
+                ilist_add_if_uniq(&sd.anom_list, l->head->type, 0);
+        }
+        if (l->s.exe)
+                slist_add_if_uniq(&sd.exes, l->s.exe);
+        else if (l->s.comm)
+                slist_add_if_uniq(&sd.comms, l->s.comm);
+        if (l->s.terminal)
+                slist_add_if_uniq(&sd.terms, l->s.terminal);
+        if (l->s.hostname)
+                slist_add_if_uniq(&sd.hosts, l->s.hostname);
+        if (l->s.loginuid != -2) {
+                char tmp[32];
+
+                aulookup_uid(l->s.loginuid, tmp, sizeof(tmp));
+                slist_add_if_uniq(&sd.users, tmp);
+        }
+}
+
+/* Aggregate counts and key fields for anomaly response events.
+ * l - pointer to event list
+ */
+static void aggregate_resp_item(llist *l)
+{
+        if (list_find_msg_range(l, AUDIT_FIRST_ANOM_RESP,
+                                AUDIT_LAST_ANOM_RESP))
+                ilist_add_if_uniq(&sd.resp_list, l->head->type, 0);
+}
+
+/* Aggregate counts and key fields for crypto events.
+ * l - pointer to event list
+ */
+static void aggregate_crypto_item(llist *l)
+{
+        if (list_find_msg_range(l, AUDIT_FIRST_KERN_CRYPTO_MSG,
+                                AUDIT_LAST_KERN_CRYPTO_MSG) ||
+            list_find_msg_range(l, AUDIT_FIRST_CRYPTO_MSG,
+                                AUDIT_LAST_CRYPTO_MSG))
+                ilist_add_if_uniq(&sd.crypto_list, l->head->type, 0);
+
+        if (l->s.loginuid != -2) {
+                char tmp[32];
+
+                aulookup_uid(l->s.loginuid, tmp, sizeof(tmp));
+                slist_add_if_uniq(&sd.users, tmp);
+        }
 }
 
 /* This function will return 0 on no match and 1 on match */
@@ -723,13 +784,13 @@ static int per_event_detailed(llist *l)
 			break;
 		case RPT_ANOMALY:
 			if (report_detail == D_DETAILED) {
-				if (list_find_msg_range(l, 
+				if (list_find_msg_range(l,
 						AUDIT_FIRST_ANOM_MSG,
 						AUDIT_LAST_ANOM_MSG)) {
 					print_per_event_item(l);
 					rc = 1;
 				} else {
-					if (list_find_msg_range(l, 
+					if (list_find_msg_range(l,
 						AUDIT_FIRST_KERN_ANOM_MSG,
 						AUDIT_LAST_KERN_ANOM_MSG) ||
 					list_find_msg(l, AUDIT_SECCOMP) ) {
@@ -737,39 +798,42 @@ static int per_event_detailed(llist *l)
 						rc = 1;
 					}
 				}
-			} else { // FIXME: specific anom report
-				UNIMPLEMENTED;
+			} else {
+				aggregate_anom_item(l);
+				rc = 1;
 			}
 			break;
 		case RPT_RESPONSE:
 			if (report_detail == D_DETAILED) {
-				if (list_find_msg_range(l,	
+				if (list_find_msg_range(l,
 						AUDIT_FIRST_ANOM_RESP,
 						AUDIT_LAST_ANOM_RESP)) {
 					print_per_event_item(l);
 					rc = 1;
 				}
-			} else { // FIXME: specific resp report
-				UNIMPLEMENTED;
+			} else {
+				aggregate_resp_item(l);
+				rc = 1;
 			}
 			break;
 		case RPT_CRYPTO:
 			if (report_detail == D_DETAILED) {
-				if (list_find_msg_range(l, 
+				if (list_find_msg_range(l,
 						AUDIT_FIRST_KERN_CRYPTO_MSG,
 						AUDIT_LAST_KERN_CRYPTO_MSG)) {
 					print_per_event_item(l);
 					rc = 1;
 				} else {
-					if (list_find_msg_range(l, 
+					if (list_find_msg_range(l,
 						AUDIT_FIRST_CRYPTO_MSG,
 						AUDIT_LAST_CRYPTO_MSG)) {
 						print_per_event_item(l);
 						rc = 1;
 					}
 				}
-			} else { // FIXME: specific crypto report
-				UNIMPLEMENTED;
+			} else {
+				aggregate_crypto_item(l);
+				rc = 1;
 			}
 			break;
 		case RPT_KEY:
