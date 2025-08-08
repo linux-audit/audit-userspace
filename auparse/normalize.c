@@ -1275,7 +1275,33 @@ static int normalize_compound(auparse_state_t *au)
 			const char *act = normalize_record_map_i2s(otype);
 			if (act)
 				D.action = strdup(act);
-			// FIXME: AUDIT_ANOM_LINK needs an object
+			set_file_object(au, 1);
+			if (is_unset(D.thing.primary)) {
+				int r, num = auparse_get_num_records(au);
+				for (r = 1; r <= num; r++) {
+					auparse_goto_record_num(au, r);
+					if (auparse_get_type(au) == AUDIT_PATH) {
+						auparse_first_field(au);
+						set_prime_object(au, "name", r);
+						D.thing.what = NORM_WHAT_LINK;
+						break;
+					}
+				}
+				if (is_unset(D.thing.primary)) {
+					auparse_first_record(au);
+					f = auparse_find_field(au, "path");
+					if (f == NULL)
+					f = auparse_find_field(au, "cwd");
+					if (f) {
+						D.thing.primary = set_record(0,
+						    auparse_get_record_num(au));
+						D.thing.primary =
+						    set_field(D.thing.primary,
+						      auparse_get_field_num(au));
+						D.thing.what = NORM_WHAT_LINK;
+					}
+				}
+			}
 		} else if (otype == AUDIT_CONFIG_CHANGE) {
 			auparse_first_record(au);
 			f = auparse_find_field(au, "op");
