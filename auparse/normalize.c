@@ -956,6 +956,15 @@ static int normalize_syscall(auparse_state_t *au, const char *syscall)
 				D.how = strdup(syscall);
 			}
 			break;
+		case NORM_SECURITY_ATTR:
+			act = "retrieved-security-attr-of";
+			D.thing.what = NORM_WHAT_PROCESS;
+			set_program_obj(au);
+			break;
+		case NORM_SECURITY_LIST:
+			act = "listed-security-modules";
+			D.thing.what = NORM_WHAT_SECURITY_MODULES;
+			break;
 		default:
 			{
 				const char *k;

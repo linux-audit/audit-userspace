@@ -73,7 +73,9 @@
 #define NORM_AV			37
 #define NORM_BPF		38
 #define NORM_EV_LISTEN		39
-#define NORM_SECURITY_POLICY	40
+#define NORM_SECURITY_POLICY    40
+#define NORM_SECURITY_ATTR      41
+#define NORM_SECURITY_LIST      42
 
 // This enum is used to map what the system objects are
 #define NORM_WHAT_UNKNOWN	0
@@ -99,8 +101,9 @@
 #define NORM_WHAT_MEMORY	20
 #define NORM_WHAT_KEYSTROKES	21
 #define NORM_WHAT_DEVICE	22
-#define NORM_WHAT_SOFTWARE	23
-#define NORM_WHAT_INTEGRITY_POLICY	24
+#define NORM_WHAT_SOFTWARE      23
+#define NORM_WHAT_INTEGRITY_POLICY      24
+#define NORM_WHAT_SECURITY_MODULES      25
 
 // This enum is used to map events to what kind they are
 #define NORM_EVTYPE_UNKNOWN		0

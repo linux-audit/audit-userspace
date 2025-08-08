@@ -2931,10 +2931,11 @@ static const char *print_a3(auparse_state_t *au, const char *val,
 				return print_access_flags(val);
 			else if (strcmp(sys, "faccessat2") == 0)
 				return print_access_flags(val);
-		}
+		} else if (strcmp(sys, "open_tree_attr") == 0)
+			return print_xattr_atflags(val);
 	}
 	if (asprintf(&out, "0x%s", val) < 0)
-			out = NULL;
+		out = NULL;
 	return out;
 }
 

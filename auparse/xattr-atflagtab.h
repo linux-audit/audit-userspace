@@ -18,9 +18,11 @@
  *
  * Authors:
  *      Attila Lakatos <alakatos@redhat.com>
- *      Location: fs/xattr.c
+ *      Location: include/uapi/linux/fcntl.h fs/xattr.c
  */
 
 // Handled in the code _S(00,		"LOOKUP_FOLLOW" )
 _S(0x100,		"AT_SYMLINK_NOFOLLOW" )
+_S(0x800,		"AT_NO_AUTOMOUNT" )
 _S(0x1000,		"AT_EMPTY_PATH" )
+_S(0x8000,		"AT_RECURSIVE" )
