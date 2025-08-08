@@ -143,8 +143,12 @@ static size_t entry_offset (const struct queue *q, size_t entry)
 	return (entry + 1) * q->entry_size;
 }
 
-/* Synchronize Q if required and return 0.
-   On error, return -1 and set errno. */
+/*
+ * FIXME: Create a new sync method like auditd's INCREMENTAL_ASYNC.
+ * Doing fdatasync for each element is going to be a performance hit.
+ * Synchronize Q if required and return 0.
+ * On error, return -1 and set errno.
+ */
 static int q_sync(struct queue *q)
 {
 	if ((q->flags & Q_SYNC) == 0)

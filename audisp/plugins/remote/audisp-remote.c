@@ -426,7 +426,9 @@ static struct queue *init_queue(void)
 		path = SPOOL_FILE;
 	q_flags = Q_IN_MEMORY;
 	if (config.mode == M_STORE_AND_FORWARD)
-		/* FIXME: let user control Q_SYNC? */
+		/* FIXME: let user control Q_SYNC? Consider this
+		 * only after something like INCREMENTAL_ASYNC is
+		 * in place. The user can choose between none and async. */
 		q_flags |= Q_IN_FILE | Q_CREAT | Q_RESIZE;
 	verify(QUEUE_ENTRY_SIZE >= MAX_AUDIT_MESSAGE_LENGTH);
 	return q_open(q_flags, path, config.queue_depth, QUEUE_ENTRY_SIZE);
