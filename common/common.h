@@ -94,8 +94,13 @@ void wall_message(const char *fmt, ...)
 
 typedef enum { MSG_STDERR, MSG_SYSLOG, MSG_QUIET } message_t;
 typedef enum { DBG_NO, DBG_YES } debug_message_t;
-void set_aumessage_mode(message_t mode, debug_message_t debug);
 
 AUDIT_HIDDEN_END
+
+// Leave this exposed until 2027, then hide it for good.
+// This allows programs already compiled to keep working.
+// But new programs can't see it.
+void set_aumessage_mode(message_t mode, debug_message_t debug);
+
 #endif
 
