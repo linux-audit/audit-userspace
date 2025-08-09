@@ -133,7 +133,7 @@ static void test_path_norm(void)
 		printf("Normalizing path %s to %s\n", val, out);
 		free(out);
 	}
-	free(id.cwd);
+	free((void *)id.cwd);
 	auparse_destroy(au);
 }
 

@@ -140,10 +140,10 @@ static void destroy_queue(Queue *queue)
 	free(queue);
 }
 
-static unsigned int are_all_slots_full(const Queue *queue)
+/*static unsigned int are_all_slots_full(const Queue *queue)
 {
 	return queue->count == queue->total;
-}
+}*/
 
 static unsigned int queue_is_empty(const Queue *queue)
 {
