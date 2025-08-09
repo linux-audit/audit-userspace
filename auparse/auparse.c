@@ -612,9 +612,6 @@ static void consume_feed(auparse_state_t *au, int flush)
 		}
 	}
 	if (flush) {
-		// FIXME: might need a call here to force auparse_next_event()
-		// to consume any partial data not fully consumed.
-
 		/* Terminate all outstanding events, as we are at end of input
 		 * (ie mark BUILDING events as COMPLETE events) then if we
 		 * have a callback execute the callback on each event
