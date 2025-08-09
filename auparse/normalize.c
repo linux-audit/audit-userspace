@@ -1481,7 +1481,6 @@ static value_t find_simple_obj_secondary(auparse_state_t *au, int type)
 	value_t o = set_record(0, UNSET);
 	const char *f = NULL;
 
-	// FIXME: maybe pass flag indicating if this is needed
 	auparse_first_field(au);
 	switch (type)
 	{
@@ -1506,7 +1505,6 @@ static value_t find_simple_obj_primary2(auparse_state_t *au, int type)
 	value_t o = set_record(0, UNSET);
 	const char *f = NULL;
 
-	// FIXME: maybe pass flag indicating if this is needed
 	auparse_first_field(au);
 	switch (type)
 	{
