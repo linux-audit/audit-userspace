@@ -415,12 +415,6 @@ if test x$use_io_uring != xno ; then
 fi
 AC_MSG_RESULT($use_io_uring)
 
-# linux/ipx.h - deprecated in 2018
-AC_CHECK_HEADER(linux/ipx.h, ipx_headers=yes, ipx_headers=no)
-if test $ipx_headers = yes ; then
-	AC_DEFINE(HAVE_IPX_HEADERS,1,[IPX packet interpretation])
-fi
-
 # Determine firewall control utility
 AC_ARG_WITH([nftables],
 AS_HELP_STRING([--with-nftables],

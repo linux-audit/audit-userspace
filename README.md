@@ -6,7 +6,7 @@ The Linux Audit System is designed to make Linux compliant with the requirements
 
 * coreutils
 * initscripts-service (Recommended - soft requirement)
-* kernel >= 5.0 
+* kernel >= 5.15
 * systemd
 
 NOTE: While this repository provides support for systemd to start the audit
@@ -17,7 +17,7 @@ an init script for OpenRC.
 ## BUILD-TIME DEPENDENCIES (for tar file)
 * gcc (or clang)
 * make
-* kernel-headers >= 5.0
+* kernel-headers >= 5.15
 * systemd
 
 ## ADDITIONAL BUILD-TIME DEPENDENCIES (if using github sources)

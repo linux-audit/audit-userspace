@@ -7,7 +7,7 @@ Group: System Environment/Daemons
 URL: https://github.com/linux-audit/audit-userspace/
 Source0: https://github.com/linux-audit/audit-userspace/releases/tag/v%{version}.tar.gz
 BuildRequires: make gcc
-BuildRequires: kernel-headers >= 5.0
+BuildRequires: kernel-headers >= 5.15
 BuildRequires: systemd
 BuildRequires: autoconf automake libtool
 
@@ -36,7 +36,7 @@ applications to use the audit framework.
 Summary: Header files for libaudit
 License: LGPL-2.0-or-later
 Requires: %{name}-libs%{?_isa}  = %{version}-%{release}
-Requires: kernel-headers >= 5.0
+Requires: kernel-headers >= 5.15
 
 %description libs-devel
 The audit-libs-devel package contains the header files needed for
@@ -45,7 +45,7 @@ developing applications that need to use the audit framework libraries.
 %package libs-static
 Summary: Static version of libaudit library
 License: LGPL-2.0-or-later
-Requires: kernel-headers >= 5.0
+Requires: kernel-headers >= 5.15
 
 %description libs-static
 The audit-libs-static package contains the static libraries
