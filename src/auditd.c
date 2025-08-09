@@ -784,10 +784,10 @@ int main(int argc, char *argv[])
 
 	if (opt_foreground) {
 		config.daemonize = D_FOREGROUND;
-		set_aumessage_mode(MSG_STDERR, DBG_YES);
+		_set_aumessage_mode(MSG_STDERR, DBG_YES);
 	} else {
 		config.daemonize = D_BACKGROUND;
-		set_aumessage_mode(MSG_SYSLOG, DBG_NO);
+		_set_aumessage_mode(MSG_SYSLOG, DBG_NO);
 		(void) umask( umask( 077 ) | 022 );
 	}
 	session = audit_get_session();

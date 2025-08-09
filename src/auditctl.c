@@ -1690,7 +1690,7 @@ int main(int argc, char *argv[])
 {
 	int retval = 1;
 
-	set_aumessage_mode(MSG_STDERR, DBG_NO);
+	_set_aumessage_mode(MSG_STDERR, DBG_NO);
 
 	if (argc == 1) {
 		usage();
@@ -1710,7 +1710,7 @@ int main(int argc, char *argv[])
 	if ((argc == 3) && (strcmp(argv[1], "-R") == 0)) {
 		// If reading a file, its most likely start up. Send problems
 		// to syslog where they will persist for later review
-		set_aumessage_mode(MSG_SYSLOG, DBG_NO);
+		_set_aumessage_mode(MSG_SYSLOG, DBG_NO);
 		fd = audit_open();
 		if (is_ready() == 0)
 			return 1;
@@ -1784,9 +1784,9 @@ static int handle_request(int status)
 					audit_rule_syscallbyname_data(
 							rule_new, "all");
 			}
-			set_aumessage_mode(MSG_QUIET, DBG_NO);
+			_set_aumessage_mode(MSG_QUIET, DBG_NO);
 			rc = audit_add_rule_data(fd, rule_new, add, action);
-			set_aumessage_mode(MSG_STDERR, DBG_NO);
+			_set_aumessage_mode(MSG_STDERR, DBG_NO);
 			/* Retry for legacy kernels */
 			if (rc < 0) {
 				if (errno == EINVAL &&
@@ -1808,10 +1808,10 @@ static int handle_request(int status)
 					audit_rule_syscallbyname_data(
 							rule_new, "all");
 			}
-			set_aumessage_mode(MSG_QUIET, DBG_NO);
+			_set_aumessage_mode(MSG_QUIET, DBG_NO);
 			rc = audit_delete_rule_data(fd, rule_new,
 								 del, action);
-			set_aumessage_mode(MSG_STDERR, DBG_NO);
+			_set_aumessage_mode(MSG_STDERR, DBG_NO);
 			/* Retry for legacy kernels */
 			if (rc < 0) {
 				if (errno == EINVAL &&

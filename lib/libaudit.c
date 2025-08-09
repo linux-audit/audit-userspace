@@ -2211,3 +2211,11 @@ int audit_can_read(void)
 #endif
 }
 
+// Leave this exposed until 2027, then hide it for good.
+// This allows programs already compiled to keep working.
+// But new programs can't see it.
+void set_aumessage_mode(message_t mode, debug_message_t debug)
+{
+	_set_aumessage_mode(mode, debug);
+}
+

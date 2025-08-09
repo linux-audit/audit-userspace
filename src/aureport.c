@@ -97,7 +97,7 @@ int main(int argc, char *argv[])
 	limit.rlim_max = RLIM_INFINITY;
 	setrlimit(RLIMIT_FSIZE, &limit);
 	setrlimit(RLIMIT_CPU, &limit);
-	set_aumessage_mode(MSG_STDERR, DBG_NO);
+	_set_aumessage_mode(MSG_STDERR, DBG_NO);
 	set_allow_links(1); // auditd might have -l flag, aureport should be lenient here
 	(void) umask( umask( 077 ) | 027 );
 	very_first_event.sec = 0;
