@@ -664,7 +664,7 @@ static int normalize_syscall(auparse_state_t *au, const char *syscall)
 			act = "loaded-kernel-module";
 			D.thing.what = NORM_WHAT_FILE;
 			auparse_goto_record_num(au, 1);
-			set_prime_object(au, "name", 1);// FIXME:is this needed?
+			set_prime_object(au, "name", 1);
 			break;
 		case NORM_FILE_UNLDMOD:
 			act = "unloaded-kernel-module";
