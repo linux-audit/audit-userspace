@@ -27,6 +27,7 @@
 #include "internal.h"
 #include "interpret.h"
 #include "auparse-idata.h"
+#include "auparse.h"
 #include "nvlist.h"
 #include <stddef.h>
 #include <stdio.h>
@@ -45,6 +46,7 @@
 #include <linux/atm.h>
 #include <linux/x25.h>
 #include <linux/capability.h>
+#include <linux/netfilter.h>
 #include <sys/personality.h>
 #include <sys/prctl.h>
 #include <sched.h>
@@ -123,6 +125,7 @@
 #include "umounttabs.h"
 #include "ioctlreqtabs.h"
 #include "inethooktabs.h"
+#include "arphooktabs.h"
 #include "netactiontabs.h"
 #include "bpftabs.h"
 #include "openat2-resolvetabs.h"
@@ -3011,12 +3014,14 @@ static const char *print_protocol(const char *val)
 	return out;
 }
 
-/* FIXME - this assumes inet hook. Could also be an arp hook */
-static const char *print_hook(const char *val)
+/* Netfilter hook names */
+static const char *print_hook(auparse_state_t *au, const char *val)
 {
 	int hook;
 	char *out;
 	const char *str;
+	const char *fam;
+	int proto = -1;
 
 	errno = 0;
 	hook = strtoul(val, NULL, 16);
@@ -3025,7 +3030,21 @@ static const char *print_hook(const char *val)
 			out = NULL;
 		return out;
 	}
-	str = inethook_i2s(hook);
+
+	fam = auparse_find_field(au, "family");
+	if (fam) {
+		errno = 0;
+		proto = strtoul(fam, NULL, 10);
+		if (errno)
+			proto = -1;
+	}
+	auparse_find_field(au, "hook");
+
+	if (proto == NFPROTO_ARP)
+		str = arphook_i2s(hook);
+	else
+		str = inethook_i2s(hook);
+
 	if (str == NULL) {
 		if (asprintf(&out, "unknown-hook(%s)", val) < 0)
 			out = NULL;
@@ -3521,7 +3540,7 @@ unknown:
 			out = print_proctitle(id->val);
 			break;
 		case AUPARSE_TYPE_HOOK:
-			out = print_hook(id->val);
+			out = print_hook(au, id->val);
 			break;
 		case AUPARSE_TYPE_NETACTION:
 			out = print_netaction(id->val);

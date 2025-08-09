@@ -185,6 +185,20 @@ test_icmptypetab(void)
 #undef I2S
 }
 
+#include "../arphooktabs.h"
+static void
+test_arphooktab(void)
+{
+	static const struct entry t[] = {
+#include "../arphooktab.h"
+	};
+
+	printf("Testing arphooktab...\n");
+#define I2S(I) arphook_i2s(I)
+	TEST_I2S(0);
+#undef I2S
+}
+
 #include "../inethooktabs.h"
 static void
 test_inethooktab(void)
@@ -540,6 +554,7 @@ main(void)
 	test_fcntltab();
 	test_fsconfig();
 	test_icmptypetab();
+	test_arphooktab();
 	test_inethooktab();
 	test_ioctlreqtab();
 	test_ip6optnametab();
