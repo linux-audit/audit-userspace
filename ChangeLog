@@ -5,6 +5,7 @@
 - Add anomaly, response, and crypto reports to aureport
 - Drop IPX header handling and require kernel 5.15 or later
 - Resolved a number of FIXME's all over the code base
+- Optimize ausearch/report log processing
 
 4.1.1
 - Add libauplugin example program and improve its documentation
