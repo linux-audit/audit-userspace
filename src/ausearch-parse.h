@@ -31,5 +31,17 @@
 int extract_search_items(llist *l);
 void lookup_uid_destroy_list(void);
 
+struct audit_log_info {
+	char *name;
+	time_t sec;
+	unsigned int milli;
+};
+
+int audit_log_list(const char *basefile, struct audit_log_info **logs,
+		   size_t *log_cnt);
+unsigned audit_log_find_start(const struct audit_log_info *logs,
+			      size_t log_cnt, time_t start);
+void audit_log_free(struct audit_log_info *logs, size_t log_cnt);
+
 #endif
 

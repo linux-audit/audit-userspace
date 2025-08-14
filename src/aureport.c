@@ -171,9 +171,10 @@ int main(int argc, char *argv[])
 
 static int process_logs(void)
 {
+	struct audit_log_info *logs = NULL;
 	char *filename;
 	size_t len;
-	int num = 0;
+	size_t log_cnt = 0;
 
 	if (user_file && userfile_is_dir) {
 		char dirname[MAXPATHLEN+1];
@@ -189,7 +190,6 @@ static int process_logs(void)
 		fprintf(stderr, "NOTE - using logs in %s\n", config.log_file);
 	}
 
-	/* for each file */
 	len = strlen(config.log_file) + 16;
 	filename = malloc(len);
 	if (!filename) {
@@ -197,24 +197,31 @@ static int process_logs(void)
 		free_config(&config);
 		return 1;
 	}
-	/* Find oldest log file */
-	snprintf(filename, len, "%s", config.log_file);
-	do {
-		if (access(filename, R_OK) != 0)
-			break;
-// FIXME: do a time check and put them on linked list for later
-		num++;
-		snprintf(filename, len, "%s.%d", config.log_file, num);
-	} while (1);
-	num--;
-	/*
-	 * We note how many files we need to process
-	 */
-	files_to_process = num;
+
+	/* Count the logs */
+	if (audit_log_list(config.log_file, &logs, &log_cnt)) {
+		fprintf(stderr, "No memory\n");
+		free(filename);
+		free_config(&config);
+		return 1;
+	}
+
+	if (log_cnt == 0) {
+		snprintf(filename, len, "%s", config.log_file);
+		int ret = process_file(filename);
+		free(filename);
+		free_config(&config);
+		return ret;
+	}
+
+	/* Locate the starting file that is in range */
+	files_to_process = audit_log_find_start(logs, log_cnt, start_time);
+	audit_log_free(logs, log_cnt);
 
 	/* Got it, now process logs from last to first */
-	if (num > 0)
-		snprintf(filename, len, "%s.%d", config.log_file, num);
+	if (files_to_process > 0)
+		snprintf(filename, len, "%s.%d", config.log_file,
+			 files_to_process);
 	else
 		snprintf(filename, len, "%s", config.log_file);
 	do {
@@ -225,15 +232,17 @@ static int process_logs(void)
 			return ret;
 		}
 
-		/* Get next log file */
-		files_to_process--;     /* one less file to process */
-		num--;
-		if (num > 0)
-			snprintf(filename, len, "%s.%d", config.log_file, num);
-		else if (num == 0)
-			snprintf(filename, len, "%s", config.log_file);
-		else
+		if (files_to_process == 0)
 			break;
+
+		/* Get next log file */
+		files_to_process--;
+		if (files_to_process > 0)
+			snprintf(filename, len, "%s.%d",
+				 config.log_file, files_to_process);
+		else
+			snprintf(filename, len, "%s",
+				 config.log_file);
 	} while (1);
 	free(filename);
 	free_config(&config);

@@ -34,6 +34,7 @@
 #include <netdb.h>
 #include <limits.h>	/* PATH_MAX */
 #include <ctype.h>
+#include <unistd.h>
 #include "libaudit.h"
 #include "ausearch-options.h"
 #include "ausearch-lookup.h"
@@ -2828,5 +2829,135 @@ static int parse_kernel(lnode *n, search_items *s)
 	}
 
 	return 0;
+}
+
+//////// These are used by ausearch / aureport ///////////////
+
+/* read_first_ts - get timestamp of the first record in a log file
+ * @file: path to the log file
+ * @sec: returned seconds component
+ * @milli: returned milliseconds component
+ *
+ * Returns 0 on success and -1 on failure.
+ */
+static int read_first_ts(const char *file, time_t *sec, unsigned int *milli)
+{
+	FILE *fp;
+	char buf[MAX_AUDIT_MESSAGE_LENGTH];
+	char *p, *e;
+
+	*sec = 0;
+	*milli = 0;
+
+	fp = fopen(file, "rm");
+	if (fp == NULL)
+		return -1;
+	if (fgets_unlocked(buf, sizeof(buf), fp) == NULL) {
+		fclose(fp);
+		return -1;
+	}
+	fclose(fp);
+
+	p = strstr(buf, "audit(");
+	if (p == NULL)
+		return -1;
+	p += 6;
+	*sec = strtoll(p, &e, 10);
+	if (*e == '.')
+		*milli = strtoul(e + 1, &e, 10);
+
+	return 0;
+}
+
+/* audit_log_list - collect audit logs and their first timestamps
+ * @basefile: base audit log file
+ * @logs: returned array of log information
+ * @log_cnt: number of entries in @logs
+ *
+ * Returns 0 on success and -1 on failure.
+ */
+int audit_log_list(const char *basefile, struct audit_log_info **logs,
+                        size_t *log_cnt)
+{
+	char *filename;
+	size_t len;
+	int num = 0;
+	struct audit_log_info *list = NULL;
+
+	len = strlen(basefile) + 16;
+	filename = malloc(len);
+	if (filename == NULL)
+		return -1;
+
+	snprintf(filename, len, "%s", basefile);
+	do {
+		struct audit_log_info *tmp;
+		time_t sec;
+		unsigned int milli;
+
+		if (access(filename, R_OK) != 0)
+			break;
+		if (read_first_ts(filename, &sec, &milli))
+			sec = 0;
+		tmp = realloc(list, (num + 1) * sizeof(*list));
+		if (tmp == NULL) {
+			free(filename);
+			audit_log_free(list, num);
+			return -1;
+		}
+		list = tmp;
+		list[num].name = strdup(filename);
+		if (list[num].name == NULL) {
+			free(filename);
+			audit_log_free(list, num);
+			return -1;
+		}
+		list[num].sec = sec;
+		list[num].milli = milli;
+		num++;
+		snprintf(filename, len, "%s.%d", basefile, num);
+	} while (1);
+
+	free(filename);
+	*logs = list;
+	*log_cnt = num;
+	return 0;
+}
+
+/* audit_log_find_start - choose oldest log that may contain @start
+ * @logs: array of log information
+ * @log_cnt: number of logs
+ * @start: requested start time
+ *
+ * Returns index of the log to begin processing from.
+ */
+unsigned audit_log_find_start(const struct audit_log_info *logs,
+			      size_t log_cnt, time_t start)
+{
+	size_t start_idx = log_cnt ? log_cnt - 1 : 0;
+
+	if (start) {
+		ssize_t i;
+		for (i = log_cnt - 1; i >= 0; i--) {
+			if (logs[i].sec > start) {
+				if ((size_t)i < log_cnt - 1)
+					start_idx = i + 1;
+				break;
+			}
+		}
+	}
+	return start_idx;
+}
+
+/* audit_log_free - release memory held by audit_log_list */
+void audit_log_free(struct audit_log_info *logs, size_t log_cnt)
+{
+	size_t i;
+
+	if (logs == NULL)
+		return;
+	for (i = 0; i < log_cnt; i++)
+		free(logs[i].name);
+	free(logs);
 }
 
