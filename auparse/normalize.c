@@ -778,25 +778,38 @@ static int normalize_syscall(auparse_state_t *au, const char *syscall)
 			D.thing.what = NORM_WHAT_SOCKET;
 			set_socket_object(au);
 			break;
-		case NORM_PID:
-			if (auparse_get_num_records(au) > 2) {
-				// FIXME: this has implications for object
+		case NORM_PID: {
+			unsigned int r, cnt;
+			value_t attr;
+
+			act = "killed-pid";
+			D.thing.what = NORM_WHAT_PROCESS;
+
+			// Loop to see how many OBJ_PID we have (normally 1)
+			cnt = auparse_get_num_records(au);
+			for (r = 1; r < cnt; r++) {
+				auparse_goto_record_num(au, r);
+				if (auparse_get_type(au) != AUDIT_OBJ_PID)
+					continue;
+				auparse_first_field(au);
+				if (auparse_find_field(au, "opid")) {
+					attr = set_record(0,
+						auparse_get_record_num(au));
+					attr = set_field(attr,
+						auparse_get_field_num(au));
+					if (is_unset(D.thing.primary))
+						D.thing.primary = attr;
+					cllist_append(&D.thing.attr, attr,
+							NULL);
+				}
+			}
+			// If there's more than one, it's a process group
+			if (D.thing.attr.cnt > 1) {
 				act = "killed-list-of-pids";
 				D.thing.what = NORM_WHAT_PROCESS_GROUP;
-			} else {
-				act = "killed-pid";
-				D.thing.what = NORM_WHAT_PROCESS;
-			}
-			auparse_goto_record_num(au, 1);
-			auparse_first_field(au);
-			f = auparse_find_field(au, "saddr");
-			if (f) {
-				D.thing.primary = set_record(0,
-					auparse_get_record_num(au));
-				D.thing.primary = set_field(D.thing.primary,
-					auparse_get_field_num(au));
 			}
 			break;
+		}
 		case NORM_MAC_LOAD:
 			act = normalize_record_map_i2s(ttype);
 			// FIXME: What is the object?
