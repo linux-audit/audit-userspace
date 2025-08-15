@@ -104,6 +104,7 @@
 #define NORM_WHAT_SOFTWARE      23
 #define NORM_WHAT_INTEGRITY_POLICY      24
 #define NORM_WHAT_SECURITY_MODULES      25
+#define NORM_WHAT_PROCESS_GROUP	26
 
 // This enum is used to map events to what kind they are
 #define NORM_EVTYPE_UNKNOWN		0

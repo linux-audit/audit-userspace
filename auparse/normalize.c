@@ -779,11 +779,14 @@ static int normalize_syscall(auparse_state_t *au, const char *syscall)
 			set_socket_object(au);
 			break;
 		case NORM_PID:
-			if (auparse_get_num_records(au) > 2)
+			if (auparse_get_num_records(au) > 2) {
 				// FIXME: this has implications for object
 				act = "killed-list-of-pids";
-			else
+				D.thing.what = NORM_WHAT_PROCESS_GROUP;
+			} else {
 				act = "killed-pid";
+				D.thing.what = NORM_WHAT_PROCESS;
+			}
 			auparse_goto_record_num(au, 1);
 			auparse_first_field(au);
 			f = auparse_find_field(au, "saddr");
@@ -793,7 +796,6 @@ static int normalize_syscall(auparse_state_t *au, const char *syscall)
 				D.thing.primary = set_field(D.thing.primary,
 					auparse_get_field_num(au));
 			}
-			D.thing.what = NORM_WHAT_PROCESS;
 			break;
 		case NORM_MAC_LOAD:
 			act = normalize_record_map_i2s(ttype);
