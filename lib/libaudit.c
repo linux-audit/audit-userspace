@@ -1581,8 +1581,13 @@ static int audit_add_perm_syscalls(int perm, struct audit_rule_data *rule)
 	// arch declared, we leave the old behavior for backwards compatibility
 	// and just warn about performance.
 	if (_audit_elf == 0) {
-		audit_msg(LOG_INFO, "perm used without an arch is slower");
-		return 0;
+		int machine = audit_detect_machine();
+		if (machine < 0) {
+			audit_msg(LOG_INFO,
+				  "perm used without an arch is slower");
+			return 0;
+		}
+		_audit_elf = audit_machine_to_elf(machine);
 	}
 
 	const int machine = audit_elf_to_machine(_audit_elf);
