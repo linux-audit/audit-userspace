@@ -797,8 +797,6 @@ static int normalize_syscall(auparse_state_t *au, const char *syscall)
 						auparse_get_record_num(au));
 					attr = set_field(attr,
 						auparse_get_field_num(au));
-					if (is_unset(D.thing.primary))
-						D.thing.primary = attr;
 					cllist_append(&D.thing.attr, attr,
 							NULL);
 				}
@@ -2262,6 +2260,11 @@ int auparse_normalize_object_next_attribute(auparse_state_t *au)
 const char *auparse_normalize_object_kind(const auparse_state_t *au)
 {
 	return normalize_obj_kind_map_i2s(D.thing.what);
+}
+
+int auparse_normalize_object_kind_int(const auparse_state_t *au)
+{
+	return D.thing.what;
 }
 
 int auparse_normalize_get_results(auparse_state_t *au)

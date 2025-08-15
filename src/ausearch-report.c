@@ -34,6 +34,7 @@
 #include "auparse.h"
 #include "auparse-idata.h"
 #include "auditd-config.h"
+#include "normalize-internal.h"	// pid list
 
 static int interp_init = 0;
 static auparse_state_t *au = NULL;
@@ -691,6 +692,7 @@ static void csv_event(auparse_state_t *au,
 
 /* This function will output a normalized line of audit
  * fields one line per event as an english sentence */
+extern int auparse_normalize_object_kind_int(const auparse_state_t *au);
 static void text_event(auparse_state_t *au,
 		auparse_cb_event_t cb_event_type, void *user_data)
 {
@@ -798,6 +800,33 @@ static void text_event(auparse_state_t *au,
 		else
 			val = auparse_interpret_field(au);
 		printf("to %s ", val);
+	}
+
+	// Print pid list if process group
+	int kind = auparse_normalize_object_kind_int(au);
+	if (kind == NORM_WHAT_PROCESS_GROUP || kind == NORM_WHAT_PROCESS) {
+		rc = auparse_normalize_object_first_attribute(au);
+		if (rc == 1) {
+			int sep = 0, cnt = 1;
+			putchar('(');
+			do {
+				const char *name = auparse_get_field_name(au);
+				if (strcmp(name, "opid") == 0) {
+					if (sep)
+						putchar(',');
+					printf("%s",
+					       auparse_interpret_field(au));
+					sep = 1;
+				}
+			       rc = auparse_normalize_object_next_attribute(au);
+			       cnt++;
+			} while (rc == 1 && cnt < 4);
+			if (cnt >= 4)
+				printf(",...)");
+			else
+				putchar(')');
+			putchar(' ');
+		}
 	}
 
 	how = auparse_normalize_how(au);
