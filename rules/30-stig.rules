@@ -110,12 +110,12 @@
 
 ##- Discretionary access control permission modification (unsuccessful
 ## and successful use of chown/chmod)
--a always,exit -F arch=b32 -S chmod,fchmod,fchmodat -F auid>=1000 -F auid!=unset -F key=perm_mod
--a always,exit -F arch=b64 -S chmod,fchmod,fchmodat -F auid>=1000 -F auid!=unset -F key=perm_mod
--a always,exit -F arch=b32 -S lchown,fchown,chown,fchownat -F auid>=1000 -F auid!=unset -F key=perm_mod
--a always,exit -F arch=b64 -S chown,fchown,lchown,fchownat -F auid>=1000 -F auid!=unset -F key=perm_mod
--a always,exit -F arch=b32 -S setxattr,lsetxattr,fsetxattr,removexattr,lremovexattr,fremovexattr -F auid>=1000 -F auid!=unset -F key=perm_mod
--a always,exit -F arch=b64 -S setxattr,lsetxattr,fsetxattr,removexattr,lremovexattr,fremovexattr -F auid>=1000 -F auid!=unset -F key=perm_mod
+-a always,exit -F arch=b32 -S chmod,fchmod,fchmodat,fchmodat2,file_setattr -F auid>=1000 -F auid!=unset -F key=perm_mod
+-a always,exit -F arch=b64 -S chmod,fchmod,fchmodat,fchmodat2,file_setattr -F auid>=1000 -F auid!=unset -F key=perm_mod
+-a always,exit -F arch=b32 -S lchown,fchown,chown,fchownat,file_setattr -F auid>=1000 -F auid!=unset -F key=perm_mod
+-a always,exit -F arch=b64 -S chown,fchown,lchown,fchownat,file_setattr -F auid>=1000 -F auid!=unset -F key=perm_mod
+-a always,exit -F arch=b32 -S setxattr,lsetxattr,fsetxattr,removexattr,lremovexattr,fremovexattr,file_setattr -F auid>=1000 -F auid!=unset -F key=perm_mod
+-a always,exit -F arch=b64 -S setxattr,lsetxattr,fsetxattr,removexattr,lremovexattr,fremovexattr,file_setattr -F auid>=1000 -F auid!=unset -F key=perm_mod
 
 ##- Unauthorized access attempts to files (unsuccessful) 
 -a always,exit -F arch=b32 -S open,creat,truncate,ftruncate,openat,openat2,open_by_handle_at -F exit=-EACCES -F auid>=1000 -F auid!=unset -F key=access
