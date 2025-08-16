@@ -6,7 +6,6 @@
 - Drop IPX header handling and require kernel 5.15 or later
 - Resolved a number of FIXME's all over the code base
 - Optimize ausearch/report log processing
-- In auditctl, if rule only has perms, detect hardware to filter syscalls
 - In auparse normalizer, save pids as object attributes if its a process group
 
 4.1.1
