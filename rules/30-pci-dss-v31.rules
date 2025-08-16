@@ -93,16 +93,10 @@
 ## librpm so that using either rpm or dnf to install something results in an
 ## audit event. We will place rules to meet the other items.
 ## For kernel modules, include 43-module-load.rules
--a always,exit -F arch=b32 -S mount_setattr -F auid>=1000 -F auid!=unset -F key=10.2.7-system-objects
--a always,exit -F arch=b64 -S mount_setattr -F auid>=1000 -F auid!=unset -F key=10.2.7-system-objects
+-a always,exit -F arch=b32 -S mount,umount,umount2,mknod,mknodat -F auid>=1000 -F auid!=unset -F key=10.2.7-system-objects
+-a always,exit -F arch=b64 -S mount,umount,umount2,mknod,mknodat -F auid>=1000 -F auid!=unset -F key=10.2.7-system-objects
 -a always,exit -F arch=b32 -S landlock_create_ruleset -F auid>=1000 -F auid!=unset -F key=10.2.7-system-objects
 -a always,exit -F arch=b64 -S landlock_create_ruleset -F auid>=1000 -F auid!=unset -F key=10.2.7-system-objects
--a always,exit -F arch=b32 -S landlock_add_rule -F auid>=1000 -F auid!=unset -F key=10.2.7-system-objects
--a always,exit -F arch=b64 -S landlock_add_rule -F auid>=1000 -F auid!=unset -F key=10.2.7-system-objects
--a always,exit -F arch=b32 -S landlock_restrict_self -F auid>=1000 -F auid!=unset -F key=10.2.7-system-objects
--a always,exit -F arch=b64 -S landlock_restrict_self -F auid>=1000 -F auid!=unset -F key=10.2.7-system-objects
--a always,exit -F arch=b32 -S lsm_set_self_attr -F auid>=1000 -F auid!=unset -F key=10.2.7-system-objects
--a always,exit -F arch=b64 -S lsm_set_self_attr -F auid>=1000 -F auid!=unset -F key=10.2.7-system-objects
 
 ## 10.3 Record at least the following audit trail entries
 ## 10.3.1 through 10.3.6 are implicitly met by the audit system.
