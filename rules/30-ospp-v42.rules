@@ -74,6 +74,18 @@
 -a always,exit -F arch=b32 -F path=/usr/sbin/grub2-set-bootflag -F perm=x -F auid>=1000 -F auid!=unset -F key=special-config-changes
 -a always,exit -F arch=b64 -F path=/usr/sbin/grub2-set-bootflag -F perm=x -F auid>=1000 -F auid!=unset -F key=special-config-changes
 
+## Capture mount and LSM attribute changes
+-a always,exit -F arch=b32 -S mount_setattr -F auid>=1000 -F auid!=unset -F key=special-config-changes
+-a always,exit -F arch=b64 -S mount_setattr -F auid>=1000 -F auid!=unset -F key=special-config-changes
+-a always,exit -F arch=b32 -S landlock_create_ruleset -F auid>=1000 -F auid!=unset -F key=special-config-changes
+-a always,exit -F arch=b64 -S landlock_create_ruleset -F auid>=1000 -F auid!=unset -F key=special-config-changes
+-a always,exit -F arch=b32 -S landlock_add_rule -F auid>=1000 -F auid!=unset -F key=special-config-changes
+-a always,exit -F arch=b64 -S landlock_add_rule -F auid>=1000 -F auid!=unset -F key=special-config-changes
+-a always,exit -F arch=b32 -S landlock_restrict_self -F auid>=1000 -F auid!=unset -F key=special-config-changes
+-a always,exit -F arch=b64 -S landlock_restrict_self -F auid>=1000 -F auid!=unset -F key=special-config-changes
+-a always,exit -F arch=b32 -S lsm_set_self_attr -F auid>=1000 -F auid!=unset -F key=special-config-changes
+-a always,exit -F arch=b64 -S lsm_set_self_attr -F auid>=1000 -F auid!=unset -F key=special-config-changes
+
 ## Privilege escalation via su or sudo. This is entirely handled by pam.
 ## Special case for systemd-run. It is not audit aware, specifically watch it
 -a always,exit -F arch=b32 -F path=/usr/bin/systemd-run -F perm=x -F auid!=unset -F key=maybe-escalation

@@ -129,8 +129,8 @@
 ## You have to mount media before using it. You must disable all automounting
 ## so that its done manually in order to get the correct user requesting the
 ## export
--a always,exit -F arch=b32 -S mount -F auid>=1000 -F auid!=unset -F key=export
--a always,exit -F arch=b64 -S mount -F auid>=1000 -F auid!=unset -F key=export
+-a always,exit -F arch=b32 -S mount,mount_setattr -F auid>=1000 -F auid!=unset -F key=export
+-a always,exit -F arch=b64 -S mount,mount_setattr -F auid>=1000 -F auid!=unset -F key=export
 
 ##- System startup and shutdown (unsuccessful and successful)
 

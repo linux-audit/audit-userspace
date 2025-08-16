@@ -1,6 +1,6 @@
 ## The purpose of these rules is to meet the pci-dss v3.1 auditing requirements
-## These rules depends on having 10-base-config.rules & 99-finalize.rules
-## installed.
+## These rules depends on having 10-base-config.rules, 43-module-load.rules,
+## and 99-finalize.rules installed.
 
 ## NOTE:
 ## 1) if this is being used on a 32 bit machine, comment out the b64 lines
@@ -87,7 +87,22 @@
 ## These are handled implicitly by auditd
 
 ## 10.2.7 Creation and deletion of system-level objects
-## This requirement seems to be database table related and not audit
+## This requirement would include the database table holding user information.
+## but we will also define this to mean Kernel modules, security controls,
+## and system software. Changes to system software is implicitly met by
+## librpm so that using either rpm or dnf to install something results in an
+## audit event. We will place rules to meet the other items.
+## For kernel modules, include 43-module-load.rules
+-a always,exit -F arch=b32 -S mount_setattr -F auid>=1000 -F auid!=unset -F key=10.2.7-system-objects
+-a always,exit -F arch=b64 -S mount_setattr -F auid>=1000 -F auid!=unset -F key=10.2.7-system-objects
+-a always,exit -F arch=b32 -S landlock_create_ruleset -F auid>=1000 -F auid!=unset -F key=10.2.7-system-objects
+-a always,exit -F arch=b64 -S landlock_create_ruleset -F auid>=1000 -F auid!=unset -F key=10.2.7-system-objects
+-a always,exit -F arch=b32 -S landlock_add_rule -F auid>=1000 -F auid!=unset -F key=10.2.7-system-objects
+-a always,exit -F arch=b64 -S landlock_add_rule -F auid>=1000 -F auid!=unset -F key=10.2.7-system-objects
+-a always,exit -F arch=b32 -S landlock_restrict_self -F auid>=1000 -F auid!=unset -F key=10.2.7-system-objects
+-a always,exit -F arch=b64 -S landlock_restrict_self -F auid>=1000 -F auid!=unset -F key=10.2.7-system-objects
+-a always,exit -F arch=b32 -S lsm_set_self_attr -F auid>=1000 -F auid!=unset -F key=10.2.7-system-objects
+-a always,exit -F arch=b64 -S lsm_set_self_attr -F auid>=1000 -F auid!=unset -F key=10.2.7-system-objects
 
 ## 10.3 Record at least the following audit trail entries
 ## 10.3.1 through 10.3.6 are implicitly met by the audit system.
