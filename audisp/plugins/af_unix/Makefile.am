@@ -26,16 +26,17 @@ CONF_FILES = af_unix.conf
 EXTRA_DIST = $(CONF_FILES) $(man_MANS)
 
 AM_CPPFLAGS = -I${top_srcdir} -I${top_srcdir}/lib -I${top_srcdir}/audisp \
-	-I${top_srcdir}/auplugin -I${top_srcdir}/auparse
+	-I${top_srcdir}/common -I${top_srcdir}/auplugin -I${top_srcdir}/auparse
 LIBS = ${top_builddir}/lib/libaudit.la
 prog_confdir = $(sysconfdir)/audit
 plugin_confdir=$(prog_confdir)/plugins.d
 plugin_conf = af_unix.conf
 sbin_PROGRAMS = audisp-af_unix
+noinst_HEADERS = queue.h
 man_MANS = audisp-af_unix.8
 
 audisp_af_unix_DEPENDENCIES = ${top_builddir}/lib/libaudit.la ${top_builddir}/auplugin/libauplugin.la
-audisp_af_unix_SOURCES = audisp-af_unix.c
+audisp_af_unix_SOURCES = audisp-af_unix.c queue.c
 audisp_af_unix_CFLAGS = -fPIE -DPIE -g -D_GNU_SOURCE -Wundef ${WFLAGS}
 audisp_af_unix_LDFLAGS = -pie -Wl,-z,relro -Wl,-z,now
 audisp_af_unix_LDADD = $(CAPNG_LDADD) ${top_builddir}/lib/libaudit.la ${top_builddir}/auplugin/libauplugin.la
