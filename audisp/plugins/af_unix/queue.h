@@ -18,7 +18,7 @@
  *
  * Authors:
  *      Steve Grubb <sgrubb@redhat.com>
- *      Miloslav Trmač <mitr@redhat.com>
+ *      Miloslav Trma\u010d <mitr@redhat.com>
  */
 
 #ifndef QUEUE_HEADER
@@ -29,46 +29,32 @@
 
 struct queue;
 
-enum {
-	// Queue storage.  Both options can be set at the same time.
-	Q_IN_MEMORY = 1 << 0,	// Keep a copy of the queue in memory
-	Q_IN_FILE = 1 << 1,	// Store the queue in a file
-	// Other flags for use with Q_IN_FILE 
-	Q_CREAT = 1 << 2,	// Create the queue if it does not exist
-	Q_EXCL = 1 << 3,	// With Q_CREAT, don't open an existing queue
-	Q_SYNC = 1 << 4,	// fdatasync() after each operation
-	Q_RESIZE = 1 << 5,	// resize the queue if needed
-};
-
-/* MAX_AUDIT_MESSAGE_LENGTH, aligned to 4 KiB so that an average q_append() only
-   writes to two disk disk blocks (1 aligned data block, 1 header block). */
-#define QUEUE_ENTRY_SIZE (3*4096)
-
 /* Close Q. */
 void q_close(struct queue *q);
 
-/* Open a queue using Q_FLAGS and return it. If Q_IN_FILE: use PATH for the
- * file, NUM_ENTRIES must be the same for all users of the file unless Q_RESIZE
- * is set. ENTRY_SIZE is the maximum length of a stored string, including the
- * trailing NUL. If Q_IN_FILE, it must be the same for all users of the file.
- * On error, return NULL and set errno. */
-struct queue *q_open(int q_flags, const char *path, size_t num_entries,
-		     size_t entry_size)
-	__attribute_malloc__ __attr_dealloc (q_close, 1) __wur;
+/* Open a queue with NUM_ENTRIES slots capable of holding buffers up to
+ * ENTRY_SIZE bytes. On error, return NULL and set errno. */
+struct queue *q_open(size_t num_entries, size_t entry_size)
+        __attribute_malloc__ __attr_dealloc(q_close, 1) __wur;
 
-/* Add DATA to tail of Q. Return 0 on success, -1 on error and set errno. */
-int q_append(struct queue *q, const char *data);
+/* Add DATA of LEN bytes to tail of Q. Return 0 on success, -1 on error and set
+ * errno. */
+int q_append(struct queue *q, const void *data, size_t len)
+        __attr_access ((__read_only__, 2, 3));
 
-/* Peek at head of Q, storing it into BUF of SIZE. Return 1 if an entry 
+/* Peek at head of Q, storing it into BUF of SIZE. Return 1 if an entry
  * exists, 0 if queue is empty. On error, return -1 and set errno. */
-int q_peek(struct queue *q, char *buf, size_t size)
-	__attr_access ((__write_only__, 2, 3));
+int q_peek(struct queue *q, void *buf, size_t size)
+        __attr_access ((__write_only__, 2, 3));
 
 /* Drop head of Q and return 0. On error, return -1 and set errno. */
 int q_drop_head(struct queue *q);
 
 /* Return the number of entries in Q. */
-size_t q_queue_length(const struct queue *q); 
+size_t q_queue_length(const struct queue *q);
+
+/* Return 1 if Q is empty, 0 otherwise. */
+int q_empty(const struct queue *q);
 
 #endif
 
