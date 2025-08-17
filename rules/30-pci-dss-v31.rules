@@ -94,7 +94,7 @@
 ## audit event. We will place rules to meet the other items.
 ## For kernel modules, include 43-module-load.rules
 -a always,exit -F arch=b32 -S mount,umount,umount2,mknod,mknodat -F auid>=1000 -F auid!=unset -F key=10.2.7-system-objects
--a always,exit -F arch=b64 -S mount,umount,umount2,mknod,mknodat -F auid>=1000 -F auid!=unset -F key=10.2.7-system-objects
+-a always,exit -F arch=b64 -S mount,umount2,mknod,mknodat -F auid>=1000 -F auid!=unset -F key=10.2.7-system-objects
 -a always,exit -F arch=b32 -S landlock_create_ruleset -F auid>=1000 -F auid!=unset -F key=10.2.7-system-objects
 -a always,exit -F arch=b64 -S landlock_create_ruleset -F auid>=1000 -F auid!=unset -F key=10.2.7-system-objects
 
