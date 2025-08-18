@@ -69,7 +69,7 @@ int inbound_protocol = -1;
 static struct mallinfo2 last_mi;
 #endif
 
-#define QUEUE_DEPTH 256
+#define QUEUE_DEPTH 800
 #define QUEUE_ENTRY_SIZE MAX_AUDIT_EVENT_FRAME_SIZE+1
 
 static struct queue *queue;
