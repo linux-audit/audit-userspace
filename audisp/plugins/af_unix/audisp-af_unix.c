@@ -64,7 +64,7 @@ int inbound_protocol = -1;
 #define QUEUE_ENTRY_SIZE (3*4096)
 
 static struct queue *queue;
-static unsigned char out_buf[QUEUE_ENTRY_SIZE];
+static const unsigned char *out_buf;
 static size_t out_len;
 static size_t out_off;
 
@@ -441,7 +441,7 @@ static void send_queue(void)
 
        while (!q_empty(queue) && client && !stop) {
                if (out_off == 0) {
-                       int r = q_peek(queue, out_buf, sizeof(out_buf));
+                       int r = q_peek(queue, &out_buf, &out_len);
                        if (r <= 0) {
                                if (r < 0)
                                        syslog(LOG_ERR,
@@ -449,7 +449,6 @@ static void send_queue(void)
                                               strerror(errno));
                                return;
                        }
-                       out_len = r;
                }
 
                do {
@@ -466,6 +465,7 @@ static void send_queue(void)
                                auplugin_fgets_clear();
                                out_off = 0;
                                out_len = 0;
+                               out_buf = NULL;
                        }
                        return;
                }
@@ -474,6 +474,7 @@ static void send_queue(void)
                        q_drop_head(queue);
                        out_off = 0;
                        out_len = 0;
+                       out_buf = NULL;
                }
        }
 }
@@ -519,9 +520,10 @@ void event_loop(int ifd)
                                auplugin_fgets_clear();
                                out_off = 0;
                                out_len = 0;
+                               out_buf = NULL;
                         }
-			// auditd closed it's socket, exit
-			if (pfd[0].revents & POLLHUP) {
+                        // auditd closed it's socket, exit
+                        if (pfd[0].revents & POLLHUP) {
 				syslog(LOG_INFO,
 				       "Auditd closed it's socket - exiting");
 				return;
