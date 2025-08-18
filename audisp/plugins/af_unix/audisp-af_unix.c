@@ -103,7 +103,7 @@ int create_af_unix_socket(const char *spath, int mode)
 		return -1;
 	}
 	setsockopt(sock, SOL_SOCKET, SO_REUSEADDR,
-			(char *)&one, sizeof (int));
+		   (char *)&one, sizeof (int));
 #ifdef DEBUG
 	printf("%o %s\n", mode, spath);
 #else
@@ -146,8 +146,8 @@ int setup_socket(int argc, char *argv[])
 			mode = strtoul(arg, NULL, 8);
 			if (errno) {
 				syslog(LOG_ERR,
-					"Error converting %s (%s)",
-					argv[i], strerror(errno));
+				       "Error converting %s (%s)",
+				       argv[i], strerror(errno));
 				mode = 0;
 			}
 		} else if (strchr(arg, '/') != NULL) {
@@ -166,14 +166,14 @@ int setup_socket(int argc, char *argv[])
 					free(dir);
 				} else {
 					syslog(LOG_ERR,
-						"Couldn't open %s (%s)",
-						base, strerror(errno));
+					       "Couldn't open %s (%s)",
+					       base, strerror(errno));
 					free(dir);
 					exit(1);
 				}
 			} else {
 				syslog(LOG_ERR, "Malformed path %s",
-					path);
+				       path);
 				exit(1);
 			}
 		} else {
@@ -206,7 +206,7 @@ int setup_socket(int argc, char *argv[])
 }
 
 static int event_to_string(struct audit_dispatcher_header *hdr,
-				char *data, char **out, int *outlen)
+			   char *data, char **out, int *outlen)
 {
 	char *v = NULL, *ptr, unknown[32];
 	int len;
@@ -219,11 +219,11 @@ static int event_to_string(struct audit_dispatcher_header *hdr,
 			type = audit_msg_type_to_name(hdr->type);
 			if (type == NULL) {
 				snprintf(unknown, sizeof(unknown),
-					"UNKNOWN[%u]", hdr->type);
+					 "UNKNOWN[%u]", hdr->type);
 				type = unknown;
 			}
 			len = asprintf(&v, "type=%s msg=%.*s\n",
-					type, hdr->size, data);
+				       type, hdr->size, data);
 		} else if (inbound_protocol == F_BINARY &&
 			   hdr->ver == AUDISP_PROTOCOL_VER2) {
 			// Protocol 2 events are already formatted
@@ -266,7 +266,7 @@ static int event_to_string(struct audit_dispatcher_header *hdr,
  * 0 when EOF is reached.
  */
 static int read_binary_record(int fd, struct audit_dispatcher_header *hdr,
-                              char *data)
+			      char *data)
 {
 	size_t len = sizeof(*hdr);
 	char *ptr = (char *)hdr;
@@ -304,7 +304,7 @@ static int read_binary_record(int fd, struct audit_dispatcher_header *hdr,
 
 void read_audit_record(int ifd)
 {
-       int len;
+	int len;
 
 	// If it's the first call, detect which inbound protocol we are using
 	if (inbound_protocol == -1) {
@@ -317,7 +317,7 @@ void read_audit_record(int ifd)
 		if (rc < 0) {
 			if (errno == ENOTSOCK) {
 				syslog(LOG_ERR, "stdin is not a socket (%s)",
-					strerror(errno));
+				       strerror(errno));
 				exit(1);
 			}
 			return;
@@ -334,7 +334,7 @@ void read_audit_record(int ifd)
 
 	if (inbound_protocol == F_BINARY) {
 		struct audit_dispatcher_header *hdr =
-				(struct audit_dispatcher_header *)rx_buf;
+			(struct audit_dispatcher_header *)rx_buf;
 		char *data = rx_buf + sizeof(*hdr);
 
 		len = read_binary_record(ifd, hdr, data);
@@ -344,82 +344,82 @@ void read_audit_record(int ifd)
 			return;
 		}
 
-               if (!stop) {
-                       if (format == F_STRING) {
-                               char *str = NULL;
-                               int str_len = 0;
+		if (!stop) {
+			if (format == F_STRING) {
+				char *str = NULL;
+				int str_len = 0;
 
-                               if (event_to_string(hdr, data, &str,
-                                                       &str_len) < 0)
-                                       return;
+				if (event_to_string(hdr, data, &str,
+						    &str_len) < 0)
+					return;
 
-                               if (q_append(queue, str, str_len) != 0)
-                                       syslog(LOG_ERR,
-                                              "Queue append failed (%s)",
-                                              strerror(errno));
-                               free(str);
-                       } else if (format == F_BINARY) {
-                               int total = sizeof(*hdr) + hdr->size;
-                               char *buf = malloc(total);
-                               if (buf) {
-                                       memcpy(buf, hdr, sizeof(*hdr));
-                                       memcpy(buf + sizeof(*hdr), data,
-                                              hdr->size);
-                                       if (q_append(queue, buf, total) != 0)
-                                               syslog(LOG_ERR,
-                                                      "Queue append failed (%s)",
-                                                      strerror(errno));
-                                       free(buf);
-                               }
-                       }
-               }
-       } else {
-               do {
-                       len = auplugin_fgets(rx_buf,
-                                       MAX_AUDIT_EVENT_FRAME_SIZE + 1, ifd);
-                       if (len > 0) {
-                               if (inbound_protocol == -1)
-                                       inbound_protocol = F_STRING;
-                               if (!stop) {
-                                       if (format == F_STRING) {
-                                               if (q_append(queue, rx_buf,
-                                                            len) != 0)
-                                                       syslog(LOG_ERR,
-                                                              "Queue append failed (%s)",
-                                                              strerror(errno));
-                                       } else if (format == F_BINARY) {
-                                               struct audit_dispatcher_header hdr;
+				if (q_append(queue, str, str_len) != 0)
+					syslog(LOG_ERR,
+					       "Queue append failed (%s)",
+					       strerror(errno));
+				free(str);
+			} else if (format == F_BINARY) {
+				int total = sizeof(*hdr) + hdr->size;
+				char *buf = malloc(total);
+				if (buf) {
+					memcpy(buf, hdr, sizeof(*hdr));
+					memcpy(buf + sizeof(*hdr), data,
+					       hdr->size);
+					if (q_append(queue, buf, total) != 0)
+						syslog(LOG_ERR,
+						   "Queue append failed (%s)",
+						   strerror(errno));
+					free(buf);
+				}
+			}
+		}
+	} else {
+		do {
+			len = auplugin_fgets(rx_buf,
+					   MAX_AUDIT_EVENT_FRAME_SIZE + 1, ifd);
+			if (len > 0) {
+				if (inbound_protocol == -1)
+					inbound_protocol = F_STRING;
+				if (!stop) {
+					if (format == F_STRING) {
+						if (q_append(queue, rx_buf,
+							     len) != 0)
+							syslog(LOG_ERR,
+						    "Queue append failed (%s)",
+							       strerror(errno));
+					} else if (format == F_BINARY) {
+						struct audit_dispatcher_header hdr;
 
-                                               hdr.ver = AUDISP_PROTOCOL_VER2;
-                                               hdr.hlen = sizeof(struct audit_dispatcher_header);
-                                               hdr.type = 0;
-                                               hdr.size = len;
-                                               int total = sizeof(hdr) + len;
-                                               char *buf = malloc(total);
-                                               if (buf) {
-                                                       memcpy(buf, &hdr,
-                                                              sizeof(hdr));
-                                                       memcpy(buf + sizeof(hdr),
-                                                              rx_buf, len);
-                                                       if (q_append(queue, buf,
-                                                                    total) != 0)
-                                                               syslog(LOG_ERR,
-                                                                      "Queue append failed (%s)",
-                                                                      strerror(errno));
-                                                       free(buf);
-                                               }
-                                       }
-                               }
-                       } else if (auplugin_fgets_eof())
-                               stop = 1;
-               } while (!stop &&
-                       auplugin_fgets_more(MAX_AUDIT_EVENT_FRAME_SIZE));
-       }
+						hdr.ver = AUDISP_PROTOCOL_VER2;
+						hdr.hlen = sizeof(struct audit_dispatcher_header);
+						hdr.type = 0;
+						hdr.size = len;
+						int total = sizeof(hdr) + len;
+						char *buf = malloc(total);
+						if (buf) {
+							memcpy(buf, &hdr,
+							       sizeof(hdr));
+							memcpy(buf+sizeof(hdr),
+							       rx_buf, len);
+							if (q_append(queue, buf,
+								    total) != 0)
+								syslog(LOG_ERR,
+						     "Queue append failed (%s)",
+							       strerror(errno));
+							free(buf);
+						}
+					}
+				}
+			} else if (auplugin_fgets_eof())
+				stop = 1;
+		} while (!stop &&
+			 auplugin_fgets_more(MAX_AUDIT_EVENT_FRAME_SIZE));
+	}
 }
 
 void accept_connection(void)
 {
-        int tmp_conn;
+	int tmp_conn;
 
 	do {
 		tmp_conn = accept4(sock, NULL,NULL, SOCK_NONBLOCK|SOCK_CLOEXEC);
@@ -432,51 +432,51 @@ void accept_connection(void)
 			conn = tmp_conn;
 		} else
 			close(tmp_conn);
-        }
+	}
 }
 
 static void send_queue(void)
 {
-       ssize_t rc;
+	ssize_t rc;
 
-       while (!q_empty(queue) && client && !stop) {
-               if (out_off == 0) {
-                       int r = q_peek(queue, &out_buf, &out_len);
-                       if (r <= 0) {
-                               if (r < 0)
-                                       syslog(LOG_ERR,
-                                              "Queue peek failed (%s)",
-                                              strerror(errno));
-                               return;
-                       }
-               }
+	while (!q_empty(queue) && client && !stop) {
+		if (out_off == 0) {
+			int r = q_peek(queue, &out_buf, &out_len);
+			if (r <= 0) {
+				if (r < 0)
+					syslog(LOG_ERR,
+					       "Queue peek failed (%s)",
+					       strerror(errno));
+				return;
+			}
+		}
 
-               do {
-                       rc = write(conn, out_buf + out_off,
-                                  out_len - out_off);
-               } while (rc < 0 && errno == EINTR);
-               if (rc < 0) {
-                       if (errno == EAGAIN)
-                               return;
-                       if (errno == EPIPE) {
-                               close(conn);
-                               conn = -1;
-                               client = 0;
-                               auplugin_fgets_clear();
-                               out_off = 0;
-                               out_len = 0;
-                               out_buf = NULL;
-                       }
-                       return;
-               }
-               out_off += rc;
-               if (out_off == out_len) {
-                       q_drop_head(queue);
-                       out_off = 0;
-                       out_len = 0;
-                       out_buf = NULL;
-               }
-       }
+		do {
+			rc = write(conn, out_buf + out_off,
+				   out_len - out_off);
+		} while (rc < 0 && errno == EINTR);
+		if (rc < 0) {
+			if (errno == EAGAIN)
+				return;
+			if (errno == EPIPE) {
+				close(conn);
+				conn = -1;
+				client = 0;
+				auplugin_fgets_clear();
+				out_off = 0;
+				out_len = 0;
+				out_buf = NULL;
+			}
+			return;
+		}
+		out_off += rc;
+		if (out_off == out_len) {
+			q_drop_head(queue);
+			out_off = 0;
+			out_len = 0;
+			out_buf = NULL;
+		}
+	}
 }
 
 void event_loop(int ifd)
@@ -514,16 +514,16 @@ void event_loop(int ifd)
 			if (client && (pfd[2].revents & POLLHUP)) {
 				// client hung up, do this first in case
 				// an inbound audit record is available
-                               close(conn);
-                               conn = -1;
-                               client = 0;
-                               auplugin_fgets_clear();
-                               out_off = 0;
-                               out_len = 0;
-                               out_buf = NULL;
-                        }
-                        // auditd closed it's socket, exit
-                        if (pfd[0].revents & POLLHUP) {
+				close(conn);
+				conn = -1;
+				client = 0;
+				auplugin_fgets_clear();
+				out_off = 0;
+				out_len = 0;
+				out_buf = NULL;
+			}
+			// auditd closed it's socket, exit
+			if (pfd[0].revents & POLLHUP) {
 				syslog(LOG_INFO,
 				       "Auditd closed it's socket - exiting");
 				return;
@@ -534,13 +534,13 @@ void event_loop(int ifd)
 			}
 
 			if (pfd[1].revents & POLLIN) {
-                                // someone connected, accept it
-                                accept_connection();
-                                send_queue();
-                        }
+				// someone connected, accept it
+				accept_connection();
+				send_queue();
+			}
 
-                        if (client && (pfd[2].revents & POLLOUT))
-                                send_queue();
+			if (client && (pfd[2].revents & POLLOUT))
+				send_queue();
 		}
 	}
 	if (stop == 1)
@@ -578,35 +578,36 @@ int main(int argc, char *argv[])
 
 	// Initialize the socket
 	if (setup_socket(argc, argv)) {
-		syslog(LOG_ERR,"audisp-af_unix plugin exiting due to errors setting up socket");
+		syslog(LOG_ERR,"audisp-af_unix plugin exiting due to errors "
+		       "setting up socket");
 		exit(1);
 	}
 
 #ifdef HAVE_LIBCAP_NG
-        // Drop capabilities
-        capng_clear(CAPNG_SELECT_BOTH);
-        if (capng_apply(CAPNG_SELECT_BOTH))
-                syslog(LOG_WARNING, "audisp-af_unix plugin was unable to drop capabilities, continuing with elevated priviles");
+	// Drop capabilities
+	capng_clear(CAPNG_SELECT_BOTH);
+	if (capng_apply(CAPNG_SELECT_BOTH))
+		syslog(LOG_WARNING, "audisp-af_unix plugin was unable to "
+		       "drop capabilities, continuing with elevated priviles");
 #endif
-        queue = q_open(QUEUE_DEPTH, QUEUE_ENTRY_SIZE);
-        if (queue == NULL) {
-                syslog(LOG_ERR, "Unable to create queue (%s)",
-                       strerror(errno));
-                exit(1);
-        }
-        syslog(LOG_INFO, "audisp-af_unix plugin is listening for events");
-        event_loop(ifd);
+	queue = q_open(QUEUE_DEPTH, QUEUE_ENTRY_SIZE);
+	if (queue == NULL) {
+		syslog(LOG_ERR, "Unable to create queue (%s)",
+		       strerror(errno));
+		exit(1);
+	}
+	syslog(LOG_INFO, "audisp-af_unix plugin is listening for events");
+	event_loop(ifd);
 
 	// close up and delete socket
 	if (conn >= 0) close(conn);
-        if (sock >= 0) close(sock);
-        if (unlink(path) == -1) {
-                syslog(LOG_WARNING, "Failed to unlink socket %s (%s)",
-                        path, strerror(errno));
-        }
-        q_close(queue);
+	if (sock >= 0) close(sock);
+	if (unlink(path) == -1) {
+		syslog(LOG_WARNING, "Failed to unlink socket %s (%s)",
+		       path, strerror(errno));
+	}
+	q_close(queue);
 
-        return 0;
+	return 0;
 }
-
 
