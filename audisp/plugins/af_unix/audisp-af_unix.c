@@ -355,6 +355,7 @@ static int read_binary_record(int fd, struct audit_dispatcher_header *hdr,
 	return sizeof(*hdr) + hdr->size;
 }
 
+int failed_append = 0;
 void read_audit_record(int ifd)
 {
 	int len;
@@ -406,10 +407,14 @@ void read_audit_record(int ifd)
 						    &str_len) < 0)
 					return;
 
-				if (q_append(queue, str, str_len) != 0)
-					syslog(LOG_ERR,
-					       "Queue append failed (%s)",
-					       strerror(errno));
+				if (q_append(queue, str, str_len) != 0) {
+					if (failed_append < 5)
+						syslog(LOG_ERR,
+				  "Dropping event - queue append failed (%s)",
+						       strerror(errno));
+					failed_append++;
+				} else
+					failed_append = 0;
 				free(str);
 			} else if (format == F_BINARY) {
 				int total = sizeof(*hdr) + hdr->size;
@@ -418,10 +423,14 @@ void read_audit_record(int ifd)
 					memcpy(buf, hdr, sizeof(*hdr));
 					memcpy(buf + sizeof(*hdr), data,
 					       hdr->size);
-					if (q_append(queue, buf, total) != 0)
-						syslog(LOG_ERR,
-						   "Queue append failed (%s)",
-						   strerror(errno));
+					if (q_append(queue, buf, total) != 0) {
+						if (failed_append < 5)
+							syslog(LOG_ERR,
+				  "Dropping event - queue append failed (%s)",
+							   strerror(errno));
+						failed_append++;
+					} else
+						failed_append = 0;
 					free(buf);
 				}
 			}
