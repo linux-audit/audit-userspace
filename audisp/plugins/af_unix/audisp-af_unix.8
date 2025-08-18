@@ -1,4 +1,4 @@
-.TH AUDISP-AF_UNIX "8" "Apr 2023" "Red Hat" "System Administration Utilities"
+.TH AUDISP-AF_UNIX "8" "Aug 2025" "Red Hat" "System Administration Utilities"
 .SH NAME
 audisp-af_unix \- plugin to push audit events to an af_unix socket
 .SH SYNOPSIS
@@ -15,8 +15,12 @@ The
 .B af_unix.conf
 file must also include the line \fBformat = binary\fP. This setting specifies the input format that the \fBaudisp-af_unix\fP plugin expects from the audit event dispatcher. It ensures that the input delivered to the plugin is in binary format, enabling the plugin to reconstruct headers in their proper binary structure.
 
+When the plugin is sent \fBSIGUSR1\fP, it writes a state report to \fBaf_unix.state\fP.
+
 .SH FILES
 /etc/audit/plugins/af_unix.conf
+/run/audit/audispd_events
+/run/audit/af_unix.state
 /etc/audit/auditd.conf
 .SH "SEE ALSO"
 .BR auditd.conf (8),
