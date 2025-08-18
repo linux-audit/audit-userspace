@@ -297,7 +297,33 @@ void read_audit_record(int ifd)
 {
 	int len;
 
-	if (inbound_protocol == F_BINARY || inbound_protocol == -1) {
+	// If it's the first call, detect which inbound protocol we are using
+	if (inbound_protocol == -1) {
+		unsigned char peek[4];
+		ssize_t rc;
+
+		// audisp uses socketpair to setup stdin, use recvfrom to
+		// peek into what the protocol might be
+		rc = recvfrom(ifd, peek, sizeof(peek), MSG_PEEK, NULL, NULL);
+		if (rc < 0) {
+			if (errno == ENOTSOCK) {
+				syslog(LOG_ERR, "stdin is not a socket (%s)",
+					strerror(errno));
+				exit(1);
+			}
+			return;
+		}
+		if (rc == 0) {
+			stop = 1;
+			return;
+		}
+		if (peek[0] == 0 || peek[0] == 1)
+			inbound_protocol = F_BINARY;
+		else
+			inbound_protocol = F_STRING;
+	}
+
+	if (inbound_protocol == F_BINARY) {
 		struct audit_dispatcher_header *hdr =
 				(struct audit_dispatcher_header *)rx_buf;
 		char *data = rx_buf + sizeof(*hdr);
@@ -308,8 +334,6 @@ void read_audit_record(int ifd)
 				stop = 1;
 			return;
 		}
-		if (inbound_protocol == -1)
-			inbound_protocol = F_BINARY;
 
 		if (client && !stop) {
 			int rc;
@@ -351,8 +375,6 @@ void read_audit_record(int ifd)
 			len = auplugin_fgets(rx_buf,
 					MAX_AUDIT_EVENT_FRAME_SIZE + 1, ifd);
 			if (len > 0) {
-				if (inbound_protocol == -1)
-					inbound_protocol = F_STRING;
 				if (client && !stop) {
 					int rc;
 					char *data = rx_buf +

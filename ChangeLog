@@ -7,6 +7,7 @@
 - Resolved a number of FIXME's all over the code base
 - Optimize ausearch/report log processing
 - In auparse normalizer, save pids as object attributes if its a process group
+- Fix inbound protocol detection for af_unix plugin
 
 4.1.1
 - Add libauplugin example program and improve its documentation
