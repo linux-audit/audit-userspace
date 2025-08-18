@@ -8,6 +8,7 @@
 - Optimize ausearch/report log processing
 - In auparse normalizer, save pids as object attributes if its a process group
 - Fix inbound protocol detection for af_unix plugin
+- Add an internal queue to the af_unix plugin
 
 4.1.1
 - Add libauplugin example program and improve its documentation
