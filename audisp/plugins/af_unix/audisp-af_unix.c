@@ -30,6 +30,10 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <unistd.h>
+#include <time.h>
+#ifdef HAVE_MALLINFO2
+#include <malloc.h>
+#endif
 #include <libgen.h>
 #include <string.h>
 #include <sys/stat.h>
@@ -48,10 +52,11 @@
 #include "queue.h"
 
 #define DEFAULT_PATH AUDIT_RUN_DIR"/audispd_events"
+#define STATE_FILE AUDIT_RUN_DIR"/af_unix.state"
 //#define DEBUG
 
 /* Global Data */
-static volatile int stop = 0, hup = 0;
+static volatile int stop = 0, hup = 0, usr1 = 0;
 char rx_buf[MAX_AUDIT_EVENT_FRAME_SIZE+1];
 int sock = -1, conn = -1, client = 0;
 struct pollfd pfd[3];
@@ -59,6 +64,10 @@ unsigned mode = 0;
 format_t format = -1;
 char *path = NULL;
 int inbound_protocol = -1;
+
+#ifdef HAVE_MALLINFO2
+static struct mallinfo2 last_mi;
+#endif
 
 #define QUEUE_DEPTH 256
 #define QUEUE_ENTRY_SIZE MAX_AUDIT_EVENT_FRAME_SIZE+1
@@ -89,6 +98,50 @@ static void hup_handler(int sig)
 {
 	hup = 1;
 }
+
+static void usr1_handler(int sig)
+{
+	usr1 = 1;
+}
+
+#ifdef HAVE_MALLINFO2
+static void write_memory_state(FILE *f)
+{
+	struct mallinfo2 mi = mallinfo2();
+
+	fprintf(f, "glibc arena (total memory) is: %zu KiB, was: %zu KiB\n",
+		(size_t)mi.arena/1024, (size_t)last_mi.arena/1024);
+	fprintf(f, "glibc uordblks (in use memory) is: %zu KiB, was: %zu KiB\n",
+		(size_t)mi.uordblks/1024,(size_t)last_mi.uordblks/1024);
+	fprintf(f,"glibc fordblks (total free space) is: %zu KiB, was: %zu KiB\n",
+		(size_t)mi.fordblks/1024,(size_t)last_mi.fordblks/1024);
+
+	memcpy(&last_mi, &mi, sizeof(struct mallinfo2));
+}
+#endif
+
+static void write_state_report(void)
+{
+	char buf[64];
+	mode_t u = umask(0137); // allow 0640
+	FILE *f = fopen(STATE_FILE, "w");
+	umask(u);
+	if (f == NULL)
+		return;
+
+	time_t now = time(NULL);
+	strftime(buf, sizeof(buf), "%x %X", localtime(&now));
+	fprintf(f, "current time = %s\n", buf);
+	fprintf(f, "client_connected = %s\n", client ? "yes" : "no");
+	fprintf(f, "queue_length = %zu\n", q_queue_length(queue));
+	fprintf(f, "max_queue_length = %zu\n", q_max_queue_length(queue));
+	fprintf(f, "queue_size = %zu\n", q_queue_size(queue));
+#ifdef HAVE_MALLINFO2
+	write_memory_state(f);
+#endif
+	fclose(f);
+}
+
 
 int create_af_unix_socket(const char *spath, int mode)
 {
@@ -491,6 +544,11 @@ void event_loop(int ifd)
 	while (!stop) {
 		int rc;
 
+		if (usr1) {
+			write_state_report();
+			usr1 = 0;
+		}
+
 		if (client) {
 			pfd[2].fd = conn;       // the client
 			pfd[2].events = POLLHUP;
@@ -564,7 +622,10 @@ int main(int argc, char *argv[])
 
 	/* Set handler for the ones we care about */
 	sa.sa_handler = hup_handler;
+	sa.sa_flags = 0;
 	sigaction(SIGHUP, &sa, NULL);
+	sa.sa_handler = usr1_handler;
+	sigaction(SIGUSR1, &sa, NULL);
 	sa.sa_sigaction = term_handler;
 	sa.sa_flags = SA_SIGINFO;
 	sigaction(SIGTERM, &sa, NULL);
