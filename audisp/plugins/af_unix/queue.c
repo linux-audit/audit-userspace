@@ -27,7 +27,7 @@
 #include <string.h>
 #include "queue.h"
 
-struct q_entry {
+struct queue_node {
     unsigned char *data;
     size_t len;
 };
@@ -37,7 +37,7 @@ struct queue {
     size_t len;
     size_t num_entries;
     size_t entry_size;
-    struct q_entry *entries;
+    struct queue_node *entries;
 };
 
 /* Open a queue with NUM_ENTRIES slots each capable of holding up to ENTRY_SIZE
@@ -85,7 +85,7 @@ void q_close(struct queue *q)
  * errno. */
 int q_append(struct queue *q, const void *data, size_t len)
 {
-    struct q_entry *e;
+    struct queue_node *e;
     unsigned char *copy;
     size_t idx;
 
@@ -113,26 +113,23 @@ int q_append(struct queue *q, const void *data, size_t len)
 
 /* Peek at head of Q, storing it into BUF of SIZE. Return 1 if an entry exists,
  * 0 if queue is empty. On error, return -1 and set errno. */
-int q_peek(struct queue *q, void *buf, size_t size)
+int q_peek(struct queue *q, const unsigned char **data, size_t *len)
 {
-    struct q_entry *e;
+    struct queue_node *e;
 
     if (q->len == 0)
         return 0;
 
     e = &q->entries[q->head];
-    if (size < e->len) {
-        errno = ERANGE;
-        return -1;
-    }
-    memcpy(buf, e->data, e->len);
-    return e->len;
+    *data = e->data;
+    *len = e->len;
+    return 1;
 }
 
 /* Drop head of Q and return 0. On error, return -1 and set errno. */
 int q_drop_head(struct queue *q)
 {
-    struct q_entry *e;
+    struct queue_node *e;
 
     if (q->len == 0) {
         errno = EINVAL;

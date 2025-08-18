@@ -42,10 +42,9 @@ struct queue *q_open(size_t num_entries, size_t entry_size)
 int q_append(struct queue *q, const void *data, size_t len)
         __attr_access ((__read_only__, 2, 3));
 
-/* Peek at head of Q, storing it into BUF of SIZE. Return 1 if an entry
- * exists, 0 if queue is empty. On error, return -1 and set errno. */
-int q_peek(struct queue *q, void *buf, size_t size)
-        __attr_access ((__write_only__, 2, 3));
+/* Peek at head of Q, returning a pointer to DATA with LEN bytes. Return 1 if
+ * an entry exists, 0 if queue is empty. On error, return -1 and set errno. */
+int q_peek(struct queue *q, const unsigned char **data, size_t *len);
 
 /* Drop head of Q and return 0. On error, return -1 and set errno. */
 int q_drop_head(struct queue *q);
