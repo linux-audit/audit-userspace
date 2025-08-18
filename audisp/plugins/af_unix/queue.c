@@ -35,6 +35,7 @@ struct queue_node {
 struct queue {
 	size_t head;
 	size_t len;
+	size_t max_len;
 	size_t num_entries;
 	size_t entry_size;
 	struct queue_node *entries;
@@ -63,6 +64,7 @@ struct queue *q_open(size_t num_entries, size_t entry_size)
 
 	q->num_entries = num_entries;
 	q->entry_size = entry_size;
+	q->max_len = 0;
 	return q;
 }
 
@@ -108,6 +110,8 @@ int q_append(struct queue *q, const void *data, size_t len)
 	e->data = copy;
 	e->len = len;
 	q->len++;
+	if (q->len > q->max_len)
+		q->max_len = q->len;
 	return 0;
 }
 
@@ -151,6 +155,16 @@ int q_drop_head(struct queue *q)
 size_t q_queue_length(const struct queue *q)
 {
 	return q->len;
+}
+
+size_t q_max_queue_length(const struct queue *q)
+{
+	return q->max_len;
+}
+
+size_t q_queue_size(const struct queue *q)
+{
+	return q->num_entries;
 }
 
 /* Return 1 if Q is empty, 0 otherwise. */

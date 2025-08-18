@@ -52,6 +52,12 @@ int q_drop_head(struct queue *q);
 /* Return the number of entries in Q. */
 size_t q_queue_length(const struct queue *q);
 
+/* Return the maximum number of entries ever used in Q. */
+size_t q_max_queue_length(const struct queue *q);
+
+/* Return the total number of slots in Q. */
+size_t q_queue_size(const struct queue *q);
+
 /* Return 1 if Q is empty, 0 otherwise. */
 int q_empty(const struct queue *q);
 
