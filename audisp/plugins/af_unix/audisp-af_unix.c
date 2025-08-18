@@ -60,8 +60,8 @@ format_t format = -1;
 char *path = NULL;
 int inbound_protocol = -1;
 
-#define QUEUE_DEPTH 64
-#define QUEUE_ENTRY_SIZE (3*4096)
+#define QUEUE_DEPTH 256
+#define QUEUE_ENTRY_SIZE MAX_AUDIT_EVENT_FRAME_SIZE+1
 
 static struct queue *queue;
 static const unsigned char *out_buf;
