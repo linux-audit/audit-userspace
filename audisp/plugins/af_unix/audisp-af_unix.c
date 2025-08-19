@@ -69,9 +69,10 @@ int inbound_protocol = -1;
 static struct mallinfo2 last_mi;
 #endif
 
-#define QUEUE_DEPTH 800
+#define DEFAULT_QUEUE_DEPTH 800
 #define QUEUE_ENTRY_SIZE MAX_AUDIT_EVENT_FRAME_SIZE+1
 
+static size_t queue_depth = DEFAULT_QUEUE_DEPTH;
 static struct queue *queue;
 static const unsigned char *out_buf;
 static size_t out_len;
@@ -194,14 +195,25 @@ int setup_socket(int argc, char *argv[])
 	for (int i = 1; i < argc; i++) {
 		char *arg = argv[i];
 		if (isdigit((unsigned char)arg[0])) {
-			// parse mode
 			errno = 0;
-			mode = strtoul(arg, NULL, 8);
-			if (errno) {
-				syslog(LOG_ERR,
-				       "Error converting %s (%s)",
-				       argv[i], strerror(errno));
-				mode = 0;
+			if (mode == 0) {
+				// parse mode
+				mode = strtoul(arg, NULL, 8);
+				if (errno) {
+					syslog(LOG_ERR,
+						"Error converting %s (%s)",
+						argv[i], strerror(errno));
+					mode = 0;
+				}
+			} else {
+				// parse queue depth
+				queue_depth = strtoul(arg, NULL, 10);
+				if (errno || queue_depth == 0) {
+					syslog(LOG_ERR,
+						"Error converting %s (%s)",
+						argv[i], strerror(errno));
+					queue_depth = DEFAULT_QUEUE_DEPTH;
+				}
 			}
 		} else if (strchr(arg, '/') != NULL) {
 			// parse path
@@ -254,6 +266,8 @@ int setup_socket(int argc, char *argv[])
 			syslog(LOG_INFO, "Using default format");
 		}
 	}
+	if (queue_depth == DEFAULT_QUEUE_DEPTH)
+		syslog(LOG_INFO, "Using default queue depth");
 
 	return create_af_unix_socket(path, mode);
 }
@@ -660,7 +674,7 @@ int main(int argc, char *argv[])
 		syslog(LOG_WARNING, "audisp-af_unix plugin was unable to "
 		       "drop capabilities, continuing with elevated priviles");
 #endif
-	queue = q_open(QUEUE_DEPTH, QUEUE_ENTRY_SIZE);
+	queue = q_open(queue_depth, QUEUE_ENTRY_SIZE);
 	if (queue == NULL) {
 		syslog(LOG_ERR, "Unable to create queue (%s)",
 		       strerror(errno));
