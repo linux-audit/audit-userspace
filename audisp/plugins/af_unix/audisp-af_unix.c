@@ -384,10 +384,13 @@ void read_audit_record(int ifd)
 		rc = recvfrom(ifd, peek, sizeof(peek), MSG_PEEK, NULL, NULL);
 		if (rc < 0) {
 			if (errno == ENOTSOCK) {
-				syslog(LOG_ERR, "stdin is not a socket (%s)",
-				       strerror(errno));
-				exit(1);
+				// Let's assume it is a file which means string
+				inbound_protocol = F_STRING;
+				goto resolved;
 			}
+			syslog(LOG_ERR, "recvfrom failed (%s)",
+			       strerror(errno));
+			stop = 1;
 			return;
 		}
 		if (rc == 0) {
@@ -400,6 +403,7 @@ void read_audit_record(int ifd)
 			inbound_protocol = F_STRING;
 	}
 
+resolved:
 	if (inbound_protocol == F_BINARY) {
 		struct audit_dispatcher_header *hdr =
 			(struct audit_dispatcher_header *)rx_buf;
