@@ -416,7 +416,7 @@ resolved:
 			return;
 		}
 
-		if (!stop) {
+		if (client && !stop) {
 			if (format == F_STRING) {
 				char *str = NULL;
 				int str_len = 0;
@@ -458,9 +458,7 @@ resolved:
 			len = auplugin_fgets(rx_buf,
 					   MAX_AUDIT_EVENT_FRAME_SIZE + 1, ifd);
 			if (len > 0) {
-				if (inbound_protocol == -1)
-					inbound_protocol = F_STRING;
-				if (!stop) {
+				if (client && !stop) {
 					if (format == F_STRING) {
 						if (q_append(queue, rx_buf,
 							     len) != 0)
