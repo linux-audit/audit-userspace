@@ -32,6 +32,9 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <time.h>
+#ifdef HAVE_MALLINFO2
+#include <malloc.h>
+#endif
 #include <fcntl.h>
 #include <sys/select.h>
 #include <poll.h>
@@ -74,9 +77,14 @@ static volatile int remote_ended = 1, quiet = 0;
 static int ifd;
 remote_conf_t config;
 static int warned = 0;
+#ifdef HAVE_MALLINFO2
+static struct mallinfo2 last_mi;
+#endif
+static size_t max_queued_length = 0;
 
 /* Constants */
 static const char *SPOOL_FILE = "/var/spool/audit/remote.log";
+#define STATE_FILE AUDIT_RUN_DIR"/remote.state"
 
 /* Local function declarations */
 static int check_message(void);
@@ -147,22 +155,53 @@ static void reload_config(void)
 }
 
 /*
- * SIGSUR1 handler: dump stats
+ * SIGUSR1 handler: write a state report
  */
 static void user1_handler( int sig )
 {
         dump = 1;
 }
 
-static void dump_stats(struct queue *queue)
+#ifdef HAVE_MALLINFO2
+/* Write glibc memory statistics to FILE */
+static void write_memory_state(FILE *f)
 {
-	syslog(LOG_INFO,
-		"suspend=%s, remote_ended=%s, transport_ok=%s, queued_items=%zu, queue_depth=%u",
-		suspend ? "yes" : "no",
-		remote_ended ? "yes" : "no",
-		transport_ok ? "yes" : "no",
-		q_queue_length(queue),
-		config.queue_depth);
+	struct mallinfo2 mi = mallinfo2();
+
+	fprintf(f, "glibc arena (total memory) is: %zu KiB, was: %zu KiB\n",
+		(size_t)mi.arena/1024, (size_t)last_mi.arena/1024);
+	fprintf(f, "glibc uordblks (in use memory) is: %zu KiB, was: %zu KiB\n",
+		(size_t)mi.uordblks/1024,(size_t)last_mi.uordblks/1024);
+	fprintf(f,"glibc fordblks (total free space) is: %zu KiB, was: %zu KiB\n",
+		(size_t)mi.fordblks/1024,(size_t)last_mi.fordblks/1024);
+
+	memcpy(&last_mi, &mi, sizeof(struct mallinfo2));
+}
+#endif
+
+/* Write plugin state to STATE_FILE */
+static void write_state_report(struct queue *queue)
+{
+        char buf[64];
+        mode_t u = umask(0137); // allow 0640
+        FILE *f = fopen(STATE_FILE, "w");
+        umask(u);
+        if (f == NULL)
+                return;
+
+        time_t now = time(NULL);
+        strftime(buf, sizeof(buf), "%x %X", localtime(&now));
+        fprintf(f, "current_time = %s\n", buf);
+        fprintf(f, "suspend = %s\n", suspend ? "yes" : "no");
+        fprintf(f, "remote_ended = %s\n", remote_ended ? "yes" : "no");
+        fprintf(f, "transport_ok = %s\n", transport_ok ? "yes" : "no");
+        fprintf(f, "queue_length = %zu\n", q_queue_length(queue));
+        fprintf(f, "max_queued_length = %zu\n", max_queued_length);
+        fprintf(f, "queue_depth = %u\n", config.queue_depth);
+#ifdef HAVE_MALLINFO2
+	write_memory_state(f);
+#endif
+	fclose(f);
 	dump = 0;
 }
 
@@ -497,6 +536,7 @@ int main(int argc, char *argv[])
 		syslog(LOG_ERR, "Error initializing audit record queue: %m");
 		return 1;
 	}
+	max_queued_length = q_queue_length(queue);
 
 #ifdef HAVE_LIBCAP_NG
 	// Drop capabilities
@@ -521,7 +561,7 @@ int main(int argc, char *argv[])
 			reload_config();
 
 		if (dump)
-			dump_stats(queue);
+			write_state_report(queue);
 
 		/* Setup select flags */
 		FD_ZERO(&rfd);
@@ -607,6 +647,10 @@ int main(int argc, char *argv[])
 							do_overflow_action();
 						else
 							queue_error();
+					} else {
+						size_t len = q_queue_length(queue);
+						if (len > max_queued_length)
+							max_queued_length = len;
 					}
 				} else if (auplugin_fgets_eof())
 					stop = 1;

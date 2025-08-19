@@ -1,10 +1,11 @@
-.TH AUDISP-REMOTE "8" "August 2018" "Red Hat" "System Administration Utilities"
+.TH AUDISP-REMOTE "8" "May 2024" "Red Hat" "System Administration Utilities"
 .SH NAME
 audisp-remote \- plugin for remote logging 
 .SH SYNOPSIS
 .B audisp-remote
 .SH DESCRIPTION
 \fBaudisp-remote\fP is a plugin for the audit event dispatcher that performs remote logging to an aggregate logging server.
+When the plugin is sent \fBSIGUSR1\fP, it writes a state report to \fBremote.state\fP.
 
 .SH TIPS
 If you are aggregating multiple machines, you should edit auditd.conf to set the name_format to something meaningful and the log_format to enriched. This way you can tell where the event came from and have the user name and groups resolved locally before it is sent off of the machine.
@@ -12,15 +13,22 @@ If you are aggregating multiple machines, you should edit auditd.conf to set the
 .SH SIGNALS
 .TP
 SIGUSR1
-Causes the audisp-remote program to write the value of some of its internal flags to syslog. The
+Causes the audisp-remote program to write a state report to
+.B remote.state
+in
+.BR /run/audit .
+The
 .IR suspend
 flag tells whether or not logging has been suspended. The
 .IR remote_ended
 flag tells if the connection was broken by the server saying it can't log events. The
 .IR transport_ok
 flag tells whether or not the connection to the remote server is healthy. The
-.IR queue_size
-tells how many records are enqueued to be sent to the remote server.
+.IR queue_length
+tells how many records are enqueued to be sent to the remote server. The
+.IR max_queued_length
+shows the peak queue length since startup. The report also records glibc memory
+consumption when available.
 .TP
 SIGUSR2
 Causes the audisp-remote program to resume logging if it were suspended due to an error.
@@ -29,6 +37,7 @@ Causes the audisp-remote program to resume logging if it were suspended due to a
 /etc/audit/audisp-remote.conf
 /etc/audit/plugins.d/au-remote.conf
 /etc/audit/auditd.conf
+/run/audit/remote.state
 .SH "SEE ALSO"
 .BR auditd.conf (8),
 .BR auditd-plugins (5),
