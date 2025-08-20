@@ -397,7 +397,9 @@ void read_audit_record(int ifd)
 			stop = 1;
 			return;
 		}
-		if (peek[0] == 0 || peek[0] == 1)
+		// If its string, there will be an ascii letter in the first
+		// character. If it's binary, it will be a 1 (0 is ancient)
+		if (peek[0] == 1 || peek[0] == 0)
 			inbound_protocol = F_BINARY;
 		else
 			inbound_protocol = F_STRING;
