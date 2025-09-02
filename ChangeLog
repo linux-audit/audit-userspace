@@ -1,3 +1,5 @@
+4.1.3
+
 4.1.2
 - Use runstatedir to guide the whole audit project to the run directory
 - Deprecate the notion that plugins can be anything other than outbound
