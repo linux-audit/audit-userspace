@@ -43,7 +43,7 @@ typedef struct QNode
 // Collection of pointers to Queue Nodes
 typedef struct Hash
 {
-	unsigned int size; // how many entries
+// unused: unsigned int size; // how many entries
 	QNode **array;     // an array of queue nodes
 } Hash;
 
