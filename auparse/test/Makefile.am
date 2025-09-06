@@ -21,10 +21,9 @@
 #
 
 CONFIG_CLEAN_FILES = *.loT *.rej *.orig *.cur
-noinst_PROGRAMS = auparse_test auparselol_test lookup_test databuf_test \
-	auparse_extra_test lru_cache_test uid_name_wrap_test
+noinst_PROGRAMS = auparse_test auparselol_test lookup_test auparse_extra_test
 TESTS = run_auparse_tests.sh run_auparselol_test.sh lookup_test \
-	databuf_test auparse_extra_test lru_cache_test uid_name_wrap_test
+	auparse_extra_test
 dist_check_SCRIPTS = run_auparse_tests.sh run_auparselol_test.sh
 EXTRA_DIST = auparse_test.ref auparse_test.ref.py test.log test2.log test3.log test4.log auditd_raw.sed run_auparse_tests.sh auparse_test.py run_auparselol_test.sh
 CLEANFILES = run_auparse_tests.sh run_auparselol_test.sh
@@ -39,7 +38,12 @@ AM_LDFLAGS = ${ASAN_FLAGS}
 else
 AM_CFLAGS = -D_GNU_SOURCE -Wno-pointer-sign ${WFLAGS}
 endif
+
+if BUILD_STATIC
 STATIC_LINK = -static
+noinst_PROGRAMS += databuf_test lru_cache_test uid_name_wrap_test
+TESTS += databuf_test lru_cache_test uid_name_wrap_test
+endif
 
 lookup_test_SOURCES = lookup_test.c
 lookup_test_LDFLAGS =  ${STATIC_LINK}
@@ -59,17 +63,18 @@ auparselol_test_LDADD = ${top_builddir}/auparse/libauparse.la \
 	${top_builddir}/lib/libaudit.la ${top_builddir}/common/libaucommon.la
 auparselol_test_DEPENDENCIES = ${top_builddir}/auparse/libauparse.la ${top_builddir}/lib/libaudit.la ${top_builddir}/common/libaucommon.la
 
-databuf_test_SOURCES = databuf_test.c
-databuf_test_LDFLAGS =  ${STATIC_LINK}
-databuf_test_LDADD = ${top_builddir}/auparse/libauparse.la \
-	${top_builddir}/lib/libaudit.la ${top_builddir}/common/libaucommon.la
-databuf_test_DEPENDENCIES = ${top_builddir}/auparse/libauparse.la ${top_builddir}/lib/libaudit.la ${top_builddir}/common/libaucommon.la
-
 auparse_extra_test_SOURCES = auparse_extra_test.c
 auparse_extra_test_LDFLAGS =  ${STATIC_LINK}
 auparse_extra_test_LDADD = ${top_builddir}/auparse/libauparse.la \
 	${top_builddir}/lib/libaudit.la ${top_builddir}/common/libaucommon.la
 auparse_extra_test_DEPENDENCIES = ${top_builddir}/auparse/libauparse.la ${top_builddir}/lib/libaudit.la ${top_builddir}/common/libaucommon.la
+
+if BUILD_STATIC
+databuf_test_SOURCES = databuf_test.c
+databuf_test_LDFLAGS =  ${STATIC_LINK}
+databuf_test_LDADD = ${top_builddir}/auparse/libauparse.la \
+	${top_builddir}/lib/libaudit.la ${top_builddir}/common/libaucommon.la
+databuf_test_DEPENDENCIES = ${top_builddir}/auparse/libauparse.la ${top_builddir}/lib/libaudit.la ${top_builddir}/common/libaucommon.la
 
 lru_cache_test_SOURCES = lru_cache_test.c
 lru_cache_test_LDFLAGS = ${STATIC_LINK}
@@ -82,6 +87,7 @@ uid_name_wrap_test_LDFLAGS = ${STATIC_LINK}
 uid_name_wrap_test_LDADD = ${top_builddir}/auparse/libauparse.la \
 	${top_builddir}/lib/libaudit.la ${top_builddir}/common/libaucommon.la
 uid_name_wrap_test_DEPENDENCIES = ${top_builddir}/auparse/libauparse.la ${top_builddir}/lib/libaudit.la ${top_builddir}/common/libaucommon.la
+endif
 
 drop_srcdir = sed 's,$(srcdir)/test,test,'
 

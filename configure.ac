@@ -313,6 +313,7 @@ CFLAGS="${TMPCFLAGS}"
 LDFLAGS="${TMPLDFLAGS}"
 AC_SUBST(ASAN_FLAGS)
 AM_CONDITIONAL(HAVE_ASAN, test x$have_asan = xyes)
+AM_CONDITIONAL(BUILD_STATIC, test "x$enable_static" != "xno")
 
 withval=""
 AC_MSG_CHECKING(whether to include arm eabi processor support)
