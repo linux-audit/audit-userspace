@@ -1,5 +1,7 @@
 ## This set of rules is to suppress the performance effects of the
 ## audit system. The result is that you only get hardwired events.
+
+## First rule - delete all
 -D
 
 ## This suppresses syscall auditing for all tasks started
