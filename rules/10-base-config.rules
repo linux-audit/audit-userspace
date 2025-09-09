@@ -1,3 +1,6 @@
+## This file should be included whenever syscall auditing is desired. It sets
+## up some common parameters needed no matter what additional rules get added.
+
 ## First rule - delete all
 -D
 

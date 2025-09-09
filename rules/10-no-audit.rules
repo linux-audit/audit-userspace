@@ -1,7 +1,9 @@
-## This set of rules is to suppress the performance effects of the audit
-## system. The result is that you only get hardwired events. If you need
-## syscall auditing, delete this file and install 10-base-config.rules + 
-## other files to make your audit policy.
+## This set of rules is to negate the performance effects of the audit system
+## by preventing syscall auditing to work. You would use this when you want
+## the best system performance without a properly working audit system. 
+## As a result, you only get hardwired events. If you need syscall auditing,
+## delete this file and install 10-base-config.rules + other files to make
+## your audit policy.
 
 ## First rule - delete all
 -D
