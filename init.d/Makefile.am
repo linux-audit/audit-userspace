@@ -24,7 +24,6 @@
 CONFIG_CLEAN_FILES = *.rej *.orig
 CLEANFILES = $(BUILT_SOURCES)
 EXTRA_DIST = auditd.service.in audit-rules.service.in  auditd.conf auditd.cron \
-	audit-tmpfiles.conf \
 	libaudit.conf auditd.condrestart \
 	auditd.reload auditd.restart auditd.resume \
 	auditd.rotate auditd.state auditd.stop audit-rules.service \
@@ -48,8 +47,6 @@ BUILT_SOURCES = auditd.service audit-rules.service
 
 install-data-hook:
 	$(INSTALL_DATA) -D -m 640 ${srcdir}/${libconfig} ${DESTDIR}${sysconfdir}
-	mkdir -p ${DESTDIR}$(prefix)/lib/tmpfiles.d/
-	$(INSTALL_DATA) -m 640 ${srcdir}/audit-tmpfiles.conf ${DESTDIR}$(prefix)/lib/tmpfiles.d/audit.conf
 
 install-exec-hook:
 	mkdir -p ${DESTDIR}${initdir}
@@ -81,5 +78,4 @@ uninstall-hook:
 	rm ${DESTDIR}${legacydir}/stop
 	rm ${DESTDIR}${legacydir}/restart
 	rm ${DESTDIR}${legacydir}/condrestart
-	rm ${DESTDIR}$(prefix)/lib/tmpfiles.d/audit.conf
 	rm ${DESTDIR}${sysconfdir}/bash_completion.d/audit.bash_completion
