@@ -458,7 +458,7 @@ AC_CONFIG_FILES([Makefile common/Makefile lib/Makefile lib/audit.pc
        bindings/python/python3/Makefile bindings/golang/Makefile
        bindings/swig/Makefile bindings/swig/src/Makefile
        bindings/swig/python3/Makefile tools/Makefile tools/aulast/Makefile
-       tools/aulast/test/Makefile
+       tools/aulast/test/Makefile init.d/augenrules
        tools/aulastlog/Makefile tools/ausyscall/Makefile m4/Makefile],
        [chmod +x auparse/test/run_auparse_tests.sh auparse/test/run_auparselol_test.sh])
 AC_OUTPUT
