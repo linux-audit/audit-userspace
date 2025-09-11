@@ -35,6 +35,9 @@ ExecStart=@sbindir@/auditd
 Restart=on-failure
 ## Do not restart for intentional exits. See EXIT CODES section in auditd(8).
 RestartPreventExitStatus=2 4 6
+## Create Log and Runtime directory
+LogsDirectory=audit
+RuntimeDirectory=audit
 
 ### Security Settings ###
 MemoryDenyWriteExecute=true
