@@ -37,10 +37,11 @@
  * the buffer to find a string terminated with a '\n'. It terminates
  * the string with a 0 and returns it. It updates current to point
  * to where it left off. On the next read it starts there and tries to
- * find a '\n'. If it can't find one, it slides the buffer down and
- * fills as much as it can from the descriptor. If the descriptor
- * becomes invalid or there is an error reading, it makes eof true.
- * The variable eptr marks the end of the buffer. It never changes.
+ * find a '\n'. If it can't find one, it advances the buffer pointer
+ * and only compacts the unread data when there is no room left for
+ * the next read. If the descriptor becomes invalid or there is an
+ * error reading, it makes eof true. The variable eptr marks the end
+ * of the buffer. It never changes.
  */
 
 #define BUF_SIZE 8192
@@ -82,10 +83,10 @@ struct auplugin_fgets_state *auplugin_fgets_init(void)
 
 void auplugin_fgets_destroy(struct auplugin_fgets_state *st)
 {
-	if (st->buffer != st->internal) {
+	if (st->buffer != st->internal || st->orig != st->internal) {
 		switch (st->mem_type) {
 		case MEM_MALLOC:
-			free(st->buffer);
+			free(st->orig);
 			break;
 		case MEM_MMAP:
 		case MEM_MMAP_FILE:
@@ -115,6 +116,7 @@ void auplugin_fgets_clear_r(struct auplugin_fgets_state *st)
 		st->buffer = st->orig;
 		st->current = st->eptr;
 	} else {
+		st->buffer = st->orig;
 		st->buffer[0] = 0;
 		st->current = st->buffer;
 	}
@@ -155,25 +157,37 @@ int auplugin_fgets_r(struct auplugin_fgets_state *st, char *buf, size_t blen, in
 	line_end = memchr(st->buffer, '\n', avail);
 
 	/* 2) If not, and we still can read more, pull in more data */
-	if (line_end == NULL && !st->eof && st->current != st->eptr) {
-		do {
-			nread = read(fd, st->current, st->eptr - st->current);
-		} while (nread < 0 && errno == EINTR);
+	if (line_end == NULL && !st->eof) {
+		if (st->current == st->eptr && st->buffer != st->orig) {
+			size_t used = (size_t)(st->current - st->buffer);
 
-		if (nread < 0)
-			return -1;
-
-		if (nread == 0)
-			st->eof = 1;
-		else {
-			size_t got = (size_t)nread;
-			st->current[got] = '\0';
-			st->current += got;
-			avail += got;
+			memmove(st->orig, st->buffer, used);
+			st->buffer = st->orig;
+			st->current = st->buffer + used;
+			avail = used;
+			*st->current = '\0';
 		}
 
-		/* see if a newline arrived in that chunk */
-		line_end = memchr(st->buffer, '\n', avail);
+		if (st->current != st->eptr) {
+			do {
+				nread = read(fd, st->current, st->eptr - st->current);
+			} while (nread < 0 && errno == EINTR);
+
+			if (nread < 0)
+				return -1;
+
+			if (nread == 0)
+				st->eof = 1;
+			else {
+				size_t got = (size_t)nread;
+				st->current[got] = '\0';
+				st->current += got;
+				avail += got;
+			}
+
+			/* see if a newline arrived in that chunk */
+			line_end = memchr(st->buffer, '\n', avail);
+		}
 	}
 
 	/* 3) Do we now have enough to return? */
@@ -203,14 +217,15 @@ int auplugin_fgets_r(struct auplugin_fgets_state *st, char *buf, size_t blen, in
 	buf[line_len] = '\0';
 
 	size_t remainder = avail - line_len;
-	/* For MEM_MMAP_FILE, can't slide it down, so move buffer beginning */
+	/* For MEM_MMAP_FILE we advance over the returned data permanently.
+	 * For other modes we defer compaction until there is no write room
+	 * left for the next read. */
 	if (st->mem_type == MEM_MMAP_FILE) {
 		st->buffer += line_len;
 		if (st->buffer >= st->eptr)
 			st->eof = 1;
 	} else {
-		if (remainder > 0)
-			memmove(st->buffer, st->buffer + line_len, remainder);
+		st->buffer += line_len;
 	}
 
 	st->current = st->buffer + remainder;

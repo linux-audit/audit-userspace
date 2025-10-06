@@ -44,6 +44,42 @@ static void test_basic_state(void)
 	auplugin_fgets_destroy(st);
 }
 
+static void test_deferred_compaction(void)
+{
+	int fds[2];
+	char buf[64];
+	char custom[33];
+	const char *line =
+		"0123456789abcdef0123456789abcdefQRSTUVWX\n";
+	auplugin_fgets_state_t *st;
+	size_t line_len = strlen(line);
+	size_t capacity = sizeof(custom) - 1;
+
+	assert(pipe(fds) == 0);
+	st = auplugin_fgets_init();
+	assert(st);
+	assert(auplugin_setvbuf_r(st, custom, capacity, MEM_SELF_MANAGED) == 0);
+
+	assert(write(fds[1], line, line_len) == (ssize_t)line_len);
+	close(fds[1]);
+
+	int len = auplugin_fgets_r(st, buf, sizeof(buf), fds[0]);
+	assert(len == (int)capacity);
+	assert(strncmp(buf, line, (size_t)len) == 0);
+	assert(auplugin_fgets_eof_r(st) == 0);
+
+	len = auplugin_fgets_r(st, buf, sizeof(buf), fds[0]);
+	assert(len == (int)(line_len - capacity));
+	assert(strcmp(buf, line + capacity) == 0);
+
+	len = auplugin_fgets_r(st, buf, sizeof(buf), fds[0]);
+	assert(len == 0);
+	assert(auplugin_fgets_eof_r(st) == 1);
+
+	close(fds[0]);
+	auplugin_fgets_destroy(st);
+}
+
 static void test_mmap_file(void)
 {
 	const char *srcdir = getenv("srcdir") ? getenv("srcdir") : ".";
@@ -85,6 +121,7 @@ static void test_mmap_file(void)
 int main(void)
 {
 	test_basic_state();
+	test_deferred_compaction();
 	test_mmap_file();
 	printf("audit-fgets_r tests: all passed\n");
 	return 0;
