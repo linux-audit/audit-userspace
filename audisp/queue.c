@@ -76,15 +76,21 @@ void reset_suspended(void)
 static int queue_load_file(int fd)
 {
 	FILE *f;
+	int dup_fd;
 	char buf[MAX_AUDIT_MESSAGE_LENGTH];
 	unsigned int count = 0;
 
 	if (fd < 0)
 		return -1;
 
-	f = fdopen(dup(fd), "r");
-	if (f == NULL)
+	dup_fd = dup(fd);
+	if (dup_fd < 0)
 		return -1;
+	f = fdopen(dup_fd, "r");
+	if (f == NULL) {
+		close(dup_fd);
+		return -1;
+	}
 
 	while (count < q_depth && fgets(buf, sizeof(buf), f)) {
 		event_t *e = calloc(1, sizeof(*e));

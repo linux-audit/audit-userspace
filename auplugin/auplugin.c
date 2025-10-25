@@ -250,6 +250,7 @@ static void *outbound_thread_loop(void *arg)
 		if (e == NULL) {
 			if (AUDIT_ATOMIC_LOAD(stop))
 				break;
+			continue;
 		}
 		if (e->hdr.ver != AUDISP_PROTOCOL_VER2) {
 			// should never be anything but v2

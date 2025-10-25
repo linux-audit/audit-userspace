@@ -209,6 +209,7 @@ static int process_logs(void)
 	if (log_cnt == 0) {
 		snprintf(filename, len, "%s", config.log_file);
 		int ret = process_file(filename);
+		audit_log_free(logs, log_cnt);
 		free(filename);
 		free_config(&config);
 		return ret;
