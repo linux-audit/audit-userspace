@@ -53,6 +53,8 @@ void usage(void)
 static void report_session(lnode* cur)
 {
 	int notime = 0;
+	const char *term;
+	const char *term_to_print;
 
 	// Don't list failed logins
 	if (cur == NULL)
@@ -71,10 +73,15 @@ static void report_session(lnode* cur)
 	} else
 		printf("%-8.u ", cur->auid);
 
-	if (strncmp("/dev/", cur->term, 5) == 0)
-		printf("%-12.12s ", cur->term+5);
-	else
-		printf("%-12.12s ", cur->term);
+	term = cur->term ? cur->term : "?";
+	term_to_print = term;
+	if (strncmp(term, "/dev/", 5) == 0) {
+		if (strlen(term) > 5)
+			term_to_print = term + 5;
+		else
+			term_to_print = "";
+	}
+	printf("%-12.12s ", term_to_print);
 	printf("%-16.16s ", cur->host ? cur->host : "?");
 	printf("%-16.16s ", ctime(&cur->start));
 	switch(cur->status)

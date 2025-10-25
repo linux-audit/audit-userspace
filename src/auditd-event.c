@@ -1574,11 +1574,29 @@ static void reconfigure(struct auditd_event *e)
 	oconf->q_depth = nconf->q_depth;
 	oconf->overflow_action = nconf->overflow_action;
 	oconf->max_restarts = nconf->max_restarts;
-	if (oconf->plugin_dir != nconf->plugin_dir ||
-		(oconf->plugin_dir && nconf->plugin_dir &&
-		strcmp(oconf->plugin_dir, nconf->plugin_dir) != 0)) {
+	if (nconf->plugin_dir) {
+		if (!oconf->plugin_dir ||
+				strcmp(oconf->plugin_dir,
+					nconf->plugin_dir) != 0) {
+			char *tmp = strdup(nconf->plugin_dir);
+
+			if (tmp == NULL)
+				audit_msg(LOG_ERR,
+				"Cannot duplicate plugin_dir in reconfigure");
+			else {
+				free(oconf->plugin_dir);
+				oconf->plugin_dir = tmp;
+			}
+		}
+	} else if (oconf->plugin_dir) {
 		free(oconf->plugin_dir);
-		oconf->plugin_dir = nconf->plugin_dir;
+		oconf->plugin_dir = NULL;
+	}
+	if (nconf->plugin_dir == oconf->plugin_dir)
+		nconf->plugin_dir = NULL;
+	else {
+		free(nconf->plugin_dir);
+		nconf->plugin_dir = NULL;
 	}
 
 	/* At this point we will work on the items that are related to
