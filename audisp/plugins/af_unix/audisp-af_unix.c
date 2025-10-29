@@ -419,6 +419,7 @@ resolved:
 		}
 
 		if (client && !stop) {
+			// in binary - out string
 			if (format == F_STRING) {
 				char *str = NULL;
 				int str_len = 0;
@@ -427,31 +428,32 @@ resolved:
 						    &str_len) < 0)
 					return;
 
-				if (q_append(queue, str, str_len) != 0) {
+				if (q_append(queue, str, str_len, true) != 0) {
 					if (failed_append < 5)
 						syslog(LOG_ERR,
 				  "Dropping event - queue append failed (%s)",
 						       strerror(errno));
 					failed_append++;
+					free(str);
 				} else
 					failed_append = 0;
-				free(str);
-			} else if (format == F_BINARY) {
+			} else if (format == F_BINARY) {// in binary,out binary
 				int total = sizeof(*hdr) + hdr->size;
 				char *buf = malloc(total);
 				if (buf) {
 					memcpy(buf, hdr, sizeof(*hdr));
 					memcpy(buf + sizeof(*hdr), data,
 					       hdr->size);
-					if (q_append(queue, buf, total) != 0) {
+					if (q_append(queue, buf, total, true)
+								     != 0) {
 						if (failed_append < 5)
 							syslog(LOG_ERR,
 				  "Dropping event - queue append failed (%s)",
 							   strerror(errno));
 						failed_append++;
+						free(buf);
 					} else
 						failed_append = 0;
-					free(buf);
 				}
 			}
 		}
@@ -461,13 +463,15 @@ resolved:
 					   MAX_AUDIT_EVENT_FRAME_SIZE + 1, ifd);
 			if (len > 0) {
 				if (client && !stop) {
+					// in string - out string
 					if (format == F_STRING) {
 						if (q_append(queue, rx_buf,
-							     len) != 0)
+							     len, false) != 0)
 							syslog(LOG_ERR,
 						    "Queue append failed (%s)",
 							       strerror(errno));
 					} else if (format == F_BINARY) {
+						// in string - out binary
 						struct audit_dispatcher_header hdr;
 
 						hdr.ver = AUDISP_PROTOCOL_VER2;
@@ -482,11 +486,13 @@ resolved:
 							memcpy(buf+sizeof(hdr),
 							       rx_buf, len);
 							if (q_append(queue, buf,
-								    total) != 0)
+								     total,
+								true) != 0) {
 								syslog(LOG_ERR,
 						     "Queue append failed (%s)",
 							       strerror(errno));
-							free(buf);
+								free(buf);
+							}
 						}
 					}
 				}
