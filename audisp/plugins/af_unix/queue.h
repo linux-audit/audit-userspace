@@ -25,6 +25,7 @@
 #define QUEUE_HEADER
 
 #include <sys/types.h>
+#include <stdbool.h>
 #include "common.h"   // attribute decls
 
 struct queue;
