@@ -29,31 +29,7 @@
 #endif
 #include <sys/types.h>
 #include "dso.h"
-// These macros originate in sys/cdefs.h
-#ifndef __attr_access
-#  define __attr_access(x)
-#endif
-#ifndef __attribute_malloc__
-#  define __attribute_malloc__
-#endif
-#ifndef __attr_dealloc
-#  define __attr_dealloc(dealloc, argno)
-#endif
-#ifndef __wur
-# define __wur
-#endif
-#ifndef __has_attribute
-# define __has_attribute(x) 0
-#endif
-#ifndef __attribute_const__
-# define __attribute_const__
-#endif
-#ifndef __attribute_pure__
-# define __attribute_pure__
-#endif
-#ifndef __nonnull
-# define __nonnull(params)
-#endif
+#include "gcc-attributes.h"
 
 /* Wrapper macros for optional atomics
  * Note: ATOMIC_INT and ATOMIC_UNSIGNED are defined in config.h */

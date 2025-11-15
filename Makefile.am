@@ -33,6 +33,7 @@ EXTRA_DIST = ChangeLog AUTHORS NEWS README.md INSTALL \
 	contrib/libauplugin/Makefile \
 	contrib/libauplugin/auplugin-example.c \
 	contrib/libauplugin/auplugin-example.conf
+noinst_HEADERS = gcc-attributes.h
 
 CONFIG_CLEAN_FILES = debug*.list config/*
 

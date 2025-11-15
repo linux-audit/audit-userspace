@@ -28,6 +28,7 @@
 #include "dso.h"
 #include "rnode.h"
 #include <time.h>
+#include "gcc-attributes.h"
 
 #define NEVER_LOADED 0xFFFF
 
