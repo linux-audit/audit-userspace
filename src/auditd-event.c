@@ -580,7 +580,9 @@ void cleanup_event(struct auditd_event *e)
 	// into the middle of the reply allocation. Check for it.
 	if (e->reply.message != e->reply.msg.data)
 		free((void *)e->reply.message);
-	if (!event_is_prealloc || !event_is_prealloc(e))
+	if (!event_is_prealloc)
+		free(e);
+	else if (!event_is_prealloc(e))
 		free(e);
 }
 
