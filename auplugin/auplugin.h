@@ -95,7 +95,7 @@ int auplugin_setvbuf_r(auplugin_fgets_state_t *st, void *buf, size_t buff_size,
 
 /* auplugin family of functions prototypes */
 int auplugin_init(int inbound_fd, unsigned queue_size, int q_flags,
-		  const char *path);
+		  const char *path) __wur;
 void auplugin_stop(void);
 void auplugin_event_loop(auplugin_callback_ptr callback);
 int auplugin_event_feed(auparse_callback_ptr callback,

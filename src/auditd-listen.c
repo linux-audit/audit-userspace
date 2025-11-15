@@ -262,7 +262,8 @@ static int send_token(int s, gss_buffer_t tok)
 	unsigned char lenbuf[4];
 	unsigned int len;
 
-	if (tok->length > 0xffffffffUL)
+	if (sizeof(tok->length) > sizeof(uint32_t) &&
+	    tok->length > 0xffffffffUL)
 		return -1;
 	len = tok->length;
 	lenbuf[0] = (len >> 24) & 0xff;
@@ -553,7 +554,6 @@ static void client_ack(void *ack_data, const unsigned char *header,
 		ar_write(io->io.fd, msg, strlen(msg));
 }
 
-extern void distribute_event(struct auditd_event *e);
 static void client_message (struct ev_tcp *io, unsigned int length,
 	unsigned char *header)
 {

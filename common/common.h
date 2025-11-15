@@ -45,6 +45,15 @@
 #ifndef __has_attribute
 # define __has_attribute(x) 0
 #endif
+#ifndef __attribute_const__
+# define __attribute_const__
+#endif
+#ifndef __attribute_pure__
+# define __attribute_pure__
+#endif
+#ifndef __nonnull
+# define __nonnull(params)
+#endif
 
 /* Wrapper macros for optional atomics
  * Note: ATOMIC_INT and ATOMIC_UNSIGNED are defined in config.h */
@@ -71,7 +80,7 @@ AUDIT_HIDDEN_START
 
 char *audit_strsplit_r(char *s, char **savedpp);
 char *audit_strsplit(char *s);
-int audit_is_last_record(int type);
+int audit_is_last_record(int type) __attribute_const__;
 
 extern const char *SINGLE;
 extern const char *HALT;

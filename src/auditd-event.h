@@ -52,6 +52,7 @@ void cleanup_event(struct auditd_event *e);
 void format_event(struct auditd_event *e);
 void enqueue_event(struct auditd_event *e);
 void handle_event(struct auditd_event *e);
+void distribute_event(struct auditd_event *e);
 struct auditd_event *create_event(const char *msg, ack_func_type ack_func,
 			void *ack_data, uint32_t sequence_id);
 
