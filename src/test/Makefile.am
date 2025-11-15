@@ -21,6 +21,11 @@
 
 AM_CPPFLAGS = -I${top_srcdir} -I${top_srcdir}/lib -I${top_srcdir}/src
 AM_CFLAGS = -D_GNU_SOURCE -Wno-pointer-sign ${WFLAGS}
+AM_LDFLAGS =
+if HAVE_ASAN
+AM_CFLAGS += ${ASAN_FLAGS}
+AM_LDFLAGS += ${ASAN_FLAGS}
+endif
 check_PROGRAMS = ilist_test slist_test format_event_test
 TESTS = $(check_PROGRAMS)
 ilist_test_LDADD = ${top_builddir}/src/ausearch-int.o

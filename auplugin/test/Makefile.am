@@ -22,6 +22,11 @@
 
 AM_CPPFLAGS = -I${top_srcdir}/auplugin -I${top_srcdir}/lib -I${top_srcdir}/auparse
 AM_CFLAGS = -D_GNU_SOURCE -Wno-pointer-sign ${WFLAGS}
+AM_LDFLAGS =
+if HAVE_ASAN
+AM_CFLAGS += ${ASAN_FLAGS}
+AM_LDFLAGS += ${ASAN_FLAGS}
+endif
 check_PROGRAMS = fgets_test metrics_test fgets_r_test
 TESTS = $(check_PROGRAMS)
 

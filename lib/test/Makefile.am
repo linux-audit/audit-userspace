@@ -21,6 +21,11 @@
 
 AM_CPPFLAGS = -I${top_srcdir}/lib
 AM_CFLAGS = -D_GNU_SOURCE -Wno-pointer-sign ${WFLAGS}
+AM_LDFLAGS =
+if HAVE_ASAN
+AM_CFLAGS += ${ASAN_FLAGS}
+AM_LDFLAGS += ${ASAN_FLAGS}
+endif
 check_PROGRAMS = lookup_test
 TESTS = $(check_PROGRAMS)
 

@@ -34,6 +34,10 @@ noinst_HEADERS = remote-config.h queue.h
 man_MANS = audisp-remote.8 audisp-remote.conf.5
 check_PROGRAMS = test-queue
 TESTS = $(check_PROGRAMS)
+if HAVE_ASAN
+test_queue_CFLAGS = ${ASAN_FLAGS}
+test_queue_LDFLAGS = ${ASAN_FLAGS}
+endif
 
 audisp_remote_DEPENDENCIES = ${top_builddir}/lib/libaudit.la ${top_builddir}/common/libaucommon.la ${top_builddir}/auplugin/libauplugin.la
 audisp_remote_SOURCES = audisp-remote.c remote-config.c queue.c

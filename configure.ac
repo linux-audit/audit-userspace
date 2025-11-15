@@ -301,16 +301,30 @@ AC_LINK_IFELSE([AC_LANG_PROGRAM([[]], [[]])],[WFLAGS="${WFLAGS} -Wno-unused-but-
 CFLAGS="${TMPCFLAGS}"
 AC_SUBST(WFLAGS)
 
-AC_MSG_CHECKING([for -fsanitize=address])
-TMPCFLAGS="${CFLAGS}"
-TMPLDFLAGS="${LDFLAGS}"
-CFLAGS="${CFLAGS} -fsanitize=address"
-LDFLAGS="${LDFLAGS} -fsanitize=address"
-AC_LINK_IFELSE([AC_LANG_PROGRAM([[]], [[]])],
-[ASAN_FLAGS="-fsanitize=address"; have_asan=yes; AC_MSG_RESULT(yes)],
-[have_asan=no; AC_MSG_RESULT(no)])
-CFLAGS="${TMPCFLAGS}"
-LDFLAGS="${TMPLDFLAGS}"
+AC_ARG_WITH([asan],
+        [AS_HELP_STRING([--with-asan],
+                        [build unit tests with AddressSanitizer instrumentation])],
+        [case "${withval}" in
+         yes) want_asan="yes" ;;
+          no) want_asan="no" ;;
+           *) AC_MSG_ERROR(bad value ${withval} for --with-asan) ;;
+         esac],
+        [want_asan="no"])
+
+have_asan=no
+ASAN_FLAGS=""
+if test x$want_asan = xyes; then
+        AC_MSG_CHECKING([for -fsanitize=address support])
+        TMPCFLAGS="${CFLAGS}"
+        TMPLDFLAGS="${LDFLAGS}"
+        CFLAGS="${CFLAGS} -fsanitize=address"
+        LDFLAGS="${LDFLAGS} -fsanitize=address"
+        AC_LINK_IFELSE([AC_LANG_PROGRAM([[]], [[]])],
+                [ASAN_FLAGS="-fsanitize=address"; have_asan=yes; AC_MSG_RESULT(yes)],
+                [AC_MSG_FAILURE([--with-asan was given, but -fsanitize=address is not supported by the compiler or linker])])
+        CFLAGS="${TMPCFLAGS}"
+        LDFLAGS="${TMPLDFLAGS}"
+fi
 AC_SUBST(ASAN_FLAGS)
 AM_CONDITIONAL(HAVE_ASAN, test x$have_asan = xyes)
 AM_CONDITIONAL(BUILD_STATIC, test "x$enable_static" != "xno")

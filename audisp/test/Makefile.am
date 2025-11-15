@@ -23,6 +23,11 @@
 AM_CPPFLAGS = -D_GNU_SOURCE -I${top_srcdir} -I${top_srcdir}/audisp \
 	-I${top_srcdir}/common -I${top_srcdir}/src -I${top_srcdir}/lib
 AM_CFLAGS = -D_GNU_SOURCE -Wno-pointer-sign ${WFLAGS}
+AM_LDFLAGS =
+if HAVE_ASAN
+AM_CFLAGS += ${ASAN_FLAGS}
+AM_LDFLAGS += ${ASAN_FLAGS}
+endif
 check_PROGRAMS = audisp-queue-test audisp-llist-test
 TESTS = $(check_PROGRAMS)
 
