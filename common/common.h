@@ -42,6 +42,9 @@
 #ifndef __wur
 # define __wur
 #endif
+#ifndef __has_attribute
+# define __has_attribute(x) 0
+#endif
 
 /* Wrapper macros for optional atomics
  * Note: ATOMIC_INT and ATOMIC_UNSIGNED are defined in config.h */
@@ -53,6 +56,12 @@
 #else
 #  define AUDIT_ATOMIC_STORE(var, val) do { (var) = (val); } while (0)
 #  define AUDIT_ATOMIC_LOAD(var) (var)
+#endif
+
+#if __has_attribute(no_thread_safety_analysis)
+#  define AUDIT_SINGLE_PRODUCER_FUNC __attribute__((no_thread_safety_analysis))
+#else
+#  define AUDIT_SINGLE_PRODUCER_FUNC
 #endif
 
 // Used in auditd-event.c and audisp.c to size buffers for formatting

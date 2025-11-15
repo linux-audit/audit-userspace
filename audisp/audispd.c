@@ -221,6 +221,12 @@ static int reconfigure(void)
 	conf_llist tmp_plugin;
 	lnode *tpconf;
 
+	/*
+	 * reconfigure() executes on the dispatcher thread after the event
+	 * loop returns.  No other thread walks plugin_conf while this runs,
+	 * so we can rebuild the list in place without additional locking.
+	 */
+
 	if (need_queue_depth_change) {
 		need_queue_depth_change = 0;
 		increase_queue_depth(daemon_config.q_depth);

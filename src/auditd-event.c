@@ -93,7 +93,11 @@ static off_t log_size = 0;
 static pthread_t flush_thread;
 static pthread_mutex_t flush_lock;
 static pthread_cond_t do_flush;
-static volatile int flush;
+#ifdef HAVE_ATOMIC
+static ATOMIC_INT flush;
+#else
+static volatile ATOMIC_INT flush;
+#endif
 static auparse_state_t *au = NULL;
 
 /* Local definitions */
@@ -236,14 +240,14 @@ static void *flush_thread_main(void *arg)
 		// In the event that the logging thread requests another
 		// flush before the first completes, this simply turns
 		// into a loop of fsyncs.
-		while (flush == 0) {
+		while (AUDIT_ATOMIC_LOAD(flush) == 0) {
 			pthread_cond_wait(&do_flush, &flush_lock);
 			if (AUDIT_ATOMIC_LOAD(stop)) {
 				pthread_mutex_unlock(&flush_lock);
 				return NULL;
 			}
 		}
-		flush = 0;
+		AUDIT_ATOMIC_STORE(flush, 0);
 		pthread_mutex_unlock(&flush_lock);
 
 		if (log_fd >= 0)
@@ -258,7 +262,7 @@ static void init_flush_thread(void)
 {
 	pthread_mutex_init(&flush_lock, NULL);
 	pthread_cond_init(&do_flush, NULL);
-	flush = 0;
+	AUDIT_ATOMIC_STORE(flush, 0);
 	pthread_create(&flush_thread, NULL, flush_thread_main, NULL);
 	pthread_detach(flush_thread);
 }
@@ -671,7 +675,7 @@ void handle_event(struct auditd_event *e)
 						}
 					} else {
 						pthread_mutex_lock(&flush_lock);
-						flush = 1;
+						AUDIT_ATOMIC_STORE(flush, 1);
 						pthread_cond_signal(&do_flush);
 						pthread_mutex_unlock(
 								   &flush_lock);
