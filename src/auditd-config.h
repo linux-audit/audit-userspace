@@ -24,6 +24,7 @@
 #define AUDITD_CONFIG_H
 
 #include "libaudit.h"
+#include "gcc-attributes.h"
 #include <grp.h>
 #define CONFIG_FILE "/etc/audit/auditd.conf"
 #define MEGABYTE 1048576UL
@@ -33,7 +34,8 @@
 
 typedef enum { D_FOREGROUND, D_BACKGROUND } daemon_t;
 typedef enum { LF_RAW, LF_NOLOG, LF_ENRICHED } logging_formats;
-typedef enum { FT_NONE, FT_INCREMENTAL, FT_INCREMENTAL_ASYNC, FT_DATA, FT_SYNC } flush_technique;
+typedef enum { FT_NONE, FT_INCREMENTAL, FT_INCREMENTAL_ASYNC, FT_DATA,
+	FT_SYNC } flush_technique;
 typedef enum { FA_IGNORE, FA_SYSLOG, FA_ROTATE, FA_EMAIL, FA_EXEC, FA_SUSPEND,
 		FA_SINGLE, FA_HALT } failure_action_t;
 typedef enum { SZ_IGNORE, SZ_SYSLOG, SZ_EXEC, SZ_SUSPEND, SZ_ROTATE,
@@ -102,20 +104,21 @@ struct daemon_conf
 };
 
 void set_allow_links(int allow);
-int set_config_dir(const char *val);
+int set_config_dir(const char *val) __nonnull ((1));
 
-int load_config(struct daemon_conf *config, log_test_t lt);
-void clear_config(struct daemon_conf *config);
-const char *audit_lookup_format(int fmt);
-int create_log_file(const char *val);
-int resolve_node(struct daemon_conf *config);
-void setup_percentages(struct daemon_conf *config, int fd);
+int load_config(struct daemon_conf *config, log_test_t lt)
+	__nonnull ((1)) __wur;
+void clear_config(struct daemon_conf *config) __nonnull ((1));
+const char *audit_lookup_format(int fmt) __attribute_const__;
+int create_log_file(const char *val) __nonnull ((1));
+int resolve_node(struct daemon_conf *config) __nonnull ((1));
+void setup_percentages(struct daemon_conf *config, int fd) __nonnull ((1));
 
 void init_config_manager(void);
 #ifdef AUDITD_EVENT_H
 int start_config_manager(struct auditd_event *e);
 #endif
-void free_config(struct daemon_conf *config);
+void free_config(struct daemon_conf *config) __nonnull ((1));
 
 const char *failure_action_to_str(unsigned int action);
 

@@ -28,6 +28,7 @@
 #include "config.h"
 #include <sys/types.h>
 #include "audispd-pconfig.h"
+#include "gcc-attributes.h"
 
 /* This is the node of the linked list. message & item are the only elements
  * at this time. Any data elements that are per item goes here. */
@@ -44,18 +45,34 @@ typedef struct {
   unsigned int cnt;	// How many items in this list
 } conf_llist;
 
-void plist_create(conf_llist *l);
-static inline void plist_first(conf_llist *l) { l->cur = l->head; }
-static inline unsigned int plist_count(conf_llist *l) { return l->cnt; }
-unsigned int plist_count_active(const conf_llist *l);
-void plist_last(conf_llist *l);
-lnode *plist_next(conf_llist *l);
-static inline lnode *plist_get_cur(conf_llist *l) { return l->cur; }
-int plist_append(conf_llist *l, plugin_conf_t *p);
-void plist_clear(conf_llist* l);
-void plist_mark_all_unchecked(conf_llist* l);
-lnode *plist_find_unchecked(conf_llist* l);
-lnode *plist_find_name(conf_llist* l, const char *name);
+void plist_create(conf_llist *l) __nonnull ((1));
+static inline void plist_first(conf_llist *l) __nonnull ((1));
+static inline unsigned int plist_count(conf_llist *l)
+	__attribute_pure__ __nonnull ((1));
+unsigned int plist_count_active(const conf_llist *l) __nonnull ((1));
+void plist_last(conf_llist *l) __nonnull ((1));
+lnode *plist_next(conf_llist *l) __nonnull ((1));
+static inline lnode *plist_get_cur(conf_llist *l) __nonnull ((1));
+int plist_append(conf_llist *l, plugin_conf_t *p) __nonnull ((1));
+void plist_clear(conf_llist* l) __nonnull ((1));
+void plist_mark_all_unchecked(conf_llist* l) __nonnull ((1));
+lnode *plist_find_unchecked(conf_llist* l) __nonnull ((1));
+lnode *plist_find_name(conf_llist* l, const char *name) __nonnull ((1));
+
+static inline void plist_first(conf_llist *l)
+{
+	l->cur = l->head;
+}
+
+static inline unsigned int plist_count(conf_llist *l)
+{
+	return l->cnt;
+}
+
+static inline lnode *plist_get_cur(conf_llist *l)
+{
+	return l->cur;
+}
 
 #endif
 

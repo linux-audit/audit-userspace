@@ -26,6 +26,7 @@
 
 #include <sys/types.h>
 #include "libaudit.h"
+#include "gcc-attributes.h"
 
 typedef enum { A_NO, A_YES } active_t;
 typedef enum { S_ALWAYS, S_BUILTIN } service_t;
@@ -47,8 +48,9 @@ typedef struct plugin_conf
 	unsigned restart_cnt;	/* Number of times its crashed */
 } plugin_conf_t;
 
-void clear_pconfig(plugin_conf_t *config);
-int  load_pconfig(plugin_conf_t *config, int dirfd, char *file);
+void clear_pconfig(plugin_conf_t *config) __nonnull ((1));
+int  load_pconfig(plugin_conf_t *config, int dirfd, char *file)
+	__nonnull ((1, 3)) __wur;
 void free_pconfig(plugin_conf_t *config);
 
 #endif
