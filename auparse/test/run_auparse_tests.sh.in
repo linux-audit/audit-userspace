@@ -13,7 +13,23 @@ diff -u "$srcdir"/auparse_test.ref auparse_test.cur
 sed -f "$srcdir"/auditd_raw.sed test3.log | sort > auparse_test.raw
 diff -u auparse_test.raw auparse_test.cur
 if [ "$use_python3" = "yes" ]; then
-    cp "$top_builddir"/bindings/swig/python3/.libs/_audit.so "$top_builddir"/bindings/swig/python3
+    audit_builddir="$top_builddir"/bindings/swig/python3
+    audit_libdir="$audit_builddir"/.libs
+    audit_module=""
+
+    for candidate in "$audit_libdir"/_audit*.so; do
+        if [ -f "$candidate" ]; then
+            audit_module="$candidate"
+            break
+        fi
+    done
+
+    if [ -z "$audit_module" ]; then
+        echo "Could not locate Python audit module in $audit_libdir" >&2
+        exit 1
+    fi
+
+    cp "$audit_module" "$audit_builddir"
     PYTHONPATH="$top_builddir"/bindings/python/python3/.libs/ \
     PYTHONDONTWRITEBYTECODE=1 \
     LD_LIBRARY_PATH="$top_builddir"/auparse/.libs \
