@@ -354,7 +354,7 @@ static int format_raw(const struct audit_reply *rep)
 	        /* Replace \n with space so it looks nicer. */
 		ptr = format_buf;
 	        while (*ptr) {
-			if (*ptr == '\n')
+			if (unlikely(*ptr == '\n'))
 			        *ptr = ' ';
 			ptr++;
 		}

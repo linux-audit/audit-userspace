@@ -70,4 +70,13 @@
 # define __wur
 #endif
 
+/* Linux kernel style branch prediction hints. */
+#ifndef likely
+# define likely(x)   __builtin_expect(!!(x), 1)
+#endif
+
+#ifndef unlikely
+# define unlikely(x) __builtin_expect(!!(x), 0)
+#endif
+
 #endif /* AUDIT_GCC_ATTRIBUTES_H */

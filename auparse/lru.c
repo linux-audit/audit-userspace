@@ -26,6 +26,7 @@
 #include <string.h>
 #include <syslog.h>
 #include "lru.h"
+#include "gcc-attributes.h"
 
 //#define DEBUG
 
@@ -97,7 +98,7 @@ static unsigned int hash_name(const char *name)
 {
 	unsigned int h = 5381;
 	unsigned char c;
-	while ((c = *(const unsigned char *)name++))
+	while (likely((c = *(const unsigned char *)name++)))
 		h = ((h << 5) + h) + c;
 	return h;
 }
