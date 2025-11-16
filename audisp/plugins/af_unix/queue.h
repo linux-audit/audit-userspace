@@ -40,7 +40,7 @@ struct queue *q_open(size_t num_entries, size_t entry_size)
 
 /* Add DATA of LEN bytes to tail of Q. Return 0 on success, -1 on error and set
  * errno. */
-int q_append(struct queue *q, const void *data, size_t len, bool take_memory)
+int q_append(struct queue *q, void *data, size_t len, bool take_memory)
         __attr_access ((__read_only__, 2, 3));
 
 /* Peek at head of Q, returning a pointer to DATA with LEN bytes. Return 1 if

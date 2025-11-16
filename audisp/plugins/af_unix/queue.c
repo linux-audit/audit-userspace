@@ -85,7 +85,7 @@ void q_close(struct queue *q)
 
 /* Add DATA of LEN bytes to tail of Q. Return 0 on success, -1 on error and set
  * errno. */
-int q_append(struct queue *q, const void *data, size_t len, bool take_memory)
+int q_append(struct queue *q, void *data, size_t len, bool take_memory)
 {
 	struct queue_node *e;
 	unsigned char *copy;
