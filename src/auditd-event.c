@@ -101,6 +101,11 @@ static volatile ATOMIC_INT flush;
 static auparse_state_t *au = NULL;
 
 /* Local definitions */
+// The reason 24 was chosen is lost in time. Enriched events start life with
+// format_raw which reserves 32 bytes. After that a newline, space a separator
+// get added. That leaves roughly 28 bytes. It is suspected that 24 was chosen
+// to at least allow one syscall or a uid to fully fit. In practice
+// MIN_SPACE_LEFT should never be hit unless the system uses very long paths.
 #define MIN_SPACE_LEFT 24
 
 static inline int from_network(const struct auditd_event *e)
