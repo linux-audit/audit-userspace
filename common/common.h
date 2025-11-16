@@ -1,5 +1,5 @@
 /* common.h -- common utility functions used throughout
- * Copyright 2018-24 Red Hat Inc.
+ * Copyright 2018-25 Red Hat Inc.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -41,12 +41,6 @@
 #else
 #  define AUDIT_ATOMIC_STORE(var, val) do { (var) = (val); } while (0)
 #  define AUDIT_ATOMIC_LOAD(var) (var)
-#endif
-
-#if __has_attribute(no_thread_safety_analysis)
-#  define AUDIT_SINGLE_PRODUCER_FUNC __attribute__((no_thread_safety_analysis))
-#else
-#  define AUDIT_SINGLE_PRODUCER_FUNC
 #endif
 
 // Used in auditd-event.c and audisp.c to size buffers for formatting

@@ -42,9 +42,7 @@
  * the index alone does not guarantee exclusive access to a ring buffer entry.
  * A compare‑exchange or other reservation mechanism (or simply a mutex) is
  * required to make the queue race‑free. However, auditd is the only producer
- * and audisp is the only consumer, so the queue is safe in practice. The
- * enqueue() entry point is annotated with AUDIT_SINGLE_PRODUCER_FUNC to make
- * this contract visible to thread-safety tooling.
+ * and audisp is the only consumer, so the queue is safe in practice.
  */
 
 static volatile event_t **q;
@@ -225,7 +223,7 @@ static int do_overflow_action(struct disp_conf *config)
  * when processing is suspended, and
  * -1 on other errors
  */
-AUDIT_SINGLE_PRODUCER_FUNC int enqueue(event_t *e, struct disp_conf *config)
+int enqueue(event_t *e, struct disp_conf *config)
 {
 	unsigned int n, retry_cnt = 0;
 
