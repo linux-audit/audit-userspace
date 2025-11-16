@@ -15,14 +15,25 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+ * Author: Steve Grubb <sgrubb@redhat.com>
  */
 
 #ifndef AUDIT_GCC_ATTRIBUTES_H
 #define AUDIT_GCC_ATTRIBUTES_H
 
-/* These macros originate in sys/cdefs.h but may be missing on some libc
- * implementations (e.g. musl). Provide fallbacks when they are undefined.
+/*
+ * These macros originate in sys/cdefs.h when glibc is installed. But the
+ * definitions may be missing on some libc implementations (e.g. musl).
+ * The purpose of this header is to provide fallbacks when they are
+ * undefined.
+ *
+ * Note: We do not want to ship this file. Therefore the following headers
+ * CANNOT include this file because they are the public API for the audit
+ * system: audit-records.h, audit_logging.h, auparse-defs.h, auparse.h,
+ * auplugin.h and libaudit.h
  */
+
 #ifndef __has_attribute
 # define __has_attribute(x) 0
 #endif
