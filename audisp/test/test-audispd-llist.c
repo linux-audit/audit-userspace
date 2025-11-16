@@ -252,9 +252,12 @@ test_plugin_hup_signal_handling(void)
 	if (!old_config1 || !old_config2 || !old_config3)
 		TEST_FAIL("failed to create old plugin configs");
 
-	plist_append(&old_plugin_list, old_config1);
-	plist_append(&old_plugin_list, old_config2);
-	plist_append(&old_plugin_list, old_config3);
+	if (plist_append(&old_plugin_list, old_config1) != 0)
+		TEST_FAIL("failed to append old_config1");
+	if (plist_append(&old_plugin_list, old_config2) != 0)
+		TEST_FAIL("failed to append old_config2");
+	if (plist_append(&old_plugin_list, old_config3) != 0)
+		TEST_FAIL("failed to append old_config3");
 
 	// Create new configuration (remove audit-af_unix, add audit-custom-plugin, keep others)
 	new_config1 = create_test_plugin("audit-remote", A_YES, "/usr/sbin/audit-remote");
@@ -264,9 +267,12 @@ test_plugin_hup_signal_handling(void)
 	if (!new_config1 || !new_config2 || !new_config4)
 		TEST_FAIL("failed to create new plugin configs");
 
-	plist_append(&new_plugin_list, new_config1);
-	plist_append(&new_plugin_list, new_config2);
-	plist_append(&new_plugin_list, new_config4);
+	if (plist_append(&new_plugin_list, new_config1) != 0)
+		TEST_FAIL("failed to append new_config1");
+	if (plist_append(&new_plugin_list, new_config2) != 0)
+		TEST_FAIL("failed to append new_config2");
+	if (plist_append(&new_plugin_list, new_config4) != 0)
+		TEST_FAIL("failed to append new_config4");
 
 	// Simulate HUP signal handling: mark all old plugins as unchecked
 	plist_mark_all_unchecked(&old_plugin_list);
@@ -283,17 +289,21 @@ test_plugin_hup_signal_handling(void)
 			// Plugin exists in old list, mark as checked
 			old_node->p->checked = 1;
 
-			// Verify configuration update (audit-syslog changed from A_YES to A_NO)
+			// Verify configuration update (audit-syslog changed
+			// from A_YES to A_NO)
 			if (strcmp(new_node->p->name, "audit-syslog") == 0) {
-				if (old_node->p->active == A_YES && new_node->p->active == A_NO) {
-					// This simulates updating the configuration
+				if (old_node->p->active ==
+				    A_YES && new_node->p->active == A_NO) {
+					// This simulates updating the
+					// configuration
 					old_node->p->active = A_NO;
 				}
 			}
 		} else {
 			// New plugin, add to old list
 			plist_last(&old_plugin_list);
-			plist_append(&old_plugin_list, new_node->p);
+			if (plist_append(&old_plugin_list, new_node->p) != 0)
+			   TEST_FAIL("failed to append new plugin to old list");
 		}
 
 		new_node = plist_next(&new_plugin_list);
@@ -374,7 +384,8 @@ test_plugin_iteration_and_startup(void)
 	for (i = 0; i < 5; i++) {
 		if (!configs[i])
 			TEST_FAIL("failed to create plugin config");
-		plist_append(&plugin_list, configs[i]);
+		if (plist_append(&plugin_list, configs[i]) != 0)
+			TEST_FAIL("failed to append plugin config");
 	}
 
 	// Simulate plugin startup iteration (like start_plugins in audispd.c)
@@ -413,7 +424,8 @@ test_plugin_iteration_and_startup(void)
 		TEST_FAIL("failed to create new plugin config");
 
 	plist_last(&plugin_list);
-	plist_append(&plugin_list, config_new);
+	if (plist_append(&plugin_list, config_new) != 0)
+		TEST_FAIL("failed to append new plugin");
 
 	if (plist_count(&plugin_list) != 6)
 		TEST_FAIL("should have 6 plugins after append");

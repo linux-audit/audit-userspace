@@ -131,16 +131,23 @@ static void load_plugin_conf(conf_llist *plugin)
 				reason = "file without .conf suffix";
 
 			if (reason) {
-				audit_msg(LOG_DEBUG, "Skipping %s plugin due to %s", e->d_name, reason);
+				audit_msg(LOG_DEBUG,
+					  "Skipping %s plugin due to %s",
+					  e->d_name, reason);
 				continue;
 			}
 
 			clear_pconfig(&config);
 			if (load_pconfig(&config, dfd, e->d_name) == 0) {
 				/* Push onto config list only if active */
-				if (config.active == A_YES)
-					plist_append(plugin, &config);
-				else
+				if (config.active == A_YES) {
+					if (plist_append(plugin, &config) != 0) {
+						audit_msg(LOG_ERR,
+					    "Failed adding %s plugin to list",
+								e->d_name);
+						free_pconfig(&config);
+					}
+				} else
 					free_pconfig(&config);
 			} else
 				audit_msg(LOG_ERR,
@@ -257,10 +264,17 @@ static int reconfigure(void)
 			if (tpconf->p->active == A_YES) {
 				tpconf->p->checked = 1;
 				plist_last(&plugin_conf);
-				plist_append(&plugin_conf, tpconf->p);
-				free(tpconf->p);
+				if (plist_append(&plugin_conf,
+						tpconf->p) != 0) {
+					audit_msg(LOG_ERR,
+						"Failed adding %s plugin to list",
+						tpconf->p->name);
+					free(tpconf->p);
+				} else {
+					free(tpconf->p);
+					start_one_plugin(plist_get_cur(&plugin_conf));
+				}
 				tpconf->p = NULL;
-				start_one_plugin(plist_get_cur(&plugin_conf));
 			}
 		} else {
 			if (opconf->p->active == tpconf->p->active) {

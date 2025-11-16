@@ -53,7 +53,7 @@ unsigned int plist_count_active(const conf_llist *l) __nonnull ((1));
 void plist_last(conf_llist *l) __nonnull ((1));
 lnode *plist_next(conf_llist *l) __nonnull ((1));
 static inline lnode *plist_get_cur(conf_llist *l) __nonnull ((1));
-int plist_append(conf_llist *l, plugin_conf_t *p) __nonnull ((1));
+int plist_append(conf_llist *l, plugin_conf_t *p) __wur __nonnull ((1));
 void plist_clear(conf_llist* l) __nonnull ((1));
 void plist_mark_all_unchecked(conf_llist* l) __nonnull ((1));
 lnode *plist_find_unchecked(conf_llist* l) __nonnull ((1));
