@@ -39,14 +39,14 @@ typedef struct avl_iterator {
  * a is linked directly to the tree, so it has to
  * be properly allocated by the caller.
  */
-avl_t *avl_insert(avl_tree_t *t, avl_t *a) NEVERNULL WARNUNUSED;
+avl_t *avl_insert(avl_tree_t *t, avl_t *a) __wur;
 
 /* Remove an element a from the AVL tree t
  * returns a pointer to the removed element
  * or NULL if an element equal to a is not found
  * (equal as returned by t->compar())
  */
-avl_t *avl_remove(avl_tree_t *t, avl_t *a) WARNUNUSED;
+avl_t *avl_remove(avl_tree_t *t, avl_t *a) __wur;
 
 /* Find the element into the tree that equal to a
  * (equal as returned by t->compar())

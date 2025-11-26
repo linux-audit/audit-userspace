@@ -29,7 +29,7 @@ prog_conf = ids.conf
 plugin_confdir=$(prog_confdir)/plugins.d
 plugin_conf = audisp-ids.conf
 sbin_PROGRAMS = audisp-ids
-noinst_HEADERS = account.h avl.h ids_config.h gcc-attributes.h ids.h \
+noinst_HEADERS = account.h avl.h ids_config.h ids.h \
 	model_bad_event.h model_behavior.h nvpair.h origin.h \
 	reactions.h session.h timer-services.h
 
