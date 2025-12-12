@@ -61,6 +61,13 @@ AC_CHECK_SIZEOF([long])
 AC_CHECK_SIZEOF([time_t])
 dnl; next is needed for old compilers and plugins/ids/Makefile.am
 AM_PROG_CC_C_O
+dnl Ensure runstatedir exists even with older autoconf
+AS_VAR_SET_IF([runstatedir], [], [runstatedir='${localstatedir}/run'])
+AC_SUBST([runstatedir])
+dnl If user didn't override it, prefer FHS /run over ${localstatedir}/run
+AS_IF([test "x$runstatedir" = x'${localstatedir}/run'], [
+  runstatedir=/run
+])
 AC_DEFINE_UNQUOTED([AUDIT_RUN_DIR], ["$runstatedir/audit"],
        [Directory for audit runtime state files])
 AC_CHECK_DECLS([AUDIT_FEATURE_VERSION], [], [], [[#include <linux/audit.h>]])
