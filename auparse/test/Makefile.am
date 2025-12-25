@@ -29,8 +29,8 @@ EXTRA_DIST = auparse_test.ref auparse_test.ref.py test.log test2.log test3.log t
 CLEANFILES = run_auparse_tests.sh run_auparselol_test.sh
 DISTCLEANFILES = $(CLEANFILES)
 
-AM_CPPFLAGS = -I${top_srcdir}/auparse -I${top_srcdir}/lib -I${top_srcdir}/common \
-	-I${top_srcdir}/src
+AM_CPPFLAGS = -I${top_srcdir}/auparse -I${top_srcdir}/lib \
+	-I${top_srcdir}/common -I${top_srcdir}/src -I${top_srcdir}/
 
 if HAVE_ASAN
 AM_CFLAGS = -D_GNU_SOURCE -Wno-pointer-sign ${WFLAGS} ${ASAN_FLAGS}
