@@ -355,7 +355,7 @@ int load_config(struct daemon_conf *config, log_test_t lt)
 	int fd, rc, mode, lineno = 1;
 	struct stat st;
 	FILE *f;
-	char buf[160];
+	char buf[512];
 
 	clear_config(config);
 	log_test = lt;
