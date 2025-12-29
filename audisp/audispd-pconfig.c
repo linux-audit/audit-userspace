@@ -132,7 +132,7 @@ int load_pconfig(plugin_conf_t *config, int dirfd, char *file)
 	int fd, rc, mode, lineno = 1;
 	struct stat st;
 	FILE *f;
-	char buf[160];
+	char buf[512];
 
 	clear_pconfig(config);
 

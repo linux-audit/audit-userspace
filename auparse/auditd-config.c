@@ -111,7 +111,7 @@ int aup_load_config(auparse_state_t *au, struct daemon_conf *config,
 {
 	int fd, lineno = 1;
 	FILE *f;
-	char buf[160];
+	char buf[512];
 
 	aup_clear_config(config);
 
