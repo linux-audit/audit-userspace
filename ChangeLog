@@ -1,6 +1,9 @@
 4.1.3
 - Reduce memory churn in the af_unix plugin
 - Add --with-asan to enable ASAN for unit tests
+- Code cleanups
+- Improve auplugin_fgets performance
+- Update syscalls for the 6.19 kernel
 
 4.1.2
 - Use runstatedir to guide the whole audit project to the run directory
