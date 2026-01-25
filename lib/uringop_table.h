@@ -28,8 +28,9 @@
  *  discussed on the linux-audit mail list:
  *  https://lists.linux-audit.osci.io/archives/list/linux-audit@lists.linux-audit.osci.io/thread/7VZ6IKS4XRP2UTSHURJDPH2N6LEEZG57/
  *
- *  Operations in opdef.c will have a field, audit_skip, if they are not
- *  auditable. Any operation missing this is auditable and needs to be added.
+ *  Operations in io_uring/opdef.c will have a field, audit_skip, if they
+ *  are not auditable. Any operation missing this is auditable and needs to
+ *  be added.
  */
 
 _S(9,	"sendmsg")
@@ -61,3 +62,5 @@ _S(54,  "fixed_fd_install")
 _S(55,  "ftruncate")
 _S(56,  "bind")
 _S(57,  "listen")
+_S(64, "uring_cmd128")
+
