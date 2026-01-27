@@ -135,7 +135,7 @@
 typedef enum { AVC_UNSET, AVC_DENIED, AVC_GRANTED } avc_t;
 typedef enum { S_UNSET=-1, S_FAILED, S_SUCCESS } success_t;
 
-static char *print_escaped(const char *val);
+static char *print_escaped(char *val);
 static const char *print_signals(const char *val, unsigned int base);
 
 /*
@@ -145,7 +145,7 @@ static const char *print_signals(const char *val, unsigned int base);
 static unsigned char x2c(const unsigned char *buf)
 {
 	static const char AsciiArray[17] = "0123456789ABCDEF";
-	char *ptr;
+	const char *ptr;
 	unsigned char total=0;
 
 	ptr = strchr(AsciiArray, (char)toupper(buf[0]));
@@ -291,9 +291,9 @@ static void escape(const char *s, char *dest, unsigned int len,
 	}
 }
 
-static void key_escape(const char *orig, char *dest, auparse_esc_t escape_mode)
+static void key_escape(char *orig, char *dest, auparse_esc_t escape_mode)
 {
-	const char *optr = orig;
+	char *optr = orig;
 	char *str, *dptr = dest, tmp;
 	while (*optr) {
 		unsigned int klen, cnt;
@@ -904,7 +904,7 @@ static const char *print_exit(const char *val)
 	return strdup(val);
 }
 
-static char *print_escaped(const char *val)
+static char *print_escaped(char *val)
 {
 	char *out;
 

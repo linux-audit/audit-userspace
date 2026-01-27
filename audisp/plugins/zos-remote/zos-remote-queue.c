@@ -98,7 +98,7 @@ BerElement *dequeue(void)
     /* Wait until its got something in it */
     pthread_mutex_lock(&queue_lock);
     n = q_last%q_depth;
-    if (q[n] == NULL) {
+    while (q[n] == NULL) {
         pthread_cond_wait(&queue_nonempty, &queue_lock);
         n = q_last%q_depth;
     }

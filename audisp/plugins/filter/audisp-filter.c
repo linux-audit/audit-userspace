@@ -95,7 +95,9 @@ static void handle_event(auparse_state_t* au, auparse_cb_event_t cb_event_type,
 			hup = 0;
 			ausearch_clear(au);
 		}
-		ausearch_set_stop(au, AUSEARCH_STOP_EVENT);
+		if (ausearch_set_stop(au, AUSEARCH_STOP_EVENT))
+			return;	// impossible, doing this for static analysis
+
 		for (struct filter_rule *rule = list.head; rule;
 							rule = rule->next) {
 			int rc = ausearch_add_expression(au, rule->expr, &error,

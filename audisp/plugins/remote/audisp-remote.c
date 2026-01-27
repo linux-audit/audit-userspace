@@ -962,16 +962,17 @@ static int negotiate_credentials (void)
 	if (config.krb5_principal == NULL) {
 		const char *name = config.krb5_client_name ?
 					config.krb5_client_name : "auditd";
-		config.krb5_principal = (char *) malloc (strlen (name) + 1
-					+ strlen (config.remote_server) + 1);
-		sprintf((char *)config.krb5_principal, "%s@%s",
+		size_t length = strlen(name) + 1 +
+				strlen(config.remote_server) + 1;
+		config.krb5_principal = malloc(length);
+		snprintf(config.krb5_principal, length, "%s@%s",
 			name, config.remote_server);
 	}
-	slashptr = strchr (config.krb5_principal, '/');
+	slashptr = strchr(config.krb5_principal, '/');
 	if (slashptr)
 		*slashptr = '@';
 
-	name_buf.value = (char *)config.krb5_principal;
+	name_buf.value = config.krb5_principal;
 	name_buf.length = strlen(name_buf.value) + 1;
 	major_status = gss_import_name(&minor_status, &name_buf,
 			       (gss_OID) gss_nt_service_name, &service_name_e);

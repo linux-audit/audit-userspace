@@ -90,7 +90,7 @@ struct daemon_conf
 	unsigned long tcp_client_max_port;
 	unsigned long tcp_client_max_idle;
 	int transport;
-	const char *krb5_principal;
+	char *krb5_principal;	// gssapi code inserts @ sometimes
 	const char *krb5_key_file;
 	int distribute_network_events;
 	// Dispatcher config

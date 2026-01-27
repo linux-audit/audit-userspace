@@ -284,7 +284,7 @@ static int is_hex_string(const char *str)
 static unsigned char x2c(unsigned char *buf)
 {
 	static const char AsciiArray[17] = "0123456789ABCDEF";
-	char *ptr;
+	const char *ptr;
 	unsigned char total=0;
 
 	ptr = strchr(AsciiArray, (char)toupper(buf[0]));

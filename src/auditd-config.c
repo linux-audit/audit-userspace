@@ -1070,7 +1070,7 @@ const char *failure_action_to_str(unsigned int action)
 static int validate_email(const char *acct)
 {
 	int i, len;
-	char *ptr1;
+	const char *ptr1;
 
 	if (acct == NULL)
 		return 2;
@@ -1095,7 +1095,7 @@ static int validate_email(const char *acct)
 	}
 
 	if ((ptr1 = strchr(acct, '@'))) {
-		char *ptr2;
+		const char *ptr2;
 		int rc2;
 		struct addrinfo *ai;
 		struct addrinfo hints;
