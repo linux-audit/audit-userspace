@@ -92,6 +92,8 @@ Management Facility) database, through an IBM Tivoli Directory Server
 %package rules
 Summary: audit rules and utilities
 License: GPL-2.0-or-later
+Requires(post): coreutils awk grep
+Requires: %{name}-libs%{?_isa} = %{version}-%{release}
 Recommends: %{name} = %{version}-%{release}
 
 %description rules
