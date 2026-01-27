@@ -47,7 +47,7 @@ typedef struct remote_conf
 	unsigned int max_tries_per_record;
 	unsigned int max_time_per_record;
 	unsigned int heartbeat_timeout;
-	const char *krb5_principal;
+	char *krb5_principal;	// gssapi code inserts '@' into the string
 	const char *krb5_client_name;
 	const char *krb5_key_file;
 

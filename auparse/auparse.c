@@ -2234,16 +2234,16 @@ static const char *auparse_interpret_sock_parts(auparse_state_t *au,
 		if (tmp == NULL)
 			return NULL;
 		// Locate the address part
-		val = strstr(tmp, field);
-		if (val) {
+		char *aval = strstr(tmp, field);
+		if (aval) {
 			// Get past the =
-			val += strlen(field);
+			aval += strlen(field);
 			// find other side
-			char *ptr = strchr(val, ' ');
+			char *ptr = strchr(aval, ' ');
 			if (ptr) {
 				// terminate, copy, and return it
 				*ptr = 0;
-				const char *final = strdup(val);
+				const char *final = strdup(aval);
 				free(tmp);
 				free((void *)au->tmp_translation);
 				au->tmp_translation = final;
