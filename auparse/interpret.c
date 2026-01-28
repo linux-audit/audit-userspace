@@ -135,7 +135,7 @@
 typedef enum { AVC_UNSET, AVC_DENIED, AVC_GRANTED } avc_t;
 typedef enum { S_UNSET=-1, S_FAILED, S_SUCCESS } success_t;
 
-static char *print_escaped(char *val);
+static char *print_escaped(const char *val);
 static const char *print_signals(const char *val, unsigned int base);
 
 /*
@@ -336,10 +336,11 @@ static int is_hex_string(const char *str)
 }
 
 /* returns a freshly malloc'ed and converted buffer */
-char *au_unescape(char *buf)
+char *au_unescape(const char *buf)
 {
 	int olen, len, i;
-	char saved, *str, *ptr = buf;
+	char *str, *work;
+	const char *ptr = buf;
 
 	/* Find the end of the name */
 	if (*ptr == '(') {
@@ -362,10 +363,8 @@ char *au_unescape(char *buf)
 	if (!str)
 		return NULL;
 
-	saved = *ptr;
-	*ptr = 0;
-	strcpy(str, buf);
-	*ptr = saved;
+	memcpy(str, buf, ptr - buf);
+	str[ptr - buf] = 0;
 
 	/* See if its '(null)' from the kernel */
 	if (*buf == '(')
@@ -379,17 +378,17 @@ char *au_unescape(char *buf)
 		free(str);
 		return NULL;
 	}
-	ptr = str;
+	work = str;
 	for (i=0; i<len; i+=2) {
-		*ptr = x2c((unsigned char *)&str[i]);
-		ptr++;
+		*work = x2c((unsigned char *)&str[i]);
+		work++;
 	}
-	*ptr = 0;
-	len = ptr - str - 1;
+	*work = 0;
+	len = work - str - 1;
 	olen /= 2;
 	// Because *ptr is 0, writing another 0 to it doesn't hurt anything
 	if (olen > len)
-		memset(ptr, 0, olen - len);
+		memset(work, 0, olen - len);
 	return str;
 }
 
@@ -904,7 +903,7 @@ static const char *print_exit(const char *val)
 	return strdup(val);
 }
 
-static char *print_escaped(char *val)
+static char *print_escaped(const char *val)
 {
 	char *out;
 
@@ -912,15 +911,12 @@ static char *print_escaped(char *val)
 			return strdup(" ");
 
 	if (*val == '"') {
-		char *term;
+		const char *term;
 		val++;
 		term = strchr(val, '"');
 		if (term == NULL)
 			return strdup(" ");
-		*term = 0;
-		out = strdup(val);
-		*term = '"';
-		return out;
+		return strndup(val, term - val);
 // FIXME: working here...was trying to detect (null) and handle that
 // differently. The other 2 should have " around the file names.
 /*      } else if (*val == '(') {
@@ -932,9 +928,9 @@ static char *print_escaped(char *val)
 		*term = 0;
 		printf("%s ", val); */
 	} else if (val[0] == '0' && val[1] == '0')
-		out = au_unescape((char *)&val[2]); // Abstract name af_unix
+		out = au_unescape(&val[2]); // Abstract name af_unix
 	else
-		out = au_unescape((char *)val);
+		out = au_unescape(val);
 	if (out)
 		return out;
 	return strdup(val); // Something is wrong with string, just send as is
@@ -1295,7 +1291,7 @@ static const char *print_sockaddr(const char *val)
 	const char *str;
 
 	slen = strlen(val)/2;
-	host = au_unescape((char *)val);
+	host = au_unescape(val);
 	if (host == NULL) {
 		if (asprintf(&out, "malformed-host(%s)", val) < 0)
 			out = NULL;
@@ -3205,7 +3201,7 @@ static const char *print_tty_data(const char *raw_data)
 
 	if (!is_hex_string(raw_data))
 		return strdup(raw_data);
-	data = au_unescape((char *)raw_data);
+	data = au_unescape(raw_data);
 	if (data == NULL)
 		return NULL;
 	data_end = data + strlen(raw_data) / 2;
@@ -3580,7 +3576,7 @@ unknown:
 	}
 
 	if (escape_mode != AUPARSE_ESC_RAW && out) {
-		char *str = NULL;
+		const char *str = NULL;
 		unsigned int len = strlen(out);
 		if (type == AUPARSE_TYPE_ESCAPED_KEY) {
 			// The audit key separator causes a false
@@ -3601,24 +3597,32 @@ unknown:
 		} else {
 			// We have multiple keys. Need to look at each one.
 			unsigned int cnt = 0;
-			char *ptr = (char *)out;
+			char *mutable, *ptr, *sep;
+
+			mutable = strdup(out);
+			if (mutable == NULL)
+				return (char *)out;
+			ptr = mutable;
+			sep = strchr(ptr, AUDIT_KEY_SEPARATOR);
+			if (sep == NULL)
+				sep = strchr(ptr, 0);
 
 			while (*ptr) {
-				unsigned int klen = str - ptr;
-				char tmp = *str;
-				*str = 0;
+				unsigned int klen = sep - ptr;
+				char tmp = *sep;
+				*sep = 0;
 				cnt += need_escaping(ptr, klen,
 						     escape_mode);
-				*str = tmp;
-				ptr = str;
+				*sep = tmp;
+				ptr = sep;
 				// If we are not at the end...
 				if (tmp) {
 					ptr++;
-					str = strchr(ptr, AUDIT_KEY_SEPARATOR);
+					sep = strchr(ptr, AUDIT_KEY_SEPARATOR);
 					// If we don't have anymore, just
 					// point to the end
-					if (str == NULL)
-						str = strchr(ptr, 0);
+					if (sep == NULL)
+						sep = strchr(ptr, 0);
 				}
 			}
 			if (cnt) {
@@ -3632,22 +3636,24 @@ unknown:
 					// incase there's a Ctl-A in the key.
 					// This is likely fuzzer induced.
 					char tmp;
-					str = strchr(out, AUDIT_KEY_SEPARATOR);
-					if (str) {
-						tmp = *str;
-						*str = 0;
-						key_escape(out, dest,
+					sep = strchr(mutable,
+						     AUDIT_KEY_SEPARATOR);
+					if (sep) {
+						tmp = *sep;
+						*sep = 0;
+						key_escape(mutable, dest,
 							   escape_mode);
-						*str = tmp;
+						*sep = tmp;
 					} else
-						key_escape(out, dest,
+						key_escape(mutable, dest,
 							   escape_mode);
 				}
+				free(mutable);
 				free((void *)out);
 				out = dest;
-			}
+			} else
+				free(mutable);
 		}
 	}
 	return (char *)out;
 }
-
