@@ -282,7 +282,8 @@ void update_report_timer(unsigned int interval)
 
 static int extract_type(const char *str)
 {
-	char tmp, *ptr2, *ptr = (char *)str;
+	const char *ptr2, *ptr = str;
+	char *name;
 	int type;
 	if (*str == 'n') {
 		ptr = strchr(str+1, ' ');
@@ -304,13 +305,11 @@ static int extract_type(const char *str)
 	// name is 1 past
 	str++;
 
-	// Save character & terminate string
-	tmp = *ptr2;
-	*ptr2 = 0;
+	name = strndupa(str, ptr2 - str);
+	if (name == NULL)
+		return -1;
 
-	type = audit_name_to_msg_type(str);
-
-	*ptr2 = tmp; // Restore character
+	type = audit_name_to_msg_type(name);
 
 	return type;
 }
