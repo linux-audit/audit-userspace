@@ -19,8 +19,8 @@ Wants=audit-rules.service
 ## If using remote logging, ensure that the systemd-update-utmp.service file
 ## is updated to remove the After=auditd.service directive to prevent a
 ## boot-time ordering cycle.
-After=local-fs.target systemd-tmpfiles-setup.service
-#After=network-online.target local-fs.target systemd-tmpfiles-setup.service
+After=local-fs.target
+#After=network-online.target local-fs.target
 Before=sysinit.target shutdown.target audit-rules.service
 #Before=shutdown.target
 Conflicts=shutdown.target
@@ -35,6 +35,11 @@ ExecStart=@sbindir@/auditd
 Restart=on-failure
 ## Do not restart for intentional exits. See EXIT CODES section in auditd(8).
 RestartPreventExitStatus=2 4 6
+## Create Log and Runtime directory
+LogsDirectory=audit
+LogsDirectoryMode=0700
+RuntimeDirectory=audit
+RuntimeDirectoryMode=0755
 
 ### Security Settings ###
 MemoryDenyWriteExecute=true
