@@ -83,6 +83,10 @@ static int queue_load_file(int fd)
 	if (fd < 0)
 		return -1;
 
+	if (q_depth == 0) {
+		syslog(LOG_ERR, "Queue depth is zero, cannot restore queue");
+		return -1;
+	}
 	dup_fd = dup(fd);
 	if (dup_fd < 0)
 		return -1;
