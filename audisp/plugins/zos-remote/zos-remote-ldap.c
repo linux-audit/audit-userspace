@@ -335,10 +335,11 @@ int submit_xop_s(ZOS_REMOTE *zos_remote, struct berval *bv)
         audit_response_t response;
         int rc, errcode, msgId;
         unsigned int i;
-        char *errmsg, *oid;
-        struct berval *bv_response;
+        char *errmsg, *oid = NULL;
+        struct berval *bv_response = NULL;
         struct timeval t;
 
+	memset(&response, 0, sizeof(response));
         if (zos_remote->connected == 0) {
                 rc = zos_remote_connect(zos_remote);
                 if (rc != ICTX_SUCCESS)
@@ -432,7 +433,7 @@ int submit_xop_s(ZOS_REMOTE *zos_remote, struct berval *bv)
         rc = decode_response(&response, bv_response);
         if (rc != ICTX_SUCCESS) {
                 log_err("Error decoding extended operation response");
-                goto free_bv;
+                goto free_response;
         }
 
         if (response.respMajor == ZOS_REMOTE_MAJOR_SUCCESS) {
