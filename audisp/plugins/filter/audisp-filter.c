@@ -333,6 +333,11 @@ static int load_rules(struct filter_list* list)
 	errors = 0;
 
 	/* open the file */
+	if (config.config_file == NULL || config.config_file[0] == '\0') {
+		syslog(LOG_ERR,
+		       "Config file not set, skipping filter rules");
+		return 1;
+	}
 	if ((fd = open(config.config_file, O_RDONLY)) < 0) {
 		if (errno != ENOENT) {
 			syslog(LOG_ERR, "Error opening config file (%s)",
@@ -502,8 +507,17 @@ int main(int argc, const char* argv[])
 		dup2(pipefd[0], STDIN_FILENO);
 		close(pipefd[0]);
 
+		if (config.binary == NULL || config.binary[0] == '\0' ||
+		    config.binary_args == NULL ||
+		    config.binary_args[0] == NULL) {
+			syslog(LOG_ERR,
+			       "audisp-filter: missing child command");
+			exit(1);
+		}
+
 		execve(config.binary, config.binary_args, NULL);
-		syslog(LOG_ERR, "audisp-filter: execve failed (%s)", strerror(errno));
+		syslog(LOG_ERR, "audisp-filter: execve failed (%s)",
+		       strerror(errno));
 		exit(1);
 	} else {
 		/* Parent reads input and forwards data after filters have been applied
