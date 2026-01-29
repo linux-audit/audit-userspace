@@ -94,6 +94,11 @@ static char *sockaddr_to_string(const struct sockaddr_storage *addr)
 {
 	static char buf[INET6_ADDRSTRLEN];
 
+	if (addr->ss_family != AF_INET && addr->ss_family != AF_INET6) {
+		snprintf(buf, sizeof(buf), "unknown");
+		return buf;
+	}
+
 	inet_ntop(addr->ss_family, addr->ss_family == AF_INET ?
 		(void *) &((struct  sockaddr_in *)addr)->sin_addr :
 		(void *) &((struct sockaddr_in6 *)addr)->sin6_addr,
@@ -111,7 +116,7 @@ static unsigned int sockaddr_to_port(const struct sockaddr_storage *addr)
 	else if (addr->ss_family == AF_INET6)
 		rc = ntohs(((struct sockaddr_in6 *)addr)->sin6_port);
 	else
-		rc = -1;
+		rc = 0;
 
 	return rc;
 }
