@@ -245,11 +245,12 @@ int load_pconfig(plugin_conf_t *config, int dirfd, char *file)
 			audit_msg(LOG_ERR,
 				"Unknown keyword \"%s\" in line %d of %s",
 				nv.name, lineno, file);
+			nv_free(&nv);
 			fclose(f);
 			return 1;
 		}
 
-		/* Check number of options 
+		/* Check number of options
 		 * nv.nvalues is always >= 1, because that's the right part of a 'key = value' conf line
 		 */
 		const int noptions = nv.nvalues - 1;
@@ -258,6 +259,7 @@ int load_pconfig(plugin_conf_t *config, int dirfd, char *file)
 				"Keyword \"%s\" has invalid options "
 				"in line %d of %s",
 				nv.name, lineno, file);
+			nv_free(&nv);
 			fclose(f);
 			return 1;
 		}
@@ -265,6 +267,7 @@ int load_pconfig(plugin_conf_t *config, int dirfd, char *file)
 		/* dispatch to keyword's local parser */
 		rc = kw->parser(&nv, lineno, config);
 		if (rc != 0) {
+			nv_free(&nv);
 			fclose(f);
 			return 1; // local parser puts message out
 		}
