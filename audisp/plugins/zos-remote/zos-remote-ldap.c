@@ -597,12 +597,14 @@ static int decode_response(audit_response_t * r, struct berval *bv)
         }
         rc |= ber_scanf(ber, "}");
 
-        if (rc == -1) {
-                for (; r->numItems > 0; r->numItems--)
-                        free(r->itemList[r->numItems - 1]);
-                free(r->itemList);
-                rc = ICTX_E_ABORT;
-        }
+	if (rc == -1) {
+		for (; r->numItems > 0; r->numItems--)
+			free(r->itemList[r->numItems - 1]);
+		free(r->itemList);
+		r->itemList = NULL;
+		r->numItems = 0;
+		rc = ICTX_E_ABORT;
+	}
         else
             rc = ICTX_SUCCESS;
 

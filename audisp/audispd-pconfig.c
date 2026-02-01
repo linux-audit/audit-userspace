@@ -235,6 +235,7 @@ int load_pconfig(plugin_conf_t *config, int dirfd, char *file)
 			continue;
 		}
 		if (nv.values == NULL) {
+			nv_free(&nv);
 			fclose(f);
 			return 1;
 		}
@@ -543,4 +544,3 @@ void free_pconfig(plugin_conf_t *config)
 	free((void *)config->path);
 	free((void *)config->name);
 }
-

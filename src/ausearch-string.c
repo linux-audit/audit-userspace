@@ -122,7 +122,10 @@ int slist_add_if_uniq(slist *l, const char *str)
 	sn.str = strdup(str);
 	sn.key = NULL;
 	sn.hits = 1;
-	slist_append(l, &sn);
+	if (slist_append(l, &sn)) {
+		free(sn.str);
+		return -1;
+	}
 	return 1;
 }
 
@@ -252,4 +255,3 @@ void slist_sort_by_hits(slist *l)
 	// End with cur pointing at first record
 	l->cur = l->head;
 }
-
