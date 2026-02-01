@@ -1417,5 +1417,15 @@ event 2 has 6 records
 
 Test 11 Done
 
+Starting Test 12, descriptor source...
+descriptor type=1400(AVC)
+descriptor fd open=True
+Test 12 Done
+
+Starting Test 13, file pointer source...
+file pointer type=1400(AVC)
+file pointer open=True
+Test 13 Done
+
 Finished non-admin tests
 

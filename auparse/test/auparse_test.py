@@ -275,8 +275,44 @@ if walked_fields != FIELDS_EXPECTED:
           (FIELDS_EXPECTED, walked_fields))
 print("Test 11 Done\n")
 
+print("Starting Test 12, descriptor source...")
+fd = os.open(srcdir + "/test.log", os.O_RDONLY)
+au = auparse.AuParser(auparse.AUSOURCE_DESCRIPTOR, fd)
+if not au.parse_next_event():
+    print("Error parsing descriptor")
+else:
+    if not au.first_record():
+        print("Error getting first record")
+    else:
+        print("descriptor type=%d(%s)" % (au.get_type(),
+              au.get_type_name()))
+au = None
+os.lseek(fd, 0, os.SEEK_SET)
+print("descriptor fd open=%s" % (os.read(fd, 4) != b""))
+os.close(fd)
+print("Test 12 Done\n")
+
+print("Starting Test 13, file pointer source...")
+f = open(srcdir + "/test.log")
+au = auparse.AuParser(auparse.AUSOURCE_FILE_POINTER, f)
+if not au.parse_next_event():
+    print("Error parsing file pointer")
+else:
+    if not au.first_record():
+        print("Error getting first record")
+    else:
+        print("file pointer type=%d(%s)" % (au.get_type(),
+              au.get_type_name()))
+au = None
+if f.closed:
+    print("file pointer open=0")
+else:
+    f.seek(0)
+    print("file pointer open=%s" % (f.read(4) != ""))
+f.close()
+print("Test 13 Done\n")
+
 print("Finished non-admin tests\n")
 
 au = None
 sys.exit(0)
-

@@ -4,6 +4,8 @@
 
 #include <errno.h>
 #include <time.h>
+#include <stdint.h>
+#include <unistd.h>
 #include "auparse.h"
 
 /*
@@ -442,31 +444,52 @@ AuParser_init(AuParser *self, PyObject *args, PyObject *kwds)
     } break;
     case AUSOURCE_DESCRIPTOR: {
         long fd;
+        int dup_fd;
+
         fd = PyObject_AsFileDescriptor(source);
         if (fd < 0) {
             PyErr_SetString(PyExc_ValueError, "source must be resolvable to a file descriptor when source_type is AUSOURCE_DESCRIPTOR");
             return -1;
         }
-        if ((self->au = auparse_init(source_type, (const void *)fd)) == NULL) {
+        dup_fd = dup(fd);
+        if (dup_fd < 0) {
+            PyErr_SetFromErrno(PyExc_EnvironmentError);
+            return -1;
+        }
+        if ((self->au = auparse_init(source_type,
+				     (const void *)(intptr_t)dup_fd)) == NULL) {
+            close(dup_fd);
             PyErr_SetFromErrno(PyExc_EnvironmentError);
             return -1;
         }
     } break;
     case AUSOURCE_FILE_POINTER: {
         FILE* fp;
+        int fd;
+        int dup_fd;
 
         if (!PyFile_Check(source)) {
             PyErr_SetString(PyExc_ValueError, "source must be a file object when source_type is AUSOURCE_FILE_POINTER");
             return -1;
         }
-	if ((fp = PYFILE_ASFILE(source)) == NULL) {
+        fd = PyObject_AsFileDescriptor(source);
+        if (fd < 0) {
             PyErr_SetString(PyExc_TypeError, "source must be open file when source_type is AUSOURCE_FILE_POINTER");
             return -1;
-	}
+        }
+        dup_fd = dup(fd);
+        if (dup_fd < 0) {
+            PyErr_SetFromErrno(PyExc_EnvironmentError);
+            return -1;
+        }
+        fp = fdopen(dup_fd, "r");
+        if (fp == NULL) {
+            close(dup_fd);
+            PyErr_SetFromErrno(PyExc_EnvironmentError);
+            return -1;
+        }
 	const char *filename = NULL;
 #if PY_MAJOR_VERSION < 3
-        int fd = fileno(fp);
-        fp = fdopen(fd, "r");
         /* PyFile_Name is available in Python 2 */
         filename = PYSTR_ASSTRING(PyFile_Name(source));
 #else
@@ -481,6 +504,7 @@ AuParser_init(AuParser *self, PyObject *args, PyObject *kwds)
                 PyErr_SetFromErrnoWithFilename(PyExc_IOError, filename);
             else
                 PyErr_SetFromErrno(PyExc_IOError);
+            fclose(fp);
             return -1;
         }
     } break;
@@ -2535,4 +2559,3 @@ PyInit_auparse(void)
 
     return m;
 }
-
