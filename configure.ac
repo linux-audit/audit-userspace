@@ -1,7 +1,7 @@
 dnl
 define([AC_INIT_NOTICE],
 [### Generated automatically using autoconf version] AC_ACVERSION [
-### Copyright 2005-25 Steve Grubb <sgrubb@redhat.com>
+### Copyright 2005-26 Steve Grubb <sgrubb@redhat.com>
 ###
 ### Permission is hereby granted, free of charge, to any person obtaining a
 ### copy of this software and associated documentation files (the "Software"),
@@ -29,7 +29,7 @@ define([AC_INIT_NOTICE],
 ])
 
 AC_REVISION($Revision: 1.3 $)dnl
-AC_INIT([audit], [4.1.3])
+AC_INIT([audit], [4.1.4])
 AC_PREREQ([2.50])dnl
 AC_CONFIG_HEADERS([config.h])
 

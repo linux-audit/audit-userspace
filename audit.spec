@@ -1,6 +1,6 @@
 Summary: User space tools for kernel auditing
 Name: audit
-Version: 4.1.3
+Version: 4.1.4
 Release: 1%{dist}
 License: GPL-2.0-or-later AND LGPL-2.0-or-later
 Group: System Environment/Daemons
@@ -290,6 +290,6 @@ fi
 %attr(750,root,root) %{_sbindir}/audispd-zos-remote
 
 %changelog
-Sun Feb 01 2026 Steve Grubb <sgrubb@redhat.com> 4.1.3-1
+Sun Feb 01 2026 Steve Grubb <sgrubb@redhat.com> 4.1.4-1
 - New upstream release
 
