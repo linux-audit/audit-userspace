@@ -23,8 +23,8 @@
 
 CONFIG_CLEAN_FILES = *.rej *.orig
 CLEANFILES = $(BUILT_SOURCES)
-EXTRA_DIST = auditd.service.in audit-rules.service.in  auditd.conf auditd.cron \
-	audit-tmpfiles.conf \
+EXTRA_DIST = auditd.service.in audit-rules.service.in augenrules.in \
+	auditd.conf auditd.cron audit-tmpfiles.conf \
 	libaudit.conf auditd.condrestart \
 	auditd.reload auditd.restart auditd.resume \
 	auditd.rotate auditd.state auditd.stop audit-rules.service \
@@ -38,7 +38,7 @@ auditrdir = $(auditdir)/rules.d
 dist_audit_DATA = auditd.conf audit-stop.rules
 sbin_SCRIPTS = augenrules
 
-BUILT_SOURCES = auditd.service audit-rules.service
+BUILT_SOURCES = auditd.service audit-rules.service augenrules
 %.service: %.service.in Makefile
 	$(AM_V_GEN)sed \
 		-e 's![@]runstatedir[@]!$(runstatedir)!' \
