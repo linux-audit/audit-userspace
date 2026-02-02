@@ -27,8 +27,8 @@ EXTRA_DIST = auditd.service.in audit-rules.service.in augenrules.in \
 	auditd.conf auditd.cron audit-tmpfiles.conf \
 	libaudit.conf auditd.condrestart \
 	auditd.reload auditd.restart auditd.resume \
-	auditd.rotate auditd.state auditd.stop audit-rules.service \
-	audit-stop.rules augenrules audit.bash_completion
+	auditd.rotate auditd.state auditd.stop \
+	audit-stop.rules audit.bash_completion
 libconfig = libaudit.conf
 initdir = $(prefix)/lib/systemd/system
 legacydir = $(libexecdir)/initscripts/legacy-actions/auditd
