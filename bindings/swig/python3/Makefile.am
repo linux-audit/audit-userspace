@@ -31,7 +31,7 @@ pyexec_LTLIBRARIES = _audit.la
 _audit_la_CFLAGS = -shared
 _audit_la_LDFLAGS = -module -avoid-version -Wl,-z,relro
 _audit_la_DEPENDENCIES =${top_srcdir}/lib/audit_logging.h ${top_builddir}/lib/libaudit.la
-_audit_la_LIBADD = ${top_builddir}/lib/libaudit.la
+_audit_la_LIBADD = ${top_builddir}/lib/libaudit.la $(PYTHON3_LIBS)
 nodist__audit_la_SOURCES  = audit_wrap.c
 audit.py audit_wrap.c: ${srcdir}/../src/auditswig.i 
 	swig -o audit_wrap.c ${SWIG_FLAGS} ${SWIG_INCLUDES} ${srcdir}/../src/auditswig.i 
