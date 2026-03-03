@@ -33,3 +33,13 @@ auparse_la_CFLAGS = -shared
 auparse_la_LDFLAGS = -module -avoid-version -Wl,-z,relro
 auparse_la_LIBADD = ${top_builddir}/auparse/libauparse.la ${top_builddir}/lib/libaudit.la $(PYTHON3_LIBS)
 auparse_la_DEPENDENCIES = ${top_builddir}/auparse/libauparse.la ${top_builddir}/lib/libaudit.la
+
+check-local:
+	@python3_embed_libs=`python3-config --embed --libs 2>/dev/null`; \
+	if test -z "$$python3_embed_libs"; then \
+		echo "SKIP: python3-config --embed --libs is unavailable"; \
+		exit 77; \
+	fi; \
+	$(MAKE) clean >/dev/null; \
+	$(MAKE) all-am LDFLAGS="$(LDFLAGS) -Wl,--no-undefined" \
+		PYTHON3_LIBS="$$python3_embed_libs"

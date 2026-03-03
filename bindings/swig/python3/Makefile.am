@@ -38,3 +38,12 @@ audit.py audit_wrap.c: ${srcdir}/../src/auditswig.i
 
 CLEANFILES = audit.py* audit_wrap.c *~
 
+check-local:
+	@python3_embed_libs=`python3-config --embed --libs 2>/dev/null`; \
+	if test -z "$$python3_embed_libs"; then \
+		echo "SKIP: python3-config --embed --libs is unavailable"; \
+		exit 77; \
+	fi; \
+	$(MAKE) clean >/dev/null; \
+	$(MAKE) all-am LDFLAGS="$(LDFLAGS) -Wl,--no-undefined" \
+		PYTHON3_LIBS="$$python3_embed_libs"
