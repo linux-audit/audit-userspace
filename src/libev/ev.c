@@ -2965,6 +2965,9 @@ sigfdcb (EV_P_ ev_io *iow, int revents)
     {
       ssize_t res = read (sigfd, si, sizeof (si));
 
+      if (res < 0)
+        break;
+
       /* not ISO-C, as res might be -1, but works with SuS */
       for (sip = si; (char *)sip < (char *)si + res; ++sip)
         ev_feed_signal_event (EV_A_ sip->ssi_signo);
