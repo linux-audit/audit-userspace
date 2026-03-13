@@ -13,7 +13,7 @@ encodes a string given by
 .I buf
 to a ASCII code string.
 .I final
-is the hexadecimal string encoded to ASCII code.
+is the hexadecimal string encoded to ASCII code. The provided buffer must be at least 2 times the size of buf + 1 for a NUL terminator.
 .I size
 is the length of the string given by
 .IR buf .
