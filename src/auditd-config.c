@@ -837,7 +837,7 @@ static int check_exe_name(const char *val, int line)
 	    (buf.st_mode & (S_IRWXU|S_IRWXG|S_IRWXO)) !=
 			   (S_IRUSR|S_IXUSR|S_IRGRP|S_IXGRP|S_IROTH|S_IXOTH) &&
 	    (buf.st_mode & (S_IRWXU|S_IRWXG|S_IRWXO)) !=
-			   (S_IRUSR|S_IXUSR|S_IRGRP|S_IXGRP|S_IROTH|S_IXOTH)) {
+			   (S_IRUSR|S_IXUSR|S_IRGRP|S_IXGRP)) {
 		audit_msg(LOG_ERR,
 			"%s permissions should be 0750, 0755, 0555 or 0550 - line %d",
 			val, line);
