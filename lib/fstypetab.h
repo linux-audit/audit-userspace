@@ -1,5 +1,5 @@
 /* fstypetab.h --
- * Copyright 2017 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2017,2026 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -24,3 +24,5 @@
  */
 _S(0x74726163,	"tracefs"	)
 _S(0x64626720,	"debugfs"	)
+_S(0x27e0eb,	"cgroup"	)
+_S(0x63677270,	"cgroup2"	)
