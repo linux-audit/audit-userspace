@@ -32,6 +32,7 @@
 #include <ctype.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <libgen.h> /* for basename(3) */
 #include "zos-remote-log.h"
 
 /* Local prototypes */
