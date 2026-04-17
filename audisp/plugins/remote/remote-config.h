@@ -50,6 +50,16 @@ typedef struct remote_conf
 	char *krb5_principal;	// gssapi code inserts '@' into the string
 	const char *krb5_client_name;
 	const char *krb5_key_file;
+#ifdef HAVE_TLS
+	const char *tls_cert_file;
+	const char *tls_key_file;
+	const char *tls_ca_file;
+	const char *tls_psk_file;
+	const char *tls_psk_identity;
+	const char *tls_cipher_suites;
+	const char *tls_key_exchange;
+	int tls_require_pqc;
+#endif
 
 	failure_action_t network_failure_action;
 	const char *network_failure_exe;

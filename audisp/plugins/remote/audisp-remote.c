@@ -43,10 +43,15 @@
 #include <sys/wait.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
+#include <arpa/inet.h>
 #ifdef USE_GSSAPI
 #include <gssapi/gssapi.h>
 #include <gssapi/gssapi_generic.h>
 #include <krb5.h>
+#endif
+#ifdef HAVE_TLS
+#include <openssl/ssl.h>
+#include <openssl/err.h>
 #endif
 #ifdef HAVE_LIBCAP_NG
 #include <cap-ng.h>
@@ -55,6 +60,7 @@
 #include "auplugin.h"
 #include "private.h"
 #include "remote-config.h"
+#include "common.h"
 #include "queue.h"
 
 #define CONFIG_FILE "/etc/audit/audisp-remote.conf"
@@ -117,6 +123,20 @@ gss_ctx_id_t my_context;
 #define USE_GSS (config.transport == T_KRB5)
 #endif
 
+#ifdef HAVE_TLS
+static SSL_CTX *tls_ctx = NULL;
+static SSL *tls_ssl = NULL;
+#define USE_TLS (config.transport == T_TLS)
+
+static int init_tls_context(void);
+static void destroy_tls_context(void);
+static int tls_connect(void);
+static void tls_disconnect(void);
+static int tls_read(SSL *ssl, void *buf, int len);
+static int send_msg_tls(unsigned char *header, const char *msg, uint32_t mlen);
+static int recv_msg_tls(unsigned char *header, char *msg, uint32_t *mlen);
+#endif
+
 /* Compile-time expression verification */
 #define verify(E) do {				\
 		char verify__[(E) ? 1 : -1];	\
@@ -149,6 +169,9 @@ static void reload_config(void)
 {
 	if (transport_ok)
 		stop_transport();
+#ifdef HAVE_TLS
+	destroy_tls_context();
+#endif
 	transport_ok = 0;
 	remote_ended = 1;
 	hup = 0;
@@ -578,6 +601,18 @@ int main(int argc, char *argv[])
 				FD_SET(sock, &wfd);
 		}
 
+#ifdef HAVE_TLS
+		/* Drain any TLS data buffered by OpenSSL before
+		   blocking on select(). */
+		{
+			int drain = 0;
+			while (USE_TLS && tls_ssl &&
+			       SSL_has_pending(tls_ssl) &&
+			       !stop && !hup && ++drain < 200)
+				check_message();
+		}
+#endif
+
 		if (config.format==F_MANAGED && config.heartbeat_timeout>0) {
 			tv.tv_sec = config.heartbeat_timeout;
 			tv.tv_usec = 0;
@@ -671,10 +706,10 @@ int main(int argc, char *argv[])
 			send_one(queue);
 	}
 
-	if (sock >= 0) {
-		shutdown(sock, SHUT_RDWR);
-		close(sock);
-	}
+	stop_transport();
+#ifdef HAVE_TLS
+	destroy_tls_context();
+#endif
 	free_config(&config);
 	q_len = q_queue_length(queue);
 	q_close(queue);
@@ -1084,9 +1119,470 @@ error1:
 }
 #endif // USE_GSSAPI
 
+#ifdef HAVE_TLS
+
+/* PSK callback data for TLS 1.3 */
+static unsigned char *psk_key = NULL;
+static size_t psk_key_len = 0;
+static char psk_identity_buf[256];
+
+/*
+ * tls_psk_use_session_cb - TLS 1.3 client PSK callback
+ * @ssl: SSL connection handle
+ * @md: hash algorithm hint (unused, cipher determines hash)
+ * @id: output PSK identity to present to server
+ * @idlen: output PSK identity length
+ * @sess: output SSL_SESSION containing the PSK
+ *
+ * Called by OpenSSL during TLS 1.3 handshake to supply the external PSK.
+ * Builds a session from the configured PSK key and identity.
+ * Returns 1 on success, 0 on failure.
+ */
+static int tls_psk_use_session_cb(SSL *ssl, const EVP_MD *md,
+		const unsigned char **id, size_t *idlen,
+		SSL_SESSION **sess)
+{
+	SSL_SESSION *s;
+	const SSL_CIPHER *cipher;
+	const char *identity;
+
+	if (psk_key == NULL || psk_key_len == 0)
+		return 0;
+
+	identity = psk_identity_buf;
+
+	cipher = tls_find_tls13_cipher(ssl);
+	if (cipher == NULL) {
+		syslog(LOG_ERR, "Unable to find suitable TLS 1.3 cipher");
+		return 0;
+	}
+
+	s = SSL_SESSION_new();
+	if (s == NULL)
+		return 0;
+
+	if (!SSL_SESSION_set1_master_key(s, psk_key, psk_key_len) ||
+	    !SSL_SESSION_set_cipher(s, cipher) ||
+	    !SSL_SESSION_set_protocol_version(s, TLS1_3_VERSION)) {
+		SSL_SESSION_free(s);
+		return 0;
+	}
+
+	*id = (const unsigned char *)identity;
+	*idlen = strlen(identity);
+	*sess = s;
+
+	return 1;
+}
+
+/*
+ * init_tls_context - create and configure the client SSL_CTX
+ *
+ * Sets up TLS 1.3 with the configured cipher suites, key exchange
+ * groups, and either PSK or certificate authentication.
+ * Returns 0 on success, -1 on error.
+ */
+static int init_tls_context(void)
+{
+	const char *cipher_suites;
+	const char *key_exchange;
+
+	tls_ctx = SSL_CTX_new(TLS_client_method());
+	if (tls_ctx == NULL) {
+		syslog(LOG_ERR, "Unable to create TLS context");
+		return -1;
+	}
+
+	/* TLS 1.3 minimum */
+	if (!SSL_CTX_set_min_proto_version(tls_ctx, TLS1_3_VERSION)) {
+		syslog(LOG_ERR, "Unable to set TLS 1.3 minimum version");
+		goto err;
+	}
+
+	/* Disable 0-RTT to prevent audit event replay */
+	if (!SSL_CTX_set_max_early_data(tls_ctx, 0)) {
+		syslog(LOG_ERR, "Unable to disable TLS early data");
+		goto err;
+	}
+
+	SSL_CTX_set_options(tls_ctx, SSL_OP_NO_COMPRESSION);
+
+	/* Disable session resumption -- force fresh PQC key exchange */
+	SSL_CTX_set_session_cache_mode(tls_ctx, SSL_SESS_CACHE_OFF);
+	SSL_CTX_set_options(tls_ctx, SSL_OP_NO_TICKET);
+
+	/* Configure cipher suites */
+	cipher_suites = config.tls_cipher_suites ?
+		config.tls_cipher_suites :
+		"TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256:TLS_AES_128_GCM_SHA256";
+	if (!SSL_CTX_set_ciphersuites(tls_ctx, cipher_suites)) {
+		syslog(LOG_ERR, "Unable to set TLS cipher suites");
+		goto err;
+	}
+
+	/* Configure key exchange groups (PQC hybrid first) */
+	key_exchange = config.tls_key_exchange ?
+		config.tls_key_exchange : "X25519MLKEM768:X25519";
+	if (!SSL_CTX_set1_groups_list(tls_ctx, key_exchange)) {
+		ERR_clear_error();
+		if (config.tls_require_pqc || config.tls_key_exchange) {
+			syslog(LOG_ERR,
+				"Unable to set key exchange groups '%s'",
+				key_exchange);
+			goto err;
+		}
+		syslog(LOG_WARNING,
+			"PQC key exchange groups not available, "
+			"falling back to X25519");
+		if (!SSL_CTX_set1_groups_list(tls_ctx, "X25519")) {
+			syslog(LOG_ERR,
+				"Unable to set any key exchange groups");
+			goto err;
+		}
+	}
+
+	/* PSK mode */
+	if (config.tls_psk_file) {
+		if (tls_validate_key_file(config.tls_psk_file,
+				syslog) != 0)
+			goto err;
+
+		if (tls_load_psk(config.tls_psk_file,
+				&psk_key, &psk_key_len, syslog))
+			goto err;
+
+		SSL_CTX_set_psk_use_session_callback(tls_ctx,
+						tls_psk_use_session_cb);
+		{
+			const char *id = config.tls_psk_identity ?
+				config.tls_psk_identity : "audit-client";
+			if (strlen(id) >= sizeof(psk_identity_buf)) {
+				syslog(LOG_ERR,
+					"PSK identity too long (max %zu bytes)",
+					sizeof(psk_identity_buf) - 1);
+				goto err;
+			}
+			snprintf(psk_identity_buf,
+				sizeof(psk_identity_buf), "%s", id);
+		}
+	}
+
+	/* Certificate mode */
+	if (config.tls_cert_file) {
+		if (SSL_CTX_use_certificate_chain_file(tls_ctx,
+				config.tls_cert_file) != 1) {
+			syslog(LOG_ERR, "Unable to load TLS certificate %s",
+				config.tls_cert_file);
+			goto err;
+		}
+	}
+
+	if (config.tls_key_file) {
+		if (tls_validate_key_file(config.tls_key_file,
+				syslog) != 0)
+			goto err;
+
+		if (SSL_CTX_use_PrivateKey_file(tls_ctx,
+				config.tls_key_file,
+				SSL_FILETYPE_PEM) != 1) {
+			syslog(LOG_ERR, "Unable to load TLS private key %s",
+				config.tls_key_file);
+			goto err;
+		}
+	}
+
+	/* Verify cert and key match */
+	if (config.tls_cert_file && config.tls_key_file) {
+		if (SSL_CTX_check_private_key(tls_ctx) != 1) {
+			syslog(LOG_ERR,
+				"TLS certificate and private key do not match");
+			goto err;
+		}
+	}
+
+	/* Server certificate verification */
+	if (config.tls_ca_file) {
+		if (SSL_CTX_load_verify_locations(tls_ctx,
+				config.tls_ca_file, NULL) != 1) {
+			syslog(LOG_ERR,
+				"Unable to load TLS CA file %s",
+				config.tls_ca_file);
+			goto err;
+		}
+		SSL_CTX_set_verify(tls_ctx, SSL_VERIFY_PEER, NULL);
+	} else if (!config.tls_psk_file) {
+		syslog(LOG_NOTICE,
+			"tls_ca_file not set, using system CA store "
+			"for server verification");
+		SSL_CTX_set_default_verify_paths(tls_ctx);
+		SSL_CTX_set_verify(tls_ctx, SSL_VERIFY_PEER, NULL);
+	}
+
+	return 0;
+err:
+	if (psk_key) {
+		OPENSSL_cleanse(psk_key, psk_key_len);
+		OPENSSL_free(psk_key);
+		psk_key = NULL;
+		psk_key_len = 0;
+	}
+	SSL_CTX_free(tls_ctx);
+	tls_ctx = NULL;
+	return -1;
+}
+
+static void destroy_tls_context(void)
+{
+	if (tls_ssl) {
+		tls_ssl_shutdown(tls_ssl);
+		SSL_free(tls_ssl);
+		tls_ssl = NULL;
+	}
+	if (tls_ctx) {
+		SSL_CTX_free(tls_ctx);
+		tls_ctx = NULL;
+	}
+	if (psk_key) {
+		OPENSSL_cleanse(psk_key, psk_key_len);
+		OPENSSL_free(psk_key);
+		psk_key = NULL;
+		psk_key_len = 0;
+	}
+}
+
+static int tls_error_cb(const char *str, size_t len, void *u)
+{
+	syslog(LOG_ERR, "TLS error: %.*s", (int)len, str);
+	return 1;
+}
+
+/*
+ * tls_connect - establish a TLS connection to the remote collector
+ *
+ * Creates an SSL session on the open socket, performs hostname
+ * verification when server certificate checking is active, and
+ * enforces PQC key exchange when tls_require_pqc is set.
+ * Returns 0 on success, -1 on error.
+ */
+static int tls_connect(void)
+{
+	const char *kex_name;
+
+	tls_ssl = SSL_new(tls_ctx);
+	if (tls_ssl == NULL) {
+		syslog(LOG_ERR, "Unable to create TLS session");
+		return -1;
+	}
+
+	if (SSL_set_fd(tls_ssl, sock) != 1) {
+		syslog(LOG_ERR, "Unable to attach TLS to socket");
+		SSL_free(tls_ssl);
+		tls_ssl = NULL;
+		return -1;
+	}
+
+	/* Hostname verification when server cert verification is active */
+	if (SSL_CTX_get_verify_mode(tls_ctx) & SSL_VERIFY_PEER) {
+		struct in_addr ipv4;
+		struct in6_addr ipv6;
+		if (inet_pton(AF_INET, config.remote_server, &ipv4) == 1 ||
+		    inet_pton(AF_INET6, config.remote_server, &ipv6) == 1) {
+			/* IP address: verify against IP SANs */
+			X509_VERIFY_PARAM *param = SSL_get0_param(tls_ssl);
+			X509_VERIFY_PARAM_set1_ip_asc(param,
+				config.remote_server);
+		} else {
+			/* Hostname: set SNI and verify against DNS SANs */
+			SSL_set_tlsext_host_name(tls_ssl,
+				config.remote_server);
+			SSL_set1_host(tls_ssl, config.remote_server);
+		}
+	}
+
+	/* Bound the blocking SSL_connect so a blackholed server cannot
+	 * stall the client indefinitely */
+	{
+		struct timeval tv;
+		tv.tv_sec = config.max_time_per_record;
+		tv.tv_usec = 0;
+		setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &tv,
+			sizeof(tv));
+		setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, &tv,
+			sizeof(tv));
+	}
+
+	if (SSL_connect(tls_ssl) != 1) {
+		syslog(LOG_ERR, "TLS handshake with %s failed",
+			config.remote_server);
+		ERR_print_errors_cb(tls_error_cb, NULL);
+		SSL_free(tls_ssl);
+		tls_ssl = NULL;
+		return -1;
+	}
+
+
+
+	kex_name = SSL_group_to_name(tls_ssl,
+			SSL_get_negotiated_group(tls_ssl));
+	syslog(LOG_NOTICE, "TLS connected to %s using %s kex=%s",
+		config.remote_server, SSL_get_cipher(tls_ssl),
+		kex_name ? kex_name : "unknown");
+
+	if (config.tls_require_pqc && !is_pqc_group(kex_name)) {
+		syslog(LOG_ERR,
+			"PQC key exchange required but negotiated "
+			"group '%s' is not PQC",
+			kex_name ? kex_name : "unknown");
+		tls_disconnect();
+		return -1;
+	}
+
+	/* Set receive timeout so SSL_read does not block indefinitely
+	 * on a network partition without TCP RST */
+	{
+		struct timeval tv;
+		tv.tv_sec = config.max_time_per_record;
+		tv.tv_usec = 0;
+		setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
+	}
+
+	return 0;
+}
+
+static void tls_disconnect(void)
+{
+	if (tls_ssl) {
+		tls_ssl_shutdown(tls_ssl);
+		SSL_free(tls_ssl);
+		tls_ssl = NULL;
+	}
+}
+
+/* TLS I/O wrapper for reads with configurable timeout */
+
+static int tls_read(SSL *ssl, void *buf, int len)
+{
+	int rc = 0, r, remaining;
+	int timeout_ms = config.max_time_per_record > (unsigned)(INT_MAX / 1000)
+		? INT_MAX : (int)(config.max_time_per_record * 1000);
+	struct pollfd pfd;
+	struct timespec deadline;
+
+	pfd.fd = SSL_get_fd(ssl);
+	if (pfd.fd < 0)
+		return -1;
+
+	clock_gettime(CLOCK_MONOTONIC, &deadline);
+	deadline.tv_sec += timeout_ms / 1000;
+	deadline.tv_nsec += (timeout_ms % 1000) * 1000000L;
+	if (deadline.tv_nsec >= 1000000000L) {
+		deadline.tv_sec++;
+		deadline.tv_nsec -= 1000000000L;
+	}
+
+	while (len > 0) {
+		r = SSL_read(ssl, buf, len);
+		if (r <= 0) {
+			int err = SSL_get_error(ssl, r);
+			if (err == SSL_ERROR_WANT_READ)
+				pfd.events = POLLIN;
+			else if (err == SSL_ERROR_WANT_WRITE)
+				pfd.events = POLLOUT;
+			else
+				return -1;
+			remaining = tls_remaining_ms(&deadline);
+			if (remaining <= 0)
+				return -1;
+			{
+				int prc;
+				do {
+					prc = poll(&pfd, 1, remaining);
+				} while (prc < 0 && errno == EINTR);
+				if (prc <= 0)
+					return -1;
+			}
+			if (pfd.revents & (POLLERR | POLLHUP | POLLNVAL))
+				return -1;
+			continue;
+		}
+		rc += r;
+		buf = (char *)buf + r;
+		len -= r;
+	}
+	return rc;
+}
+
+static int send_msg_tls(unsigned char *header, const char *msg, uint32_t mlen)
+{
+	unsigned char buf[AUDIT_RMW_HEADER_SIZE + MAX_AUDIT_MESSAGE_LENGTH];
+	int total;
+
+	memcpy(buf, header, AUDIT_RMW_HEADER_SIZE);
+	total = AUDIT_RMW_HEADER_SIZE;
+
+	if (msg != NULL && mlen > 0) {
+		if (mlen > MAX_AUDIT_MESSAGE_LENGTH) {
+			syslog(LOG_ERR,
+				"TLS message length %u exceeds maximum",
+				mlen);
+			return -1;
+		}
+		memcpy(buf + AUDIT_RMW_HEADER_SIZE, msg, mlen);
+		total += mlen;
+	}
+
+	{
+		int wt = config.max_time_per_record > (unsigned)(INT_MAX / 1000)
+			? INT_MAX : (int)(config.max_time_per_record * 1000);
+		if (tls_ssl_write(tls_ssl, buf, total, wt) < 0) {
+			syslog(LOG_ERR, "TLS send to %s failed",
+				config.remote_server);
+			return -1;
+		}
+	}
+	return 0;
+}
+
+static int recv_msg_tls(unsigned char *header, char *msg, uint32_t *mlen)
+{
+	int hver, mver;
+	uint32_t type, rlen, seq;
+
+	if (tls_read(tls_ssl, header, AUDIT_RMW_HEADER_SIZE) < 0) {
+		syslog(LOG_ERR, "TLS read from %s failed",
+			config.remote_server);
+		return -1;
+	}
+
+	if (!AUDIT_RMW_IS_MAGIC(header, AUDIT_RMW_HEADER_SIZE)) {
+		sync_error_handler("bad magic number");
+		return -1;
+	}
+
+	AUDIT_RMW_UNPACK_HEADER(header, hver, mver, type, rlen, seq);
+
+	if (rlen > MAX_AUDIT_MESSAGE_LENGTH) {
+		sync_error_handler("message too long");
+		return -1;
+	}
+
+	if (rlen > 0 && tls_read(tls_ssl, msg, rlen) < 0) {
+		sync_error_handler("ran out of data reading reply");
+		return -1;
+	}
+
+	*mlen = rlen;
+	return 0;
+}
+#endif /* HAVE_TLS */
+
 static int stop_sock(void)
 {
 	if (sock >= 0) {
+#ifdef HAVE_TLS
+		if (USE_TLS)
+			tls_disconnect();
+#endif
 #ifdef USE_GSSAPI
 		if (USE_GSS) {
 			if (my_context != GSS_C_NO_CONTEXT) {
@@ -1134,6 +1630,7 @@ static int stop_transport(void)
 	switch (config.transport)
 	{
 		case T_TCP:
+		case T_TLS:
 		case T_KRB5:
 			rc = stop_sock();
 			break;
@@ -1255,6 +1752,22 @@ next_try:
 		setsockopt(sock, IPPROTO_TCP, TCP_NODELAY,
 				(char *)&one, sizeof (int));
 
+#ifdef HAVE_TLS
+	if (USE_TLS) {
+		if (tls_ctx == NULL && init_tls_context()) {
+			close(sock);
+			sock = -1;
+			rc = ET_PERMANENT;
+			goto out;
+		}
+		if (tls_connect()) {
+			close(sock);
+			sock = -1;
+			rc = ET_PERMANENT;
+			goto out;
+		}
+	}
+#endif
 #ifdef USE_GSSAPI
 	if (USE_GSS) {
 		if (negotiate_credentials()) {
@@ -1278,6 +1791,7 @@ static int init_transport(void)
 	switch (config.transport)
 	{
 		case T_TCP:
+		case T_TLS:
 		case T_KRB5:
 			rc = init_sock();
 			// We set this so that it will retry the connection
@@ -1536,6 +2050,14 @@ static int check_message_managed(void)
 	uint32_t type, rlen, seq;
 	char msg[MAX_AUDIT_MESSAGE_LENGTH+1];
 
+#ifdef HAVE_TLS
+	if (USE_TLS) {
+		if (recv_msg_tls (header, msg, &rlen)) {
+			stop_transport();
+			return -1;
+		}
+	} else
+#endif
 #ifdef USE_GSSAPI
 	if (USE_GSS) {
 		if (recv_msg_gss (header, msg, &rlen)) {
@@ -1649,6 +2171,14 @@ try_again:
 	type = (s != NULL) ? AUDIT_RMW_TYPE_MESSAGE : AUDIT_RMW_TYPE_HEARTBEAT;
 	AUDIT_RMW_PACK_HEADER (header, 0, type, len, sequence_id);
 
+#ifdef HAVE_TLS
+	if (USE_TLS) {
+		if (send_msg_tls (header, s, len)) {
+			stop_transport ();
+			goto try_again;
+		}
+	} else
+#endif
 #ifdef USE_GSSAPI
 	if (USE_GSS) {
 		if (send_msg_gss (header, s, len)) {
@@ -1662,6 +2192,14 @@ try_again:
 		goto try_again;
 	}
 
+#ifdef HAVE_TLS
+	if (USE_TLS) {
+		if (recv_msg_tls (header, msg, &rlen)) {
+			stop_transport ();
+			goto try_again;
+		}
+	} else
+#endif
 #ifdef USE_GSSAPI
 	if (USE_GSS) {
 		if (recv_msg_gss (header, msg, &rlen)) {
@@ -1744,6 +2282,7 @@ static int relay_event(const char *s, size_t len)
 	switch (config.transport)
 	{
 		case T_TCP:
+		case T_TLS:
 		case T_KRB5:
 			rc = relay_sock(s, len);
 			break;
