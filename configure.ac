@@ -274,6 +274,37 @@ if test $want_gssapi_krb5 = yes; then
 fi
 AM_CONDITIONAL(ENABLE_GSSAPI, test x$want_gssapi_krb5 = xyes)
 
+#tls
+AC_ARG_ENABLE(tls,
+	[AS_HELP_STRING([--enable-tls],[Enable TLS transport support (requires OpenSSL >= 1.1.1; PQC key exchange requires >= 3.5) @<:@default=no@:>@])],
+        [case "${enableval}" in
+         yes) want_tls="yes" ;;
+          no) want_tls="no" ;;
+           *) AC_MSG_ERROR(bad value ${enableval} for --enable-tls) ;;
+         esac],
+	[want_tls="no"]
+)
+if test x$want_tls = xyes; then
+	AC_CHECK_LIB(ssl, SSL_CTX_new, [OPENSSL_LIBS="-lssl -lcrypto"],
+		[AC_MSG_ERROR([TLS support requires OpenSSL (libssl)])])
+	AC_CHECK_HEADER(openssl/ssl.h, [],
+		[AC_MSG_ERROR([TLS support requires OpenSSL headers])])
+	AC_MSG_CHECKING([for OpenSSL >= 1.1.1])
+	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([
+		#include <openssl/opensslv.h>
+		#if OPENSSL_VERSION_NUMBER < 0x10101000L
+		#error OpenSSL too old
+		#endif
+	], [])], [AC_MSG_RESULT(yes)],
+	     [AC_MSG_RESULT(no)
+	      AC_MSG_ERROR([TLS support requires OpenSSL >= 1.1.1])])
+	AC_DEFINE(HAVE_TLS,, Define if you want to use TLS transport)
+	OPENSSL_CFLAGS="${OPENSSL_CFLAGS-}"
+	AC_SUBST(OPENSSL_CFLAGS)
+	AC_SUBST(OPENSSL_LIBS)
+fi
+AM_CONDITIONAL(ENABLE_TLS, test x$want_tls = xyes)
+
 # ids
 AC_MSG_CHECKING(whether to enable experimental options)
 AC_ARG_ENABLE(experimental,
