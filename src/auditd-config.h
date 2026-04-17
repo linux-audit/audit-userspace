@@ -45,6 +45,9 @@ typedef enum { N_NONE, N_HOSTNAME, N_FQD, N_NUMERIC, N_USER } node_t;
 typedef enum { O_IGNORE, O_SYSLOG, O_SUSPEND, O_SINGLE,
 		O_HALT } overflow_action_t;
 typedef enum { T_TCP, T_TLS, T_KRB5, T_LABELED } transport_t;
+#ifdef HAVE_TLS
+typedef enum { TCA_NONE, TCA_OPTIONAL, TCA_REQUIRED } tls_client_auth_t;
+#endif
 
 struct daemon_conf
 {
@@ -92,6 +95,17 @@ struct daemon_conf
 	int transport;
 	const char *krb5_principal;
 	const char *krb5_key_file;
+#ifdef HAVE_TLS
+	const char *tls_cert_file;
+	const char *tls_key_file;
+	const char *tls_ca_file;
+	const char *tls_psk_file;
+	const char *tls_psk_identity;
+	const char *tls_cipher_suites;
+	const char *tls_key_exchange;
+	tls_client_auth_t tls_client_auth;
+	int tls_require_pqc;
+#endif
 	int distribute_network_events;
 	// Dispatcher config
 	unsigned int q_depth;

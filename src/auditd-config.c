@@ -133,6 +133,24 @@ static int krb5_principal_parser(const struct nv_pair *nv, int line,
 		struct daemon_conf *config);
 static int krb5_key_file_parser(const struct nv_pair *nv, int line,
 		struct daemon_conf *config);
+static int tls_cert_file_parser(const struct nv_pair *nv, int line,
+		struct daemon_conf *config);
+static int tls_key_file_parser(const struct nv_pair *nv, int line,
+		struct daemon_conf *config);
+static int tls_ca_file_parser(const struct nv_pair *nv, int line,
+		struct daemon_conf *config);
+static int tls_psk_file_parser(const struct nv_pair *nv, int line,
+		struct daemon_conf *config);
+static int tls_psk_identity_parser(const struct nv_pair *nv, int line,
+		struct daemon_conf *config);
+static int tls_cipher_suites_parser(const struct nv_pair *nv, int line,
+		struct daemon_conf *config);
+static int tls_key_exchange_parser(const struct nv_pair *nv, int line,
+		struct daemon_conf *config);
+static int tls_client_auth_parser(const struct nv_pair *nv, int line,
+		struct daemon_conf *config);
+static int tls_require_pqc_parser(const struct nv_pair *nv, int line,
+		struct daemon_conf *config);
 static int distribute_network_parser(const struct nv_pair *nv, int line,
 		struct daemon_conf *config);
 static int q_depth_parser(const struct nv_pair *nv, int line,
@@ -215,6 +233,15 @@ static const struct kw_pair keywords[] =
   {"enable_krb5",              enable_krb5_parser,              0 },
   {"krb5_principal",           krb5_principal_parser,           0 },
   {"krb5_key_file",            krb5_key_file_parser,            0 },
+  {"tls_cert_file",            tls_cert_file_parser,            0 },
+  {"tls_key_file",             tls_key_file_parser,             0 },
+  {"tls_ca_file",              tls_ca_file_parser,              0 },
+  {"tls_psk_file",             tls_psk_file_parser,             0 },
+  {"tls_psk_identity",         tls_psk_identity_parser,         0 },
+  {"tls_cipher_suites",        tls_cipher_suites_parser,        0 },
+  {"tls_key_exchange",         tls_key_exchange_parser,         0 },
+  {"tls_client_auth",          tls_client_auth_parser,          0 },
+  {"tls_require_pqc",          tls_require_pqc_parser,          0 },
   {"distribute_network",       distribute_network_parser,       0 },
   {"q_depth",                  q_depth_parser,                  0 },
   {"overflow_action",          overflow_action_parser,          0 },
@@ -298,6 +325,9 @@ static const struct nv_list overflow_actions[] =
 static const struct nv_list transport_words[] =
 {
   {"tcp",  T_TCP  },
+#ifdef HAVE_TLS
+  {"tls",  T_TLS  },
+#endif
 #ifdef USE_GSSAPI
   {"krb5", T_KRB5 },
 #endif
@@ -378,6 +408,17 @@ void clear_config(struct daemon_conf *config)
 	config->transport = T_TCP;
 	config->krb5_principal = NULL;
 	config->krb5_key_file = NULL;
+#ifdef HAVE_TLS
+	config->tls_cert_file = NULL;
+	config->tls_key_file = NULL;
+	config->tls_ca_file = NULL;
+	config->tls_psk_file = NULL;
+	config->tls_psk_identity = NULL;
+	config->tls_cipher_suites = NULL;
+	config->tls_key_exchange = NULL;
+	config->tls_client_auth = TCA_REQUIRED;
+	config->tls_require_pqc = 0;
+#endif
 	config->distribute_network_events = 0;
 	config->q_depth = 2000;
 	config->overflow_action = O_SYSLOG;
@@ -1792,6 +1833,127 @@ static int krb5_key_file_parser(const struct nv_pair *nv, int line,
 	return 0;
 }
 
+static int tls_path_parser_s(const struct nv_pair *nv, int line,
+		const char **dest)
+{
+#ifndef HAVE_TLS
+	audit_msg(LOG_DEBUG,
+		"TLS support is not enabled, ignoring value at line %d",
+		line);
+#else
+	if (nv->value) {
+		if (*nv->value != '/') {
+			audit_msg(LOG_ERR,
+				"Absolute path needed for %s - line %d",
+				nv->value, line);
+			return 1;
+		}
+		free((char *)*dest);
+		*dest = strdup(nv->value);
+		if (*dest == NULL) {
+			audit_msg(LOG_ERR,
+				"Out of memory parsing config at line %d",
+				line);
+			return 1;
+		}
+	}
+#endif
+	return 0;
+}
+
+static int tls_string_parser_s(const struct nv_pair *nv, int line,
+		const char **dest)
+{
+#ifndef HAVE_TLS
+	audit_msg(LOG_DEBUG,
+		"TLS support is not enabled, ignoring value at line %d",
+		line);
+#else
+	if (nv->value) {
+		free((char *)*dest);
+		*dest = strdup(nv->value);
+		if (*dest == NULL) {
+			audit_msg(LOG_ERR,
+				"Out of memory parsing config at line %d",
+				line);
+			return 1;
+		}
+	}
+#endif
+	return 0;
+}
+
+#define TLS_PARSER_S(fname, field, helper) \
+static int fname(const struct nv_pair *nv, int line, \
+		struct daemon_conf *config) \
+{ \
+	return helper(nv, line, &config->field); \
+}
+
+#ifdef HAVE_TLS
+TLS_PARSER_S(tls_cert_file_parser, tls_cert_file, tls_path_parser_s)
+TLS_PARSER_S(tls_key_file_parser, tls_key_file, tls_path_parser_s)
+TLS_PARSER_S(tls_ca_file_parser, tls_ca_file, tls_path_parser_s)
+TLS_PARSER_S(tls_psk_file_parser, tls_psk_file, tls_path_parser_s)
+TLS_PARSER_S(tls_psk_identity_parser, tls_psk_identity, tls_string_parser_s)
+TLS_PARSER_S(tls_cipher_suites_parser, tls_cipher_suites, tls_string_parser_s)
+TLS_PARSER_S(tls_key_exchange_parser, tls_key_exchange, tls_string_parser_s)
+
+static int tls_client_auth_parser(const struct nv_pair *nv, int line,
+		struct daemon_conf *config)
+{
+	if (strcasecmp(nv->value, "none") == 0)
+		config->tls_client_auth = TCA_NONE;
+	else if (strcasecmp(nv->value, "optional") == 0)
+		config->tls_client_auth = TCA_OPTIONAL;
+	else if (strcasecmp(nv->value, "required") == 0)
+		config->tls_client_auth = TCA_REQUIRED;
+	else {
+		audit_msg(LOG_ERR,
+			"Option %s not found - line %d", nv->value, line);
+		return 1;
+	}
+	return 0;
+}
+
+static int tls_require_pqc_parser(const struct nv_pair *nv, int line,
+		struct daemon_conf *config)
+{
+	if (strcasecmp(nv->value, "yes") == 0)
+		config->tls_require_pqc = 1;
+	else if (strcasecmp(nv->value, "no") == 0)
+		config->tls_require_pqc = 0;
+	else {
+		audit_msg(LOG_ERR,
+			"Option %s must be yes or no at line %d",
+			nv->value, line);
+		return 1;
+	}
+	return 0;
+}
+#else
+#define TLS_STUB_S(fname) \
+static int fname(const struct nv_pair *nv, int line, \
+		struct daemon_conf *config) \
+{ \
+	audit_msg(LOG_DEBUG, \
+		"TLS support is not enabled, ignoring value at line %d", \
+		line); \
+	return 0; \
+}
+TLS_STUB_S(tls_cert_file_parser)
+TLS_STUB_S(tls_key_file_parser)
+TLS_STUB_S(tls_ca_file_parser)
+TLS_STUB_S(tls_psk_file_parser)
+TLS_STUB_S(tls_psk_identity_parser)
+TLS_STUB_S(tls_cipher_suites_parser)
+TLS_STUB_S(tls_key_exchange_parser)
+TLS_STUB_S(tls_client_auth_parser)
+TLS_STUB_S(tls_require_pqc_parser)
+#undef TLS_STUB_S
+#endif
+#undef TLS_PARSER_S
+
 static int distribute_network_parser(const struct nv_pair *nv, int line,
 	struct daemon_conf *config)
 {
@@ -2080,6 +2242,46 @@ static int sanity_check(struct daemon_conf *config)
 		audit_msg(LOG_WARNING, 
            "Warning - freq is non-zero and incremental flushing not selected.");
 	}
+#ifdef HAVE_TLS
+	if (config->transport == T_TLS) {
+		int have_psk, have_cert;
+		if ((config->tls_cert_file != NULL) !=
+		    (config->tls_key_file != NULL)) {
+			audit_msg(LOG_ERR,
+				"tls_cert_file and tls_key_file must "
+				"both be set or both be unset");
+			return 1;
+		}
+		have_psk = config->tls_psk_file != NULL;
+		have_cert = config->tls_cert_file != NULL &&
+				config->tls_key_file != NULL;
+		if (have_psk && have_cert) {
+			audit_msg(LOG_ERR,
+				"tls_psk_file and tls_cert_file are "
+				"mutually exclusive");
+			return 1;
+		}
+		if (!have_psk && !have_cert) {
+			audit_msg(LOG_ERR,
+				"transport=tls requires tls_psk_file or "
+				"tls_cert_file+tls_key_file");
+			return 1;
+		}
+		if (have_psk && !config->tls_psk_identity) {
+			audit_msg(LOG_ERR,
+				"tls_psk_identity is required when "
+				"tls_psk_file is set");
+			return 1;
+		}
+		if (have_cert && config->tls_client_auth > TCA_NONE &&
+				!config->tls_ca_file) {
+			audit_msg(LOG_ERR,
+				"tls_client_auth=optional/required "
+				"requires tls_ca_file");
+			return 1;
+		}
+	}
+#endif
 	config->config_dir = config_dir;
 	return 0;
 }
@@ -2122,6 +2324,15 @@ void free_config(struct daemon_conf *config)
 	free((void *)config->disk_error_exe);
 	free((void *)config->krb5_principal);
 	free((void *)config->krb5_key_file);
+#ifdef HAVE_TLS
+	free((void *)config->tls_cert_file);
+	free((void *)config->tls_key_file);
+	free((void *)config->tls_ca_file);
+	free((void *)config->tls_psk_file);
+	free((void *)config->tls_psk_identity);
+	free((void *)config->tls_cipher_suites);
+	free((void *)config->tls_key_exchange);
+#endif
 	free((void *)config->plugin_dir);
 	free((void *)config_dir);
 	config_dir = NULL;

@@ -51,4 +51,8 @@ auditd_config_alloc_test_CFLAGS = -D_GNU_SOURCE -Wno-pointer-sign ${WFLAGS} \
 if ENABLE_LISTENER
 format_event_test_SOURCES += \
         ${top_srcdir}/src/auditd-listen.c
+if ENABLE_TLS
+format_event_test_CFLAGS += $(OPENSSL_CFLAGS)
+format_event_test_LDADD += $(OPENSSL_LIBS)
+endif
 endif
