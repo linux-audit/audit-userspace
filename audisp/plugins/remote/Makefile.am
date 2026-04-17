@@ -22,7 +22,7 @@
 # 
 
 CONFIG_CLEAN_FILES = *.loT *.rej *.orig
-EXTRA_DIST = au-remote.conf audisp-remote.conf notes.txt $(man_MANS)
+EXTRA_DIST = au-remote.conf audisp-remote.conf notes.txt $(man_MANS) test-tls.sh
 AM_CPPFLAGS = -I${top_srcdir} -I${top_srcdir}/lib -I${top_srcdir}/common \
 	-I${top_srcdir}/auplugin -I${top_srcdir}/auparse
 prog_confdir = $(sysconfdir)/audit
@@ -52,6 +52,17 @@ audisp_remote_LDADD += $(OPENSSL_LIBS)
 endif
 
 test_queue_SOURCES = queue.c test-queue.c
+
+if ENABLE_TLS
+check_PROGRAMS += test-tls-helpers
+test_tls_helpers_SOURCES = test-tls-helpers.c
+test_tls_helpers_CFLAGS = $(OPENSSL_CFLAGS)
+test_tls_helpers_LDADD = $(OPENSSL_LIBS)
+if HAVE_ASAN
+test_tls_helpers_CFLAGS += ${ASAN_FLAGS}
+test_tls_helpers_LDFLAGS = ${ASAN_FLAGS}
+endif
+endif
 
 install-data-hook:
 	mkdir -p -m 0750 ${DESTDIR}${plugin_confdir}

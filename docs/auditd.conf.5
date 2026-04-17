@@ -321,6 +321,8 @@ This parameter indicates the number of seconds that a client may be idle (i.e. n
 If set to
 .IR TCP ",
 only clear text tcp connections will be used. If set to
+.IR TLS ",
+connections will be encrypted using TLS 1.3 with post-quantum hybrid key exchange. This requires either a pre-shared key (tls_psk_file) or server certificates (tls_cert_file + tls_key_file) to be configured. If set to
 .IR KRB5 ",
 then Kerberos 5 will be used for authentication and encryption. The
 default value is TCP.  Changes to this option take effect only after
@@ -348,6 +350,45 @@ Location of the key for this client's principal.
 Note that the key file must be owned by root and mode 0400.
 The default is
 .I /etc/audit/audit.key
+.TP
+.I tls_cert_file
+Path to the server TLS certificate in PEM format. The file may contain the full certificate chain (leaf certificate followed by intermediate CA certificates). Used for certificate-based TLS authentication. PSK and certificate authentication are mutually exclusive.
+.TP
+.I tls_key_file
+Path to the server TLS private key in PEM format. The file must be owned by root and mode 0400.
+.TP
+.I tls_ca_file
+Path to the CA certificate used to verify client certificates when mutual TLS is enabled via tls_client_auth.
+.TP
+.I tls_psk_file
+Path to a file containing a hex-encoded pre-shared key for TLS-PSK authentication. The key must be at least 32 bytes (64 hex characters). Generate a key with: openssl rand \-hex 32. The file must be owned by root and mode 0400.
+.TP
+.I tls_psk_identity
+The expected client PSK identity string. This option is required when tls_psk_file is set. The server rejects clients that present a different identity. Set this to match the client's tls_psk_identity value.
+.TP
+.I tls_cipher_suites
+Colon-separated list of TLS 1.3 cipher suites. The default is "TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256:TLS_AES_128_GCM_SHA256".
+.TP
+.I tls_key_exchange
+Colon-separated list of key exchange groups. The default is "X25519MLKEM768:X25519" which uses post-quantum hybrid key exchange as the primary option. PQC hybrid key exchange increases handshake sizes by approximately 1120 bytes, which may require updates to network middleboxes with deep packet inspection.
+.TP
+.I tls_require_pqc
+If set to
+.IR yes ,
+the server will refuse to start when post-quantum key exchange groups are not available, and will reject connections that negotiate a classical-only group. When set to
+.IR no
+(the default), the server will fall back to classical-only key exchange. PSK mode with PQC key exchange provides fully quantum-resistant transport. Certificate mode provides quantum-resistant confidentiality but authentication relies on classical signatures until ML-DSA certificates are deployed.
+.TP
+.I tls_client_auth
+Controls client certificate verification for mutual TLS. Valid values are
+.IR none ", " optional ", and " required ".
+If set to
+.IR required ,
+clients must present a valid certificate (matching tls_ca_file). If set to
+.IR optional ,
+client certificates are requested but not required. The default is
+.IR required
+to match the mutual authentication behavior of the Kerberos transport.
 .TP
 .I distribute_network
 If set to "yes", network originating events will be distributed to the audit
