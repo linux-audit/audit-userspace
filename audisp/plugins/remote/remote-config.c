@@ -82,9 +82,23 @@ static int krb5_principal_parser(struct nv_pair *nv, int line,
 		remote_conf_t *config);
 static int krb5_client_name_parser(struct nv_pair *nv, int line, 
 		remote_conf_t *config);
-static int krb5_key_file_parser(struct nv_pair *nv, int line, 
+static int krb5_key_file_parser(struct nv_pair *nv, int line,
 		remote_conf_t *config);
-static int network_retry_time_parser(struct nv_pair *nv, int line, 
+static int tls_cert_file_parser(struct nv_pair *nv, int line,
+		remote_conf_t *config);
+static int tls_key_file_parser(struct nv_pair *nv, int line,
+		remote_conf_t *config);
+static int tls_ca_file_parser(struct nv_pair *nv, int line,
+		remote_conf_t *config);
+static int tls_psk_file_parser(struct nv_pair *nv, int line,
+		remote_conf_t *config);
+static int tls_psk_identity_parser(struct nv_pair *nv, int line,
+		remote_conf_t *config);
+static int tls_cipher_suites_parser(struct nv_pair *nv, int line,
+		remote_conf_t *config);
+static int tls_key_exchange_parser(struct nv_pair *nv, int line,
+		remote_conf_t *config);
+static int network_retry_time_parser(struct nv_pair *nv, int line,
 		remote_conf_t *config);
 static int max_tries_per_record_parser(struct nv_pair *nv, int line, 
 		remote_conf_t *config);
@@ -104,6 +118,8 @@ AP(startup_failure)
 static int remote_ending_action_parser(struct nv_pair *nv, int line,
                 remote_conf_t *config);
 static int overflow_action_parser(struct nv_pair *nv, int line, 
+		remote_conf_t *config);
+static int tls_require_pqc_parser(struct nv_pair *nv, int line,
 		remote_conf_t *config);
 static int sanity_check(remote_conf_t *config, const char *file);
 
@@ -125,6 +141,14 @@ static const struct kw_pair keywords[] =
   {"krb5_principal",         krb5_principal_parser,             0 },
   {"krb5_client_name",       krb5_client_name_parser,           0 },
   {"krb5_key_file",          krb5_key_file_parser,              0 },
+  {"tls_cert_file",          tls_cert_file_parser,             0 },
+  {"tls_key_file",           tls_key_file_parser,              0 },
+  {"tls_ca_file",            tls_ca_file_parser,               0 },
+  {"tls_psk_file",           tls_psk_file_parser,              0 },
+  {"tls_psk_identity",       tls_psk_identity_parser,          0 },
+  {"tls_cipher_suites",      tls_cipher_suites_parser,         0 },
+  {"tls_key_exchange",       tls_key_exchange_parser,          0 },
+  {"tls_require_pqc",        tls_require_pqc_parser,           0 },
   {"network_failure_action", network_failure_action_parser,	1 },
   {"disk_low_action",        disk_low_action_parser,		1 },
   {"disk_full_action",       disk_full_action_parser,		1 },
@@ -141,6 +165,9 @@ static const struct kw_pair keywords[] =
 static const struct nv_list transport_words[] =
 {
   {"tcp",  T_TCP  },
+#ifdef HAVE_TLS
+  {"tls",  T_TLS  },
+#endif
 #ifdef USE_GSSAPI
   {"krb5", T_KRB5 },
 #endif
@@ -229,6 +256,16 @@ void clear_config(remote_conf_t *config)
 	config->krb5_principal = NULL;
 	config->krb5_client_name = NULL;
 	config->krb5_key_file = NULL;
+#ifdef HAVE_TLS
+	config->tls_cert_file = NULL;
+	config->tls_key_file = NULL;
+	config->tls_ca_file = NULL;
+	config->tls_psk_file = NULL;
+	config->tls_psk_identity = NULL;
+	config->tls_cipher_suites = NULL;
+	config->tls_key_exchange = NULL;
+	config->tls_require_pqc = 0;
+#endif
 }
 
 int load_config(remote_conf_t *config, const char *file)
@@ -713,6 +750,11 @@ static int krb5_principal_parser(struct nv_pair *nv, int line,
 		free ((char *)config->krb5_principal);
 
 	config->krb5_principal = strdup(nv->value);
+	if (config->krb5_principal == NULL) {
+		syslog(LOG_ERR,
+			"Out of memory parsing config at line %d", line);
+		return 1;
+	}
 #endif
 	return 0;
 }
@@ -729,6 +771,11 @@ static int krb5_client_name_parser(struct nv_pair *nv, int line,
 		free ((char *)config->krb5_client_name);
 
 	config->krb5_client_name = strdup(nv->value);
+	if (config->krb5_client_name == NULL) {
+		syslog(LOG_ERR,
+			"Out of memory parsing config at line %d", line);
+		return 1;
+	}
 #endif
 	return 0;
 }
@@ -745,9 +792,119 @@ static int krb5_key_file_parser(struct nv_pair *nv, int line,
 		free ((char *)config->krb5_key_file);
 
 	config->krb5_key_file = strdup(nv->value);
+	if (config->krb5_key_file == NULL) {
+		syslog(LOG_ERR,
+			"Out of memory parsing config at line %d", line);
+		return 1;
+	}
 #endif
 	return 0;
 }
+
+static int tls_path_parser(struct nv_pair *nv, int line, const char **dest)
+{
+#ifndef HAVE_TLS
+	syslog(LOG_INFO,
+		"TLS support is not enabled, ignoring value at line %d",
+		line);
+#else
+	if (*dest)
+		free((char *)*dest);
+	if (nv->value) {
+		if (*nv->value != '/') {
+			syslog(LOG_ERR,
+				"Absolute path needed for %s - line %d",
+				nv->value, line);
+			return 1;
+		}
+		*dest = strdup(nv->value);
+		if (*dest == NULL) {
+			syslog(LOG_ERR,
+				"Out of memory parsing config at line %d",
+				line);
+			return 1;
+		}
+	} else
+		*dest = NULL;
+#endif
+	return 0;
+}
+
+static int tls_string_parser(struct nv_pair *nv, int line, const char **dest)
+{
+#ifndef HAVE_TLS
+	syslog(LOG_INFO,
+		"TLS support is not enabled, ignoring value at line %d",
+		line);
+#else
+	if (*dest)
+		free((char *)*dest);
+	if (nv->value) {
+		*dest = strdup(nv->value);
+		if (*dest == NULL) {
+			syslog(LOG_ERR,
+				"Out of memory parsing config at line %d",
+				line);
+			return 1;
+		}
+	} else
+		*dest = NULL;
+#endif
+	return 0;
+}
+
+#define TLS_PARSER(fname, field, helper) \
+static int fname(struct nv_pair *nv, int line, remote_conf_t *config) \
+{ \
+	return helper(nv, line, &config->field); \
+}
+
+#ifdef HAVE_TLS
+TLS_PARSER(tls_cert_file_parser, tls_cert_file, tls_path_parser)
+TLS_PARSER(tls_key_file_parser, tls_key_file, tls_path_parser)
+TLS_PARSER(tls_ca_file_parser, tls_ca_file, tls_path_parser)
+TLS_PARSER(tls_psk_file_parser, tls_psk_file, tls_path_parser)
+TLS_PARSER(tls_psk_identity_parser, tls_psk_identity, tls_string_parser)
+TLS_PARSER(tls_cipher_suites_parser, tls_cipher_suites, tls_string_parser)
+TLS_PARSER(tls_key_exchange_parser, tls_key_exchange, tls_string_parser)
+#else
+#define TLS_STUB(fname) \
+static int fname(struct nv_pair *nv, int line, remote_conf_t *config) \
+{ \
+	syslog(LOG_INFO, \
+		"TLS support is not enabled, ignoring value at line %d", \
+		line); \
+	return 0; \
+}
+TLS_STUB(tls_cert_file_parser)
+TLS_STUB(tls_key_file_parser)
+TLS_STUB(tls_ca_file_parser)
+TLS_STUB(tls_psk_file_parser)
+TLS_STUB(tls_psk_identity_parser)
+TLS_STUB(tls_cipher_suites_parser)
+TLS_STUB(tls_key_exchange_parser)
+TLS_STUB(tls_require_pqc_parser)
+#undef TLS_STUB
+#endif
+#undef TLS_PARSER
+
+#ifdef HAVE_TLS
+static int tls_require_pqc_parser(struct nv_pair *nv, int line,
+		remote_conf_t *config)
+{
+	if (strcasecmp(nv->value, "yes") == 0)
+		config->tls_require_pqc = 1;
+	else if (strcasecmp(nv->value, "no") == 0)
+		config->tls_require_pqc = 0;
+	else {
+		syslog(LOG_ERR,
+			"Option %s must be yes or no at line %d",
+			nv->value, line);
+		return 1;
+	}
+	return 0;
+}
+#endif
 
 /*
  * This function is where we do the integrated check of the config
@@ -771,6 +928,44 @@ static int sanity_check(remote_conf_t *config, const char *file)
 		syslog(LOG_ERR, "startup_failure_action has invalid option");
 		return 1;
 	}
+#ifdef HAVE_TLS
+	if (config->transport == T_TLS) {
+		int have_psk, have_cert;
+		if ((config->tls_cert_file != NULL) !=
+		    (config->tls_key_file != NULL)) {
+			syslog(LOG_ERR,
+				"tls_cert_file and tls_key_file must "
+				"both be set or both be unset");
+			return 1;
+		}
+		have_psk = config->tls_psk_file != NULL;
+		have_cert = config->tls_cert_file != NULL &&
+				config->tls_key_file != NULL;
+		if (have_psk && have_cert) {
+			syslog(LOG_ERR,
+				"tls_psk_file and tls_cert_file are "
+				"mutually exclusive");
+			return 1;
+		}
+		if (!have_psk && !have_cert) {
+			syslog(LOG_ERR,
+				"transport=tls requires tls_psk_file or "
+				"tls_cert_file+tls_key_file");
+			return 1;
+		}
+		if (have_psk && !config->tls_psk_identity) {
+			syslog(LOG_ERR,
+				"tls_psk_identity is required when "
+				"tls_psk_file is set");
+			return 1;
+		}
+		if (config->format != F_MANAGED) {
+			syslog(LOG_ERR,
+				"transport=tls requires format=managed");
+			return 1;
+		}
+	}
+#endif
 	return 0;
 }
 
@@ -790,5 +985,14 @@ void free_config(remote_conf_t *config)
 	free((void *)config->krb5_principal);
 	free((void *)config->krb5_client_name);
 	free((void *)config->krb5_key_file);
+#ifdef HAVE_TLS
+	free((void *)config->tls_cert_file);
+	free((void *)config->tls_key_file);
+	free((void *)config->tls_ca_file);
+	free((void *)config->tls_psk_file);
+	free((void *)config->tls_psk_identity);
+	free((void *)config->tls_cipher_suites);
+	free((void *)config->tls_key_exchange);
+#endif
 }
 
