@@ -48,10 +48,15 @@
 #include <gssapi/gssapi_generic.h>
 #include <krb5.h>
 #endif
+#ifdef HAVE_TLS
+#include <openssl/ssl.h>
+#include <openssl/err.h>
+#endif
 #include "libaudit.h"
 #include "auditd-event.h"
 #include "auditd-config.h"
 #include "private.h"
+#include "common.h"
 
 #include "ev.h"
 
@@ -69,6 +74,9 @@ typedef struct ev_tcp {
 	gss_ctx_id_t gss_context;
 	char *remote_name;
 	int remote_name_len;
+#endif
+#ifdef HAVE_TLS
+	SSL *ssl;
 #endif
 	unsigned char buffer [MAX_AUDIT_MESSAGE_LENGTH + 17];
 } ev_tcp;
@@ -88,6 +96,10 @@ static struct ev_tcp *client_chain = NULL;
 static gss_cred_id_t server_creds; // This is used to hold our own private key
 static char *my_service_name, *my_gss_realm;
 #define USE_GSS (transport == T_KRB5)
+#endif
+#ifdef HAVE_TLS
+static SSL_CTX *tls_server_ctx = NULL;
+#define USE_TLS (transport == T_TLS)
 #endif
 
 static char *sockaddr_to_string(const struct sockaddr_storage *addr)
@@ -148,6 +160,15 @@ static void release_client(struct ev_tcp *client)
 		sockaddr_to_string(&client->addr),
 		sockaddr_to_port(&client->addr));
 	send_audit_event(AUDIT_DAEMON_CLOSE, emsg); 
+#ifdef HAVE_TLS
+	if (client->ssl) {
+		/* Send close_notify but don't wait for peer's response;
+		 * blocking poll() would stall the event loop */
+		SSL_shutdown(client->ssl);
+		SSL_free(client->ssl);
+		client->ssl = NULL;
+	}
+#endif
 #ifdef USE_GSSAPI
 	if (client->remote_name)
 		free (client->remote_name);
@@ -508,6 +529,33 @@ static void client_ack(void *ack_data, const unsigned char *header,
 	const char *msg)
 {
 	ev_tcp *io = (ev_tcp *)ack_data;
+#ifdef HAVE_TLS
+#define MAX_ACK_MSG_SIZE 256
+	if (USE_TLS && io->ssl) {
+		unsigned char buf[AUDIT_RMW_HEADER_SIZE + MAX_ACK_MSG_SIZE];
+		int total;
+
+		memcpy(buf, header, AUDIT_RMW_HEADER_SIZE);
+		total = AUDIT_RMW_HEADER_SIZE;
+		if (msg[0]) {
+			int mlen = strlen(msg);
+			if (mlen > MAX_ACK_MSG_SIZE)
+				mlen = MAX_ACK_MSG_SIZE;
+			/* Repack length field to match truncated body;
+			 * the caller packed strlen(msg) which may differ */
+			_AUDIT_RMW_PUTN16(buf, 10, mlen);
+			memcpy(buf + AUDIT_RMW_HEADER_SIZE, msg, mlen);
+			total += mlen;
+		}
+		if (tls_ssl_write(io->ssl, buf, total,
+				TLS_WRITE_TIMEOUT_MS) < 0) {
+			audit_msg(LOG_ERR,
+				"TLS send ack to %s failed",
+				sockaddr_to_addr(&io->addr));
+		return;
+	}
+#undef MAX_ACK_MSG_SIZE
+#endif
 #ifdef USE_GSSAPI
 	if (USE_GSS) {
 		OM_uint32 major_status, minor_status;
@@ -611,12 +659,46 @@ static void auditd_tcp_client_handler(struct ev_loop *loop,
 	   keep reading/parsing/processing until we run out of ready
 	   data.  */
 read_more:
-	r = read (io->io.fd,
-		  io->buffer + io->bufptr,
-		  MAX_AUDIT_MESSAGE_LENGTH - io->bufptr);
+#ifdef HAVE_TLS
+	if (USE_TLS && io->ssl) {
+		r = SSL_read(io->ssl,
+			io->buffer + io->bufptr,
+			MAX_AUDIT_MESSAGE_LENGTH - io->bufptr);
+		if (r <= 0) {
+			int ssl_err = SSL_get_error(io->ssl, r);
+			if (ssl_err == SSL_ERROR_WANT_READ) {
+				if (_io->events & EV_WRITE) {
+					ev_io_stop(loop, _io);
+					ev_io_modify(_io, EV_READ);
+					ev_io_start(loop, _io);
+				}
+				return;
+			}
+			if (ssl_err == SSL_ERROR_WANT_WRITE) {
+				ev_io_stop(loop, _io);
+				ev_io_modify(_io, EV_WRITE);
+				ev_io_start(loop, _io);
+				return;
+			}
+			/* real error or shutdown falls through */
+		}
+		/* Restore EV_READ if we were armed for EV_WRITE
+		 * due to a previous WANT_WRITE */
+		if (r > 0 && (_io->events & EV_WRITE)) {
+			ev_io_stop(loop, _io);
+			ev_io_modify(_io, EV_READ);
+			ev_io_start(loop, _io);
+		}
+	} else
+#endif
+	{
+		r = read(io->io.fd,
+			io->buffer + io->bufptr,
+			MAX_AUDIT_MESSAGE_LENGTH - io->bufptr);
 
-	if (r < 0 && errno == EAGAIN)
-		r = 0;
+		if (r < 0 && errno == EAGAIN)
+			r = 0;
+	}
 
 	/* We need to keep track of the difference between "no data
 	 * because it's closed" and "no data because we've read it
@@ -922,6 +1004,61 @@ static void auditd_tcp_listen_handler( struct ev_loop *loop,
 
 	memcpy(&client->addr, &aaddr, sizeof (struct sockaddr_storage));
 
+#ifdef HAVE_TLS
+	if (USE_TLS && tls_server_ctx) {
+		struct timeval tv;
+		const char *kex_name;
+
+		tv.tv_sec = 5;
+		tv.tv_usec = 0;
+		setsockopt(afd, SOL_SOCKET, SO_RCVTIMEO,
+			&tv, sizeof(tv));
+		setsockopt(afd, SOL_SOCKET, SO_SNDTIMEO,
+			&tv, sizeof(tv));
+
+		client->ssl = SSL_new(tls_server_ctx);
+		if (client->ssl == NULL ||
+		    SSL_set_fd(client->ssl, afd) != 1 ||
+		    SSL_accept(client->ssl) != 1) {
+			audit_msg(LOG_ERR,
+				"TLS handshake from %s failed",
+				sockaddr_to_addr(&aaddr));
+			if (client->ssl) {
+				SSL_free(client->ssl);
+				client->ssl = NULL;
+			}
+			shutdown(afd, SHUT_RDWR);
+			close(afd);
+			free(client);
+			return;
+		}
+
+		kex_name = SSL_group_to_name(client->ssl,
+			SSL_get_negotiated_group(client->ssl));
+		audit_msg(LOG_INFO,
+			"TLS connection from %s using %s kex=%s",
+			sockaddr_to_addr(&aaddr),
+			SSL_get_cipher(client->ssl),
+			kex_name ? kex_name : "unknown");
+
+		if (config->tls_require_pqc &&
+		    !is_pqc_group(kex_name)) {
+			audit_msg(LOG_ERR,
+				"PQC key exchange required but "
+				"negotiated group '%s' is not PQC "
+				"from %s",
+				kex_name ? kex_name : "unknown",
+				sockaddr_to_addr(&aaddr));
+			SSL_shutdown(client->ssl);
+			SSL_free(client->ssl);
+			client->ssl = NULL;
+			shutdown(afd, SHUT_RDWR);
+			close(afd);
+			free(client);
+			return;
+		}
+	}
+#endif
 #ifdef USE_GSSAPI
 	if (USE_GSS && negotiate_credentials (client)) {
 		shutdown(afd, SHUT_RDWR);
@@ -980,6 +1117,215 @@ static void periodic_handler(struct ev_loop *loop, struct ev_periodic *per,
 		free(ev);
 	}
 }
+
+#ifdef HAVE_TLS
+static unsigned char *server_psk_key = NULL;
+static size_t server_psk_key_len = 0;
+
+static const char *expected_psk_identity = NULL;
+
+/*
+ * tls_psk_find_session_cb - TLS 1.3 server PSK callback
+ * @ssl: SSL connection handle
+ * @identity: client-supplied PSK identity
+ * @identity_len: length of @identity
+ * @sess: output SSL_SESSION containing the matched PSK
+ *
+ * Called by OpenSSL during TLS 1.3 handshake to look up the PSK for
+ * a client identity. Validates the identity against the configured
+ * expected identity using constant-time comparison.
+ * Returns 1 on success, 0 on failure or identity mismatch.
+ */
+static int tls_psk_find_session_cb(SSL *ssl, const unsigned char *identity,
+		size_t identity_len, SSL_SESSION **sess)
+{
+	SSL_SESSION *s;
+	const SSL_CIPHER *cipher;
+
+	if (server_psk_key == NULL)
+		return 0;
+
+	/* Validate client identity if configured */
+	if (expected_psk_identity) {
+		if (identity_len != strlen(expected_psk_identity) ||
+		    CRYPTO_memcmp(identity, expected_psk_identity,
+				  identity_len) != 0) {
+			char safe_id[65];
+			size_t log_len = identity_len < 64 ?
+					 identity_len : 64;
+			size_t j;
+			for (j = 0; j < log_len; j++)
+				safe_id[j] = (identity[j] >= 0x20 &&
+					      identity[j] <= 0x7E)
+					     ? (char)identity[j] : '.';
+			safe_id[log_len] = '\0';
+			audit_msg(LOG_ERR,
+				"TLS PSK identity mismatch: "
+				"received '%s'%s", safe_id,
+				identity_len > 64 ?
+				" (truncated)" : "");
+			return 0;
+		}
+	}
+
+	cipher = tls_find_tls13_cipher(ssl);
+	if (cipher == NULL)
+		return 0;
+
+	s = SSL_SESSION_new();
+	if (s == NULL)
+		return 0;
+
+	if (!SSL_SESSION_set1_master_key(s, server_psk_key,
+					server_psk_key_len) ||
+	    !SSL_SESSION_set_cipher(s, cipher) ||
+	    !SSL_SESSION_set_protocol_version(s, TLS1_3_VERSION)) {
+		SSL_SESSION_free(s);
+		return 0;
+	}
+
+	*sess = s;
+	return 1;
+}
+
+/*
+ * init_tls_server_context - create and configure the server SSL_CTX
+ * @config: daemon configuration with TLS settings
+ *
+ * Sets up TLS 1.3 with the configured cipher suites, key exchange
+ * groups, and either PSK or certificate authentication for the
+ * collector listener.
+ * Returns 0 on success, -1 on error.
+ */
+static int init_tls_server_context(struct daemon_conf *config)
+{
+	const char *cipher_suites, *key_exchange;
+
+	tls_server_ctx = SSL_CTX_new(TLS_server_method());
+	if (tls_server_ctx == NULL) {
+		audit_msg(LOG_ERR, "Unable to create TLS server context");
+		return -1;
+	}
+
+	if (!SSL_CTX_set_min_proto_version(tls_server_ctx, TLS1_3_VERSION)) {
+		audit_msg(LOG_ERR, "Unable to set TLS 1.3 minimum version");
+		goto err;
+	}
+	if (!SSL_CTX_set_max_early_data(tls_server_ctx, 0)) {
+		audit_msg(LOG_ERR, "Unable to disable TLS early data");
+		goto err;
+	}
+	if (!SSL_CTX_set_num_tickets(tls_server_ctx, 0)) {
+		audit_msg(LOG_ERR, "Unable to disable TLS session tickets");
+		goto err;
+	}
+	SSL_CTX_set_options(tls_server_ctx, SSL_OP_NO_COMPRESSION);
+	SSL_CTX_set_session_cache_mode(tls_server_ctx, SSL_SESS_CACHE_OFF);
+
+	cipher_suites = config->tls_cipher_suites ?
+		config->tls_cipher_suites :
+		"TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256:TLS_AES_128_GCM_SHA256";
+	if (!SSL_CTX_set_ciphersuites(tls_server_ctx, cipher_suites)) {
+		audit_msg(LOG_ERR, "Unable to set TLS cipher suites");
+		goto err;
+	}
+
+	key_exchange = config->tls_key_exchange ?
+		config->tls_key_exchange : "X25519MLKEM768:X25519";
+	if (!SSL_CTX_set1_groups_list(tls_server_ctx, key_exchange)) {
+		ERR_clear_error();
+		if (config->tls_require_pqc || config->tls_key_exchange) {
+			audit_msg(LOG_ERR,
+				"Unable to set key exchange groups '%s'",
+				key_exchange);
+			goto err;
+		}
+		audit_msg(LOG_WARNING,
+			"PQC key exchange groups not available, "
+			"falling back to X25519");
+		if (!SSL_CTX_set1_groups_list(tls_server_ctx, "X25519")) {
+			audit_msg(LOG_ERR,
+				"Unable to set any key exchange groups");
+			goto err;
+		}
+	}
+
+	/* PSK mode */
+	if (config->tls_psk_file) {
+		if (tls_validate_key_file(config->tls_psk_file,
+				audit_msg) != 0)
+			goto err;
+		if (tls_load_psk(config->tls_psk_file,
+				&server_psk_key, &server_psk_key_len,
+				audit_msg) != 0)
+			goto err;
+		SSL_CTX_set_psk_find_session_callback(tls_server_ctx,
+						tls_psk_find_session_cb);
+		expected_psk_identity = config->tls_psk_identity;
+	}
+
+	/* Server certificate */
+	if (config->tls_cert_file) {
+		if (SSL_CTX_use_certificate_chain_file(tls_server_ctx,
+				config->tls_cert_file) != 1) {
+			audit_msg(LOG_ERR,
+				"Unable to load TLS certificate %s",
+				config->tls_cert_file);
+			goto err;
+		}
+	}
+
+	if (config->tls_key_file) {
+		if (tls_validate_key_file(config->tls_key_file,
+				audit_msg) != 0)
+			goto err;
+		if (SSL_CTX_use_PrivateKey_file(tls_server_ctx,
+				config->tls_key_file,
+				SSL_FILETYPE_PEM) != 1) {
+			audit_msg(LOG_ERR,
+				"Unable to load TLS private key %s",
+				config->tls_key_file);
+			goto err;
+		}
+	}
+
+	/* Verify cert and key match */
+	if (config->tls_cert_file && config->tls_key_file) {
+		if (SSL_CTX_check_private_key(tls_server_ctx) != 1) {
+			audit_msg(LOG_ERR,
+				"TLS certificate and private key do not match");
+			goto err;
+		}
+	}
+
+	/* Client certificate verification (mTLS) */
+	if (config->tls_ca_file && config->tls_client_auth > TCA_NONE) {
+		int verify_mode = SSL_VERIFY_PEER;
+		if (SSL_CTX_load_verify_locations(tls_server_ctx,
+				config->tls_ca_file, NULL) != 1) {
+			audit_msg(LOG_ERR,
+				"Unable to load TLS CA file %s",
+				config->tls_ca_file);
+			goto err;
+		}
+		if (config->tls_client_auth == TCA_REQUIRED)
+			verify_mode |= SSL_VERIFY_FAIL_IF_NO_PEER_CERT;
+		SSL_CTX_set_verify(tls_server_ctx, verify_mode, NULL);
+	}
+
+	return 0;
+err:
+	if (server_psk_key) {
+		OPENSSL_cleanse(server_psk_key, server_psk_key_len);
+		OPENSSL_free(server_psk_key);
+		server_psk_key = NULL;
+		server_psk_key_len = 0;
+	}
+	SSL_CTX_free(tls_server_ctx);
+	tls_server_ctx = NULL;
+	return -1;
+}
+#endif /* HAVE_TLS */
 
 int auditd_tcp_listen_init(struct ev_loop *loop, struct daemon_conf *config)
 {
@@ -1144,6 +1490,16 @@ next_try:
 	}
 #endif
 
+#ifdef HAVE_TLS
+	if (USE_TLS) {
+		if (init_tls_server_context(config)) {
+			audit_msg(LOG_ERR,
+				"Failed to initialize TLS server context");
+			return -1;
+		}
+	}
+#endif
+
 	return 0;
 }
 
@@ -1163,6 +1519,19 @@ void auditd_tcp_listen_uninit(struct ev_loop *loop, struct daemon_conf *config)
 		close(listen_socket[nlsocks]);
 	}
 
+#ifdef HAVE_TLS
+	if (tls_server_ctx) {
+		SSL_CTX_free(tls_server_ctx);
+		tls_server_ctx = NULL;
+	}
+	if (server_psk_key) {
+		OPENSSL_cleanse(server_psk_key, server_psk_key_len);
+		OPENSSL_free(server_psk_key);
+		server_psk_key = NULL;
+		server_psk_key_len = 0;
+	}
+	expected_psk_identity = NULL;
+#endif
 #ifdef USE_GSSAPI
 	if (USE_GSS) {
 		gss_release_cred(&status, &server_creds);
@@ -1231,6 +1600,16 @@ void auditd_tcp_listen_reconfigure(const struct daemon_conf *nconf,
 		int trans_chg = oconf->transport != nconf->transport;
 		if (port_chg && oconf->tcp_listen_port == 0 &&
 				    nconf->tcp_listen_port != 0) {
+#ifdef HAVE_TLS
+			if (nconf->transport == T_TLS) {
+				audit_msg(LOG_NOTICE,
+					"Starting TLS listener requires "
+					"restart; port change ignored");
+				oconf->tcp_listen_port = nconf->tcp_listen_port;
+				oconf->tcp_listen_queue = nconf->tcp_listen_queue;
+			} else
+#endif
+			{
 			audit_msg(LOG_NOTICE,
 					"starting TCP listener on %lu",
 					nconf->tcp_listen_port);
@@ -1239,6 +1618,7 @@ void auditd_tcp_listen_reconfigure(const struct daemon_conf *nconf,
 			oconf->transport = nconf->transport;
 			if (auditd_tcp_listen_init(loop, oconf))
 				audit_msg(LOG_ERR, "failed to start listener");
+			}
 		} else if (port_chg) {
 			if (nconf->tcp_listen_port == 0)
 				audit_msg(LOG_NOTICE,
@@ -1265,5 +1645,27 @@ void auditd_tcp_listen_reconfigure(const struct daemon_conf *nconf,
 	// Copying the config for now. Should compare if the same and
 	// recredential if needed.
 	oconf->krb5_principal = nconf->krb5_principal;
+
+#ifdef HAVE_TLS
+	/* TLS config changes require a full restart */
+	if (oconf->transport == T_TLS || nconf->transport == T_TLS)
+		audit_msg(LOG_NOTICE,
+			"TLS settings not reloaded; restart auditd "
+			"to apply TLS config changes");
+	free((void *)nconf->tls_cert_file);
+	nconf->tls_cert_file = NULL;
+	free((void *)nconf->tls_key_file);
+	nconf->tls_key_file = NULL;
+	free((void *)nconf->tls_ca_file);
+	nconf->tls_ca_file = NULL;
+	free((void *)nconf->tls_psk_file);
+	nconf->tls_psk_file = NULL;
+	free((void *)nconf->tls_psk_identity);
+	nconf->tls_psk_identity = NULL;
+	free((void *)nconf->tls_cipher_suites);
+	nconf->tls_cipher_suites = NULL;
+	free((void *)nconf->tls_key_exchange);
+	nconf->tls_key_exchange = NULL;
+#endif
 }
 
