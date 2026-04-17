@@ -20,10 +20,12 @@ then any available unprivileged port is used. This is a security mechanism to pr
 .TP
 .I transport
 This parameter tells the remote logging app how to send events to the remote system. The valid options are
-.IR TCP ", and " KRB5 ".
+.IR TCP ", " TLS ", and " KRB5 ".
 If set to
 .IR TCP ,
-the remote logging app will just make a normal clear text connection to the remote system. If its set to
+the remote logging app will just make a normal clear text connection to the remote system. If set to
+.IR TLS ,
+the connection will be encrypted using TLS 1.3 with post-quantum hybrid key exchange. This requires either a pre-shared key (tls_psk_file) or certificates (tls_cert_file + tls_key_file) to be configured. Note that TLS transport requires format=managed; the ascii format does not support TLS encryption. If set to
 .IR KRB5 ",
 then Kerberos 5 will be used for authentication and encryption. The default value is TCP.
 .TP
@@ -217,7 +219,34 @@ Location of the key for this client's principal.
 Note that the key file must be owned by root and mode 0400.
 The default is
 .I /etc/audisp/audisp-remote.key
-
+.TP
+.I tls_cert_file
+Path to the client TLS certificate in PEM format. The file may contain the full certificate chain (leaf certificate followed by intermediate CA certificates). Used for certificate-based mutual TLS authentication. Either this (with tls_key_file) or tls_psk_file must be configured when transport is TLS. PSK and certificate authentication are mutually exclusive.
+.TP
+.I tls_key_file
+Path to the client TLS private key in PEM format. The file must be owned by root and mode 0400.
+.TP
+.I tls_ca_file
+Path to the CA certificate used to verify the remote server's TLS certificate. When set, server certificate verification is enabled using this CA. When not set in certificate mode (not PSK-only), the system CA store is used for server verification. In PSK-only mode without tls_ca_file, server certificate verification is skipped since PSK provides mutual authentication.
+.TP
+.I tls_psk_file
+Path to a file containing a hex-encoded pre-shared key for TLS-PSK authentication. The key must be at least 32 bytes (64 hex characters) to provide adequate security. Generate a key with: openssl rand \-hex 32. The file must be owned by root and mode 0400. This is the recommended authentication mode for large-scale deployments where PKI is not available.
+.TP
+.I tls_psk_identity
+The identity string sent to the server during TLS-PSK authentication. The default is "audit-client".
+.TP
+.I tls_cipher_suites
+Colon-separated list of TLS 1.3 cipher suites. The default is "TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256:TLS_AES_128_GCM_SHA256".
+.TP
+.I tls_key_exchange
+Colon-separated list of key exchange groups. The default is "X25519MLKEM768:X25519" which uses post-quantum hybrid key exchange (ML-KEM-768 combined with X25519) as the primary option, falling back to classical X25519 if the server does not support PQC groups. Note that PQC hybrid key exchange increases the TLS ClientHello size by approximately 1120 bytes, which may require updates to network middleboxes performing deep packet inspection.
+.TP
+.I tls_require_pqc
+If set to
+.IR yes ,
+the client will refuse to connect when post-quantum key exchange groups are not available, and will abort connections where a classical-only group is negotiated, instead of falling back silently. When set to
+.IR no
+(the default), the client will fall back to X25519 if PQC groups are not supported. Note that PSK mode with PQC key exchange provides fully quantum-resistant transport (both confidentiality and authentication). Certificate mode with PQC key exchange provides quantum-resistant confidentiality but relies on classical signatures for authentication until ML-DSA certificates are deployed.
 
 .SH "NOTES"
 Specifying a local port may make it difficult to restart the audit
