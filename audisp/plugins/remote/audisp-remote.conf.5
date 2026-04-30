@@ -249,6 +249,8 @@ the client will refuse to connect when post-quantum key exchange groups are not 
 (the default), the client will fall back to X25519 if PQC groups are not supported. Note that PSK mode with PQC key exchange provides fully quantum-resistant transport (both confidentiality and authentication). Certificate mode with PQC key exchange provides quantum-resistant confidentiality but relies on classical signatures for authentication until ML-DSA certificates are deployed.
 
 .SH "NOTES"
+Changes to TLS configuration options (tls_cert_file, tls_key_file, tls_ca_file, tls_psk_file, tls_cipher_suites, tls_key_exchange, tls_require_pqc) require a full daemon restart to take effect. SIGHUP will force a reconnection using the existing TLS context but will not re-read TLS configuration.
+
 Specifying a local port may make it difficult to restart the audit
 subsystem due to the previous connection being in a TIME_WAIT state,
 if you're reconnecting to and from the same hosts and ports as before.
