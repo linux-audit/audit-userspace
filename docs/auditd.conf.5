@@ -457,6 +457,8 @@ and
 .I verify_email
 .
 .SH NOTES
+Changes to TLS configuration options (tls_cert_file, tls_key_file, tls_ca_file, tls_psk_file, tls_cipher_suites, tls_key_exchange, tls_require_pqc, tls_client_auth) require a full daemon restart to take effect. Sending SIGHUP will not reload TLS settings.
+.PP
 In a CAPP environment, the audit trail is considered so important that access to system resources must be denied if an audit trail cannot be created. In this environment, it would be suggested that /var/log/audit be on its own partition. This is to ensure that space detection is accurate and that no other process comes along and consumes part of it.
 .PP
 The flush parameter should be set to sync or data.
