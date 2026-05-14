@@ -1,6 +1,6 @@
-.TH "AUDIT_ENCODE_VALUE" "3" "May 2021" "Red Hat" "Linux Audit API"
+.TH "AUDIT_ENCODE_VALUE" "3" "May 2026" "Red Hat" "Linux Audit API"
 .SH NAME
-audit_encode_value \- encode input string to ASCII code string
+audit_encode_value \- encode bytes as an ASCII hexadecimal string
 .SH "SYNOPSIS"
 .nf
 .B #include <libaudit.h>
@@ -9,22 +9,44 @@ audit_encode_value \- encode input string to ASCII code string
 .fi
 .SH "DESCRIPTION"
 .BR audit_encode_value ()
-encodes a string given by 
-.I buf
-to a ASCII code string.
-.I final
-is the hexadecimal string encoded to ASCII code. The provided buffer must be at least 2 times the size of buf + 1 for a NUL terminator.
+encodes
 .I size
-is the length of the string given by
-.IR buf .
+bytes from
+.I buf
+as an uppercase ASCII hexadecimal string.
+Each input byte is written as two hexadecimal digits.
+The input does not have to be NUL-terminated and may contain embedded NUL
+bytes.
+.PP
+.I final
+is the caller-provided output buffer.
+It must be at least
+.I 2 * size + 1
+bytes long to hold the encoded value and its terminating NUL byte.
+.I size
+is the number of bytes to encode from
+.IR buf ,
+not necessarily the result of
+.BR strlen (3).
+.PP
+If
+.I buf
+is NULL,
+.BR audit_encode_value ()
+writes an empty string to
+.IR final .
 
 e.g.: "foo bar" is encoded as "666F6F20626172". "\\1\\2\\3\\4" is encoded as "01020304".
 
 .SH "RETURN VALUE"
 
-Returns a encoded string same as
+Returns
 .I final
-or, NULL on error.
+on success.
+If
+.I final
+is NULL,
+NULL is returned.
 
 .SH "SEE ALSO"
 
@@ -33,4 +55,3 @@ or, NULL on error.
 
 .SH AUTHOR
 Steve Grubb
-

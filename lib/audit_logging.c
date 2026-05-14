@@ -86,13 +86,15 @@ static void _resolve_addr(char buf[], const char *host)
 int audit_value_needs_encoding(const char *str, unsigned int size)
 {
 	unsigned int i;
+	unsigned char ch;
 
 	if (str == NULL)
 		return 0;
 
 	for (i=0; i<size; i++) {
-		// we don't test for > 0x7f because str[] is signed.
-		if (str[i] == '"' || str[i] < 0x21 || str[i] == 0x7F)
+		// Encoding should not depend on whether plain char is signed.
+		ch = (unsigned char)str[i];
+		if (ch == '"' || ch < 0x21 || ch > 0x7E)
 			return 1;
 	}
 	return 0;

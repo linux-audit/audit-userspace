@@ -1,4 +1,4 @@
-.TH "AUDIT_VALUE_NEEDS_ENCODING" "3" "Apr 2021" "Red Hat" "Linux Audit API"
+.TH "AUDIT_VALUE_NEEDS_ENCODING" "3" "May 2026" "Red Hat" "Linux Audit API"
 .SH NAME
 audit_value_needs_encoding \- check a string to see if it needs encoding
 .SH "SYNOPSIS"
@@ -9,11 +9,25 @@ audit_value_needs_encoding \- check a string to see if it needs encoding
 .fi
 .SH "DESCRIPTION"
 .BR audit_value_needs_encoding ()
-checks a string to see if it needs encoding. Specifically, this function checks if the string contains a space, a double-quote, or a control character.
-.I str
-is the string to check if encoding is needed.
+checks
 .I size
-is the length of str.
+bytes from
+.I str
+to see if the value must be encoded before it is logged in an audit name/value
+field.
+Specifically, this function checks for a double-quote, any byte in the range
+0x00 through 0x20, or any byte in the range 0x7F through 0xFF.
+The 0x00 through 0x20 range includes C0 control bytes and space.
+.PP
+.I str
+is the byte string to check.
+It does not have to be NUL-terminated and may contain embedded NUL bytes.
+.I size
+is the number of bytes to check from
+.IR str .
+If
+.I str
+is NULL, encoding is not needed.
 
 .SH "RETURN VALUE"
 
@@ -21,7 +35,8 @@ The return value if encoding is needed is 1. If not needed is 0.
 
 .SH "SEE ALSO"
 
-.BR audit_encode_nv_string (3).
+.BR audit_encode_nv_string (3),
+.BR audit_encode_value (3).
 
 .SH AUTHOR
 Steve Grubb

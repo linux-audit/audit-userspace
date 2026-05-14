@@ -1,4 +1,4 @@
-.TH "AUDIT_ENCODE_NV_STRING" "3" "Oct 2010" "Red Hat" "Linux Audit API"
+.TH "AUDIT_ENCODE_NV_STRING" "3" "May 2026" "Red Hat" "Linux Audit API"
 .SH NAME
 audit_encode_nv_string \- encode a name/value pair in a string
 .SH SYNOPSIS
@@ -9,9 +9,50 @@ audit_encode_nv_string \- encode a name/value pair in a string
 .fi
 
 .SH DESCRIPTION
-This function is used to encode a name/value pair. This should be used on any field being logged that potentially contains a space, a double-quote, or a control character. Any value containing those have to be specially encoded for the auparse library to correctly handle the value. The encoding method is designed to prevent log injection attacks where malicious values could cause parsing errors.
-
-To use this function, pass the \fIname\fP string and \fIvalue\fP strings on their respective arguments. If the value is likely to have a NUL byte embedded within it, you will need to pass a length in \fIvlen\fP bytes that tells how big the value is. Otherwise, you can pass a 0 for \fIvlen\fP and the function will simply use strlen against the \fIvalue\fP pointer. Also be aware that the \fIname\fP of the field will cause auparse to do certain things when interpreting the value. If the \fIname\fP is uid, a user id value in decimal is expected. Make sure that well known names are used for their intended purpose or that there is no chance of name collision with something new.
+This function formats a name/value pair for logging by the audit system.
+This should be used on any field being logged that might contain a space,
+a double-quote, a C0 control byte, a DEL byte, or a non-ASCII byte. Values
+containing those bytes have to be specially encoded for the auparse library
+to correctly handle the value. The encoding method is designed to prevent
+log injection attacks where malicious values could cause parsing errors.
+.PP
+To use this function, pass the
+.I name
+string and
+.I value
+string in their respective arguments.
+The
+.I name
+argument must not be NULL, and is copied as-is before the '=' separator.
+The value is checked with
+.BR audit_value_needs_encoding (3).
+If encoding is needed, the returned string has the form
+.IR name = HEX ,
+where
+.I HEX
+is the uppercase hexadecimal encoding of the value bytes. If encoding is
+not needed, the returned string has the form
+.IR name = "value" .
+.PP
+If
+.I value
+is NULL, a question mark is used as the value. If
+.I vlen
+is 0, the function uses
+.BR strlen (3)
+to determine the value length. If the value may contain an embedded NUL byte,
+pass the value length in
+.I vlen
+bytes.
+.PP
+Also be aware that the
+.I name
+of the field will cause auparse to do certain things when interpreting the
+value. If the
+.I name
+is uid, a user id value in decimal is expected. Make sure that well known
+names are used for their intended purpose or that there is no chance of name
+collision with something new.
 
 .SH "RETURN VALUE"
 
@@ -22,7 +63,9 @@ Returns a freshly malloc'ed string that the caller must free or NULL on error.
 .BR audit_log_user_message (3),
 .BR audit_log_user_comm_message (3),
 .BR audit_log_user_avc_message (3),
-.BR audit_log_semanage_message (3).
+.BR audit_log_semanage_message (3),
+.BR audit_encode_value (3),
+.BR audit_value_needs_encoding (3).
 
 .SH AUTHOR
 Steve Grubb
