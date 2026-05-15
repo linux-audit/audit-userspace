@@ -494,7 +494,7 @@ AC_SUBST(DEBUG)
 AC_SUBST(LIBWRAP_LIBS)
 #AC_SUBST(libev_LIBS)
 
-AC_CONFIG_FILES([Makefile common/Makefile lib/Makefile lib/audit.pc
+AC_CONFIG_FILES([Makefile common/Makefile autls/Makefile lib/Makefile lib/audit.pc
        lib/test/Makefile auplugin/Makefile
        auplugin/test/Makefile auparse/Makefile
        auparse/test/Makefile auparse/test/run_auparse_tests.sh
