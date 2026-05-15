@@ -1025,8 +1025,12 @@ static void tls_handshake_handler(struct ev_loop *loop,
 		/* Handshake complete */
 		ev_timer_stop(loop, &client->handshake_timer);
 
+#ifdef HAVE_SSL_GROUP_TO_NAME
 		kex_name = SSL_group_to_name(client->ssl,
 			SSL_get_negotiated_group(client->ssl));
+#else
+		kex_name = NULL;
+#endif
 		audit_msg(LOG_INFO,
 			"TLS connection from %s using %s kex=%s",
 			sockaddr_to_addr(&client->addr),
