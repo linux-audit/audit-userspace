@@ -24,6 +24,7 @@
 #define AUTLS_H
 
 #include <openssl/ssl.h>
+#include "gcc-attributes.h"
 
 typedef void (*autls_log_fn)(int, const char *, ...)
 #ifdef __GNUC__
@@ -35,17 +36,24 @@ typedef void (*autls_log_fn)(int, const char *, ...)
 #define AUTLS_SHUTDOWN_TIMEOUT_MS	1000
 
 /* autls-profile.c */
-int autls_is_pqc_group(const char *name);
-const SSL_CIPHER *autls_find_tls13_cipher(SSL *ssl, const EVP_MD *md);
+int autls_is_pqc_group(const char *name)
+	__attribute_pure__ __wur;
+const SSL_CIPHER *autls_find_tls13_cipher(SSL *ssl, const EVP_MD *md)
+	__nonnull((1)) __wur;
 
 /* autls-psk.c */
-int autls_validate_key_file(const char *path, autls_log_fn log_fn);
+int autls_validate_key_file(const char *path, autls_log_fn log_fn)
+	__nonnull((1, 2)) __wur;
 int autls_load_psk(const char *path, unsigned char **key, size_t *key_len,
-		   autls_log_fn log_fn);
+		   autls_log_fn log_fn)
+	__nonnull((1, 2, 3, 4)) __wur;
 
 /* autls-io.c */
-int autls_remaining_ms(const struct timespec *deadline);
-int autls_ssl_write(SSL *ssl, const void *buf, int len, int timeout_ms);
-void autls_ssl_shutdown(SSL *ssl);
+int autls_remaining_ms(const struct timespec *deadline)
+	__nonnull((1)) __wur;
+int autls_ssl_write(SSL *ssl, const void *buf, int len, int timeout_ms)
+	__nonnull((1, 2)) __attr_access((__read_only__, 2, 3)) __wur;
+void autls_ssl_shutdown(SSL *ssl)
+	__nonnull((1));
 
 #endif /* AUTLS_H */
