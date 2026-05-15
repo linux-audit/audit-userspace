@@ -22,7 +22,11 @@
 #   Rickard E. (Rik) Faith <faith@redhat.com>
 #
 
-SUBDIRS = common lib auparse audisp auplugin audisp/plugins src/libev \
+SUBDIRS = common lib auparse audisp auplugin
+if ENABLE_TLS
+SUBDIRS += autls
+endif
+SUBDIRS += audisp/plugins src/libev \
 	src tools bindings init.d m4 docs rules
 EXTRA_DIST = ChangeLog AUTHORS NEWS README.md INSTALL \
 	audit.spec COPYING COPYING.LIB \
