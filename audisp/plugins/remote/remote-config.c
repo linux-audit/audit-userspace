@@ -959,6 +959,14 @@ static int sanity_check(remote_conf_t *config, const char *file)
 				"tls_psk_file is set");
 			return 1;
 		}
+#ifndef HAVE_SSL_GROUP_TO_NAME
+		if (config->tls_require_pqc) {
+			syslog(LOG_ERR,
+				"tls_require_pqc needs OpenSSL >= 3.0 "
+				"(SSL_group_to_name not available)");
+			return 1;
+		}
+#endif
 		if (config->format != F_MANAGED) {
 			syslog(LOG_ERR,
 				"transport=tls requires format=managed");
