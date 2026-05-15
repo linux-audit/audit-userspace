@@ -52,6 +52,7 @@
 #ifdef HAVE_TLS
 #include <openssl/ssl.h>
 #include <openssl/err.h>
+#include "autls.h"
 #endif
 #ifdef HAVE_LIBCAP_NG
 #include <cap-ng.h>
@@ -1129,7 +1130,7 @@ static char psk_identity_buf[256];
 /*
  * tls_psk_use_session_cb - TLS 1.3 client PSK callback
  * @ssl: SSL connection handle
- * @md: hash algorithm hint (unused, cipher determines hash)
+ * @md: hash algorithm hint from OpenSSL, or NULL
  * @id: output PSK identity to present to server
  * @idlen: output PSK identity length
  * @sess: output SSL_SESSION containing the PSK
@@ -1151,7 +1152,7 @@ static int tls_psk_use_session_cb(SSL *ssl, const EVP_MD *md,
 
 	identity = psk_identity_buf;
 
-	cipher = tls_find_tls13_cipher(ssl);
+	cipher = autls_find_tls13_cipher(ssl, md);
 	if (cipher == NULL) {
 		syslog(LOG_ERR, "Unable to find suitable TLS 1.3 cipher");
 		return 0;
@@ -1243,11 +1244,7 @@ static int init_tls_context(void)
 
 	/* PSK mode */
 	if (config.tls_psk_file) {
-		if (tls_validate_key_file(config.tls_psk_file,
-				syslog) != 0)
-			goto err;
-
-		if (tls_load_psk(config.tls_psk_file,
+		if (autls_load_psk(config.tls_psk_file,
 				&psk_key, &psk_key_len, syslog))
 			goto err;
 
@@ -1278,7 +1275,7 @@ static int init_tls_context(void)
 	}
 
 	if (config.tls_key_file) {
-		if (tls_validate_key_file(config.tls_key_file,
+		if (autls_validate_key_file(config.tls_key_file,
 				syslog) != 0)
 			goto err;
 
@@ -1334,7 +1331,7 @@ err:
 static void destroy_tls_context(void)
 {
 	if (tls_ssl) {
-		tls_ssl_shutdown(tls_ssl);
+		autls_ssl_shutdown(tls_ssl);
 		SSL_free(tls_ssl);
 		tls_ssl = NULL;
 	}
@@ -1428,7 +1425,7 @@ static int tls_connect(void)
 		config.remote_server, SSL_get_cipher(tls_ssl),
 		kex_name ? kex_name : "unknown");
 
-	if (config.tls_require_pqc && !is_pqc_group(kex_name)) {
+	if (config.tls_require_pqc && !autls_is_pqc_group(kex_name)) {
 		syslog(LOG_ERR,
 			"PQC key exchange required but negotiated "
 			"group '%s' is not PQC",
@@ -1452,7 +1449,7 @@ static int tls_connect(void)
 static void tls_disconnect(void)
 {
 	if (tls_ssl) {
-		tls_ssl_shutdown(tls_ssl);
+		autls_ssl_shutdown(tls_ssl);
 		SSL_free(tls_ssl);
 		tls_ssl = NULL;
 	}
@@ -1490,7 +1487,7 @@ static int tls_read(SSL *ssl, void *buf, int len)
 				pfd.events = POLLOUT;
 			else
 				return -1;
-			remaining = tls_remaining_ms(&deadline);
+			remaining = autls_remaining_ms(&deadline);
 			if (remaining <= 0)
 				return -1;
 			{
@@ -1534,7 +1531,7 @@ static int send_msg_tls(unsigned char *header, const char *msg, uint32_t mlen)
 	{
 		int wt = config.max_time_per_record > (unsigned)(INT_MAX / 1000)
 			? INT_MAX : (int)(config.max_time_per_record * 1000);
-		if (tls_ssl_write(tls_ssl, buf, total, wt) < 0) {
+		if (autls_ssl_write(tls_ssl, buf, total, wt) < 0) {
 			syslog(LOG_ERR, "TLS send to %s failed",
 				config.remote_server);
 			return -1;

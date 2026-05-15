@@ -40,15 +40,18 @@ test_queue_LDFLAGS = ${ASAN_FLAGS}
 endif
 
 audisp_remote_DEPENDENCIES = ${top_builddir}/lib/libaudit.la ${top_builddir}/common/libaucommon.la ${top_builddir}/auplugin/libauplugin.la
+if ENABLE_TLS
+audisp_remote_DEPENDENCIES += ${top_builddir}/autls/libautls.la
+endif
 audisp_remote_SOURCES = audisp-remote.c remote-config.c queue.c
 audisp_remote_CFLAGS = -fPIE -DPIE -g -D_REENTRANT -D_GNU_SOURCE -Wundef ${WFLAGS}
 if ENABLE_TLS
-audisp_remote_CFLAGS += $(OPENSSL_CFLAGS)
+audisp_remote_CFLAGS += -I${top_srcdir}/autls $(OPENSSL_CFLAGS)
 endif
 audisp_remote_LDFLAGS = -pie -Wl,-z,relro -Wl,-z,now
 audisp_remote_LDADD = $(CAPNG_LDADD) $(gss_libs) ${top_builddir}/lib/libaudit.la ${top_builddir}/common/libaucommon.la ${top_builddir}/auplugin/libauplugin.la
 if ENABLE_TLS
-audisp_remote_LDADD += $(OPENSSL_LIBS)
+audisp_remote_LDADD += ${top_builddir}/autls/libautls.la
 endif
 
 test_queue_SOURCES = queue.c test-queue.c
@@ -56,8 +59,8 @@ test_queue_SOURCES = queue.c test-queue.c
 if ENABLE_TLS
 check_PROGRAMS += test-tls-helpers
 test_tls_helpers_SOURCES = test-tls-helpers.c
-test_tls_helpers_CFLAGS = $(OPENSSL_CFLAGS)
-test_tls_helpers_LDADD = $(OPENSSL_LIBS)
+test_tls_helpers_CFLAGS = -I${top_srcdir} -I${top_srcdir}/autls $(OPENSSL_CFLAGS)
+test_tls_helpers_LDADD = ${top_builddir}/autls/libautls.la
 if HAVE_ASAN
 test_tls_helpers_CFLAGS += ${ASAN_FLAGS}
 test_tls_helpers_LDFLAGS = ${ASAN_FLAGS}

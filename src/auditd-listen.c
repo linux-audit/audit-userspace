@@ -51,6 +51,7 @@
 #ifdef HAVE_TLS
 #include <openssl/ssl.h>
 #include <openssl/err.h>
+#include "autls.h"
 #endif
 #include "libaudit.h"
 #include "auditd-event.h"
@@ -588,11 +589,13 @@ static void client_ack(void *ack_data, const unsigned char *header,
 			memcpy(buf + AUDIT_RMW_HEADER_SIZE, msg, mlen);
 			total += mlen;
 		}
-		if (tls_ssl_write(io->ssl, buf, total,
-				TLS_WRITE_TIMEOUT_MS) < 0) {
+		if (autls_ssl_write(io->ssl, buf, total,
+				AUTLS_WRITE_TIMEOUT_MS) < 0) {
 			audit_msg(LOG_ERR,
 				"TLS send ack to %s failed",
 				sockaddr_to_addr(&io->addr));
+			shutdown(io->io.fd, SHUT_RDWR);
+		}
 		return;
 	}
 #undef MAX_ACK_MSG_SIZE
@@ -1031,7 +1034,7 @@ static void tls_handshake_handler(struct ev_loop *loop,
 			kex_name ? kex_name : "unknown");
 
 		if (client->config->tls_require_pqc &&
-		    !is_pqc_group(kex_name)) {
+		    !autls_is_pqc_group(kex_name)) {
 			audit_msg(LOG_ERR,
 				"PQC key exchange required but "
 				"negotiated group '%s' is not PQC "
@@ -1324,7 +1327,7 @@ static void periodic_handler(struct ev_loop *loop, struct ev_periodic *per,
 static unsigned char *server_psk_key = NULL;
 static size_t server_psk_key_len = 0;
 
-static const char *expected_psk_identity = NULL;
+static char *expected_psk_identity = NULL;
 
 /*
  * tls_psk_find_session_cb - TLS 1.3 server PSK callback
@@ -1370,7 +1373,7 @@ static int tls_psk_find_session_cb(SSL *ssl, const unsigned char *identity,
 		}
 	}
 
-	cipher = tls_find_tls13_cipher(ssl);
+	cipher = autls_find_tls13_cipher(ssl, NULL);
 	if (cipher == NULL)
 		return 0;
 
@@ -1454,16 +1457,23 @@ static int init_tls_server_context(struct daemon_conf *config)
 
 	/* PSK mode */
 	if (config->tls_psk_file) {
-		if (tls_validate_key_file(config->tls_psk_file,
-				audit_msg) != 0)
-			goto err;
-		if (tls_load_psk(config->tls_psk_file,
+		if (autls_load_psk(config->tls_psk_file,
 				&server_psk_key, &server_psk_key_len,
 				audit_msg) != 0)
 			goto err;
 		SSL_CTX_set_psk_find_session_callback(tls_server_ctx,
 						tls_psk_find_session_cb);
-		expected_psk_identity = config->tls_psk_identity;
+		free(expected_psk_identity);
+		expected_psk_identity = NULL;
+		if (config->tls_psk_identity) {
+			expected_psk_identity =
+				strdup(config->tls_psk_identity);
+			if (!expected_psk_identity) {
+				audit_msg(LOG_ERR,
+					"Out of memory for PSK identity");
+				goto err;
+			}
+		}
 	}
 
 	/* Server certificate */
@@ -1478,7 +1488,7 @@ static int init_tls_server_context(struct daemon_conf *config)
 	}
 
 	if (config->tls_key_file) {
-		if (tls_validate_key_file(config->tls_key_file,
+		if (autls_validate_key_file(config->tls_key_file,
 				audit_msg) != 0)
 			goto err;
 		if (SSL_CTX_use_PrivateKey_file(tls_server_ctx,
@@ -1523,6 +1533,8 @@ err:
 		server_psk_key = NULL;
 		server_psk_key_len = 0;
 	}
+	free(expected_psk_identity);
+	expected_psk_identity = NULL;
 	SSL_CTX_free(tls_server_ctx);
 	tls_server_ctx = NULL;
 	return -1;
@@ -1735,6 +1747,7 @@ void auditd_tcp_listen_uninit(struct ev_loop *loop, struct daemon_conf *config)
 		server_psk_key = NULL;
 		server_psk_key_len = 0;
 	}
+	free(expected_psk_identity);
 	expected_psk_identity = NULL;
 #endif
 #ifdef USE_GSSAPI
@@ -1857,20 +1870,22 @@ void auditd_tcp_listen_reconfigure(const struct daemon_conf *nconf,
 		audit_msg(LOG_NOTICE,
 			"TLS settings not reloaded; restart auditd "
 			"to apply TLS config changes");
-	free((void *)nconf->tls_cert_file);
-	nconf->tls_cert_file = NULL;
-	free((void *)nconf->tls_key_file);
-	nconf->tls_key_file = NULL;
-	free((void *)nconf->tls_ca_file);
-	nconf->tls_ca_file = NULL;
-	free((void *)nconf->tls_psk_file);
-	nconf->tls_psk_file = NULL;
-	free((void *)nconf->tls_psk_identity);
-	nconf->tls_psk_identity = NULL;
-	free((void *)nconf->tls_cipher_suites);
-	nconf->tls_cipher_suites = NULL;
-	free((void *)nconf->tls_key_exchange);
-	nconf->tls_key_exchange = NULL;
+	free((void *)oconf->tls_cert_file);
+	oconf->tls_cert_file = nconf->tls_cert_file;
+	free((void *)oconf->tls_key_file);
+	oconf->tls_key_file = nconf->tls_key_file;
+	free((void *)oconf->tls_ca_file);
+	oconf->tls_ca_file = nconf->tls_ca_file;
+	free((void *)oconf->tls_psk_file);
+	oconf->tls_psk_file = nconf->tls_psk_file;
+	free((void *)oconf->tls_psk_identity);
+	oconf->tls_psk_identity = nconf->tls_psk_identity;
+	free((void *)oconf->tls_cipher_suites);
+	oconf->tls_cipher_suites = nconf->tls_cipher_suites;
+	free((void *)oconf->tls_key_exchange);
+	oconf->tls_key_exchange = nconf->tls_key_exchange;
+	oconf->tls_client_auth = nconf->tls_client_auth;
+	oconf->tls_require_pqc = nconf->tls_require_pqc;
 #endif
 }
 
