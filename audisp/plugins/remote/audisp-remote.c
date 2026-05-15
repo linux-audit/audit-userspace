@@ -1419,8 +1419,12 @@ static int tls_connect(void)
 
 
 
+#ifdef HAVE_SSL_GROUP_TO_NAME
 	kex_name = SSL_group_to_name(tls_ssl,
 			SSL_get_negotiated_group(tls_ssl));
+#else
+	kex_name = NULL;
+#endif
 	syslog(LOG_NOTICE, "TLS connected to %s using %s kex=%s",
 		config.remote_server, SSL_get_cipher(tls_ssl),
 		kex_name ? kex_name : "unknown");

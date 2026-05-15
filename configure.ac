@@ -287,6 +287,8 @@ AC_ARG_ENABLE(tls,
 if test x$want_tls = xyes; then
 	AC_CHECK_LIB(ssl, SSL_CTX_new, [OPENSSL_LIBS="-lssl -lcrypto"],
 		[AC_MSG_ERROR([TLS support requires OpenSSL (libssl)])])
+	AC_CHECK_LIB(crypto, OPENSSL_hexstr2buf, [:],
+		[AC_MSG_ERROR([TLS support requires OpenSSL (libcrypto)])])
 	AC_CHECK_HEADER(openssl/ssl.h, [],
 		[AC_MSG_ERROR([TLS support requires OpenSSL headers])])
 	AC_MSG_CHECKING([for OpenSSL >= 1.1.1])
@@ -298,6 +300,28 @@ if test x$want_tls = xyes; then
 	], [])], [AC_MSG_RESULT(yes)],
 	     [AC_MSG_RESULT(no)
 	      AC_MSG_ERROR([TLS support requires OpenSSL >= 1.1.1])])
+	dnl Probe for TLS 1.3 APIs actually used
+	saved_LIBS="$LIBS"
+	LIBS="$LIBS $OPENSSL_LIBS"
+	AC_CHECK_FUNCS([SSL_CTX_set_ciphersuites], [],
+		[AC_MSG_ERROR([TLS 1.3 ciphersuite API not found])])
+	AC_CHECK_FUNCS([SSL_CTX_set_psk_find_session_callback], [],
+		[AC_MSG_ERROR([TLS 1.3 PSK callback API not found])])
+	AC_CHECK_FUNCS([SSL_CTX_set_psk_use_session_callback], [],
+		[AC_MSG_ERROR([TLS 1.3 PSK callback API not found])])
+	AC_CHECK_DECLS([SSL_get_negotiated_group], [],
+		[AC_MSG_ERROR([SSL_get_negotiated_group not found])],
+		[#include <openssl/ssl.h>])
+	dnl Optional: SSL_group_to_name (OpenSSL 3.0+), needed for PQC
+	dnl enforcement and key exchange group name logging
+	AC_CHECK_FUNCS([SSL_group_to_name])
+	AC_CHECK_FUNCS([SSL_CIPHER_get_version], [],
+		[AC_MSG_ERROR([SSL_CIPHER_get_version not found])])
+	AC_CHECK_FUNCS([SSL_CIPHER_get_protocol_id], [],
+		[AC_MSG_ERROR([SSL_CIPHER_get_protocol_id not found])])
+	AC_CHECK_FUNCS([SSL_CIPHER_get_handshake_digest], [],
+		[AC_MSG_ERROR([SSL_CIPHER_get_handshake_digest not found; OpenSSL >= 1.1.1 required])])
+	LIBS="$saved_LIBS"
 	AC_DEFINE(HAVE_TLS,, Define if you want to use TLS transport)
 	OPENSSL_CFLAGS="${OPENSSL_CFLAGS-}"
 	AC_SUBST(OPENSSL_CFLAGS)

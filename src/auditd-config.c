@@ -2273,6 +2273,14 @@ static int sanity_check(struct daemon_conf *config)
 				"tls_psk_file is set");
 			return 1;
 		}
+#ifndef HAVE_SSL_GROUP_TO_NAME
+		if (config->tls_require_pqc) {
+			audit_msg(LOG_ERR,
+				"tls_require_pqc needs OpenSSL >= 3.0 "
+				"(SSL_group_to_name not available)");
+			return 1;
+		}
+#endif
 		if (have_cert && config->tls_client_auth > TCA_NONE &&
 				!config->tls_ca_file) {
 			audit_msg(LOG_ERR,
