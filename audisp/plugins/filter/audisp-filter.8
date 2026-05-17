@@ -1,4 +1,4 @@
-.TH AUDISP-SYSLOG "8" "February 2024" "Red Hat" "System Administration Utilities"
+.TH AUDISP-FILTER "8" "February 2024" "Red Hat" "System Administration Utilities"
 .SH NAME
 audisp-filter \- plugin to filter audit events and forward them to other plugins
 .SH SYNOPSIS
@@ -9,7 +9,20 @@ audisp-filter \- plugin to filter audit events and forward them to other plugins
 .RS
 .TP
 .B MODE
-The operational mode can be either allowlist or blocklist. In allowlist mode, the plugin forwards everything except for events that match the specified ausearch expressions in the configuration. Conversely, in blocklist mode, it refrains from forwarding anything except for events listed in the configuration.
+The operational mode can be either allowlist or blocklist. The mode names
+have the following exact meaning:
+.RS
+.TP
+.B allowlist
+Forward non-matching events. Drop events that match the configured
+ausearch expressions.
+.TP
+.B blocklist
+Forward events that match the configured ausearch expressions. Drop
+non-matching events.
+.RE
+Do not infer behavior from other allow/deny list terminology; use the
+definitions above.
 .TP
 .B CONFIG_FILE
 Path to the main configuration file containing ausearch expressions.
@@ -33,13 +46,34 @@ character are treated as comments and do not influence the final rule set.
 
 Upon the creation of an audit event, the filtering engine goes through the list of expressions, constructing the final expression representing our rule set. The event in question will be searched using this expression. The decision to forward an audit event to the configured binary depends on two factors: the operational mode of audisp-filter and whether the expression matches the ongoing event.
 
-.SH EXAMPLE
-Example1: Do not syslog audit events containing unsuccessful openat syscalls.
+Filtering is event based, not record based. If any record in a multi-record
+audit event matches the final expression, the whole event is treated as a
+match. When that event is forwarded, all of its records are written to the
+configured binary, including companion records that did not individually
+match the expression.
 
-First, in the plugin config, make sure that operation mode is set to allowlist, the binary points to /sbin/audispFyslog and provide any additional arguments if needed. Next, create the plugin specific config file with the content below. Before enabling the audit plugin, always make sure the syntax is correct. This can be checked by calling audisp-filter --check path/to/config/file.
+.SH EXAMPLES
+Example 1: Do not syslog audit events containing failed openat syscalls.
 
-.B (type r= SYSCALL && syscall i= openat && success r= yes)
+First, in the plugin config, make sure that operation mode is set to allowlist, the binary points to /sbin/audisp-syslog and provide any additional arguments if needed. Next, create the plugin specific config file with the content below. Before enabling the audit plugin, always make sure the syntax is correct. This can be checked by calling audisp-filter --check path/to/config/file.
 
+.B (type r= SYSCALL && syscall i= openat && success r= no)
+
+Example 2: Forward only SERVICE_STOP events and events that contain a
+NETFILTER_CFG record.
+
+Use blocklist mode and put the following expressions in the plugin specific
+configuration file:
+.nf
+.B type r= "SERVICE_STOP"
+.B type r= "NETFILTER_CFG"
+.fi
+
+A NETFILTER_CFG record can be part of a multi-record event that also contains
+SYSCALL and PROCTITLE records with the same audit timestamp and serial. If
+the NETFILTER_CFG record matches, audisp-filter forwards all records in that
+event. A separate SERVICE_START event does not match this example and is not
+forwarded.
 
 .SH FILES
 /etc/audit/plugins/filter.conf

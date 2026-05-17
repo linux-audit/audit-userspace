@@ -153,6 +153,67 @@ static void test_single_char_field_values(void)
 	auparse_destroy(au);
 }
 
+/*
+ * Verify ausearch_cur_event matches at the audit event level. Input is
+ * provided by the static test buffer and failures abort through assert().
+ */
+static void test_cur_event_matches_multirecord_event(void)
+{
+	const char buf[] =
+		"type=SERVICE_STOP msg=audit(1710000000.001:100): "
+		"pid=1 uid=0 auid=4294967295 ses=1 "
+		"msg='unit=nftables comm=\"systemd\" "
+		"exe=\"/usr/lib/systemd/systemd\" hostname=? addr=? "
+		"terminal=? res=success'\n"
+		"type=SYSCALL msg=audit(1710000000.002:101): "
+		"arch=c000003e syscall=54 success=yes exit=0 a0=0 "
+		"a1=0 a2=0 a3=0 items=0 ppid=1 pid=123 auid=0 "
+		"uid=0 gid=0 euid=0 suid=0 fsuid=0 egid=0 sgid=0 "
+		"fsgid=0 tty=(none) ses=1 comm=\"nft\" "
+		"exe=\"/usr/bin/nft\" key=(null)\n"
+		"type=NETFILTER_CFG msg=audit(1710000000.002:101): "
+		"table=filter family=2 entries=1 op=register pid=123 "
+		"comm=\"nft\"\n"
+		"type=PROCTITLE msg=audit(1710000000.002:101): "
+		"proctitle=6E6674\n"
+		"type=SERVICE_START msg=audit(1710000000.003:102): "
+		"pid=1 uid=0 auid=4294967295 ses=1 "
+		"msg='unit=nftables comm=\"systemd\" "
+		"exe=\"/usr/lib/systemd/systemd\" hostname=? addr=? "
+		"terminal=? res=success'\n";
+	auparse_state_t *au = auparse_init(AUSOURCE_BUFFER, buf);
+	char *err = NULL;
+
+	assert(au != NULL);
+	assert(ausearch_set_stop(au, AUSEARCH_STOP_EVENT) == 0);
+	assert(ausearch_add_expression(au, "type r= \"SERVICE_STOP\"",
+				&err, AUSEARCH_RULE_OR) == 0);
+	assert(err == NULL);
+	assert(ausearch_add_expression(au, "type r= \"NETFILTER_CFG\"",
+				&err, AUSEARCH_RULE_OR) == 0);
+	assert(err == NULL);
+
+	assert(auparse_next_event(au) > 0);
+	assert(auparse_get_num_records(au) == 1);
+	assert(ausearch_cur_event(au) == 1);
+
+	assert(auparse_next_event(au) > 0);
+	assert(auparse_get_num_records(au) == 3);
+	assert(ausearch_cur_event(au) == 1);
+	assert(auparse_goto_record_num(au, 0) == 1);
+	assert(auparse_get_type(au) == AUDIT_SYSCALL);
+	assert(auparse_goto_record_num(au, 1) == 1);
+	assert(auparse_get_type(au) == AUDIT_NETFILTER_CFG);
+	assert(auparse_goto_record_num(au, 2) == 1);
+	assert(auparse_get_type(au) == AUDIT_PROCTITLE);
+
+	assert(auparse_next_event(au) > 0);
+	assert(auparse_get_num_records(au) == 1);
+	assert(ausearch_cur_event(au) == 0);
+
+	auparse_destroy(au);
+}
+
 int main(void)
 {
 	test_new_buffer();
@@ -162,7 +223,7 @@ int main(void)
 	test_timestamp_milli();
 	test_path_norm();
 	test_single_char_field_values();
+	test_cur_event_matches_multirecord_event();
 	printf("extra auparse tests: all passed\n");
 	return 0;
 }
-
