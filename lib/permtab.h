@@ -27,6 +27,6 @@
 
 _S(AUDIT_PERM_EXEC, "execve,execveat")
 _S(AUDIT_PERM_WRITE, "rename,mkdir,rmdir,creat,link,unlink,symlink,mknod,mkdirat,mknodat,unlinkat,renameat,linkat,symlinkat,renameat2,acct,swapon,quotactl,quotactl_fd,truncate,ftruncate,bind,fallocate,open,openat,openat2")
-_S(AUDIT_PERM_READ, "readlink,quotactl,listxattr,listxattrat,llistxattr,flistxattr,getxattr,getxattrat,lgetxattr,fgetxattr,readlinkat,open,openat,openat2,file_getattr")
-_S(AUDIT_PERM_ATTR, "chmod,fchmod,chown,lchown,fchown,setxattr,setxattrat,lsetxattr,fsetxattr,removexattr,removexattrat,lremovexattr,fremovexattr,fchownat,fchmodat,fchmodat2,file_setattr,link,linkat")
+_S(AUDIT_PERM_READ, "readlink,quotactl,quotactl_fd,listxattr,listxattrat,llistxattr,flistxattr,getxattr,getxattrat,lgetxattr,fgetxattr,readlinkat,open,openat,openat2,file_getattr,stat,lstat,fstat,newfstatat,statx")
+_S(AUDIT_PERM_ATTR, "chmod,fchmod,chown,lchown,fchown,setxattr,setxattrat,lsetxattr,fsetxattr,removexattr,removexattrat,lremovexattr,fremovexattr,fchownat,fchmodat,fchmodat2,file_setattr,link,linkat,utime,utimes,futimesat,utimensat")
 
