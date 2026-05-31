@@ -2,9 +2,18 @@
 .SH NAME
 audit_log_user_comm_message \- log a user message from a console app
 .SH SYNOPSIS
+.nf
 .B #include <libaudit.h>
-.sp
-.BI "int audit_log_user_comm_message(int" audit_fd, int" type, const char *" message, const char *" comm, const char *" hostname, const char *" addr, const char *" tty, int" result);"
+.PP
+.BI "int audit_log_user_comm_message(int " audit_fd ,
+.BI "                                int " type ,
+.BI "                                const char *" message ,
+.BI "                                const char *" comm ,
+.BI "                                const char *" hostname ,
+.BI "                                const char *" addr ,
+.BI "                                const char *" tty ,
+.BI "                                int " result ");"
+.fi
 
 .SH DESCRIPTION
 This function will log a message to the audit system using a predefined message format. This function should be used by all non-ELF console apps that do not manipulate accounts, groups, or need to log execution of a script. An example would be a Python script recording an event. The function parameters are as follows:

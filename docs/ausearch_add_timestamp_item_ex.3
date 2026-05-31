@@ -2,9 +2,16 @@
 .SH NAME
 ausearch_add_timestamp_item_ex \- build up search rule
 .SH "SYNOPSIS"
+.nf
 .B #include <auparse.h>
-.sp
-.BI "int ausearch_add_timestamp_item_ex(auparse_state_t *" au, const char *" op, time_t" sec, unsigned" milli, unsigned" serial, ausearch_rule_t" how);"
+.PP
+.BI "int ausearch_add_timestamp_item_ex(auparse_state_t *" au ,
+.BI "                                    const char *" op ,
+.BI "                                    time_t " sec ,
+.BI "                                    unsigned " milli ,
+.BI "                                    unsigned " serial ,
+.BI "                                    ausearch_rule_t " how ");"
+.fi
 
 .SH "DESCRIPTION"
 

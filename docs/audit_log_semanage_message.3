@@ -2,9 +2,26 @@
 .SH NAME
 audit_log_semanage_message \- log a semanage message
 .SH SYNOPSIS
+.nf
 .B #include <libaudit.h>
-.sp
-.BI "int audit_log_semanage_message(int" audit_fd, int" type, .B const char *" pgname, const char *" op, const char *" name, unsigned int" id, .B const char *" new_seuser, const char *" new_role, const char *" new_range, .B const char *" old_seuser, const char *" old_role, const char *" old_range, .B const char *" host, const char *" addr, const char *" tty, int" result);"
+.PP
+.BI "int audit_log_semanage_message(int " audit_fd ,
+.BI "                               int " type ,
+.BI "                               const char *" pgname ,
+.BI "                               const char *" op ,
+.BI "                               const char *" name ,
+.BI "                               unsigned int " id ,
+.BI "                               const char *" new_seuser ,
+.BI "                               const char *" new_role ,
+.BI "                               const char *" new_range ,
+.BI "                               const char *" old_seuser ,
+.BI "                               const char *" old_role ,
+.BI "                               const char *" old_range ,
+.BI "                               const char *" host ,
+.BI "                               const char *" addr ,
+.BI "                               const char *" tty ,
+.BI "                               int " result ");"
+.fi
 
 .SH DESCRIPTION
 

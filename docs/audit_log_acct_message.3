@@ -2,9 +2,20 @@
 .SH NAME
 audit_log_acct_message \- log a user account message
 .SH SYNOPSIS
+.nf
 .B #include <libaudit.h>
-.sp
-.BI "int audit_log_acct_message(int" audit_fd, int" type, const char *" pgname, const char *" op, const char *" name, unsigned int" id, const char *" host, const char *" addr, const char *" tty, int" result);"
+.PP
+.BI "int audit_log_acct_message(int " audit_fd ,
+.BI "                           int " type ,
+.BI "                           const char *" pgname ,
+.BI "                           const char *" op ,
+.BI "                           const char *" name ,
+.BI "                           unsigned int " id ,
+.BI "                           const char *" host ,
+.BI "                           const char *" addr ,
+.BI "                           const char *" tty ,
+.BI "                           int " result ");"
+.fi
 
 .SH DESCRIPTION
 This function will log a message to the audit system using a predefined message format. It should be used for all account manipulation operations. The function
