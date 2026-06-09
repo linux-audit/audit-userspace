@@ -34,6 +34,8 @@
 #include <sys/time.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
+#include <sys/socket.h>
+#include <linux/netlink.h>
 #include <fcntl.h>
 #include <pthread.h>
 #include <sys/utsname.h>
@@ -714,7 +716,7 @@ int main(int argc, char *argv[])
 	struct sigaction sa;
 	sigset_t sigchld_mask;
 	struct rlimit limit;
-	int i, c, rc;
+	int i, c, rc, one = 1;
 	static const struct option opts[] = {
 		{"foreground", no_argument, NULL, 'f'},
 		{"allow_links", no_argument, NULL, 'l'},
@@ -873,6 +875,17 @@ int main(int argc, char *argv[])
 	/* Init netlink */
 	if ((fd = audit_open()) < 0) {
 		audit_msg(LOG_ERR, "Cannot open netlink audit socket");
+		tell_parent(FAILURE);
+		free_config(&config);
+		return 1;
+	}
+	// Prevent netlink congestion issues
+	if (setsockopt(fd, SOL_NETLINK, NETLINK_NO_ENOBUFS,
+			&one, sizeof(one)) < 0) {
+		audit_msg(LOG_ERR,
+			"Cannot set netlink no enobufs option (%s)",
+			strerror(errno));
+		audit_close(fd);
 		tell_parent(FAILURE);
 		free_config(&config);
 		return 1;
