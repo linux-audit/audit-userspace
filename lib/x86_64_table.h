@@ -355,6 +355,10 @@ _S(331, "pkey_free")
 _S(332, "statx")
 _S(333, "io_pgetevents")
 _S(334, "rseq")
+/*_S(335, "uretprobe")  Not a traditional syscall - don't include
+  _S(336, "uprobe")	Not a traditional syscall - don't include */
+// don't use numbers 387 through 423, add new calls after the last
+// 'common' entry
 _S(424, "pidfd_send_signal")
 _S(425, "io_uring_setup")
 _S(426, "io_uring_enter")
