@@ -9,7 +9,10 @@ auparse_feed_age_events \- check events for complete based on time.
 .SH "DESCRIPTION"
 
 .I auparse_feed_age_events
-should be called to see if any events are complete based on the current clock time. Any newly complete events will be passed to the callback function.
+should be called to see if any events are complete based on the current clock time.
+.I auparse_add_callback()
+must be called before aging feed events so that complete events have a consumer.
+Any newly complete events will be passed to the callback function.
 
 .SH "RETURN VALUE"
 

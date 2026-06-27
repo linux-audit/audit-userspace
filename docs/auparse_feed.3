@@ -27,6 +27,8 @@ number of bytes in
 supplies new data for the parser to consume.
 .I auparse_init()
 must have been called with a source type of AUSOURCE_FEED and a NULL pointer.
+.I auparse_add_callback()
+must be called before feeding data so that complete events have a consumer.
 .br
 .sp
 The parser consumes as much data
@@ -38,10 +40,58 @@ each time the parser recognizes a complete event in the data stream. Data not fu
 prepended to the next feed data. After all data has been feed to the parser
 .I auparse_flush_feed
 should be called to signal the end of input data and flush any pending parse data through the parsing system.
+Malformed feed records are rejected and are not passed to the callback.
+If malformed records are found, parsing continues for the rest of the
+available feed data before
+.I auparse_feed
+returns an error.
 
 .SH "RETURN VALUE"
 
 Returns \-1 if an error occurs; otherwise, 0 for success.
+When \-1 is returned,
+.I errno
+is set to indicate the error. The value of
+.I errno
+is meaningful only after an error return; callers should not assume it is
+cleared after a successful call.
+Applications that may run with libauparse from before audit-4.1.5 should set
+.I errno
+to 0 before calling
+.I auparse_feed.
+If
+.I auparse_feed
+returns \-1 and
+.I errno
+is still 0, the runtime library is using the older error behavior and did not
+set
+.I errno.
+Clearing
+.I errno
+first avoids treating a pre-existing value as if it were set by
+.I auparse_feed.
+
+.SH "ERRORS"
+
+.TP
+.B EINVAL
+The parser state is invalid, the parser was not initialized with
+.B AUSOURCE_FEED,
+the input arguments are invalid, or no callback has been registered.
+
+.TP
+.B ENOMEM
+Memory allocation failed while buffering or parsing feed data.
+
+.TP
+.B EBADMSG
+A malformed feed record was found. The malformed record was rejected and was
+not passed to the callback. Parsing continues for the rest of the available
+feed data before this error is returned.
+
+.TP
+.B EIO
+An internal parser failure occurred without a more specific error code.
 
 .SH "EXAMPLE"
 .nf

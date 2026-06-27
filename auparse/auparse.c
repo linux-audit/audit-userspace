@@ -46,6 +46,8 @@ static int debug = 0;
 
 static time_t	eoe_timeout = EOE_TIMEOUT;
 
+static int au_auparse_next_event(auparse_state_t *au, int *malformed);
+
 /* like strchr except string is delimited by length, not null byte */
 static char *strnchr(const char *s, int c, size_t n)
 {
@@ -603,19 +605,60 @@ void auparse_add_callback(auparse_state_t *au, auparse_callback_ptr callback,
 	au->callback_user_data_destroy = user_destroy_func;
 }
 
-static void consume_feed(auparse_state_t *au, int flush)
+/* validate_feed - check whether @au is ready to consume feed data
+ * @au: parser state machine to validate
+ *
+ * Return: 0 on success, -1 on failure with errno set.
+ */
+static int validate_feed(const auparse_state_t *au)
 {
+	if (au == NULL || au->source != AUSOURCE_FEED ||
+						au->callback == NULL) {
+		errno = EINVAL;
+		return -1;
+	}
+
+	return 0;
+}
+
+/* consume_feed - process buffered feed data and optionally flush events
+ * @au: parser state machine
+ * @flush: non-zero to terminate and deliver outstanding events
+ *
+ * Return: 0 on success, -1 on failure with errno set.
+ */
+static int consume_feed(auparse_state_t *au, int flush)
+{
+	int rc, malformed, saved_errno = 0;
+
 	//if (debug) printf("consume feed, flush %d\n", flush);
-	while (auparse_next_event(au) > 0) {
-		if (au->callback) {
+	do {
+		/*
+		 * This calls the lower-level parser so malformed feed
+		 * records can be reported while preserving auparse_next_event()
+		 * normalizer state handling.
+		 */
+		malformed = 0;
+		clear_normalizer(&au->norm_data);
+		rc = au_auparse_next_event(au, &malformed);
+		if (malformed && saved_errno == 0)
+			saved_errno = EBADMSG;
+
+		if (rc > 0)
 			(*au->callback)(au, AUPARSE_CB_EVENT_READY,
 					au->callback_user_data);
-		}
+	} while (rc > 0);
+
+	if (rc < 0) {
+		if (errno == 0)
+			errno = EIO;
+		return -1;
 	}
+
 	if (flush) {
 		/* Terminate all outstanding events, as we are at end of input
-		 * (ie mark BUILDING events as COMPLETE events) then if we
-		 * have a callback execute the callback on each event
+		 * (ie mark BUILDING events as COMPLETE events) then execute
+		 * the callback on each event
 		 */
 		event_list_t	*l;
 
@@ -630,12 +673,17 @@ static void consume_feed(auparse_state_t *au, int flush)
 			load_interpretation_list(au, r->interp);
 			aup_list_first_field(l);
 
-			if (au->callback) {
-				(*au->callback)(au, AUPARSE_CB_EVENT_READY,
+			(*au->callback)(au, AUPARSE_CB_EVENT_READY,
 					au->callback_user_data);
-			}
 		}
 	}
+
+	if (saved_errno) {
+		errno = saved_errno;
+		return -1;
+	}
+
+	return 0;
 }
 
 int auparse_new_buffer(auparse_state_t *au, const char *data, size_t data_len)
@@ -651,18 +699,39 @@ int auparse_new_buffer(auparse_state_t *au, const char *data, size_t data_len)
 	return 0;
 }
 
+/* auparse_feed - append data to the feed parser and consume what is ready
+ * @au: parser state machine
+ * @data: feed data to append
+ * @data_len: length of @data
+ *
+ * Return: 0 on success, -1 on failure with errno set.
+ */
 int auparse_feed(auparse_state_t *au, const char *data, size_t data_len)
 {
-	if (databuf_append(&au->databuf, data, data_len) < 0)
+	if (data == NULL && data_len != 0) {
+		errno = EINVAL;
 		return -1;
-	consume_feed(au, 0);
-	return 0;
+	}
+	if (validate_feed(au) < 0)
+		return -1;
+	if (databuf_append(&au->databuf, data, data_len) < 0) {
+		if (errno == 0)
+			errno = ENOMEM;
+		return -1;
+	}
+	return consume_feed(au, 0);
 }
 
+/* auparse_flush_feed - flush pending feed data through the parser
+ * @au: parser state machine
+ *
+ * Return: 0 on success, -1 on failure with errno set.
+ */
 int auparse_flush_feed(auparse_state_t *au)
 {
-	consume_feed(au, 1);
-	return 0;
+	if (validate_feed(au) < 0)
+		return -1;
+	return consume_feed(au, 1);
 }
 
 // If there is any data in the state machine, return 1.
@@ -696,11 +765,21 @@ int auparse_feed_has_ready_event(auparse_state_t *au)
 	return 0;
 }
 
+/* auparse_feed_age_events - complete feed events aged out by the clock
+ * @au: parser state machine
+ *
+ * Return: none.
+ */
 void auparse_feed_age_events(auparse_state_t *au)
 {
-	time_t t = time(NULL);
+	time_t t;
+
+	if (validate_feed(au) < 0)
+		return;
+
+	t = time(NULL);
 	au_check_events(au, t);
-	consume_feed(au, 0);
+	(void)consume_feed(au, 0);
 }
 
 void auparse_set_escape_mode(auparse_state_t *au, auparse_esc_t mode)
@@ -1476,16 +1555,14 @@ int ausearch_next_event(auparse_state_t *au)
 	return 0;
 }
 
-/*
- * au_auparse_next_event - Get the next complete event
- * Args:
- * 	au - the parser state machine
- * Rtns:
- *	< 0	- error
- *	== 0	- no data
- *	> 0	- we have an event and it's set to the 'current event' au->le
+/* au_auparse_next_event - get the next complete event
+ * @au: parser state machine
+ * @malformed: optional flag set when a malformed record is skipped
+ *
+ * Return: less than 0 on error, 0 if no data is available, or greater
+ * than 0 if an event is available and set as the current event.
  */
-static int au_auparse_next_event(auparse_state_t *au)
+static int au_auparse_next_event(auparse_state_t *au, int *malformed)
 {
 	int rc, i, built;
 	event_list_t *l;
@@ -1621,6 +1698,8 @@ static int au_auparse_next_event(auparse_state_t *au)
 			if (debug)
 				printf("Malformed line:%s\n", au->cur_buf);
 #endif	/* LOL_EVENTS_DEBUG01 */
+			if (malformed)
+				*malformed = 1;
 			continue;
 		}
 
@@ -1716,7 +1795,7 @@ static int au_auparse_next_event(auparse_state_t *au)
 int auparse_next_event(auparse_state_t *au)
 {
 	clear_normalizer(&au->norm_data);
-	return au_auparse_next_event(au);
+	return au_auparse_next_event(au, NULL);
 }
 
 /* Accessors to event data */

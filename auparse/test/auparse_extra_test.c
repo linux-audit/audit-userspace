@@ -1,5 +1,6 @@
 #include "config.h"
 #include <assert.h>
+#include <errno.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -33,12 +34,53 @@ static void test_feed_state(void)
 	const char buf[] = "type=LOGIN msg=audit(1143146623.787:142): pid=1\n";
 	auparse_state_t *au = auparse_init(AUSOURCE_FEED, NULL);
 	assert(au != NULL);
+	cb_count = 0;
 	auparse_add_callback(au, ready_cb, NULL, NULL);
 	assert(auparse_feed_has_data(au) == 0);
 	assert(auparse_feed(au, buf, strlen(buf)) == 0);
 	assert(auparse_feed_has_data(au) == 1);
 	auparse_flush_feed(au);
 	assert(cb_count == 1);
+	auparse_destroy(au);
+}
+
+static void test_feed_requires_callback(void)
+{
+	const char buf[] = "type=LOGIN msg=audit(1143146623.787:142): pid=1\n";
+	auparse_state_t *au = auparse_init(AUSOURCE_FEED, NULL);
+
+	assert(au != NULL);
+	errno = 0;
+	assert(auparse_feed(au, buf, strlen(buf)) == -1);
+	assert(errno == EINVAL);
+	assert(auparse_feed_has_data(au) == 0);
+
+	errno = 0;
+	assert(auparse_flush_feed(au) == -1);
+	assert(errno == EINVAL);
+
+	auparse_destroy(au);
+}
+
+static void test_feed_rejects_malformed_record(void)
+{
+	const char buf[] =
+		"not an audit record\n"
+		"type=LOGIN msg=audit(1143146623.787:142): pid=1\n";
+	auparse_state_t *au = auparse_init(AUSOURCE_FEED, NULL);
+
+	assert(au != NULL);
+	cb_count = 0;
+	auparse_add_callback(au, ready_cb, NULL, NULL);
+
+	errno = 0;
+	assert(auparse_feed(au, buf, strlen(buf)) == -1);
+	assert(errno == EBADMSG);
+	assert(cb_count == 0);
+
+	assert(auparse_flush_feed(au) == 0);
+	assert(cb_count == 1);
+
 	auparse_destroy(au);
 }
 
@@ -218,6 +260,8 @@ int main(void)
 {
 	test_new_buffer();
 	test_feed_state();
+	test_feed_requires_callback();
+	test_feed_rejects_malformed_record();
 	test_normalize();
 	test_compare();
 	test_timestamp_milli();
