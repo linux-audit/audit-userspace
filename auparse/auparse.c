@@ -621,6 +621,26 @@ static int validate_feed(const auparse_state_t *au)
 	return 0;
 }
 
+/* dispatch_feed_callback - call the current feed callback if registered
+ * @au: parser state machine
+ *
+ * auparse_add_callback() may be called from inside a callback. Look up the
+ * callback for each delivery so clearing it during feed processing only skips
+ * later events instead of dereferencing a NULL function pointer.
+ *
+ * Return: none.
+ */
+static void dispatch_feed_callback(auparse_state_t *au)
+{
+	auparse_callback_ptr callback = au->callback;
+	void *user_data = au->callback_user_data;
+
+	if (callback == NULL)
+		return;
+
+	(*callback)(au, AUPARSE_CB_EVENT_READY, user_data);
+}
+
 /* consume_feed - process buffered feed data and optionally flush events
  * @au: parser state machine
  * @flush: non-zero to terminate and deliver outstanding events
@@ -645,8 +665,7 @@ static int consume_feed(auparse_state_t *au, int flush)
 			saved_errno = EBADMSG;
 
 		if (rc > 0)
-			(*au->callback)(au, AUPARSE_CB_EVENT_READY,
-					au->callback_user_data);
+			dispatch_feed_callback(au);
 	} while (rc > 0);
 
 	if (rc < 0) {
@@ -673,8 +692,7 @@ static int consume_feed(auparse_state_t *au, int flush)
 			load_interpretation_list(au, r->interp);
 			aup_list_first_field(l);
 
-			(*au->callback)(au, AUPARSE_CB_EVENT_READY,
-					au->callback_user_data);
+			dispatch_feed_callback(au);
 		}
 	}
 

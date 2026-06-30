@@ -29,6 +29,24 @@ static void ready_cb(auparse_state_t *au, auparse_cb_event_t e, void *d)
 		cb_count++;
 }
 
+/* clear_cb - count one ready event and unregister this callback
+ * @au: parser state machine supplied by libauparse
+ * @e: callback event type
+ * @d: pointer to an integer callback count
+ *
+ * Return: none.
+ */
+static void clear_cb(auparse_state_t *au, auparse_cb_event_t e, void *d)
+{
+	int *callbacks = d;
+
+	if (e != AUPARSE_CB_EVENT_READY)
+		return;
+
+	(*callbacks)++;
+	auparse_add_callback(au, NULL, NULL, NULL);
+}
+
 static void test_feed_state(void)
 {
 	const char buf[] = "type=LOGIN msg=audit(1143146623.787:142): pid=1\n";
@@ -58,6 +76,52 @@ static void test_feed_requires_callback(void)
 	errno = 0;
 	assert(auparse_flush_feed(au) == -1);
 	assert(errno == EINVAL);
+
+	auparse_destroy(au);
+}
+
+/* test_feed_callback_can_clear_during_feed - clear callback during feed
+ *
+ * Return: none.
+ */
+static void test_feed_callback_can_clear_during_feed(void)
+{
+	const char buf[] =
+		"type=LOGIN msg=audit(1143146623.787:142): pid=1\n"
+		"type=LOGIN msg=audit(1143146630.787:143): pid=2\n"
+		"type=LOGIN msg=audit(1143146640.787:144): pid=3\n";
+	auparse_state_t *au = auparse_init(AUSOURCE_FEED, NULL);
+	int callbacks = 0;
+
+	assert(au != NULL);
+	auparse_add_callback(au, clear_cb, &callbacks, NULL);
+
+	assert(auparse_feed(au, buf, strlen(buf)) == 0);
+	assert(callbacks == 1);
+	assert(auparse_feed_has_data(au) == 1);
+
+	auparse_destroy(au);
+}
+
+/* test_feed_callback_can_clear_during_flush - clear callback during flush
+ *
+ * Return: none.
+ */
+static void test_feed_callback_can_clear_during_flush(void)
+{
+	const char buf[] =
+		"type=LOGIN msg=audit(1143146623.787:142): pid=1\n"
+		"type=LOGIN msg=audit(1143146623.788:143): pid=2\n";
+	auparse_state_t *au = auparse_init(AUSOURCE_FEED, NULL);
+	int callbacks = 0;
+
+	assert(au != NULL);
+	auparse_add_callback(au, clear_cb, &callbacks, NULL);
+
+	assert(auparse_feed(au, buf, strlen(buf)) == 0);
+	assert(callbacks == 0);
+	assert(auparse_flush_feed(au) == 0);
+	assert(callbacks == 1);
 
 	auparse_destroy(au);
 }
@@ -261,6 +325,8 @@ int main(void)
 	test_new_buffer();
 	test_feed_state();
 	test_feed_requires_callback();
+	test_feed_callback_can_clear_during_feed();
+	test_feed_callback_can_clear_during_flush();
 	test_feed_rejects_malformed_record();
 	test_normalize();
 	test_compare();
