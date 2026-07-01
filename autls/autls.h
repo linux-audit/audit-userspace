@@ -69,6 +69,7 @@ int autls_validate_psk_identity(const unsigned char *id, size_t len,
 /* autls-acl.c */
 struct autls_acl_entry {
 	char *identity;
+	size_t identity_len;
 	int enabled;
 	struct autls_acl_entry *next;
 };
