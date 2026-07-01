@@ -90,6 +90,8 @@ typedef struct ev_tcp {
 	int in_handshake_chain;
 	int tls_profile_at_accept;
 	char *accepted_identity;
+	unsigned char *pending_ack;
+	int pending_ack_len;
 #endif
 	unsigned char buffer [MAX_AUDIT_MESSAGE_LENGTH + 17];
 } ev_tcp;
@@ -189,6 +191,8 @@ static void release_client(struct ev_tcp *client)
 	}
 	free(client->accepted_identity);
 	client->accepted_identity = NULL;
+	free(client->pending_ack);
+	client->pending_ack = NULL;
 #endif
 #ifdef USE_GSSAPI
 	if (client->remote_name)
@@ -676,7 +680,11 @@ static void client_ack(void *ack_data, const unsigned char *header,
 #define MAX_ACK_MSG_SIZE 256
 	if (USE_TLS && io->ssl) {
 		unsigned char buf[AUDIT_RMW_HEADER_SIZE + MAX_ACK_MSG_SIZE];
-		int total;
+		int total, ret, err;
+
+		/* Drop stale pending ACK — client will see the latest */
+		free(io->pending_ack);
+		io->pending_ack = NULL;
 
 		memcpy(buf, header, AUDIT_RMW_HEADER_SIZE);
 		total = AUDIT_RMW_HEADER_SIZE;
@@ -684,19 +692,40 @@ static void client_ack(void *ack_data, const unsigned char *header,
 			int mlen = strlen(msg);
 			if (mlen > MAX_ACK_MSG_SIZE)
 				mlen = MAX_ACK_MSG_SIZE;
-			/* Repack length field to match truncated body;
-			 * the caller packed strlen(msg) which may differ */
 			_AUDIT_RMW_PUTN16(buf, 10, mlen);
 			memcpy(buf + AUDIT_RMW_HEADER_SIZE, msg, mlen);
 			total += mlen;
 		}
-		if (autls_ssl_write(io->ssl, buf, total,
-				AUTLS_WRITE_TIMEOUT_MS) < 0) {
-			audit_msg(LOG_ERR,
-				"TLS send ack to %s failed",
-				sockaddr_to_addr(&io->addr));
-			shutdown(io->io.fd, SHUT_RDWR);
+
+		ret = SSL_write(io->ssl, buf, total);
+		if (ret == total)
+			return;
+
+		err = SSL_get_error(io->ssl, ret);
+		if (err == SSL_ERROR_WANT_WRITE ||
+		    err == SSL_ERROR_WANT_READ) {
+			io->pending_ack = malloc(total);
+			if (io->pending_ack) {
+				memcpy(io->pending_ack, buf, total);
+				io->pending_ack_len = total;
+				ev_io_stop(EV_DEFAULT, &io->io);
+				if (err == SSL_ERROR_WANT_WRITE)
+					ev_io_modify(&io->io, EV_WRITE);
+				else
+					ev_io_modify(&io->io, EV_READ);
+				ev_io_start(EV_DEFAULT, &io->io);
+			} else {
+				audit_msg(LOG_ERR,
+					"TLS ACK to %s lost: "
+					"out of memory",
+					sockaddr_to_addr(&io->addr));
+			}
+			return;
 		}
+
+		audit_msg(LOG_ERR, "TLS send ack to %s failed",
+			sockaddr_to_addr(&io->addr));
+		shutdown(io->io.fd, SHUT_RDWR);
 		return;
 	}
 #undef MAX_ACK_MSG_SIZE
@@ -806,6 +835,49 @@ static void auditd_tcp_client_handler(struct ev_loop *loop,
 read_more:
 #ifdef HAVE_TLS
 	if (USE_TLS && io->ssl) {
+		/* Drain any pending ACK write before reading */
+		if (io->pending_ack) {
+			int ret = SSL_write(io->ssl, io->pending_ack,
+					    io->pending_ack_len);
+			if (ret == io->pending_ack_len) {
+				free(io->pending_ack);
+				io->pending_ack = NULL;
+
+				/* Process leftover data from a prior
+				 * batch before reading from SSL */
+				if (io->bufptr > 0) {
+					r = io->bufptr;
+					io->bufptr = 0;
+					goto more_messages;
+				}
+			} else {
+				int err = SSL_get_error(io->ssl, ret);
+				if (err == SSL_ERROR_WANT_WRITE ||
+				    err == SSL_ERROR_WANT_READ) {
+					ev_io_stop(loop, _io);
+					if (err == SSL_ERROR_WANT_WRITE)
+						ev_io_modify(_io, EV_WRITE);
+					else
+						ev_io_modify(_io, EV_READ);
+					ev_io_start(loop, _io);
+					return;
+				}
+				audit_msg(LOG_ERR,
+					"TLS pending ack to %s failed",
+					sockaddr_to_addr(&io->addr));
+				ev_io_stop(loop, _io);
+				close_client(io);
+				return;
+			}
+		}
+
+		/* Re-arm for reading after draining pending write */
+		if (_io->events & EV_WRITE) {
+			ev_io_stop(loop, _io);
+			ev_io_modify(_io, EV_READ);
+			ev_io_start(loop, _io);
+		}
+
 		r = SSL_read(io->ssl,
 			io->buffer + io->bufptr,
 			MAX_AUDIT_MESSAGE_LENGTH - io->bufptr);
@@ -982,6 +1054,10 @@ more_messages:
 
 	/* See if this packet had more than one message in it. */
 	if (io->bufptr > 0) {
+#ifdef HAVE_TLS
+		if (USE_TLS && io->pending_ack)
+			return;
+#endif
 		r = io->bufptr;
 		io->bufptr = 0;
 		goto more_messages;
@@ -1630,6 +1706,8 @@ static int init_tls_server_context(struct daemon_conf *config)
 		goto err;
 	}
 	SSL_CTX_set_options(tls_server_ctx, SSL_OP_NO_COMPRESSION);
+	SSL_CTX_set_mode(tls_server_ctx,
+			 SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER);
 	SSL_CTX_set_session_cache_mode(tls_server_ctx, SSL_SESS_CACHE_OFF);
 
 	cipher_suites = config->tls_cipher_suites ?
