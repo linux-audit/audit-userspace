@@ -155,6 +155,8 @@ static int tls_auth_parser(const struct nv_pair *nv, int line,
 		struct daemon_conf *config);
 static int tls_crypto_profile_parser(const struct nv_pair *nv, int line,
 		struct daemon_conf *config);
+static int tls_allowed_clients_parser(const struct nv_pair *nv, int line,
+		struct daemon_conf *config);
 static int distribute_network_parser(const struct nv_pair *nv, int line,
 		struct daemon_conf *config);
 static int q_depth_parser(const struct nv_pair *nv, int line,
@@ -248,6 +250,7 @@ static const struct kw_pair keywords[] =
   {"tls_require_pqc",          tls_require_pqc_parser,          0 },
   {"tls_auth",                 tls_auth_parser,                 0 },
   {"tls_crypto_profile",       tls_crypto_profile_parser,       0 },
+  {"tls_allowed_clients",      tls_allowed_clients_parser,      0 },
   {"distribute_network",       distribute_network_parser,       0 },
   {"q_depth",                  q_depth_parser,                  0 },
   {"overflow_action",          overflow_action_parser,          0 },
@@ -426,6 +429,7 @@ void clear_config(struct daemon_conf *config)
 	config->tls_require_pqc = 0;
 	config->tls_auth = TLS_AUTH_PSK;
 	config->tls_crypto_profile = TLS_PROFILE_STANDARD;
+	config->tls_allowed_clients = NULL;
 #endif
 	config->distribute_network_events = 0;
 	config->q_depth = 2000;
@@ -1906,6 +1910,7 @@ TLS_PARSER_S(tls_psk_file_parser, tls_psk_file, tls_path_parser_s)
 TLS_PARSER_S(tls_psk_identity_parser, tls_psk_identity, tls_string_parser_s)
 TLS_PARSER_S(tls_cipher_suites_parser, tls_cipher_suites, tls_string_parser_s)
 TLS_PARSER_S(tls_key_exchange_parser, tls_key_exchange, tls_string_parser_s)
+TLS_PARSER_S(tls_allowed_clients_parser, tls_allowed_clients, tls_path_parser_s)
 
 static int tls_client_auth_parser(const struct nv_pair *nv, int line,
 		struct daemon_conf *config)
@@ -1997,6 +2002,7 @@ TLS_STUB_S(tls_client_auth_parser)
 TLS_STUB_S(tls_require_pqc_parser)
 TLS_STUB_S(tls_auth_parser)
 TLS_STUB_S(tls_crypto_profile_parser)
+TLS_STUB_S(tls_allowed_clients_parser)
 #undef TLS_STUB_S
 #endif
 #undef TLS_PARSER_S
@@ -2321,10 +2327,11 @@ static int sanity_check(struct daemon_conf *config)
 				"tls_cert_file+tls_key_file");
 			return 1;
 		}
-		if (have_psk && !config->tls_psk_identity) {
+		if (have_psk && !config->tls_psk_identity &&
+		    !config->tls_allowed_clients) {
 			audit_msg(LOG_ERR,
-				"tls_psk_identity is required when "
-				"tls_psk_file is set");
+				"tls_psk_identity or tls_allowed_clients "
+				"is required when tls_psk_file is set");
 			return 1;
 		}
 #ifndef HAVE_SSL_GROUP_TO_NAME
@@ -2410,6 +2417,7 @@ void free_config(struct daemon_conf *config)
 	free((void *)config->tls_psk_identity);
 	free((void *)config->tls_cipher_suites);
 	free((void *)config->tls_key_exchange);
+	free((void *)config->tls_allowed_clients);
 #endif
 	free((void *)config->plugin_dir);
 	free((void *)config_dir);
