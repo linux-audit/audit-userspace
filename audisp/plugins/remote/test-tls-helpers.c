@@ -354,6 +354,293 @@ static void test_autls_load_psk_validation(void)
 	unlink(path);
 }
 
+static void test_autls_validate_psk_identity(void)
+{
+	printf("  autls_validate_psk_identity...\n");
+
+	/* Empty and NULL */
+	assert(autls_validate_psk_identity(
+		(const unsigned char *)"", 0, test_log) == -1);
+
+	/* Valid identities */
+	assert(autls_validate_psk_identity(
+		(const unsigned char *)"host-1", 6, test_log) == 0);
+	assert(autls_validate_psk_identity(
+		(const unsigned char *)"a", 1, test_log) == 0);
+	assert(autls_validate_psk_identity(
+		(const unsigned char *)"host.example-01_test", 20,
+		test_log) == 0);
+
+	/* Printable ASCII boundary: 0x21 (!) and 0x7E (~) */
+	assert(autls_validate_psk_identity(
+		(const unsigned char *)"!", 1, test_log) == 0);
+	assert(autls_validate_psk_identity(
+		(const unsigned char *)"~", 1, test_log) == 0);
+
+	/* Space (0x20) rejected */
+	assert(autls_validate_psk_identity(
+		(const unsigned char *)"a b", 3, test_log) == -1);
+
+	/* Control chars rejected */
+	assert(autls_validate_psk_identity(
+		(const unsigned char *)"\t", 1, test_log) == -1);
+	assert(autls_validate_psk_identity(
+		(const unsigned char *)"\n", 1, test_log) == -1);
+	assert(autls_validate_psk_identity(
+		(const unsigned char *)"\x01", 1, test_log) == -1);
+
+	/* NUL byte rejected */
+	assert(autls_validate_psk_identity(
+		(const unsigned char *)"a\x00" "b", 3, test_log) == -1);
+
+	/* DEL (0x7F) rejected */
+	assert(autls_validate_psk_identity(
+		(const unsigned char *)"\x7F", 1, test_log) == -1);
+
+	/* High bytes (0x80-0xFF) rejected */
+	assert(autls_validate_psk_identity(
+		(const unsigned char *)"\x80", 1, test_log) == -1);
+	assert(autls_validate_psk_identity(
+		(const unsigned char *)"\xC0\xAF", 2, test_log) == -1);
+	assert(autls_validate_psk_identity(
+		(const unsigned char *)"\xFF", 1, test_log) == -1);
+
+	/* Max length (255) accepted */
+	{
+		unsigned char buf[256];
+		memset(buf, 'A', 255);
+		assert(autls_validate_psk_identity(
+			buf, 255, test_log) == 0);
+	}
+
+	/* Overlength (256) rejected */
+	{
+		unsigned char buf[257];
+		memset(buf, 'A', 256);
+		assert(autls_validate_psk_identity(
+			buf, 256, test_log) == -1);
+	}
+}
+
+static void test_autls_profile_ciphers(void)
+{
+	printf("  autls_profile_ciphers...\n");
+
+	/* STANDARD returns non-NULL default */
+	assert(autls_profile_ciphers(AUTLS_PROFILE_STANDARD) != NULL);
+	assert(strstr(autls_profile_ciphers(AUTLS_PROFILE_STANDARD),
+		"TLS_AES_256_GCM_SHA384") != NULL);
+
+	/* PQC returns same as STANDARD */
+	assert(autls_profile_ciphers(AUTLS_PROFILE_PQC) != NULL);
+	assert(strcmp(autls_profile_ciphers(AUTLS_PROFILE_PQC),
+		autls_profile_ciphers(AUTLS_PROFILE_STANDARD)) == 0);
+
+	/* FIPS returns NULL (defer to system policy) */
+	assert(autls_profile_ciphers(AUTLS_PROFILE_FIPS) == NULL);
+}
+
+static void test_autls_profile_groups(void)
+{
+	printf("  autls_profile_groups...\n");
+
+	/* STANDARD returns hybrid + classical */
+	assert(autls_profile_groups(AUTLS_PROFILE_STANDARD) != NULL);
+	assert(strstr(autls_profile_groups(AUTLS_PROFILE_STANDARD),
+		"X25519") != NULL);
+
+	/* PQC returns hybrid-only (no plain X25519) */
+	assert(autls_profile_groups(AUTLS_PROFILE_PQC) != NULL);
+	assert(strstr(autls_profile_groups(AUTLS_PROFILE_PQC),
+		"MLKEM") != NULL);
+
+	/* FIPS returns NULL */
+	assert(autls_profile_groups(AUTLS_PROFILE_FIPS) == NULL);
+}
+
+static void test_autls_acl_load(void)
+{
+	struct autls_acl_table *t = NULL;
+	char path[512];
+
+	printf("  autls_acl_load...\n");
+
+	/* Valid file with one enabled, one disabled */
+	snprintf(path, sizeof(path), "%s/acl-valid", tmpdir);
+	write_file(path, "host-1 enabled prod\nhost-2 disabled retired\n");
+	chmod(path, 0600);
+	if (getuid() == 0) {
+		assert(autls_acl_load(path, &t, test_log) == 0);
+		assert(t != NULL);
+		assert(t->count == 2);
+		assert(t->enabled_count == 1);
+		autls_acl_free(t);
+		t = NULL;
+	}
+	unlink(path);
+
+	/* Empty file (no entries) */
+	snprintf(path, sizeof(path), "%s/acl-empty", tmpdir);
+	write_file(path, "# only comments\n\n");
+	chmod(path, 0600);
+	if (getuid() == 0) {
+		assert(autls_acl_load(path, &t, test_log) == 0);
+		assert(t != NULL);
+		assert(t->count == 0);
+		assert(t->enabled_count == 0);
+		autls_acl_free(t);
+		t = NULL;
+	}
+	unlink(path);
+
+	/* Duplicate identity rejected */
+	snprintf(path, sizeof(path), "%s/acl-dup", tmpdir);
+	write_file(path, "host-1 enabled\nhost-1 disabled\n");
+	chmod(path, 0600);
+	if (getuid() == 0) {
+		assert(autls_acl_load(path, &t, test_log) == -1);
+		assert(t == NULL);
+	}
+	unlink(path);
+
+	/* Invalid status rejected */
+	snprintf(path, sizeof(path), "%s/acl-badstatus", tmpdir);
+	write_file(path, "host-1 active\n");
+	chmod(path, 0600);
+	if (getuid() == 0) {
+		assert(autls_acl_load(path, &t, test_log) == -1);
+	}
+	unlink(path);
+
+	/* Missing status field rejected */
+	snprintf(path, sizeof(path), "%s/acl-nostatus", tmpdir);
+	write_file(path, "host-1\n");
+	chmod(path, 0600);
+	if (getuid() == 0) {
+		assert(autls_acl_load(path, &t, test_log) == -1);
+	}
+	unlink(path);
+
+	/* Case-insensitive status */
+	snprintf(path, sizeof(path), "%s/acl-case", tmpdir);
+	write_file(path, "host-1 Enabled\nhost-2 DISABLED\n");
+	chmod(path, 0600);
+	if (getuid() == 0) {
+		assert(autls_acl_load(path, &t, test_log) == 0);
+		assert(t->count == 2);
+		assert(t->enabled_count == 1);
+		autls_acl_free(t);
+		t = NULL;
+	}
+	unlink(path);
+
+	/* Group-writable file rejected */
+	snprintf(path, sizeof(path), "%s/acl-gw", tmpdir);
+	write_file(path, "host-1 enabled\n");
+	chmod(path, 0660);
+	if (getuid() == 0) {
+		assert(autls_acl_load(path, &t, test_log) == -1);
+	}
+	unlink(path);
+}
+
+static void test_autls_acl_check(void)
+{
+	struct autls_acl_table *t = NULL;
+	char path[512];
+
+	printf("  autls_acl_check...\n");
+
+	snprintf(path, sizeof(path), "%s/acl-check", tmpdir);
+	write_file(path, "host-1 enabled\nhost-2 disabled\n");
+	chmod(path, 0600);
+	if (getuid() != 0) {
+		printf("    (skipped, not root)\n");
+		unlink(path);
+		return;
+	}
+	assert(autls_acl_load(path, &t, test_log) == 0);
+	unlink(path);
+
+	/* Enabled returns 1 */
+	assert(autls_acl_check(t,
+		(const unsigned char *)"host-1", 6) == 1);
+
+	/* Disabled returns 0 */
+	assert(autls_acl_check(t,
+		(const unsigned char *)"host-2", 6) == 0);
+
+	/* Unknown returns -1 */
+	assert(autls_acl_check(t,
+		(const unsigned char *)"host-3", 6) == -1);
+
+	/* Empty identity returns -1 */
+	assert(autls_acl_check(t,
+		(const unsigned char *)"", 0) == -1);
+
+	/* Prefix match does NOT succeed (length-bounded) */
+	assert(autls_acl_check(t,
+		(const unsigned char *)"host-1x", 7) == -1);
+	assert(autls_acl_check(t,
+		(const unsigned char *)"host-", 5) == -1);
+
+	autls_acl_free(t);
+}
+
+static void test_autls_authorize_psk_identity(void)
+{
+	struct autls_acl_table *t = NULL;
+	char path[512];
+	int rc;
+
+	printf("  autls_authorize_psk_identity (composed)...\n");
+
+	snprintf(path, sizeof(path), "%s/acl-auth", tmpdir);
+	write_file(path, "good-host enabled\nbad-host disabled\n");
+	chmod(path, 0600);
+	if (getuid() != 0) {
+		printf("    (skipped, not root)\n");
+		unlink(path);
+		return;
+	}
+	assert(autls_acl_load(path, &t, test_log) == 0);
+	unlink(path);
+
+	/* Valid + enabled: validate passes, ACL returns 1 */
+	rc = autls_validate_psk_identity(
+		(const unsigned char *)"good-host", 9, test_log);
+	assert(rc == 0);
+	assert(autls_acl_check(t,
+		(const unsigned char *)"good-host", 9) == 1);
+
+	/* Valid + disabled: validate passes, ACL returns 0 */
+	rc = autls_validate_psk_identity(
+		(const unsigned char *)"bad-host", 8, test_log);
+	assert(rc == 0);
+	assert(autls_acl_check(t,
+		(const unsigned char *)"bad-host", 8) == 0);
+
+	/* Invalid identity: validate fails before ACL check */
+	rc = autls_validate_psk_identity(
+		(const unsigned char *)"bad\x00host", 8, test_log);
+	assert(rc == -1);
+
+	/* Unknown identity: validate passes, ACL returns -1 */
+	rc = autls_validate_psk_identity(
+		(const unsigned char *)"unknown", 7, test_log);
+	assert(rc == 0);
+	assert(autls_acl_check(t,
+		(const unsigned char *)"unknown", 7) == -1);
+
+	/* Catches if(rc) vs if(rc==1) bug: -1 is truthy in C */
+	rc = autls_acl_check(t,
+		(const unsigned char *)"unknown", 7);
+	assert(rc == -1);
+	assert(rc != 1);  /* Must not treat -1 as "enabled" */
+
+	autls_acl_free(t);
+}
+
 int main(void)
 {
 	char template[] = "/tmp/test-tls-XXXXXX";
@@ -371,6 +658,12 @@ int main(void)
 	test_autls_validate_key_file();
 	test_autls_load_psk();
 	test_autls_load_psk_validation();
+	test_autls_validate_psk_identity();
+	test_autls_profile_ciphers();
+	test_autls_profile_groups();
+	test_autls_acl_load();
+	test_autls_acl_check();
+	test_autls_authorize_psk_identity();
 	printf("All TLS helper tests passed.\n");
 	return 0;
 }
