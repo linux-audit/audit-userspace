@@ -364,7 +364,7 @@ Path to the CA certificate used to verify client certificates when mutual TLS is
 Path to a file containing a hex-encoded pre-shared key for TLS-PSK authentication. The key must be at least 32 bytes (64 hex characters). Generate a key with: openssl rand \-hex 32. The file must be owned by root and mode 0400.
 .TP
 .I tls_psk_identity
-The expected client PSK identity string. This option is required when tls_psk_file is set. The server rejects clients that present a different identity. Set this to match the client's tls_psk_identity value.
+The expected client PSK identity string. This option is required when tls_psk_file is set and tls_allowed_clients is not configured. The server rejects clients that present a different identity. The identity must contain only printable ASCII characters (no spaces or control characters) and must not exceed 255 bytes.
 .TP
 .I tls_cipher_suites
 Colon-separated list of TLS 1.3 cipher suites. The default is "TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256:TLS_AES_128_GCM_SHA256".

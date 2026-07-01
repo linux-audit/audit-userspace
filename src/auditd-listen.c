@@ -1497,6 +1497,12 @@ static int init_tls_server_context(struct daemon_conf *config)
 		free(expected_psk_identity);
 		expected_psk_identity = NULL;
 		if (config->tls_psk_identity) {
+			if (autls_validate_psk_identity(
+					(const unsigned char *)
+					config->tls_psk_identity,
+					strlen(config->tls_psk_identity),
+					audit_msg) != 0)
+				goto err;
 			expected_psk_identity =
 				strdup(config->tls_psk_identity);
 			if (!expected_psk_identity) {
