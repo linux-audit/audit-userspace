@@ -32,6 +32,11 @@ typedef enum { FA_IGNORE, FA_SYSLOG, FA_WARN_ONCE_CONT, FA_WARN_ONCE,
 	       FA_SINGLE, FA_HALT, FA_STOP } failure_action_t;
 typedef enum { OA_IGNORE, OA_SYSLOG, OA_SUSPEND, OA_SINGLE,
 	       OA_HALT } overflow_action_t;
+#ifdef HAVE_TLS
+typedef enum { TLS_AUTH_PSK } tls_auth_t;
+typedef enum { TLS_PROFILE_STANDARD, TLS_PROFILE_FIPS,
+		TLS_PROFILE_PQC } tls_crypto_profile_t;
+#endif
 
 typedef struct remote_conf
 {
@@ -59,6 +64,8 @@ typedef struct remote_conf
 	const char *tls_cipher_suites;
 	const char *tls_key_exchange;
 	int tls_require_pqc;
+	tls_auth_t tls_auth;
+	tls_crypto_profile_t tls_crypto_profile;
 #endif
 
 	failure_action_t network_failure_action;

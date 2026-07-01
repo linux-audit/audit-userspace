@@ -47,6 +47,9 @@ typedef enum { O_IGNORE, O_SYSLOG, O_SUSPEND, O_SINGLE,
 typedef enum { T_TCP, T_TLS, T_KRB5, T_LABELED } transport_t;
 #ifdef HAVE_TLS
 typedef enum { TCA_NONE, TCA_OPTIONAL, TCA_REQUIRED } tls_client_auth_t;
+typedef enum { TLS_AUTH_PSK } tls_auth_t;
+typedef enum { TLS_PROFILE_STANDARD, TLS_PROFILE_FIPS,
+		TLS_PROFILE_PQC } tls_crypto_profile_t;
 #endif
 
 struct daemon_conf
@@ -105,6 +108,8 @@ struct daemon_conf
 	const char *tls_key_exchange;
 	tls_client_auth_t tls_client_auth;
 	int tls_require_pqc;
+	tls_auth_t tls_auth;
+	tls_crypto_profile_t tls_crypto_profile;
 #endif
 	int distribute_network_events;
 	// Dispatcher config
