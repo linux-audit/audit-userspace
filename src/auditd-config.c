@@ -1860,14 +1860,7 @@ static int tls_path_parser_s(const struct nv_pair *nv, int line,
 				nv->value, line);
 			return 1;
 		}
-		free((char *)*dest);
-		*dest = strdup(nv->value);
-		if (*dest == NULL) {
-			audit_msg(LOG_ERR,
-				"Out of memory parsing config at line %d",
-				line);
-			return 1;
-		}
+		return replace_string(dest, nv->value, nv->name, line);
 	}
 #endif
 	return 0;
@@ -1881,16 +1874,8 @@ static int tls_string_parser_s(const struct nv_pair *nv, int line,
 		"TLS support is not enabled, ignoring value at line %d",
 		line);
 #else
-	if (nv->value) {
-		free((char *)*dest);
-		*dest = strdup(nv->value);
-		if (*dest == NULL) {
-			audit_msg(LOG_ERR,
-				"Out of memory parsing config at line %d",
-				line);
-			return 1;
-		}
-	}
+	if (nv->value)
+		return replace_string(dest, nv->value, nv->name, line);
 #endif
 	return 0;
 }

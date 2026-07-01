@@ -59,6 +59,9 @@ const char *autls_profile_groups(int profile)
 /* autls-psk.c */
 int autls_validate_key_file(const char *path, autls_log_fn log_fn)
 	__nonnull((1, 2)) __wur;
+int autls_load_key_file(const char *path, SSL_CTX *ctx,
+			autls_log_fn log_fn)
+	__nonnull((1, 2, 3)) __wur;
 int autls_load_psk(const char *path, unsigned char **key, size_t *key_len,
 		   autls_log_fn log_fn)
 	__nonnull((1, 2, 3, 4)) __wur;

@@ -25,7 +25,10 @@
 #include <syslog.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <openssl/bio.h>
 #include <openssl/crypto.h>
+#include <openssl/evp.h>
+#include <openssl/pem.h>
 #include "autls.h"
 
 /*
@@ -106,6 +109,91 @@ int autls_validate_key_file(const char *path, autls_log_fn log_fn)
 }
 
 /*
+ * autls_load_key_file - validate and load a PEM private key atomically
+ * @path: path to the PEM key file
+ * @ctx: SSL_CTX to load the key into
+ * @log_fn: logging callback
+ *
+ * Opens with O_NOFOLLOW and validates via fstat on the open fd,
+ * eliminating the TOCTOU race of separate validate-then-open.
+ * Returns 0 on success, -1 on failure.
+ */
+int autls_load_key_file(const char *path, SSL_CTX *ctx,
+			autls_log_fn log_fn)
+{
+	struct stat st;
+	int fd;
+	BIO *bio;
+	EVP_PKEY *pkey;
+
+	fd = open(path, O_RDONLY | O_NOFOLLOW);
+	if (fd < 0) {
+		log_fn(LOG_ERR,
+			"Unable to open TLS key file %s (%s)",
+			path, strerror(errno));
+		return -1;
+	}
+
+	if (fstat(fd, &st) != 0) {
+		log_fn(LOG_ERR,
+			"Unable to stat TLS key file %s (%s)",
+			path, strerror(errno));
+		close(fd);
+		return -1;
+	}
+	if (!S_ISREG(st.st_mode)) {
+		log_fn(LOG_ERR, "%s is not a regular file", path);
+		close(fd);
+		return -1;
+	}
+	if ((st.st_mode & 07777) != 0400) {
+		log_fn(LOG_ERR,
+			"%s is not mode 0400 (it's %#o) "
+			"- compromised key?",
+			path, st.st_mode & 07777);
+		close(fd);
+		return -1;
+	}
+	if (st.st_uid != 0) {
+		log_fn(LOG_ERR,
+			"%s is not owned by root (uid %u) "
+			"- compromised key?",
+			path, (unsigned)st.st_uid);
+		close(fd);
+		return -1;
+	}
+
+	bio = BIO_new_fd(fd, BIO_NOCLOSE);
+	if (bio == NULL) {
+		log_fn(LOG_ERR,
+			"Unable to create BIO for TLS key file %s",
+			path);
+		close(fd);
+		return -1;
+	}
+
+	pkey = PEM_read_bio_PrivateKey(bio, NULL, NULL, NULL);
+	BIO_free(bio);
+	close(fd);
+
+	if (pkey == NULL) {
+		log_fn(LOG_ERR,
+			"Unable to read PEM private key from %s", path);
+		return -1;
+	}
+
+	if (SSL_CTX_use_PrivateKey(ctx, pkey) != 1) {
+		log_fn(LOG_ERR,
+			"Unable to load TLS private key %s", path);
+		EVP_PKEY_free(pkey);
+		return -1;
+	}
+
+	EVP_PKEY_free(pkey);
+	return 0;
+}
+
+/*
  * autls_load_psk - validate and read a hex-encoded pre-shared key
  * @path: path to the PSK file (single line of hex)
  * @key: output pointer to decoded key bytes (caller frees with OPENSSL_free)
@@ -179,7 +267,11 @@ int autls_load_psk(const char *path, unsigned char **key, size_t *key_len,
 	// fd is now owned by f; do not close(fd) separately
 
 	if (fgets(line, sizeof(line), f) == NULL) {
-		log_fn(LOG_ERR, "PSK file %s is empty", path);
+		if (ferror(f))
+			log_fn(LOG_ERR,
+				"I/O error reading PSK file %s", path);
+		else
+			log_fn(LOG_ERR, "PSK file %s is empty", path);
 		fclose(f);
 		goto cleanup;
 	}

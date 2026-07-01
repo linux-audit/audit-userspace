@@ -1166,12 +1166,15 @@ static int tls_psk_use_session_cb(SSL *ssl, const EVP_MD *md,
 	}
 
 	s = SSL_SESSION_new();
-	if (s == NULL)
+	if (s == NULL) {
+		syslog(LOG_ERR, "TLS PSK: SSL_SESSION_new failed");
 		return 0;
+	}
 
 	if (!SSL_SESSION_set1_master_key(s, psk_key, psk_key_len) ||
 	    !SSL_SESSION_set_cipher(s, cipher) ||
 	    !SSL_SESSION_set_protocol_version(s, TLS1_3_VERSION)) {
+		syslog(LOG_ERR, "TLS PSK: SSL session setup failed");
 		SSL_SESSION_free(s);
 		return 0;
 	}
@@ -1310,17 +1313,9 @@ static int init_tls_context(void)
 	}
 
 	if (config.tls_key_file) {
-		if (autls_validate_key_file(config.tls_key_file,
-				syslog) != 0)
+		if (autls_load_key_file(config.tls_key_file,
+				tls_ctx, syslog) != 0)
 			goto err;
-
-		if (SSL_CTX_use_PrivateKey_file(tls_ctx,
-				config.tls_key_file,
-				SSL_FILETYPE_PEM) != 1) {
-			syslog(LOG_ERR, "Unable to load TLS private key %s",
-				config.tls_key_file);
-			goto err;
-		}
 	}
 
 	/* Verify cert and key match */
