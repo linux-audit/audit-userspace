@@ -88,6 +88,7 @@ typedef struct ev_tcp {
 	struct ev_timer handshake_timer;
 	struct daemon_conf *config;
 	int in_handshake_chain;
+	int tls_profile_at_accept;
 	char *accepted_identity;
 #endif
 	unsigned char buffer [MAX_AUDIT_MESSAGE_LENGTH + 17];
@@ -1136,7 +1137,7 @@ static void tls_handshake_handler(struct ev_loop *loop,
 			SSL_get_cipher(client->ssl),
 			kex_name ? kex_name : "unknown");
 
-		if (client->config->tls_crypto_profile ==
+		if (client->tls_profile_at_accept ==
 		    TLS_PROFILE_PQC &&
 		    !autls_is_pqc_group(kex_name)) {
 			audit_msg(LOG_ERR,
@@ -1353,6 +1354,8 @@ static void auditd_tcp_listen_handler( struct ev_loop *loop,
 		SSL_set_accept_state(client->ssl);
 
 		client->config = lconfig;
+		client->tls_profile_at_accept =
+			lconfig->tls_crypto_profile;
 		client->client_active = 0;
 		client->in_handshake_chain = 0;
 
@@ -2139,11 +2142,12 @@ void auditd_tcp_listen_reconfigure(const struct daemon_conf *nconf,
 	oconf->krb5_principal = nconf->krb5_principal;
 
 #ifdef HAVE_TLS
-	/* TLS config changes require a full restart */
+	/* TLS context not reloaded — restart required for cert/key/PSK
+	 * changes. The ACL table IS reloaded below. */
 	if (oconf->transport == T_TLS || nconf->transport == T_TLS)
 		audit_msg(LOG_NOTICE,
-			"TLS settings not reloaded; restart auditd "
-			"to apply TLS config changes");
+			"TLS context not reloaded; restart auditd "
+			"to apply cert/key/PSK config changes");
 	free((void *)oconf->tls_cert_file);
 	oconf->tls_cert_file = nconf->tls_cert_file;
 	free((void *)oconf->tls_key_file);
@@ -2158,8 +2162,50 @@ void auditd_tcp_listen_reconfigure(const struct daemon_conf *nconf,
 	oconf->tls_cipher_suites = nconf->tls_cipher_suites;
 	free((void *)oconf->tls_key_exchange);
 	oconf->tls_key_exchange = nconf->tls_key_exchange;
-	oconf->tls_client_auth = nconf->tls_client_auth;
-	oconf->tls_require_pqc = nconf->tls_require_pqc;
+	/* Integer fields that must match the live SSL_CTX are NOT
+	 * updated here — they only change on restart when
+	 * init_tls_server_context rebuilds the context. */
+	free((void *)oconf->tls_allowed_clients);
+	oconf->tls_allowed_clients = nconf->tls_allowed_clients;
+
+	/* Reload ACL table on SIGHUP — independent of SSL_CTX */
+	if (USE_TLS && oconf->tls_allowed_clients) {
+		struct autls_acl_table *new_acl = NULL;
+		if (autls_acl_load(oconf->tls_allowed_clients,
+				   &new_acl, audit_msg) == 0) {
+			if (server_psk_key &&
+			    new_acl->enabled_count > 1) {
+				audit_msg(LOG_ERR,
+					"Reloaded ACL has %d enabled "
+					"identities but single-PSK "
+					"mode allows at most 1; "
+					"keeping current ACL",
+					new_acl->enabled_count);
+				autls_acl_free(new_acl);
+			} else {
+				int old_enabled = acl_table ?
+					acl_table->enabled_count : 0;
+				autls_acl_free(acl_table);
+				acl_table = new_acl;
+				audit_msg(LOG_NOTICE,
+					"TLS client ACL reloaded "
+					"(%d->%d enabled)",
+					old_enabled,
+					new_acl->enabled_count);
+			}
+		} else {
+			audit_msg(LOG_ERR,
+				"Failed to reload TLS client ACL; "
+				"keeping current ACL");
+		}
+	} else if (USE_TLS && !oconf->tls_allowed_clients
+		   && acl_table) {
+		audit_msg(LOG_NOTICE,
+			"tls_allowed_clients removed; "
+			"clearing ACL");
+		autls_acl_free(acl_table);
+		acl_table = NULL;
+	}
 #endif
 }
 
