@@ -67,6 +67,13 @@
 #define CONFIG_FILE "/etc/audit/audisp-remote.conf"
 #define BUF_SIZE 32
 
+#ifdef HAVE_TLS
+_Static_assert(AUTLS_PROFILE_STANDARD == TLS_PROFILE_STANDARD &&
+	       AUTLS_PROFILE_FIPS == TLS_PROFILE_FIPS &&
+	       AUTLS_PROFILE_PQC == TLS_PROFILE_PQC,
+	       "autls profile constants out of sync with config enums");
+#endif
+
 /* Error types */
 #define ET_SUCCESS	 0
 #define ET_PERMANENT	-1
@@ -1183,6 +1190,8 @@ static int tls_psk_use_session_cb(SSL *ssl, const EVP_MD *md,
  * groups, and either PSK or certificate authentication.
  * Returns 0 on success, -1 on error.
  */
+static int tls_error_cb(const char *str, size_t len, void *u);
+
 static int init_tls_context(void)
 {
 	const char *cipher_suites;
@@ -1212,33 +1221,49 @@ static int init_tls_context(void)
 	SSL_CTX_set_session_cache_mode(tls_ctx, SSL_SESS_CACHE_OFF);
 	SSL_CTX_set_options(tls_ctx, SSL_OP_NO_TICKET);
 
-	/* Configure cipher suites */
+	/* Configure cipher suites from profile or override */
 	cipher_suites = config.tls_cipher_suites ?
 		config.tls_cipher_suites :
-		"TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256:TLS_AES_128_GCM_SHA256";
-	if (!SSL_CTX_set_ciphersuites(tls_ctx, cipher_suites)) {
-		syslog(LOG_ERR, "Unable to set TLS cipher suites");
-		goto err;
-	}
-
-	/* Configure key exchange groups (PQC hybrid first) */
-	key_exchange = config.tls_key_exchange ?
-		config.tls_key_exchange : "X25519MLKEM768:X25519";
-	if (!SSL_CTX_set1_groups_list(tls_ctx, key_exchange)) {
-		ERR_clear_error();
-		if (config.tls_require_pqc || config.tls_key_exchange) {
-			syslog(LOG_ERR,
-				"Unable to set key exchange groups '%s'",
-				key_exchange);
+		autls_profile_ciphers(config.tls_crypto_profile);
+	if (cipher_suites) {
+		if (!SSL_CTX_set_ciphersuites(tls_ctx, cipher_suites)) {
+			syslog(LOG_ERR, "Unable to set TLS cipher suites");
 			goto err;
 		}
+	}
+
+	if (config.tls_crypto_profile == TLS_PROFILE_PQC &&
+	    config.tls_key_exchange)
 		syslog(LOG_WARNING,
-			"PQC key exchange groups not available, "
-			"falling back to X25519");
-		if (!SSL_CTX_set1_groups_list(tls_ctx, "X25519")) {
-			syslog(LOG_ERR,
-				"Unable to set any key exchange groups");
-			goto err;
+			"tls_key_exchange override set with PQC "
+			"profile; connections will fail if override "
+			"excludes PQC groups");
+
+	/* Configure key exchange groups from profile or override */
+	key_exchange = config.tls_key_exchange ?
+		config.tls_key_exchange :
+		autls_profile_groups(config.tls_crypto_profile);
+	if (key_exchange) {
+		if (!SSL_CTX_set1_groups_list(tls_ctx, key_exchange)) {
+			ERR_print_errors_cb(tls_error_cb, NULL);
+			if (config.tls_crypto_profile !=
+			    TLS_PROFILE_STANDARD ||
+			    config.tls_key_exchange) {
+				syslog(LOG_ERR,
+					"Unable to set key exchange "
+					"groups '%s'", key_exchange);
+				goto err;
+			}
+			syslog(LOG_WARNING,
+				"PQC key exchange groups not "
+				"available, falling back to X25519");
+			if (!SSL_CTX_set1_groups_list(tls_ctx,
+						      "X25519")) {
+				syslog(LOG_ERR,
+					"Unable to set any key "
+					"exchange groups");
+				goto err;
+			}
 		}
 	}
 
@@ -1317,6 +1342,7 @@ static int init_tls_context(void)
 
 	return 0;
 err:
+	ERR_print_errors_cb(tls_error_cb, NULL);
 	if (psk_key) {
 		OPENSSL_cleanse(psk_key, psk_key_len);
 		OPENSSL_free(psk_key);
@@ -1429,7 +1455,8 @@ static int tls_connect(void)
 		config.remote_server, SSL_get_cipher(tls_ssl),
 		kex_name ? kex_name : "unknown");
 
-	if (config.tls_require_pqc && !autls_is_pqc_group(kex_name)) {
+	if (config.tls_crypto_profile == TLS_PROFILE_PQC &&
+	    !autls_is_pqc_group(kex_name)) {
 		syslog(LOG_ERR,
 			"PQC key exchange required but negotiated "
 			"group '%s' is not PQC",
