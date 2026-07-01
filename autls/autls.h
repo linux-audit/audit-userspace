@@ -35,11 +35,26 @@ typedef void (*autls_log_fn)(int, const char *, ...)
 #define AUTLS_WRITE_TIMEOUT_MS		100
 #define AUTLS_SHUTDOWN_TIMEOUT_MS	1000
 
+/* PSK identity limits */
+#define AUTLS_PSK_IDENTITY_MAX		255
+
+/*
+ * Crypto profile values -- must match tls_crypto_profile_t
+ * in auditd-config.h and remote-config.h
+ */
+#define AUTLS_PROFILE_STANDARD		0
+#define AUTLS_PROFILE_FIPS		1
+#define AUTLS_PROFILE_PQC		2
+
 /* autls-profile.c */
 int autls_is_pqc_group(const char *name)
 	__attribute_pure__ __wur;
 const SSL_CIPHER *autls_find_tls13_cipher(SSL *ssl, const EVP_MD *md)
 	__nonnull((1)) __wur;
+const char *autls_profile_ciphers(int profile)
+	__attribute_pure__ __wur;
+const char *autls_profile_groups(int profile)
+	__attribute_pure__ __wur;
 
 /* autls-psk.c */
 int autls_validate_key_file(const char *path, autls_log_fn log_fn)
@@ -47,6 +62,9 @@ int autls_validate_key_file(const char *path, autls_log_fn log_fn)
 int autls_load_psk(const char *path, unsigned char **key, size_t *key_len,
 		   autls_log_fn log_fn)
 	__nonnull((1, 2, 3, 4)) __wur;
+int autls_validate_psk_identity(const unsigned char *id, size_t len,
+				autls_log_fn log_fn)
+	__nonnull((1, 3)) __wur;
 
 /* autls-io.c */
 int autls_remaining_ms(const struct timespec *deadline)

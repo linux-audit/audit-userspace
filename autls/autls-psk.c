@@ -29,6 +29,43 @@
 #include "autls.h"
 
 /*
+ * autls_validate_psk_identity - validate a PSK identity string
+ * @id: identity bytes to validate
+ * @len: length of @id in bytes
+ * @log_fn: logging callback for error reporting
+ *
+ * Checks that the identity is non-empty, within the maximum length,
+ * and contains only printable ASCII characters (0x21-0x7E).
+ * Returns 0 on success, -1 on validation failure.
+ */
+int autls_validate_psk_identity(const unsigned char *id, size_t len,
+				autls_log_fn log_fn)
+{
+	size_t i;
+
+	if (len == 0) {
+		log_fn(LOG_ERR, "PSK identity is empty");
+		return -1;
+	}
+	if (len > AUTLS_PSK_IDENTITY_MAX) {
+		log_fn(LOG_ERR,
+			"PSK identity too long (%zu bytes, max %d)",
+			len, AUTLS_PSK_IDENTITY_MAX);
+		return -1;
+	}
+	for (i = 0; i < len; i++) {
+		if (id[i] < 0x21 || id[i] > 0x7E) {
+			log_fn(LOG_ERR,
+				"PSK identity contains invalid byte "
+				"0x%02x at position %zu",
+				id[i], i);
+			return -1;
+		}
+	}
+	return 0;
+}
+
+/*
  * autls_validate_key_file - verify a TLS key file has safe permissions
  * @path: path to the key file
  * @log_fn: logging callback for error reporting
