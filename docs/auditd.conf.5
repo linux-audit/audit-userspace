@@ -360,35 +360,58 @@ Path to the server TLS private key in PEM format. The file must be owned by root
 .I tls_ca_file
 Path to the CA certificate used to verify client certificates when mutual TLS is enabled via tls_client_auth.
 .TP
+.I tls_auth
+The TLS authentication mode. Currently only
+.I psk
+is supported (pre-shared key authentication). Certificate-based TLS authentication is not supported in this tech preview. The default is
+.IR psk .
+.TP
+.I tls_crypto_profile
+Selects the cryptographic profile for TLS. Valid values are
+.IR standard ", " fips ", and " pqc .
+.I standard
+uses robust classical TLS 1.3 PSK with opportunistic PQC hybrid key exchange.
+.I fips
+defers all cipher and group selection to the system crypto policy (RHEL crypto-policies) and fails closed if the policy does not support TLS 1.3.
+.I pqc
+requires post-quantum hybrid key exchange and rejects connections that negotiate a classical-only group. The default is
+.IR standard .
+.TP
 .I tls_psk_file
 Path to a file containing a hex-encoded pre-shared key for TLS-PSK authentication. The key must be at least 32 bytes (64 hex characters). Generate a key with: openssl rand \-hex 32. The file must be owned by root and mode 0400.
 .TP
 .I tls_psk_identity
 The expected client PSK identity string. This option is required when tls_psk_file is set and tls_allowed_clients is not configured. The server rejects clients that present a different identity. The identity must contain only printable ASCII characters (no spaces or control characters) and must not exceed 255 bytes.
 .TP
+.I tls_allowed_clients
+Path to a file listing authorized PSK client identities. The file format is one entry per line: identity, status (enabled or disabled), and optional notes separated by whitespace. Lines starting with # are comments. Example:
+.nf
+.RS
+# identity   status    notes
+host-1234    enabled   prod web host
+host-5678    disabled  retired
+.RE
+.fi
+When this option is set, it is the sole authorization source for PSK connections; tls_psk_identity is ignored. The file must be owned by root, not group-writable, and not world-writable. In the current single-PSK model (one tls_psk_file), at most one identity may be enabled. A full per-identity PSK store is planned for a future release.
+.TP
 .I tls_cipher_suites
-Colon-separated list of TLS 1.3 cipher suites. The default is "TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256:TLS_AES_128_GCM_SHA256".
+Colon-separated list of TLS 1.3 cipher suites. Overrides the profile default. The default is "TLS_AES_128_GCM_SHA256:TLS_CHACHA20_POLY1305_SHA256:TLS_AES_256_GCM_SHA384".
 .TP
 .I tls_key_exchange
-Colon-separated list of key exchange groups. The default is "X25519MLKEM768:X25519" which uses post-quantum hybrid key exchange as the primary option. PQC hybrid key exchange increases handshake sizes by approximately 1120 bytes, which may require updates to network middleboxes with deep packet inspection.
+Colon-separated list of key exchange groups. Overrides the profile default. Overrides cannot weaken a PQC profile's post-handshake group check. PQC hybrid key exchange increases handshake sizes by approximately 1120 bytes, which may require updates to network middleboxes with deep packet inspection.
 .TP
 .I tls_require_pqc
-If set to
+Compatibility alias for tls_crypto_profile=pqc. If set to
 .IR yes ,
-the server will refuse to start when post-quantum key exchange groups are not available, and will reject connections that negotiate a classical-only group. When set to
-.IR no
-(the default), the server will fall back to classical-only key exchange. PSK mode with PQC key exchange provides fully quantum-resistant transport. Certificate mode provides quantum-resistant confidentiality but authentication relies on classical signatures until ML-DSA certificates are deployed.
+sets tls_crypto_profile to pqc. If set to
+.IR no ,
+it has no effect on tls_crypto_profile (one-directional alias). New configurations should use tls_crypto_profile directly.
 .TP
 .I tls_client_auth
-Controls client certificate verification for mutual TLS. Valid values are
+Controls client certificate verification for mutual TLS (certificate mode only). Valid values are
 .IR none ", " optional ", and " required ".
-If set to
-.IR required ,
-clients must present a valid certificate (matching tls_ca_file). If set to
-.IR optional ,
-client certificates are requested but not required. The default is
-.IR required
-to match the mutual authentication behavior of the Kerberos transport.
+This option is ignored when tls_auth=psk. The default is
+.IR none .
 .TP
 .I distribute_network
 If set to "yes", network originating events will be distributed to the audit
