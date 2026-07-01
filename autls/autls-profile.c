@@ -48,6 +48,70 @@ int autls_is_pqc_group(const char *name)
 }
 
 /*
+ * Default TLS 1.3 ciphersuite string for standard and PQC profiles.
+ * SHA-256 ciphers are listed first because RFC 8446 s4.2.11 mandates
+ * SHA-256 as the hash for external PSK binders; AES-256-GCM (SHA-384)
+ * is unreachable in PSK mode unless a SHA-384 binder is selected.
+ */
+#define AUTLS_DEFAULT_CIPHERS \
+	"TLS_AES_128_GCM_SHA256:" \
+	"TLS_CHACHA20_POLY1305_SHA256:" \
+	"TLS_AES_256_GCM_SHA384"
+
+/* Default key exchange groups -- includes PQC hybrid with fallback */
+#define AUTLS_STANDARD_GROUPS	"X25519MLKEM768:X25519"
+
+/* PQC-only hybrid groups -- no classical fallback, no pure ML-KEM */
+#define AUTLS_PQC_GROUPS \
+	"X25519MLKEM768:" \
+	"SecP256r1MLKEM768:" \
+	"SecP384r1MLKEM1024"
+
+/*
+ * autls_profile_ciphers - return the ciphersuite string for a profile
+ * @profile: one of AUTLS_PROFILE_STANDARD, AUTLS_PROFILE_FIPS,
+ *           AUTLS_PROFILE_PQC
+ *
+ * STANDARD and PQC return the default TLS 1.3 ciphersuites.
+ * FIPS returns NULL (defer to system crypto policy).
+ */
+const char *autls_profile_ciphers(int profile)
+{
+	switch (profile) {
+	case AUTLS_PROFILE_STANDARD:
+	case AUTLS_PROFILE_PQC:
+		return AUTLS_DEFAULT_CIPHERS;
+	case AUTLS_PROFILE_FIPS:
+		return NULL;
+	default:
+		return AUTLS_DEFAULT_CIPHERS;
+	}
+}
+
+/*
+ * autls_profile_groups - return the key exchange groups for a profile
+ * @profile: one of AUTLS_PROFILE_STANDARD, AUTLS_PROFILE_FIPS,
+ *           AUTLS_PROFILE_PQC
+ *
+ * STANDARD returns hybrid-plus-classical groups with fallback.
+ * PQC returns hybrid-only groups (no classical fallback).
+ * FIPS returns NULL (defer to system crypto policy).
+ */
+const char *autls_profile_groups(int profile)
+{
+	switch (profile) {
+	case AUTLS_PROFILE_STANDARD:
+		return AUTLS_STANDARD_GROUPS;
+	case AUTLS_PROFILE_PQC:
+		return AUTLS_PQC_GROUPS;
+	case AUTLS_PROFILE_FIPS:
+		return NULL;
+	default:
+		return AUTLS_STANDARD_GROUPS;
+	}
+}
+
+/*
  * autls_find_tls13_cipher - select a TLS 1.3 cipher matching a hash
  * @ssl: active SSL connection
  * @md: required hash algorithm, or NULL for SHA-256 default
