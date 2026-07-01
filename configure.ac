@@ -285,8 +285,15 @@ AC_ARG_ENABLE(tls,
 	[want_tls="no"]
 )
 if test x$want_tls = xyes; then
-	AC_CHECK_LIB(ssl, SSL_CTX_new, [OPENSSL_LIBS="-lssl -lcrypto"],
-		[AC_MSG_ERROR([TLS support requires OpenSSL (libssl)])])
+	if test "x$OPENSSL_LIBS" = "x"; then
+		AC_CHECK_LIB(ssl, SSL_CTX_new,
+			[OPENSSL_LIBS="-lssl -lcrypto"],
+			[AC_MSG_ERROR(
+				[TLS support requires OpenSSL (libssl)])])
+	else
+		AC_MSG_NOTICE(
+			[using user-supplied OPENSSL_LIBS: $OPENSSL_LIBS])
+	fi
 	AC_CHECK_LIB(crypto, OPENSSL_hexstr2buf, [:],
 		[AC_MSG_ERROR([TLS support requires OpenSSL (libcrypto)])])
 	AC_CHECK_HEADER(openssl/ssl.h, [],
@@ -324,9 +331,9 @@ if test x$want_tls = xyes; then
 	LIBS="$saved_LIBS"
 	AC_DEFINE(HAVE_TLS,, Define if you want to use TLS transport)
 	OPENSSL_CFLAGS="${OPENSSL_CFLAGS-}"
-	AC_SUBST(OPENSSL_CFLAGS)
-	AC_SUBST(OPENSSL_LIBS)
 fi
+AC_SUBST(OPENSSL_CFLAGS)
+AC_SUBST(OPENSSL_LIBS)
 AM_CONDITIONAL(ENABLE_TLS, test x$want_tls = xyes)
 
 # ids

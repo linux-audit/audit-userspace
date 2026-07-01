@@ -38,6 +38,9 @@ auditd_CFLAGS += -I${top_srcdir}/autls $(OPENSSL_CFLAGS)
 endif
 auditd_LDFLAGS = -pie -Wl,-z,relro -Wl,-z,now
 auditd_DEPENDENCIES = libev/libev.a
+if ENABLE_TLS
+auditd_DEPENDENCIES += ${top_builddir}/autls/libautls.la
+endif
 auditd_LDADD = @LIBWRAP_LIBS@ ${top_builddir}/src/libev/libev.la ${top_builddir}/audisp/libdisp.la ${top_builddir}/lib/libaudit.la ${top_builddir}/auparse/libauparse.la -lpthread -lm $(gss_libs) ${top_builddir}/common/libaucommon.la
 if ENABLE_TLS
 auditd_LDADD += ${top_builddir}/autls/libautls.la
