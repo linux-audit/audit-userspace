@@ -155,11 +155,94 @@ static void test_set_config_dir_preserves_old_value(void)
 	config_file = NULL;
 }
 
+#ifdef HAVE_TLS
+static void test_tls_auth_parser(void)
+{
+	struct daemon_conf config;
+	struct nv_pair nv;
+
+	memset(&config, 0, sizeof(config));
+	reset_allocs(-1);
+
+	/* Valid value: psk */
+	nv = (struct nv_pair){ "tls_auth", "psk", NULL };
+	assert(tls_auth_parser(&nv, 1, &config) == 0);
+	assert(config.tls_auth == TLS_AUTH_PSK);
+
+	/* Invalid value rejected */
+	nv = (struct nv_pair){ "tls_auth", "certificate", NULL };
+	assert(tls_auth_parser(&nv, 1, &config) == 1);
+}
+
+static void test_tls_crypto_profile_parser(void)
+{
+	struct daemon_conf config;
+	struct nv_pair nv;
+
+	memset(&config, 0, sizeof(config));
+	reset_allocs(-1);
+
+	nv = (struct nv_pair){ "tls_crypto_profile", "standard", NULL };
+	assert(tls_crypto_profile_parser(&nv, 1, &config) == 0);
+	assert(config.tls_crypto_profile == TLS_PROFILE_STANDARD);
+
+	nv = (struct nv_pair){ "tls_crypto_profile", "fips", NULL };
+	assert(tls_crypto_profile_parser(&nv, 1, &config) == 0);
+	assert(config.tls_crypto_profile == TLS_PROFILE_FIPS);
+
+	nv = (struct nv_pair){ "tls_crypto_profile", "pqc", NULL };
+	assert(tls_crypto_profile_parser(&nv, 1, &config) == 0);
+	assert(config.tls_crypto_profile == TLS_PROFILE_PQC);
+
+	/* Invalid value rejected */
+	nv = (struct nv_pair){ "tls_crypto_profile", "quantum", NULL };
+	assert(tls_crypto_profile_parser(&nv, 1, &config) == 1);
+}
+
+static void test_tls_require_pqc_compat_alias(void)
+{
+	struct daemon_conf config;
+	struct nv_pair nv;
+
+	memset(&config, 0, sizeof(config));
+	reset_allocs(-1);
+
+	/* yes sets both tls_require_pqc and tls_crypto_profile */
+	config.tls_crypto_profile = TLS_PROFILE_STANDARD;
+	nv = (struct nv_pair){ "tls_require_pqc", "yes", NULL };
+	assert(tls_require_pqc_parser(&nv, 1, &config) == 0);
+	assert(config.tls_require_pqc == 1);
+	assert(config.tls_crypto_profile == TLS_PROFILE_PQC);
+
+	/* no is a no-op for tls_crypto_profile */
+	config.tls_crypto_profile = TLS_PROFILE_PQC;
+	nv = (struct nv_pair){ "tls_require_pqc", "no", NULL };
+	assert(tls_require_pqc_parser(&nv, 1, &config) == 0);
+	assert(config.tls_require_pqc == 0);
+	assert(config.tls_crypto_profile == TLS_PROFILE_PQC);
+
+	/* Explicit profile after yes wins (last writer) */
+	config.tls_crypto_profile = TLS_PROFILE_STANDARD;
+	config.tls_require_pqc = 0;
+	nv = (struct nv_pair){ "tls_require_pqc", "yes", NULL };
+	assert(tls_require_pqc_parser(&nv, 1, &config) == 0);
+	assert(config.tls_crypto_profile == TLS_PROFILE_PQC);
+	nv = (struct nv_pair){ "tls_crypto_profile", "standard", NULL };
+	assert(tls_crypto_profile_parser(&nv, 1, &config) == 0);
+	assert(config.tls_crypto_profile == TLS_PROFILE_STANDARD);
+}
+#endif /* HAVE_TLS */
+
 int main(void)
 {
 	reset_allocs(-1);
 	test_name_preserves_old_value();
 	test_log_file_preserves_old_value();
 	test_set_config_dir_preserves_old_value();
+#ifdef HAVE_TLS
+	test_tls_auth_parser();
+	test_tls_crypto_profile_parser();
+	test_tls_require_pqc_compat_alias();
+#endif
 	return 0;
 }
