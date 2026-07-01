@@ -1275,18 +1275,28 @@ static int init_tls_context(void)
 
 		SSL_CTX_set_psk_use_session_callback(tls_ctx,
 						tls_psk_use_session_cb);
-		{
-			const char *id = config.tls_psk_identity ?
-				config.tls_psk_identity : "audit-client";
-			if (strlen(id) >= sizeof(psk_identity_buf)) {
-				syslog(LOG_ERR,
-					"PSK identity too long (max %zu bytes)",
-					sizeof(psk_identity_buf) - 1);
-				goto err;
-			}
-			snprintf(psk_identity_buf,
-				sizeof(psk_identity_buf), "%s", id);
+		if (config.tls_psk_identity == NULL) {
+			syslog(LOG_ERR,
+				"tls_psk_identity is required");
+			goto err;
 		}
+		if (autls_validate_psk_identity(
+				(const unsigned char *)
+				config.tls_psk_identity,
+				strlen(config.tls_psk_identity),
+				syslog) != 0)
+			goto err;
+		if (strlen(config.tls_psk_identity) >=
+		    sizeof(psk_identity_buf)) {
+			syslog(LOG_ERR,
+				"PSK identity too long "
+				"(max %zu bytes)",
+				sizeof(psk_identity_buf) - 1);
+			goto err;
+		}
+		snprintf(psk_identity_buf,
+			sizeof(psk_identity_buf), "%s",
+			config.tls_psk_identity);
 	}
 
 	/* Certificate mode */
