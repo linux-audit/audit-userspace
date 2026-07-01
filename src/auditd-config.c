@@ -151,6 +151,10 @@ static int tls_client_auth_parser(const struct nv_pair *nv, int line,
 		struct daemon_conf *config);
 static int tls_require_pqc_parser(const struct nv_pair *nv, int line,
 		struct daemon_conf *config);
+static int tls_auth_parser(const struct nv_pair *nv, int line,
+		struct daemon_conf *config);
+static int tls_crypto_profile_parser(const struct nv_pair *nv, int line,
+		struct daemon_conf *config);
 static int distribute_network_parser(const struct nv_pair *nv, int line,
 		struct daemon_conf *config);
 static int q_depth_parser(const struct nv_pair *nv, int line,
@@ -242,6 +246,8 @@ static const struct kw_pair keywords[] =
   {"tls_key_exchange",         tls_key_exchange_parser,         0 },
   {"tls_client_auth",          tls_client_auth_parser,          0 },
   {"tls_require_pqc",          tls_require_pqc_parser,          0 },
+  {"tls_auth",                 tls_auth_parser,                 0 },
+  {"tls_crypto_profile",       tls_crypto_profile_parser,       0 },
   {"distribute_network",       distribute_network_parser,       0 },
   {"q_depth",                  q_depth_parser,                  0 },
   {"overflow_action",          overflow_action_parser,          0 },
@@ -416,8 +422,10 @@ void clear_config(struct daemon_conf *config)
 	config->tls_psk_identity = NULL;
 	config->tls_cipher_suites = NULL;
 	config->tls_key_exchange = NULL;
-	config->tls_client_auth = TCA_REQUIRED;
+	config->tls_client_auth = TCA_NONE;
 	config->tls_require_pqc = 0;
+	config->tls_auth = TLS_AUTH_PSK;
+	config->tls_crypto_profile = TLS_PROFILE_STANDARD;
 #endif
 	config->distribute_network_events = 0;
 	config->q_depth = 2000;
@@ -1919,14 +1927,51 @@ static int tls_client_auth_parser(const struct nv_pair *nv, int line,
 static int tls_require_pqc_parser(const struct nv_pair *nv, int line,
 		struct daemon_conf *config)
 {
-	if (strcasecmp(nv->value, "yes") == 0)
+	if (strcasecmp(nv->value, "yes") == 0) {
 		config->tls_require_pqc = 1;
-	else if (strcasecmp(nv->value, "no") == 0)
+		config->tls_crypto_profile = TLS_PROFILE_PQC;
+	} else if (strcasecmp(nv->value, "no") == 0) {
 		config->tls_require_pqc = 0;
+		// no-op for tls_crypto_profile -- one-directional alias
+	} else {
+		audit_msg(LOG_ERR,
+			"Value %s for tls_require_pqc is invalid "
+			"at line %d; must be yes or no",
+			nv->value, line);
+		return 1;
+	}
+	return 0;
+}
+
+static int tls_auth_parser(const struct nv_pair *nv, int line,
+		struct daemon_conf *config)
+{
+	if (strcasecmp(nv->value, "psk") == 0)
+		config->tls_auth = TLS_AUTH_PSK;
 	else {
 		audit_msg(LOG_ERR,
-			"Option %s must be yes or no at line %d",
-			nv->value, line);
+			"Value '%s' for tls_auth is not valid at "
+			"line %d; only 'psk' is supported in this "
+			"tech preview", nv->value, line);
+		return 1;
+	}
+	return 0;
+}
+
+static int tls_crypto_profile_parser(const struct nv_pair *nv, int line,
+		struct daemon_conf *config)
+{
+	if (strcasecmp(nv->value, "standard") == 0)
+		config->tls_crypto_profile = TLS_PROFILE_STANDARD;
+	else if (strcasecmp(nv->value, "fips") == 0)
+		config->tls_crypto_profile = TLS_PROFILE_FIPS;
+	else if (strcasecmp(nv->value, "pqc") == 0)
+		config->tls_crypto_profile = TLS_PROFILE_PQC;
+	else {
+		audit_msg(LOG_ERR,
+			"Value '%s' for tls_crypto_profile is not "
+			"valid at line %d; must be 'standard', "
+			"'fips', or 'pqc'", nv->value, line);
 		return 1;
 	}
 	return 0;
@@ -1950,6 +1995,8 @@ TLS_STUB_S(tls_cipher_suites_parser)
 TLS_STUB_S(tls_key_exchange_parser)
 TLS_STUB_S(tls_client_auth_parser)
 TLS_STUB_S(tls_require_pqc_parser)
+TLS_STUB_S(tls_auth_parser)
+TLS_STUB_S(tls_crypto_profile_parser)
 #undef TLS_STUB_S
 #endif
 #undef TLS_PARSER_S
@@ -2261,6 +2308,13 @@ static int sanity_check(struct daemon_conf *config)
 				"mutually exclusive");
 			return 1;
 		}
+		if (config->tls_auth == TLS_AUTH_PSK && !have_psk) {
+			audit_msg(LOG_ERR,
+				"tls_auth=psk requires tls_psk_file; "
+				"certificate-based TLS is not supported "
+				"in this tech preview");
+			return 1;
+		}
 		if (!have_psk && !have_cert) {
 			audit_msg(LOG_ERR,
 				"transport=tls requires tls_psk_file or "
@@ -2274,13 +2328,29 @@ static int sanity_check(struct daemon_conf *config)
 			return 1;
 		}
 #ifndef HAVE_SSL_GROUP_TO_NAME
-		if (config->tls_require_pqc) {
+		if (config->tls_require_pqc ||
+		    config->tls_crypto_profile == TLS_PROFILE_PQC) {
 			audit_msg(LOG_ERR,
-				"tls_require_pqc needs OpenSSL >= 3.0 "
+				"PQC crypto profile needs OpenSSL >= 3.0 "
 				"(SSL_group_to_name not available)");
 			return 1;
 		}
 #endif
+		if (config->tls_require_pqc &&
+		    config->tls_crypto_profile != TLS_PROFILE_PQC) {
+			audit_msg(LOG_ERR,
+				"tls_require_pqc=yes conflicts with "
+				"tls_crypto_profile; use "
+				"tls_crypto_profile=pqc instead");
+			return 1;
+		}
+		if (config->tls_client_auth > TCA_NONE &&
+				config->tls_auth == TLS_AUTH_PSK) {
+			audit_msg(LOG_WARNING,
+				"tls_client_auth is ignored when "
+				"tls_auth=psk; PSK identity "
+				"authorization is used instead");
+		}
 		if (have_cert && config->tls_client_auth > TCA_NONE &&
 				!config->tls_ca_file) {
 			audit_msg(LOG_ERR,
