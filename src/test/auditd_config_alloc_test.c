@@ -231,6 +231,70 @@ static void test_tls_require_pqc_compat_alias(void)
 	assert(tls_crypto_profile_parser(&nv, 1, &config) == 0);
 	assert(config.tls_crypto_profile == TLS_PROFILE_STANDARD);
 }
+static void test_sanity_check_tls(void)
+{
+	struct daemon_conf config;
+
+	printf("  sanity_check TLS constraints...\n");
+
+	/* cert/key pairing: cert without key must fail */
+	clear_config(&config);
+	config.transport = T_TLS;
+	config.tls_cert_file = "/cert";
+	config.tls_key_file = NULL;
+	assert(sanity_check(&config) == 1);
+
+	/* PSK + cert mutual exclusion */
+	clear_config(&config);
+	config.transport = T_TLS;
+	config.tls_psk_file = "/psk";
+	config.tls_cert_file = "/cert";
+	config.tls_key_file = "/key";
+	config.tls_psk_identity = "id";
+	config.tls_auth = TLS_AUTH_PSK;
+	assert(sanity_check(&config) == 1);
+
+	/* tls_auth=psk requires tls_psk_file */
+	clear_config(&config);
+	config.transport = T_TLS;
+	config.tls_auth = TLS_AUTH_PSK;
+	config.tls_psk_file = NULL;
+	config.tls_cert_file = "/cert";
+	config.tls_key_file = "/key";
+	assert(sanity_check(&config) == 1);
+
+	/* No credentials at all */
+	clear_config(&config);
+	config.transport = T_TLS;
+	assert(sanity_check(&config) == 1);
+
+	/* PSK requires identity or ACL */
+	clear_config(&config);
+	config.transport = T_TLS;
+	config.tls_psk_file = "/psk";
+	config.tls_auth = TLS_AUTH_PSK;
+	config.tls_psk_identity = NULL;
+	config.tls_allowed_clients = NULL;
+	assert(sanity_check(&config) == 1);
+
+	/* tls_require_pqc conflicts with non-PQC profile */
+	clear_config(&config);
+	config.transport = T_TLS;
+	config.tls_psk_file = "/psk";
+	config.tls_psk_identity = "id";
+	config.tls_auth = TLS_AUTH_PSK;
+	config.tls_require_pqc = 1;
+	config.tls_crypto_profile = TLS_PROFILE_STANDARD;
+	assert(sanity_check(&config) == 1);
+
+	/* Valid minimal PSK config should pass */
+	clear_config(&config);
+	config.transport = T_TLS;
+	config.tls_psk_file = "/psk";
+	config.tls_psk_identity = "id";
+	config.tls_auth = TLS_AUTH_PSK;
+	assert(sanity_check(&config) == 0);
+}
 #endif /* HAVE_TLS */
 
 int main(void)
@@ -243,6 +307,7 @@ int main(void)
 	test_tls_auth_parser();
 	test_tls_crypto_profile_parser();
 	test_tls_require_pqc_compat_alias();
+	test_sanity_check_tls();
 #endif
 	return 0;
 }
