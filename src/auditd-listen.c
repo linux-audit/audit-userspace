@@ -88,6 +88,7 @@ typedef struct ev_tcp {
 	struct ev_timer handshake_timer;
 	struct daemon_conf *config;
 	int in_handshake_chain;
+	char *accepted_identity;
 #endif
 	unsigned char buffer [MAX_AUDIT_MESSAGE_LENGTH + 17];
 } ev_tcp;
@@ -114,6 +115,9 @@ static SSL_CTX *tls_server_ctx = NULL;
 static struct ev_tcp *handshake_chain = NULL;
 static unsigned int handshake_count = 0;
 #define MAX_HANDSHAKE_PENDING 32
+static struct autls_acl_table *acl_table = NULL;
+static int ssl_ex_idx_identity = -1;
+static int ssl_ex_idx_reason = -1;
 #endif
 
 static char *sockaddr_to_string(const struct sockaddr_storage *addr)
@@ -182,6 +186,8 @@ static void release_client(struct ev_tcp *client)
 		SSL_free(client->ssl);
 		client->ssl = NULL;
 	}
+	free(client->accepted_identity);
+	client->accepted_identity = NULL;
 #endif
 #ifdef USE_GSSAPI
 	if (client->remote_name)
@@ -208,10 +214,19 @@ static void abort_handshake(struct ev_loop *loop,
 		struct ev_tcp *client, const char *op)
 {
 	char emsg[DEFAULT_BUF_SZ];
+	char *ex_identity = NULL;
 
 	ev_io_stop(loop, &client->io);
 	ev_timer_stop(loop, &client->handshake_timer);
+
+	/* Retrieve ex-data before SSL_free destroys the SSL object */
 	if (client->ssl) {
+		if (ssl_ex_idx_identity >= 0) {
+			ex_identity = SSL_get_ex_data(client->ssl,
+						ssl_ex_idx_identity);
+			SSL_set_ex_data(client->ssl,
+					ssl_ex_idx_identity, NULL);
+		}
 		SSL_free(client->ssl);
 		client->ssl = NULL;
 	}
@@ -234,6 +249,8 @@ static void abort_handshake(struct ev_loop *loop,
 		sockaddr_to_port(&client->addr));
 	send_audit_event(AUDIT_DAEMON_ACCEPT, emsg);
 
+	free(ex_identity);
+	free(client->accepted_identity);
 	free(client);
 }
 #endif
@@ -1058,6 +1075,15 @@ static void tls_handshake_handler(struct ev_loop *loop,
 			return;
 		}
 
+		/* Transfer accepted identity from ex-data to client */
+		if (ssl_ex_idx_identity >= 0) {
+			client->accepted_identity =
+				SSL_get_ex_data(client->ssl,
+						ssl_ex_idx_identity);
+			SSL_set_ex_data(client->ssl,
+					ssl_ex_idx_identity, NULL);
+		}
+
 		/* Remove from handshake_chain */
 		if (client->in_handshake_chain) {
 			if (handshake_chain == client)
@@ -1341,6 +1367,29 @@ static size_t server_psk_key_len = 0;
 
 static char *expected_psk_identity = NULL;
 
+/* Store a failure reason in SSL ex-data for audit records */
+static void set_psk_failure_reason(SSL *ssl, const char *reason)
+{
+	if (ssl_ex_idx_reason >= 0)
+		SSL_set_ex_data(ssl, ssl_ex_idx_reason, (void *)reason);
+}
+
+/* Sanitize an identity for logging (non-printable → '.') */
+static void sanitize_identity(const unsigned char *id, size_t len,
+			      char *buf, size_t bufsz)
+{
+	size_t log_len, j;
+
+	if (bufsz == 0)
+		return;
+	log_len = len < bufsz - 1 ? len : bufsz - 1;
+
+	for (j = 0; j < log_len; j++)
+		buf[j] = (id[j] >= 0x20 && id[j] <= 0x7E)
+			 ? (char)id[j] : '.';
+	buf[log_len] = '\0';
+}
+
 /*
  * tls_psk_find_session_cb - TLS 1.3 server PSK callback
  * @ssl: SSL connection handle
@@ -1349,8 +1398,9 @@ static char *expected_psk_identity = NULL;
  * @sess: output SSL_SESSION containing the matched PSK
  *
  * Called by OpenSSL during TLS 1.3 handshake to look up the PSK for
- * a client identity. Validates the identity against the configured
- * expected identity using constant-time comparison.
+ * a client identity. Validates the identity, checks it against the
+ * ACL table (if configured) or expected_psk_identity (if not), and
+ * stores the accepted identity in SSL ex-data for later retrieval.
  * Returns 1 on success, 0 on failure or identity mismatch.
  */
 static int tls_psk_find_session_cb(SSL *ssl, const unsigned char *identity,
@@ -1358,49 +1408,110 @@ static int tls_psk_find_session_cb(SSL *ssl, const unsigned char *identity,
 {
 	SSL_SESSION *s;
 	const SSL_CIPHER *cipher;
+	char safe_id[65];
 
 	if (server_psk_key == NULL)
 		return 0;
 
-	/* Validate client identity if configured */
-	if (expected_psk_identity) {
+	/* Validate identity syntax before any authorization check */
+	if (autls_validate_psk_identity(identity, identity_len,
+					audit_msg) != 0) {
+		sanitize_identity(identity, identity_len,
+				  safe_id, sizeof(safe_id));
+		audit_msg(LOG_ERR,
+			"TLS PSK invalid identity: '%s'%s",
+			safe_id,
+			identity_len > 64 ? " (truncated)" : "");
+		set_psk_failure_reason(ssl, "invalid-identity");
+		return 0;
+	}
+
+	/* Authorization: ACL table supersedes single identity */
+	if (acl_table) {
+		int rc = autls_acl_check(acl_table, identity,
+					 identity_len);
+		if (rc < 0) {
+			sanitize_identity(identity, identity_len,
+					  safe_id, sizeof(safe_id));
+			audit_msg(LOG_ERR,
+				"TLS PSK unknown identity: '%s'",
+				safe_id);
+			set_psk_failure_reason(ssl,
+					       "unknown-identity");
+			return 0;
+		}
+		if (rc == 0) {
+			sanitize_identity(identity, identity_len,
+					  safe_id, sizeof(safe_id));
+			audit_msg(LOG_ERR,
+				"TLS PSK disabled identity: '%s'",
+				safe_id);
+			set_psk_failure_reason(ssl,
+					       "disabled-identity");
+			return 0;
+		}
+	} else if (expected_psk_identity) {
 		if (identity_len != strlen(expected_psk_identity) ||
 		    CRYPTO_memcmp(identity, expected_psk_identity,
 				  identity_len) != 0) {
-			char safe_id[65];
-			size_t log_len = identity_len < 64 ?
-					 identity_len : 64;
-			size_t j;
-			for (j = 0; j < log_len; j++)
-				safe_id[j] = (identity[j] >= 0x20 &&
-					      identity[j] <= 0x7E)
-					     ? (char)identity[j] : '.';
-			safe_id[log_len] = '\0';
+			sanitize_identity(identity, identity_len,
+					  safe_id, sizeof(safe_id));
 			audit_msg(LOG_ERR,
 				"TLS PSK identity mismatch: "
 				"received '%s'%s", safe_id,
 				identity_len > 64 ?
 				" (truncated)" : "");
+			set_psk_failure_reason(ssl,
+					       "unknown-identity");
 			return 0;
 		}
+	} else {
+		/* No authorization configured -- fail closed */
+		audit_msg(LOG_ERR,
+			"TLS PSK rejected: no identity authorization "
+			"configured");
+		set_psk_failure_reason(ssl, "no-authorization");
+		return 0;
 	}
 
 	cipher = autls_find_tls13_cipher(ssl, NULL);
-	if (cipher == NULL)
+	if (cipher == NULL) {
+		audit_msg(LOG_ERR,
+			"TLS PSK: no cipher matches PSK hash");
+		set_psk_failure_reason(ssl, "no-matching-cipher");
 		return 0;
+	}
 
 	s = SSL_SESSION_new();
-	if (s == NULL)
+	if (s == NULL) {
+		audit_msg(LOG_ERR,
+			"TLS PSK: SSL_SESSION_new failed");
+		set_psk_failure_reason(ssl, "session-alloc-failed");
 		return 0;
+	}
 
 	if (!SSL_SESSION_set1_master_key(s, server_psk_key,
 					server_psk_key_len) ||
 	    !SSL_SESSION_set_cipher(s, cipher) ||
 	    !SSL_SESSION_set_protocol_version(s, TLS1_3_VERSION)) {
+		audit_msg(LOG_ERR,
+			"TLS PSK: SSL session setup failed");
 		SSL_SESSION_free(s);
+		set_psk_failure_reason(ssl, "session-setup-failed");
 		return 0;
 	}
 
+	/* Store accepted identity in ex-data after session is built
+	 * successfully -- avoids leaking the strndup on failure */
+	if (ssl_ex_idx_identity >= 0) {
+		char *old = SSL_get_ex_data(ssl, ssl_ex_idx_identity);
+		char *id_copy = strndup((const char *)identity,
+					identity_len);
+		free(old);
+		SSL_set_ex_data(ssl, ssl_ex_idx_identity, id_copy);
+	}
+
+	set_psk_failure_reason(ssl, NULL);
 	*sess = s;
 	return 1;
 }
@@ -1511,6 +1622,48 @@ static int init_tls_server_context(struct daemon_conf *config)
 				goto err;
 			}
 		}
+
+		/* Load client ACL if configured */
+		if (config->tls_allowed_clients) {
+			if (acl_table) {
+				autls_acl_free(acl_table);
+				acl_table = NULL;
+			}
+			if (autls_acl_load(config->tls_allowed_clients,
+					   &acl_table, audit_msg) != 0)
+				goto err;
+			if (acl_table->enabled_count > 1) {
+				audit_msg(LOG_ERR,
+					"tls_allowed_clients has %d "
+					"enabled identities but "
+					"single-PSK mode allows at "
+					"most 1",
+					acl_table->enabled_count);
+				goto err;
+			}
+			if (expected_psk_identity)
+				audit_msg(LOG_NOTICE,
+					"tls_allowed_clients is "
+					"configured; tls_psk_identity "
+					"is ignored for authorization");
+		}
+
+		/* Register ex-data indices (once) */
+		if (ssl_ex_idx_identity < 0) {
+			ssl_ex_idx_identity =
+				SSL_get_ex_new_index(0, NULL,
+						     NULL, NULL, NULL);
+			ssl_ex_idx_reason =
+				SSL_get_ex_new_index(0, NULL,
+						     NULL, NULL, NULL);
+			if (ssl_ex_idx_identity < 0 ||
+			    ssl_ex_idx_reason < 0)
+				audit_msg(LOG_WARNING,
+					"Unable to allocate SSL "
+					"ex-data indices; audit "
+					"records may lack identity/"
+					"reason fields");
+		}
 	}
 
 	/* Server certificate */
@@ -1573,6 +1726,8 @@ err:
 	}
 	free(expected_psk_identity);
 	expected_psk_identity = NULL;
+	autls_acl_free(acl_table);
+	acl_table = NULL;
 	SSL_CTX_free(tls_server_ctx);
 	tls_server_ctx = NULL;
 	return -1;
@@ -1787,6 +1942,8 @@ void auditd_tcp_listen_uninit(struct ev_loop *loop, struct daemon_conf *config)
 	}
 	free(expected_psk_identity);
 	expected_psk_identity = NULL;
+	autls_acl_free(acl_table);
+	acl_table = NULL;
 #endif
 #ifdef USE_GSSAPI
 	if (USE_GSS) {

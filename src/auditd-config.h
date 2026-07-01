@@ -110,6 +110,7 @@ struct daemon_conf
 	int tls_require_pqc;
 	tls_auth_t tls_auth;
 	tls_crypto_profile_t tls_crypto_profile;
+	const char *tls_allowed_clients;
 #endif
 	int distribute_network_events;
 	// Dispatcher config
