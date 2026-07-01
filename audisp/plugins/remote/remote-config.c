@@ -121,6 +121,10 @@ static int overflow_action_parser(struct nv_pair *nv, int line,
 		remote_conf_t *config);
 static int tls_require_pqc_parser(struct nv_pair *nv, int line,
 		remote_conf_t *config);
+static int tls_auth_parser(struct nv_pair *nv, int line,
+		remote_conf_t *config);
+static int tls_crypto_profile_parser(struct nv_pair *nv, int line,
+		remote_conf_t *config);
 static int sanity_check(remote_conf_t *config, const char *file);
 
 static const struct kw_pair keywords[] = 
@@ -149,6 +153,8 @@ static const struct kw_pair keywords[] =
   {"tls_cipher_suites",      tls_cipher_suites_parser,         0 },
   {"tls_key_exchange",       tls_key_exchange_parser,          0 },
   {"tls_require_pqc",        tls_require_pqc_parser,           0 },
+  {"tls_auth",               tls_auth_parser,                  0 },
+  {"tls_crypto_profile",     tls_crypto_profile_parser,        0 },
   {"network_failure_action", network_failure_action_parser,	1 },
   {"disk_low_action",        disk_low_action_parser,		1 },
   {"disk_full_action",       disk_full_action_parser,		1 },
@@ -265,6 +271,8 @@ void clear_config(remote_conf_t *config)
 	config->tls_cipher_suites = NULL;
 	config->tls_key_exchange = NULL;
 	config->tls_require_pqc = 0;
+	config->tls_auth = TLS_AUTH_PSK;
+	config->tls_crypto_profile = TLS_PROFILE_STANDARD;
 #endif
 }
 
@@ -884,6 +892,8 @@ TLS_STUB(tls_psk_identity_parser)
 TLS_STUB(tls_cipher_suites_parser)
 TLS_STUB(tls_key_exchange_parser)
 TLS_STUB(tls_require_pqc_parser)
+TLS_STUB(tls_auth_parser)
+TLS_STUB(tls_crypto_profile_parser)
 #undef TLS_STUB
 #endif
 #undef TLS_PARSER
@@ -892,14 +902,51 @@ TLS_STUB(tls_require_pqc_parser)
 static int tls_require_pqc_parser(struct nv_pair *nv, int line,
 		remote_conf_t *config)
 {
-	if (strcasecmp(nv->value, "yes") == 0)
+	if (strcasecmp(nv->value, "yes") == 0) {
 		config->tls_require_pqc = 1;
-	else if (strcasecmp(nv->value, "no") == 0)
+		config->tls_crypto_profile = TLS_PROFILE_PQC;
+	} else if (strcasecmp(nv->value, "no") == 0) {
 		config->tls_require_pqc = 0;
+		// no-op for tls_crypto_profile -- one-directional alias
+	} else {
+		syslog(LOG_ERR,
+			"Value %s for tls_require_pqc is invalid "
+			"at line %d; must be yes or no",
+			nv->value, line);
+		return 1;
+	}
+	return 0;
+}
+
+static int tls_auth_parser(struct nv_pair *nv, int line,
+		remote_conf_t *config)
+{
+	if (strcasecmp(nv->value, "psk") == 0)
+		config->tls_auth = TLS_AUTH_PSK;
 	else {
 		syslog(LOG_ERR,
-			"Option %s must be yes or no at line %d",
-			nv->value, line);
+			"Value '%s' for tls_auth is not valid at "
+			"line %d; only 'psk' is supported in this "
+			"tech preview", nv->value, line);
+		return 1;
+	}
+	return 0;
+}
+
+static int tls_crypto_profile_parser(struct nv_pair *nv, int line,
+		remote_conf_t *config)
+{
+	if (strcasecmp(nv->value, "standard") == 0)
+		config->tls_crypto_profile = TLS_PROFILE_STANDARD;
+	else if (strcasecmp(nv->value, "fips") == 0)
+		config->tls_crypto_profile = TLS_PROFILE_FIPS;
+	else if (strcasecmp(nv->value, "pqc") == 0)
+		config->tls_crypto_profile = TLS_PROFILE_PQC;
+	else {
+		syslog(LOG_ERR,
+			"Value '%s' for tls_crypto_profile is not "
+			"valid at line %d; must be 'standard', "
+			"'fips', or 'pqc'", nv->value, line);
 		return 1;
 	}
 	return 0;
@@ -947,6 +994,13 @@ static int sanity_check(remote_conf_t *config, const char *file)
 				"mutually exclusive");
 			return 1;
 		}
+		if (config->tls_auth == TLS_AUTH_PSK && !have_psk) {
+			syslog(LOG_ERR,
+				"tls_auth=psk requires tls_psk_file; "
+				"certificate-based TLS is not supported "
+				"in this tech preview");
+			return 1;
+		}
 		if (!have_psk && !have_cert) {
 			syslog(LOG_ERR,
 				"transport=tls requires tls_psk_file or "
@@ -960,13 +1014,22 @@ static int sanity_check(remote_conf_t *config, const char *file)
 			return 1;
 		}
 #ifndef HAVE_SSL_GROUP_TO_NAME
-		if (config->tls_require_pqc) {
+		if (config->tls_require_pqc ||
+		    config->tls_crypto_profile == TLS_PROFILE_PQC) {
 			syslog(LOG_ERR,
-				"tls_require_pqc needs OpenSSL >= 3.0 "
+				"PQC crypto profile needs OpenSSL >= 3.0 "
 				"(SSL_group_to_name not available)");
 			return 1;
 		}
 #endif
+		if (config->tls_require_pqc &&
+		    config->tls_crypto_profile != TLS_PROFILE_PQC) {
+			syslog(LOG_ERR,
+				"tls_require_pqc=yes conflicts with "
+				"tls_crypto_profile; use "
+				"tls_crypto_profile=pqc instead");
+			return 1;
+		}
 		if (config->format != F_MANAGED) {
 			syslog(LOG_ERR,
 				"transport=tls requires format=managed");
