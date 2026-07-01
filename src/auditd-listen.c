@@ -210,11 +210,81 @@ static void close_client(struct ev_tcp *client)
 }
 
 #ifdef HAVE_TLS
+#define TLS_AUDIT_BUF_SZ 768
+
+/* Map crypto profile enum to string for audit records */
+static const char *profile_name(int profile)
+{
+	switch (profile) {
+	case TLS_PROFILE_STANDARD: return "standard";
+	case TLS_PROFILE_FIPS:     return "fips";
+	case TLS_PROFILE_PQC:      return "pqc";
+	default:                   return "unknown";
+	}
+}
+
+/*
+ * emit_tls_audit_record - format and emit a structured TLS audit record
+ * @addr: peer address
+ * @ssl: SSL connection (may be NULL for pre-handshake failures)
+ * @profile: crypto profile enum value for the audit record
+ * @identity: accepted or attempted identity (may be NULL)
+ * @reason: stable failure reason or "success"
+ * @result: "success" or "no"
+ */
+static void emit_tls_audit_record(const struct sockaddr_storage *addr,
+				  SSL *ssl, int profile,
+				  const char *identity, const char *reason,
+				  const char *result)
+{
+	char emsg[TLS_AUDIT_BUF_SZ];
+	const char *tlsver = "none";
+	const char *cipher = "none";
+	const char *group = "unknown";
+
+	if (ssl) {
+		tlsver = SSL_get_version(ssl);
+		cipher = SSL_get_cipher(ssl);
+#ifdef HAVE_SSL_GROUP_TO_NAME
+		{
+			const char *g = SSL_group_to_name(ssl,
+				SSL_get_negotiated_group(ssl));
+			if (g)
+				group = g;
+		}
+#endif
+	}
+
+	snprintf(emsg, sizeof(emsg),
+		"op=tls-accept res=%s role=collector addr=%s port=%u "
+		"id=%.128s profile=%s reason=%s auth=psk "
+		"tls_version=%s cipher=%s group=%s",
+		result,
+		sockaddr_to_string(addr), sockaddr_to_port(addr),
+		identity ? identity : "?",
+		profile_name(profile),
+		reason, tlsver, cipher, group);
+	send_audit_event(AUDIT_DAEMON_ACCEPT, emsg);
+}
+
+/*
+ * tls_error_cb - OpenSSL error queue drain callback
+ *
+ * Logs each queued OpenSSL error via audit_msg so that TLS handshake
+ * failures produce actionable diagnostics on the server side.
+ * Returns 1 to continue draining.
+ */
+static int tls_error_cb(const char *str, size_t len, void *u)
+{
+	audit_msg(LOG_ERR, "TLS error: %.*s", (int)len, str);
+	return 1;
+}
+
 static void abort_handshake(struct ev_loop *loop,
 		struct ev_tcp *client, const char *op)
 {
-	char emsg[DEFAULT_BUF_SZ];
 	char *ex_identity = NULL;
+	const char *ex_reason = NULL;
 
 	ev_io_stop(loop, &client->io);
 	ev_timer_stop(loop, &client->handshake_timer);
@@ -227,6 +297,17 @@ static void abort_handshake(struct ev_loop *loop,
 			SSL_set_ex_data(client->ssl,
 					ssl_ex_idx_identity, NULL);
 		}
+		if (ssl_ex_idx_reason >= 0)
+			ex_reason = SSL_get_ex_data(client->ssl,
+						ssl_ex_idx_reason);
+	}
+
+	emit_tls_audit_record(&client->addr, client->ssl,
+			      client->tls_profile_at_accept, ex_identity,
+			      ex_reason ? ex_reason : op, "no");
+
+	if (client->ssl) {
+		ERR_print_errors_cb(tls_error_cb, NULL);
 		SSL_free(client->ssl);
 		client->ssl = NULL;
 	}
@@ -243,11 +324,6 @@ static void abort_handshake(struct ev_loop *loop,
 		handshake_count--;
 		client->in_handshake_chain = 0;
 	}
-
-	snprintf(emsg, sizeof(emsg), "op=%s addr=%s port=%u res=no",
-		op, sockaddr_to_string(&client->addr),
-		sockaddr_to_port(&client->addr));
-	send_audit_event(AUDIT_DAEMON_ACCEPT, emsg);
 
 	free(ex_identity);
 	free(client->accepted_identity);
@@ -1042,7 +1118,6 @@ static void tls_handshake_handler(struct ev_loop *loop,
 	struct ev_tcp *client = (struct ev_tcp *)_io;
 	int ret, err;
 	const char *kex_name;
-	char emsg[DEFAULT_BUF_SZ];
 
 	ret = SSL_do_handshake(client->ssl);
 	if (ret == 1) {
@@ -1116,11 +1191,10 @@ static void tls_handshake_handler(struct ev_loop *loop,
 			client->next->prev = client;
 		client_chain = client;
 
-		snprintf(emsg, sizeof(emsg),
-			"addr=%s port=%u res=success",
-			sockaddr_to_string(&client->addr),
-			sockaddr_to_port(&client->addr));
-		send_audit_event(AUDIT_DAEMON_ACCEPT, emsg);
+		emit_tls_audit_record(&client->addr, client->ssl,
+				      client->tls_profile_at_accept,
+				      client->accepted_identity,
+				      "success", "success");
 		return;
 	}
 
@@ -1508,6 +1582,11 @@ static int tls_psk_find_session_cb(SSL *ssl, const unsigned char *identity,
 		char *id_copy = strndup((const char *)identity,
 					identity_len);
 		free(old);
+		if (id_copy == NULL)
+			audit_msg(LOG_WARNING,
+				"Out of memory for PSK identity; "
+				"connection will lack identity "
+				"attribution");
 		SSL_set_ex_data(ssl, ssl_ex_idx_identity, id_copy);
 	}
 
