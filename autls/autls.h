@@ -66,6 +66,27 @@ int autls_validate_psk_identity(const unsigned char *id, size_t len,
 				autls_log_fn log_fn)
 	__nonnull((1, 3)) __wur;
 
+/* autls-acl.c */
+struct autls_acl_entry {
+	char *identity;
+	int enabled;
+	struct autls_acl_entry *next;
+};
+
+struct autls_acl_table {
+	struct autls_acl_entry *entries;
+	int count;
+	int enabled_count;
+};
+
+int autls_acl_load(const char *path, struct autls_acl_table **table,
+		   autls_log_fn log_fn)
+	__nonnull((1, 2, 3)) __wur;
+int autls_acl_check(const struct autls_acl_table *table,
+		    const unsigned char *identity, size_t len)
+	__nonnull((1, 2)) __wur;
+void autls_acl_free(struct autls_acl_table *table);
+
 /* autls-io.c */
 int autls_remaining_ms(const struct timespec *deadline)
 	__nonnull((1)) __wur;
