@@ -64,6 +64,13 @@
 extern int send_audit_event(int type, const char *str);
 #define DEFAULT_BUF_SZ  192
 
+#ifdef HAVE_TLS
+_Static_assert(AUTLS_PROFILE_STANDARD == TLS_PROFILE_STANDARD &&
+	       AUTLS_PROFILE_FIPS == TLS_PROFILE_FIPS &&
+	       AUTLS_PROFILE_PQC == TLS_PROFILE_PQC,
+	       "autls profile constants out of sync with config enums");
+#endif
+
 typedef struct ev_tcp {
 	struct ev_io io;
 	struct sockaddr_storage addr;
@@ -1037,7 +1044,8 @@ static void tls_handshake_handler(struct ev_loop *loop,
 			SSL_get_cipher(client->ssl),
 			kex_name ? kex_name : "unknown");
 
-		if (client->config->tls_require_pqc &&
+		if (client->config->tls_crypto_profile ==
+		    TLS_PROFILE_PQC &&
 		    !autls_is_pqc_group(kex_name)) {
 			audit_msg(LOG_ERR,
 				"PQC key exchange required but "
@@ -1433,29 +1441,48 @@ static int init_tls_server_context(struct daemon_conf *config)
 
 	cipher_suites = config->tls_cipher_suites ?
 		config->tls_cipher_suites :
-		"TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256:TLS_AES_128_GCM_SHA256";
-	if (!SSL_CTX_set_ciphersuites(tls_server_ctx, cipher_suites)) {
-		audit_msg(LOG_ERR, "Unable to set TLS cipher suites");
-		goto err;
-	}
-
-	key_exchange = config->tls_key_exchange ?
-		config->tls_key_exchange : "X25519MLKEM768:X25519";
-	if (!SSL_CTX_set1_groups_list(tls_server_ctx, key_exchange)) {
-		ERR_clear_error();
-		if (config->tls_require_pqc || config->tls_key_exchange) {
+		autls_profile_ciphers(config->tls_crypto_profile);
+	if (cipher_suites) {
+		if (!SSL_CTX_set_ciphersuites(tls_server_ctx,
+					      cipher_suites)) {
 			audit_msg(LOG_ERR,
-				"Unable to set key exchange groups '%s'",
-				key_exchange);
+				"Unable to set TLS cipher suites");
 			goto err;
 		}
+	}
+
+	if (config->tls_crypto_profile == TLS_PROFILE_PQC &&
+	    config->tls_key_exchange)
 		audit_msg(LOG_WARNING,
-			"PQC key exchange groups not available, "
-			"falling back to X25519");
-		if (!SSL_CTX_set1_groups_list(tls_server_ctx, "X25519")) {
-			audit_msg(LOG_ERR,
-				"Unable to set any key exchange groups");
-			goto err;
+			"tls_key_exchange override set with PQC "
+			"profile; connections will fail if override "
+			"excludes PQC groups");
+
+	key_exchange = config->tls_key_exchange ?
+		config->tls_key_exchange :
+		autls_profile_groups(config->tls_crypto_profile);
+	if (key_exchange) {
+		if (!SSL_CTX_set1_groups_list(tls_server_ctx,
+					      key_exchange)) {
+			ERR_print_errors_cb(tls_error_cb, NULL);
+			if (config->tls_crypto_profile !=
+			    TLS_PROFILE_STANDARD ||
+			    config->tls_key_exchange) {
+				audit_msg(LOG_ERR,
+					"Unable to set key exchange "
+					"groups '%s'", key_exchange);
+				goto err;
+			}
+			audit_msg(LOG_WARNING,
+				"PQC key exchange groups not "
+				"available, falling back to X25519");
+			if (!SSL_CTX_set1_groups_list(tls_server_ctx,
+						      "X25519")) {
+				audit_msg(LOG_ERR,
+					"Unable to set any key "
+					"exchange groups");
+				goto err;
+			}
 		}
 	}
 
@@ -1531,6 +1558,7 @@ static int init_tls_server_context(struct daemon_conf *config)
 
 	return 0;
 err:
+	ERR_print_errors_cb(tls_error_cb, NULL);
 	if (server_psk_key) {
 		OPENSSL_cleanse(server_psk_key, server_psk_key_len);
 		OPENSSL_free(server_psk_key);
