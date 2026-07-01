@@ -1838,17 +1838,9 @@ static int init_tls_server_context(struct daemon_conf *config)
 	}
 
 	if (config->tls_key_file) {
-		if (autls_validate_key_file(config->tls_key_file,
-				audit_msg) != 0)
+		if (autls_load_key_file(config->tls_key_file,
+				tls_server_ctx, audit_msg) != 0)
 			goto err;
-		if (SSL_CTX_use_PrivateKey_file(tls_server_ctx,
-				config->tls_key_file,
-				SSL_FILETYPE_PEM) != 1) {
-			audit_msg(LOG_ERR,
-				"Unable to load TLS private key %s",
-				config->tls_key_file);
-			goto err;
-		}
 	}
 
 	/* Verify cert and key match */
@@ -2090,6 +2082,18 @@ void auditd_tcp_listen_uninit(struct ev_loop *loop, struct daemon_conf *config)
 #ifdef HAVE_TLS
 	while (handshake_chain)
 		abort_handshake(loop, handshake_chain, "shutdown");
+#endif
+
+	while (client_chain) {
+		unsigned char ack[AUDIT_RMW_HEADER_SIZE];
+
+		AUDIT_RMW_PACK_HEADER (ack, 0, AUDIT_RMW_TYPE_ENDING, 0, 0);
+		client_ack(client_chain, ack, "");
+		ev_io_stop(loop, &client_chain->io);
+		close_client(client_chain);
+	}
+
+#ifdef HAVE_TLS
 	if (tls_server_ctx) {
 		SSL_CTX_free(tls_server_ctx);
 		tls_server_ctx = NULL;
@@ -2114,15 +2118,6 @@ void auditd_tcp_listen_uninit(struct ev_loop *loop, struct daemon_conf *config)
 		my_service_name = NULL;
 	}
 #endif
-
-	while (client_chain) {
-		unsigned char ack[AUDIT_RMW_HEADER_SIZE];
-
-		AUDIT_RMW_PACK_HEADER (ack, 0, AUDIT_RMW_TYPE_ENDING, 0, 0);
-		client_ack(client_chain, ack, "");
-		ev_io_stop(loop, &client_chain->io);
-		close_client(client_chain);
-	}
 
 	if (config->tcp_client_max_idle)
 		ev_periodic_stop(loop, &periodic_watcher);
@@ -2180,6 +2175,7 @@ void auditd_tcp_listen_reconfigure(const struct daemon_conf *nconf,
 					"restart; port change ignored");
 				oconf->tcp_listen_port = nconf->tcp_listen_port;
 				oconf->tcp_listen_queue = nconf->tcp_listen_queue;
+				oconf->transport = nconf->transport;
 			} else
 #endif
 			{
