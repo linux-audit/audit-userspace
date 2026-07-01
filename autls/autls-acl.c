@@ -161,9 +161,12 @@ int autls_acl_load(const char *path, struct autls_acl_table **table,
 			goto err;
 		}
 
+		size_t id_len = strlen(identity);
+
 		/* Check for duplicates */
 		for (dup = t->entries; dup; dup = dup->next) {
-			if (strcmp(dup->identity, identity) == 0) {
+			if (dup->identity_len == id_len &&
+			    memcmp(dup->identity, identity, id_len) == 0) {
 				log_fn(LOG_ERR,
 					"%s:%d: duplicate identity '%s'",
 					path, lineno, identity);
@@ -182,6 +185,7 @@ int autls_acl_load(const char *path, struct autls_acl_table **table,
 			free(entry);
 			goto err;
 		}
+		entry->identity_len = id_len;
 
 		if (strcasecmp(status, "enabled") == 0)
 			entry->enabled = 1;
@@ -238,7 +242,7 @@ int autls_acl_check(const struct autls_acl_table *table,
 	const struct autls_acl_entry *e;
 
 	for (e = table->entries; e != NULL; e = e->next) {
-		if (strlen(e->identity) == len &&
+		if (e->identity_len == len &&
 		    CRYPTO_memcmp(e->identity, identity, len) == 0)
 			return e->enabled ? 1 : 0;
 	}
