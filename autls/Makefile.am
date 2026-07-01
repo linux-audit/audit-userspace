@@ -21,6 +21,6 @@
 
 AM_CPPFLAGS = -I${top_srcdir}
 noinst_LTLIBRARIES = libautls.la
-libautls_la_SOURCES = autls.h autls-psk.c autls-io.c autls-profile.c
+libautls_la_SOURCES = autls.h autls-psk.c autls-io.c autls-profile.c autls-acl.c
 libautls_la_CFLAGS = $(OPENSSL_CFLAGS)
 libautls_la_LIBADD = $(OPENSSL_LIBS)
