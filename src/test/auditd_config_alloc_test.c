@@ -156,6 +156,19 @@ static void test_set_config_dir_preserves_old_value(void)
 }
 
 #ifdef HAVE_TLS
+/*
+ * clear_sane_config - reset config and satisfy non-TLS sanity defaults
+ * @config: daemon configuration to initialize
+ *
+ * Returns: None.
+ */
+static void clear_sane_config(struct daemon_conf *config)
+{
+	clear_config(config);
+	config->space_left = 1;
+	config->admin_space_left = 0;
+}
+
 static void test_tls_auth_parser(void)
 {
 	struct daemon_conf config;
@@ -238,14 +251,14 @@ static void test_sanity_check_tls(void)
 	printf("  sanity_check TLS constraints...\n");
 
 	/* cert/key pairing: cert without key must fail */
-	clear_config(&config);
+	clear_sane_config(&config);
 	config.transport = T_TLS;
 	config.tls_cert_file = "/cert";
 	config.tls_key_file = NULL;
 	assert(sanity_check(&config) == 1);
 
 	/* PSK + cert mutual exclusion */
-	clear_config(&config);
+	clear_sane_config(&config);
 	config.transport = T_TLS;
 	config.tls_psk_file = "/psk";
 	config.tls_cert_file = "/cert";
@@ -255,7 +268,7 @@ static void test_sanity_check_tls(void)
 	assert(sanity_check(&config) == 1);
 
 	/* tls_auth=psk requires tls_psk_file */
-	clear_config(&config);
+	clear_sane_config(&config);
 	config.transport = T_TLS;
 	config.tls_auth = TLS_AUTH_PSK;
 	config.tls_psk_file = NULL;
@@ -264,12 +277,12 @@ static void test_sanity_check_tls(void)
 	assert(sanity_check(&config) == 1);
 
 	/* No credentials at all */
-	clear_config(&config);
+	clear_sane_config(&config);
 	config.transport = T_TLS;
 	assert(sanity_check(&config) == 1);
 
 	/* PSK requires identity or ACL */
-	clear_config(&config);
+	clear_sane_config(&config);
 	config.transport = T_TLS;
 	config.tls_psk_file = "/psk";
 	config.tls_auth = TLS_AUTH_PSK;
@@ -278,7 +291,7 @@ static void test_sanity_check_tls(void)
 	assert(sanity_check(&config) == 1);
 
 	/* tls_require_pqc conflicts with non-PQC profile */
-	clear_config(&config);
+	clear_sane_config(&config);
 	config.transport = T_TLS;
 	config.tls_psk_file = "/psk";
 	config.tls_psk_identity = "id";
@@ -288,7 +301,7 @@ static void test_sanity_check_tls(void)
 	assert(sanity_check(&config) == 1);
 
 	/* Valid minimal PSK config should pass */
-	clear_config(&config);
+	clear_sane_config(&config);
 	config.transport = T_TLS;
 	config.tls_psk_file = "/psk";
 	config.tls_psk_identity = "id";
