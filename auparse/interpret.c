@@ -47,6 +47,7 @@
 #include <linux/x25.h>
 #include <linux/capability.h>
 #include <linux/netfilter.h>
+#include <linux/seccomp.h>
 #include <sys/personality.h>
 #include <sys/prctl.h>
 #include <sched.h>
@@ -3262,7 +3263,6 @@ static const char *print_session(const char *val)
 		return strdup(val);
 }
 
-#define SECCOMP_RET_ACTION      0x7fff0000U
 static const char *print_seccomp_code(const char *val)
 {
 	unsigned long code;
@@ -3276,7 +3276,7 @@ static const char *print_seccomp_code(const char *val)
 			out = NULL;
 		return out;
 	}
-	s = seccomp_i2s(code & SECCOMP_RET_ACTION);
+	s = seccomp_i2s((unsigned int)code & ~SECCOMP_RET_DATA);
 	if (s != NULL)
 		return strdup(s);
 	if (asprintf(&out, "unknown-seccomp-code(%s)", val) < 0)
