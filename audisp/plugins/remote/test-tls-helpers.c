@@ -426,27 +426,27 @@ static void test_autls_profile_ciphers(void)
 {
 	printf("  autls_profile_ciphers...\n");
 
-	/* STANDARD returns non-NULL default */
-	assert(autls_profile_ciphers(AUTLS_PROFILE_STANDARD) != NULL);
-	assert(strstr(autls_profile_ciphers(AUTLS_PROFILE_STANDARD),
+	/* COMPATIBLE returns non-NULL default */
+	assert(autls_profile_ciphers(AUTLS_PROFILE_COMPATIBLE) != NULL);
+	assert(strstr(autls_profile_ciphers(AUTLS_PROFILE_COMPATIBLE),
 		"TLS_AES_256_GCM_SHA384") != NULL);
 
-	/* PQC returns same as STANDARD */
+	/* PQC returns same as COMPATIBLE */
 	assert(autls_profile_ciphers(AUTLS_PROFILE_PQC) != NULL);
 	assert(strcmp(autls_profile_ciphers(AUTLS_PROFILE_PQC),
-		autls_profile_ciphers(AUTLS_PROFILE_STANDARD)) == 0);
+		autls_profile_ciphers(AUTLS_PROFILE_COMPATIBLE)) == 0);
 
-	/* FIPS returns NULL (defer to system policy) */
-	assert(autls_profile_ciphers(AUTLS_PROFILE_FIPS) == NULL);
+	/* SYSTEM returns NULL (defer to system policy) */
+	assert(autls_profile_ciphers(AUTLS_PROFILE_SYSTEM) == NULL);
 }
 
 static void test_autls_profile_groups(void)
 {
 	printf("  autls_profile_groups...\n");
 
-	/* STANDARD returns hybrid + classical */
-	assert(autls_profile_groups(AUTLS_PROFILE_STANDARD) != NULL);
-	assert(strstr(autls_profile_groups(AUTLS_PROFILE_STANDARD),
+	/* COMPATIBLE returns hybrid + classical */
+	assert(autls_profile_groups(AUTLS_PROFILE_COMPATIBLE) != NULL);
+	assert(strstr(autls_profile_groups(AUTLS_PROFILE_COMPATIBLE),
 		"X25519") != NULL);
 
 	/* PQC returns hybrid-only (no plain X25519) */
@@ -454,8 +454,8 @@ static void test_autls_profile_groups(void)
 	assert(strstr(autls_profile_groups(AUTLS_PROFILE_PQC),
 		"MLKEM") != NULL);
 
-	/* FIPS returns NULL */
-	assert(autls_profile_groups(AUTLS_PROFILE_FIPS) == NULL);
+	/* SYSTEM returns NULL */
+	assert(autls_profile_groups(AUTLS_PROFILE_SYSTEM) == NULL);
 }
 
 static void test_autls_acl_load(void)

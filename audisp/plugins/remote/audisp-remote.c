@@ -68,8 +68,8 @@
 #define BUF_SIZE 32
 
 #ifdef HAVE_TLS
-_Static_assert(AUTLS_PROFILE_STANDARD == TLS_PROFILE_STANDARD &&
-	       AUTLS_PROFILE_FIPS == TLS_PROFILE_FIPS &&
+_Static_assert(AUTLS_PROFILE_COMPATIBLE == TLS_PROFILE_COMPATIBLE &&
+	       AUTLS_PROFILE_SYSTEM == TLS_PROFILE_SYSTEM &&
 	       AUTLS_PROFILE_PQC == TLS_PROFILE_PQC,
 	       "autls profile constants out of sync with config enums");
 #endif
@@ -1254,7 +1254,7 @@ static int init_tls_context(void)
 		if (!SSL_CTX_set1_groups_list(tls_ctx, key_exchange)) {
 			ERR_print_errors_cb(tls_error_cb, NULL);
 			if (config.tls_crypto_profile !=
-			    TLS_PROFILE_STANDARD ||
+			    TLS_PROFILE_COMPATIBLE ||
 			    config.tls_key_exchange) {
 				syslog(LOG_ERR,
 					"Unable to set key exchange "

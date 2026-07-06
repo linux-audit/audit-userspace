@@ -195,13 +195,13 @@ static void test_tls_crypto_profile_parser(void)
 	memset(&config, 0, sizeof(config));
 	reset_allocs(-1);
 
-	nv = (struct nv_pair){ "tls_crypto_profile", "standard", NULL };
+	nv = (struct nv_pair){ "tls_crypto_profile", "compatible", NULL };
 	assert(tls_crypto_profile_parser(&nv, 1, &config) == 0);
-	assert(config.tls_crypto_profile == TLS_PROFILE_STANDARD);
+	assert(config.tls_crypto_profile == TLS_PROFILE_COMPATIBLE);
 
-	nv = (struct nv_pair){ "tls_crypto_profile", "fips", NULL };
+	nv = (struct nv_pair){ "tls_crypto_profile", "system", NULL };
 	assert(tls_crypto_profile_parser(&nv, 1, &config) == 0);
-	assert(config.tls_crypto_profile == TLS_PROFILE_FIPS);
+	assert(config.tls_crypto_profile == TLS_PROFILE_SYSTEM);
 
 	nv = (struct nv_pair){ "tls_crypto_profile", "pqc", NULL };
 	assert(tls_crypto_profile_parser(&nv, 1, &config) == 0);
@@ -221,7 +221,7 @@ static void test_tls_require_pqc_compat_alias(void)
 	reset_allocs(-1);
 
 	/* yes sets both tls_require_pqc and tls_crypto_profile */
-	config.tls_crypto_profile = TLS_PROFILE_STANDARD;
+	config.tls_crypto_profile = TLS_PROFILE_COMPATIBLE;
 	nv = (struct nv_pair){ "tls_require_pqc", "yes", NULL };
 	assert(tls_require_pqc_parser(&nv, 1, &config) == 0);
 	assert(config.tls_require_pqc == 1);
@@ -235,14 +235,14 @@ static void test_tls_require_pqc_compat_alias(void)
 	assert(config.tls_crypto_profile == TLS_PROFILE_PQC);
 
 	/* Explicit profile after yes wins (last writer) */
-	config.tls_crypto_profile = TLS_PROFILE_STANDARD;
+	config.tls_crypto_profile = TLS_PROFILE_COMPATIBLE;
 	config.tls_require_pqc = 0;
 	nv = (struct nv_pair){ "tls_require_pqc", "yes", NULL };
 	assert(tls_require_pqc_parser(&nv, 1, &config) == 0);
 	assert(config.tls_crypto_profile == TLS_PROFILE_PQC);
-	nv = (struct nv_pair){ "tls_crypto_profile", "standard", NULL };
+	nv = (struct nv_pair){ "tls_crypto_profile", "compatible", NULL };
 	assert(tls_crypto_profile_parser(&nv, 1, &config) == 0);
-	assert(config.tls_crypto_profile == TLS_PROFILE_STANDARD);
+	assert(config.tls_crypto_profile == TLS_PROFILE_COMPATIBLE);
 }
 static void test_sanity_check_tls(void)
 {
@@ -297,7 +297,7 @@ static void test_sanity_check_tls(void)
 	config.tls_psk_identity = "id";
 	config.tls_auth = TLS_AUTH_PSK;
 	config.tls_require_pqc = 1;
-	config.tls_crypto_profile = TLS_PROFILE_STANDARD;
+	config.tls_crypto_profile = TLS_PROFILE_COMPATIBLE;
 	assert(sanity_check(&config) == 1);
 
 	/* Valid minimal PSK config should pass */

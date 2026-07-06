@@ -237,14 +237,15 @@ is supported. The default is
 .TP
 .I tls_crypto_profile
 Selects the cryptographic profile for TLS. Valid values are
-.IR standard ", " fips ", and " pqc .
-.I standard
+.IR compatible ", " system ", and " pqc .
+.I compatible
 uses robust classical TLS 1.3 PSK with opportunistic PQC hybrid key exchange.
-.I fips
-defers to system crypto policy.
+.I system
+defers all cipher and group selection to the system crypto policy. For FIPS
+deployments, configure the host for FIPS mode and use this profile.
 .I pqc
 requires post-quantum hybrid key exchange. The default is
-.IR standard .
+.IR compatible .
 .TP
 .I tls_psk_file
 Path to a file containing a hex-encoded pre-shared key for TLS-PSK authentication. The key must be at least 32 bytes (64 hex characters). Generate a key with: openssl rand \-hex 32. The file must be owned by root and mode 0400.

@@ -428,7 +428,7 @@ void clear_config(struct daemon_conf *config)
 	config->tls_client_auth = TCA_NONE;
 	config->tls_require_pqc = 0;
 	config->tls_auth = TLS_AUTH_PSK;
-	config->tls_crypto_profile = TLS_PROFILE_STANDARD;
+	config->tls_crypto_profile = TLS_PROFILE_COMPATIBLE;
 	config->tls_allowed_clients = NULL;
 #endif
 	config->distribute_network_events = 0;
@@ -1951,17 +1951,17 @@ static int tls_auth_parser(const struct nv_pair *nv, int line,
 static int tls_crypto_profile_parser(const struct nv_pair *nv, int line,
 		struct daemon_conf *config)
 {
-	if (strcasecmp(nv->value, "standard") == 0)
-		config->tls_crypto_profile = TLS_PROFILE_STANDARD;
-	else if (strcasecmp(nv->value, "fips") == 0)
-		config->tls_crypto_profile = TLS_PROFILE_FIPS;
+	if (strcasecmp(nv->value, "compatible") == 0)
+		config->tls_crypto_profile = TLS_PROFILE_COMPATIBLE;
+	else if (strcasecmp(nv->value, "system") == 0)
+		config->tls_crypto_profile = TLS_PROFILE_SYSTEM;
 	else if (strcasecmp(nv->value, "pqc") == 0)
 		config->tls_crypto_profile = TLS_PROFILE_PQC;
 	else {
 		audit_msg(LOG_ERR,
 			"Value '%s' for tls_crypto_profile is not "
-			"valid at line %d; must be 'standard', "
-			"'fips', or 'pqc'", nv->value, line);
+			"valid at line %d; must be 'compatible', "
+			"'system', or 'pqc'", nv->value, line);
 		return 1;
 	}
 	return 0;

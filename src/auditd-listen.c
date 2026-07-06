@@ -65,8 +65,8 @@ extern int send_audit_event(int type, const char *str);
 #define DEFAULT_BUF_SZ  192
 
 #ifdef HAVE_TLS
-_Static_assert(AUTLS_PROFILE_STANDARD == TLS_PROFILE_STANDARD &&
-	       AUTLS_PROFILE_FIPS == TLS_PROFILE_FIPS &&
+_Static_assert(AUTLS_PROFILE_COMPATIBLE == TLS_PROFILE_COMPATIBLE &&
+	       AUTLS_PROFILE_SYSTEM == TLS_PROFILE_SYSTEM &&
 	       AUTLS_PROFILE_PQC == TLS_PROFILE_PQC,
 	       "autls profile constants out of sync with config enums");
 #endif
@@ -221,10 +221,10 @@ static void close_client(struct ev_tcp *client)
 static const char *profile_name(int profile)
 {
 	switch (profile) {
-	case TLS_PROFILE_STANDARD: return "standard";
-	case TLS_PROFILE_FIPS:     return "fips";
-	case TLS_PROFILE_PQC:      return "pqc";
-	default:                   return "unknown";
+	case TLS_PROFILE_COMPATIBLE: return "compatible";
+	case TLS_PROFILE_SYSTEM:     return "system";
+	case TLS_PROFILE_PQC:        return "pqc";
+	default:                     return "unknown";
 	}
 }
 
@@ -1737,7 +1737,7 @@ static int init_tls_server_context(struct daemon_conf *config)
 					      key_exchange)) {
 			ERR_print_errors_cb(tls_error_cb, NULL);
 			if (config->tls_crypto_profile !=
-			    TLS_PROFILE_STANDARD ||
+			    TLS_PROFILE_COMPATIBLE ||
 			    config->tls_key_exchange) {
 				audit_msg(LOG_ERR,
 					"Unable to set key exchange "
