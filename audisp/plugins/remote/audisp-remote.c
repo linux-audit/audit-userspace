@@ -548,10 +548,11 @@ int main(int argc, char *argv[])
 	sigaction(SIGUSR1, &sa, NULL);
 	sa.sa_handler = user2_handler;
 	sigaction(SIGUSR2, &sa, NULL);
+	sa.sa_flags = SA_RESTART;
 	sa.sa_handler = child_handler;
 	sigaction(SIGCHLD, &sa, NULL);
-	sa.sa_sigaction = term_handler;
 	sa.sa_flags = SA_SIGINFO;
+	sa.sa_sigaction = term_handler;
 	sigaction(SIGTERM, &sa, NULL);
 	if (load_config(&config, CONFIG_FILE))
 		return 6;
