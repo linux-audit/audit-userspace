@@ -34,7 +34,7 @@ typedef enum { OA_IGNORE, OA_SYSLOG, OA_SUSPEND, OA_SINGLE,
 	       OA_HALT } overflow_action_t;
 #ifdef HAVE_TLS
 typedef enum { TLS_AUTH_PSK } tls_auth_t;
-typedef enum { TLS_PROFILE_STANDARD, TLS_PROFILE_FIPS,
+typedef enum { TLS_PROFILE_COMPATIBLE, TLS_PROFILE_SYSTEM,
 		TLS_PROFILE_PQC } tls_crypto_profile_t;
 #endif
 

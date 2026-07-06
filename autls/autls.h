@@ -42,8 +42,8 @@ typedef void (*autls_log_fn)(int, const char *, ...)
  * Crypto profile values -- must match tls_crypto_profile_t
  * in auditd-config.h and remote-config.h
  */
-#define AUTLS_PROFILE_STANDARD		0
-#define AUTLS_PROFILE_FIPS		1
+#define AUTLS_PROFILE_COMPATIBLE	0
+#define AUTLS_PROFILE_SYSTEM		1
 #define AUTLS_PROFILE_PQC		2
 
 /* autls-profile.c */
