@@ -99,6 +99,7 @@ int plugin_load_config(plugin_conf_t * c, const char *file)
         struct stat st;
         FILE *f;
         char buf[128];
+        char *base, *file_copy;
 
         plugin_clear_config(c);
 
@@ -209,7 +210,18 @@ int plugin_load_config(plugin_conf_t * c, const char *file)
         }
 
         fclose(f);
-        c->name = strdup(basename(file));
+        file_copy = strdup(file);
+        if (file_copy == NULL) {
+                log_err("Out of memory loading %s", file);
+                return 1;
+        }
+        base = basename(file_copy);
+        c->name = strdup(base);
+        free(file_copy);
+        if (c->name == NULL) {
+                log_err("Out of memory loading %s", file);
+                return 1;
+        }
         if (lineno > 1)
                 return sanity_check(c);
         return 0;

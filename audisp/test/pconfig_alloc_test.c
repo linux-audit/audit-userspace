@@ -37,13 +37,6 @@ static int should_fail(void)
 	return fail_at == alloc_count;
 }
 
-static void *test_malloc(size_t size)
-{
-	if (should_fail())
-		return NULL;
-	return malloc(size);
-}
-
 static void *test_calloc(size_t nmemb, size_t size)
 {
 	if (should_fail())
@@ -73,7 +66,6 @@ static char *test_strdup(const char *s)
 }
 
 #define audit_msg test_audit_msg
-#define malloc test_malloc
 #define calloc test_calloc
 #define realloc test_realloc
 #define strdup test_strdup
@@ -81,7 +73,6 @@ static char *test_strdup(const char *s)
 #undef strdup
 #undef realloc
 #undef calloc
-#undef malloc
 #undef audit_msg
 
 static void test_path_preserves_old_value(void)

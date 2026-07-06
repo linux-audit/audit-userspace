@@ -54,15 +54,16 @@ int  audit_open(void) __wur;
 void audit_close(int fd);
 
 /* The following are for standard formatting of messages */
+/* These helpers accept NULL values, so omit access size arguments. */
 int audit_value_needs_encoding(const char *str, unsigned int size)
-	__attr_access ((__read_only__, 1, 2))
+	__attr_access ((__read_only__, 1))
 	__wur;
 char *audit_encode_value(char *final,const char *buf,unsigned int size)
 	__attr_access ((__write_only__, 1))
-	__attr_access ((__read_only__, 2, 3));
+	__attr_access ((__read_only__, 2));
 char *audit_encode_nv_string(const char *name, const char *value,
 	unsigned int vlen)
-	__attr_access ((__read_only__, 2, 3))
+	__attr_access ((__read_only__, 2))
 	__attr_dealloc_free;
 int audit_log_user_message(int audit_fd, int type, const char *message,
 	const char *hostname, const char *addr, const char *tty, int result)
