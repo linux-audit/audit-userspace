@@ -249,8 +249,10 @@ static void user2_handler( int sig )
  */
 static void child_handler(int sig)
 {
+	int saved_errno = errno;
 	while (waitpid(-1, NULL, WNOHANG) > 0)
 		; /* empty */
+	errno = saved_errno;
 }
 
 /*
@@ -1220,6 +1222,7 @@ static int init_tls_context(void)
 	}
 
 	SSL_CTX_set_options(tls_ctx, SSL_OP_NO_COMPRESSION);
+	SSL_CTX_set_mode(tls_ctx, SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER);
 
 	/* Disable session resumption -- force fresh PQC key exchange */
 	SSL_CTX_set_session_cache_mode(tls_ctx, SSL_SESS_CACHE_OFF);
