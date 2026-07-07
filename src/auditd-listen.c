@@ -123,20 +123,32 @@ static int ssl_ex_idx_identity = -1;
 static int ssl_ex_idx_reason = -1;
 #endif
 
+/*
+ * sockaddr_to_string_buf - format an address into a caller buffer
+ * @addr: socket address
+ * @buf: output buffer
+ * @buflen: output buffer length
+ */
+static void sockaddr_to_string_buf(const struct sockaddr_storage *addr,
+				   char *buf, size_t buflen)
+{
+	if (addr->ss_family != AF_INET && addr->ss_family != AF_INET6) {
+		snprintf(buf, buflen, "?");
+		return;
+	}
+
+	if (inet_ntop(addr->ss_family, addr->ss_family == AF_INET ?
+		(void *) &((struct  sockaddr_in *)addr)->sin_addr :
+		(void *) &((struct sockaddr_in6 *)addr)->sin6_addr,
+		buf, buflen) == NULL)
+		snprintf(buf, buflen, "?");
+}
+
 static char *sockaddr_to_string(const struct sockaddr_storage *addr)
 {
 	static char buf[INET6_ADDRSTRLEN];
 
-	if (addr->ss_family != AF_INET && addr->ss_family != AF_INET6) {
-		snprintf(buf, sizeof(buf), "unknown");
-		return buf;
-	}
-
-	inet_ntop(addr->ss_family, addr->ss_family == AF_INET ?
-		(void *) &((struct  sockaddr_in *)addr)->sin_addr :
-		(void *) &((struct sockaddr_in6 *)addr)->sin6_addr,
-		buf, INET6_ADDRSTRLEN);
-
+	sockaddr_to_string_buf(addr, buf, sizeof(buf));
 	return buf;
 }
 
@@ -173,6 +185,10 @@ static void set_close_on_exec(int fd)
 	fcntl(fd, F_SETFD, flags);
 }
 
+#ifdef HAVE_TLS
+static void emit_crypto_key_destroy_record(const struct ev_tcp *client);
+#endif
+
 static void release_client(struct ev_tcp *client)
 {
 	char emsg[DEFAULT_BUF_SZ];
@@ -182,6 +198,8 @@ static void release_client(struct ev_tcp *client)
 		sockaddr_to_port(&client->addr));
 	send_audit_event(AUDIT_DAEMON_CLOSE, emsg); 
 #ifdef HAVE_TLS
+	if (client->ssl)
+		emit_crypto_key_destroy_record(client);
 	if (client->ssl) {
 		/* Send close_notify but don't wait for peer's response;
 		 * blocking poll() would stall the event loop */
@@ -216,6 +234,14 @@ static void close_client(struct ev_tcp *client)
 
 #ifdef HAVE_TLS
 #define TLS_AUDIT_BUF_SZ 768
+#define TLS_CRYPTO_AUDIT_BUF_SZ 1024
+
+struct tls_endpoint_info {
+	char raddr[INET6_ADDRSTRLEN];
+	char laddr[INET6_ADDRSTRLEN];
+	unsigned int rport;
+	unsigned int lport;
+};
 
 /* Map crypto profile enum to string for audit records */
 static const char *profile_name(int profile)
@@ -226,6 +252,168 @@ static const char *profile_name(int profile)
 	case TLS_PROFILE_PQC:        return "pqc";
 	default:                     return "unknown";
 	}
+}
+
+/*
+ * auditd_exe_field - return the executable field for local audit records
+ *
+ * send_audit_event() bypasses audit_log_user_message(), so internal auditd
+ * records need to provide the standard userspace audit tail themselves. Use
+ * libaudit's name/value encoder so exe follows the same quoting and
+ * hex-encoding rules as audit_log_user_message().
+ *
+ * This is intentionally auditd's executable, not the TLS peer's. The exe
+ * field identifies the local process that originated the audit record so
+ * normalized searches do not have to infer the source from the record type.
+ */
+static const char *auditd_exe_field(void)
+{
+	static char *exe_field;
+
+	if (exe_field)
+		return exe_field;
+
+	exe_field = audit_encode_nv_string("exe", AUDITD_EXE, 0);
+	return exe_field ? exe_field : "exe=\"auditd\"";
+}
+
+/*
+ * get_tls_endpoints - collect TLS peer and local socket endpoints
+ * @client: auditd TCP client
+ * @ep: output endpoint information
+ */
+static void get_tls_endpoints(const struct ev_tcp *client,
+			      struct tls_endpoint_info *ep)
+{
+	struct sockaddr_storage local;
+	socklen_t len = sizeof(local);
+
+	sockaddr_to_string_buf(&client->addr, ep->raddr, sizeof(ep->raddr));
+	ep->rport = sockaddr_to_port(&client->addr);
+
+	if (getsockname(client->io.fd, (struct sockaddr *)&local, &len) == 0) {
+		sockaddr_to_string_buf(&local, ep->laddr, sizeof(ep->laddr));
+		ep->lport = sockaddr_to_port(&local);
+	} else {
+		snprintf(ep->laddr, sizeof(ep->laddr), "?");
+		ep->lport = 0;
+	}
+}
+
+/*
+ * build_tls_audit_session - fill common crypto audit fields
+ * @session: output audit session fields
+ * @ep: endpoint information
+ * @ssl: active SSL connection
+ * @direction: audit direction value
+ */
+static void build_tls_audit_session(struct autls_audit_session *session,
+				    const struct tls_endpoint_info *ep,
+				    SSL *ssl, const char *direction)
+{
+	const SSL_CIPHER *cipher = ssl ? SSL_get_current_cipher(ssl) : NULL;
+	const char *pfs = NULL;
+
+#ifdef HAVE_SSL_GROUP_TO_NAME
+	if (ssl) {
+		int group = SSL_get_negotiated_group(ssl);
+		if (group)
+			pfs = SSL_group_to_name(ssl, group);
+	}
+#endif
+	session->direction = direction;
+	session->cipher = cipher ? SSL_CIPHER_get_name(cipher) : "?";
+	session->ksize = cipher ? SSL_CIPHER_get_bits(cipher, NULL) : 0;
+	session->pfs = pfs ? pfs : "?";
+	session->spid = (long long)getpid();
+	session->suid = "?";
+	session->rport = ep->rport;
+	session->laddr = ep->laddr;
+	session->lport = ep->lport;
+}
+
+/*
+ * emit_crypto_session_record - emit one collector CRYPTO_SESSION record
+ * @client: auditd TCP client
+ * @ssl: active SSL connection
+ * @direction: from-client or from-server
+ * @result: audit result string
+ *
+ * Returns 0 on success, -1 on formatting or internal audit failure.
+ */
+static int emit_crypto_session_record(const struct ev_tcp *client,
+				      SSL *ssl, const char *direction,
+				      const char *result)
+{
+	struct tls_endpoint_info ep;
+	struct autls_audit_session session;
+	char body[TLS_CRYPTO_AUDIT_BUF_SZ];
+	char emsg[TLS_CRYPTO_AUDIT_BUF_SZ];
+	int rc;
+
+	get_tls_endpoints(client, &ep);
+	build_tls_audit_session(&session, &ep, ssl, direction);
+
+	if (autls_format_crypto_session(body, sizeof(body), &session))
+		return -1;
+	rc = snprintf(emsg, sizeof(emsg),
+		"%s %s hostname=? addr=%s terminal=? res=%s",
+		body, auditd_exe_field(), ep.raddr, result);
+	if (rc < 0 || (size_t)rc >= sizeof(emsg))
+		return -1;
+	return send_audit_event(AUDIT_CRYPTO_SESSION, emsg);
+}
+
+/*
+ * emit_crypto_session_records - emit both TLS CRYPTO_SESSION directions
+ * @client: auditd TCP client
+ * @ssl: active SSL connection
+ * @result: audit result string
+ *
+ * Returns 0 only if both directional records were created.
+ */
+static int emit_crypto_session_records(const struct ev_tcp *client,
+				       SSL *ssl, const char *result)
+{
+	int rc = 0;
+
+	if (emit_crypto_session_record(client, ssl, "from-client", result))
+		rc = -1;
+	else if (emit_crypto_session_record(client, ssl, "from-server", result))
+		rc = -1;
+	if (rc)
+		audit_msg(LOG_ERR,
+			"Unable to emit TLS crypto session audit record");
+	return rc;
+}
+
+/*
+ * emit_crypto_key_destroy_record - emit collector CRYPTO_KEY_USER destroy
+ * @client: auditd TCP client
+ */
+static void emit_crypto_key_destroy_record(const struct ev_tcp *client)
+{
+	struct tls_endpoint_info ep;
+	struct autls_audit_session session;
+	char body[TLS_CRYPTO_AUDIT_BUF_SZ];
+	char emsg[TLS_CRYPTO_AUDIT_BUF_SZ];
+	int rc;
+
+	get_tls_endpoints(client, &ep);
+	build_tls_audit_session(&session, &ep, client->ssl, "both");
+
+	if (autls_format_crypto_key_destroy(body, sizeof(body), &session))
+		goto err;
+	rc = snprintf(emsg, sizeof(emsg),
+		"%s %s hostname=? addr=%s terminal=? res=success",
+		body, auditd_exe_field(), ep.raddr);
+	if (rc < 0 || (size_t)rc >= sizeof(emsg))
+		goto err;
+	if (send_audit_event(AUDIT_CRYPTO_KEY_USER, emsg) == 0)
+		return;
+err:
+	audit_msg(LOG_ERR,
+		"Unable to emit TLS crypto key destruction audit record");
 }
 
 /*
@@ -285,6 +473,59 @@ static int tls_error_cb(const char *str, size_t len, void *u)
 	return 1;
 }
 
+/*
+ * unlink_handshake_client - remove a client from the pending TLS list
+ * @client: TLS client state
+ *
+ * The caller owns the client lifetime.  This only updates the handshake
+ * accounting so cleanup paths can decide independently which audit records
+ * are appropriate for the connection state.
+ */
+static void unlink_handshake_client(struct ev_tcp *client)
+{
+	if (!client->in_handshake_chain)
+		return;
+
+	if (handshake_chain == client)
+		handshake_chain = client->next;
+	if (client->next)
+		client->next->prev = client->prev;
+	if (client->prev)
+		client->prev->next = client->next;
+	handshake_count--;
+	client->in_handshake_chain = 0;
+	client->next = NULL;
+	client->prev = NULL;
+}
+
+/*
+ * drop_tls_unaccepted_client - close a TLS client before session acceptance
+ * @loop: libev event loop
+ * @client: TLS client state
+ *
+ * Used after a TLS handshake succeeds but the collector cannot create the
+ * required crypto audit records.  The client has not been announced with
+ * AUDIT_DAEMON_ACCEPT, so this cleanup intentionally avoids the matching
+ * close and key-destroy records.
+ */
+static void drop_tls_unaccepted_client(struct ev_loop *loop,
+				       struct ev_tcp *client)
+{
+	ev_io_stop(loop, &client->io);
+	ev_timer_stop(loop, &client->handshake_timer);
+	unlink_handshake_client(client);
+
+	if (client->ssl) {
+		SSL_free(client->ssl);
+		client->ssl = NULL;
+	}
+	shutdown(client->io.fd, SHUT_RDWR);
+	close(client->io.fd);
+	free(client->accepted_identity);
+	free(client->pending_ack);
+	free(client);
+}
+
 static void abort_handshake(struct ev_loop *loop,
 		struct ev_tcp *client, const char *op)
 {
@@ -310,6 +551,15 @@ static void abort_handshake(struct ev_loop *loop,
 	emit_tls_audit_record(&client->addr, client->ssl,
 			      client->tls_profile_at_accept, ex_identity,
 			      ex_reason ? ex_reason : op, "no");
+	/*
+	 * Do not emit AUDIT_CRYPTO_SESSION for failed collector handshakes.
+	 * These failures can be driven by unauthenticated network peers, so
+	 * logging one crypto audit record per failed attempt would let a
+	 * remote client flood audit storage before it proves authorization.
+	 * Successful TLS establishment below is the crypto session audit
+	 * boundary; failed handshakes keep their operational
+	 * AUDIT_DAEMON_ACCEPT diagnostics.
+	 */
 
 	if (client->ssl) {
 		ERR_print_errors_cb(tls_error_cb, NULL);
@@ -319,16 +569,7 @@ static void abort_handshake(struct ev_loop *loop,
 	shutdown(client->io.fd, SHUT_RDWR);
 	close(client->io.fd);
 
-	if (client->in_handshake_chain) {
-		if (handshake_chain == client)
-			handshake_chain = client->next;
-		if (client->next)
-			client->next->prev = client->prev;
-		if (client->prev)
-			client->prev->next = client->next;
-		handshake_count--;
-		client->in_handshake_chain = 0;
-	}
+	unlink_handshake_client(client);
 
 	free(ex_identity);
 	free(client->accepted_identity);
@@ -1237,15 +1478,24 @@ static void tls_handshake_handler(struct ev_loop *loop,
 		}
 
 		/* Remove from handshake_chain */
-		if (client->in_handshake_chain) {
-			if (handshake_chain == client)
-				handshake_chain = client->next;
-			if (client->next)
-				client->next->prev = client->prev;
-			if (client->prev)
-				client->prev->next = client->next;
-			handshake_count--;
-			client->in_handshake_chain = 0;
+		unlink_handshake_client(client);
+
+		/*
+		 * AUDIT_CRYPTO_SESSION is success-only on the collector.
+		 * Failed handshakes are still logged as operational
+		 * AUDIT_DAEMON_ACCEPT failures, but not as crypto session
+		 * records, so unauthenticated peers cannot flood crypto audit
+		 * records before authorization.  If the success records cannot
+		 * be created, close only this new client and leave auditd up.
+		 */
+		if (emit_crypto_session_records(client, client->ssl,
+						"success")) {
+			audit_msg(LOG_ERR,
+				"Unable to audit TLS crypto session from "
+				"%s; closing new client",
+				sockaddr_to_addr(&client->addr));
+			drop_tls_unaccepted_client(loop, client);
+			return;
 		}
 
 		/* Switch to data handler */
@@ -2282,4 +2532,3 @@ void auditd_tcp_listen_reconfigure(const struct daemon_conf *nconf,
 	}
 #endif
 }
-

@@ -458,6 +458,43 @@ static void test_autls_profile_groups(void)
 	assert(autls_profile_groups(AUTLS_PROFILE_SYSTEM) == NULL);
 }
 
+static void test_autls_crypto_audit_format(void)
+{
+	struct autls_audit_session session;
+	char buf[256];
+	char tiny[16];
+
+	printf("  autls crypto audit format...\n");
+
+	session.direction = "from-client";
+	session.cipher = "TLS_AES_256_GCM_SHA384";
+	session.ksize = 256;
+	session.pfs = "X25519MLKEM768";
+	session.spid = 123;
+	session.suid = "?";
+	session.rport = 40918;
+	session.laddr = "::1";
+	session.lport = 60;
+
+	assert(autls_format_crypto_session(buf, sizeof(buf), &session) == 0);
+	assert(strcmp(buf,
+		"op=start direction=from-client "
+		"cipher=TLS_AES_256_GCM_SHA384 ksize=256 "
+		"mac=<implicit> pfs=X25519MLKEM768 spid=123 suid=? "
+		"rport=40918 laddr=::1 lport=60 ") == 0);
+	assert(autls_format_crypto_session(tiny, sizeof(tiny),
+		&session) == -1);
+
+	session.direction = "both";
+	assert(autls_format_crypto_key_destroy(buf, sizeof(buf),
+		&session) == 0);
+	assert(strcmp(buf,
+		"op=destroy kind=session fp=? direction=both spid=123 "
+		"suid=? rport=40918 laddr=::1 lport=60 ") == 0);
+	assert(autls_format_crypto_key_destroy(tiny, sizeof(tiny),
+		&session) == -1);
+}
+
 static void test_autls_acl_load(void)
 {
 	struct autls_acl_table *t = NULL;
@@ -661,6 +698,7 @@ int main(void)
 	test_autls_validate_psk_identity();
 	test_autls_profile_ciphers();
 	test_autls_profile_groups();
+	test_autls_crypto_audit_format();
 	test_autls_acl_load();
 	test_autls_acl_check();
 	test_autls_authorize_psk_identity();

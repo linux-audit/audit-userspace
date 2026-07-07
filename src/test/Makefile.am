@@ -53,6 +53,7 @@ format_event_test_SOURCES += \
         ${top_srcdir}/src/auditd-listen.c
 if ENABLE_TLS
 format_event_test_CFLAGS += -I${top_srcdir}/autls $(OPENSSL_CFLAGS)
+format_event_test_CFLAGS += -DAUDITD_EXE=\"$(sbindir)/auditd\"
 format_event_test_LDADD += ${top_builddir}/autls/libautls.la
 endif
 endif
