@@ -36,8 +36,8 @@ an init script for OpenRC.
 ## SUPPORTED ARCHITECTURES
 * AARCH64
 * ARM (some versions)
-* MIPS
 * PPC & PPCLE
+* riscv32 & riscv64
 * s390 & s390x
 * x86_64 & i386
 
