@@ -56,5 +56,9 @@ format_event_test_CFLAGS += -I${top_srcdir}/autls $(OPENSSL_CFLAGS)
 format_event_test_CFLAGS += -DAUDITD_EXE=\"$(sbindir)/auditd\"
 format_event_test_CFLAGS += -DAUDITD_LISTEN_TEST
 format_event_test_LDADD += ${top_builddir}/autls/libautls.la
+
+# Direct src/test builds bypass the top-level SUBDIRS ordering.
+${top_builddir}/autls/libautls.la:
+	$(MAKE) $(AM_MAKEFLAGS) -C ${top_builddir}/autls libautls.la
 endif
 endif
