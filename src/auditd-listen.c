@@ -1192,6 +1192,14 @@ read_more:
 				free(io->pending_ack);
 				io->pending_ack = NULL;
 
+				/* Buffered data may be a partial record and return
+				 * before the read path can re-arm the watcher. */
+				if (_io->events & EV_WRITE) {
+					ev_io_stop(loop, _io);
+					ev_io_modify(_io, EV_READ);
+					ev_io_start(loop, _io);
+				}
+
 				/* Process leftover data from a prior
 				 * batch before reading from SSL */
 				if (io->bufptr > 0) {
