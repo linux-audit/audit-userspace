@@ -73,6 +73,25 @@ static int access_ok(const char *filename)
 #endif
 }
 
+/*
+ * free_source_list - release a NULL-terminated source file list
+ * Args:
+ *   list - array of allocated file names
+ * Rtns:
+ *   void
+ */
+static void free_source_list(char **list)
+{
+	int n = 0;
+
+	if (list == NULL)
+		return;
+
+	while (list[n])
+		free(list[n++]);
+	free(list);
+}
+
 static int setup_log_file_array(auparse_state_t *au)
 {
         struct daemon_conf config;
@@ -490,11 +509,14 @@ auparse_state_t *auparse_init(ausource_t source, const void *b)
 				goto bad_exit;
 			if (access_ok(b))
 				goto bad_exit;
-			tmp = malloc(2*sizeof(char *));
+			tmp = calloc(2, sizeof(char *));
 			if (tmp == NULL)
 				goto bad_exit;
 			tmp[0] = strdup(b);
-			tmp[1] = NULL;
+			if (tmp[0] == NULL) {
+				free_source_list(tmp);
+				goto bad_exit;
+			}
 			au->source_list = tmp;
 			break;
 		case AUSOURCE_FILE_ARRAY:
@@ -506,10 +528,16 @@ auparse_state_t *auparse_init(ausource_t source, const void *b)
 					goto bad_exit;
 				n++;
 			}
-			tmp = malloc((n+1)*sizeof(char *));
-			for (i=0; i<n; i++)
+			tmp = calloc(n+1, sizeof(char *));
+			if (tmp == NULL)
+				goto bad_exit;
+			for (i=0; i<n; i++) {
 				tmp[i] = strdup(bb[i]);
-			tmp[n] = NULL;
+				if (tmp[i] == NULL) {
+					free_source_list(tmp);
+					goto bad_exit;
+				}
+			}
 			au->source_list = tmp;
 			break;
 		case AUSOURCE_BUFFER:
@@ -578,6 +606,7 @@ auparse_state_t *auparse_init(ausource_t source, const void *b)
 
 	return au;
 bad_exit:
+	free_source_list(au->source_list);
 	databuf_free(&au->databuf);
 	/* Free list of events list (au_lo) structure */
 	au_lol_clear(au->au_lo, 0);
@@ -1103,13 +1132,8 @@ static void auparse_destroy_common(auparse_state_t *au)
 	if (au == NULL)
 		return;
 
-	if (au->source_list) {
-		int n = 0;
-		while (au->source_list[n])
-			free(au->source_list[n++]);
-		free(au->source_list);
-		au->source_list = NULL;
-	}
+	free_source_list(au->source_list);
+	au->source_list = NULL;
 
 	au->next_buf = NULL;
         free(au->cur_buf);

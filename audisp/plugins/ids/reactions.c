@@ -92,16 +92,15 @@ static int safe_exec(const char *exe, ...)
 	va_start(ap, exe);
 	for (i = 1; va_arg(ap, char *) != NULL; i++);
 	va_end(ap);
-	argv = alloca(i * sizeof(char *));
+	argv = alloca((i + 1) * sizeof(char *));
 
 	va_start(ap, exe);
 	argv[0] = (char *) exe;
 	for (i = 1; (argv[i] = (char *) va_arg(ap, char *)) != NULL; i++);
 	va_end(ap);
-	argv[i] = NULL;
 
 	execve(exe, argv, NULL);
-        syslog(LOG_ALERT, "Audit IDS failed to exec %s", exe);
+	syslog(LOG_ALERT, "Audit IDS failed to exec %s", exe);
 	exit(1);
 }
 
@@ -205,12 +204,12 @@ int restricted_role(const char *acct)
 
 	// Restrict to guest user
 	rc = safe_exec("/usr/sbin/semanage", "login", "-m", "-s",
-		"guest_u", acct);
+		"guest_u", acct, NULL);
 	if (rc)
 		return rc;
 
 	// Need to force a logout of all sessions for the user
-	return safe_exec("/usr/bin/killall", "--user", acct);
+	return safe_exec("/usr/bin/killall", "--user", acct, NULL);
 }
 
 int force_password_reset(const char *acct)
@@ -218,7 +217,7 @@ int force_password_reset(const char *acct)
 	if (verify_acct(acct))
 		return 1;
 
-	return safe_exec("/usr/bin/chage", "-d", "0", acct);
+	return safe_exec("/usr/bin/chage", "-d", "0", acct, NULL);
 }
 
 int lock_account(const char *acct)
@@ -226,7 +225,7 @@ int lock_account(const char *acct)
 	if (verify_acct(acct))
 		return 1;
 
-	return safe_exec("/usr/bin/passwd", "-l", acct);
+	return safe_exec("/usr/bin/passwd", "-l", acct, NULL);
 }
 
 int unlock_account(const char *acct)
@@ -234,7 +233,7 @@ int unlock_account(const char *acct)
 	if (verify_acct(acct))
 		return 1;
 
-	return safe_exec("/usr/bin/passwd", "-u", acct);
+	return safe_exec("/usr/bin/passwd", "-u", acct, NULL);
 }
 
 int lock_account_timed(const char *acct, unsigned long length)
@@ -327,17 +326,17 @@ int unblock_ip_address(const char *addr)
 
 int system_reboot(void)
 {
-	return safe_exec("/sbin/init", "6");
+	return safe_exec("/sbin/init", "6", NULL);
 }
 
 int system_single_user(void)
 {
-	return safe_exec("/sbin/init", "1");
+	return safe_exec("/sbin/init", "1", NULL);
 }
 
 int system_halt(void)
 {
-	return safe_exec("/sbin/init", "0");
+	return safe_exec("/sbin/init", "0", NULL);
 }
 
 /*

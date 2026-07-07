@@ -2074,6 +2074,7 @@ next_try:
 #ifdef USE_GSSAPI
 	if (USE_GSS) {
 		if (negotiate_credentials()) {
+			stop_sock();
 			rc = ET_PERMANENT;
 			goto out;
 		}

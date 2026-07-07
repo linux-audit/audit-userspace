@@ -44,12 +44,16 @@ static void start_session(auparse_state_t *au, struct ids_conf *config)
 		a = -1;
 
 	int service_acct = 0;
-	const char *acct = NULL;
+	char *acct = NULL;
 	const char *atype = auparse_normalize_subject_kind(au);
 	if (atype && strncmp(atype, "service", 7) == 0)
 		service_acct = 1;
-	if (auparse_normalize_subject_primary(au) == 1)
-		acct = strdup(auparse_interpret_field(au));
+	if (auparse_normalize_subject_primary(au) == 1) {
+		const char *field = auparse_interpret_field(au);
+
+		if (field)
+			acct = strdup(field);
+	}
 
 	// Have we seen this endpoint before?
 	origin_data_t *o = find_origin(a);
@@ -60,7 +64,8 @@ static void start_session(auparse_state_t *au, struct ids_conf *config)
 
 	// Is this login a service account?
 	if (service_acct && !config->option_service_login_allowed) {
-		my_printf("bad_service_login_origin: %s", acct);
+		my_printf("bad_service_login_origin: %s",
+				acct ? acct : "?");
 		bad_service_login_origin(o, config, acct);
 	}
 
@@ -88,15 +93,14 @@ static void start_session(auparse_state_t *au, struct ids_conf *config)
 	if (auparse_normalize_session(au) == 1) {
 		unsigned int s = auparse_get_field_int(au);
 		if (s != UNSET) {
-			// new_session takes custody of acct
+			// new_session copies acct before storing it.
 			new_session(s, a, acct);
-			acct = NULL;
 		// otherwise we have a strange daemon login
 		} else if (debug)
 		    my_printf("start_session: can't find session in serial %s",
 				auparse_get_type_name(au));
 	}
-	free((void *)acct);
+	free(acct);
 }
 
 static void end_session(auparse_state_t *au)
@@ -109,6 +113,7 @@ static void end_session(auparse_state_t *au)
 		}
 	}
 }
+
 
 /* This function receives a single complete event from the auparse library. */
 void process_bad_event_model(auparse_state_t *au,
@@ -165,4 +170,3 @@ void process_bad_event_model(auparse_state_t *au,
 		}
 	}
 }
-

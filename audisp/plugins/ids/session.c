@@ -85,17 +85,36 @@ static void destroy_session(void)
 	cur = NULL;
 }
 
+/*
+ * new_session - create a session
+ * Args:
+ *   s    - session id
+ *   o    - origin address
+ *   acct - account string to copy into the session
+ * Rtns:
+ *   void
+ */
 void new_session(unsigned int s, unsigned int o, const char *acct)
 {
 	session_data_t *tmp = malloc(sizeof(session_data_t));
-	if (tmp) {
-		tmp->session = s;
-		tmp->score = 0;
-		tmp->killed = 0;
-		tmp->origin = o;
-		tmp->acct = acct ? acct : strdup("");
-		add_session(tmp);
+
+	if (tmp == NULL)
+		return;
+
+	tmp->acct = acct ? strdup(acct) : strdup("");
+	if (tmp->acct == NULL) {
+		free(tmp);
+		return;
 	}
+
+	tmp->session = s;
+	tmp->score = 0;
+	tmp->killed = 0;
+	tmp->origin = o;
+	if (add_session(tmp))
+		return;
+
+	free_session(tmp);
 }
 
 void destroy_sessions(void)
@@ -194,4 +213,3 @@ void add_to_score_session(session_data_t *s, unsigned int adj)
 	if (debug)
 		my_printf("session score: %u", s->score);
 }
-

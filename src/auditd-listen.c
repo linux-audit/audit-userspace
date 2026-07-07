@@ -1083,6 +1083,11 @@ static void client_ack(void *ack_data, const unsigned char *header,
 		mlen = strlen(msg);
 		utok.length = AUDIT_RMW_HEADER_SIZE + mlen;
 		utok.value = malloc(utok.length + 1);
+		if (utok.value == NULL) {
+			audit_msg(LOG_ERR, "GSS-API ACK to %s lost: "
+				"out of memory", sockaddr_to_addr(&io->addr));
+			return;
+		}
 
 		memcpy(utok.value, header, AUDIT_RMW_HEADER_SIZE);
 		memcpy(utok.value+AUDIT_RMW_HEADER_SIZE, msg, mlen);
