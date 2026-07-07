@@ -46,6 +46,18 @@ typedef void (*autls_log_fn)(int, const char *, ...)
 #define AUTLS_PROFILE_SYSTEM		1
 #define AUTLS_PROFILE_PQC		2
 
+struct autls_audit_session {
+	const char *direction;
+	const char *cipher;
+	int ksize;
+	const char *pfs;
+	long long spid;
+	const char *suid;
+	unsigned int rport;
+	const char *laddr;
+	unsigned int lport;
+};
+
 /* autls-profile.c */
 int autls_is_pqc_group(const char *name)
 	__attribute_pure__ __wur;
@@ -55,6 +67,12 @@ const char *autls_profile_ciphers(int profile)
 	__attribute_pure__ __wur;
 const char *autls_profile_groups(int profile)
 	__attribute_pure__ __wur;
+int autls_format_crypto_session(char *buf, size_t buflen,
+				const struct autls_audit_session *session)
+	__nonnull((1, 3)) __wur;
+int autls_format_crypto_key_destroy(char *buf, size_t buflen,
+				    const struct autls_audit_session *session)
+	__nonnull((1, 3)) __wur;
 
 /* autls-psk.c */
 int autls_validate_key_file(const char *path, autls_log_fn log_fn)

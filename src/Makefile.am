@@ -35,6 +35,7 @@ endif
 auditd_CFLAGS = -fPIE -DPIE -g -D_REENTRANT -D_GNU_SOURCE -fno-strict-aliasing -pthread -Wno-pointer-sign ${WFLAGS}
 if ENABLE_TLS
 auditd_CFLAGS += -I${top_srcdir}/autls $(OPENSSL_CFLAGS)
+auditd_CFLAGS += -DAUDITD_EXE=\"$(sbindir)/auditd\"
 endif
 auditd_LDFLAGS = -pie -Wl,-z,relro -Wl,-z,now
 auditd_DEPENDENCIES = libev/libev.a

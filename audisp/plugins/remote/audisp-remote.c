@@ -134,7 +134,16 @@ gss_ctx_id_t my_context;
 #ifdef HAVE_TLS
 static SSL_CTX *tls_ctx = NULL;
 static SSL *tls_ssl = NULL;
+static int tls_crypto_audited = 0;
 #define USE_TLS (config.transport == T_TLS)
+#define TLS_CRYPTO_AUDIT_BUF_SZ 1024
+
+struct tls_endpoint_info {
+	char raddr[INET6_ADDRSTRLEN];
+	char laddr[INET6_ADDRSTRLEN];
+	unsigned int rport;
+	unsigned int lport;
+};
 
 static int init_tls_context(void);
 static void destroy_tls_context(void);
@@ -575,9 +584,23 @@ int main(int argc, char *argv[])
 #ifdef HAVE_LIBCAP_NG
 	// Drop capabilities
 	capng_clear(CAPNG_SELECT_BOTH);
-	if (config.local_port && config.local_port < 1024)
-		capng_update(CAPNG_ADD, CAPNG_EFFECTIVE|CAPNG_PERMITTED,
-			CAP_NET_BIND_SERVICE);
+	if (config.local_port && config.local_port < 1024) {
+#ifdef HAVE_TLS
+		if (USE_TLS)
+			capng_updatev(CAPNG_ADD,
+				CAPNG_EFFECTIVE|CAPNG_PERMITTED,
+				CAP_NET_BIND_SERVICE, CAP_AUDIT_WRITE, -1);
+		else
+#endif
+			capng_updatev(CAPNG_ADD,
+				CAPNG_EFFECTIVE|CAPNG_PERMITTED,
+				CAP_NET_BIND_SERVICE, -1);
+#ifdef HAVE_TLS
+	} else if (USE_TLS) {
+		capng_updatev(CAPNG_ADD, CAPNG_EFFECTIVE|CAPNG_PERMITTED,
+			CAP_AUDIT_WRITE, -1);
+#endif
+	}
 	if (capng_apply(CAPNG_SELECT_BOTH))
 		syslog(LOG_WARNING, "audisp-remote plugin was unable to drop capabilities, continuing with elevated priviles");
 #endif
@@ -1365,11 +1388,7 @@ err:
 
 static void destroy_tls_context(void)
 {
-	if (tls_ssl) {
-		autls_ssl_shutdown(tls_ssl);
-		SSL_free(tls_ssl);
-		tls_ssl = NULL;
-	}
+	tls_disconnect();
 	if (tls_ctx) {
 		SSL_CTX_free(tls_ctx);
 		tls_ctx = NULL;
@@ -1389,6 +1408,242 @@ static int tls_error_cb(const char *str, size_t len, void *u)
 }
 
 /*
+ * tls_sockaddr_to_string - format an address for crypto audit fields
+ * @addr: socket address
+ * @buf: output buffer
+ * @buflen: output buffer length
+ *
+ * Writes "?" when the socket address is unavailable or cannot be formatted,
+ * matching existing userspace crypto audit practice for unknown fields.
+ */
+static void tls_sockaddr_to_string(const struct sockaddr_storage *addr,
+				   char *buf, size_t buflen)
+{
+	if (addr->ss_family != AF_INET && addr->ss_family != AF_INET6) {
+		snprintf(buf, buflen, "?");
+		return;
+	}
+
+	if (inet_ntop(addr->ss_family, addr->ss_family == AF_INET ?
+		(void *) &((struct sockaddr_in *)addr)->sin_addr :
+		(void *) &((struct sockaddr_in6 *)addr)->sin6_addr,
+		buf, buflen) == NULL)
+		snprintf(buf, buflen, "?");
+}
+
+/*
+ * tls_sockaddr_to_port - return the TCP port from a socket address
+ * @addr: socket address
+ *
+ * Returns 0 when the port is unavailable.
+ */
+static unsigned int tls_sockaddr_to_port(const struct sockaddr_storage *addr)
+{
+	if (addr->ss_family == AF_INET)
+		return ntohs(((struct sockaddr_in *)addr)->sin_port);
+	if (addr->ss_family == AF_INET6)
+		return ntohs(((struct sockaddr_in6 *)addr)->sin6_port);
+	return 0;
+}
+
+/*
+ * get_tls_endpoints - collect local and remote endpoints for audit
+ * @ep: output endpoint information
+ *
+ * The collector may be configured through a hostname or wildcard bind, so
+ * read the connected socket state instead of copying configuration strings.
+ */
+static void get_tls_endpoints(struct tls_endpoint_info *ep)
+{
+	struct sockaddr_storage addr;
+	socklen_t len;
+
+	snprintf(ep->raddr, sizeof(ep->raddr), "?");
+	snprintf(ep->laddr, sizeof(ep->laddr), "?");
+	ep->rport = 0;
+	ep->lport = 0;
+
+	if (sock < 0)
+		return;
+
+	len = sizeof(addr);
+	if (getpeername(sock, (struct sockaddr *)&addr, &len) == 0) {
+		tls_sockaddr_to_string(&addr, ep->raddr,
+				       sizeof(ep->raddr));
+		ep->rport = tls_sockaddr_to_port(&addr);
+	}
+
+	len = sizeof(addr);
+	if (getsockname(sock, (struct sockaddr *)&addr, &len) == 0) {
+		tls_sockaddr_to_string(&addr, ep->laddr,
+				       sizeof(ep->laddr));
+		ep->lport = tls_sockaddr_to_port(&addr);
+	}
+}
+
+/*
+ * build_tls_audit_session - fill common crypto audit fields
+ * @session: output audit session fields
+ * @ep: endpoint information
+ * @ssl: active SSL connection
+ * @direction: audit direction value
+ */
+static void build_tls_audit_session(struct autls_audit_session *session,
+				    const struct tls_endpoint_info *ep,
+				    SSL *ssl, const char *direction)
+{
+	const SSL_CIPHER *cipher = SSL_get_current_cipher(ssl);
+	const char *pfs = NULL;
+
+#ifdef HAVE_SSL_GROUP_TO_NAME
+	{
+		int group = SSL_get_negotiated_group(ssl);
+		if (group)
+			pfs = SSL_group_to_name(ssl, group);
+	}
+#endif
+
+	session->direction = direction;
+	session->cipher = cipher ? SSL_CIPHER_get_name(cipher) : "?";
+	session->ksize = cipher ? SSL_CIPHER_get_bits(cipher, NULL) : 0;
+	session->pfs = pfs ? pfs : "?";
+	session->spid = (long long)getpid();
+	session->suid = "?";
+	session->rport = ep->rport;
+	session->laddr = ep->laddr;
+	session->lport = ep->lport;
+}
+
+struct tls_crypto_audit_context {
+	int audit_fd;
+	SSL *ssl;
+	struct tls_endpoint_info ep;
+};
+
+/*
+ * emit_tls_crypto_session_record - write one CRYPTO_SESSION record
+ * @ctx: audit socket, SSL connection, and endpoint state
+ * @direction: from-client or from-server
+ *
+ * Returns 0 on success, -1 on audit formatting or write failure.
+ */
+static int emit_tls_crypto_session_record(
+		const struct tls_crypto_audit_context *ctx,
+		const char *direction)
+{
+	struct autls_audit_session session;
+	char body[TLS_CRYPTO_AUDIT_BUF_SZ];
+	int rc;
+
+	build_tls_audit_session(&session, &ctx->ep, ctx->ssl, direction);
+	if (autls_format_crypto_session(body, sizeof(body), &session))
+		return -1;
+
+	errno = 0;
+	rc = audit_log_user_message(ctx->audit_fd, AUDIT_CRYPTO_SESSION,
+				    body, NULL, ctx->ep.raddr, NULL, 1);
+	if (rc <= 0) {
+		if (errno)
+			syslog(LOG_CRIT,
+				"Unable to write TLS crypto session audit "
+				"record: %s", strerror(errno));
+		else
+			syslog(LOG_CRIT,
+				"Unable to write TLS crypto session audit "
+				"record: rc=%d", rc);
+		return -1;
+	}
+	return 0;
+}
+
+/*
+ * emit_tls_crypto_session_records - audit established TLS crypto state
+ * @ssl: active SSL connection
+ *
+ * AUDIT_CRYPTO_SESSION records are emitted only after the TLS handshake and
+ * local crypto policy checks have succeeded.  Failed handshakes do not have
+ * an established session to account for, and avoiding failure records also
+ * prevents a bad collector or network path from forcing repeated crypto
+ * audit records while audisp-remote is trying to connect.
+ *
+ * Returns 0 on success, -1 on audit failure.  The caller treats failure as
+ * fatal to this TLS transport because the remote sender must be able to
+ * account for the crypto session it is about to use.
+ */
+static int emit_tls_crypto_session_records(SSL *ssl)
+{
+	struct tls_crypto_audit_context ctx;
+	int rc = 0;
+
+	ctx.audit_fd = audit_open();
+	if (ctx.audit_fd < 0) {
+		syslog(LOG_CRIT,
+			"Unable to open audit socket for TLS crypto "
+			"session: %s", strerror(errno));
+		return -1;
+	}
+
+	ctx.ssl = ssl;
+	get_tls_endpoints(&ctx.ep);
+
+	if (emit_tls_crypto_session_record(&ctx, "from-client"))
+		rc = -1;
+	else if (emit_tls_crypto_session_record(&ctx, "from-server"))
+		rc = -1;
+
+	audit_close(ctx.audit_fd);
+	return rc;
+}
+
+/*
+ * emit_tls_crypto_key_destroy_record - audit TLS session key destruction
+ * @ssl: active SSL connection
+ *
+ * Returns 0 on success, -1 on audit failure.  Disconnect continues either
+ * way because the session is already ending.
+ */
+static int emit_tls_crypto_key_destroy_record(SSL *ssl)
+{
+	struct tls_crypto_audit_context ctx;
+	struct autls_audit_session session;
+	char body[TLS_CRYPTO_AUDIT_BUF_SZ];
+	int rc;
+
+	ctx.audit_fd = audit_open();
+	if (ctx.audit_fd < 0) {
+		syslog(LOG_ERR,
+			"Unable to open audit socket for TLS crypto key "
+			"destruction: %s", strerror(errno));
+		return -1;
+	}
+
+	ctx.ssl = ssl;
+	get_tls_endpoints(&ctx.ep);
+	build_tls_audit_session(&session, &ctx.ep, ctx.ssl, "both");
+	if (autls_format_crypto_key_destroy(body, sizeof(body), &session)) {
+		audit_close(ctx.audit_fd);
+		return -1;
+	}
+
+	errno = 0;
+	rc = audit_log_user_message(ctx.audit_fd, AUDIT_CRYPTO_KEY_USER,
+				    body, NULL, ctx.ep.raddr, NULL, 1);
+	audit_close(ctx.audit_fd);
+	if (rc > 0)
+		return 0;
+
+	if (errno)
+		syslog(LOG_ERR,
+			"Unable to write TLS crypto key destruction audit "
+			"record: %s", strerror(errno));
+	else
+		syslog(LOG_ERR,
+			"Unable to write TLS crypto key destruction audit "
+			"record: rc=%d", rc);
+	return -1;
+}
+
+/*
  * tls_connect - establish a TLS connection to the remote collector
  *
  * Creates an SSL session on the open socket, performs hostname
@@ -1400,6 +1655,7 @@ static int tls_connect(void)
 {
 	const char *kex_name;
 
+	tls_crypto_audited = 0;
 	tls_ssl = SSL_new(tls_ctx);
 	if (tls_ssl == NULL) {
 		syslog(LOG_ERR, "Unable to create TLS session");
@@ -1474,6 +1730,12 @@ static int tls_connect(void)
 		return -1;
 	}
 
+	if (emit_tls_crypto_session_records(tls_ssl)) {
+		tls_disconnect();
+		return -1;
+	}
+	tls_crypto_audited = 1;
+
 	/* Set receive timeout so SSL_read does not block indefinitely
 	 * on a network partition without TCP RST */
 	{
@@ -1489,10 +1751,14 @@ static int tls_connect(void)
 static void tls_disconnect(void)
 {
 	if (tls_ssl) {
+		if (tls_crypto_audited)
+			emit_tls_crypto_key_destroy_record(tls_ssl);
+		tls_crypto_audited = 0;
 		autls_ssl_shutdown(tls_ssl);
 		SSL_free(tls_ssl);
 		tls_ssl = NULL;
 	}
+	tls_crypto_audited = 0;
 }
 
 /* TLS I/O wrapper for reads with configurable timeout */

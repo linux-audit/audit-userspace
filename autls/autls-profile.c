@@ -18,6 +18,7 @@
  */
 
 #include "config.h"
+#include <stdio.h>
 #include <string.h>
 #include <openssl/ssl.h>
 #include "autls.h"
@@ -109,6 +110,82 @@ const char *autls_profile_groups(int profile)
 	default:
 		return AUTLS_COMPATIBLE_GROUPS;
 	}
+}
+
+/*
+ * audit_value - return a printable crypto audit field value
+ * @value: candidate audit field string
+ */
+static const char *audit_value(const char *value)
+{
+	return value && *value ? value : "?";
+}
+
+/*
+ * check_format_result - validate snprintf-style return codes
+ * @rc: snprintf return code
+ * @buflen: output buffer length
+ *
+ * Returns 0 on success, -1 when formatting failed or truncated.
+ */
+static int check_format_result(int rc, size_t buflen)
+{
+	if (rc < 0 || (size_t)rc >= buflen)
+		return -1;
+	return 0;
+}
+
+/*
+ * autls_format_crypto_session - format an AUDIT_CRYPTO_SESSION body
+ * @buf: output buffer
+ * @buflen: output buffer length
+ * @session: negotiated TLS session audit fields
+ *
+ * Returns 0 on success, -1 if @buf is too small.
+ */
+int autls_format_crypto_session(char *buf, size_t buflen,
+				const struct autls_audit_session *session)
+{
+	int rc;
+
+	rc = snprintf(buf, buflen,
+		"op=start direction=%s cipher=%s ksize=%d mac=<implicit> "
+		"pfs=%s spid=%lld suid=%s rport=%u laddr=%s lport=%u ",
+		audit_value(session->direction),
+		audit_value(session->cipher),
+		session->ksize,
+		audit_value(session->pfs),
+		session->spid,
+		audit_value(session->suid),
+		session->rport,
+		audit_value(session->laddr),
+		session->lport);
+	return check_format_result(rc, buflen);
+}
+
+/*
+ * autls_format_crypto_key_destroy - format an AUDIT_CRYPTO_KEY_USER body
+ * @buf: output buffer
+ * @buflen: output buffer length
+ * @session: TLS session endpoint fields
+ *
+ * Returns 0 on success, -1 if @buf is too small.
+ */
+int autls_format_crypto_key_destroy(char *buf, size_t buflen,
+				    const struct autls_audit_session *session)
+{
+	int rc;
+
+	rc = snprintf(buf, buflen,
+		"op=destroy kind=session fp=? direction=%s spid=%lld "
+		"suid=%s rport=%u laddr=%s lport=%u ",
+		audit_value(session->direction),
+		session->spid,
+		audit_value(session->suid),
+		session->rport,
+		audit_value(session->laddr),
+		session->lport);
+	return check_format_result(rc, buflen);
 }
 
 /*
