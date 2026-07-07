@@ -1,9 +1,21 @@
 #include "config.h"
+#include <assert.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include "auditd-event.h"
 #include "auditd-config.h"
 #include "common.h"
+#ifdef AUDITD_LISTEN_TEST
+#include "auditd-listen.h"
+#include "autls.h"
+
+void auditd_tls_test_set_transport(int value);
+void auditd_tls_test_set_acl_table(struct autls_acl_table *table);
+int auditd_tls_test_acl_check(const char *identity);
+int auditd_tls_test_set_psk_state(int active, const char *identity);
+void auditd_tls_test_clear(void);
+#endif
 
 #ifdef HAVE_ATOMIC
 ATOMIC_INT stop = 0;
@@ -12,6 +24,146 @@ volatile ATOMIC_INT stop = 0;
 #endif
 
 void update_report_timer(unsigned int interval){}
+
+#ifdef AUDITD_LISTEN_TEST
+/*
+ * make_test_acl - create a single-entry ACL table for listener tests
+ * @identity: identity to mark enabled
+ *
+ * Returns: ACL table on success, NULL on allocation failure.
+ */
+static struct autls_acl_table *make_test_acl(const char *identity)
+{
+	struct autls_acl_table *table;
+	struct autls_acl_entry *entry;
+
+	table = calloc(1, sizeof(*table));
+	entry = calloc(1, sizeof(*entry));
+	if (table == NULL || entry == NULL) {
+		free(table);
+		free(entry);
+		return NULL;
+	}
+
+	entry->identity = strdup(identity);
+	if (entry->identity == NULL) {
+		free(entry);
+		free(table);
+		return NULL;
+	}
+	entry->identity_len = strlen(identity);
+	entry->enabled = 1;
+	table->entries = entry;
+	table->count = 1;
+	table->enabled_count = 1;
+	return table;
+}
+
+/*
+ * test_tls_acl_reload_preserves_old_state - reject invalid ACL reloads
+ *
+ * Returns: None.
+ */
+static void test_tls_acl_reload_preserves_old_state(void)
+{
+	struct daemon_conf old_conf, new_conf;
+	struct autls_acl_table *table;
+
+	memset(&old_conf, 0, sizeof(old_conf));
+	memset(&new_conf, 0, sizeof(new_conf));
+	old_conf.transport = T_TLS;
+	new_conf.transport = T_TLS;
+	old_conf.tls_psk_file = strdup("/test/psk");
+	old_conf.tls_allowed_clients = strdup("old-acl");
+	new_conf.tls_allowed_clients = strdup("/proc/self/fd/-1");
+	assert(old_conf.tls_psk_file != NULL);
+	assert(old_conf.tls_allowed_clients != NULL);
+	assert(new_conf.tls_allowed_clients != NULL);
+
+	auditd_tls_test_set_transport(T_TLS);
+	assert(auditd_tls_test_set_psk_state(1, NULL) == 0);
+	table = make_test_acl("old-host");
+	assert(table != NULL);
+	auditd_tls_test_set_acl_table(table);
+
+	auditd_tcp_listen_reconfigure(&new_conf, &old_conf);
+
+	assert(old_conf.tls_allowed_clients != NULL);
+	assert(strcmp(old_conf.tls_allowed_clients, "old-acl") == 0);
+	assert(auditd_tls_test_acl_check("old-host") == 1);
+
+	free((void *)old_conf.tls_allowed_clients);
+	auditd_tls_test_clear();
+}
+
+/*
+ * test_tls_acl_reload_rejects_acl_only_removal - keep sole PSK auth source
+ *
+ * Returns: None.
+ */
+static void test_tls_acl_reload_rejects_acl_only_removal(void)
+{
+	struct daemon_conf old_conf, new_conf;
+	struct autls_acl_table *table;
+
+	memset(&old_conf, 0, sizeof(old_conf));
+	memset(&new_conf, 0, sizeof(new_conf));
+	old_conf.transport = T_TLS;
+	new_conf.transport = T_TLS;
+	old_conf.tls_psk_file = strdup("/test/psk");
+	old_conf.tls_allowed_clients = strdup("old-acl");
+	assert(old_conf.tls_psk_file != NULL);
+	assert(old_conf.tls_allowed_clients != NULL);
+
+	auditd_tls_test_set_transport(T_TLS);
+	assert(auditd_tls_test_set_psk_state(1, NULL) == 0);
+	table = make_test_acl("old-host");
+	assert(table != NULL);
+	auditd_tls_test_set_acl_table(table);
+
+	auditd_tcp_listen_reconfigure(&new_conf, &old_conf);
+
+	assert(old_conf.tls_allowed_clients != NULL);
+	assert(strcmp(old_conf.tls_allowed_clients, "old-acl") == 0);
+	assert(auditd_tls_test_acl_check("old-host") == 1);
+
+	free((void *)old_conf.tls_allowed_clients);
+	auditd_tls_test_clear();
+}
+
+/*
+ * test_tls_acl_reload_allows_removal_with_identity - clear redundant ACL
+ *
+ * Returns: None.
+ */
+static void test_tls_acl_reload_allows_removal_with_identity(void)
+{
+	struct daemon_conf old_conf, new_conf;
+	struct autls_acl_table *table;
+
+	memset(&old_conf, 0, sizeof(old_conf));
+	memset(&new_conf, 0, sizeof(new_conf));
+	old_conf.transport = T_TLS;
+	new_conf.transport = T_TLS;
+	old_conf.tls_psk_file = strdup("/test/psk");
+	old_conf.tls_allowed_clients = strdup("old-acl");
+	assert(old_conf.tls_psk_file != NULL);
+	assert(old_conf.tls_allowed_clients != NULL);
+
+	auditd_tls_test_set_transport(T_TLS);
+	assert(auditd_tls_test_set_psk_state(1, "fallback-host") == 0);
+	table = make_test_acl("old-host");
+	assert(table != NULL);
+	auditd_tls_test_set_acl_table(table);
+
+	auditd_tcp_listen_reconfigure(&new_conf, &old_conf);
+
+	assert(old_conf.tls_allowed_clients == NULL);
+	assert(auditd_tls_test_acl_check("old-host") == -2);
+
+	auditd_tls_test_clear();
+}
+#endif
 
 int main(void)
 {
@@ -72,6 +224,11 @@ int main(void)
 		return 1;
 	}
 	cleanup_event(e);
+#ifdef AUDITD_LISTEN_TEST
+	test_tls_acl_reload_preserves_old_state();
+	test_tls_acl_reload_rejects_acl_only_removal();
+	test_tls_acl_reload_allows_removal_with_identity();
+#endif
 	return 0;
 }
 
@@ -85,4 +242,3 @@ int send_audit_event(int type, const char *str)
 void distribute_event(struct auditd_event *e)
 {
 }
-

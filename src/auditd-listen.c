@@ -119,8 +119,111 @@ static struct ev_tcp *handshake_chain = NULL;
 static unsigned int handshake_count = 0;
 #define MAX_HANDSHAKE_PENDING 32
 static struct autls_acl_table *acl_table = NULL;
+static unsigned char *server_psk_key = NULL;
+static size_t server_psk_key_len = 0;
+static char *expected_psk_identity = NULL;
 static int ssl_ex_idx_identity = -1;
 static int ssl_ex_idx_reason = -1;
+#endif
+
+#if defined(HAVE_TLS) && defined(AUDITD_LISTEN_TEST)
+/*
+ * auditd_tls_test_set_transport - set listener transport for unit tests
+ * @value: transport value to install
+ *
+ * Returns: None.
+ */
+void auditd_tls_test_set_transport(int value)
+{
+	transport = value;
+}
+
+/*
+ * auditd_tls_test_set_acl_table - install a test ACL table
+ * @table: ACL table to install; ownership transfers to the listener
+ *
+ * Returns: None.
+ */
+void auditd_tls_test_set_acl_table(struct autls_acl_table *table)
+{
+	autls_acl_free(acl_table);
+	acl_table = table;
+}
+
+/*
+ * auditd_tls_test_acl_check - check a test identity against live ACL state
+ * @identity: identity string to check
+ *
+ * Returns: autls_acl_check() result, or -2 when no ACL is installed.
+ */
+int auditd_tls_test_acl_check(const char *identity)
+{
+	if (acl_table == NULL)
+		return -2;
+	return autls_acl_check(acl_table, (const unsigned char *)identity,
+			       strlen(identity));
+}
+
+/*
+ * auditd_tls_test_set_psk_state - install minimal live PSK state for tests
+ * @active: non-zero to install a PSK marker
+ * @identity: optional fallback PSK identity
+ *
+ * Returns: 0 on success, -1 on allocation failure.
+ */
+int auditd_tls_test_set_psk_state(int active, const char *identity)
+{
+	if (server_psk_key) {
+		OPENSSL_cleanse(server_psk_key, server_psk_key_len);
+		OPENSSL_free(server_psk_key);
+	}
+	server_psk_key = NULL;
+	server_psk_key_len = 0;
+	free(expected_psk_identity);
+	expected_psk_identity = NULL;
+
+	if (active) {
+		server_psk_key = OPENSSL_malloc(1);
+		if (server_psk_key == NULL)
+			return -1;
+		server_psk_key[0] = 0;
+		server_psk_key_len = 1;
+	}
+	if (identity) {
+		expected_psk_identity = strdup(identity);
+		if (expected_psk_identity == NULL) {
+			if (server_psk_key) {
+				OPENSSL_cleanse(server_psk_key,
+						server_psk_key_len);
+				OPENSSL_free(server_psk_key);
+			}
+			server_psk_key = NULL;
+			server_psk_key_len = 0;
+			return -1;
+		}
+	}
+	return 0;
+}
+
+/*
+ * auditd_tls_test_clear - clear listener TLS state used by unit tests
+ *
+ * Returns: None.
+ */
+void auditd_tls_test_clear(void)
+{
+	transport = T_TCP;
+	autls_acl_free(acl_table);
+	acl_table = NULL;
+	if (server_psk_key) {
+		OPENSSL_cleanse(server_psk_key, server_psk_key_len);
+		OPENSSL_free(server_psk_key);
+	}
+	server_psk_key = NULL;
+	server_psk_key_len = 0;
+	free(expected_psk_identity);
+	expected_psk_identity = NULL;
+}
 #endif
 
 /*
@@ -1765,11 +1868,6 @@ static void periodic_handler(struct ev_loop *loop, struct ev_periodic *per,
 }
 
 #ifdef HAVE_TLS
-static unsigned char *server_psk_key = NULL;
-static size_t server_psk_key_len = 0;
-
-static char *expected_psk_identity = NULL;
-
 /* Store a failure reason in SSL ex-data for audit records */
 static void set_psk_failure_reason(SSL *ssl, const char *reason)
 {
@@ -2386,6 +2484,87 @@ static void periodic_reconfigure(const struct daemon_conf *config)
 	}
 }
 
+#ifdef HAVE_TLS
+/*
+ * reload_tls_client_acl - reload live TLS PSK client authorization
+ * @nconf: newly parsed daemon configuration
+ * @oconf: active daemon configuration
+ *
+ * Returns: None.
+ *
+ * SIGHUP must not partially publish authorization state.  Parse and
+ * validate the new ACL into temporary storage first, then replace the
+ * live path and table together only after all checks pass.  If the ACL
+ * is the only active PSK authorization source, removing it would make
+ * connection attempts fail closed and could create an avoidable denial
+ * of service, so keep the old ACL until restart or a replacement ACL.
+ */
+static void reload_tls_client_acl(const struct daemon_conf *nconf,
+				   struct daemon_conf *oconf)
+{
+	struct autls_acl_table *new_acl = NULL;
+	int old_enabled;
+
+	if (!USE_TLS) {
+		free((void *)oconf->tls_allowed_clients);
+		oconf->tls_allowed_clients = nconf->tls_allowed_clients;
+		return;
+	}
+
+	if (nconf->tls_allowed_clients == NULL) {
+		if (oconf->tls_allowed_clients == NULL)
+			return;
+
+		if (server_psk_key && expected_psk_identity == NULL) {
+			audit_msg(LOG_ERR,
+				"tls_allowed_clients removal ignored; "
+				"live TLS PSK listener has no "
+				"tls_psk_identity fallback");
+			return;
+		}
+
+		free((void *)oconf->tls_allowed_clients);
+		oconf->tls_allowed_clients = NULL;
+		if (acl_table) {
+			audit_msg(LOG_NOTICE,
+				"tls_allowed_clients removed; "
+				"clearing ACL");
+			autls_acl_free(acl_table);
+			acl_table = NULL;
+		}
+		return;
+	}
+
+	if (autls_acl_load(nconf->tls_allowed_clients, &new_acl,
+			   audit_msg) != 0) {
+		audit_msg(LOG_ERR,
+			"Failed to reload TLS client ACL; "
+			"keeping current ACL");
+		free((void *)nconf->tls_allowed_clients);
+		return;
+	}
+
+	if (server_psk_key && new_acl->enabled_count > 1) {
+		audit_msg(LOG_ERR,
+			"Reloaded ACL has %d enabled identities but "
+			"single-PSK mode allows at most 1; "
+			"keeping current ACL", new_acl->enabled_count);
+		autls_acl_free(new_acl);
+		free((void *)nconf->tls_allowed_clients);
+		return;
+	}
+
+	old_enabled = acl_table ? acl_table->enabled_count : 0;
+	autls_acl_free(acl_table);
+	acl_table = new_acl;
+	free((void *)oconf->tls_allowed_clients);
+	oconf->tls_allowed_clients = nconf->tls_allowed_clients;
+	audit_msg(LOG_NOTICE,
+		"TLS client ACL reloaded (%d->%d enabled)",
+		old_enabled, new_acl->enabled_count);
+}
+#endif
+
 void auditd_tcp_listen_reconfigure(const struct daemon_conf *nconf,
 				    struct daemon_conf *oconf)
 {
@@ -2472,6 +2651,7 @@ void auditd_tcp_listen_reconfigure(const struct daemon_conf *nconf,
 		audit_msg(LOG_NOTICE,
 			"TLS context not reloaded; restart auditd "
 			"to apply cert/key/PSK config changes");
+	reload_tls_client_acl(nconf, oconf);
 	free((void *)oconf->tls_cert_file);
 	oconf->tls_cert_file = nconf->tls_cert_file;
 	free((void *)oconf->tls_key_file);
@@ -2489,46 +2669,5 @@ void auditd_tcp_listen_reconfigure(const struct daemon_conf *nconf,
 	/* Integer fields that must match the live SSL_CTX are NOT
 	 * updated here — they only change on restart when
 	 * init_tls_server_context rebuilds the context. */
-	free((void *)oconf->tls_allowed_clients);
-	oconf->tls_allowed_clients = nconf->tls_allowed_clients;
-
-	/* Reload ACL table on SIGHUP — independent of SSL_CTX */
-	if (USE_TLS && oconf->tls_allowed_clients) {
-		struct autls_acl_table *new_acl = NULL;
-		if (autls_acl_load(oconf->tls_allowed_clients,
-				   &new_acl, audit_msg) == 0) {
-			if (server_psk_key &&
-			    new_acl->enabled_count > 1) {
-				audit_msg(LOG_ERR,
-					"Reloaded ACL has %d enabled "
-					"identities but single-PSK "
-					"mode allows at most 1; "
-					"keeping current ACL",
-					new_acl->enabled_count);
-				autls_acl_free(new_acl);
-			} else {
-				int old_enabled = acl_table ?
-					acl_table->enabled_count : 0;
-				autls_acl_free(acl_table);
-				acl_table = new_acl;
-				audit_msg(LOG_NOTICE,
-					"TLS client ACL reloaded "
-					"(%d->%d enabled)",
-					old_enabled,
-					new_acl->enabled_count);
-			}
-		} else {
-			audit_msg(LOG_ERR,
-				"Failed to reload TLS client ACL; "
-				"keeping current ACL");
-		}
-	} else if (USE_TLS && !oconf->tls_allowed_clients
-		   && acl_table) {
-		audit_msg(LOG_NOTICE,
-			"tls_allowed_clients removed; "
-			"clearing ACL");
-		autls_acl_free(acl_table);
-		acl_table = NULL;
-	}
 #endif
 }
