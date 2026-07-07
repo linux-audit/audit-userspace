@@ -4,6 +4,7 @@
 - Update perm table to add syscalls to it
 - Auditd - prevent netlink congestion
 - Propogate feed consumption errors into auparse_feed and auparse_flush_feed
+- Add TLS support for remote logging (Sergio Correia)
 
 4.1.4
 - Update syscalls and io_uring tables for the 7.0 kernel (Hilko Bengen)

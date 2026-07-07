@@ -13,7 +13,7 @@ Follow the instructions below when making changes.
    autoreconf -f --install
    ./configure --with-python3=yes --enable-gssapi-krb5=yes --with-arm \
        --with-aarch64 --with-libcap-ng=yes --without-golang \
-       --enable-experimental --with-io_uring
+       --enable-experimental --with-io_uring --enable-tls
    make
    ```
 
