@@ -109,35 +109,31 @@ int autls_validate_key_file(const char *path, autls_log_fn log_fn)
 }
 
 /*
- * autls_load_key_file - validate and load a PEM private key atomically
- * @path: path to the PEM key file
- * @ctx: SSL_CTX to load the key into
- * @log_fn: logging callback
+ * autls_open_secret_file - safely open and validate a TLS secret file
+ * @path: path to the secret file
+ * @kind: human-readable file kind for log messages
+ * @log_fn: logging callback for error reporting
  *
- * Opens with O_NOFOLLOW and validates via fstat on the open fd,
- * eliminating the TOCTOU race of separate validate-then-open.
- * Returns 0 on success, -1 on failure.
+ * Opens @path with O_NONBLOCK before fstat() so attacker-replaced FIFOs
+ * cannot block daemon initialization before the regular-file check.
+ * Returns a validated regular-file descriptor on success, -1 on failure.
  */
-int autls_load_key_file(const char *path, SSL_CTX *ctx,
-			autls_log_fn log_fn)
+static int autls_open_secret_file(const char *path, const char *kind,
+				  autls_log_fn log_fn)
 {
 	struct stat st;
-	int fd;
-	BIO *bio;
-	EVP_PKEY *pkey;
+	int fd, flags;
 
-	fd = open(path, O_RDONLY | O_NOFOLLOW);
+	fd = open(path, O_RDONLY | O_NOFOLLOW | O_NONBLOCK);
 	if (fd < 0) {
-		log_fn(LOG_ERR,
-			"Unable to open TLS key file %s (%s)",
-			path, strerror(errno));
+		log_fn(LOG_ERR, "Unable to open %s %s (%s)",
+			kind, path, strerror(errno));
 		return -1;
 	}
 
 	if (fstat(fd, &st) != 0) {
-		log_fn(LOG_ERR,
-			"Unable to stat TLS key file %s (%s)",
-			path, strerror(errno));
+		log_fn(LOG_ERR, "Unable to stat %s %s (%s)",
+			kind, path, strerror(errno));
 		close(fd);
 		return -1;
 	}
@@ -162,6 +158,40 @@ int autls_load_key_file(const char *path, SSL_CTX *ctx,
 		close(fd);
 		return -1;
 	}
+
+	flags = fcntl(fd, F_GETFL);
+	if (flags < 0 || fcntl(fd, F_SETFL, flags & ~O_NONBLOCK) != 0) {
+		log_fn(LOG_ERR,
+			"Unable to restore blocking mode for %s %s (%s)",
+			kind, path, strerror(errno));
+		close(fd);
+		return -1;
+	}
+
+	return fd;
+}
+
+/*
+ * autls_load_key_file - validate and load a PEM private key atomically
+ * @path: path to the PEM key file
+ * @ctx: SSL_CTX to load the key into
+ * @log_fn: logging callback
+ *
+ * Opens with O_NOFOLLOW and O_NONBLOCK and validates via fstat on the
+ * open fd, eliminating the TOCTOU race of separate validate-then-open
+ * without blocking on non-regular files such as FIFOs.
+ * Returns 0 on success, -1 on failure.
+ */
+int autls_load_key_file(const char *path, SSL_CTX *ctx,
+			autls_log_fn log_fn)
+{
+	int fd;
+	BIO *bio;
+	EVP_PKEY *pkey;
+
+	fd = autls_open_secret_file(path, "TLS key file", log_fn);
+	if (fd < 0)
+		return -1;
 
 	bio = BIO_new_fd(fd, BIO_NOCLOSE);
 	if (bio == NULL) {
@@ -213,49 +243,15 @@ int autls_load_psk(const char *path, unsigned char **key, size_t *key_len,
 {
 	int fd = -1;
 	FILE *f = NULL;
-	struct stat st;
 	char line[512];
 	size_t len;
 	long tmp_len = 0;
 	unsigned char *decoded = NULL;
 	int rc = -1;
 
-	fd = open(path, O_RDONLY | O_NOFOLLOW);
-	if (fd < 0) {
-		log_fn(LOG_ERR, "Unable to open PSK file %s (%s)",
-			path, strerror(errno));
+	fd = autls_open_secret_file(path, "PSK file", log_fn);
+	if (fd < 0)
 		return -1;
-	}
-
-	// Validate permissions on the open file descriptor
-	if (fstat(fd, &st) != 0) {
-		log_fn(LOG_ERR,
-			"Unable to stat PSK file %s (%s)",
-			path, strerror(errno));
-		close(fd);
-		return -1;
-	}
-	if (!S_ISREG(st.st_mode)) {
-		log_fn(LOG_ERR, "%s is not a regular file", path);
-		close(fd);
-		return -1;
-	}
-	if ((st.st_mode & 07777) != 0400) {
-		log_fn(LOG_ERR,
-			"%s is not mode 0400 (it's %#o) "
-			"- compromised key?",
-			path, st.st_mode & 07777);
-		close(fd);
-		return -1;
-	}
-	if (st.st_uid != 0) {
-		log_fn(LOG_ERR,
-			"%s is not owned by root (uid %u) "
-			"- compromised key?",
-			path, (unsigned)st.st_uid);
-		close(fd);
-		return -1;
-	}
 
 	f = fdopen(fd, "r");
 	if (f == NULL) {

@@ -354,6 +354,44 @@ static void test_autls_load_psk_validation(void)
 	unlink(path);
 }
 
+/*
+ * test_autls_load_secret_fifo - check FIFO rejection in secret loaders
+ *
+ * Creates TLS key and PSK FIFOs with no writer. The loaders must reject
+ * both paths promptly instead of blocking before validation.
+ */
+static void test_autls_load_secret_fifo(void)
+{
+	char path[512];
+	SSL_CTX *ctx;
+	unsigned char *key = NULL;
+	size_t key_len = 0;
+
+	printf("  autls secret loaders reject FIFOs...\n");
+
+	ctx = SSL_CTX_new(TLS_method());
+	assert(ctx != NULL);
+
+	snprintf(path, sizeof(path), "%s/key-fifo", tmpdir);
+	assert(mkfifo(path, 0400) == 0);
+	/* An unfixed blocking open would hang here with no FIFO writer. */
+	alarm(5);
+	assert(autls_load_key_file(path, ctx, test_log) == -1);
+	alarm(0);
+	unlink(path);
+
+	snprintf(path, sizeof(path), "%s/psk-fifo", tmpdir);
+	assert(mkfifo(path, 0400) == 0);
+	alarm(5);
+	assert(autls_load_psk(path, &key, &key_len, test_log) == -1);
+	alarm(0);
+	assert(key == NULL);
+	assert(key_len == 0);
+	unlink(path);
+
+	SSL_CTX_free(ctx);
+}
+
 static void test_autls_validate_psk_identity(void)
 {
 	printf("  autls_validate_psk_identity...\n");
@@ -695,6 +733,7 @@ int main(void)
 	test_autls_validate_key_file();
 	test_autls_load_psk();
 	test_autls_load_psk_validation();
+	test_autls_load_secret_fifo();
 	test_autls_validate_psk_identity();
 	test_autls_profile_ciphers();
 	test_autls_profile_groups();
