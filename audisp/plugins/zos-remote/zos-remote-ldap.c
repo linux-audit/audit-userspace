@@ -566,21 +566,18 @@ static int decode_response(audit_response_t * r, struct berval *bv)
 
         /* Inspect ber response otherwise */
         while (ber_peek_tag(ber, &len) == LBER_SEQUENCE) {
-                r->numItems++;
-                r->itemList = (audit_resp_item_t **) realloc(r->itemList,
-                                                             r->numItems *
-                                                             sizeof
-                                                             (audit_resp_item_t
-                                                              *));
-                if (errno == ENOMEM) {
-                        if (r->itemList)
-                                free(r->itemList);
+                audit_resp_item_t **items;
+                audit_resp_item_t *item;
+
+                items = realloc(r->itemList, (r->numItems + 1) *
+                                sizeof(*items));
+                if (items == NULL) {
                         rc = ICTX_E_FATAL;
                         goto free_ber;
                 }
+                r->itemList = items;
 
-                audit_resp_item_t *item = (audit_resp_item_t *)
-                        malloc(sizeof(audit_resp_item_t));
+                item = malloc(sizeof(audit_resp_item_t));
 
                 if (!item) {
                         rc = ICTX_E_FATAL;
@@ -593,7 +590,9 @@ static int decode_response(audit_response_t * r, struct berval *bv)
                                 &item->majorCode,
                                 &item->minorCode1, &item->minorCode2,
                                 &item->minorCode3);
-                r->itemList[r->numItems - 1] = item;
+                /* numItems only counts entries the common cleanup can free. */
+                r->itemList[r->numItems] = item;
+                r->numItems++;
         }
         rc |= ber_scanf(ber, "}");
 
