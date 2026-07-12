@@ -1955,6 +1955,70 @@ static int stop_transport(void)
 	return rc;
 }
 
+#ifdef HAVE_TLS
+/*
+ * tls_tcp_connect - establish a TCP connection within the TLS deadline
+ * @fd: socket to connect
+ * @addr: remote socket address
+ * @addrlen: size of @addr
+ * @timeout: maximum connection time in seconds
+ *
+ * TCP SYN retries can last far longer than a record delivery deadline. Use a
+ * temporary nonblocking connect and restore the socket's original mode before
+ * the blocking TLS handshake starts.
+ * Returns 0 on success, -1 on error with errno set.
+ */
+static int tls_tcp_connect(int fd, const struct sockaddr *addr,
+			   socklen_t addrlen, unsigned int timeout)
+{
+	struct pollfd pfd;
+	struct timespec deadline;
+	socklen_t error_len = sizeof(int);
+	int flags, rc, error, remaining;
+
+	flags = fcntl(fd, F_GETFL);
+	if (flags < 0)
+		return -1;
+	if (fcntl(fd, F_SETFL, flags | O_NONBLOCK) < 0)
+		return -1;
+
+	clock_gettime(CLOCK_MONOTONIC, &deadline);
+	deadline.tv_sec += timeout;
+	rc = connect(fd, addr, addrlen);
+	if (rc < 0 && errno == EINPROGRESS) {
+		pfd.fd = fd;
+		pfd.events = POLLOUT;
+		pfd.revents = 0;
+		do {
+			remaining = autls_remaining_ms(&deadline);
+			if (remaining <= 0) {
+				errno = ETIMEDOUT;
+				rc = -1;
+				break;
+			}
+			rc = poll(&pfd, 1, remaining);
+		} while (rc < 0 && errno == EINTR);
+		if (rc == 0) {
+			errno = ETIMEDOUT;
+			rc = -1;
+		} else if (rc > 0) {
+			if (getsockopt(fd, SOL_SOCKET, SO_ERROR, &error,
+					&error_len) != 0)
+				rc = -1;
+			else if (error != 0) {
+				errno = error;
+				rc = -1;
+			} else
+				rc = 0;
+		}
+	}
+
+	if (fcntl(fd, F_SETFL, flags) < 0)
+		return -1;
+	return rc;
+}
+#endif
+
 static int init_sock(void)
 {
 	int rc;
@@ -2040,7 +2104,14 @@ static int init_sock(void)
 			}
 			freeaddrinfo(ai2);
 		}
-		if (connect(sock, runp->ai_addr, runp->ai_addrlen)) {
+#ifdef HAVE_TLS
+			if (USE_TLS)
+				rc = tls_tcp_connect(sock, runp->ai_addr,
+					runp->ai_addrlen, config.max_time_per_record);
+			else
+#endif
+				rc = connect(sock, runp->ai_addr, runp->ai_addrlen);
+			if (rc) {
 			if (!quiet)
 				syslog(LOG_ERR, "Error connecting to %s: %s",
 					config.remote_server, strerror(errno));
