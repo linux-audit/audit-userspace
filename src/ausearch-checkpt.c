@@ -140,7 +140,7 @@ void save_ChkPt(const char *fn)
 	fprintf(fd, "output=%s %lld.%03u:%lu 0x%X\n",
 		last_event.node ? last_event.node : "-",
 		(long long int)last_event.sec, last_event.milli,
-		last_event.serial, last_event.type);
+		last_event.serial, (unsigned int)last_event.type);
 	fclose(fd);
 }
 
@@ -153,6 +153,8 @@ void save_ChkPt(const char *fn)
 static int parse_checkpt_event(char *lbuf, int ndix, event *e)
 {
 	char *rest;
+	/* sscanf's %X conversion requires unsigned int storage. */
+	unsigned int type;
 
 	/*
  	 * Find the space after the node, then make it '\0' so
@@ -180,12 +182,13 @@ static int parse_checkpt_event(char *lbuf, int ndix, event *e)
 		}
 	}
 	if (sscanf(rest, TIME_T_SPECIFIER ".%03u:%lu 0x%X", &e->sec, &e->milli,
-						&e->serial, &e->type) != 4) {
+						&e->serial, &type) != 4) {
 		fprintf(stderr, "Malformed output/event checkpoint line "
 			"after node - [%s]\n", lbuf);
 		checkpt_failure |= CP_STATUSBAD;
 		return 1;
 	}
+	e->type = (int)type;
 
 	return 0;
 }
