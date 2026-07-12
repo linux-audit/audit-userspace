@@ -1068,6 +1068,11 @@ err_out:
 static const char *print_proctitle(const char *val)
 {
 	char *out = (char *)print_escaped(val);
+
+	/* print_escaped reports allocation failure with a NULL result. */
+	if (out == NULL)
+		return NULL;
+
 	if (*val != '"') {
 		size_t len = strlen(val) / 2;
 		const char *end = out + len;

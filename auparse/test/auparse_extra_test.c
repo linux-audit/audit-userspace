@@ -292,6 +292,28 @@ static void test_seccomp_action_full(void)
 	auparse_destroy(au);
 }
 
+/* test_proctitle_nul_separator - decode NUL-separated process arguments
+ *
+ * Return: none. Failures abort through assert().
+ */
+static void test_proctitle_nul_separator(void)
+{
+	auparse_state_t *au = auparse_init(AUSOURCE_FILE, "/dev/null");
+	idata id = {
+		.name = "proctitle",
+		.val = "666F6F00626172",
+	};
+	char *out;
+
+	assert(au != NULL);
+	out = auparse_do_interpretation(au, AUPARSE_TYPE_PROCTITLE, &id,
+					AUPARSE_ESC_RAW);
+	assert(out != NULL);
+	assert(strcmp(out, "foo bar") == 0);
+	free(out);
+	auparse_destroy(au);
+}
+
 /*
  * Verify ausearch_cur_event matches at the audit event level. Input is
  * provided by the static test buffer and failures abort through assert().
@@ -367,6 +389,7 @@ int main(void)
 	test_path_norm();
 	test_single_char_field_values();
 	test_seccomp_action_full();
+	test_proctitle_nul_separator();
 	test_cur_event_matches_multirecord_event();
 	printf("extra auparse tests: all passed\n");
 	return 0;
