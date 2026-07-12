@@ -946,6 +946,7 @@ static char *path_norm(const char *name)
 	char *working, *rpath, *dest;
 	char *ret;
 	const char *start, *end, *rpath_limit;
+	size_t component_len, available, add_slash;
 	int old_errno = errno;
 
 	working = malloc(PATH_MAX);
@@ -991,19 +992,22 @@ static char *path_norm(const char *name)
 			while (dest > rpath && dest[-1] != '/')
 				--dest;
 		} else {
-			// we need to insert a '/' if we are at the beginning
-			// and the path is absolute or we've found the next component
-			if ((dest == working && name[0] == '/') ||
-				(dest == working || dest[-1] != '/'))
-				*dest++ = '/';
+			component_len = end - start;
+			add_slash = (dest == working && name[0] == '/') ||
+				(dest == working || dest[-1] != '/');
+			available = rpath_limit - dest;
 
-			// If it will overflow, chop it at last component
-			if (dest + (end - start) >= rpath_limit) {
+			/* Check the separator with the component so an overlong path
+			 * cannot advance dest beyond the allocated buffer. */
+			if (add_slash >= available ||
+			    component_len >= available - add_slash) {
 				*dest = 0;
 				break;
 			}
+			if (add_slash)
+				*dest++ = '/';
 			// Otherwise copy next component
-			dest = mempcpy (dest, start, end - start);
+			dest = mempcpy(dest, start, component_len);
 			*dest = 0;
 		}
 	}

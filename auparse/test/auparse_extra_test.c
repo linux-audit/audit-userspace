@@ -1,6 +1,7 @@
 #include "config.h"
 #include <assert.h>
 #include <errno.h>
+#include <limits.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -273,6 +274,47 @@ static void test_path_norm(void)
 	auparse_destroy(au);
 }
 
+/* test_path_norm_limit - truncate an overlong normalized path safely
+ *
+ * Return: none. Failures abort through assert().
+ */
+static void test_path_norm_limit(void)
+{
+	const size_t prefix_len = PATH_MAX - 1;
+	const size_t path_len = prefix_len + strlen("/x/..");
+	char *path, *encoded, *expected, *out;
+	idata id = {
+		.cwd = "2F",
+		.name = "name",
+	};
+	auparse_state_t *au;
+
+	path = malloc(path_len + 1);
+	encoded = malloc(2 * (path_len + 1) + 1);
+	expected = malloc(prefix_len + 1);
+	assert(path != NULL && encoded != NULL && expected != NULL);
+
+	path[0] = '/';
+	memset(path + 1, 'a', prefix_len - 1);
+	memcpy(path + prefix_len, "/x/..", sizeof("/x/.."));
+	memcpy(expected, path, prefix_len);
+	expected[prefix_len] = '\0';
+	audit_encode_value(encoded, path, path_len + 1);
+	id.val = encoded;
+
+	au = auparse_init(AUSOURCE_FILE, "/dev/null");
+	assert(au != NULL);
+	out = auparse_do_interpretation(au, AUPARSE_TYPE_ESCAPED_FILE,
+					&id, AUPARSE_ESC_RAW);
+	assert(out != NULL);
+	assert(strcmp(out, expected) == 0);
+	free(out);
+	auparse_destroy(au);
+
+	free(expected);
+	free(encoded);
+	free(path);
+}
 
 static void test_single_char_field_values(void)
 {
@@ -418,6 +460,7 @@ int main(void)
 	test_compare();
 	test_timestamp_milli();
 	test_path_norm();
+	test_path_norm_limit();
 	test_single_char_field_values();
 	test_seccomp_action_full();
 	test_proctitle_nul_separator();
