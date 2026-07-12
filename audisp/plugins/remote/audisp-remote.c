@@ -1673,17 +1673,28 @@ static int tls_connect(void)
 	if (SSL_CTX_get_verify_mode(tls_ctx) & SSL_VERIFY_PEER) {
 		struct in_addr ipv4;
 		struct in6_addr ipv6;
+		int verify_name_set;
+
 		if (inet_pton(AF_INET, config.remote_server, &ipv4) == 1 ||
 		    inet_pton(AF_INET6, config.remote_server, &ipv6) == 1) {
 			/* IP address: verify against IP SANs */
 			X509_VERIFY_PARAM *param = SSL_get0_param(tls_ssl);
-			X509_VERIFY_PARAM_set1_ip_asc(param,
-				config.remote_server);
+			verify_name_set = param && X509_VERIFY_PARAM_set1_ip_asc(param,
+				config.remote_server) == 1;
 		} else {
 			/* Hostname: set SNI and verify against DNS SANs */
-			SSL_set_tlsext_host_name(tls_ssl,
-				config.remote_server);
-			SSL_set1_host(tls_ssl, config.remote_server);
+			verify_name_set = SSL_set_tlsext_host_name(tls_ssl,
+				config.remote_server) == 1 &&
+				SSL_set1_host(tls_ssl, config.remote_server) == 1;
+		}
+
+		/* A verified chain without a reference identity is not host verified. */
+		if (!verify_name_set) {
+			syslog(LOG_ERR,
+				"Unable to configure TLS peer identity verification");
+			SSL_free(tls_ssl);
+			tls_ssl = NULL;
+			return -1;
 		}
 	}
 
