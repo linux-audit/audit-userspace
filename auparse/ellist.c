@@ -339,7 +339,10 @@ static int parse_up_record(rnode* r)
 				continue;
 
 			n.val = ptr;
-			nvlist_append(&r->nv, &n);
+			if (nvlist_append(&r->nv, &n)) {
+				/* n.val belongs to the record; n.name is synthesized. */
+				free(n.name);
+			}
 		}
 	} while((ptr = audit_strsplit_r(NULL, &saved)));
 
