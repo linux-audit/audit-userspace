@@ -178,15 +178,23 @@ static int process_logs(void)
 
 	if (user_file && userfile_is_dir) {
 		char dirname[MAXPATHLEN+1];
-		clear_config (&config);
+		char *new_log_file;
 
 		strncpy(dirname, user_file, MAXPATHLEN-32);
 		dirname[MAXPATHLEN-32] = '\0';
 		if (dirname[strlen(dirname)-1] != '/')
 			strcat(dirname, "/");
 		strcat (dirname, "audit.log");
+		/* Keep loaded configuration allocations until the new path exists. */
+		new_log_file = strdup(dirname);
+		if (new_log_file == NULL) {
+			fprintf(stderr, "No memory\n");
+			free_config(&config);
+			return 1;
+		}
+		/* Only the log path is overridden for a directory input. */
 		free((void *)config.log_file);
-		config.log_file=strdup(dirname);
+		config.log_file = new_log_file;
 		fprintf(stderr, "NOTE - using logs in %s\n", config.log_file);
 	}
 
@@ -395,4 +403,3 @@ static int get_event(llist **l)
 	free(buff);
 	return 0;
 }
-
