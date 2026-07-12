@@ -139,6 +139,16 @@ void auditd_tls_test_set_transport(int value)
 }
 
 /*
+ * auditd_tls_test_listener_count - return active listener count for tests
+ *
+ * Returns: Number of listener slots currently in use.
+ */
+int auditd_tls_test_listener_count(void)
+{
+	return nlsocks;
+}
+
+/*
  * auditd_tls_test_set_acl_table - install a test ACL table
  * @table: ACL table to install; ownership transfers to the listener
  *
@@ -1755,9 +1765,24 @@ static void auditd_tcp_listen_handler( struct ev_loop *loop,
 	memcpy(&client->addr, &aaddr, sizeof (struct sockaddr_storage));
 
 #ifdef HAVE_TLS
-	if (USE_TLS && tls_server_ctx) {
+	if (USE_TLS) {
 		struct daemon_conf *lconfig =
 			(struct daemon_conf *)_io->data;
+
+		if (tls_server_ctx == NULL) {
+			audit_msg(LOG_ERR,
+				"TLS listener has no server context; rejecting %s",
+				sockaddr_to_addr(&aaddr));
+			snprintf(emsg, sizeof(emsg),
+				"op=tls-context addr=%s port=%u res=no",
+				sockaddr_to_string(&aaddr),
+				sockaddr_to_port(&aaddr));
+			send_audit_event(AUDIT_DAEMON_ACCEPT, emsg);
+			shutdown(afd, SHUT_RDWR);
+			close(afd);
+			free(client);
+			return;
+		}
 
 		if (handshake_count >= MAX_HANDSHAKE_PENDING) {
 			audit_msg(LOG_ERR,
@@ -2036,6 +2061,31 @@ static int tls_psk_find_session_cb(SSL *ssl, const unsigned char *identity,
 }
 
 /*
+ * clear_tls_server_context - release listener TLS state
+ *
+ * Releases context-owned and secret state after a setup failure or after all
+ * clients have stopped during listener shutdown.
+ * Returns: None.
+ */
+static void clear_tls_server_context(void)
+{
+	if (tls_server_ctx) {
+		SSL_CTX_free(tls_server_ctx);
+		tls_server_ctx = NULL;
+	}
+	if (server_psk_key) {
+		OPENSSL_cleanse(server_psk_key, server_psk_key_len);
+		OPENSSL_free(server_psk_key);
+		server_psk_key = NULL;
+		server_psk_key_len = 0;
+	}
+	free(expected_psk_identity);
+	expected_psk_identity = NULL;
+	autls_acl_free(acl_table);
+	acl_table = NULL;
+}
+
+/*
  * init_tls_server_context - create and configure the server SSL_CTX
  * @config: daemon configuration with TLS settings
  *
@@ -2231,18 +2281,7 @@ static int init_tls_server_context(struct daemon_conf *config)
 	return 0;
 err:
 	ERR_print_errors_cb(tls_error_cb, NULL);
-	if (server_psk_key) {
-		OPENSSL_cleanse(server_psk_key, server_psk_key_len);
-		OPENSSL_free(server_psk_key);
-		server_psk_key = NULL;
-		server_psk_key_len = 0;
-	}
-	free(expected_psk_identity);
-	expected_psk_identity = NULL;
-	autls_acl_free(acl_table);
-	acl_table = NULL;
-	SSL_CTX_free(tls_server_ctx);
-	tls_server_ctx = NULL;
+	clear_tls_server_context();
 	return -1;
 }
 #endif /* HAVE_TLS */
@@ -2260,6 +2299,14 @@ int auditd_tcp_listen_init(struct ev_loop *loop, struct daemon_conf *config)
 	if (config->tcp_listen_port == 0)
 		return 0;
 
+#ifdef HAVE_TLS
+	/* Do not expose a listener until its configured TLS context is usable. */
+	if (config->transport == T_TLS && init_tls_server_context(config)) {
+		audit_msg(LOG_ERR, "Failed to initialize TLS server context");
+		return -1;
+	}
+#endif
+
 	memset(&hints, '\0', sizeof(hints));
 	hints.ai_flags = AI_PASSIVE | AI_ADDRCONFIG;
 	hints.ai_socktype = SOCK_STREAM;
@@ -2269,6 +2316,10 @@ int auditd_tcp_listen_init(struct ev_loop *loop, struct daemon_conf *config)
 	rc = getaddrinfo(NULL, local, &hints, &ai);
 	if (rc) {
 		audit_msg(LOG_ERR, "Cannot lookup addresses");
+#ifdef HAVE_TLS
+		if (config->transport == T_TLS)
+			clear_tls_server_context();
+#endif
 		return 1;
 	}
 
@@ -2356,8 +2407,13 @@ next_try:
 	}
 
 	freeaddrinfo(ai);
-	if (nlsocks == 0)
+	if (nlsocks == 0) {
+#ifdef HAVE_TLS
+		if (config->transport == T_TLS)
+			clear_tls_server_context();
+#endif
 		return -1;
+	}
 
 	// Now that we have sockets, start the periodic timers
 	transport = config->transport;
@@ -2411,16 +2467,6 @@ next_try:
 	}
 #endif
 
-#ifdef HAVE_TLS
-	if (USE_TLS) {
-		if (init_tls_server_context(config)) {
-			audit_msg(LOG_ERR,
-				"Failed to initialize TLS server context");
-			return -1;
-		}
-	}
-#endif
-
 	return 0;
 }
 
@@ -2455,20 +2501,7 @@ void auditd_tcp_listen_uninit(struct ev_loop *loop, struct daemon_conf *config)
 	}
 
 #ifdef HAVE_TLS
-	if (tls_server_ctx) {
-		SSL_CTX_free(tls_server_ctx);
-		tls_server_ctx = NULL;
-	}
-	if (server_psk_key) {
-		OPENSSL_cleanse(server_psk_key, server_psk_key_len);
-		OPENSSL_free(server_psk_key);
-		server_psk_key = NULL;
-		server_psk_key_len = 0;
-	}
-	free(expected_psk_identity);
-	expected_psk_identity = NULL;
-	autls_acl_free(acl_table);
-	acl_table = NULL;
+	clear_tls_server_context();
 #endif
 #ifdef USE_GSSAPI
 	if (USE_GSS) {

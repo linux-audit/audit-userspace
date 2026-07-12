@@ -11,6 +11,7 @@
 #include "autls.h"
 
 void auditd_tls_test_set_transport(int value);
+int auditd_tls_test_listener_count(void);
 void auditd_tls_test_set_acl_table(struct autls_acl_table *table);
 int auditd_tls_test_acl_check(const char *identity);
 int auditd_tls_test_set_psk_state(int active, const char *identity);
@@ -234,6 +235,28 @@ static void test_tls_reconfigure_keeps_context_snapshot(void)
 	free((void *)old_conf.tls_key_exchange);
 	auditd_tls_test_clear();
 }
+
+/*
+ * test_tls_init_failure_does_not_start_listener - reject invalid TLS first
+ *
+ * Returns: None.
+ */
+static void test_tls_init_failure_does_not_start_listener(void)
+{
+	struct daemon_conf config;
+	struct ev_loop *loop;
+
+	memset(&config, 0, sizeof(config));
+	config.tcp_listen_port = 65530;
+	config.tcp_listen_queue = 1;
+	config.transport = T_TLS;
+	config.tls_cipher_suites = "not-a-TLS-cipher";
+	loop = ev_default_loop(EVFLAG_AUTO);
+
+	assert(auditd_tcp_listen_init(loop, &config) == -1);
+	assert(auditd_tls_test_listener_count() == 0);
+	auditd_tls_test_clear();
+}
 #endif
 
 int main(void)
@@ -300,6 +323,7 @@ int main(void)
 	test_tls_acl_reload_rejects_acl_only_removal();
 	test_tls_acl_reload_allows_removal_with_identity();
 	test_tls_reconfigure_keeps_context_snapshot();
+	test_tls_init_failure_does_not_start_listener();
 #endif
 	return 0;
 }
