@@ -557,7 +557,7 @@ auparse_state_t *auparse_init(ausource_t source, const void *b)
 			for (n = 0; bb[n]; n++) {
 				buf = bb[n];
 				len = strlen(buf);
-				if (buf[len-1] != '\n') {
+				if (len == 0 || buf[len - 1] != '\n') {
 					size += len + 1;
 				} else {
 					size += len;
@@ -569,6 +569,11 @@ auparse_state_t *auparse_init(ausource_t source, const void *b)
 			for (n = 0; (buf = bb[n]); n++) {
 				len = strlen(buf);
 				if (databuf_append(&au->databuf, buf, len) < 0)
+					goto bad_exit;
+				/* Array entries need only be NUL terminated. Keep boundaries
+				 * when concatenating them. */
+				if ((len == 0 || buf[len - 1] != '\n') &&
+				    databuf_append(&au->databuf, "\n", 1) < 0)
 					goto bad_exit;
 			}
 			break;

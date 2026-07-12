@@ -22,6 +22,36 @@ static void test_new_buffer(void)
 	auparse_destroy(au);
 }
 
+/* test_buffer_array_boundaries - accept empty entries and separate records
+ *
+ * Return: none. Failures abort through assert().
+ */
+static void test_buffer_array_boundaries(void)
+{
+	char first[] =
+		"type=LOGIN msg=audit(1143146623.787:142): pid=1";
+	char second[] =
+		"type=USER_LOGIN msg=audit(1143146623.879:146): pid=2";
+	char empty[] = "";
+	char *empty_array[] = { empty, NULL };
+	char *records[] = { first, empty, second, NULL };
+	auparse_state_t *au;
+
+	au = auparse_init(AUSOURCE_BUFFER_ARRAY, empty_array);
+	assert(au != NULL);
+	assert(auparse_next_event(au) == 0);
+	auparse_destroy(au);
+
+	au = auparse_init(AUSOURCE_BUFFER_ARRAY, records);
+	assert(au != NULL);
+	assert(auparse_next_event(au) > 0);
+	assert(auparse_get_type(au) == AUDIT_LOGIN);
+	assert(auparse_next_event(au) > 0);
+	assert(auparse_get_type(au) == AUDIT_USER_LOGIN);
+	assert(auparse_next_event(au) == 0);
+	auparse_destroy(au);
+}
+
 static int cb_count;
 static void ready_cb(auparse_state_t *au, auparse_cb_event_t e, void *d)
 {
@@ -378,6 +408,7 @@ static void test_cur_event_matches_multirecord_event(void)
 int main(void)
 {
 	test_new_buffer();
+	test_buffer_array_boundaries();
 	test_feed_state();
 	test_feed_requires_callback();
 	test_feed_callback_can_clear_during_feed();
