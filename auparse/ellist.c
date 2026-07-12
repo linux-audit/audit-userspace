@@ -89,6 +89,8 @@ static char *escape(const char *tmp)
 		if (*p == '"' || *p < 0x21 || *p > 0x7e) {
 			int len = strlen(tmp);
 			name = malloc((2*len)+1);
+			if (name == NULL)
+				return NULL;
 			return _audit_c2x(name, tmp, len);
 		}
 		p++;
@@ -485,4 +487,3 @@ int aup_list_first_field(const event_list_t *l)
 	} else
 		return 0;
 }
-
