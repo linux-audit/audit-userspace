@@ -392,6 +392,28 @@ static void test_autls_load_secret_fifo(void)
 	SSL_CTX_free(ctx);
 }
 
+/*
+ * test_autls_acl_fifo - check ACL FIFO rejection before a blocking open
+ *
+ * Returns: None.
+ */
+static void test_autls_acl_fifo(void)
+{
+	struct autls_acl_table *table = NULL;
+	char path[512];
+
+	printf("  autls ACL loader rejects FIFOs...\n");
+	snprintf(path, sizeof(path), "%s/acl-fifo", tmpdir);
+	assert(mkfifo(path, 0400) == 0);
+
+	/* An unfixed blocking open would hang here with no FIFO writer. */
+	alarm(5);
+	assert(autls_acl_load(path, &table, test_log) == -1);
+	alarm(0);
+	assert(table == NULL);
+	unlink(path);
+}
+
 static void test_autls_validate_psk_identity(void)
 {
 	printf("  autls_validate_psk_identity...\n");
@@ -734,6 +756,7 @@ int main(void)
 	test_autls_load_psk();
 	test_autls_load_psk_validation();
 	test_autls_load_secret_fifo();
+	test_autls_acl_fifo();
 	test_autls_validate_psk_identity();
 	test_autls_profile_ciphers();
 	test_autls_profile_groups();

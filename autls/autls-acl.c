@@ -46,7 +46,8 @@
  * Identity is validated via autls_validate_psk_identity().
  * Duplicate identities are rejected.
  * File must be root-owned, not group-writable, not world-writable,
- * and a regular file. Opened with O_NOFOLLOW to reject symlinks.
+ * and a regular file. Opens with O_NOFOLLOW to reject symlinks and
+ * O_NONBLOCK so a FIFO cannot block before the regular-file check.
  *
  * Returns 0 on success, -1 on error.
  */
@@ -60,10 +61,12 @@ int autls_acl_load(const char *path, struct autls_acl_table **table,
 	struct autls_acl_entry *tail = NULL;
 	char line[512];
 	int lineno = 0;
+	int flags;
 
 	*table = NULL;
 
-	fd = open(path, O_RDONLY | O_NOFOLLOW);
+	/* Reject FIFOs before a blocking open can stall auditd on reload. */
+	fd = open(path, O_RDONLY | O_NOFOLLOW | O_NONBLOCK);
 	if (fd < 0) {
 		log_fn(LOG_ERR, "Unable to open ACL file %s (%s)",
 			path, strerror(errno));
@@ -91,6 +94,15 @@ int autls_acl_load(const char *path, struct autls_acl_table **table,
 		log_fn(LOG_ERR,
 			"%s is group-writable or world-writable "
 			"(mode %#o)", path, st.st_mode & 07777);
+		close(fd);
+		return -1;
+	}
+
+	/* Regular files do not need nonblocking I/O after validation. */
+	flags = fcntl(fd, F_GETFL);
+	if (flags < 0 || fcntl(fd, F_SETFL, flags & ~O_NONBLOCK) != 0) {
+		log_fn(LOG_ERR, "Unable to restore blocking mode for ACL file %s (%s)",
+			path, strerror(errno));
 		close(fd);
 		return -1;
 	}
