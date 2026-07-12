@@ -163,6 +163,77 @@ static void test_tls_acl_reload_allows_removal_with_identity(void)
 
 	auditd_tls_test_clear();
 }
+
+/*
+ * test_tls_reconfigure_keeps_context_snapshot - retain restart-only TLS data
+ *
+ * Returns: None.
+ */
+static void test_tls_reconfigure_keeps_context_snapshot(void)
+{
+	struct daemon_conf old_conf, new_conf;
+
+	memset(&old_conf, 0, sizeof(old_conf));
+	memset(&new_conf, 0, sizeof(new_conf));
+	old_conf.transport = T_TLS;
+	new_conf.transport = T_TLS;
+	old_conf.tls_cert_file = strdup("old-cert");
+	old_conf.tls_key_file = strdup("old-key");
+	old_conf.tls_ca_file = strdup("old-ca");
+	old_conf.tls_psk_file = strdup("old-psk");
+	old_conf.tls_psk_identity = strdup("old-identity");
+	old_conf.tls_cipher_suites = strdup("old-ciphers");
+	old_conf.tls_key_exchange = strdup("old-groups");
+	old_conf.tls_client_auth = TCA_REQUIRED;
+	old_conf.tls_require_pqc = 1;
+	old_conf.tls_crypto_profile = TLS_PROFILE_PQC;
+	new_conf.tls_cert_file = strdup("new-cert");
+	new_conf.tls_key_file = strdup("new-key");
+	new_conf.tls_ca_file = strdup("new-ca");
+	new_conf.tls_psk_file = strdup("new-psk");
+	new_conf.tls_psk_identity = strdup("new-identity");
+	new_conf.tls_cipher_suites = strdup("new-ciphers");
+	new_conf.tls_key_exchange = strdup("new-groups");
+	new_conf.tls_client_auth = TCA_NONE;
+	new_conf.tls_require_pqc = 0;
+	new_conf.tls_crypto_profile = TLS_PROFILE_COMPATIBLE;
+	assert(old_conf.tls_cert_file != NULL);
+	assert(old_conf.tls_key_file != NULL);
+	assert(old_conf.tls_ca_file != NULL);
+	assert(old_conf.tls_psk_file != NULL);
+	assert(old_conf.tls_psk_identity != NULL);
+	assert(old_conf.tls_cipher_suites != NULL);
+	assert(old_conf.tls_key_exchange != NULL);
+	assert(new_conf.tls_cert_file != NULL);
+	assert(new_conf.tls_key_file != NULL);
+	assert(new_conf.tls_ca_file != NULL);
+	assert(new_conf.tls_psk_file != NULL);
+	assert(new_conf.tls_psk_identity != NULL);
+	assert(new_conf.tls_cipher_suites != NULL);
+	assert(new_conf.tls_key_exchange != NULL);
+
+	auditd_tls_test_set_transport(T_TLS);
+	auditd_tcp_listen_reconfigure(&new_conf, &old_conf);
+
+	assert(strcmp(old_conf.tls_cert_file, "old-cert") == 0);
+	assert(strcmp(old_conf.tls_key_file, "old-key") == 0);
+	assert(strcmp(old_conf.tls_ca_file, "old-ca") == 0);
+	assert(strcmp(old_conf.tls_psk_file, "old-psk") == 0);
+	assert(strcmp(old_conf.tls_psk_identity, "old-identity") == 0);
+	assert(strcmp(old_conf.tls_cipher_suites, "old-ciphers") == 0);
+	assert(strcmp(old_conf.tls_key_exchange, "old-groups") == 0);
+	assert(old_conf.tls_client_auth == TCA_REQUIRED);
+	assert(old_conf.tls_require_pqc == 1);
+	assert(old_conf.tls_crypto_profile == TLS_PROFILE_PQC);
+	free((void *)old_conf.tls_cert_file);
+	free((void *)old_conf.tls_key_file);
+	free((void *)old_conf.tls_ca_file);
+	free((void *)old_conf.tls_psk_file);
+	free((void *)old_conf.tls_psk_identity);
+	free((void *)old_conf.tls_cipher_suites);
+	free((void *)old_conf.tls_key_exchange);
+	auditd_tls_test_clear();
+}
 #endif
 
 int main(void)
@@ -228,6 +299,7 @@ int main(void)
 	test_tls_acl_reload_preserves_old_state();
 	test_tls_acl_reload_rejects_acl_only_removal();
 	test_tls_acl_reload_allows_removal_with_identity();
+	test_tls_reconfigure_keeps_context_snapshot();
 #endif
 	return 0;
 }

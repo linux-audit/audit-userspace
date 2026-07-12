@@ -2658,29 +2658,20 @@ void auditd_tcp_listen_reconfigure(const struct daemon_conf *nconf,
 	oconf->krb5_principal = nconf->krb5_principal;
 
 #ifdef HAVE_TLS
-	/* TLS context not reloaded — restart required for cert/key/PSK
-	 * changes. The ACL table IS reloaded below. */
+	/* TLS context settings are not live reloaded. Keeping old policy fields
+	 * while accepting new paths would let a later queue restart build a
+	 * mixed TLS context. The ACL table below is the one live exception. */
 	if (oconf->transport == T_TLS || nconf->transport == T_TLS)
 		audit_msg(LOG_NOTICE,
 			"TLS context not reloaded; restart auditd "
 			"to apply cert/key/PSK config changes");
 	reload_tls_client_acl(nconf, oconf);
-	free((void *)oconf->tls_cert_file);
-	oconf->tls_cert_file = nconf->tls_cert_file;
-	free((void *)oconf->tls_key_file);
-	oconf->tls_key_file = nconf->tls_key_file;
-	free((void *)oconf->tls_ca_file);
-	oconf->tls_ca_file = nconf->tls_ca_file;
-	free((void *)oconf->tls_psk_file);
-	oconf->tls_psk_file = nconf->tls_psk_file;
-	free((void *)oconf->tls_psk_identity);
-	oconf->tls_psk_identity = nconf->tls_psk_identity;
-	free((void *)oconf->tls_cipher_suites);
-	oconf->tls_cipher_suites = nconf->tls_cipher_suites;
-	free((void *)oconf->tls_key_exchange);
-	oconf->tls_key_exchange = nconf->tls_key_exchange;
-	/* Integer fields that must match the live SSL_CTX are NOT
-	 * updated here — they only change on restart when
-	 * init_tls_server_context rebuilds the context. */
+	free((void *)nconf->tls_cert_file);
+	free((void *)nconf->tls_key_file);
+	free((void *)nconf->tls_ca_file);
+	free((void *)nconf->tls_psk_file);
+	free((void *)nconf->tls_psk_identity);
+	free((void *)nconf->tls_cipher_suites);
+	free((void *)nconf->tls_key_exchange);
 #endif
 }
