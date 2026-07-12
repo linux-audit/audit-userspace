@@ -1763,10 +1763,16 @@ static int parse_sockaddr(const lnode *n, search_items *s)
 							strdup(un->sun_path+1);
 						else
 							return 6;
+						if (sn.str == NULL)
+							return 5;
 
 						sn.key = NULL;
 						sn.hits = 1;
-						slist_append(s->filename, &sn);
+						if (slist_append(s->filename, &sn)) {
+							/* slist_append owns sn.str only on success. */
+							free(sn.str);
+							return 5;
+						}
 					}
 					free(s->hostname);
 					s->hostname = NULL;
