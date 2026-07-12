@@ -41,8 +41,10 @@ endif
 
 if BUILD_STATIC
 STATIC_LINK = -static
-noinst_PROGRAMS += databuf_test lru_cache_test uid_name_wrap_test
-TESTS += databuf_test lru_cache_test uid_name_wrap_test
+noinst_PROGRAMS += databuf_test lru_cache_test uid_name_wrap_test \
+	append_oom_test
+TESTS += databuf_test lru_cache_test uid_name_wrap_test \
+	append_oom_test
 endif
 
 lookup_test_SOURCES = lookup_test.c
@@ -87,6 +89,13 @@ uid_name_wrap_test_LDFLAGS = ${STATIC_LINK}
 uid_name_wrap_test_LDADD = ${top_builddir}/auparse/libauparse.la \
 	${top_builddir}/lib/libaudit.la ${top_builddir}/common/libaucommon.la
 uid_name_wrap_test_DEPENDENCIES = ${top_builddir}/auparse/libauparse.la ${top_builddir}/lib/libaudit.la ${top_builddir}/common/libaucommon.la
+
+# Linker wrapping makes the record-node allocation failure deterministic.
+append_oom_test_SOURCES = append_oom_test.c
+append_oom_test_LDFLAGS = ${STATIC_LINK} -Wl,--wrap=malloc
+append_oom_test_LDADD = ${top_builddir}/auparse/libauparse.la \
+	${top_builddir}/lib/libaudit.la ${top_builddir}/common/libaucommon.la
+append_oom_test_DEPENDENCIES = ${top_builddir}/auparse/libauparse.la ${top_builddir}/lib/libaudit.la ${top_builddir}/common/libaucommon.la
 endif
 
 drop_srcdir = sed 's,$(srcdir)/test,test,'

@@ -358,7 +358,14 @@ static int parse_up_record(rnode* r)
 	r->nv.cur = 0;	// reset to beginning
 	return 0;
 }
-
+/* aup_list_append - add a record to an event list
+ * @l: event list receiving the record
+ * @record: allocated record; non-NULL records are consumed on entry
+ * @list_idx: source-list index for the record
+ * @line_number: source line number for the record
+ *
+ * Return: 0 on success or -1 on error.
+ */
 int aup_list_append(event_list_t *l, char *record, int list_idx,
 	unsigned int line_number)
 {
@@ -370,8 +377,11 @@ int aup_list_append(event_list_t *l, char *record, int list_idx,
 
 	// First step is build rnode
 	r = malloc(sizeof(rnode));
-	if (r == NULL)
+	if (r == NULL) {
+		/* The caller transfers record ownership when append is attempted. */
+		free(record);
 		return -1;
+	}
 
 	r->record = record;
 	r->interp = NULL;
