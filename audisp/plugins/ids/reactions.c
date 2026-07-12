@@ -90,6 +90,7 @@ static int safe_exec(const char *exe, ...)
 #endif
 
 	va_start(ap, exe);
+	/* The sentinel must be char * because va_arg retrieves char *. */
 	for (i = 1; va_arg(ap, char *) != NULL; i++);
 	va_end(ap);
 	argv = alloca((i + 1) * sizeof(char *));
@@ -134,7 +135,7 @@ int kill_session(int session)
 	snprintf(ses, sizeof(ses), "%d", session);
 	if (debug)
 		my_printf("reaction killall -d %s", ses);
-	return safe_exec("/usr/bin/killall", "-d", ses, NULL);
+	return safe_exec("/usr/bin/killall", "-d", ses, (char *)NULL);
 }
 
 static int  uid_min = -1;
@@ -204,12 +205,12 @@ int restricted_role(const char *acct)
 
 	// Restrict to guest user
 	rc = safe_exec("/usr/sbin/semanage", "login", "-m", "-s",
-		"guest_u", acct, NULL);
+		"guest_u", acct, (char *)NULL);
 	if (rc)
 		return rc;
 
 	// Need to force a logout of all sessions for the user
-	return safe_exec("/usr/bin/killall", "--user", acct, NULL);
+	return safe_exec("/usr/bin/killall", "--user", acct, (char *)NULL);
 }
 
 int force_password_reset(const char *acct)
@@ -217,7 +218,7 @@ int force_password_reset(const char *acct)
 	if (verify_acct(acct))
 		return 1;
 
-	return safe_exec("/usr/bin/chage", "-d", "0", acct, NULL);
+	return safe_exec("/usr/bin/chage", "-d", "0", acct, (char *)NULL);
 }
 
 int lock_account(const char *acct)
@@ -225,7 +226,7 @@ int lock_account(const char *acct)
 	if (verify_acct(acct))
 		return 1;
 
-	return safe_exec("/usr/bin/passwd", "-l", acct, NULL);
+	return safe_exec("/usr/bin/passwd", "-l", acct, (char *)NULL);
 }
 
 int unlock_account(const char *acct)
@@ -233,7 +234,7 @@ int unlock_account(const char *acct)
 	if (verify_acct(acct))
 		return 1;
 
-	return safe_exec("/usr/bin/passwd", "-u", acct, NULL);
+	return safe_exec("/usr/bin/passwd", "-u", acct, (char *)NULL);
 }
 
 int lock_account_timed(const char *acct, unsigned long length)
@@ -254,14 +255,14 @@ int block_ip_address(const char *addr)
 			  addr);
 	minipause();
 	return safe_exec("/usr/sbin/nft", "add", "rule", "inet", "filter",
-			"input", "ip", "saddr", addr, "drop", NULL);
+			"input", "ip", "saddr", addr, "drop", (char *)NULL);
 #else
 	if (debug)
 		my_printf("reaction /sbin/iptables -I INPUT -s %s -j DROP",
 			  addr);
 	minipause();
 	return safe_exec("/usr/sbin/iptables", "-I", "INPUT", "-s", addr,
-			 "-j","DROP", NULL);
+			 "-j","DROP", (char *)NULL);
 #endif
 }
 
@@ -313,30 +314,30 @@ int unblock_ip_address(const char *addr)
 			  addr);
 	minipause();
 	return safe_exec("/usr/sbin/nft", "delete", "rule", "inet", "filter",
-			"input", "ip", "saddr", addr, "drop", NULL);
+			"input", "ip", "saddr", addr, "drop", (char *)NULL);
 #else
 	if (debug)
 		my_printf("reaction /sbin/iptables -D INPUT -s %s -j DROP",
 			  addr);
 	minipause();
 	return safe_exec("/usr/sbin/iptables", "-D", "INPUT", "-s", addr,
-			"-j","DROP", NULL);
+			"-j","DROP", (char *)NULL);
 #endif
 }
 
 int system_reboot(void)
 {
-	return safe_exec("/sbin/init", "6", NULL);
+	return safe_exec("/sbin/init", "6", (char *)NULL);
 }
 
 int system_single_user(void)
 {
-	return safe_exec("/sbin/init", "1", NULL);
+	return safe_exec("/sbin/init", "1", (char *)NULL);
 }
 
 int system_halt(void)
 {
-	return safe_exec("/sbin/init", "0", NULL);
+	return safe_exec("/sbin/init", "0", (char *)NULL);
 }
 
 /*
