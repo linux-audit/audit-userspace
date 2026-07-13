@@ -80,6 +80,25 @@ static int audit_avc_init(search_items *s)
 }
 
 /*
+ * append_avc - add parsed AVC fields to an event
+ * @s: event search fields containing an initialized AVC list
+ * @an: parsed AVC fields to transfer to the list
+ *
+ * Returns: 0 on success or -1 on allocation failure.  The list accepts
+ * ownership of an's strings only after its node allocation succeeds.
+ */
+static int append_avc(search_items *s, anode *an)
+{
+	if (alist_append(s->avc, an)) {
+		anode_clear(an);
+		/* Keep the node safe for callers that share an error path. */
+		anode_init(an);
+		return -1;
+	}
+	return 0;
+}
+
+/*
  * This function will take the audit event as a list and extract the
  * searchable fields from it. It does this by iterating over each record
  * in the event and branching to the right parser for each record type.
@@ -494,8 +513,9 @@ try_again:
 
 				anode_init(&an);
 				an.scontext = strdup(str);
-				alist_append(s->avc, &an);
 				*term = ' ';
+				if (an.scontext == NULL || append_avc(s, &an))
+					return 42;
 			} else
 				return 42;
 		}
@@ -866,9 +886,10 @@ static int parse_path(const lnode *n, search_items *s)
 
 				anode_init(&an);
 				an.tcontext = strdup(str);
-				alist_append(s->avc, &an);
 				if (term)
 					*term = ' ';
+				if (an.tcontext == NULL || append_avc(s, &an))
+					return 7;
 			} else
 				return 7;
 		}
@@ -894,9 +915,10 @@ static int parse_obj(const lnode *n, search_items *s)
 
 				anode_init(&an);
 				an.tcontext = strdup(str);
-				alist_append(s->avc, &an);
 				if (term)
 					*term = ' ';
+				if (an.tcontext == NULL || append_avc(s, &an))
+					return 1;
 			} else
 				return 1;
 		}
@@ -997,8 +1019,9 @@ static int parse_user(const lnode *n, search_items *s, anode *avc)
 
 				anode_init(&an);
 				an.scontext = strdup(str);
-				alist_append(s->avc, &an);
 				*term = ' ';
+				if (an.scontext == NULL || append_avc(s, &an))
+					return 13;
 			} else
 				return 13;
 		}
@@ -1097,8 +1120,9 @@ static int parse_user(const lnode *n, search_items *s, anode *avc)
 	
 					anode_init(&an);
 					an.scontext = strdup(str);
-					alist_append(s->avc, &an);
 					*term = ' ';
+					if (an.scontext == NULL || append_avc(s, &an))
+						return 28;
 				} else
 					return 28;
 			}
@@ -1116,8 +1140,9 @@ static int parse_user(const lnode *n, search_items *s, anode *avc)
 
 					anode_init(&an);
 					an.tcontext = strdup(str);
-					alist_append(s->avc, &an);
 					*term = ' ';
+					if (an.tcontext == NULL || append_avc(s, &an))
+						return 30;
 				} else
 					return 30;
 			}
@@ -1443,8 +1468,9 @@ static int parse_login(const lnode *n, search_items *s)
 
 				anode_init(&an);
 				an.scontext = strdup(str);
-				alist_append(s->avc, &an);
 				*term = ' ';
+				if (an.scontext == NULL || append_avc(s, &an))
+					return 13;
 			} else
 				return 13;
 			*term = ' ';
@@ -1622,7 +1648,11 @@ static int parse_daemon1(const lnode *n, search_items *s)
 
 				anode_init(&an);
 				an.scontext = strdup(str);
-				alist_append(s->avc, &an);
+				if (an.scontext == NULL || append_avc(s, &an)) {
+					if (term)
+						*term = ' ';
+					return 11;
+				}
 			} else
 				return 11;
 			if (term)
@@ -1898,8 +1928,9 @@ static int parse_integrity(const lnode *n, search_items *s)
 
 				anode_init(&an);
 				an.scontext = strdup(str);
-				alist_append(s->avc, &an);
 				*term = ' ';
+				if (an.scontext == NULL || append_avc(s, &an))
+					return 13;
 			} else
 				return 13;
 		}
@@ -2011,7 +2042,10 @@ other_avc:
 		if (rc > 20)
 			rc = 0;
 		if (audit_avc_init(s) == 0) {
-			alist_append(s->avc, &an);
+			if (append_avc(s, &an)) {
+				rc = 10;
+				goto err;
+			}
 		} else {
 			rc = 10;
 			goto err;
@@ -2135,7 +2169,10 @@ other_avc:
 
 	// This can be called multiple times. Only first time it initializes.
 	if (audit_avc_init(s) == 0) {
-		alist_append(s->avc, &an);
+		if (append_avc(s, &an)) {
+			rc = 10;
+			goto err;
+		}
 	} else {
 		rc = 10;
 		goto err;
@@ -2241,8 +2278,9 @@ static int parse_kernel_anom(const lnode *n, search_items *s)
 
 				anode_init(&an);
 				an.scontext = strdup(str);
-				alist_append(s->avc, &an);
 				*term = ' ';
+				if (an.scontext == NULL || append_avc(s, &an))
+					return 9;
 			} else
 				return 9;
 		}
@@ -2414,11 +2452,12 @@ static int parse_simple_message(const lnode *n, search_items *s)
 
 				anode_init(&an);
 				an.scontext = strdup(str);
-				alist_append(s->avc, &an);
 				if (term)
 					*term = ' ';
 				else	// Set it back to something sane
 					term = str;
+				if (an.scontext == NULL || append_avc(s, &an))
+					return 4;
 			} else
 				return 4;
 		}
@@ -2650,9 +2689,10 @@ static int parse_pkt(const lnode *n, search_items *s)
 
 				anode_init(&an);
 				an.tcontext = strdup(str);
-				alist_append(s->avc, &an);
 				if (term)
 					*term = ' ';
+				if (an.tcontext == NULL || append_avc(s, &an))
+					return 2;
 			} else
 				return 2;
 		}
@@ -2772,8 +2812,9 @@ static int parse_kernel(lnode *n, search_items *s)
 
 				anode_init(&an);
 				an.scontext = strdup(str);
-				alist_append(s->avc, &an);
 				*term = ' ';
+				if (an.scontext == NULL || append_avc(s, &an))
+					return 63;
 			} else
 				return 63;
 		} else
