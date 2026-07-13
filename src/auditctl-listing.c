@@ -598,8 +598,8 @@ static const char *get_failure(unsigned f)
 
 /*
  * This function interprets the reply and prints it to stdout. It returns
- * 0 if no more should be read and 1 to indicate that more messages of this
- * type may need to be read.
+ * -1 on an error, 0 if no more should be read, and 1 to indicate that more
+ * messages of this type may need to be read.
  */
 int audit_print_reply(const struct audit_reply *rep, int fd)
 {
@@ -683,10 +683,15 @@ int audit_print_reply(const struct audit_reply *rep, int fd)
 #endif
 		case AUDIT_LIST_RULES:
 			list_requested = 0;
-			if (key_match(rep->ruledata))
-				 list_append(&l, rep->ruledata,
+			if (key_match(rep->ruledata) &&
+			    list_append(&l, rep->ruledata,
 					sizeof(struct audit_rule_data) +
-					rep->ruledata->buflen);
+					rep->ruledata->buflen)) {
+				/* Do not display a plausible but incomplete rule list. */
+				audit_msg(LOG_ERR, "Cannot save rule for listing");
+				list_clear(&l);
+				return -1;
+			}
 			printed = 1;
 			return 1;
 		default:

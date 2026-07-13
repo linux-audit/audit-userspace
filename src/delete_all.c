@@ -84,10 +84,15 @@ int delete_all_rules(int fd)
 			if (rep.type != AUDIT_LIST_RULES)
 				continue;
 
-			if (key_match(rep.ruledata))
-				list_append(&l, rep.ruledata, 
+			if (key_match(rep.ruledata) &&
+			    list_append(&l, rep.ruledata,
 					sizeof(struct audit_rule_data) +
-					rep.ruledata->buflen);
+					rep.ruledata->buflen)) {
+				/* Never delete from an incomplete snapshot of the rules. */
+				audit_msg(LOG_ERR, "Cannot save rule for deletion");
+				list_clear(&l);
+				return -1;
+			}
 
 		}
 	}
@@ -108,4 +113,3 @@ int delete_all_rules(int fd)
 
 	return 0;
 }
-

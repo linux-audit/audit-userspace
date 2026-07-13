@@ -28,7 +28,8 @@ AM_LDFLAGS += ${ASAN_FLAGS}
 endif
 check_PROGRAMS = ilist_test slist_test format_event_test \
 	auditd_config_alloc_test ausearch_checkpt_test auditd_dispatch_test \
-	ilist_alloc_test auditd_reconfigure_test lol_alloc_test auditctl_key_test
+	ilist_alloc_test auditd_reconfigure_test lol_alloc_test auditctl_key_test \
+	auditctl_list_alloc_test delete_all_alloc_test
 TESTS = $(check_PROGRAMS)
 ilist_test_LDADD = ${top_builddir}/src/ausearch-int.o
 ilist_test_DEPENDENCIES = ${top_builddir}/src/ausearch-int.o
@@ -63,6 +64,12 @@ auditctl_key_test_CFLAGS = ${AM_CFLAGS} -I${top_srcdir}/auparse
 auditctl_key_test_LDADD = ${top_builddir}/src/auditctl-llist.o \
 	${top_builddir}/lib/libaudit.la ${top_builddir}/auparse/libauparse.la \
 	${top_builddir}/common/libaucommon.la
+auditctl_list_alloc_test_SOURCES = auditctl_list_alloc_test.c
+auditctl_list_alloc_test_CFLAGS = ${AM_CFLAGS} -I${top_srcdir}/auparse
+auditctl_list_alloc_test_LDADD = ${top_builddir}/src/auditctl-llist.o \
+	${top_builddir}/lib/libaudit.la ${top_builddir}/auparse/libauparse.la \
+	${top_builddir}/common/libaucommon.la
+delete_all_alloc_test_SOURCES = delete_all_alloc_test.c
 if ENABLE_LISTENER
 format_event_test_SOURCES += \
         ${top_srcdir}/src/auditd-listen.c

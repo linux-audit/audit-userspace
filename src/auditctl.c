@@ -63,7 +63,7 @@ enum {
 
 /* Global functions */
 static int handle_request(int status);
-static void get_reply(void);
+static int get_reply(void);
 static int process_key_option(const char *optarg, char *key,
 			      unsigned int *keylen);
 extern int delete_all_rules(int fd);
@@ -388,8 +388,7 @@ static int audit_request_rule_list(void)
 {
 	if (audit_request_rules_list_data(fd) > 0) {
 		list_requested = 1;
-		get_reply();
-		return 1;
+		return get_reply() == 0;
 	}
 	return 0;
 }
@@ -579,7 +578,8 @@ static int report_status(void)
 			fprintf(stderr,	"The audit system is disabled\n");
 		return -1;
 	}
-	get_reply();
+	if (get_reply())
+		return -1;
 	retval = audit_request_features(fd);
 	if (retval == -1) {
 		// errno is EINVAL if the kernel does support features API
@@ -587,7 +587,8 @@ static int report_status(void)
 			return -2;
 		return -1;
 	}
-	get_reply();
+	if (get_reply())
+		return -1;
 	return -2;
 }
 
@@ -1143,9 +1144,11 @@ static int opt_delete_all(opt_handler_params_t *args)
 	}
 	retval = delete_all_rules(fd);
 	if (retval == 0) {
-		(void)audit_request_rule_list();
+		if (audit_request_rule_list())
+			retval = OPT_SUCCESS_NO_REPLY;
+		else
+			retval = OPT_ERROR_NO_REPLY;
 		key[0] = 0;
-		retval = -2;
 	}
 	return retval;
 }
@@ -1795,7 +1798,8 @@ static int handle_request(int status)
 			audit_msg(LOG_ERR, "Error - no list specified");
 			return -1;
 		}
-		get_reply();
+		if (get_reply())
+			status = -1;
 	} else if (status == OPT_SUCCESS_NO_REPLY)
 		status = 0;  // report success 
 	else if (status == OPT_SUCCESS_RULE) {
@@ -1868,9 +1872,10 @@ static int handle_request(int status)
 }
 
 /*
- * A reply from the kernel is expected. Get and display it.
+ * A reply from the kernel is expected. Get and display it. It returns 0 on
+ * completion and -1 if a reply cannot be saved for later display.
  */
-static void get_reply(void)
+static int get_reply(void)
 {
 	int i, retval;
 	int timeout = 40; /* loop has delay of .1 - so this is 4 seconds */
@@ -1898,10 +1903,13 @@ static void get_reply(void)
 				continue; /* This was an ack */
 			}
 
-			if ((retval = audit_print_reply(&rep, fd)) == 0)
+			retval = audit_print_reply(&rep, fd);
+			if (retval < 0)
+				return -1;
+			if (retval == 0)
 				break;
-			else
-				i = 0; /* If getting more, reset timeout */
+			i = 0; /* If getting more, reset timeout */
 		}
 	}
+	return 0;
 }
