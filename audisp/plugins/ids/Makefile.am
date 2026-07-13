@@ -48,3 +48,4 @@ install-data-hook:
 
 uninstall-hook:
 	rm ${DESTDIR}${plugin_confdir}/$(plugin_conf)
+	rm ${DESTDIR}${prog_confdir}/$(prog_conf)
