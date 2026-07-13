@@ -59,15 +59,17 @@ auditd_dispatch_test_SOURCES = auditd_dispatch_test.c \
 	${top_srcdir}/src/auditd-dispatch.c
 auditd_reconfigure_test_SOURCES = auditd_reconfigure_test.c
 auditd_dispatch_test_CFLAGS = ${AM_CFLAGS} -I${top_srcdir}/audisp
-auditctl_key_test_SOURCES = auditctl_key_test.c
+auditctl_key_test_SOURCES = auditctl_key_test.c \
+	${top_srcdir}/src/auditctl-llist.c
 auditctl_key_test_CFLAGS = ${AM_CFLAGS} -I${top_srcdir}/auparse
-auditctl_key_test_LDADD = ${top_builddir}/src/auditctl-llist.o \
-	${top_builddir}/lib/libaudit.la ${top_builddir}/auparse/libauparse.la \
+auditctl_key_test_LDADD = ${top_builddir}/lib/libaudit.la \
+	${top_builddir}/auparse/libauparse.la \
 	${top_builddir}/common/libaucommon.la
-auditctl_list_alloc_test_SOURCES = auditctl_list_alloc_test.c
+auditctl_list_alloc_test_SOURCES = auditctl_list_alloc_test.c \
+	${top_srcdir}/src/auditctl-llist.c
 auditctl_list_alloc_test_CFLAGS = ${AM_CFLAGS} -I${top_srcdir}/auparse
-auditctl_list_alloc_test_LDADD = ${top_builddir}/src/auditctl-llist.o \
-	${top_builddir}/lib/libaudit.la ${top_builddir}/auparse/libauparse.la \
+auditctl_list_alloc_test_LDADD = ${top_builddir}/lib/libaudit.la \
+	${top_builddir}/auparse/libauparse.la \
 	${top_builddir}/common/libaucommon.la
 delete_all_alloc_test_SOURCES = delete_all_alloc_test.c
 if ENABLE_LISTENER
