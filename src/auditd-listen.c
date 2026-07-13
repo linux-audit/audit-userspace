@@ -2682,10 +2682,12 @@ void auditd_tcp_listen_reconfigure(const struct daemon_conf *nconf,
 		}
 	}
 
+	/* Copy configured Kerberos paths for a future listener start. Live
+	 * credentials are not reloaded here. */
 	free((void *)oconf->krb5_principal);
-	// Copying the config for now. Should compare if the same and
-	// recredential if needed.
 	oconf->krb5_principal = nconf->krb5_principal;
+	free((void *)oconf->krb5_key_file);
+	oconf->krb5_key_file = nconf->krb5_key_file;
 
 #ifdef HAVE_TLS
 	/* TLS context settings are not live reloaded. Keeping old policy fields

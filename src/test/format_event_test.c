@@ -257,6 +257,38 @@ static void test_tls_init_failure_does_not_start_listener(void)
 	assert(auditd_tls_test_listener_count() == 0);
 	auditd_tls_test_clear();
 }
+
+/*
+ * test_krb5_key_file_reconfigure - transfer the reloaded Kerberos key path
+ *
+ * Returns: None.
+ */
+static void test_krb5_key_file_reconfigure(void)
+{
+	struct daemon_conf old_conf, new_conf;
+	const char *new_key_file;
+
+	memset(&old_conf, 0, sizeof(old_conf));
+	memset(&new_conf, 0, sizeof(new_conf));
+	old_conf.krb5_principal = strdup("old-principal");
+	old_conf.krb5_key_file = strdup("old-key-file");
+	new_conf.krb5_principal = strdup("new-principal");
+	new_conf.krb5_key_file = strdup("new-key-file");
+	assert(old_conf.krb5_principal != NULL);
+	assert(old_conf.krb5_key_file != NULL);
+	assert(new_conf.krb5_principal != NULL);
+	assert(new_conf.krb5_key_file != NULL);
+
+	new_key_file = new_conf.krb5_key_file;
+	auditd_tcp_listen_reconfigure(&new_conf, &old_conf);
+
+	assert(old_conf.krb5_key_file == new_key_file);
+	assert(strcmp(old_conf.krb5_key_file, "new-key-file") == 0);
+	new_conf.krb5_principal = NULL;
+	new_conf.krb5_key_file = NULL;
+	free((void *)old_conf.krb5_principal);
+	free((void *)old_conf.krb5_key_file);
+}
 #endif
 
 int main(void)
@@ -324,6 +356,7 @@ int main(void)
 	test_tls_acl_reload_allows_removal_with_identity();
 	test_tls_reconfigure_keeps_context_snapshot();
 	test_tls_init_failure_does_not_start_listener();
+	test_krb5_key_file_reconfigure();
 #endif
 	return 0;
 }
