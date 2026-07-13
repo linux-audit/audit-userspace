@@ -27,7 +27,7 @@ AM_CFLAGS += ${ASAN_FLAGS}
 AM_LDFLAGS += ${ASAN_FLAGS}
 endif
 check_PROGRAMS = ilist_test slist_test format_event_test \
-	auditd_config_alloc_test ausearch_checkpt_test
+	auditd_config_alloc_test ausearch_checkpt_test auditd_dispatch_test
 TESTS = $(check_PROGRAMS)
 ilist_test_LDADD = ${top_builddir}/src/ausearch-int.o
 ilist_test_DEPENDENCIES = ${top_builddir}/src/ausearch-int.o
@@ -50,6 +50,9 @@ auditd_config_alloc_test_CFLAGS = -D_GNU_SOURCE -Wno-pointer-sign ${WFLAGS} \
 	-fno-strict-aliasing -I${top_srcdir}/common -I${top_srcdir}/src
 ausearch_checkpt_test_SOURCES = ausearch_checkpt_test.c \
 	${top_srcdir}/src/ausearch-checkpt.c
+auditd_dispatch_test_SOURCES = auditd_dispatch_test.c \
+	${top_srcdir}/src/auditd-dispatch.c
+auditd_dispatch_test_CFLAGS = ${AM_CFLAGS} -I${top_srcdir}/audisp
 if ENABLE_LISTENER
 format_event_test_SOURCES += \
         ${top_srcdir}/src/auditd-listen.c

@@ -74,9 +74,25 @@ int dispatch_event(const struct audit_reply *rep, int protocol_ver)
 	e->hdr.hlen = sizeof(struct audit_dispatcher_header);
 	e->hdr.type = rep->type;
 
-	// Network originating events have data at rep->message
 	if (protocol_ver == AUDISP_PROTOCOL_VER) {
-		e->hdr.size = rep->msg.nlh.nlmsg_len;
+		if (rep->nlh == &rep->msg.nlh) {
+			if (rep->msg.nlh.nlmsg_len < NLMSG_HDRLEN ||
+			    rep->msg.nlh.nlmsg_len >
+					NLMSG_LENGTH(sizeof(e->data))) {
+				free(e);
+				return -1;
+			}
+
+			/* audit_get_reply marks embedded netlink replies this
+			 * way. Netlink length includes its header, while
+			 * event_t contains only payload. Local V0/legacy
+			 * events retain a payload length here. */
+			e->hdr.size = rep->msg.nlh.nlmsg_len - NLMSG_HDRLEN;
+		} else if (rep->msg.nlh.nlmsg_len > sizeof(e->data)) {
+			free(e);
+			return -1;
+		} else
+			e->hdr.size = rep->msg.nlh.nlmsg_len;
 		memcpy(e->data, (void*)rep->msg.data, e->hdr.size);
 	} else if (protocol_ver == AUDISP_PROTOCOL_VER2) {
 		e->hdr.size = rep->len;
