@@ -68,11 +68,15 @@ static void reconfigure_general_options(struct auditd_reconfigure_context *ctx)
 
 	// node_name
 	if (oconf->node_name_format != nconf->node_name_format ||
+			(oconf->node_name == NULL) != (nconf->node_name == NULL) ||
 			(oconf->node_name && nconf->node_name &&
 			strcmp(oconf->node_name, nconf->node_name) != 0)) {
 		oconf->node_name_format = nconf->node_name_format;
 		free((char *)oconf->node_name);
 		oconf->node_name = nconf->node_name;
+	} else {
+		/* The event buffer overwrites nconf after reconfigure. */
+		free((char *)nconf->node_name);
 	}
 
 	// report interval

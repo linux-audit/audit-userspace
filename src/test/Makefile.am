@@ -28,7 +28,7 @@ AM_LDFLAGS += ${ASAN_FLAGS}
 endif
 check_PROGRAMS = ilist_test slist_test format_event_test \
 	auditd_config_alloc_test ausearch_checkpt_test auditd_dispatch_test \
-	ilist_alloc_test
+	ilist_alloc_test auditd_reconfigure_test
 TESTS = $(check_PROGRAMS)
 ilist_test_LDADD = ${top_builddir}/src/ausearch-int.o
 ilist_test_DEPENDENCIES = ${top_builddir}/src/ausearch-int.o
@@ -54,6 +54,7 @@ ausearch_checkpt_test_SOURCES = ausearch_checkpt_test.c \
 	${top_srcdir}/src/ausearch-checkpt.c
 auditd_dispatch_test_SOURCES = auditd_dispatch_test.c \
 	${top_srcdir}/src/auditd-dispatch.c
+auditd_reconfigure_test_SOURCES = auditd_reconfigure_test.c
 auditd_dispatch_test_CFLAGS = ${AM_CFLAGS} -I${top_srcdir}/audisp
 if ENABLE_LISTENER
 format_event_test_SOURCES += \
