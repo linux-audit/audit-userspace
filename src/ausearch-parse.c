@@ -99,6 +99,26 @@ static int append_avc(search_items *s, anode *an)
 }
 
 /*
+ * append_string - add a parsed string to an event list
+ * @list: initialized string list to receive the node
+ * @sn: string node whose fields transfer on success
+ *
+ * Returns: 0 on success or -1 when the string or list node cannot allocate.
+ * slist_append() accepts ownership of sn's fields only on success.
+ */
+static int append_string(slist *list, snode *sn)
+{
+	if (sn->str == NULL || slist_append(list, sn)) {
+		free(sn->str);
+		free(sn->key);
+		sn->str = NULL;
+		sn->key = NULL;
+		return -1;
+	}
+	return 0;
+}
+
+/*
  * This function will take the audit event as a list and extract the
  * searchable fields from it. It does this by iterating over each record
  * in the event and branching to the right parser for each record type.
@@ -680,7 +700,10 @@ static int parse_syscall(lnode *n, search_items *s)
 					sn.str = strdup(str);
 					sn.key = NULL;
 					sn.hits = 1;
-					slist_append(s->key, &sn);
+					if (append_string(s->key, &sn)) {
+						*term = '"';
+						return 46;
+					}
 				}
 				*term = '"';
 			} else { 
@@ -697,7 +720,10 @@ static int parse_syscall(lnode *n, search_items *s)
 						sn.str = strdup(kptr);
 						sn.key = NULL;
 						sn.hits = 1;
-						slist_append(s->key, &sn);
+						if (append_string(s->key, &sn)) {
+							free(keyptr);
+							return 46;
+						}
 						kptr = strtok_r(NULL,
 							key_sep, &saved);
 					}
@@ -779,7 +805,10 @@ static int common_path_parser(search_items *s, char *path)
 				free(sn.str);
 				sn.str = tmp;
 			}
-			slist_append(s->filename, &sn);
+			if (append_string(s->filename, &sn)) {
+				*term = '"';
+				return 8;
+			}
 		}
 		*term = '"';
 	} else { 
@@ -820,7 +849,8 @@ static int common_path_parser(search_items *s, char *path)
 				sn.str = tmp;
 			}
 append:
-			slist_append(s->filename, &sn);
+			if (append_string(s->filename, &sn))
+				return 8;
 		}
 	}
 	return 0;
@@ -2485,7 +2515,10 @@ static int parse_simple_message(const lnode *n, search_items *s)
 						sn.str = strdup(ptr);
 						sn.key = NULL;
 						sn.hits = 1;
-						slist_append(s->key, &sn);
+						if (append_string(s->key, &sn)) {
+							*term = '"';
+							return 9;
+						}
 					}
 					*term = '"';
 				} else
@@ -2504,7 +2537,10 @@ static int parse_simple_message(const lnode *n, search_items *s)
 						sn.str = strdup(kptr);
 						sn.key = NULL;
 						sn.hits = 1;
-						slist_append(s->key, &sn);
+						if (append_string(s->key, &sn)) {
+							free(keyptr);
+							return 9;
+						}
 						kptr = strtok_r(NULL,
 							key_sep, &saved);
 					}
