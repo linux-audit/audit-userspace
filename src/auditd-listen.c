@@ -63,6 +63,9 @@
 
 extern int send_audit_event(int type, const char *str);
 #define DEFAULT_BUF_SZ  192
+#ifdef HAVE_TLS
+#define MAX_ACK_MSG_SIZE 256
+#endif
 
 #ifdef HAVE_TLS
 _Static_assert(AUTLS_PROFILE_COMPATIBLE == TLS_PROFILE_COMPATIBLE &&
@@ -90,7 +93,9 @@ typedef struct ev_tcp {
 	int in_handshake_chain;
 	int tls_profile_at_accept;
 	char *accepted_identity;
-	unsigned char *pending_ack;
+	// SSL_ERROR_WANT_* requires retrying the identical write. Keep bounded
+	// ACK in client state so it cant be lost on allocation failure.
+	unsigned char pending_ack[AUDIT_RMW_HEADER_SIZE + MAX_ACK_MSG_SIZE];
 	int pending_ack_len;
 #endif
 	unsigned char buffer [MAX_AUDIT_MESSAGE_LENGTH + 17];
@@ -322,8 +327,7 @@ static void release_client(struct ev_tcp *client)
 	}
 	free(client->accepted_identity);
 	client->accepted_identity = NULL;
-	free(client->pending_ack);
-	client->pending_ack = NULL;
+	client->pending_ack_len = 0;
 #endif
 #ifdef USE_GSSAPI
 	if (client->remote_name)
@@ -635,7 +639,7 @@ static void drop_tls_unaccepted_client(struct ev_loop *loop,
 	shutdown(client->io.fd, SHUT_RDWR);
 	close(client->io.fd);
 	free(client->accepted_identity);
-	free(client->pending_ack);
+	client->pending_ack_len = 0;
 	free(client);
 }
 
@@ -1031,14 +1035,12 @@ static void client_ack(void *ack_data, const unsigned char *header,
 {
 	ev_tcp *io = (ev_tcp *)ack_data;
 #ifdef HAVE_TLS
-#define MAX_ACK_MSG_SIZE 256
 	if (USE_TLS && io->ssl) {
 		unsigned char buf[AUDIT_RMW_HEADER_SIZE + MAX_ACK_MSG_SIZE];
 		int total, ret, err;
 
 		/* Drop stale pending ACK — client will see the latest */
-		free(io->pending_ack);
-		io->pending_ack = NULL;
+		io->pending_ack_len = 0;
 
 		memcpy(buf, header, AUDIT_RMW_HEADER_SIZE);
 		total = AUDIT_RMW_HEADER_SIZE;
@@ -1058,22 +1060,14 @@ static void client_ack(void *ack_data, const unsigned char *header,
 		err = SSL_get_error(io->ssl, ret);
 		if (err == SSL_ERROR_WANT_WRITE ||
 		    err == SSL_ERROR_WANT_READ) {
-			io->pending_ack = malloc(total);
-			if (io->pending_ack) {
-				memcpy(io->pending_ack, buf, total);
-				io->pending_ack_len = total;
-				ev_io_stop(EV_DEFAULT, &io->io);
-				if (err == SSL_ERROR_WANT_WRITE)
-					ev_io_modify(&io->io, EV_WRITE);
-				else
-					ev_io_modify(&io->io, EV_READ);
-				ev_io_start(EV_DEFAULT, &io->io);
-			} else {
-				audit_msg(LOG_ERR,
-					"TLS ACK to %s lost: "
-					"out of memory",
-					sockaddr_to_addr(&io->addr));
-			}
+			memcpy(io->pending_ack, buf, total);
+			io->pending_ack_len = total;
+			ev_io_stop(EV_DEFAULT, &io->io);
+			if (err == SSL_ERROR_WANT_WRITE)
+				ev_io_modify(&io->io, EV_WRITE);
+			else
+				ev_io_modify(&io->io, EV_READ);
+			ev_io_start(EV_DEFAULT, &io->io);
 			return;
 		}
 
@@ -1082,7 +1076,6 @@ static void client_ack(void *ack_data, const unsigned char *header,
 		shutdown(io->io.fd, SHUT_RDWR);
 		return;
 	}
-#undef MAX_ACK_MSG_SIZE
 #endif
 #ifdef USE_GSSAPI
 	if (USE_GSS) {
@@ -1195,12 +1188,11 @@ read_more:
 #ifdef HAVE_TLS
 	if (USE_TLS && io->ssl) {
 		/* Drain any pending ACK write before reading */
-		if (io->pending_ack) {
+		if (io->pending_ack_len) {
 			int ret = SSL_write(io->ssl, io->pending_ack,
 					    io->pending_ack_len);
 			if (ret == io->pending_ack_len) {
-				free(io->pending_ack);
-				io->pending_ack = NULL;
+				io->pending_ack_len = 0;
 
 				/* Buffered data may be a partial record and return
 				 * before the read path can re-arm the watcher. */
@@ -1422,7 +1414,7 @@ more_messages:
 	/* See if this packet had more than one message in it. */
 	if (io->bufptr > 0) {
 #ifdef HAVE_TLS
-		if (USE_TLS && io->pending_ack)
+		if (USE_TLS && io->pending_ack_len)
 			return;
 #endif
 		r = io->bufptr;
