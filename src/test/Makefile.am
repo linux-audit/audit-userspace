@@ -60,6 +60,7 @@ auditd_dispatch_test_CFLAGS = ${AM_CFLAGS} -I${top_srcdir}/audisp \
 	-I${top_srcdir}/src/libev
 auditd_dispatch_test_SOURCES = auditd_dispatch_test.c \
 	${top_srcdir}/src/auditd-dispatch.c
+auditd_reconfigure_test_CFLAGS = ${AM_CFLAGS} -I${top_srcdir}/src/libev
 auditd_reconfigure_test_SOURCES = auditd_reconfigure_test.c
 auditctl_key_test_SOURCES = auditctl_key_test.c \
 	${top_srcdir}/src/auditctl-llist.c
