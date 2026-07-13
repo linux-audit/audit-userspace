@@ -742,7 +742,7 @@ static int recv_token(int s, gss_buffer_t tok)
 {
 	int ret;
 	unsigned char lenbuf[4];
-	unsigned int len;
+	uint32_t len;
 
 	ret = ar_read(s, (char *)lenbuf, 4);
 	if (ret < 0) {
@@ -755,10 +755,11 @@ static int recv_token(int s, gss_buffer_t tok)
 		return -1;
 	}
 
-	len = ((lenbuf[0] << 24)
-	       | (lenbuf[1] << 16)
-	       | (lenbuf[2] << 8)
-	       | lenbuf[3]);
+	/* Cast before shifting so a high-bit wire byte never shifts an int. */
+	len = (((uint32_t)lenbuf[0] << 24)
+	       | ((uint32_t)lenbuf[1] << 16)
+	       | ((uint32_t)lenbuf[2] << 8)
+	       | (uint32_t)lenbuf[3]);
 	if (len > MAX_AUDIT_MESSAGE_LENGTH) {
 		audit_msg(LOG_ERR,
 			"GSS-API error: event length exceeds MAX_AUDIT_LENGTH");
