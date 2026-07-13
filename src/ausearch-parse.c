@@ -247,9 +247,13 @@ static const char *lookup_uid(const char *field, uid_t uid)
 		pw = getpwuid(uid);
 		if (pw) {
 			nvnode nv;
+
 			nv.name = strdup(pw->pw_name);
 			nv.val = uid;
-            search_list_append(&uid_nvl, &nv);
+			if (nv.name == NULL || search_list_append(&uid_nvl, &nv)) {
+				/* search_list_append owns nv.name only on success. */
+				free(nv.name);
+			}
 			return strdup(pw->pw_name);
 		}
 	}
@@ -2967,4 +2971,3 @@ void audit_log_free(struct audit_log_info *logs, size_t log_cnt)
 		free(logs[i].name);
 	free(logs);
 }
-

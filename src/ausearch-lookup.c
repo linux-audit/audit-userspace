@@ -246,10 +246,16 @@ const char *aulookup_uid(uid_t uid, char *buf, size_t size)
 		pw = getpwuid(uid);
 		if (pw) {
 			nvnode nv;
+
 			nv.name = strdup(pw->pw_name);
 			nv.val = uid;
-            search_list_append(&uid_nvl, &nv);
-			name = uid_nvl.cur->name;
+			if (nv.name && search_list_append(&uid_nvl, &nv) == 0)
+				name = uid_nvl.cur->name;
+			else {
+				/* search_list_append owns nv.name only on success. */
+				free(nv.name);
+				name = pw->pw_name;
+			}
 		}
 	}
 	if (name != NULL)
@@ -589,4 +595,3 @@ void print_tty_data(const char *val)
 		putchar('"');
 	free(data);
 }
-
