@@ -790,7 +790,16 @@ int check_params(int count, char *vars[])
 				sn.str = strdup(optarg);
 				sn.key = NULL;
 				sn.hits=0;
-				slist_append(event_node_list, &sn);
+				if (sn.str == NULL) {
+					retval = -1;
+					break;
+				}
+
+				// slist_append takes sn.str after allocating a node
+				if (slist_append(event_node_list, &sn)) {
+					free(sn.str);
+					retval = -1;
+				}
 			}
 			break;
 		case S_SYSCALL:
