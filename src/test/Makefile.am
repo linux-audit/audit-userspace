@@ -56,10 +56,11 @@ auditd_config_alloc_test_CFLAGS = -D_GNU_SOURCE -Wno-pointer-sign ${WFLAGS} \
 ausearch_checkpt_test_CFLAGS = ${AM_CFLAGS} -I${top_srcdir}/auparse
 ausearch_checkpt_test_SOURCES = ausearch_checkpt_test.c \
 	${top_srcdir}/src/ausearch-checkpt.c
+auditd_dispatch_test_CFLAGS = ${AM_CFLAGS} -I${top_srcdir}/audisp \
+	-I${top_srcdir}/src/libev
 auditd_dispatch_test_SOURCES = auditd_dispatch_test.c \
 	${top_srcdir}/src/auditd-dispatch.c
 auditd_reconfigure_test_SOURCES = auditd_reconfigure_test.c
-auditd_dispatch_test_CFLAGS = ${AM_CFLAGS} -I${top_srcdir}/audisp
 auditctl_key_test_SOURCES = auditctl_key_test.c \
 	${top_srcdir}/src/auditctl-llist.c
 auditctl_key_test_CFLAGS = ${AM_CFLAGS} -I${top_srcdir}/auparse
