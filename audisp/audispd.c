@@ -396,12 +396,13 @@ static int reconfigure(void)
 				/* A change in state */
 				if (tpconf->p->active == A_YES) {
 					/* starting - copy config and exec */
-					free_pconfig(opconf->p);
-					free(opconf->p);
+					plugin_conf_t *old_p = opconf->p;
 					opconf->p = tpconf->p;
+					tpconf->p = NULL;
+					free_pconfig(old_p);
+					free(old_p);
 					opconf->p->checked = 1;
 					start_one_plugin(opconf);
-					tpconf->p = NULL;
 				}
 			}
 		}
