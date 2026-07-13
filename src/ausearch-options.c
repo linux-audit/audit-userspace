@@ -274,7 +274,14 @@ static int convert_str_to_msg(const char *optarg)
 				return -1;
 			ilist_create(event_type);
 		}
-		ilist_append(event_type, tmp, 1, 0);
+		if (ilist_append(event_type, tmp, 1, 0)) {
+			// Do not leave an empty filter that rejects every event
+			if (event_type->cnt == 0) {
+				free(event_type);
+				event_type = NULL;
+			}
+			return -1;
+		}
 	}
 	return retval;
 }
@@ -1337,4 +1344,3 @@ int check_params(int count, char *vars[])
 
 	return retval;
 }
-
