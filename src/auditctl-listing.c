@@ -43,7 +43,63 @@ static llist l;
 static int printed;
 extern int list_requested, interpret;
 extern char key[AUDIT_MAX_KEY_LEN+1];
-extern const char key_sep[2];
+
+/*
+ * key_contains - search a non-NUL-terminated rule key buffer
+ * @keys: key bytes from an audit rule
+ * @keylen: number of bytes in @keys
+ * @wanted: requested key text
+ *
+ * Returns 1 when @wanted occurs in @keys and 0 otherwise.
+ */
+static int key_contains(const char *keys, size_t keylen, const char *wanted)
+{
+	size_t wanted_len = strlen(wanted);
+
+	if (wanted_len == 0)
+		return 1;
+
+	while (keylen >= wanted_len) {
+		if (memcmp(keys, wanted, wanted_len) == 0)
+			return 1;
+		keys++;
+		keylen--;
+	}
+	return 0;
+}
+
+/*
+ * print_rule_keys - display the separator-delimited keys in a rule
+ * @keys: key bytes from an audit rule
+ * @keylen: number of bytes in @keys
+ * @watch: non-zero when printing watch-rule syntax
+ *
+ * audit_rule_data stores string fields without trailing NUL bytes. Iterate
+ * within the supplied length so key display neither needs a temporary copy
+ * nor passes a NULL allocation result to strtok_r().
+ */
+static void print_rule_keys(const char *keys, size_t keylen, int watch)
+{
+	while (keylen) {
+		size_t part_len = 0;
+
+		while (part_len < keylen &&
+		       keys[part_len] != AUDIT_KEY_SEPARATOR)
+			part_len++;
+
+		if (part_len) {
+			if (watch)
+				printf(" -k %.*s", (int)part_len, keys);
+			else
+				printf(" -F key=%.*s", (int)part_len, keys);
+		}
+
+		if (part_len == keylen)
+			break;
+		keys += part_len + 1;
+		keylen -= part_len + 1;
+	}
+}
 
 /*
  * Returns 1 if rule should be printed & 0 if not
@@ -60,15 +116,8 @@ int key_match(const struct audit_rule_data *r)
 	for (i = 0; i < r->field_count; i++) {
 		int field = r->fields[i] & ~AUDIT_OPERATORS;
 		if (field == AUDIT_FILTERKEY) {
-			char *keyptr;
-			if (asprintf(&keyptr, "%.*s", r->values[i],
-				     &r->buf[boffset]) < 0)
-				keyptr = NULL;
-			else if (strstr(keyptr, key)) {
-				free(keyptr);
+			if (key_contains(&r->buf[boffset], r->values[i], key))
 				return 1;
-			}
-			free(keyptr);
 		}
 		if (((field >= AUDIT_SUBJ_USER && field <= AUDIT_OBJ_LEV_HIGH)
                      && field != AUDIT_PPID) || field == AUDIT_WATCH ||
@@ -403,20 +452,9 @@ static void print_rule(const struct audit_rule_data *r)
 					r->values[i], &r->buf[boffset]);
 				boffset += r->values[i];
 			} else if (field == AUDIT_FILTERKEY) {
-				char *rkey, *ptr, *saved;
-				if (asprintf(&rkey, "%.*s", r->values[i],
-					      &r->buf[boffset]) < 0)
-					rkey = NULL;
+				print_rule_keys(&r->buf[boffset], r->values[i],
+						watch);
 				boffset += r->values[i];
-				ptr = strtok_r(rkey, key_sep, &saved);
-				while (ptr) {
-					if (watch)
-						printf(" -k %s", ptr);
-					else
-						printf(" -F key=%s", ptr);
-					ptr = strtok_r(NULL, key_sep, &saved);
-				}
-				free(rkey);
 			} else if (field == AUDIT_PERM) {
 				char perms[5];
 				unsigned int val=r->values[i];
@@ -659,4 +697,3 @@ int audit_print_reply(const struct audit_reply *rep, int fd)
 	}
 	return 0;
 }
-
