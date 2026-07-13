@@ -250,6 +250,10 @@ static int check_path(const char *path)
 		return 1;
 	}
 	ptr = strdup(path);
+	if (ptr == NULL) {
+		audit_msg(LOG_ERR, "Cannot allocate memory for path check");
+		return 1;
+	}
 	base = basename(ptr);
 	nlen = strlen(base);
 	free(ptr);
