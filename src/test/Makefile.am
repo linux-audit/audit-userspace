@@ -34,8 +34,9 @@ TESTS = $(check_PROGRAMS)
 ilist_test_LDADD = ${top_builddir}/src/ausearch-int.o
 ilist_test_DEPENDENCIES = ${top_builddir}/src/ausearch-int.o
 ilist_alloc_test_SOURCES = ilist_alloc_test.c
+lol_alloc_test_CFLAGS = ${AM_CFLAGS} -I${top_srcdir}/common \
+	-I${top_srcdir}/auparse
 lol_alloc_test_SOURCES = lol_alloc_test.c
-lol_alloc_test_CFLAGS = ${AM_CFLAGS} -I${top_srcdir}/common
 slist_test_LDADD = ${top_builddir}/src/ausearch-string.o
 slist_test_DEPENDENCIES = ${top_builddir}/src/ausearch-string.o
 format_event_test_CFLAGS = -D_REENTRANT -D_GNU_SOURCE -Wno-pointer-sign ${WFLAGS} -fno-strict-aliasing -I${top_srcdir}/common -I${top_srcdir}/auparse -I${top_srcdir}/audisp -I${top_srcdir}/src/libev
