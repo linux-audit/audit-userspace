@@ -247,8 +247,10 @@ void slist_sort_by_hits(slist *l)
 	// of the old algorithm cause slowness. The value chosen
 	// below is just a guess. At 100, the old algorithm is
 	// faster. At 1000, the new one is 5x faster.
-	if (l->cnt < 200)
-		return old_sort_by_hits(l);
+	if (l->cnt < 200) {
+		old_sort_by_hits(l);
+		return;
+	}
 
 	slist_merge_sort(&l->head);
 
