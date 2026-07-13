@@ -70,7 +70,15 @@ void lol_clear(lol *lo)
 	lo->maxi = -1;
 }
 
-static void lol_append(lol *lo, llist *l)
+/*
+ * lol_append - add an event list to the table of in-progress events
+ * @lo: table that will own the event list on success
+ * @l: completed event list to add
+ *
+ * Returns: 0 on success or -1 when the table cannot grow.  The caller
+ * retains ownership of l on failure.
+ */
+static int lol_append(lol *lo, llist *l)
 {
 	int i;
 	size_t new_size;
@@ -83,7 +91,7 @@ static void lol_append(lol *lo, llist *l)
 			cur->status = L_BUILDING;
 			if (i > lo->maxi)
 				lo->maxi = i;
-			return;
+			return 0;
 		}
 	}
 	// Overran the array...lets make it bigger
@@ -96,7 +104,10 @@ static void lol_append(lol *lo, llist *l)
 		lo->array[i].status = L_BUILDING;
 		lo->maxi = i;
 		lo->limit += ARRAY_LIMIT;
+		return 0;
 	}
+
+	return -1;
 }
 
 static int str2event(char *s, event *e)
@@ -343,7 +354,11 @@ int lol_add_record(lol *lo, char *buff)
 			l = lo->array[i].l;
 			if (events_are_equal(&l->e, &e)) {
 				free((char *)e.node);
-				list_append(l, &n);
+				if (list_append(l, &n)) {
+					/* list_append owns n.message only on success. */
+					free(n.message);
+					return 0;
+				}
 				if (fmt > l->fmt)
 					l->fmt = fmt;
 				return 1;
@@ -374,8 +389,19 @@ int lol_add_record(lol *lo, char *buff)
 	l->e.node = e.node;
 	l->e.type = e.type;
 	l->fmt = fmt;
-	list_append(l, &n);
-	lol_append(lo, l);
+	if (list_append(l, &n)) {
+		// list_append owns n.message only on success
+		free(n.message);
+		list_clear(l);
+		free(l);
+		return 0;
+	}
+	if (lol_append(lo, l)) {
+		// lol_append owns l only after it has made table space for it
+		list_clear(l);
+		free(l);
+		return 0;
+	}
 	check_events(lo,  e.sec);
 	return 1;
 }
@@ -457,4 +483,3 @@ time_t lol_get_eoe_timeout(void)
 {
 	return eoe_timeout;
 }
-
