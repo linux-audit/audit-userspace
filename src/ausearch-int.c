@@ -41,18 +41,36 @@ int_node *ilist_next(ilist *l)
 	return l->cur;
 }
 
-int ilist_append(ilist *l, int num, unsigned int hits, int aux)
+/*
+ * ilist_alloc_node - allocate and initialize an integer list node
+ * @num: integer to store
+ * @hits: initial occurrence count
+ * @aux: auxiliary value to store
+ *
+ * Returns: Allocated node, or NULL on allocation failure.
+ */
+static int_node *ilist_alloc_node(int num, unsigned int hits, int aux)
 {
-	int_node* newnode;
+	int_node *newnode;
 
 	newnode = malloc(sizeof(int_node));
 	if (newnode == NULL)
-		return 1;
+		return NULL;
 
 	newnode->num = num;
 	newnode->hits = hits;
 	newnode->aux1 = aux;
 	newnode->next = NULL;
+	return newnode;
+}
+
+int ilist_append(ilist *l, int num, unsigned int hits, int aux)
+{
+	int_node* newnode;
+
+	newnode = ilist_alloc_node(num, hits, aux);
+	if (newnode == NULL)
+		return 1;
 
 	// if we are at top, fix this up
 	if (l->head == NULL)
@@ -89,6 +107,7 @@ void ilist_clear(ilist* l)
 int ilist_add_if_uniq(ilist *l, int num, int aux)
 {
 	register int_node *cur, *prev;
+	int_node *newnode;
 
 	prev = cur = l->head;
 	while (cur) {
@@ -99,19 +118,18 @@ int ilist_add_if_uniq(ilist *l, int num, int aux)
 			prev = cur;
 			cur = cur->next;
 		} else {
-			int head = 0;
+			newnode = ilist_alloc_node(num, 1, aux);
+			if (newnode == NULL)
+				return -1;
 
-			// Insert so list is from low to high
-			if (cur == l->head) {
-				l->head = NULL;
-				head = 1;
-			} else
-				l->cur = prev;
-			ilist_append(l, num, 1, aux);
-			if (head)
-				l->cur->next = prev;
+			// Link after alloc so failed insert leaves l intact
+			newnode->next = cur;
+			if (cur == l->head)
+				l->head = newnode;
 			else
-				l->cur->next = cur;
+				prev->next = newnode;
+			l->cur = newnode;
+			l->cnt++;
 			return 1;
 		}
 	}
@@ -120,7 +138,8 @@ int ilist_add_if_uniq(ilist *l, int num, int aux)
 		l->cur = prev;
 
 	/* No matches, append to the end */
-	ilist_append(l, num, 1, aux);
+	if (ilist_append(l, num, 1, aux))
+		return -1;
 	return 1;
 }
 
@@ -163,4 +182,3 @@ void ilist_sort_by_hits(ilist *l)
 	// End with cur pointing at first record
 	l->cur = l->head;
 }
-

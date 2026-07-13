@@ -27,10 +27,12 @@ AM_CFLAGS += ${ASAN_FLAGS}
 AM_LDFLAGS += ${ASAN_FLAGS}
 endif
 check_PROGRAMS = ilist_test slist_test format_event_test \
-	auditd_config_alloc_test ausearch_checkpt_test auditd_dispatch_test
+	auditd_config_alloc_test ausearch_checkpt_test auditd_dispatch_test \
+	ilist_alloc_test
 TESTS = $(check_PROGRAMS)
 ilist_test_LDADD = ${top_builddir}/src/ausearch-int.o
 ilist_test_DEPENDENCIES = ${top_builddir}/src/ausearch-int.o
+ilist_alloc_test_SOURCES = ilist_alloc_test.c
 slist_test_LDADD = ${top_builddir}/src/ausearch-string.o
 slist_test_DEPENDENCIES = ${top_builddir}/src/ausearch-string.o
 format_event_test_CFLAGS = -D_REENTRANT -D_GNU_SOURCE -Wno-pointer-sign ${WFLAGS} -fno-strict-aliasing -I${top_srcdir}/common -I${top_srcdir}/auparse -I${top_srcdir}/audisp -I${top_srcdir}/src/libev
