@@ -2033,19 +2033,23 @@ static int tls_psk_find_session_cb(SSL *ssl, const unsigned char *identity,
 		return 0;
 	}
 
-	/* Store accepted identity in ex-data after session is built
-	 * successfully -- avoids leaking the strndup on failure */
+	/* Store accepted identity only after session setup succeeds. Keep the old
+	 * value attached until OpenSSL accepts its replacement. */
 	if (ssl_ex_idx_identity >= 0) {
 		char *old = SSL_get_ex_data(ssl, ssl_ex_idx_identity);
 		char *id_copy = strndup((const char *)identity,
 					identity_len);
-		free(old);
 		if (id_copy == NULL)
 			audit_msg(LOG_WARNING,
-				"Out of memory for PSK identity; "
-				"connection will lack identity "
-				"attribution");
-		SSL_set_ex_data(ssl, ssl_ex_idx_identity, id_copy);
+				"Out of memory copying PSK identity");
+		if (SSL_set_ex_data(ssl, ssl_ex_idx_identity, id_copy))
+			free(old);
+		else {
+			free(id_copy);
+			audit_msg(LOG_WARNING,
+				"Unable to store PSK identity; "
+				"leaving current identity unchanged");
+		}
 	}
 
 	set_psk_failure_reason(ssl, NULL);
