@@ -511,9 +511,10 @@ static int check_exe_name(const char *val, int line)
 	return 0;
 }
  
-static int server_parser(struct nv_pair *nv, int line, 
+static int server_parser(struct nv_pair *nv, int line,
 		remote_conf_t *config)
 {
+	free((void *)config->remote_server);
 	if (nv->value)
 		config->remote_server = strdup(nv->value);
 	else
@@ -605,6 +606,8 @@ static int mode_parser(struct nv_pair *nv, int line, remote_conf_t *config)
 static int queue_file_parser(struct nv_pair *nv, int line,
 		remote_conf_t *config)
 {
+	free((void *)config->queue_file);
+	config->queue_file = NULL;
 	if (nv->value) {
 		if (*nv->value != '/') {
 			syslog(LOG_ERR, "Absolute path needed for %s - line %d",
@@ -629,11 +632,14 @@ static int action_parser(struct nv_pair *nv, int line,
 	int i;
 	for (i=0; fail_action_words[i].name != NULL; i++) {
 		if (strcasecmp(nv->value, fail_action_words[i].name) == 0) {
+			free((char *)*exep);
+			*exep = NULL;
 			if (fail_action_words[i].option == FA_EXEC) {
 				if (check_exe_name(nv->option, line))
 					return 1;
 				*exep = strdup(nv->option);
-			}
+			} else
+				*exep = NULL;
 			*actp = fail_action_words[i].option;
 			return 0;
 		}
@@ -678,6 +684,8 @@ static int remote_ending_action_parser(struct nv_pair *nv, int line,
                 remote_conf_t *config)
 {
 	if (strcasecmp(nv->value, "reconnect") == 0) {
+		free((char *)config->remote_ending_exe);
+		config->remote_ending_exe = NULL;
 		config->remote_ending_action = FA_RECONNECT;
 		return 0;
 	}
