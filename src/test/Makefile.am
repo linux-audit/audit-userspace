@@ -53,6 +53,7 @@ format_event_test_LDADD = ${top_builddir}/lib/libaudit.la \
 auditd_config_alloc_test_SOURCES = auditd_config_alloc_test.c
 auditd_config_alloc_test_CFLAGS = -D_GNU_SOURCE -Wno-pointer-sign ${WFLAGS} \
 	-fno-strict-aliasing -I${top_srcdir}/common -I${top_srcdir}/src
+ausearch_checkpt_test_CFLAGS = ${AM_CFLAGS} -I${top_srcdir}/auparse
 ausearch_checkpt_test_SOURCES = ausearch_checkpt_test.c \
 	${top_srcdir}/src/ausearch-checkpt.c
 auditd_dispatch_test_SOURCES = auditd_dispatch_test.c \
