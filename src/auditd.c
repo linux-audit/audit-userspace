@@ -203,8 +203,7 @@ static void child_handler(struct ev_loop *loop, struct ev_signal *sig,
 		if (pid == auditd_get_exec_pid()) {
 			resume_logging();
 			auditd_clear_exec_pid();
-		} else
-			plugin_child_handler(pid);
+		}
 	}
 }
 
