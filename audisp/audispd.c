@@ -35,7 +35,6 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 #include <limits.h>
-#include <sys/uio.h>
 #include <getopt.h>
 
 #include "audispd-pconfig.h"
@@ -69,6 +68,8 @@ static void signal_plugins(int sig);
 static int event_loop(void);
 static int safe_exec(plugin_conf_t *conf);
 static void *outbound_thread_main(void *arg);
+static int write_all(int fd, const void *buf, size_t len)
+	__attr_access ((__read_only__, 2, 3));
 static int write_to_plugin(event_t *e, const char *string, size_t string_len,
 			   lnode *conf) __attr_access ((__read_only__, 2, 3));
 
@@ -600,28 +601,40 @@ static void signal_plugins(int sig)
 	}
 }
 
+static int write_all(int fd, const void *buf, size_t len)
+{
+	const char *ptr = buf;
+
+	while (len) {
+		ssize_t rc;
+
+		do {
+			rc = write(fd, ptr, len);
+		} while (rc < 0 && errno == EINTR);
+		if (rc <= 0) {
+			if (rc == 0)
+				errno = EIO;
+			return -1;
+		}
+		ptr += rc;
+		len -= rc;
+	}
+	return 0;
+}
+
 static int write_to_plugin(event_t *e, const char *string, size_t string_len,
 			   lnode *conf)
 {
-	int rc;
+	if (conf->p->format == F_STRING)
+		return write_all(conf->p->plug_pipe[1], string, string_len);
 
-	if (conf->p->format == F_STRING) {
-		do {
-			rc = write(conf->p->plug_pipe[1], string, string_len);
-		} while (rc < 0 && errno == EINTR);
-	} else {
-		struct iovec vec[2];
-
-		vec[0].iov_base = &e->hdr;
-		vec[0].iov_len = sizeof(struct audit_dispatcher_header);
-
-		vec[1].iov_base = e->data;
-		vec[1].iov_len = e->hdr.size;
-		do {
-			rc = writev(conf->p->plug_pipe[1], vec, 2);
-		} while (rc < 0 && errno == EINTR);
-	}
-	return rc;
+	// The other path used writev. This simulates what writev used to do
+	// Header
+	if (write_all(conf->p->plug_pipe[1], &e->hdr,
+			  sizeof(struct audit_dispatcher_header)) < 0)
+		return -1;
+	// Data
+	return write_all(conf->p->plug_pipe[1], e->data, e->hdr.size);
 }
 
 /* Returns 0 on stop, and 1 on HUP */
