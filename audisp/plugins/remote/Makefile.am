@@ -32,11 +32,14 @@ plugin_conf = au-remote.conf
 sbin_PROGRAMS = audisp-remote
 noinst_HEADERS = remote-config.h queue.h
 man_MANS = audisp-remote.8 audisp-remote.conf.5
-check_PROGRAMS = test-queue
+check_PROGRAMS = test-queue test-remote-config
 TESTS = $(check_PROGRAMS)
+test_remote_config_CFLAGS = -D_GNU_SOURCE -Wundef ${WFLAGS}
 if HAVE_ASAN
 test_queue_CFLAGS = ${ASAN_FLAGS}
 test_queue_LDFLAGS = ${ASAN_FLAGS}
+test_remote_config_CFLAGS += ${ASAN_FLAGS}
+test_remote_config_LDFLAGS = ${ASAN_FLAGS}
 endif
 
 audisp_remote_DEPENDENCIES = ${top_builddir}/lib/libaudit.la ${top_builddir}/common/libaucommon.la ${top_builddir}/auplugin/libauplugin.la
@@ -55,6 +58,8 @@ audisp_remote_LDADD += ${top_builddir}/autls/libautls.la
 endif
 
 test_queue_SOURCES = queue.c test-queue.c
+
+test_remote_config_SOURCES = test-remote-config.c
 
 if ENABLE_TLS
 check_PROGRAMS += test-tls-helpers

@@ -527,6 +527,7 @@ static int parse_uint (const struct nv_pair *nv, int line, unsigned int *valp,
 {
 	const char *ptr = nv->value;
 	unsigned int i;
+	unsigned long value;
 
 	/* check that all chars are numbers */
 	for (i=0; ptr[i]; i++) {
@@ -538,29 +539,29 @@ static int parse_uint (const struct nv_pair *nv, int line, unsigned int *valp,
 		}
 	}
 
-	/* convert to unsigned int */
+	/* Validate the conversion before narrowing to the destination type. */
 	errno = 0;
-	i = strtoul(nv->value, NULL, 10);
-	if (errno) {
+	value = strtoul(nv->value, NULL, 10);
+	if (errno || value > UINT_MAX) {
 		syslog(LOG_ERR,
 			"Error converting string to a number (%s) - line %d",
-			strerror(errno), line);
+			errno ? strerror(errno) : "out of range", line);
 		return 1;
 	}
 	/* Check its range */
-	if (min != 0 && i < (int)min) {
+	if (min != 0 && value < min) {
 		syslog(LOG_ERR,
 			"Error - converted number (%s) is too small - line %d",
 			nv->value, line);
 		return 1;
 	}
-	if (max != 0 && i > max) {
+	if (max != 0 && value > max) {
 		syslog(LOG_ERR,
 			"Error - converted number (%s) is too large - line %d",
 			nv->value, line);
 		return 1;
 	}
-	*valp = (unsigned int)i;
+	*valp = (unsigned int)value;
 	return 0;
 }
 
@@ -1081,4 +1082,3 @@ void free_config(remote_conf_t *config)
 	free((void *)config->tls_key_exchange);
 #endif
 }
-
