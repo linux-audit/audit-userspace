@@ -137,11 +137,30 @@ static int init_syslog(int argc, const char *argv[])
 }
 
 static char *record = NULL;
+
+/*
+ * Append text to an interpreted record without exceeding its allocation.
+ * Returns 0 on success and 1 when the complete text does not fit.
+ */
+static int append_text(char **cursor, size_t *remaining, const char *text)
+{
+	size_t length = strlen(text);
+
+	if (length >= *remaining)
+		return 1;
+	memcpy(*cursor, text, length);
+	*cursor += length;
+	*remaining -= length;
+	**cursor = '\0';
+	return 0;
+}
+
 static inline void write_syslog(char *s)
 {
 	if (interpret) {
 		int rc, header = 0;
 		char *mptr, tbuf[64];
+		size_t remaining;
 
 		// Setup record buffer
 		if (record == NULL)
@@ -162,8 +181,9 @@ static inline void write_syslog(char *s)
 
 		// Now iterate over the fields and print each one
 		mptr = record;
-		while (rc > 0 &&
-		       ((mptr-record) < (MAX_AUDIT_MESSAGE_LENGTH-128))) {
+		remaining = MAX_AUDIT_MESSAGE_LENGTH;
+		*mptr = '\0';
+		while (rc > 0) {
 			int ftype = auparse_get_field_type(au);
 			const char *fname = auparse_get_field_name(au);
 			const char *fval;
@@ -183,23 +203,27 @@ static inline void write_syslog(char *s)
 					break;
 			}
 
-			mptr = stpcpy(mptr, fname ? fname : "?");
-			mptr = stpcpy(mptr, "=");
-			mptr = stpcpy(mptr, fval ? fval : "?");
-			mptr = stpcpy(mptr, " ");
+			if (append_text(&mptr, &remaining,
+					fname ? fname : "?") ||
+			    append_text(&mptr, &remaining, "=") ||
+			    append_text(&mptr, &remaining,
+					fval ? fval : "?") ||
+			    append_text(&mptr, &remaining, " "))
+				break;
 			rc = auparse_next_field(au);
 			if (!header && fname && strcmp(fname, "type") == 0) {
-				mptr = stpcpy(mptr, "msg=audit(");
+				if (append_text(&mptr, &remaining, "msg=audit("))
+					break;
 
 				time_t t = auparse_get_time(au);
 				struct tm *tv = localtime(&t);
 				if (tv)
-					strftime(tbuf, sizeof(tbuf),
-								"%x %T", tv);
+					strftime(tbuf, sizeof(tbuf), "%x %T", tv);
 				else
 					strcpy(tbuf, "?");
-				mptr = stpcpy(mptr, tbuf);
-				mptr = stpcpy(mptr, ") : ");
+				if (append_text(&mptr, &remaining, tbuf) ||
+				    append_text(&mptr, &remaining, ") : "))
+					break;
 				header = 1;
 			}
 		}
@@ -271,4 +295,3 @@ int main(int argc, const char *argv[])
 	free(record);
 	return 0;
 }
-

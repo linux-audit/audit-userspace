@@ -29,12 +29,23 @@ plugin_confdir=$(prog_confdir)/plugins.d
 plugin_conf = syslog.conf
 sbin_PROGRAMS = audisp-syslog
 man_MANS = audisp-syslog.8
+check_PROGRAMS = test-syslog
+TESTS = $(check_PROGRAMS)
 
 audisp_syslog_DEPENDENCIES = ${top_builddir}/lib/libaudit.la ${top_builddir}/auparse/libauparse.la ${top_builddir}/auplugin/libauplugin.la
 audisp_syslog_SOURCES = audisp-syslog.c
 audisp_syslog_CFLAGS = -fPIE -DPIE -g -D_GNU_SOURCE -Wundef ${WFLAGS}
 audisp_syslog_LDFLAGS = -pie -Wl,-z,relro -Wl,-z,now
 audisp_syslog_LDADD = $(CAPNG_LDADD) ${top_builddir}/lib/libaudit.la ${top_builddir}/auparse/libauparse.la ${top_builddir}/auplugin/libauplugin.la
+
+test_syslog_SOURCES = test-syslog.c
+test_syslog_CFLAGS = $(audisp_syslog_CFLAGS)
+test_syslog_LDFLAGS = $(audisp_syslog_LDFLAGS)
+test_syslog_LDADD = $(audisp_syslog_LDADD)
+if HAVE_ASAN
+test_syslog_CFLAGS += ${ASAN_FLAGS}
+test_syslog_LDFLAGS += ${ASAN_FLAGS}
+endif
 
 install-data-hook:
 	mkdir -p -m 0750 ${DESTDIR}${plugin_confdir}
