@@ -72,7 +72,9 @@ static int full_pread(int fd, void *buf, size_t size, off_t offset)
 			run = QUEUE_ENTRY_SIZE;
 		else
 			run = size;
-		res = pread(fd, buf, run, offset);
+		do {
+			res = pread(fd, buf, run, offset);
+		} while (res < 0 && errno == EINTR);
 		if (res < 0)
 			return -1;
 		if (res == 0) {
@@ -97,7 +99,9 @@ static int full_pwrite(int fd, const void *buf, size_t size, off_t offset)
 			run = QUEUE_ENTRY_SIZE;
 		else
 			run = size;
-		res = pwrite(fd, buf, run, offset);
+		do {
+			res = pwrite(fd, buf, run, offset);
+		} while (res < 0 && errno == EINTR);
 		if (res < 0)
 			return -1;
 		if (res == 0) {
