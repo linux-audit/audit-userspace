@@ -85,6 +85,15 @@ static int report_oom(const char *field, int line)
 	return 1;
 }
 
+/*
+ * Check whether a root-owned plugin input can be changed by a non-owner.
+ * Returns 1 for group or world writable modes and 0 otherwise.
+ */
+static int is_group_or_world_writable(mode_t mode)
+{
+	return (mode & (S_IWGRP | S_IWOTH)) != 0;
+}
+
 static const struct kw_pair keywords[] =
 {
   {"active",                   active_parser,			0 },
@@ -162,7 +171,8 @@ int load_pconfig(plugin_conf_t *config, int dirfd, char *file)
 	}
 	fd = rc;
 
-	/* check the file's permissions: owned by root, not world writable,
+	/* check the file's permissions: owned by root, not writable by group
+	 * or others,
 	 * pointing to regular file.
 	 */
 	if (fstat(fd, &st) < 0) {
@@ -177,9 +187,9 @@ int load_pconfig(plugin_conf_t *config, int dirfd, char *file)
 		close(fd);
 		return 1;
 	}
-	if ((st.st_mode & S_IWOTH) == S_IWOTH) {
-		audit_msg(LOG_ERR, "Error - %s is world writable",
-			file);
+	if (is_group_or_world_writable(st.st_mode)) {
+		audit_msg(LOG_ERR, "Error - %s is group or world writable",
+				file);
 		close(fd);
 		return 1;
 	}
@@ -553,8 +563,8 @@ static int sanity_check(plugin_conf_t *config, const char *file)
 		if (strncasecmp(config->path, "builtin_", 8) == 0)
 			goto out;
 
-		/* If the file exists, see that its regular, owned by root,
-		 * and not world anything */
+		/* If the file exists, see that it is regular, owned by root,
+		 * and cannot be changed by a non-owner. */
 		if (stat(config->path, &buf) < 0) {
 			audit_msg(LOG_ERR, "Unable to stat %s (%s)",
 				  config->path,	strerror(errno));
@@ -567,7 +577,12 @@ static int sanity_check(plugin_conf_t *config, const char *file)
 		}
 		if (buf.st_uid != 0) {
 			audit_msg(LOG_ERR, "%s is not owned by root",
-				 config->path);
+					 config->path);
+			return 1;
+		}
+		if (is_group_or_world_writable(buf.st_mode)) {
+			audit_msg(LOG_ERR, "%s is group or world writable",
+					 config->path);
 			return 1;
 		}
 		if ((buf.st_mode & (S_IRUSR|S_IXUSR|S_IRGRP|S_IXGRP)) !=

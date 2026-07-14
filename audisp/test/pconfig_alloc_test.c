@@ -130,10 +130,18 @@ static void test_nv_split_realloc_failure(void)
 	assert(nv.nvalues == 0);
 }
 
+static void test_non_owner_write_permissions(void)
+{
+	assert(!is_group_or_world_writable(0640));
+	assert(is_group_or_world_writable(0660));
+	assert(is_group_or_world_writable(0642));
+}
+
 int main(void)
 {
 	test_path_preserves_old_value();
 	test_args_preserves_old_value();
 	test_nv_split_realloc_failure();
+	test_non_owner_write_permissions();
 	return 0;
 }
