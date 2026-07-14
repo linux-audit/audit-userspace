@@ -25,14 +25,15 @@
 #ifndef _ZOS_REMOTE_QUEUE_H
 #define _ZOS_REMOTE_QUEUE_H
 
+#include <signal.h>
 #include <lber.h>
 
 int init_queue(unsigned int size);
 void enqueue(BerElement *);
-BerElement *dequeue(void);
+BerElement *dequeue(const volatile sig_atomic_t *stop,
+		const volatile sig_atomic_t *hup);
 void nudge_queue(void);
 void increase_queue_depth(unsigned int size);
 void destroy_queue(void);
 
 #endif       /* _ZOS_REMOTE_QUEUE_H */
-

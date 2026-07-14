@@ -51,8 +51,8 @@
 /*
  * Global vars 
  */
-volatile int stop = 0;
-volatile int hup = 0;
+volatile sig_atomic_t stop = 0;
+volatile sig_atomic_t hup = 0;
 static ZOS_REMOTE zos_remote_inst;
 static plugin_conf_t conf;
 static const char *def_config_file = "/etc/audit/zos-remote.conf";
@@ -72,8 +72,7 @@ static void term_handler(int sig, siginfo_t *info,
 	UNUSED(sig);
 	if (info && info->si_pid != getppid())
 		return;
-        stop = 1;
-        nudge_queue();
+	stop = 1;
 }
 
 /*
@@ -82,19 +81,30 @@ static void term_handler(int sig, siginfo_t *info,
 static void hup_handler(int sig)
 {
 	UNUSED(sig);
-        log_info("Got Hangup signal - flushing plugin configuration");
-        hup = 1;
-        nudge_queue();
+	hup = 1;
 }
 
 /*
- * SIGALRM handler - help force exit when terminating daemon
+ * Join the submission worker without invoking thread APIs from a signal.
+ * Returns the pthread join result after cancelling a timed-out Linux worker.
  */
-static void alarm_handler(int sig)
+static int join_submission_thread(pthread_t thread)
 {
-	UNUSED(sig);
-        log_err("Timeout waiting for submission thread - Aborting (some events may have been dropped)");
-        pthread_cancel(submission_thread);
+#ifdef __GLIBC__
+	struct timespec timeout;
+	int rc;
+
+	if (clock_gettime(CLOCK_REALTIME, &timeout) != 0)
+		return pthread_join(thread, NULL);
+	timeout.tv_sec += 10;
+	rc = pthread_timedjoin_np(thread, NULL, &timeout);
+	if (rc != ETIMEDOUT)
+		return rc;
+	log_err("Timeout waiting for submission thread - Aborting "
+		"(some events may have been dropped)");
+	pthread_cancel(thread);
+#endif
+	return pthread_join(thread, NULL);
 }
 
 /*
@@ -120,14 +130,13 @@ static void *submission_thread_main(void *arg)
                 return 0;
         }
         
-        while (stop == 0) {
+        while (1) {
                 /* block until we have an event */
-                BerElement *ber = dequeue();
+                BerElement *ber = dequeue(&stop, &hup);
 
                 if (ber == NULL) {
-                        if (hup) {
+                        if (stop || hup)
                                 break;
-                        }
                         continue;
                 }
                 debug_ber(ber);
@@ -135,6 +144,8 @@ static void *submission_thread_main(void *arg)
                 if (rc == ICTX_E_FATAL) {
                         log_err("Error - Fatal error in event submission. Aborting");
                         stop = 1;
+                        ber_free(ber, 1);
+                        break;
                 } else if (rc != ICTX_SUCCESS) {
                         log_warn("Warning - Event submission failure - event dropped");
                 }
@@ -435,8 +446,6 @@ int main(int argc, char *argv[])
         sigemptyset(&sa.sa_mask);
         sa.sa_handler = hup_handler;
         sigaction(SIGHUP, &sa, NULL);
-        sa.sa_handler = alarm_handler;
-        sigaction(SIGALRM, &sa, NULL);
         sa.sa_sigaction = term_handler;
         sa.sa_flags = SA_SIGINFO;
         sigaction(SIGTERM, &sa, NULL);
@@ -575,9 +584,10 @@ int main(int argc, char *argv[])
                 }
                 /* flush everything, in order */
                 auparse_flush_feed(au);                            /* 4 */
-                alarm(10);             /* 10 seconds to clear the queue */
-                pthread_join(submission_thread, NULL);             /* 3 */
-                alarm(0);                   /* cancel any pending alarm */
+                if (!hup)
+                        stop = 1;
+                nudge_queue();
+		join_submission_thread(submission_thread);              /* 3 */
                 auparse_destroy(au);                               /* 2 */
                 plugin_free_config(&conf);                         /* 1 */
         } while (hup && stop == 0);

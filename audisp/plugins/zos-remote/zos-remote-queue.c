@@ -92,7 +92,8 @@ retry:
     }
 }
 
-BerElement *dequeue(void)
+BerElement *dequeue(const volatile sig_atomic_t *stop,
+                    const volatile sig_atomic_t *hup)
 {
     BerElement *ber;
     unsigned int n;
@@ -100,7 +101,7 @@ BerElement *dequeue(void)
     /* Wait until its got something in it */
     pthread_mutex_lock(&queue_lock);
     n = q_last%q_depth;
-    while (q[n] == NULL) {
+    while (q[n] == NULL && !*stop && !*hup) {
         pthread_cond_wait(&queue_nonempty, &queue_lock);
         n = q_last%q_depth;
     }
@@ -121,7 +122,9 @@ BerElement *dequeue(void)
 
 void nudge_queue(void)
 {
-    pthread_cond_signal(&queue_nonempty);
+    pthread_mutex_lock(&queue_lock);
+    pthread_cond_broadcast(&queue_nonempty);
+    pthread_mutex_unlock(&queue_lock);
 }
 
 void increase_queue_depth(unsigned int size)

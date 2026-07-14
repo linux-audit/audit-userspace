@@ -30,6 +30,8 @@ static void test_log(const char *fmt, ...)
 static void test_ber_free(BerElement *ber, int freebuf)
 {
 	(void)freebuf;
+	if (ber == NULL)
+		return;
 	assert(freed_count < 2);
 	freed[freed_count++] = ber;
 }
@@ -56,8 +58,43 @@ static void test_full_queue_frees_dropped_event(void)
 	assert(freed[1] == first);
 }
 
+struct dequeue_wait {
+	const volatile sig_atomic_t *stop;
+	const volatile sig_atomic_t *hup;
+	BerElement *result;
+};
+
+static void *wait_for_dequeue(void *arg)
+{
+	struct dequeue_wait *wait = arg;
+
+	wait->result = dequeue(wait->stop, wait->hup);
+	return NULL;
+}
+
+static void test_nudge_wakes_reload_waiter(void)
+{
+	pthread_t thread;
+	volatile sig_atomic_t stop = 0;
+	volatile sig_atomic_t hup = 0;
+	struct dequeue_wait wait = {
+		.stop = &stop,
+		.hup = &hup,
+		.result = (BerElement *)(uintptr_t)1,
+	};
+
+	assert(init_queue(1) == 0);
+	assert(pthread_create(&thread, NULL, wait_for_dequeue, &wait) == 0);
+	hup = 1;
+	nudge_queue();
+	assert(pthread_join(thread, NULL) == 0);
+	assert(wait.result == NULL);
+	destroy_queue();
+}
+
 int main(void)
 {
 	test_full_queue_frees_dropped_event();
+	test_nudge_wakes_reload_waiter();
 	return 0;
 }
