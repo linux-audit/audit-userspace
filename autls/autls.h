@@ -112,6 +112,8 @@ void autls_acl_free(struct autls_acl_table *table);
 /* autls-io.c */
 int autls_remaining_ms(const struct timespec *deadline)
 	__nonnull((1)) __wur;
+int autls_ssl_connect(SSL *ssl, int timeout_ms)
+	__nonnull((1)) __wur;
 int autls_ssl_write(SSL *ssl, const void *buf, int len, int timeout_ms)
 	__nonnull((1, 2)) __attr_access((__read_only__, 2, 3)) __wur;
 void autls_ssl_shutdown(SSL *ssl)

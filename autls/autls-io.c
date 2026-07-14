@@ -19,6 +19,7 @@
 
 #include "config.h"
 #include <errno.h>
+#include <fcntl.h>
 #include <limits.h>
 #include <poll.h>
 #include <time.h>
@@ -42,6 +43,96 @@ int autls_remaining_ms(const struct timespec *deadline)
 	if (ms > INT_MAX)
 		return INT_MAX;
 	return ms > 0 ? (int)ms : 0;
+}
+
+/*
+ * autls_ssl_connect - complete a TLS handshake before a deadline
+ * @ssl: TLS connection with an attached socket
+ * @timeout_ms: maximum total handshake time in milliseconds
+ *
+ * SSL_connect() can make several reads and writes while negotiating.  Run it
+ * on a temporarily nonblocking socket and wait for the requested direction
+ * against one monotonic deadline so each retry cannot extend the budget.
+ * Returns 0 on success, -1 on error or timeout.
+ */
+int autls_ssl_connect(SSL *ssl, int timeout_ms)
+{
+	struct pollfd pfd;
+	struct timespec deadline;
+	int flags, rc = -1, saved_errno = 0;
+
+	pfd.fd = SSL_get_fd(ssl);
+	if (pfd.fd < 0 || timeout_ms <= 0) {
+		errno = EINVAL;
+		return -1;
+	}
+
+	flags = fcntl(pfd.fd, F_GETFL);
+	if (flags < 0)
+		return -1;
+	if (fcntl(pfd.fd, F_SETFL, flags | O_NONBLOCK) < 0)
+		return -1;
+
+	if (clock_gettime(CLOCK_MONOTONIC, &deadline) != 0) {
+		saved_errno = errno;
+		goto restore_flags;
+	}
+	deadline.tv_sec += timeout_ms / 1000;
+	deadline.tv_nsec += (timeout_ms % 1000) * 1000000L;
+	if (deadline.tv_nsec >= 1000000000L) {
+		deadline.tv_sec++;
+		deadline.tv_nsec -= 1000000000L;
+	}
+
+	for (;;) {
+		int err, remaining, result, prc;
+
+		remaining = autls_remaining_ms(&deadline);
+		if (remaining <= 0) {
+			errno = ETIMEDOUT;
+			break;
+		}
+
+		result = SSL_connect(ssl);
+		if (result == 1) {
+			rc = 0;
+			break;
+		}
+
+		err = SSL_get_error(ssl, result);
+		if (err == SSL_ERROR_WANT_READ)
+			pfd.events = POLLIN;
+		else if (err == SSL_ERROR_WANT_WRITE)
+			pfd.events = POLLOUT;
+		else if (err == SSL_ERROR_SYSCALL && errno == EINTR)
+			continue;
+		else
+			break;
+
+		pfd.revents = 0;
+		do {
+			prc = poll(&pfd, 1, remaining);
+		} while (prc < 0 && errno == EINTR);
+		if (prc == 0) {
+			errno = ETIMEDOUT;
+			break;
+		}
+		if (prc < 0)
+			break;
+		if (pfd.revents & (POLLERR | POLLHUP | POLLNVAL)) {
+			errno = EIO;
+			break;
+		}
+	}
+
+restore_flags:
+	if (rc != 0 && saved_errno == 0)
+		saved_errno = errno;
+	if (fcntl(pfd.fd, F_SETFL, flags) < 0)
+		return -1;
+	if (rc != 0)
+		errno = saved_errno;
+	return rc;
 }
 
 /*

@@ -13,11 +13,14 @@
 
 #include "config.h"
 #include <assert.h>
+#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/socket.h>
 #include <unistd.h>
 #include <sys/stat.h>
+#include <time.h>
 #include <limits.h>
 #include "autls.h"
 
@@ -113,6 +116,43 @@ static void test_autls_remaining_ms(void)
 	deadline.tv_nsec = 999999999;
 	r = autls_remaining_ms(&deadline);
 	assert(r > 900 && r <= 2000);
+}
+
+/* Verify a silent peer cannot extend the TLS handshake deadline. */
+static void test_autls_ssl_connect_deadline(void)
+{
+	struct timespec start, end;
+	SSL_CTX *ctx;
+	SSL *ssl;
+	long long elapsed;
+	int pair[2], flags;
+
+	printf("  autls_ssl_connect deadline...\n");
+	assert(socketpair(AF_UNIX, SOCK_STREAM, 0, pair) == 0);
+
+	ctx = SSL_CTX_new(TLS_client_method());
+	assert(ctx != NULL);
+	SSL_CTX_set_verify(ctx, SSL_VERIFY_NONE, NULL);
+	ssl = SSL_new(ctx);
+	assert(ssl != NULL);
+	assert(SSL_set_fd(ssl, pair[0]) == 1);
+
+	flags = fcntl(pair[0], F_GETFL);
+	assert(flags >= 0);
+	clock_gettime(CLOCK_MONOTONIC, &start);
+	assert(autls_ssl_connect(ssl, 100) == -1);
+	clock_gettime(CLOCK_MONOTONIC, &end);
+	assert(fcntl(pair[0], F_GETFL) == flags);
+
+	elapsed = (long long)(end.tv_sec - start.tv_sec) * 1000 +
+		(end.tv_nsec - start.tv_nsec) / 1000000;
+	assert(elapsed >= 50);
+	assert(elapsed < 1000);
+
+	SSL_free(ssl);
+	SSL_CTX_free(ctx);
+	close(pair[0]);
+	close(pair[1]);
 }
 
 static void test_autls_validate_key_file(void)
@@ -752,6 +792,7 @@ int main(void)
 	printf("TLS helper tests:\n");
 	test_autls_is_pqc_group();
 	test_autls_remaining_ms();
+	test_autls_ssl_connect_deadline();
 	test_autls_validate_key_file();
 	test_autls_load_psk();
 	test_autls_load_psk_validation();

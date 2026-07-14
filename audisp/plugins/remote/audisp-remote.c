@@ -1707,8 +1707,8 @@ static int tls_connect(void)
 		}
 	}
 
-	/* Bound the blocking SSL_connect so a blackholed server cannot
-	 * stall the client indefinitely */
+	/* Keep per-I/O socket limits after the nonblocking handshake restores
+	 * the original socket mode. */
 	{
 		struct timeval tv;
 		tv.tv_sec = config.max_time_per_record;
@@ -1719,16 +1719,20 @@ static int tls_connect(void)
 			sizeof(tv));
 	}
 
-	if (SSL_connect(tls_ssl) != 1) {
-		syslog(LOG_ERR, "TLS handshake with %s failed",
-			config.remote_server);
-		ERR_print_errors_cb(tls_error_cb, NULL);
-		SSL_free(tls_ssl);
-		tls_ssl = NULL;
-		return -1;
+	{
+		int timeout_ms = config.max_time_per_record >
+			(unsigned)(INT_MAX / 1000) ? INT_MAX :
+			(int)(config.max_time_per_record * 1000);
+
+		if (autls_ssl_connect(tls_ssl, timeout_ms) != 0) {
+			syslog(LOG_ERR, "TLS handshake with %s failed",
+				config.remote_server);
+			ERR_print_errors_cb(tls_error_cb, NULL);
+			SSL_free(tls_ssl);
+			tls_ssl = NULL;
+			return -1;
+		}
 	}
-
-
 
 #ifdef HAVE_SSL_GROUP_TO_NAME
 	kex_name = SSL_group_to_name(tls_ssl,
