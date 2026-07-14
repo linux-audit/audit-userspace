@@ -2296,6 +2296,10 @@ static int send_msg_gss (unsigned char *header, const char *msg, uint32_t mlen)
 
 	utok.length = AUDIT_RMW_HEADER_SIZE + mlen;
 	utok.value = malloc (utok.length);
+	if (utok.value == NULL) {
+		syslog(LOG_ERR, "Out of memory allocating GSS message");
+		return -1;
+	}
 
 	memcpy (utok.value, header, AUDIT_RMW_HEADER_SIZE);
 
