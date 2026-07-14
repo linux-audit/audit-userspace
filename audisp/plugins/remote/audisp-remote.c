@@ -2324,55 +2324,50 @@ static int send_msg_gss (unsigned char *header, const char *msg, uint32_t mlen)
 /* Likewise here.  */
 static int recv_msg_gss (unsigned char *header, char *msg, uint32_t *mlen)
 {
-	OM_uint32 major_status, minor_status;
-	gss_buffer_desc utok, etok;
-	int hver, mver, rc;
+	OM_uint32 major_status, minor_status = 0;
+	gss_buffer_desc utok = GSS_C_EMPTY_BUFFER;
+	gss_buffer_desc etok = GSS_C_EMPTY_BUFFER;
+	int hver, mver, rc = -1;
 	uint32_t type, rlen, seq;
 
-	rc = recv_token (sock, &etok);
-	if (rc)
+	if (recv_token(sock, &etok) != 0)
 		return -1;
 
 	major_status = gss_unwrap (&minor_status, my_context, &etok,
 					&utok, NULL, NULL);
 	if (major_status != GSS_S_COMPLETE) {
 		gss_failure("decrypting message", major_status, minor_status);
-		free (utok.value);
-		free (etok.value);
-		return -1;
+		goto out;
 	}
 
 	if (utok.length < AUDIT_RMW_HEADER_SIZE) {
 		sync_error_handler ("message too short");
-		free (utok.value);
-		free (etok.value);
-		return -1;
+		goto out;
 	}
 	memcpy (header, utok.value, AUDIT_RMW_HEADER_SIZE);
 
 	if (! AUDIT_RMW_IS_MAGIC (header, AUDIT_RMW_HEADER_SIZE)) {
 		sync_error_handler ("bad magic number");
-		free (utok.value);
-		free (etok.value);
-		return -1;
+		goto out;
 	}
 
 	AUDIT_RMW_UNPACK_HEADER (header, hver, mver, type, rlen, seq);
 
 	if (rlen > MAX_AUDIT_MESSAGE_LENGTH) {
 		sync_error_handler ("message too long");
-		free (utok.value);
-		free (etok.value);
-		return -1;
+		goto out;
 	}
 
 	memcpy (msg, utok.value+AUDIT_RMW_HEADER_SIZE, rlen);
 
 	*mlen = rlen;
+	rc = 0;
 
-	free (utok.value);
+out:
+	if (utok.value != NULL)
+		(void) gss_release_buffer(&minor_status, &utok);
 	free (etok.value);
-	return 0;
+	return rc;
 }
 #endif // USE_GSSAPI
 
