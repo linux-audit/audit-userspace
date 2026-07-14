@@ -2357,6 +2357,10 @@ static int recv_msg_gss (unsigned char *header, char *msg, uint32_t *mlen)
 		sync_error_handler ("message too long");
 		goto out;
 	}
+	if (rlen > utok.length - AUDIT_RMW_HEADER_SIZE) {
+		sync_error_handler ("message length exceeds token");
+		goto out;
+	}
 
 	memcpy (msg, utok.value+AUDIT_RMW_HEADER_SIZE, rlen);
 
