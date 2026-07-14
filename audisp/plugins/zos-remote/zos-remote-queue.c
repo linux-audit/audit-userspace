@@ -67,6 +67,8 @@ retry:
     /* We allow 3 retries and then its over */
     if (retry_cnt > 3) {
         log_err("queue is full - dropping event");
+        /* enqueue owns the event even when congestion forces a drop. */
+        ber_free(ber, 1);
         return;
     }
     pthread_mutex_lock(&queue_lock);
@@ -155,4 +157,3 @@ void destroy_queue(void)
     pthread_mutex_destroy(&queue_lock);
     pthread_cond_destroy(&queue_nonempty);
 }
-

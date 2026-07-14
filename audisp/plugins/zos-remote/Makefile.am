@@ -30,7 +30,8 @@ plugin_conf = zos-remote.conf
 dispatcher_confdir = $(plugin_confdir)/plugins.d
 dispatcher_conf = audispd-zos-remote.conf
 sbin_PROGRAMS = audispd-zos-remote
-check_PROGRAMS = test-zos-remote-config
+check_PROGRAMS = test-zos-remote-config \
+	test-zos-remote-queue
 TESTS = $(check_PROGRAMS)
 
 noinst_HEADERS = zos-remote-log.h zos-remote-ldap.h zos-remote-config.h \
@@ -44,9 +45,14 @@ audispd_zos_remote_DEPENDENCIES = ${top_builddir}/auparse/libauparse.la
 
 test_zos_remote_config_SOURCES = test-zos-remote-config.c
 test_zos_remote_config_CFLAGS = $(audispd_zos_remote_CFLAGS)
+test_zos_remote_queue_SOURCES = test-zos-remote-queue.c
+test_zos_remote_queue_CFLAGS = $(audispd_zos_remote_CFLAGS)
+test_zos_remote_queue_LDADD = -lpthread
 if HAVE_ASAN
 test_zos_remote_config_CFLAGS += ${ASAN_FLAGS}
 test_zos_remote_config_LDFLAGS = ${ASAN_FLAGS}
+test_zos_remote_queue_CFLAGS += ${ASAN_FLAGS}
+test_zos_remote_queue_LDFLAGS = ${ASAN_FLAGS}
 endif
 
 install-data-hook:
