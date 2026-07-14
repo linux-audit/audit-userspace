@@ -533,30 +533,53 @@ static void *outbound_thread_main(void *arg)
 static int safe_exec(plugin_conf_t *conf)
 {
 	char **argv;
-	int pid, i;
-	struct sigaction sa;
+	int i, saved_errno;
+	pid_t pid;
+	sigset_t sigs;
+
+	conf->pid = 0;
+	conf->plug_pipe[0] = -1;
+	conf->plug_pipe[1] = -1;
+	argv = calloc(conf->nargs + 2, sizeof(char *));
+	if (argv == NULL)
+		return -1;
+	argv[0] = (char *)conf->path;
+	for (i = 0; i < conf->nargs; i++)
+		argv[i + 1] = conf->args[conf->nargs - i - 1];
+	argv[conf->nargs + 1] = NULL;
+	sigfillset(&sigs);
 
 	/* Set up IPC with child */
-	if (socketpair(AF_UNIX, SOCK_STREAM, 0, conf->plug_pipe) != 0)
+	if (socketpair(AF_UNIX, SOCK_STREAM, 0, conf->plug_pipe) != 0) {
+		saved_errno = errno;
+		conf->plug_pipe[0] = -1;
+		conf->plug_pipe[1] = -1;
+		free(argv);
+		errno = saved_errno;
 		return -1;
+	}
 
 	pid = fork();
 	if (pid > 0) {
 		conf->pid = pid;
+		free(argv);
 		return 0;	/* Parent...normal exit */
 	}
 	if (pid < 0) {
+		saved_errno = errno;
 		close(conf->plug_pipe[0]);
 		close(conf->plug_pipe[1]);
+		conf->plug_pipe[0] = -1;
+		conf->plug_pipe[1] = -1;
 		conf->pid = 0;
+		free(argv);
+		errno = saved_errno;
 		return -1;	/* Failed to fork */
 	}
 
 	/* Set up comm with child. It reads stdin so put the pipe there. */
 	if (dup2(conf->plug_pipe[0], 0) < 0) {
-		close(conf->plug_pipe[0]);
-		close(conf->plug_pipe[1]);
-		exit(1);
+		_exit(1);
 	}
 #ifdef HAVE_CLOSE_RANGE
 	close_range(3, ~0U, 0);	/* close all past stderr */
@@ -565,24 +588,11 @@ static int safe_exec(plugin_conf_t *conf)
 		close(i);
 #endif
 
-	argv = calloc(conf->nargs + 2, sizeof(char *));
-	if (argv == NULL) {
-		exit(1);
-	}
-
 	/* Child */
-	sigfillset (&sa.sa_mask);
-	sigprocmask (SIG_UNBLOCK, &sa.sa_mask, 0);
-
-	argv[0] = (char *)conf->path;
-	for (i = 0; i < conf->nargs; i++) {
-		argv[i+1] = conf->args[conf->nargs-i-1];
-	}
-	argv[conf->nargs+1] = NULL;
+	sigprocmask(SIG_UNBLOCK, &sigs, NULL);
 
 	execve(conf->path, argv, NULL);
-	free(argv);		/* Free memory before exit */
-	exit(1);		/* Failed to exec */
+	_exit(1);		/* Failed to exec */
 }
 
 static void signal_plugins(int sig)

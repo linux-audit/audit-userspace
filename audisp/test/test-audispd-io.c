@@ -12,6 +12,7 @@
 #include <assert.h>
 #include <errno.h>
 #include <stddef.h>
+#include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -19,7 +20,23 @@
 static unsigned char captured[256];
 static size_t captured_len;
 static unsigned int write_calls;
+static unsigned int calloc_calls;
 static int zero_progress;
+static int fork_should_fail;
+
+static void *test_calloc(size_t count, size_t size)
+{
+	calloc_calls++;
+	return calloc(count, size);
+}
+
+static pid_t test_fork(void)
+{
+	assert(fork_should_fail);
+	assert(calloc_calls == 1);
+	errno = EAGAIN;
+	return -1;
+}
 
 static ssize_t test_write(int fd, const void *buf, size_t len)
 {
@@ -39,9 +56,13 @@ static ssize_t test_write(int fd, const void *buf, size_t len)
 	return (ssize_t)chunk;
 }
 
+#define calloc test_calloc
+#define fork test_fork
 #define write test_write
 #include "../audispd.c"
 #undef write
+#undef fork
+#undef calloc
 
 static void reset_output(void)
 {
@@ -102,10 +123,31 @@ static void test_zero_length_write_fails(void)
 	assert(errno == EIO);
 }
 
+static void test_safe_exec_preserves_fork_failure(void)
+{
+	plugin_conf_t plugin = {
+		.path = "/bin/true",
+		.plug_pipe = { 7, 8 },
+		.pid = 123,
+	};
+
+	calloc_calls = 0;
+	fork_should_fail = 1;
+	errno = 0;
+	assert(safe_exec(&plugin) == -1);
+	assert(errno == EAGAIN);
+	assert(calloc_calls == 1);
+	assert(plugin.pid == 0);
+	assert(plugin.plug_pipe[0] == -1);
+	assert(plugin.plug_pipe[1] == -1);
+	fork_should_fail = 0;
+}
+
 int main(void)
 {
 	test_string_write_completes();
 	test_binary_write_keeps_frame_order();
 	test_zero_length_write_fails();
+	test_safe_exec_preserves_fork_failure();
 	return 0;
 }
