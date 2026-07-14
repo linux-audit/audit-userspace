@@ -80,6 +80,16 @@ static const struct kw_pair keywords[] = {
 #define UNUSED(x) (void)(x)
 
 /*
+ * Check whether a credential config has a mode safe for its password.
+ * Returns 1 for 0600 or 0640 and 0 for all other permission modes.
+ */
+static int is_secure_config_mode(mode_t mode)
+{
+	mode &= 07777;
+	return mode == 0600 || mode == 0640;
+}
+
+/*
  * Set everything to its default value
 */
 void plugin_clear_config(plugin_conf_t * c)
@@ -117,8 +127,8 @@ int plugin_load_config(plugin_conf_t * c, const char *file)
         }
         fd = rc;
 
-        /* check the file's permissions: owned by root, not world anything,
-         * not symlink.
+        /* check the file's permissions: owned by root, either 0600 or 0640,
+         * and a regular file.
          */
         if (fstat(fd, &st) < 0) {
                 log_err("Error fstat'ing config file (%s)",
@@ -131,9 +141,8 @@ int plugin_load_config(plugin_conf_t * c, const char *file)
                 close(fd);
                 return 1;
         }
-        if ((st.st_mode & (S_IRUSR | S_IWUSR | S_IRGRP)) !=
-            (S_IRUSR | S_IWUSR | S_IRGRP)) {
-                log_err("%s permissions should be 0640", file);
+        if (!is_secure_config_mode(st.st_mode)) {
+                log_err("%s permissions should be 0600 or 0640", file);
                 close(fd);
                 return 1;
         }
