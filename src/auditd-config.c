@@ -2038,7 +2038,10 @@ static int q_depth_parser(const struct nv_pair *nv, int line,
 			strerror(errno), line);
 		return 1;
 	}
-	if (i > 99999) {
+	if (i == 0) {
+		audit_msg(LOG_ERR, "q_depth must be greater than zero");
+		return 1;
+	} else if (i > 99999) {
 		audit_msg(LOG_ERR, "q_depth must be 99999 or less");
 		return 1;
 	} else if (i < 512)

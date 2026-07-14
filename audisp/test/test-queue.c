@@ -94,6 +94,45 @@ out:
 	return rc;
 }
 
+static int invalid_depth_test(void)
+{
+	struct disp_conf conf;
+	event_t *e = NULL;
+	int rc = 1;
+
+	memset(&conf, 0, sizeof(conf));
+	conf.overflow_action = O_IGNORE;
+
+	if (init_queue(0) == 0) {
+		fprintf(stderr, "invalid_depth_test: accepted zero depth\n");
+		goto out;
+	}
+	destroy_queue();
+	if (init_queue(2)) {
+		fprintf(stderr,
+			"invalid_depth_test: valid initialization failed\n");
+		goto out;
+	}
+
+	e = make_event("valid-after-zero");
+	if (e == NULL || enqueue(e, &conf)) {
+		fprintf(stderr, "invalid_depth_test: enqueue failed\n");
+		goto out_q;
+	}
+	e = dequeue();
+	if (e == NULL || strcmp(e->data, "valid-after-zero") != 0) {
+		fprintf(stderr, "invalid_depth_test: dequeue failed\n");
+		free(e);
+		goto out_q;
+	}
+	free(e);
+	rc = 0;
+out_q:
+	destroy_queue();
+out:
+	return rc;
+}
+
 struct prod_arg {
 	const char **lines;
 	int count;
@@ -463,6 +502,8 @@ int main(void)
 	snprintf(path, sizeof(path), "%s/../../auparse/test/test3.log", srcdir);
 
 	if (basic_test(path))
+		return 1;
+	if (invalid_depth_test())
 		return 1;
 	if (resize_wrap_test())
 		return 1;

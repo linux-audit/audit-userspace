@@ -100,6 +100,7 @@ static ATOMIC_UNSIGNED q_depth, overflowed;
 static ATOMIC_UNSIGNED processing_suspended;
 static ATOMIC_UNSIGNED enqueue_in_progress;
 static ATOMIC_UNSIGNED currently_used, max_used;
+static ATOMIC_UNSIGNED queue_initialized;
 static int queue_full_warning = 0;
 static int persist_fd = -1;
 static int persist_sync = 0;
@@ -203,28 +204,30 @@ static int queue_load_file(int fd)
 
 int init_queue_extended(unsigned int size, int flags, const char *path)
 {
+	int new_queue = 0;
+
+	if (size == 0) {
+		errno = EINVAL;
+		return -1;
+	}
+
 	// The global variables are initialized to zero by the
 	// compiler. We can sometimes get here by a reconfigure.
-	// If the queue was already initialized, q_depth will be
-	// non-zero. In that case, leave everything alone. If the
-	// queue was destroyed due to lack of plugins, q_depth,
-	// as well as other queue variables, is set to zero so
-	// they do not need reinitializing.
-	if (AUDIT_ATOMIC_LOAD(q_depth) == 0) {
-		unsigned int i;
+	// If the queue was already initialized, leave everything alone.
+	// If the queue was destroyed due to lack of plugins, its state
+	// has been reset and the IPC objects need reinitializing.
+	if (!AUDIT_ATOMIC_LOAD(queue_initialized)) {
+		volatile event_t **new_q;
 
-		AUDIT_ATOMIC_STORE(q_depth, size);
-		q = malloc(AUDIT_ATOMIC_LOAD(q_depth) * sizeof(event_t *));
-		if (q == NULL) {
-			AUDIT_ATOMIC_STORE(processing_suspended, 1);
+		new_q = calloc(size, sizeof(event_t *));
+		if (new_q == NULL)
+			return -1;
+
+		/* Setup IPC mechanisms before publishing the ring. */
+		if (sem_init(&queue_nonempty, 0, 0) != 0) {
+			free((void *)new_q);
 			return -1;
 		}
-
-		for (i=0; i < AUDIT_ATOMIC_LOAD(q_depth); i++)
-			q[i] = NULL;
-
-		/* Setup IPC mechanisms */
-		sem_init(&queue_nonempty, 0, 0);
 #ifdef HAVE_ATOMIC
 		atomic_init(&q_next, 0);
 		atomic_init(&q_last, 0);
@@ -234,6 +237,10 @@ int init_queue_extended(unsigned int size, int flags, const char *path)
 		q_last = 0;
 		enqueue_in_progress = 0;
 #endif
+		q = new_q;
+		AUDIT_ATOMIC_STORE(q_depth, size);
+		AUDIT_ATOMIC_STORE(queue_initialized, 1);
+		new_queue = 1;
 		reset_suspended();
 	}
 	if (flags & Q_IN_FILE) {
@@ -243,10 +250,19 @@ int init_queue_extended(unsigned int size, int flags, const char *path)
 		if (flags & Q_EXCL)
 			oflag |= O_EXCL;
 		persist_fd = open(path, oflag, 0600);
-		if (persist_fd < 0)
+		if (persist_fd < 0) {
+			if (new_queue)
+				destroy_queue();
 			return -1;
+		}
 		persist_sync = (flags & Q_SYNC) ? 1 : 0;
-		queue_load_file(persist_fd);
+		if (queue_load_file(persist_fd) != 0) {
+			close(persist_fd);
+			persist_fd = -1;
+			if (new_queue)
+				destroy_queue();
+			return -1;
+		}
 	}
 	return 0;
 }
@@ -308,6 +324,12 @@ static int do_overflow_action(struct disp_conf *config)
 int enqueue(event_t *e, struct disp_conf *config)
 {
 	unsigned int n, retry_cnt = 0;
+
+	if (!AUDIT_ATOMIC_LOAD(queue_initialized)) {
+		free(e);
+		errno = ESHUTDOWN;
+		return -1;
+	}
 
 	/*
 	 * First half of the producer/resizer handshake: publish that enqueue()
@@ -420,7 +442,8 @@ static event_t *dequeue_common(void)
 	event_t *e;
 	unsigned int n;
 
-	if (AUDIT_ATOMIC_LOAD(disp_hup))
+	if (!AUDIT_ATOMIC_LOAD(queue_initialized) ||
+	    AUDIT_ATOMIC_LOAD(disp_hup))
 		return NULL;
 
 #ifdef HAVE_ATOMIC
@@ -460,6 +483,9 @@ static event_t *dequeue_common(void)
 
 event_t *dequeue(void)
 {
+	if (!AUDIT_ATOMIC_LOAD(queue_initialized))
+		return NULL;
+
 	/* Wait until there is something in the queue */
 	while (sem_wait(&queue_nonempty) == -1 && errno == EINTR)
 		;
@@ -470,6 +496,9 @@ event_t *dequeue(void)
 event_t *dequeue_timed(const struct timespec *timeout)
 {
 	int result;
+
+	if (!AUDIT_ATOMIC_LOAD(queue_initialized))
+		return NULL;
 
 	/* Wait until there is something in the queue */
 	while ((result = sem_timedwait(&queue_nonempty, timeout)) == -1 &&
@@ -484,12 +513,14 @@ event_t *dequeue_timed(const struct timespec *timeout)
 
 void nudge_queue(void)
 {
-	sem_post(&queue_nonempty);
+	if (AUDIT_ATOMIC_LOAD(queue_initialized))
+		sem_post(&queue_nonempty);
 }
 
 void increase_queue_depth(unsigned int size)
 {
-	if (size > AUDIT_ATOMIC_LOAD(q_depth)) {
+	if (AUDIT_ATOMIC_LOAD(queue_initialized) &&
+	    size > AUDIT_ATOMIC_LOAD(q_depth)) {
 		volatile event_t **tmp_q;
 		unsigned int count, i, old_depth, old_last;
 
@@ -597,10 +628,14 @@ void destroy_queue(void)
 {
 	unsigned int i;
 
+	if (!AUDIT_ATOMIC_LOAD(queue_initialized))
+		return;
+
 	for (i=0; i<AUDIT_ATOMIC_LOAD(q_depth); i++)
 		free((void *)q[i]);
 
 	free(q);
+	q = NULL;
 	sem_destroy(&queue_nonempty);
 	if (persist_fd >= 0) {
 		if (AUDIT_ATOMIC_LOAD(currently_used) == 0) {
@@ -613,6 +648,7 @@ void destroy_queue(void)
 		close(persist_fd);
 		persist_fd = -1;
 	}
+	persist_sync = 0;
 #ifdef HAVE_ATOMIC
 	/*
 	* Queue teardown is single threaded and no longer interacts with the
@@ -632,6 +668,7 @@ void destroy_queue(void)
 	AUDIT_ATOMIC_STORE(currently_used, 0);
 	AUDIT_ATOMIC_STORE(max_used, 0);
 	AUDIT_ATOMIC_STORE(overflowed, 0);
+	AUDIT_ATOMIC_STORE(queue_initialized, 0);
 }
 
 unsigned int queue_current_depth(void)

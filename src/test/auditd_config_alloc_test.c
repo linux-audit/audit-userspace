@@ -155,6 +155,20 @@ static void test_set_config_dir_preserves_old_value(void)
 	config_file = NULL;
 }
 
+static void test_q_depth_parser_rejects_zero(void)
+{
+	struct daemon_conf config;
+	struct nv_pair nv = { "q_depth", "0", NULL };
+
+	memset(&config, 0, sizeof(config));
+	assert(q_depth_parser(&nv, 1, &config) == 1);
+	assert(config.q_depth == 0);
+
+	nv.value = "1";
+	assert(q_depth_parser(&nv, 1, &config) == 0);
+	assert(config.q_depth == 1);
+}
+
 #ifdef HAVE_TLS
 /*
  * clear_sane_config - reset config and satisfy non-TLS sanity defaults
@@ -316,6 +330,7 @@ int main(void)
 	test_name_preserves_old_value();
 	test_log_file_preserves_old_value();
 	test_set_config_dir_preserves_old_value();
+	test_q_depth_parser_rejects_zero();
 #ifdef HAVE_TLS
 	test_tls_auth_parser();
 	test_tls_crypto_profile_parser();
