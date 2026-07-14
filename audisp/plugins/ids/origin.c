@@ -22,8 +22,14 @@ static origin_data_t *cur = NULL;
 
 static int cmp_origins(void *a, void *b)
 {
-	return (((origin_data_t *)a)->address - 
-			((origin_data_t *)b)->address);
+	const origin_data_t *left = a;
+	const origin_data_t *right = b;
+
+	if (left->address < right->address)
+		return -1;
+	if (left->address > right->address)
+		return 1;
+	return 0;
 }
 
 void init_origins(void)

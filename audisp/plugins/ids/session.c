@@ -27,8 +27,14 @@ static session_data_t *cur = NULL;
 
 static int cmp_sessions(void *a, void *b)
 {
-	return (((session_data_t *)a)->session - 
-			((session_data_t *)b)->session);
+	const session_data_t *left = a;
+	const session_data_t *right = b;
+
+	if (left->session < right->session)
+		return -1;
+	if (left->session > right->session)
+		return 1;
+	return 0;
 }
 
 void init_sessions(void)
