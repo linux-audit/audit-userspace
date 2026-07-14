@@ -766,12 +766,16 @@ static int recv_token(int s, gss_buffer_t tok)
 	unsigned char lenbuf[4];
 	unsigned int len;
 
+	/* Callers may clean up this buffer on every error path. */
+	tok->length = 0;
+	tok->value = NULL;
+
 	ret = ar_read(s, (char *) lenbuf, 4);
 	if (ret < 0) {
 		syslog(LOG_ERR, "GSS-API error reading token length");
 		return -1;
 	} else if (!ret) {
-		return 0;
+		return -1;
 	} else if (ret != 4) {
 		syslog(LOG_ERR, "GSS-API error reading token length");
 		return -1;
@@ -792,6 +796,7 @@ static int recv_token(int s, gss_buffer_t tok)
 	if (tok->length && tok->value == NULL) {
 		syslog(LOG_ERR, "Out of memory allocating token data %zd %zx",
 				tok->length, tok->length);
+		tok->length = 0;
 		return -1;
 	}
 
@@ -799,10 +804,14 @@ static int recv_token(int s, gss_buffer_t tok)
 	if (ret < 0) {
 		syslog(LOG_ERR, "GSS-API error reading token data");
 		free(tok->value);
+		tok->value = NULL;
+		tok->length = 0;
 		return -1;
 	} else if (ret != (int) tok->length) {
 		syslog(LOG_ERR, "GSS-API error reading token data");
 		free(tok->value);
+		tok->value = NULL;
+		tok->length = 0;
 		return -1;
 	}
 
