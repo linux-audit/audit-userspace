@@ -102,7 +102,7 @@ static int safe_exec(const char *exe, ...)
 
 	execve(exe, argv, NULL);
 	syslog(LOG_ALERT, "Audit IDS failed to exec %s", exe);
-	exit(1);
+	_exit(EXIT_FAILURE); // Avoid running the atexit handlers.
 }
 
 static void minipause(void)

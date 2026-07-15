@@ -262,6 +262,6 @@ void change_runlevel(const char *level)
 	argv[2] = NULL;
 	execve(init_pgm, argv, NULL);
 	audit_msg(LOG_ALERT, "%s failed to exec %s", get_progname(), init_pgm);
-	exit(1);
+	_exit(EXIT_FAILURE); // Avoid running the atexit handlers.
 }
 
