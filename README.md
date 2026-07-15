@@ -32,6 +32,7 @@ an init script for OpenRC.
 * swig             (python bindings)
 * openldap-devel   (zos-remote logging)
 * golang           (golang bindings)
+* openssl          (tls remote logging)
 
 ## SUPPORTED ARCHITECTURES
 * AARCH64
@@ -53,7 +54,8 @@ To build from the repo after cloning and installing dependencies:
 cd audit
 autoreconf -f --install
 ./configure --with-python3=yes --enable-gssapi-krb5=yes --with-arm \
-    --with-aarch64 --with-libcap-ng=yes --without-golang --with-io_uring
+    --with-aarch64 --with-libcap-ng=yes --without-golang --with-io_uring \
+    --enable-tls
 make
 make install
 ```

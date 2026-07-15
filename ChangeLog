@@ -1,4 +1,4 @@
-4.1.5
+4.2
 - Put the bash completions in /usr/share/bash-completion/completions/
 - Add KillMode=mixed to the auditd unit file (Issue 272)
 - Update perm table to add syscalls to it
