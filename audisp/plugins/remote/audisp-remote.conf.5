@@ -256,7 +256,7 @@ The identity string sent to the server during TLS-PSK authentication. This optio
 is set. The identity must contain only printable ASCII characters (no spaces or control characters) and must not exceed 255 bytes. There is no default.
 .TP
 .I tls_cipher_suites
-Colon-separated list of TLS 1.3 cipher suites. Overrides the profile default. The default is "TLS_AES_128_GCM_SHA256:TLS_CHACHA20_POLY1305_SHA256:TLS_AES_256_GCM_SHA384".
+Colon-separated list of TLS 1.3 cipher suites. Overrides the profile default. The default is "TLS_AES_128_GCM_SHA256:\:TLS_CHACHA20_POLY1305_SHA256:\:TLS_AES_256_GCM_SHA384".
 .TP
 .I tls_key_exchange
 Colon-separated list of key exchange groups. Overrides the profile default. PQC hybrid key exchange increases the TLS ClientHello size by approximately 1120 bytes.

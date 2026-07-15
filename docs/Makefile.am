@@ -26,6 +26,8 @@ CONFIG_CLEAN_FILES = *.rej *.orig
 EXTRA_DIST = $(man_MANS)
 dist_check_SCRIPTS = check-manpages.sh
 TESTS = check-manpages.sh
+TESTS_ENVIRONMENT = top_srcdir='$(top_srcdir)' \
+	top_builddir='$(top_builddir)'
 
 man_MANS = audit_add_rule_data.3 audit_add_watch.3 auditctl.8 auditd.8 \
 auditd.conf.5 auditd-plugins.5 \

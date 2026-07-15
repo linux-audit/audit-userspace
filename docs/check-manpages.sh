@@ -1,21 +1,14 @@
 #!/bin/sh
 #
-# Check every manual page source in this directory with groff warnings enabled.
+# Check every manual page source in the repository with groff warnings enabled.
 # man exits successfully for formatter warnings, so stderr is treated as a
 # test failure.
 
 set -u
 
 : "${MAN:=man}"
-: "${srcdir:=.}"
-
-if test "$srcdir" = "."; then
-	case "$0" in
-	*/*)
-		srcdir=${0%/*}
-		;;
-	esac
-fi
+: "${top_srcdir:=${top_builddir:-..}}"
+: "${top_builddir:=$top_srcdir}"
 
 if ! command -v "$MAN" >/dev/null 2>&1; then
 	echo "SKIP: man command not found"
@@ -36,9 +29,21 @@ fi
 
 failed=0
 found=0
+page_list=$(mktemp "${TMPDIR:-/tmp}/audit-manpages.XXXXXX") || exit 1
+trap 'rm -f "$page_list"' EXIT HUP INT TERM
 
-for page in "$srcdir"/*.[0-9]; do
-	test -e "$page" || continue
+find "$top_srcdir" \
+	-type d \( -name .git -o -name .libs -o -name autom4te.cache \) \
+	-prune -o -type f -name '*.[1-9]' -print > "$page_list" || exit 1
+if test "$top_builddir" != "$top_srcdir"; then
+	find "$top_builddir" \
+		-type d \( -name .git -o -name .libs -o -name autom4te.cache \) \
+		-prune -o -type f -name '*.[1-9]' -print \
+		>> "$page_list" || exit 1
+fi
+sort -u "$page_list" -o "$page_list" || exit 1
+
+while IFS= read -r page; do
 	found=1
 
 	output=$(
@@ -58,7 +63,7 @@ for page in "$srcdir"/*.[0-9]; do
 			echo "man exited with status $status"
 		fi
 	fi
-done
+done < "$page_list"
 
 if test $found -eq 0; then
 	echo "No manual pages found"
