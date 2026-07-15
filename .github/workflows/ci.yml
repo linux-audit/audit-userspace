@@ -32,7 +32,8 @@ jobs:
             libkrb5-dev \
             libcap-ng-dev \
             python3-dev swig \
-            libldap-dev
+            libldap-dev \
+            libssl-dev
 
       - name: Install dependencies (Fedora)
         if: matrix.container == 'fedora:latest'
@@ -44,7 +45,8 @@ jobs:
             krb5-devel \
             libcap-ng-devel \
             python3-devel python-unversioned-command swig \
-            openldap-devel
+            openldap-devel \
+            openssl-devel
 
       - name: Set compiler
         run: |
@@ -56,7 +58,7 @@ jobs:
           ./configure --with-python3=yes --enable-gssapi-krb5=yes \
             --with-arm --with-aarch64 --with-libcap-ng=yes \
             --without-golang --enable-zos-remote \
-            --enable-experimental --with-io_uring
+            --enable-experimental --with-io_uring --enable-tls
           make -j$(nproc)
 
       - name: Run tests
