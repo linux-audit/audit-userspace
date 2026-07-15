@@ -25,7 +25,7 @@ If set to
 .IR TCP ,
 the remote logging app will just make a normal clear text connection to the remote system. If set to
 .IR TLS ,
-the connection will be encrypted using TLS 1.3 with post-quantum hybrid key exchange. This requires either a pre-shared key (tls_psk_file) or certificates (tls_cert_file + tls_key_file) to be configured. Note that TLS transport requires format=managed; the ascii format does not support TLS encryption. If set to
+the connection will be encrypted using TLS 1.3 with post-quantum hybrid key exchange. This requires a pre-shared key (tls_psk_file) to be configured. Note that TLS transport requires format=managed; the ascii format does not support TLS encryption. If set to
 .IR KRB5 ",
 then Kerberos 5 will be used for authentication and encryption. The default value is TCP.
 .TP
@@ -220,15 +220,6 @@ Note that the key file must be owned by root and mode 0400.
 The default is
 .I /etc/audisp/audisp-remote.key
 .TP
-.I tls_cert_file
-Path to the client TLS certificate in PEM format. The file may contain the full certificate chain (leaf certificate followed by intermediate CA certificates). Used for certificate-based mutual TLS authentication. Either this (with tls_key_file) or tls_psk_file must be configured when transport is TLS. PSK and certificate authentication are mutually exclusive.
-.TP
-.I tls_key_file
-Path to the client TLS private key in PEM format. The file must be owned by root and mode 0400.
-.TP
-.I tls_ca_file
-Path to the CA certificate used to verify the remote server's TLS certificate. When set, server certificate verification is enabled using this CA. When not set in certificate mode (not PSK-only), the system CA store is used for server verification. In PSK-only mode without tls_ca_file, server certificate verification is skipped since PSK provides mutual authentication.
-.TP
 .I tls_auth
 The TLS authentication mode. Currently only
 .I psk
@@ -269,7 +260,7 @@ sets tls_crypto_profile to pqc. If set to
 has no effect on tls_crypto_profile. New configurations should use tls_crypto_profile directly.
 
 .SH "NOTES"
-Changes to TLS configuration options (tls_cert_file, tls_key_file, tls_ca_file, tls_psk_file, tls_psk_identity, tls_cipher_suites, tls_key_exchange, tls_require_pqc, tls_auth, tls_crypto_profile) in the configuration file are not re-read on SIGHUP. However, SIGHUP destroys the current TLS context and forces a full reconnection with a new context built from the current (unchanged) configuration. Because the PSK key file is re-read from disk during context creation, rotating the key file contents followed by SIGHUP will activate the new key.
+Changes to TLS configuration options (tls_psk_file, tls_psk_identity, tls_cipher_suites, tls_key_exchange, tls_require_pqc, tls_auth, tls_crypto_profile) in the configuration file are not re-read on SIGHUP. However, SIGHUP destroys the current TLS context and forces a full reconnection with a new context built from the current (unchanged) configuration. Because the PSK key file is re-read from disk during context creation, rotating the key file contents followed by SIGHUP will activate the new key.
 
 Specifying a local port may make it difficult to restart the audit
 subsystem due to the previous connection being in a TIME_WAIT state,

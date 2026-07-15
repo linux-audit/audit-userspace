@@ -984,37 +984,12 @@ static int sanity_check(remote_conf_t *config, const char *file)
 	}
 #ifdef HAVE_TLS
 	if (config->transport == T_TLS) {
-		int have_psk, have_cert;
-		if ((config->tls_cert_file != NULL) !=
-		    (config->tls_key_file != NULL)) {
+		if (config->tls_psk_file == NULL) {
 			syslog(LOG_ERR,
-				"tls_cert_file and tls_key_file must "
-				"both be set or both be unset");
+				"transport=tls requires tls_psk_file");
 			return 1;
 		}
-		have_psk = config->tls_psk_file != NULL;
-		have_cert = config->tls_cert_file != NULL &&
-				config->tls_key_file != NULL;
-		if (have_psk && have_cert) {
-			syslog(LOG_ERR,
-				"tls_psk_file and tls_cert_file are "
-				"mutually exclusive");
-			return 1;
-		}
-		if (config->tls_auth == TLS_AUTH_PSK && !have_psk) {
-			syslog(LOG_ERR,
-				"tls_auth=psk requires tls_psk_file; "
-				"certificate-based TLS is not supported "
-				"in this tech preview");
-			return 1;
-		}
-		if (!have_psk && !have_cert) {
-			syslog(LOG_ERR,
-				"transport=tls requires tls_psk_file or "
-				"tls_cert_file+tls_key_file");
-			return 1;
-		}
-		if (have_psk && !config->tls_psk_identity) {
+		if (!config->tls_psk_identity) {
 			syslog(LOG_ERR,
 				"tls_psk_identity is required when "
 				"tls_psk_file is set");
