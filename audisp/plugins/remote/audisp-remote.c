@@ -327,7 +327,7 @@ static void safe_exec(const char *exe, const char *message)
 	argv[2] = NULL;
 	execve(exe, argv, NULL);
 	syslog(LOG_ALERT, "audisp-remote failed to exec %s", exe);
-	exit(1);
+	_exit(EXIT_FAILURE); // Avoid running the atexit handlers.
 }
 
 static int do_action (const char *desc, const char *message,

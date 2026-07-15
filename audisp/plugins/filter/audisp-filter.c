@@ -514,13 +514,13 @@ int main(int argc, const char* argv[])
 		    config.binary_args[0] == NULL) {
 			syslog(LOG_ERR,
 			       "audisp-filter: missing child command");
-			exit(1);
+			_exit(EXIT_FAILURE); // Avoid running the atexit handlers.
 		}
 
 		execve(config.binary, config.binary_args, NULL);
 		syslog(LOG_ERR, "audisp-filter: execve failed (%s)",
 		       strerror(errno));
-		exit(1);
+		_exit(EXIT_FAILURE); // Avoid running the atexit handlers.
 	} else {
 		/* Parent reads input and forwards data after filters have been applied
 		 */
