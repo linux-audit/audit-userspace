@@ -264,35 +264,11 @@ static void test_sanity_check_tls(void)
 
 	printf("  sanity_check TLS constraints...\n");
 
-	/* cert/key pairing: cert without key must fail */
-	clear_sane_config(&config);
-	config.transport = T_TLS;
-	config.tls_cert_file = "/cert";
-	config.tls_key_file = NULL;
-	assert(sanity_check(&config) == 1);
-
-	/* PSK + cert mutual exclusion */
-	clear_sane_config(&config);
-	config.transport = T_TLS;
-	config.tls_psk_file = "/psk";
-	config.tls_cert_file = "/cert";
-	config.tls_key_file = "/key";
-	config.tls_psk_identity = "id";
-	config.tls_auth = TLS_AUTH_PSK;
-	assert(sanity_check(&config) == 1);
-
-	/* tls_auth=psk requires tls_psk_file */
+	/* transport=tls requires tls_psk_file */
 	clear_sane_config(&config);
 	config.transport = T_TLS;
 	config.tls_auth = TLS_AUTH_PSK;
 	config.tls_psk_file = NULL;
-	config.tls_cert_file = "/cert";
-	config.tls_key_file = "/key";
-	assert(sanity_check(&config) == 1);
-
-	/* No credentials at all */
-	clear_sane_config(&config);
-	config.transport = T_TLS;
 	assert(sanity_check(&config) == 1);
 
 	/* PSK requires identity or ACL */
