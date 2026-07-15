@@ -112,6 +112,5 @@ static int safe_popen(pid_t *pid, const char *mail_acct)
 	argv[3] = NULL;
 	execve(email_command, argv, NULL);
 	audit_msg(LOG_ALERT, "Audit daemon failed to exec %s", email_command);
-	exit(1);
+	_exit(EXIT_FAILURE); // Avoid running the atexit handlers
 }
-
