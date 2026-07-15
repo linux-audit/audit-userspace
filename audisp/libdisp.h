@@ -15,7 +15,7 @@ typedef struct event
 int libdisp_init(const struct daemon_conf *config);
 void libdisp_shutdown(void);
 void libdisp_reconfigure(const struct daemon_conf *config);
-void plugin_child_handler(pid_t pid);
+void libdisp_child_changed(void);
 int libdisp_enqueue(event_t *e);
 int libdisp_active(void);
 void libdisp_nudge_queue(void);

@@ -33,7 +33,6 @@
 #include <sys/resource.h>
 #include <sys/time.h>
 #include <sys/stat.h>
-#include <sys/wait.h>
 #include <sys/socket.h>
 #include <linux/netlink.h>
 #include <fcntl.h>
@@ -46,6 +45,7 @@
 
 #include "libaudit.h"
 #include "auditd-event.h"
+#include "auditd-children.h"
 #include "auditd-config.h"
 #include "auditd-dispatch.h"
 #include "auditd-listen.h"
@@ -189,22 +189,16 @@ static void user2_handler( struct ev_loop *loop, struct ev_signal *sig, int reve
 /*
  * Reap children started by auditd.
  *
- * The max_log_file_action helper is the only child whose completion resumes
- * audit logging. Plugin children are reaped here to avoid zombies, but plugin
- * restart and shutdown are handled by the dispatcher during normal event
- * processing.
+ * Action helpers and dispatcher plugins have separate owners. The audit event
+ * code reaps its tracked helpers, while the dispatcher is nudged to reap only
+ * the plugin PIDs in its configuration. Do not use waitpid(-1) here: reaping
+ * a plugin outside the dispatcher would make its configured PID reusable.
  */
 static void child_handler(struct ev_loop *loop, struct ev_signal *sig,
 			int revents)
 {
-	int pid;
-
-	while ((pid = waitpid(-1, NULL, WNOHANG)) > 0) {
-		if (pid == auditd_get_exec_pid()) {
-			resume_logging();
-			auditd_clear_exec_pid();
-		}
-	}
+	auditd_reap_children();
+	libdisp_child_changed();
 }
 
 #ifdef HAVE_MALLINFO2

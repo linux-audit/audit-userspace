@@ -49,9 +49,11 @@
 #ifdef HAVE_ATOMIC
 static ATOMIC_INT stop = 0;
 ATOMIC_INT disp_hup = 0;
+static ATOMIC_INT plugin_child_pending = 0;
 #else
 static volatile ATOMIC_INT stop = 0;
 volatile ATOMIC_INT disp_hup = 0;
+static volatile ATOMIC_INT plugin_child_pending = 0;
 #endif
 
 /* Local data */
@@ -64,10 +66,13 @@ static int need_queue_depth_change = 0;
 static int saved_need_queue_depth_change = 0;
 
 /* Local function prototypes */
-static void signal_plugins(int sig);
 static int event_loop(void);
 static int safe_exec(plugin_conf_t *conf);
 static void *outbound_thread_main(void *arg);
+static void reap_plugin_children(void);
+static int stop_plugin(plugin_conf_t *conf);
+static int stop_plugins(void);
+static void free_plugin_list(conf_llist *list);
 static int write_all(int fd, const void *buf, size_t len)
 	__attr_access ((__read_only__, 2, 3));
 static int write_to_plugin(event_t *e, const char *string, size_t string_len,
@@ -135,23 +140,120 @@ static void restore_daemon_config(void)
 }
 
 /*
- * Handle child plugins when they exit
+ * Report a possible plugin exit to the dispatcher worker.
+ * Returns nothing. The worker owns waitpid() and all plugin PID state.
  */
-void plugin_child_handler(pid_t pid)
+void libdisp_child_changed(void)
 {
-	if (pid > 0) {
-		// Mark the child pid as 0 in the configs
-		lnode *tpconf;
-		plist_first(&plugin_conf);
-		tpconf = plist_get_cur(&plugin_conf);
-		while (tpconf) {
-			if (tpconf->p && tpconf->p->pid == pid) {
-				tpconf->p->pid = 0;
-				break;
-			}
-			tpconf = plist_next(&plugin_conf);
-		}
+#ifdef HAVE_ATOMIC
+	atomic_store_explicit(&plugin_child_pending, 1, memory_order_relaxed);
+#else
+	__atomic_store_n(&plugin_child_pending, 1, __ATOMIC_RELAXED);
+#endif
+	nudge_queue();
+}
+
+/*
+ * Plugin child ownership and replacement contract
+ * ------------------------------------------------
+ * The dispatcher worker is the only code that reaps plugin children or
+ * changes plugin_conf->pid. auditd's SIGCHLD callback only sets the atomic
+ * notification above. Since a plugin normally has external side effects,
+ * such as delivering to syslog, an AF_UNIX listener, the SELinux
+ * troubleshooter, or a remote collector, two generations of the same plugin
+ * must never run at once. Keep the old PID in its original plugin_conf until
+ * exact-PID waitpid() confirms that it is gone; only then may reconfiguration
+ * or automatic restart start its replacement.
+ * Reconfiguration is therefore a generation barrier: queued events remain
+ * in the dispatcher while every child from the old list stops, then the old
+ * list is freed and the complete new list is started.
+ *
+ * Besides preserving event order, leaving an exited child waitable prevents
+ * its PID from being reused before the dispatcher clears plugin_conf->pid.
+ * Plugin installations normally contain zero, one, or two entries, so an
+ * exact-PID scan of the existing list is deliberately preferred over more
+ * child-tracking state or cross-thread locking.
+ * A plugin that ignores both EOF and SIGTERM blocks replacement rather than
+ * allowing two generations to overlap.
+ */
+
+/*
+ * Reap a tracked plugin child if it has exited.
+ * @pid: PID owned by the dispatcher
+ *
+ * Returns 1 after reaping it or observing ECHILD, 0 for a running child,
+ * and -1 on other errors.
+ */
+static int reap_plugin_child(pid_t pid)
+{
+	pid_t rc;
+
+	do {
+		rc = waitpid(pid, NULL, WNOHANG);
+	} while (rc < 0 && errno == EINTR);
+	if (rc == 0)
+		return 0;
+	if (rc == pid || (rc < 0 && errno == ECHILD))
+		return 1;
+	return -1;
+}
+
+/*
+ * Reap exited plugin children from the original configuration list.
+ * Returns nothing. Direct link traversal preserves plugin_conf's cursor.
+ */
+static void reap_plugin_children(void)
+{
+	lnode *conf;
+
+	AUDIT_ATOMIC_STORE(plugin_child_pending, 0);
+	for (conf = plugin_conf.head; conf; conf = conf->next) {
+		if (conf->p && conf->p->pid > 0 &&
+		    reap_plugin_child(conf->p->pid) > 0)
+			conf->p->pid = 0;
 	}
+}
+
+/*
+ * Stop and reap one plugin before its configuration is replaced or freed.
+ * @conf: plugin configuration that owns the child
+ *
+ * Closing the input first gives the plugin a chance to consume data already
+ * written to its socket. If it does not exit on EOF, SIGTERM requests the
+ * plugin's normal shutdown. Returns 0 after reaping it and 1 on error.
+ */
+static int stop_plugin(plugin_conf_t *conf)
+{
+	int state;
+	pid_t pid = conf->pid;
+	pid_t rc;
+
+	if (conf->plug_pipe[1] >= 0) {
+		close(conf->plug_pipe[1]);
+		conf->plug_pipe[1] = -1;
+	}
+	if (pid <= 0)
+		return 0;
+
+	/* Let EOF terminate a cooperative plugin before signalling it. */
+	usleep(50000);
+	state = reap_plugin_child(pid);
+	if (state > 0) {
+		conf->pid = 0;
+		return 0;
+	}
+	if (state < 0)
+		return 1;
+
+	if (kill(pid, SIGTERM) != 0 && errno != ESRCH)
+		return 1;
+	do {
+		rc = waitpid(pid, NULL, 0);
+	} while (rc < 0 && errno == EINTR);
+	if (rc != pid && !(rc < 0 && errno == ECHILD))
+		return 1;
+	conf->pid = 0;
+	return 0;
 }
 
 static int count_dots(const char *s)
@@ -227,6 +329,19 @@ static int load_plugin_conf(conf_llist *plugin)
 	} else
 		failures = 1;
 	return failures;
+}
+
+/*
+ * Free every configuration and node in a plugin list.
+ * Returns nothing.
+ */
+static void free_plugin_list(conf_llist *list)
+{
+	lnode *conf;
+
+	for (conf = list->head; conf; conf = conf->next)
+		free_pconfig(conf->p);
+	plist_clear(list);
 }
 
 static int start_one_plugin(lnode *conf)
@@ -306,35 +421,14 @@ static int copy_config(const struct daemon_conf *c)
 static int reconfigure(void)
 {
 	conf_llist tmp_plugin;
-	lnode *tpconf;
+	int active;
 
-	/*
-	 * reconfigure() executes on the dispatcher thread after the event
-	 * loop returns.  No other thread walks plugin_conf while this runs,
-	 * so we can rebuild the list in place without additional locking.
-	 */
-
-	/* The idea for handling SIGHUP to children goes like this:
-	 * 1) load the current config in temp list
-	 * 2) mark all in real list unchecked
-	 * 3) for each one in tmp list, scan old list
-	 * 4) if new, start it, append to list, mark done
-	 * 5) else check if there was a change to active state
-	 * 6) if so, copy config over and start
-	 * 7) If no change, send sighup to non-builtins and mark done
-	 * 8) Finally, scan real list for unchecked, terminate and deactivate
-	 */
+	reap_plugin_children();
 	if (load_plugin_conf(&tmp_plugin)) {
 		audit_msg(LOG_ERR,
 			"Plugin configuration reload failed, keeping old state");
 		restore_daemon_config();
-		plist_first(&tmp_plugin);
-		tpconf = plist_get_cur(&tmp_plugin);
-		while (tpconf) {
-			free_pconfig(tpconf->p);
-			tpconf = plist_next(&tmp_plugin);
-		}
-		plist_clear(&tmp_plugin);
+		free_plugin_list(&tmp_plugin);
 		return plist_count_active(&plugin_conf);
 	}
 	discard_saved_daemon_config();
@@ -343,98 +437,18 @@ static int reconfigure(void)
 		increase_queue_depth(daemon_config.q_depth);
 	}
 	reset_suspended();
-	plist_mark_all_unchecked(&plugin_conf);
 
-	plist_first(&tmp_plugin);
-	tpconf = plist_get_cur(&tmp_plugin);
-	while (tpconf && tpconf->p) {
-		lnode *opconf;
-
-		opconf = plist_find_name(&plugin_conf, tpconf->p->name);
-		if (opconf == NULL) {
-			/* We have a new service */
-			if (tpconf->p->active == A_YES) {
-				tpconf->p->checked = 1;
-				plist_last(&plugin_conf);
-				if (plist_append(&plugin_conf,
-						tpconf->p) != 0) {
-					audit_msg(LOG_ERR,
-						"Failed adding %s plugin to list",
-						tpconf->p->name);
-					free(tpconf->p);
-				} else {
-					free(tpconf->p);
-					start_one_plugin(plist_get_cur(&plugin_conf));
-				}
-				tpconf->p = NULL;
-			}
-		} else {
-			if (opconf->p->active == tpconf->p->active) {
-				/* If active and no state change, sighup it */
-				if (opconf->p->type == S_ALWAYS &&
-						opconf->p->active == A_YES) {
-					if (opconf->p->inode==tpconf->p->inode){
-						if (opconf->p->pid)
-						  kill(opconf->p->pid, SIGHUP);
-					} else {
-						/* Binary changed, restart */
-						audit_msg(LOG_INFO,
-					"Restarting %s since binary changed",
-							opconf->p->path);
-						if (opconf->p->pid)
-						  kill(opconf->p->pid, SIGTERM);
-						usleep(50000); // 50 msecs
-						close(opconf->p->plug_pipe[1]);
-						opconf->p->plug_pipe[1] = -1;
-						opconf->p->pid = 0;
-						start_one_plugin(opconf);
-						opconf->p->inode =
-							tpconf->p->inode;
-					}
-				}
-				opconf->p->checked = 1;
-			} else {
-				/* A change in state */
-				if (tpconf->p->active == A_YES) {
-					/* starting - copy config and exec */
-					free_pconfig(opconf->p);
-					free(opconf->p);
-					opconf->p = tpconf->p;
-					opconf->p->checked = 1;
-					start_one_plugin(opconf);
-					tpconf->p = NULL;
-				}
-			}
-		}
-
-		tpconf = plist_next(&tmp_plugin);
+	/* The old generation must be gone before the new list is installed. */
+	if (stop_plugins()) {
+		audit_msg(LOG_ERR,
+			  "Cannot stop old plugin generation, disabling plugins");
+		free_plugin_list(&tmp_plugin);
+		return 0;
 	}
-
-	/* Now see what's left over */
-	while ( (tpconf = plist_find_unchecked(&plugin_conf)) ) {
-		/* Anything not checked is something removed from the config */
-		tpconf->p->active = A_NO;
-		audit_msg(LOG_INFO, "Terminating %s because its now inactive",
-				tpconf->p->path);
-		if (tpconf->p->type == S_ALWAYS) {
-			if (tpconf->p->pid)
-				kill(tpconf->p->pid, SIGTERM);
-			close(tpconf->p->plug_pipe[1]);
-		}
-		tpconf->p->plug_pipe[1] = -1;
-		tpconf->p->pid = 0;
-		tpconf->p->checked = 1;
-	}
-
-	/* Release memory from temp config */
-	plist_first(&tmp_plugin);
-	tpconf = plist_get_cur(&tmp_plugin);
-	while (tpconf) {
-		free_pconfig(tpconf->p);
-		tpconf = plist_next(&tmp_plugin);
-	}
-	plist_clear(&tmp_plugin);
-	return plist_count_active(&plugin_conf);
+	free_plugin_list(&plugin_conf);
+	plugin_conf = tmp_plugin;
+	active = start_plugins(&plugin_conf);
+	return active;
 }
 
 /*
@@ -485,7 +499,6 @@ int libdisp_init(const struct daemon_conf *c)
 /* outbound thread - dequeue data to plugins */
 static void *outbound_thread_main(void *arg)
 {
-	lnode *conf;
 	sigset_t sigs;
 
 	/* This is a worker thread. Don't handle signals. */
@@ -508,18 +521,9 @@ static void *outbound_thread_main(void *arg)
 		AUDIT_ATOMIC_STORE(disp_hup, 0);
 	}
 
-	/* Tell plugins we are going down */
-	signal_plugins(SIGTERM);
-	usleep(15000); // 15 milliseconds - let plugins wrap up
-
-	/* Release configs */
-	plist_first(&plugin_conf);
-	conf = plist_get_cur(&plugin_conf);
-	while (conf) {
-		free_pconfig(conf->p);
-		conf = plist_next(&plugin_conf);
-	}
-	plist_clear(&plugin_conf);
+	/* Stop and reap plugins before releasing their configurations. */
+	stop_plugins();
+	free_plugin_list(&plugin_conf);
 
 	/* Cleanup the queue */
 	destroy_queue();
@@ -595,20 +599,25 @@ static int safe_exec(plugin_conf_t *conf)
 	_exit(1);		/* Failed to exec */
 }
 
-static void signal_plugins(int sig)
+/*
+ * Stop every plugin child serially before dispatcher-owned state is freed.
+ * Returns 0 on success and 1 if a child could not be stopped.
+ */
+static int stop_plugins(void)
 {
 	lnode *conf;
+	int rc = 0;
 
-	if (sig == SIGTERM)
-		audit_msg(LOG_INFO, "Terminating plugins");
-
-	plist_first(&plugin_conf);
-	conf = plist_get_cur(&plugin_conf);
-	while (conf) {
-		if (conf->p && conf->p->pid && conf->p->type == S_ALWAYS)
-			kill(conf->p->pid, sig);
-		conf = plist_next(&plugin_conf);
+	audit_msg(LOG_INFO, "Terminating plugins");
+	for (conf = plugin_conf.head; conf; conf = conf->next) {
+		if (conf->p && conf->p->type == S_ALWAYS &&
+		    stop_plugin(conf->p)) {
+			audit_msg(LOG_ERR, "Cannot stop child for %s",
+				  conf->p->path);
+			rc = 1;
+		}
 	}
+	return rc;
 }
 
 static int write_all(int fd, const void *buf, size_t len)
@@ -657,6 +666,10 @@ static int event_loop(void)
 		char *ptr, unknown[32];
 		int len;
 		lnode *conf;
+
+		/* A child can exit before the queue is ready to be nudged. */
+		if (AUDIT_ATOMIC_LOAD(plugin_child_pending))
+			reap_plugin_children();
 
 		/* This is where we block until we have an event */
 		e = dequeue();
@@ -729,18 +742,20 @@ static int event_loop(void)
 						audit_msg(LOG_ERR,
 					"plugin %s terminated unexpectedly",
 								conf->p->path);
-					conf->p->pid = 0;
 					conf->p->restart_cnt++;
-					close(conf->p->plug_pipe[1]);
-					conf->p->plug_pipe[1] = -1;
 					conf->p->active = A_NO;
-					if (!AUDIT_ATOMIC_LOAD(stop) &&
+					if (stop_plugin(conf->p)) {
+						audit_msg(LOG_ERR,
+						 "Cannot stop old child for %s",
+						 conf->p->path);
+					} else if (!AUDIT_ATOMIC_LOAD(stop) &&
 					    conf->p->restart_cnt >
 					    daemon_config.max_restarts) {
 						audit_msg(LOG_ERR,
 					"plugin %s has exceeded max_restarts",
 								conf->p->path);
-					} else if (!AUDIT_ATOMIC_LOAD(stop) && start_one_plugin(conf)) {
+					} else if (!AUDIT_ATOMIC_LOAD(stop) &&
+						   start_one_plugin(conf)) {
 						rc = write_to_plugin(e, fmt_buf,
 								     len, conf);
 						audit_msg(LOG_NOTICE,

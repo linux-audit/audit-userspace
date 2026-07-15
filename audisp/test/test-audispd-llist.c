@@ -218,9 +218,9 @@ test_plugin_configuration_management(void)
 /*
  * Test: plugin_hup_signal_handling
  *
- * This test simulates the HUP signal handling scenario used in audispd.c
- * where the configuration is reloaded and plugins are compared between
- * old and new configurations.
+ * This test exercises the linked-list comparison helpers with old and new
+ * plugin configurations. Dispatcher reload now swaps complete generations
+ * instead of using these helpers to merge live configurations.
  *
  * Steps:
  * 1. Create "old" plugin list with existing plugins

@@ -41,6 +41,7 @@ slist_test_LDADD = ${top_builddir}/src/ausearch-string.o
 slist_test_DEPENDENCIES = ${top_builddir}/src/ausearch-string.o
 format_event_test_CFLAGS = -D_REENTRANT -D_GNU_SOURCE -Wno-pointer-sign ${WFLAGS} -fno-strict-aliasing -I${top_srcdir}/common -I${top_srcdir}/auparse -I${top_srcdir}/audisp -I${top_srcdir}/src/libev
 format_event_test_SOURCES = format_event_test.c \
+	${top_srcdir}/src/auditd-children.c \
 	${top_srcdir}/src/auditd-event.c \
 	${top_srcdir}/src/auditd-reconfigure.c \
 	${top_srcdir}/src/auditd-config.c \

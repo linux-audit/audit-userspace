@@ -30,6 +30,7 @@
 #include "libaudit.h"
 #include "private.h"
 #include "auditd-config.h"
+#include "auditd-children.h"
 
 extern const char *email_command;
 static int safe_popen(pid_t *pid, const char *mail_acct);
@@ -82,7 +83,7 @@ static int safe_popen(pid_t *pid, const char *mail_acct)
 		return -1;
 	}
 
-	*pid = fork();
+	*pid = auditd_fork_child(NULL);
 	if (*pid < 0) {
 		close(pipe_fd[0]);
 		close(pipe_fd[1]);

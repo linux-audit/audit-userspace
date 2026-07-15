@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 #include <unistd.h>
 
 static unsigned char captured[256];
@@ -23,6 +24,45 @@ static unsigned int write_calls;
 static unsigned int calloc_calls;
 static int zero_progress;
 static int fork_should_fail;
+static pid_t child_pid;
+static int child_state;
+static int last_signal;
+
+enum {
+	CHILD_RUNNING,
+	CHILD_MISSING,
+	CHILD_EXITS_ON_SIGNAL,
+};
+
+/* Model exact-PID child state checks made by the dispatcher. */
+static pid_t test_waitpid(pid_t pid, int *status, int options)
+{
+	(void)status;
+	assert(options == WNOHANG || options == 0);
+	assert(pid == child_pid);
+	if (child_state == CHILD_MISSING) {
+		errno = ECHILD;
+		return -1;
+	}
+	if (child_state == CHILD_EXITS_ON_SIGNAL && last_signal)
+		return pid;
+	return 0;
+}
+
+/* Record signals without affecting a real process. */
+static int test_kill(pid_t pid, int sig)
+{
+	assert(pid == child_pid);
+	last_signal = sig;
+	return 0;
+}
+
+/* Avoid real grace-period delays in child lifecycle tests. */
+static int test_usleep(useconds_t usec)
+{
+	assert(usec == 50000);
+	return 0;
+}
 
 static void *test_calloc(size_t count, size_t size)
 {
@@ -58,9 +98,15 @@ static ssize_t test_write(int fd, const void *buf, size_t len)
 
 #define calloc test_calloc
 #define fork test_fork
+#define kill test_kill
+#define usleep test_usleep
+#define waitpid test_waitpid
 #define write test_write
 #include "../audispd.c"
 #undef write
+#undef waitpid
+#undef usleep
+#undef kill
 #undef fork
 #undef calloc
 
@@ -69,6 +115,18 @@ static void reset_output(void)
 	captured_len = 0;
 	write_calls = 0;
 	zero_progress = 0;
+}
+
+/* Reset dispatcher-child syscall mocks and their global test state. */
+static void reset_child_mocks(void)
+{
+	child_pid = -1;
+	child_state = CHILD_RUNNING;
+	last_signal = 0;
+	plugin_conf.head = NULL;
+	plugin_conf.cur = NULL;
+	plugin_conf.cnt = 0;
+	AUDIT_ATOMIC_STORE(plugin_child_pending, 0);
 }
 
 static void test_string_write_completes(void)
@@ -143,11 +201,50 @@ static void test_safe_exec_preserves_fork_failure(void)
 	fork_should_fail = 0;
 }
 
+/* Verify dispatcher reaping clears a stale PID without moving the cursor. */
+static void test_stale_plugin_pid_is_cleared(void)
+{
+	plugin_conf_t plugin = { .pid = 101, .type = S_ALWAYS };
+	lnode cursor = { 0 };
+	lnode node = { .p = &plugin };
+
+	reset_child_mocks();
+	plugin_conf.head = &node;
+	plugin_conf.cur = &cursor;
+	plugin_conf.cnt = 1;
+	child_pid = plugin.pid;
+	child_state = CHILD_MISSING;
+	libdisp_child_changed();
+	reap_plugin_children();
+	assert(plugin.pid == 0);
+	assert(plugin_conf.cur == &cursor);
+	assert(last_signal == 0);
+}
+
+/* Verify stop_plugin reaps the old generation before allowing replacement. */
+static void test_plugin_stop_is_serialized(void)
+{
+	plugin_conf_t plugin = {
+		.pid = 303,
+		.type = S_ALWAYS,
+		.plug_pipe = { -1, -1 },
+	};
+
+	reset_child_mocks();
+	child_pid = plugin.pid;
+	child_state = CHILD_EXITS_ON_SIGNAL;
+	assert(stop_plugin(&plugin) == 0);
+	assert(plugin.pid == 0);
+	assert(last_signal == SIGTERM);
+}
+
 int main(void)
 {
 	test_string_write_completes();
 	test_binary_write_keeps_frame_order();
 	test_zero_length_write_fails();
 	test_safe_exec_preserves_fork_failure();
+	test_stale_plugin_pid_is_cleared();
+	test_plugin_stop_is_serialized();
 	return 0;
 }

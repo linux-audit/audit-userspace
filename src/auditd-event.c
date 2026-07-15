@@ -34,6 +34,7 @@
 #include <ctype.h>	/* toupper */
 #include <libgen.h>	/* dirname */
 #include "auditd-event.h"
+#include "auditd-children.h"
 #include "auditd-reconfigure.h"
 #include "libaudit.h"
 #include "private.h"
@@ -69,7 +70,7 @@ static void rotate_logs_now(void);
 static void rotate_logs(unsigned int num_logs, unsigned int keep_logs);
 static void shift_logs(void);
 static int  open_audit_log(void);
-static pid_t safe_exec(const char *exe);
+static pid_t safe_exec(const char *exe, int resume_on_exit);
 static void reconfigure(struct auditd_event *e);
 static int get_log_fd(void);
 static void init_flush_thread(void);
@@ -88,7 +89,6 @@ static int fs_admin_space_warning = 0;
 static int fs_space_left = 1;
 static int logging_suspended = 0;
 static unsigned int known_logs = 0;
-static pid_t exec_child_pid = -1;
 static char *format_buf = NULL;
 static off_t log_size = 0;
 static pthread_t flush_thread;
@@ -115,16 +115,6 @@ static inline int from_network(const struct auditd_event *e)
 int dispatch_network_events(void)
 {
 	return config->distribute_network_events;
-}
-
-pid_t auditd_get_exec_pid(void)
-{
-       return exec_child_pid;
-}
-
-void auditd_clear_exec_pid(void)
-{
-       exec_child_pid = -1;
 }
 
 void write_logging_state(FILE *f)
@@ -831,9 +821,7 @@ static void check_log_file_size(void)
 				log_file = NULL;
 				AUDIT_ATOMIC_STORE(log_fd, -1);
 				logging_suspended = 1;
-				exec_child_pid =
-					safe_exec(config->max_log_file_exe);
-				if (exec_child_pid < 1)
+				if (safe_exec(config->max_log_file_exe, 1) < 1)
 					audit_msg(LOG_ALERT,
   "Audit daemon failed to exec max_log_file_action helper - logging suspended");
 				break;
@@ -1002,9 +990,9 @@ static void do_space_left_action(int admin)
 			AUDIT_ATOMIC_STORE(log_fd, -1);
 			logging_suspended = 1;
 			if (admin)
-				safe_exec(config->admin_space_left_exe);
+				safe_exec(config->admin_space_left_exe, 0);
 			else
-				safe_exec(config->space_left_exe);
+				safe_exec(config->space_left_exe, 0);
 			break;
 		case FA_SUSPEND:
 			audit_msg(LOG_ALERT,
@@ -1062,7 +1050,7 @@ static void do_disk_full_action(void)
 			log_file = NULL;
 			AUDIT_ATOMIC_STORE(log_fd, -1);
 			logging_suspended = 1;
-			safe_exec(config->disk_full_exe);
+			safe_exec(config->disk_full_exe, 0);
 			break;
 		case FA_SUSPEND:
 			audit_msg(LOG_ALERT,
@@ -1119,7 +1107,7 @@ static void do_disk_error_action(const char *func, int err)
 			log_file = NULL;
 			AUDIT_ATOMIC_STORE(log_fd, -1);
 			logging_suspended = 1;
-			safe_exec(config->disk_error_exe);
+			safe_exec(config->disk_error_exe, 0);
 			break;
 		case FA_SUSPEND:
 			audit_msg(LOG_ALERT,
@@ -1484,12 +1472,13 @@ retry:
 }
 
 /*
- * This function executes a new process. It returns -1 on failure to fork.
- * It returns a positive number to the parent. This positive number is the
- * pid of the child. If the child fails to exec the new process, it exits
- * with a 1. The exit code can be picked up in the sigchld handler.
+ * Execute an audit action helper and remember it for the SIGCHLD callback.
+ * @exe: path to the helper executable
+ * @resume_on_exit: nonzero when logging must resume after this helper exits
+ *
+ * Returns -1 on allocation or fork failure and the child PID on success.
  */
-static pid_t safe_exec(const char *exe)
+static pid_t safe_exec(const char *exe, int resume_on_exit)
 {
 	char *argv[2];
 	pid_t pid;
@@ -1501,14 +1490,14 @@ static pid_t safe_exec(const char *exe)
 		return -1;
 	}
 
-	pid = fork();
+	pid = auditd_fork_child(resume_on_exit ? resume_logging : NULL);
 	if (pid < 0) {
 		audit_msg(LOG_ALERT,
 			"Audit daemon failed to fork doing safe_exec");
 		return -1;
 	}
 	if (pid) /* Parent */
-	return pid;
+		return pid;
 	/* Child */
 	sigfillset(&sa.sa_mask);
 	sigprocmask(SIG_UNBLOCK, &sa.sa_mask, 0);
