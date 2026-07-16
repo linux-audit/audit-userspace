@@ -69,46 +69,6 @@ int autls_validate_psk_identity(const unsigned char *id, size_t len,
 }
 
 /*
- * autls_validate_key_file - verify a TLS key file has safe permissions
- * @path: path to the key file
- * @log_fn: logging callback for error reporting
- *
- * Checks that @path is a regular file (not a symlink), mode 0400,
- * owned by root.  Uses lstat() to reject symlinks.
- * Returns 0 on success, -1 on any validation failure.
- */
-int autls_validate_key_file(const char *path, autls_log_fn log_fn)
-{
-	struct stat st;
-
-	if (lstat(path, &st) != 0) {
-		log_fn(LOG_ERR,
-			"Unable to stat TLS key file %s (%s)",
-			path, strerror(errno));
-		return -1;
-	}
-	if (!S_ISREG(st.st_mode)) {
-		log_fn(LOG_ERR, "%s is not a regular file", path);
-		return -1;
-	}
-	if ((st.st_mode & 07777) != 0400) {
-		log_fn(LOG_ERR,
-			"%s is not mode 0400 (it's %#o) "
-			"- compromised key?",
-			path, st.st_mode & 07777);
-		return -1;
-	}
-	if (st.st_uid != 0) {
-		log_fn(LOG_ERR,
-			"%s is not owned by root (uid %u) "
-			"- compromised key?",
-			path, (unsigned)st.st_uid);
-		return -1;
-	}
-	return 0;
-}
-
-/*
  * autls_open_secret_file - safely open and validate a TLS secret file
  * @path: path to the secret file
  * @kind: human-readable file kind for log messages
@@ -169,58 +129,6 @@ static int autls_open_secret_file(const char *path, const char *kind,
 	}
 
 	return fd;
-}
-
-/*
- * autls_load_key_file - validate and load a PEM private key atomically
- * @path: path to the PEM key file
- * @ctx: SSL_CTX to load the key into
- * @log_fn: logging callback
- *
- * Opens with O_NOFOLLOW and O_NONBLOCK and validates via fstat on the
- * open fd, eliminating the TOCTOU race of separate validate-then-open
- * without blocking on non-regular files such as FIFOs.
- * Returns 0 on success, -1 on failure.
- */
-int autls_load_key_file(const char *path, SSL_CTX *ctx,
-			autls_log_fn log_fn)
-{
-	int fd;
-	BIO *bio;
-	EVP_PKEY *pkey;
-
-	fd = autls_open_secret_file(path, "TLS key file", log_fn);
-	if (fd < 0)
-		return -1;
-
-	bio = BIO_new_fd(fd, BIO_NOCLOSE);
-	if (bio == NULL) {
-		log_fn(LOG_ERR,
-			"Unable to create BIO for TLS key file %s",
-			path);
-		close(fd);
-		return -1;
-	}
-
-	pkey = PEM_read_bio_PrivateKey(bio, NULL, NULL, NULL);
-	BIO_free(bio);
-	close(fd);
-
-	if (pkey == NULL) {
-		log_fn(LOG_ERR,
-			"Unable to read PEM private key from %s", path);
-		return -1;
-	}
-
-	if (SSL_CTX_use_PrivateKey(ctx, pkey) != 1) {
-		log_fn(LOG_ERR,
-			"Unable to load TLS private key %s", path);
-		EVP_PKEY_free(pkey);
-		return -1;
-	}
-
-	EVP_PKEY_free(pkey);
-	return 0;
 }
 
 /*

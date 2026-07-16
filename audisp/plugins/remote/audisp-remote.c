@@ -1225,7 +1225,7 @@ static int tls_psk_use_session_cb(SSL *ssl, const EVP_MD *md,
  * init_tls_context - create and configure the client SSL_CTX
  *
  * Sets up TLS 1.3 with the configured cipher suites, key exchange
- * groups, and either PSK or certificate authentication.
+ * groups, and PSK authentication.
  * Returns 0 on success, -1 on error.
  */
 static int tls_error_cb(const char *str, size_t len, void *u);
@@ -1336,49 +1336,6 @@ static int init_tls_context(void)
 		snprintf(psk_identity_buf,
 			sizeof(psk_identity_buf), "%s",
 			config.tls_psk_identity);
-	}
-
-	/* Certificate mode */
-	if (config.tls_cert_file) {
-		if (SSL_CTX_use_certificate_chain_file(tls_ctx,
-				config.tls_cert_file) != 1) {
-			syslog(LOG_ERR, "Unable to load TLS certificate %s",
-				config.tls_cert_file);
-			goto err;
-		}
-	}
-
-	if (config.tls_key_file) {
-		if (autls_load_key_file(config.tls_key_file,
-				tls_ctx, syslog) != 0)
-			goto err;
-	}
-
-	/* Verify cert and key match */
-	if (config.tls_cert_file && config.tls_key_file) {
-		if (SSL_CTX_check_private_key(tls_ctx) != 1) {
-			syslog(LOG_ERR,
-				"TLS certificate and private key do not match");
-			goto err;
-		}
-	}
-
-	/* Server certificate verification */
-	if (config.tls_ca_file) {
-		if (SSL_CTX_load_verify_locations(tls_ctx,
-				config.tls_ca_file, NULL) != 1) {
-			syslog(LOG_ERR,
-				"Unable to load TLS CA file %s",
-				config.tls_ca_file);
-			goto err;
-		}
-		SSL_CTX_set_verify(tls_ctx, SSL_VERIFY_PEER, NULL);
-	} else if (!config.tls_psk_file) {
-		syslog(LOG_NOTICE,
-			"tls_ca_file not set, using system CA store "
-			"for server verification");
-		SSL_CTX_set_default_verify_paths(tls_ctx);
-		SSL_CTX_set_verify(tls_ctx, SSL_VERIFY_PEER, NULL);
 	}
 
 	return 0;
@@ -1676,35 +1633,6 @@ static int tls_connect(void)
 		SSL_free(tls_ssl);
 		tls_ssl = NULL;
 		return -1;
-	}
-
-	/* Hostname verification when server cert verification is active */
-	if (SSL_CTX_get_verify_mode(tls_ctx) & SSL_VERIFY_PEER) {
-		struct in_addr ipv4;
-		struct in6_addr ipv6;
-		int verify_name_set;
-
-		if (inet_pton(AF_INET, config.remote_server, &ipv4) == 1 ||
-		    inet_pton(AF_INET6, config.remote_server, &ipv6) == 1) {
-			/* IP address: verify against IP SANs */
-			X509_VERIFY_PARAM *param = SSL_get0_param(tls_ssl);
-			verify_name_set = param && X509_VERIFY_PARAM_set1_ip_asc(param,
-				config.remote_server) == 1;
-		} else {
-			/* Hostname: set SNI and verify against DNS SANs */
-			verify_name_set = SSL_set_tlsext_host_name(tls_ssl,
-				config.remote_server) == 1 &&
-				SSL_set1_host(tls_ssl, config.remote_server) == 1;
-		}
-
-		/* A verified chain without a reference identity is not host verified. */
-		if (!verify_name_set) {
-			syslog(LOG_ERR,
-				"Unable to configure TLS peer identity verification");
-			SSL_free(tls_ssl);
-			tls_ssl = NULL;
-			return -1;
-		}
 	}
 
 	/* Keep per-I/O socket limits after the nonblocking handshake restores

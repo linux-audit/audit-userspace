@@ -2087,7 +2087,7 @@ static void clear_tls_server_context(void)
  * @config: daemon configuration with TLS settings
  *
  * Sets up TLS 1.3 with the configured cipher suites, key exchange
- * groups, and either PSK or certificate authentication for the
+ * groups, and PSK authentication for the
  * collector listener.
  * Returns 0 on success, -1 on error.
  */
@@ -2232,47 +2232,6 @@ static int init_tls_server_context(struct daemon_conf *config)
 					"records may lack identity/"
 					"reason fields");
 		}
-	}
-
-	/* Server certificate */
-	if (config->tls_cert_file) {
-		if (SSL_CTX_use_certificate_chain_file(tls_server_ctx,
-				config->tls_cert_file) != 1) {
-			audit_msg(LOG_ERR,
-				"Unable to load TLS certificate %s",
-				config->tls_cert_file);
-			goto err;
-		}
-	}
-
-	if (config->tls_key_file) {
-		if (autls_load_key_file(config->tls_key_file,
-				tls_server_ctx, audit_msg) != 0)
-			goto err;
-	}
-
-	/* Verify cert and key match */
-	if (config->tls_cert_file && config->tls_key_file) {
-		if (SSL_CTX_check_private_key(tls_server_ctx) != 1) {
-			audit_msg(LOG_ERR,
-				"TLS certificate and private key do not match");
-			goto err;
-		}
-	}
-
-	/* Client certificate verification (mTLS) */
-	if (config->tls_ca_file && config->tls_client_auth > TCA_NONE) {
-		int verify_mode = SSL_VERIFY_PEER;
-		if (SSL_CTX_load_verify_locations(tls_server_ctx,
-				config->tls_ca_file, NULL) != 1) {
-			audit_msg(LOG_ERR,
-				"Unable to load TLS CA file %s",
-				config->tls_ca_file);
-			goto err;
-		}
-		if (config->tls_client_auth == TCA_REQUIRED)
-			verify_mode |= SSL_VERIFY_FAIL_IF_NO_PEER_CERT;
-		SSL_CTX_set_verify(tls_server_ctx, verify_mode, NULL);
 	}
 
 	return 0;
@@ -2696,11 +2655,8 @@ void auditd_tcp_listen_reconfigure(const struct daemon_conf *nconf,
 	if (oconf->transport == T_TLS || nconf->transport == T_TLS)
 		audit_msg(LOG_NOTICE,
 			"TLS context not reloaded; restart auditd "
-			"to apply cert/key/PSK config changes");
+			"to apply TLS/PSK config changes");
 	reload_tls_client_acl(nconf, oconf);
-	free((void *)nconf->tls_cert_file);
-	free((void *)nconf->tls_key_file);
-	free((void *)nconf->tls_ca_file);
 	free((void *)nconf->tls_psk_file);
 	free((void *)nconf->tls_psk_identity);
 	free((void *)nconf->tls_cipher_suites);
