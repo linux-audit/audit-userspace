@@ -155,65 +155,6 @@ static void test_autls_ssl_connect_deadline(void)
 	close(pair[1]);
 }
 
-static void test_autls_validate_key_file(void)
-{
-	char path[512];
-
-	printf("  autls_validate_key_file...\n");
-
-	/* Nonexistent file */
-	snprintf(path, sizeof(path), "%s/nonexistent", tmpdir);
-	assert(autls_validate_key_file(path, test_log) == -1);
-
-	/* Directory */
-	assert(autls_validate_key_file(tmpdir, test_log) == -1);
-
-	/* Regular file, mode 0644 */
-	snprintf(path, sizeof(path), "%s/bad-mode", tmpdir);
-	write_file(path, "data");
-	chmod(path, 0644);
-	assert(autls_validate_key_file(path, test_log) == -1);
-	unlink(path);
-
-	/* Regular file, mode 0600 -- only exactly 0400 passes */
-	snprintf(path, sizeof(path), "%s/mode-0600", tmpdir);
-	write_file(path, "data");
-	chmod(path, 0600);
-	assert(autls_validate_key_file(path, test_log) == -1);
-	unlink(path);
-
-	/* Regular file, mode 0400, owned by current user */
-	snprintf(path, sizeof(path), "%s/good-mode", tmpdir);
-	write_file(path, "data");
-	chmod(path, 0400);
-	if (getuid() == 0) {
-		/* Running as root -- file is root-owned, should pass */
-		assert(autls_validate_key_file(path, test_log) == 0);
-	} else {
-		/* Not root -- uid check fails */
-		assert(autls_validate_key_file(path, test_log) == -1);
-	}
-	unlink(path);
-
-	/* Symlink to a valid file -- lstat sees the symlink itself */
-	if (getuid() == 0) {
-		char target[512], link_path[512];
-
-		snprintf(target, sizeof(target),
-			"%s/symlink-target", tmpdir);
-		snprintf(link_path, sizeof(link_path),
-			"%s/symlink-link", tmpdir);
-		write_file(target, "data");
-		chmod(target, 0400);
-		symlink(target, link_path);
-		/* lstat does not follow symlinks -- rejected */
-		assert(autls_validate_key_file(link_path,
-			test_log) == -1);
-		unlink(link_path);
-		unlink(target);
-	}
-}
-
 /*
  * Helper to create a PSK test file with correct permissions.
  * Sets mode 0400 so autls_load_psk's built-in validation can
@@ -397,28 +338,16 @@ static void test_autls_load_psk_validation(void)
 /*
  * test_autls_load_secret_fifo - check FIFO rejection in secret loaders
  *
- * Creates TLS key and PSK FIFOs with no writer. The loaders must reject
- * both paths promptly instead of blocking before validation.
+ * Creates a PSK FIFO with no writer. The loader must reject the path
+ * promptly instead of blocking before validation.
  */
 static void test_autls_load_secret_fifo(void)
 {
 	char path[512];
-	SSL_CTX *ctx;
 	unsigned char *key = NULL;
 	size_t key_len = 0;
 
 	printf("  autls secret loaders reject FIFOs...\n");
-
-	ctx = SSL_CTX_new(TLS_method());
-	assert(ctx != NULL);
-
-	snprintf(path, sizeof(path), "%s/key-fifo", tmpdir);
-	assert(mkfifo(path, 0400) == 0);
-	/* An unfixed blocking open would hang here with no FIFO writer. */
-	alarm(5);
-	assert(autls_load_key_file(path, ctx, test_log) == -1);
-	alarm(0);
-	unlink(path);
 
 	snprintf(path, sizeof(path), "%s/psk-fifo", tmpdir);
 	assert(mkfifo(path, 0400) == 0);
@@ -428,8 +357,6 @@ static void test_autls_load_secret_fifo(void)
 	assert(key == NULL);
 	assert(key_len == 0);
 	unlink(path);
-
-	SSL_CTX_free(ctx);
 }
 
 /*
@@ -793,7 +720,6 @@ int main(void)
 	test_autls_is_pqc_group();
 	test_autls_remaining_ms();
 	test_autls_ssl_connect_deadline();
-	test_autls_validate_key_file();
 	test_autls_load_psk();
 	test_autls_load_psk_validation();
 	test_autls_load_secret_fifo();

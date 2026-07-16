@@ -56,9 +56,6 @@ typedef struct remote_conf
 	const char *krb5_client_name;
 	const char *krb5_key_file;
 #ifdef HAVE_TLS
-	const char *tls_cert_file;
-	const char *tls_key_file;
-	const char *tls_ca_file;
 	const char *tls_psk_file;
 	const char *tls_psk_identity;
 	const char *tls_cipher_suites;

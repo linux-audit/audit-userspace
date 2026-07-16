@@ -133,12 +133,6 @@ static int krb5_principal_parser(const struct nv_pair *nv, int line,
 		struct daemon_conf *config);
 static int krb5_key_file_parser(const struct nv_pair *nv, int line,
 		struct daemon_conf *config);
-static int tls_cert_file_parser(const struct nv_pair *nv, int line,
-		struct daemon_conf *config);
-static int tls_key_file_parser(const struct nv_pair *nv, int line,
-		struct daemon_conf *config);
-static int tls_ca_file_parser(const struct nv_pair *nv, int line,
-		struct daemon_conf *config);
 static int tls_psk_file_parser(const struct nv_pair *nv, int line,
 		struct daemon_conf *config);
 static int tls_psk_identity_parser(const struct nv_pair *nv, int line,
@@ -146,8 +140,6 @@ static int tls_psk_identity_parser(const struct nv_pair *nv, int line,
 static int tls_cipher_suites_parser(const struct nv_pair *nv, int line,
 		struct daemon_conf *config);
 static int tls_key_exchange_parser(const struct nv_pair *nv, int line,
-		struct daemon_conf *config);
-static int tls_client_auth_parser(const struct nv_pair *nv, int line,
 		struct daemon_conf *config);
 static int tls_require_pqc_parser(const struct nv_pair *nv, int line,
 		struct daemon_conf *config);
@@ -239,14 +231,10 @@ static const struct kw_pair keywords[] =
   {"enable_krb5",              enable_krb5_parser,              0 },
   {"krb5_principal",           krb5_principal_parser,           0 },
   {"krb5_key_file",            krb5_key_file_parser,            0 },
-  {"tls_cert_file",            tls_cert_file_parser,            0 },
-  {"tls_key_file",             tls_key_file_parser,             0 },
-  {"tls_ca_file",              tls_ca_file_parser,              0 },
   {"tls_psk_file",             tls_psk_file_parser,             0 },
   {"tls_psk_identity",         tls_psk_identity_parser,         0 },
   {"tls_cipher_suites",        tls_cipher_suites_parser,        0 },
   {"tls_key_exchange",         tls_key_exchange_parser,         0 },
-  {"tls_client_auth",          tls_client_auth_parser,          0 },
   {"tls_require_pqc",          tls_require_pqc_parser,          0 },
   {"tls_auth",                 tls_auth_parser,                 0 },
   {"tls_crypto_profile",       tls_crypto_profile_parser,       0 },
@@ -418,14 +406,10 @@ void clear_config(struct daemon_conf *config)
 	config->krb5_principal = NULL;
 	config->krb5_key_file = NULL;
 #ifdef HAVE_TLS
-	config->tls_cert_file = NULL;
-	config->tls_key_file = NULL;
-	config->tls_ca_file = NULL;
 	config->tls_psk_file = NULL;
 	config->tls_psk_identity = NULL;
 	config->tls_cipher_suites = NULL;
 	config->tls_key_exchange = NULL;
-	config->tls_client_auth = TCA_NONE;
 	config->tls_require_pqc = 0;
 	config->tls_auth = TLS_AUTH_PSK;
 	config->tls_crypto_profile = TLS_PROFILE_COMPATIBLE;
@@ -1888,31 +1872,11 @@ static int fname(const struct nv_pair *nv, int line, \
 }
 
 #ifdef HAVE_TLS
-TLS_PARSER_S(tls_cert_file_parser, tls_cert_file, tls_path_parser_s)
-TLS_PARSER_S(tls_key_file_parser, tls_key_file, tls_path_parser_s)
-TLS_PARSER_S(tls_ca_file_parser, tls_ca_file, tls_path_parser_s)
 TLS_PARSER_S(tls_psk_file_parser, tls_psk_file, tls_path_parser_s)
 TLS_PARSER_S(tls_psk_identity_parser, tls_psk_identity, tls_string_parser_s)
 TLS_PARSER_S(tls_cipher_suites_parser, tls_cipher_suites, tls_string_parser_s)
 TLS_PARSER_S(tls_key_exchange_parser, tls_key_exchange, tls_string_parser_s)
 TLS_PARSER_S(tls_allowed_clients_parser, tls_allowed_clients, tls_path_parser_s)
-
-static int tls_client_auth_parser(const struct nv_pair *nv, int line,
-		struct daemon_conf *config)
-{
-	if (strcasecmp(nv->value, "none") == 0)
-		config->tls_client_auth = TCA_NONE;
-	else if (strcasecmp(nv->value, "optional") == 0)
-		config->tls_client_auth = TCA_OPTIONAL;
-	else if (strcasecmp(nv->value, "required") == 0)
-		config->tls_client_auth = TCA_REQUIRED;
-	else {
-		audit_msg(LOG_ERR,
-			"Option %s not found - line %d", nv->value, line);
-		return 1;
-	}
-	return 0;
-}
 
 static int tls_require_pqc_parser(const struct nv_pair *nv, int line,
 		struct daemon_conf *config)
@@ -1976,14 +1940,10 @@ static int fname(const struct nv_pair *nv, int line, \
 		line); \
 	return 0; \
 }
-TLS_STUB_S(tls_cert_file_parser)
-TLS_STUB_S(tls_key_file_parser)
-TLS_STUB_S(tls_ca_file_parser)
 TLS_STUB_S(tls_psk_file_parser)
 TLS_STUB_S(tls_psk_identity_parser)
 TLS_STUB_S(tls_cipher_suites_parser)
 TLS_STUB_S(tls_key_exchange_parser)
-TLS_STUB_S(tls_client_auth_parser)
 TLS_STUB_S(tls_require_pqc_parser)
 TLS_STUB_S(tls_auth_parser)
 TLS_STUB_S(tls_crypto_profile_parser)
@@ -2359,9 +2319,6 @@ void free_config(struct daemon_conf *config)
 	free((void *)config->krb5_principal);
 	free((void *)config->krb5_key_file);
 #ifdef HAVE_TLS
-	free((void *)config->tls_cert_file);
-	free((void *)config->tls_key_file);
-	free((void *)config->tls_ca_file);
 	free((void *)config->tls_psk_file);
 	free((void *)config->tls_psk_identity);
 	free((void *)config->tls_cipher_suites);

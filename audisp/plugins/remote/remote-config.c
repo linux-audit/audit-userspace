@@ -84,12 +84,6 @@ static int krb5_client_name_parser(struct nv_pair *nv, int line,
 		remote_conf_t *config);
 static int krb5_key_file_parser(struct nv_pair *nv, int line,
 		remote_conf_t *config);
-static int tls_cert_file_parser(struct nv_pair *nv, int line,
-		remote_conf_t *config);
-static int tls_key_file_parser(struct nv_pair *nv, int line,
-		remote_conf_t *config);
-static int tls_ca_file_parser(struct nv_pair *nv, int line,
-		remote_conf_t *config);
 static int tls_psk_file_parser(struct nv_pair *nv, int line,
 		remote_conf_t *config);
 static int tls_psk_identity_parser(struct nv_pair *nv, int line,
@@ -145,9 +139,6 @@ static const struct kw_pair keywords[] =
   {"krb5_principal",         krb5_principal_parser,             0 },
   {"krb5_client_name",       krb5_client_name_parser,           0 },
   {"krb5_key_file",          krb5_key_file_parser,              0 },
-  {"tls_cert_file",          tls_cert_file_parser,             0 },
-  {"tls_key_file",           tls_key_file_parser,              0 },
-  {"tls_ca_file",            tls_ca_file_parser,               0 },
   {"tls_psk_file",           tls_psk_file_parser,              0 },
   {"tls_psk_identity",       tls_psk_identity_parser,          0 },
   {"tls_cipher_suites",      tls_cipher_suites_parser,         0 },
@@ -263,9 +254,6 @@ void clear_config(remote_conf_t *config)
 	config->krb5_client_name = NULL;
 	config->krb5_key_file = NULL;
 #ifdef HAVE_TLS
-	config->tls_cert_file = NULL;
-	config->tls_key_file = NULL;
-	config->tls_ca_file = NULL;
 	config->tls_psk_file = NULL;
 	config->tls_psk_identity = NULL;
 	config->tls_cipher_suites = NULL;
@@ -884,9 +872,6 @@ static int fname(struct nv_pair *nv, int line, remote_conf_t *config) \
 }
 
 #ifdef HAVE_TLS
-TLS_PARSER(tls_cert_file_parser, tls_cert_file, tls_path_parser)
-TLS_PARSER(tls_key_file_parser, tls_key_file, tls_path_parser)
-TLS_PARSER(tls_ca_file_parser, tls_ca_file, tls_path_parser)
 TLS_PARSER(tls_psk_file_parser, tls_psk_file, tls_path_parser)
 TLS_PARSER(tls_psk_identity_parser, tls_psk_identity, tls_string_parser)
 TLS_PARSER(tls_cipher_suites_parser, tls_cipher_suites, tls_string_parser)
@@ -900,9 +885,6 @@ static int fname(struct nv_pair *nv, int line, remote_conf_t *config) \
 		line); \
 	return 0; \
 }
-TLS_STUB(tls_cert_file_parser)
-TLS_STUB(tls_key_file_parser)
-TLS_STUB(tls_ca_file_parser)
 TLS_STUB(tls_psk_file_parser)
 TLS_STUB(tls_psk_identity_parser)
 TLS_STUB(tls_cipher_suites_parser)
@@ -1048,9 +1030,6 @@ void free_config(remote_conf_t *config)
 	free((void *)config->krb5_client_name);
 	free((void *)config->krb5_key_file);
 #ifdef HAVE_TLS
-	free((void *)config->tls_cert_file);
-	free((void *)config->tls_key_file);
-	free((void *)config->tls_ca_file);
 	free((void *)config->tls_psk_file);
 	free((void *)config->tls_psk_identity);
 	free((void *)config->tls_cipher_suites);
