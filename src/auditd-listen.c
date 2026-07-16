@@ -1596,6 +1596,16 @@ static void tls_handshake_handler(struct ev_loop *loop,
 					ssl_ex_idx_identity, NULL);
 		}
 
+		if (client->accepted_identity == NULL) {
+			audit_msg(LOG_ERR,
+				"TLS handshake from %s completed "
+				"without PSK identity; rejecting",
+				sockaddr_to_addr(&client->addr));
+			abort_handshake(loop, client,
+				"no-psk-identity");
+			return;
+		}
+
 		/* Remove from handshake_chain */
 		unlink_handshake_client(client);
 
@@ -2039,16 +2049,22 @@ static int tls_psk_find_session_cb(SSL *ssl, const unsigned char *identity,
 		char *old = SSL_get_ex_data(ssl, ssl_ex_idx_identity);
 		char *id_copy = strndup((const char *)identity,
 					identity_len);
-		if (id_copy == NULL)
-			audit_msg(LOG_WARNING,
+		if (id_copy == NULL) {
+			audit_msg(LOG_ERR,
 				"Out of memory copying PSK identity");
+			SSL_SESSION_free(s);
+			set_psk_failure_reason(ssl, "oom-identity");
+			return 0;
+		}
 		if (SSL_set_ex_data(ssl, ssl_ex_idx_identity, id_copy))
 			free(old);
 		else {
 			free(id_copy);
-			audit_msg(LOG_WARNING,
-				"Unable to store PSK identity; "
-				"leaving current identity unchanged");
+			audit_msg(LOG_ERR,
+				"Unable to store PSK identity");
+			SSL_SESSION_free(s);
+			set_psk_failure_reason(ssl, "exdata-identity");
+			return 0;
 		}
 	}
 
@@ -2225,12 +2241,12 @@ static int init_tls_server_context(struct daemon_conf *config)
 				SSL_get_ex_new_index(0, NULL,
 						     NULL, NULL, NULL);
 			if (ssl_ex_idx_identity < 0 ||
-			    ssl_ex_idx_reason < 0)
-				audit_msg(LOG_WARNING,
+			    ssl_ex_idx_reason < 0) {
+				audit_msg(LOG_ERR,
 					"Unable to allocate SSL "
-					"ex-data indices; audit "
-					"records may lack identity/"
-					"reason fields");
+					"ex-data indices");
+				goto err;
+			}
 		}
 	}
 
