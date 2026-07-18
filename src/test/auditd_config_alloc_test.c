@@ -169,6 +169,26 @@ static void test_q_depth_parser_rejects_zero(void)
 	assert(config.q_depth == 1);
 }
 
+/*
+ * test_legacy_tls_keywords_rejected - keep certificate options unsupported
+ *
+ * Returns: None.
+ */
+static void test_legacy_tls_keywords_rejected(void)
+{
+	static const char *legacy_keywords[] = {
+		"tls_cert_file",
+		"tls_key_file",
+		"tls_ca_file",
+		"tls_client_auth",
+	};
+	size_t i;
+
+	for (i = 0; i < sizeof(legacy_keywords) / sizeof(legacy_keywords[0]);
+	     i++)
+		assert(kw_lookup(legacy_keywords[i])->name == NULL);
+}
+
 #ifdef HAVE_TLS
 /*
  * clear_sane_config - reset config and satisfy non-TLS sanity defaults
@@ -307,6 +327,7 @@ int main(void)
 	test_log_file_preserves_old_value();
 	test_set_config_dir_preserves_old_value();
 	test_q_depth_parser_rejects_zero();
+	test_legacy_tls_keywords_rejected();
 #ifdef HAVE_TLS
 	test_tls_auth_parser();
 	test_tls_crypto_profile_parser();

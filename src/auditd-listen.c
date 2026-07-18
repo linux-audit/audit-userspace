@@ -129,6 +129,19 @@ static size_t server_psk_key_len = 0;
 static char *expected_psk_identity = NULL;
 static int ssl_ex_idx_identity = -1;
 static int ssl_ex_idx_reason = -1;
+
+/*
+ * tls_client_authenticated - check that the PSK callback authorized a client
+ * @client: completed TLS client handshake
+ *
+ * A completed TLS handshake alone is not authentication. The PSK callback
+ * records the identity only after it accepts the configured secret and client.
+ * Returns 1 for an authenticated PSK client, 0 otherwise.
+ */
+static int tls_client_authenticated(const struct ev_tcp *client)
+{
+	return client->accepted_identity != NULL;
+}
 #endif
 
 #if defined(HAVE_TLS) && defined(AUDITD_LISTEN_TEST)
@@ -151,6 +164,21 @@ void auditd_tls_test_set_transport(int value)
 int auditd_tls_test_listener_count(void)
 {
 	return nlsocks;
+}
+
+/*
+ * auditd_tls_test_client_authenticated - exercise the PSK admission gate
+ * @identity: accepted PSK identity, or NULL for a non-PSK handshake
+ *
+ * Returns: 1 when the client may enter the active chain, 0 otherwise.
+ */
+int auditd_tls_test_client_authenticated(const char *identity)
+{
+	struct ev_tcp client;
+
+	memset(&client, 0, sizeof(client));
+	client.accepted_identity = (char *)identity;
+	return tls_client_authenticated(&client);
 }
 
 /*
@@ -1596,7 +1624,7 @@ static void tls_handshake_handler(struct ev_loop *loop,
 					ssl_ex_idx_identity, NULL);
 		}
 
-		if (client->accepted_identity == NULL) {
+		if (!tls_client_authenticated(client)) {
 			audit_msg(LOG_ERR,
 				"TLS handshake from %s completed "
 				"without PSK identity; rejecting",

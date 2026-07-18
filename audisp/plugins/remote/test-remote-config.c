@@ -36,9 +36,29 @@ static void test_parse_uint_accepts_range_limit(void)
 	assert(value == 65535);
 }
 
+/*
+ * test_legacy_tls_keywords_rejected - keep certificate options unsupported
+ *
+ * Returns: None.
+ */
+static void test_legacy_tls_keywords_rejected(void)
+{
+	static const char *legacy_keywords[] = {
+		"tls_cert_file",
+		"tls_key_file",
+		"tls_ca_file",
+	};
+	size_t i;
+
+	for (i = 0; i < sizeof(legacy_keywords) / sizeof(legacy_keywords[0]);
+	     i++)
+		assert(kw_lookup(legacy_keywords[i])->name == NULL);
+}
+
 int main(void)
 {
 	test_parse_uint_rejects_narrowed_value();
 	test_parse_uint_accepts_range_limit();
+	test_legacy_tls_keywords_rejected();
 	return 0;
 }

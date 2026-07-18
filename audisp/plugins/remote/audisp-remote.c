@@ -1612,9 +1612,8 @@ static int emit_tls_crypto_key_destroy_record(SSL *ssl)
 /*
  * tls_connect - establish a TLS connection to the remote collector
  *
- * Creates an SSL session on the open socket, performs hostname
- * verification when server certificate checking is active, and
- * enforces PQC key exchange when tls_require_pqc is set.
+ * Creates an SSL session on the open socket, performs the PSK handshake,
+ * and enforces PQC key exchange when tls_require_pqc is set.
  * Returns 0 on success, -1 on error.
  */
 static int tls_connect(void)

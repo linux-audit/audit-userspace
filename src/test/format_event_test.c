@@ -12,6 +12,7 @@
 
 void auditd_tls_test_set_transport(int value);
 int auditd_tls_test_listener_count(void);
+int auditd_tls_test_client_authenticated(const char *identity);
 void auditd_tls_test_set_acl_table(struct autls_acl_table *table);
 int auditd_tls_test_acl_check(const char *identity);
 int auditd_tls_test_set_psk_state(int active, const char *identity);
@@ -58,6 +59,19 @@ static struct autls_acl_table *make_test_acl(const char *identity)
 	table->count = 1;
 	table->enabled_count = 1;
 	return table;
+}
+
+/*
+ * test_tls_requires_accepted_psk_identity - reject non-PSK handshakes
+ *
+ * A successful TLS handshake may enter the active client chain only when the
+ * PSK callback recorded an accepted identity.
+ * Returns: None.
+ */
+static void test_tls_requires_accepted_psk_identity(void)
+{
+	assert(auditd_tls_test_client_authenticated(NULL) == 0);
+	assert(auditd_tls_test_client_authenticated("audit-test") == 1);
 }
 
 /*
@@ -330,6 +344,7 @@ int main(void)
 	}
 	cleanup_event(e);
 #ifdef AUDITD_LISTEN_TEST
+	test_tls_requires_accepted_psk_identity();
 	test_tls_acl_reload_preserves_old_state();
 	test_tls_acl_reload_rejects_acl_only_removal();
 	test_tls_acl_reload_allows_removal_with_identity();

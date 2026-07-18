@@ -3,11 +3,12 @@
 #
 # Tests:
 #   1. Verify audisp-remote binary has TLS support (linked with libssl)
-#   2. Verify TLS config parsing works
-#   3. Verify PSK file format validation
-#   4. Verify cert/key permission validation
-#   5. Test TLS handshake with PSK mode using openssl s_server/s_client
-#   6. Test PQC key exchange group negotiation
+#   2. Generate a valid PSK file
+#   3. Create a representative PSK-only configuration
+#   4. Test a TLS handshake with PSK using openssl s_server/s_client
+#   5. Verify that a client without the PSK is rejected
+#   6. Check PQC key exchange group availability
+#   7. Test a PQC hybrid key exchange with PSK
 #
 # Requires: openssl >= 3.5, built with --enable-tls
 
@@ -74,28 +75,9 @@ else
     fail "PSK file wrong length: ${#PSK_HEX}"
 fi
 
-# Test 3: Generate test certificates
+# Test 3: Write a valid TLS config
 echo
-echo "Test 3: Certificate generation"
-openssl req -x509 -newkey ec -pkeyopt ec_paramgen_curve:prime256v1 \
-    -keyout "$TESTDIR/server-key.pem" -out "$TESTDIR/server-cert.pem" \
-    -days 1 -nodes -subj "/CN=audit-test-server" 2>/dev/null
-chmod 0400 "$TESTDIR/server-key.pem"
-
-openssl req -x509 -newkey ec -pkeyopt ec_paramgen_curve:prime256v1 \
-    -keyout "$TESTDIR/client-key.pem" -out "$TESTDIR/client-cert.pem" \
-    -days 1 -nodes -subj "/CN=audit-test-client" 2>/dev/null
-chmod 0400 "$TESTDIR/client-key.pem"
-
-if [ -f "$TESTDIR/server-cert.pem" ] && [ -f "$TESTDIR/client-cert.pem" ]; then
-    pass "Test certificates generated"
-else
-    fail "Certificate generation failed"
-fi
-
-# Test 4: Write a valid TLS config
-echo
-echo "Test 4: TLS config file creation"
+echo "Test 3: TLS config file creation"
 cat > "$TESTDIR/audisp-remote.conf" << EOF
 remote_server = 127.0.0.1
 port = 60
@@ -131,37 +113,66 @@ else
     fail "TLS config file creation failed"
 fi
 
-# Test 5: TLS 1.3 PSK handshake via openssl s_server/s_client
+# Test 4: TLS 1.3 PSK handshake via openssl s_server/s_client
 echo
-echo "Test 5: TLS 1.3 PSK handshake"
+echo "Test 4: TLS 1.3 PSK handshake"
 PORT=$(get_free_port 14720)
 
 # openssl s_server with PSK
 openssl s_server -tls1_3 -psk "$PSK_HEX" -psk_identity audit-test \
-    -accept "$PORT" -naccept 1 \
+    -accept "$PORT" -naccept 1 -quiet \
     -nocert > "$TESTDIR/server.log" 2>&1 &
 SERVER_PID=$!
 sleep 0.5
 
 # openssl s_client connecting with PSK
-echo "test audit message" | \
-    openssl s_client -tls1_3 -psk "$PSK_HEX" -psk_identity audit-test \
+set +e
+openssl s_client -tls1_3 -psk "$PSK_HEX" -psk_identity audit-test \
+    -no-interactive < /dev/null \
     -connect "127.0.0.1:$PORT" \
-    > "$TESTDIR/client.log" 2>&1 || true
+    > "$TESTDIR/client.log" 2>&1
+CLIENT_STATUS=$?
+set -e
 
 wait "$SERVER_PID" 2>/dev/null || true
 SERVER_PID=""
 
-if grep -q "TLS_AES_256_GCM_SHA384\|TLS_AES_128_GCM_SHA256" "$TESTDIR/client.log" 2>/dev/null; then
+if [ "$CLIENT_STATUS" -eq 0 ] && \
+   grep -Eq '^(New|Reused), TLSv1.3, Cipher is TLS_' \
+        "$TESTDIR/client.log" 2>/dev/null; then
     pass "TLS 1.3 PSK handshake succeeded"
 else
-    # Check if connection was established
-    if grep -q "CONNECTED" "$TESTDIR/client.log" 2>/dev/null; then
-        pass "TLS 1.3 PSK handshake connected"
-    else
-        fail "TLS 1.3 PSK handshake failed"
-        cat "$TESTDIR/client.log" 2>/dev/null || true
-    fi
+    fail "TLS 1.3 PSK handshake failed"
+    cat "$TESTDIR/client.log" 2>/dev/null || true
+fi
+
+# Test 5: Client without the PSK must not negotiate TLS
+echo
+echo "Test 5: No-PSK client rejection"
+PORT=$(get_free_port 14721)
+
+openssl s_server -tls1_3 -psk "$PSK_HEX" -psk_identity audit-test \
+    -accept "$PORT" -naccept 1 -quiet -nocert \
+    > "$TESTDIR/no-psk-server.log" 2>&1 &
+SERVER_PID=$!
+sleep 0.5
+
+set +e
+openssl s_client -tls1_3 -connect "127.0.0.1:$PORT" \
+    < /dev/null > "$TESTDIR/no-psk-client.log" 2>&1
+CLIENT_STATUS=$?
+set -e
+
+wait "$SERVER_PID" 2>/dev/null || true
+SERVER_PID=""
+
+if [ "$CLIENT_STATUS" -ne 0 ] && \
+   ! grep -Eq '^(New|Reused), TLSv1.3, Cipher is ' \
+        "$TESTDIR/no-psk-client.log" 2>/dev/null; then
+    pass "client without PSK was rejected"
+else
+    fail "client without PSK negotiated TLS"
+    cat "$TESTDIR/no-psk-client.log" 2>/dev/null || true
 fi
 
 # Test 6: PQC key exchange availability
@@ -170,56 +181,36 @@ echo "Test 6: PQC key exchange group availability"
 if openssl list -kem-algorithms 2>/dev/null | grep -qi 'mlkem\|ML-KEM'; then
     pass "ML-KEM key exchange available in OpenSSL"
 else
-    echo "  SKIP: ML-KEM not available in this OpenSSL build (PQC will use classical fallback)"
+    echo "  SKIP: ML-KEM not available in this OpenSSL build" \
+        "(PQC will use classical fallback)"
 fi
 
-# Test 7: TLS 1.3 certificate handshake
+# Test 7: PQC hybrid key exchange handshake
 echo
-echo "Test 7: TLS 1.3 certificate handshake"
-PORT=$(get_free_port 14721)
-
-openssl s_server -tls1_3 \
-    -cert "$TESTDIR/server-cert.pem" -key "$TESTDIR/server-key.pem" \
-    -accept "$PORT" -naccept 1 \
-    > "$TESTDIR/cert-server.log" 2>&1 &
-SERVER_PID=$!
-sleep 0.5
-
-echo "test audit message" | \
-    openssl s_client -tls1_3 \
-    -connect "127.0.0.1:$PORT" \
-    > "$TESTDIR/cert-client.log" 2>&1 || true
-
-wait "$SERVER_PID" 2>/dev/null || true
-SERVER_PID=""
-
-if grep -q "CONNECTED" "$TESTDIR/cert-client.log" 2>/dev/null; then
-    pass "TLS 1.3 certificate handshake succeeded"
-else
-    fail "TLS 1.3 certificate handshake failed"
-fi
-
-# Test 8: PQC hybrid key exchange handshake
-echo
-echo "Test 8: PQC hybrid key exchange handshake"
+echo "Test 7: PQC hybrid key exchange handshake"
 PORT=$(get_free_port 14722)
 if openssl list -kem-algorithms 2>/dev/null | grep -qi mlkem; then
     openssl s_server -tls1_3 -groups X25519MLKEM768:X25519 \
-        -cert "$TESTDIR/server-cert.pem" \
-        -key "$TESTDIR/server-key.pem" \
-        -accept "$PORT" -naccept 1 > "$TESTDIR/pqc-server.log" 2>&1 &
+        -psk "$PSK_HEX" -psk_identity audit-test -nocert \
+        -accept "$PORT" -naccept 1 -quiet \
+        > "$TESTDIR/pqc-server.log" 2>&1 &
     SERVER_PID=$!
     sleep 0.5
-    echo "test" | openssl s_client -tls1_3 \
-        -groups X25519MLKEM768 \
+    set +e
+    openssl s_client -tls1_3 -no-interactive < /dev/null \
+        -groups X25519MLKEM768 -psk "$PSK_HEX" \
+        -psk_identity audit-test \
         -connect "127.0.0.1:$PORT" \
-        > "$TESTDIR/pqc-client.log" 2>&1 || true
+        > "$TESTDIR/pqc-client.log" 2>&1
+    CLIENT_STATUS=$?
+    set -e
     wait "$SERVER_PID" 2>/dev/null || true
     SERVER_PID=""
     # With -groups X25519MLKEM768 (no fallback), connection only
     # succeeds if both sides support ML-KEM hybrid kex
-    if grep -q "CONNECTED" "$TESTDIR/pqc-client.log" 2>/dev/null && \
-       grep -q "TLSv1.3" "$TESTDIR/pqc-client.log" 2>/dev/null; then
+    if [ "$CLIENT_STATUS" -eq 0 ] && \
+       grep -Eq '^(New|Reused), TLSv1.3, Cipher is ' \
+            "$TESTDIR/pqc-client.log" 2>/dev/null; then
         pass "PQC hybrid key exchange negotiated"
     else
         fail "PQC hybrid key exchange not negotiated"
