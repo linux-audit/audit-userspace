@@ -23,6 +23,7 @@ static size_t captured_len;
 static unsigned int write_calls;
 static unsigned int calloc_calls;
 static int zero_progress;
+static int write_epipe;
 static int fork_should_fail;
 static pid_t child_pid;
 static int child_state;
@@ -83,6 +84,11 @@ static ssize_t test_write(int fd, const void *buf, size_t len)
 	size_t chunk;
 
 	assert(fd == 42);
+	if (write_epipe) {
+		write_calls++;
+		errno = EPIPE;
+		return -1;
+	}
 	if (write_calls++ == 0) {
 		errno = EINTR;
 		return -1;
@@ -115,6 +121,7 @@ static void reset_output(void)
 	captured_len = 0;
 	write_calls = 0;
 	zero_progress = 0;
+	write_epipe = 0;
 }
 
 /* Reset dispatcher-child syscall mocks and their global test state. */
@@ -238,6 +245,49 @@ static void test_plugin_stop_is_serialized(void)
 	assert(last_signal == SIGTERM);
 }
 
+/* Verify a complete retry makes the restarted plugin active again. */
+static void test_restart_retry_activates_plugin(void)
+{
+	plugin_conf_t plugin = {
+		.active = A_NO,
+		.format = F_STRING,
+		.path = "/bin/true",
+		.plug_pipe = { -1, 42 },
+		.restart_cnt = 2,
+	};
+	lnode node = { .p = &plugin };
+
+	reset_output();
+	finish_plugin_restart(NULL, "event", 5, &node);
+	assert(plugin.active == A_YES);
+	assert(captured_len == 5);
+}
+
+/* Verify a failed retry leaves the plugin inactive and stops its child. */
+static void test_restart_retry_failure_stops_plugin(void)
+{
+	plugin_conf_t plugin = {
+		.active = A_NO,
+		.format = F_STRING,
+		.path = "/bin/true",
+		.pid = 404,
+		.plug_pipe = { -1, 42 },
+		.restart_cnt = 2,
+		.type = S_ALWAYS,
+	};
+	lnode node = { .p = &plugin };
+
+	reset_child_mocks();
+	reset_output();
+	write_epipe = 1;
+	child_pid = plugin.pid;
+	child_state = CHILD_EXITS_ON_SIGNAL;
+	finish_plugin_restart(NULL, "event", 5, &node);
+	assert(plugin.active == A_NO);
+	assert(plugin.pid == 0);
+	assert(last_signal == SIGTERM);
+}
+
 int main(void)
 {
 	test_string_write_completes();
@@ -246,5 +296,7 @@ int main(void)
 	test_safe_exec_preserves_fork_failure();
 	test_stale_plugin_pid_is_cleared();
 	test_plugin_stop_is_serialized();
+	test_restart_retry_activates_plugin();
+	test_restart_retry_failure_stops_plugin();
 	return 0;
 }

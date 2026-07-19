@@ -656,6 +656,36 @@ static int write_to_plugin(event_t *e, const char *string, size_t string_len,
 	return write_all(conf->p->plug_pipe[1], e->data, e->hdr.size);
 }
 
+/*
+ * finish_plugin_restart - deliver the pending event after a plugin restart
+ * @e: event that exposed the failed plugin
+ * @string: formatted event data for string plugins
+ * @string_len: length of the formatted event data
+ * @conf: restarted plugin configuration
+ *
+ * Returns nothing. The plugin is marked active only after a complete write.
+ * A plugin that cannot accept the pending event is stopped so it cannot remain
+ * blocked and inactive until dispatcher shutdown.
+ */
+static void finish_plugin_restart(event_t *e, const char *string,
+				  size_t string_len, lnode *conf)
+{
+	if (write_to_plugin(e, string, string_len, conf) < 0) {
+		int saved_errno = errno;
+
+		audit_msg(LOG_ERR, "plugin %s failed after restart: %s",
+			  conf->p->path, strerror(saved_errno));
+		if (stop_plugin(conf->p))
+			audit_msg(LOG_ERR, "Cannot stop restarted child for %s",
+				  conf->p->path);
+		return;
+	}
+
+	audit_msg(LOG_NOTICE, "plugin %s was restarted (%ux)", conf->p->path,
+		  conf->p->restart_cnt);
+	conf->p->active = A_YES;
+}
+
 /* Returns 0 on stop, and 1 on HUP */
 static char fmt_buf[FORMAT_BUF_LEN];
 static int event_loop(void)
@@ -756,12 +786,8 @@ static int event_loop(void)
 								conf->p->path);
 					} else if (!AUDIT_ATOMIC_LOAD(stop) &&
 						   start_one_plugin(conf)) {
-						rc = write_to_plugin(e, fmt_buf,
-								     len, conf);
-						audit_msg(LOG_NOTICE,
-						"plugin %s was restarted (%ux)",
-							conf->p->path, conf->p->restart_cnt);
-						conf->p->active = A_YES;
+						finish_plugin_restart(e, fmt_buf, len,
+								      conf);
 					}
 				}
 			}
