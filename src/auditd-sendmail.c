@@ -100,7 +100,15 @@ static int safe_popen(pid_t *pid, const char *mail_acct)
 	sigprocmask (SIG_UNBLOCK, &sa.sa_mask, 0);
 
 	close(pipe_fd[1]);	// adjust pipe
-	dup2(pipe_fd[0], 0);
+	if (dup2(pipe_fd[0], STDIN_FILENO) < 0) {
+		close(pipe_fd[0]);
+		audit_msg(LOG_ALERT,
+		    "Audit daemon failed to redirect mailer input");
+		_exit(EXIT_FAILURE);
+	}
+	// The duplicated descriptor must not leak into the mailer.
+	if (pipe_fd[0] != STDIN_FILENO)
+		close(pipe_fd[0]);
 
 	/* Make email acct param */
 	snprintf(acct, sizeof(acct), "-f%s", mail_acct);
