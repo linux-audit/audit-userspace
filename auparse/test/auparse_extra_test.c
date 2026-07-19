@@ -386,6 +386,72 @@ static void test_proctitle_nul_separator(void)
 	auparse_destroy(au);
 }
 
+/* check_key_escape - verify one escaped multi-key value
+ * @au: parser state used for the interpretation
+ * @mode: output escaping mode
+ * @input: unescaped key bytes without surrounding quotes
+ * @expected: expected escaped bytes
+ *
+ * Return: none. Failures abort through assert().
+ */
+static void check_key_escape(auparse_state_t *au, auparse_esc_t mode,
+			     const char *input, const char *expected)
+{
+	idata id = {
+		.name = "key",
+	};
+	char value[32];
+	char *out;
+	size_t input_len = strlen(input);
+	size_t expected_len = strlen(expected);
+
+	assert(input_len + 3 <= sizeof(value));
+	value[0] = '"';
+	memcpy(value + 1, input, input_len);
+	value[input_len + 1] = '"';
+	value[input_len + 2] = '\0';
+	id.val = value;
+
+	out = auparse_do_interpretation(au, AUPARSE_TYPE_ESCAPED_KEY, &id,
+					mode);
+	assert(out != NULL);
+	assert(strlen(out) == expected_len);
+	assert(memcmp(out, expected, expected_len + 1) == 0);
+	free(out);
+}
+
+/* test_key_escape_separators - preserve separator layout and termination
+ *
+ * Return: none. Failures abort through assert().
+ */
+static void test_key_escape_separators(void)
+{
+	static const struct {
+		auparse_esc_t mode;
+		const char *input;
+		const char *expected;
+	} tests[] = {
+		{ AUPARSE_ESC_TTY, "\n\001", "\\012\001" },
+		{ AUPARSE_ESC_TTY, "\001\n", "\001\\012" },
+		{ AUPARSE_ESC_TTY, "a\001\001\n", "a\001\001\\012" },
+		{ AUPARSE_ESC_SHELL, "$\001", "\\$\001" },
+		{ AUPARSE_ESC_SHELL, "\001$", "\001\\$" },
+		{ AUPARSE_ESC_SHELL, "a\001\001$", "a\001\001\\$" },
+		{ AUPARSE_ESC_SHELL_QUOTE, "$\001", "\\$\001" },
+		{ AUPARSE_ESC_SHELL_QUOTE, "\001$", "\001\\$" },
+		{ AUPARSE_ESC_SHELL_QUOTE, "a\001\001$", "a\001\001\\$" },
+	};
+	auparse_state_t *au;
+	size_t i;
+
+	au = auparse_init(AUSOURCE_FILE, "/dev/null");
+	assert(au != NULL);
+	for (i = 0; i < sizeof(tests) / sizeof(tests[0]); i++)
+		check_key_escape(au, tests[i].mode, tests[i].input,
+				 tests[i].expected);
+	auparse_destroy(au);
+}
+
 /*
  * Verify ausearch_cur_event matches at the audit event level. Input is
  * provided by the static test buffer and failures abort through assert().
@@ -464,6 +530,7 @@ int main(void)
 	test_single_char_field_values();
 	test_seccomp_action_full();
 	test_proctitle_nul_separator();
+	test_key_escape_separators();
 	test_cur_event_matches_multirecord_event();
 	printf("extra auparse tests: all passed\n");
 	return 0;

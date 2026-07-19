@@ -327,6 +327,7 @@ static void key_escape(char *orig, char *dest, auparse_esc_t escape_mode)
 			dptr++;
 		}
 	}
+	*dptr = '\0';
 }
 
 static int is_hex_string(const char *str)
