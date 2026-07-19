@@ -679,7 +679,17 @@ int main(int argc, char *argv[])
 		// See if input fd is also set
 		if (FD_ISSET(ifd, &rfd)) {
 			do {
-				if (auplugin_fgets(event,sizeof(event),ifd) > 0) {
+				int read_rc;
+
+				read_rc = auplugin_fgets(event, sizeof(event), ifd);
+				/* A read error leaves buffer and EOF unchanged. */
+				if (read_rc < 0) {
+					syslog(LOG_ERR,
+					       "auplugin_fgets failed: %m");
+					stop = 1;
+					break;
+				}
+				if (read_rc > 0) {
 					if (!transport_ok && remote_ended &&
 						(config.remote_ending_action ==
 								FA_RECONNECT ||

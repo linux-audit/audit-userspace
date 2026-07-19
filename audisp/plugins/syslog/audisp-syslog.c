@@ -281,8 +281,18 @@ int main(int argc, const char *argv[])
 		 if (!stop && !hup && retval > 0) {
 			if (FD_ISSET(0, &read_mask)) {
 				do {
-					if (auplugin_fgets(tmp,
-					    MAX_AUDIT_MESSAGE_LENGTH, 0) > 0)
+					int read_rc;
+
+					read_rc = auplugin_fgets(tmp,
+						MAX_AUDIT_MESSAGE_LENGTH, 0);
+					/* A read error leaves buffer and EOF unchanged. */
+					if (read_rc < 0) {
+						syslog(LOG_ERR,
+						       "auplugin_fgets failed: %m");
+						stop = 1;
+						break;
+					}
+					if (read_rc > 0)
 						write_syslog(tmp);
 				} while (auplugin_fgets_more(
 						MAX_AUDIT_MESSAGE_LENGTH));

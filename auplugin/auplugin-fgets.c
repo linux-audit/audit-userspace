@@ -40,8 +40,8 @@
  * find a '\n'. If it can't find one, it advances the buffer pointer
  * and only compacts the unread data when there is no room left for
  * the next read. If the descriptor becomes invalid or there is an
- * error reading, it makes eof true. The variable eptr marks the end
- * of the buffer. It never changes.
+ * error reading, it returns -1 without changing state or the caller buffer.
+ * The variable eptr marks the end of the buffer. It never changes.
  */
 
 #define BUF_SIZE 8192

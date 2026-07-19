@@ -497,6 +497,9 @@ resolved:
 						}
 					}
 				}
+			} else if (len < 0) {
+				syslog(LOG_ERR, "auplugin_fgets failed: %m");
+				stop = 1;
 			} else if (auplugin_fgets_eof())
 				stop = 1;
 		} while (!stop &&

@@ -91,6 +91,24 @@ static void test_reject_self_managed_override(void)
 	auplugin_fgets_destroy(st);
 }
 
+/*
+ * An I/O error is distinct from EOF: callers must not consume the output
+ * buffer after auplugin_fgets_r() returns -1 because it leaves both buffer
+ * and state untouched.
+ */
+static void test_read_error_preserves_caller_state(void)
+{
+	char buf[32] = "unchanged";
+	auplugin_fgets_state_t *st;
+
+	st = auplugin_fgets_init();
+	assert(st);
+	assert(auplugin_fgets_r(st, buf, sizeof(buf), -1) == -1);
+	assert(strcmp(buf, "unchanged") == 0);
+	assert(auplugin_fgets_eof_r(st) == 0);
+	auplugin_fgets_destroy(st);
+}
+
 static void test_mmap_file(void)
 {
 	const char *srcdir = getenv("srcdir") ? getenv("srcdir") : ".";
@@ -134,6 +152,7 @@ int main(void)
 	test_basic_state();
 	test_deferred_compaction();
 	test_reject_self_managed_override();
+	test_read_error_preserves_caller_state();
 	test_mmap_file();
 	printf("audit-fgets_r tests: all passed\n");
 	return 0;
