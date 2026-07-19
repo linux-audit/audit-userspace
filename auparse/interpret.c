@@ -35,6 +35,7 @@
 #include <fcntl.h>
 #include <ctype.h>
 #include <errno.h>
+#include <stdint.h>
 #include <string.h>
 #include <pwd.h>
 #include <grp.h>
@@ -162,41 +163,85 @@ static unsigned char x2c(const unsigned char *buf)
 	return total;
 }
 
-// Check if any characters need tty escaping. Returns how many found.
-static unsigned int need_tty_escape(const unsigned char *s, unsigned int len)
+typedef struct escape_buffer {
+	char *data;
+	size_t capacity;
+	size_t length;
+} escape_buffer;
+
+/* need_tty_escape - count control bytes requiring TTY escaping
+ * @s: source buffer
+ * @len: number of source bytes
+ *
+ * Return: number of bytes requiring escaping.
+ */
+static size_t need_tty_escape(const char *s, size_t len) __nonnull((1))
+	__attr_access ((__read_only__, 1, 2));
+static size_t need_tty_escape(const char *s, size_t len)
 {
-	unsigned int i = 0, cnt = 0;
+	size_t i = 0, cnt = 0;
+
 	while (i < len) {
-		if (s[i] < 32)
+		if ((unsigned char)s[i] < 32)
 			cnt++;
 		i++;
 	}
 	return cnt;
 }
 
-// TTY escaping s string into dest.
-static void tty_escape(const char *s, char *dest, unsigned int len)
+/* tty_escape - encode a source buffer for terminal output
+ * @s: source buffer
+ * @len: number of source bytes
+ * @dest: destination buffer
+ * @dlen: destination capacity including the final NUL
+ *
+ * Return: 0 on success and -1 when the destination is too small.
+ */
+static int tty_escape(const char *s, size_t len, char *dest, size_t dlen)
+	__nonnull((1, 3))
+	__attr_access ((__read_only__, 1, 2))
+	__attr_access ((__write_only__, 3, 4));
+static int tty_escape(const char *s, size_t len, char *dest, size_t dlen)
 {
-	unsigned int i = 0, j = 0;
+	size_t i = 0, j = 0;
+
+	if (dlen == 0)
+		return -1;
 	while (i < len) {
 		if ((unsigned char)s[i] < 32) {
+			if (dlen - j <= 4)
+				return -1;
 			dest[j++] = ('\\');
 			dest[j++] = ('0' + ((s[i] & 0300) >> 6));
 			dest[j++] = ('0' + ((s[i] & 0070) >> 3));
 			dest[j++] = ('0' + (s[i] & 0007));
-		} else
+		} else {
+			if (dlen - j <= 1)
+				return -1;
 			dest[j++] = s[i];
+		}
 		i++;
 	}
-	dest[j] = '\0';	/* terminate string */
+	dest[j] = '\0';
+	return 0;
 }
 
 static const char sh_set[] = "\"'`$\\!()| ";
-static unsigned int need_shell_escape(const char *s, unsigned int len)
+
+/* need_shell_escape - count bytes requiring shell escaping
+ * @s: source buffer
+ * @len: number of source bytes
+ *
+ * Return: number of bytes requiring escaping.
+ */
+static size_t need_shell_escape(const char *s, size_t len) __nonnull((1))
+	__attr_access ((__read_only__, 1, 2));
+static size_t need_shell_escape(const char *s, size_t len)
 {
-	unsigned int i = 0, cnt = 0;
+	size_t i = 0, cnt = 0;
+
 	while (i < len) {
-		if (s[i] < 32)
+		if ((unsigned char)s[i] < 32)
 			cnt++;
 		else if (strchr(sh_set, s[i]))
 			cnt++;
@@ -205,32 +250,64 @@ static unsigned int need_shell_escape(const char *s, unsigned int len)
 	return cnt;
 }
 
-static void shell_escape(const char *s, char *dest, unsigned int len)
+/* shell_escape - encode a source buffer for unquoted shell output
+ * @s: source buffer
+ * @len: number of source bytes
+ * @dest: destination buffer
+ * @dlen: destination capacity including the final NUL
+ *
+ * Return: 0 on success and -1 when the destination is too small.
+ */
+static int shell_escape(const char *s, size_t len, char *dest, size_t dlen)
+	__nonnull((1, 3))
+	__attr_access ((__read_only__, 1, 2))
+	__attr_access ((__write_only__, 3, 4));
+static int shell_escape(const char *s, size_t len, char *dest, size_t dlen)
 {
-	unsigned int i = 0, j = 0;
+	size_t i = 0, j = 0;
+
+	if (dlen == 0)
+		return -1;
 	while (i < len) {
 		if ((unsigned char)s[i] < 32) {
+			if (dlen - j <= 4)
+				return -1;
 			dest[j++] = ('\\');
 			dest[j++] = ('0' + ((s[i] & 0300) >> 6));
 			dest[j++] = ('0' + ((s[i] & 0070) >> 3));
 			dest[j++] = ('0' + (s[i] & 0007));
 		} else if (strchr(sh_set, s[i])) {
+			if (dlen - j <= 2)
+				return -1;
 			dest[j++] = ('\\');
 			dest[j++] = s[i];
-		} else
+		} else {
+			if (dlen - j <= 1)
+				return -1;
 			dest[j++] = s[i];
+		}
 		i++;
 	}
-	dest[j] = '\0';	/* terminate string */
+	dest[j] = '\0';
+	return 0;
 }
 
 static const char quote_set[] = "\"'`$\\!()| ;#&*?[]<>{}";
-static unsigned int need_shell_quote_escape(const unsigned char *s,
-					    unsigned int len)
+
+/* need_shell_quote_escape - count bytes requiring quoted shell escaping
+ * @s: source buffer
+ * @len: number of source bytes
+ *
+ * Return: number of bytes requiring escaping.
+ */
+static size_t need_shell_quote_escape(const char *s, size_t len)
+	__nonnull((1)) __attr_access ((__read_only__, 1, 2));
+static size_t need_shell_quote_escape(const char *s, size_t len)
 {
-	unsigned int i = 0, cnt = 0;
+	size_t i = 0, cnt = 0;
+
 	while (i < len) {
-		if (s[i] < 32)
+		if ((unsigned char)s[i] < 32)
 			cnt++;
 		else if (strchr(quote_set, s[i]))
 			cnt++;
@@ -239,28 +316,61 @@ static unsigned int need_shell_quote_escape(const unsigned char *s,
 	return cnt;
 }
 
-static void shell_quote_escape(const char *s, char *dest, unsigned int len)
+/* shell_quote_escape - encode a source buffer for quoted shell output
+ * @s: source buffer
+ * @len: number of source bytes
+ * @dest: destination buffer
+ * @dlen: destination capacity including the final NUL
+ *
+ * Return: 0 on success and -1 when the destination is too small.
+ */
+static int shell_quote_escape(const char *s, size_t len, char *dest,
+			      size_t dlen) __nonnull((1, 3))
+	__attr_access ((__read_only__, 1, 2))
+	__attr_access ((__write_only__, 3, 4));
+static int shell_quote_escape(const char *s, size_t len, char *dest,
+			      size_t dlen)
 {
-	unsigned int i = 0, j = 0;
+	size_t i = 0, j = 0;
+
+	if (dlen == 0)
+		return -1;
 	while (i < len) {
 		if ((unsigned char)s[i] < 32) {
+			if (dlen - j <= 4)
+				return -1;
 			dest[j++] = ('\\');
 			dest[j++] = ('0' + ((s[i] & 0300) >> 6));
 			dest[j++] = ('0' + ((s[i] & 0070) >> 3));
 			dest[j++] = ('0' + (s[i] & 0007));
 		} else if (strchr(quote_set, s[i])) {
+			if (dlen - j <= 2)
+				return -1;
 			dest[j++] = ('\\');
 			dest[j++] = s[i];
-		} else
+		} else {
+			if (dlen - j <= 1)
+				return -1;
 			dest[j++] = s[i];
+		}
 		i++;
 	}
-	dest[j] = '\0';	/* terminate string */
+	dest[j] = '\0';
+	return 0;
 }
 
-/* This should return the count of what needs escaping */
-static unsigned int need_escaping(const char *s, unsigned int len,
-	auparse_esc_t escape_mode)
+/* need_escaping - count source bytes requiring the selected escaping
+ * @s: source buffer
+ * @len: number of source bytes
+ * @escape_mode: output escaping mode
+ *
+ * Return: number of bytes requiring escaping.
+ */
+static size_t need_escaping(const char *s, size_t len,
+		auparse_esc_t escape_mode) __nonnull((1))
+	__attr_access ((__read_only__, 1, 2));
+static size_t need_escaping(const char *s, size_t len,
+		auparse_esc_t escape_mode)
 {
 	switch (escape_mode)
 	{
@@ -276,58 +386,115 @@ static unsigned int need_escaping(const char *s, unsigned int len,
 	return 0;
 }
 
-static void escape(const char *s, char *dest, unsigned int len,
-	auparse_esc_t escape_mode)
+/* escape_size - calculate the maximum escaped allocation size
+ * @len: number of source bytes
+ * @count: number of source bytes requiring escaping
+ * @size: calculated allocation size including the final NUL
+ *
+ * Return: 0 on success and -1 if the calculation would overflow.
+ */
+static int escape_size(size_t len, size_t count, size_t *size)
+	__nonnull((3)) __attr_access ((__write_only__, 3));
+static int escape_size(size_t len, size_t count, size_t *size)
 {
+	if (len == SIZE_MAX || count > (SIZE_MAX - len - 1) / 3)
+		return -1;
+	*size = len + 1 + 3 * count;
+	return 0;
+}
+
+/* escape - dispatch bounded escaping into a destination buffer
+ * @s: source buffer
+ * @len: number of source bytes
+ * @dest: destination buffer description and resulting output length
+ * @escape_mode: output escaping mode
+ *
+ * Return: 0 on success and -1 when the destination is too small.
+ */
+static int escape(const char *s, size_t len, escape_buffer *dest,
+		  auparse_esc_t escape_mode) __nonnull((1, 3))
+	__attr_access ((__read_only__, 1, 2));
+static int escape(const char *s, size_t len, escape_buffer *dest,
+		  auparse_esc_t escape_mode)
+{
+	int rc;
+
+	if (dest->data == NULL)
+		return -1;
 	switch (escape_mode)
 	{
 		case AUPARSE_ESC_RAW:
+			if (dest->capacity <= len)
+				return -1;
+			memcpy(dest->data, s, len);
+			dest->data[len] = '\0';
 			break;
 		case AUPARSE_ESC_TTY:
-			tty_escape(s, dest, len);
+			rc = tty_escape(s, len, dest->data, dest->capacity);
+			if (rc)
+				return rc;
 			break;
 		case AUPARSE_ESC_SHELL:
-			shell_escape(s, dest, len);
+			rc = shell_escape(s, len, dest->data, dest->capacity);
+			if (rc)
+				return rc;
 			break;
 		case AUPARSE_ESC_SHELL_QUOTE:
-			shell_quote_escape(s, dest, len);
+			rc = shell_quote_escape(s, len, dest->data,
+						dest->capacity);
+			if (rc)
+				return rc;
 			break;
+		default:
+			return -1;
 	}
+	dest->length = strlen(dest->data);
+	return 0;
 }
 
-static void key_escape(char *orig, char *dest, auparse_esc_t escape_mode)
+/* key_escape - escape each component while preserving key separators
+ * @orig: source key buffer
+ * @len: number of source bytes
+ * @dest: destination buffer description and resulting output length
+ * @escape_mode: output escaping mode
+ *
+ * Return: 0 on success and -1 when the destination is too small.
+ */
+static int key_escape(const char *orig, size_t len, escape_buffer *dest,
+		      auparse_esc_t escape_mode) __nonnull((1, 3))
+	__attr_access ((__read_only__, 1, 2));
+static int key_escape(const char *orig, size_t len, escape_buffer *dest,
+		      auparse_esc_t escape_mode)
 {
-	char *optr = orig;
-	char *str, *dptr = dest, tmp;
-	while (*optr) {
-		unsigned int klen, cnt;
-		// Find the separator or the end
-		str = strchr(optr, AUDIT_KEY_SEPARATOR);
-		if (str == NULL)
-			str = strchr(optr, 0);
-		klen = str - optr;
-		tmp = *str;
-		*str = 0;
-		cnt = need_escaping(optr, klen, escape_mode);
-		if (cnt == 0)
-			dptr = stpcpy(dptr, optr);
-		else {
-			escape(optr, dptr, klen, escape_mode);
-			dptr = strchr(dest, 0);
-			if (dptr == NULL)
-				return; // Something is really messed up
-		}
-		// Put the separator back
-		*str = tmp;
-		*dptr = tmp;
-		optr = str;
-		// If we are not at the end...
-		if (tmp) {
-			optr++;
-			dptr++;
-		}
+	size_t offset = 0;
+
+	if (dest->data == NULL || dest->capacity == 0)
+		return -1;
+	dest->data[0] = '\0';
+	dest->length = 0;
+	while (offset < len) {
+		const char *start = orig + offset;
+		const char *sep;
+		escape_buffer part;
+		size_t klen;
+
+		sep = memchr(start, AUDIT_KEY_SEPARATOR, len - offset);
+		klen = sep ? (size_t)(sep - start) : len - offset;
+		part.data = dest->data + dest->length;
+		part.capacity = dest->capacity - dest->length;
+		part.length = 0;
+		if (escape(start, klen, &part, escape_mode))
+			return -1;
+		dest->length += part.length;
+		if (sep == NULL)
+			break;
+		if (dest->capacity - dest->length <= 1)
+			return -1;
+		dest->data[dest->length++] = AUDIT_KEY_SEPARATOR;
+		dest->data[dest->length] = '\0';
+		offset += klen + 1;
 	}
-	*dptr = '\0';
+	return 0;
 }
 
 static int is_hex_string(const char *str)
@@ -340,10 +507,14 @@ static int is_hex_string(const char *str)
 	return 1;
 }
 
-/* returns a freshly malloc'ed and converted buffer */
+/* au_unescape - decode a hexadecimal or parenthesized audit value
+ * @buf: NUL-terminated source string
+ *
+ * Return: a newly allocated decoded string, or NULL on failure.
+ */
 char *au_unescape(const char *buf)
 {
-	int olen, len, i;
+	size_t olen, len, i, prefix_len;
 	char *str, *work;
 	const char *ptr = buf;
 
@@ -364,12 +535,15 @@ char *au_unescape(const char *buf)
 	// back a buffer that is not sized on the expectation of
 	// strlen(buf) / 2.
 	olen = strlen(buf);
-	str = malloc(olen+1);
+	if (olen == SIZE_MAX)
+		return NULL;
+	str = malloc(olen + 1);
 	if (!str)
 		return NULL;
 
-	memcpy(str, buf, ptr - buf);
-	str[ptr - buf] = 0;
+	prefix_len = (size_t)(ptr - buf);
+	memcpy(str, buf, prefix_len);
+	str[prefix_len] = 0;
 
 	/* See if its '(null)' from the kernel */
 	if (*buf == '(')
@@ -389,7 +563,7 @@ char *au_unescape(const char *buf)
 		work++;
 	}
 	*work = 0;
-	len = work - str - 1;
+	len = (size_t)(work - str) - 1;
 	olen /= 2;
 	// Because *ptr is 0, writing another 0 to it doesn't hurt anything
 	if (olen > len)
@@ -3594,7 +3768,7 @@ unknown:
 
 	if (escape_mode != AUPARSE_ESC_RAW && out) {
 		const char *str = NULL;
-		unsigned int len = strlen(out);
+		size_t len = strlen(out);
 		if (type == AUPARSE_TYPE_ESCAPED_KEY) {
 			// The audit key separator causes a false
 			// positive in deciding to escape.
@@ -3602,58 +3776,59 @@ unknown:
 		}
 		if (str == NULL) {
 			// This is the normal path
-			unsigned int cnt = need_escaping(out, len,
-							 escape_mode);
+			size_t cnt = need_escaping(out, len, escape_mode);
 			if (cnt) {
-				char *dest = malloc(len + 1 + (3*cnt));
-				if (dest)
-					escape(out, dest, len, escape_mode);
+				escape_buffer dest = { 0 };
+
+				if (escape_size(len, cnt, &dest.capacity) == 0)
+					dest.data = malloc(dest.capacity);
+				if (dest.data &&
+				    escape(out, len, &dest, escape_mode)) {
+					free(dest.data);
+					dest.data = NULL;
+				}
 				free((void *)out);
-				out = dest;
+				out = dest.data;
 			}
 		} else {
 			// We have multiple keys. Need to look at each one.
-			unsigned int cnt = 0;
-			char *mutable, *ptr, *sep;
+			size_t cnt = 0, offset = 0;
 
-			mutable = strdup(out);
-			if (mutable == NULL)
-				return (char *)out;
-			ptr = mutable;
-			sep = strchr(ptr, AUDIT_KEY_SEPARATOR);
-			if (sep == NULL)
-				sep = strchr(ptr, 0);
+			while (offset < len) {
+				const char *ptr = out + offset;
+				const char *sep;
+				size_t klen, part_count;
 
-			while (*ptr) {
-				unsigned int klen = sep - ptr;
-				char tmp = *sep;
-				*sep = 0;
-				cnt += need_escaping(ptr, klen,
-						     escape_mode);
-				*sep = tmp;
-				ptr = sep;
-				// If we are not at the end...
-				if (tmp) {
-					ptr++;
-					sep = strchr(ptr, AUDIT_KEY_SEPARATOR);
-					// If we don't have anymore, just
-					// point to the end
-					if (sep == NULL)
-						sep = strchr(ptr, 0);
+				sep = memchr(ptr, AUDIT_KEY_SEPARATOR,
+					     len - offset);
+				klen = sep ? (size_t)(sep - ptr) : len - offset;
+				part_count = need_escaping(ptr, klen,
+							   escape_mode);
+				if (part_count > SIZE_MAX - cnt) {
+					cnt = SIZE_MAX;
+					break;
 				}
+				cnt += part_count;
+				if (sep == NULL)
+					break;
+				offset += klen + 1;
 			}
 			if (cnt) {
 				// I expect this code to never get used.
 				// Its here just in the off chance someone
 				// actually put a control character in a key.
-				char *dest = malloc(len + 1 + (3*cnt));
-				if (dest)
-					key_escape(mutable, dest, escape_mode);
-				free(mutable);
+				escape_buffer dest = { 0 };
+
+				if (escape_size(len, cnt, &dest.capacity) == 0)
+					dest.data = malloc(dest.capacity);
+				if (dest.data &&
+				    key_escape(out, len, &dest, escape_mode)) {
+					free(dest.data);
+					dest.data = NULL;
+				}
 				free((void *)out);
-				out = dest;
-			} else
-				free(mutable);
+				out = dest.data;
+			}
 		}
 	}
 	return (char *)out;

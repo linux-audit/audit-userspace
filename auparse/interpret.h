@@ -45,7 +45,8 @@ void _aulookup_destroy_uid_list(auparse_state_t *au);
 void aulookup_destroy_gid_list(auparse_state_t *au);
 void aulookup_metrics(const auparse_state_t *au, unsigned int *uid,
 			unsigned int *gid);
-char *au_unescape(const char *buf)  __attribute_malloc__ __attr_dealloc_free;
+char *au_unescape(const char *buf) __attribute_malloc__ __attr_dealloc_free
+	__nonnull((1)) __attr_access ((__read_only__, 1));
 
 AUDIT_HIDDEN_END
 
