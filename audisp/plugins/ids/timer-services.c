@@ -69,9 +69,9 @@ void do_timer_services(unsigned int interval)
 				int res = unblock_ip_address(j->arg);
 
 				// Log that its back in business
-				char buf[24];
+				char buf[64];
 				snprintf(buf, sizeof(buf),
-						 "daddr=%.16s", j->arg);
+						 "daddr=%.45s", j->arg);
 				log_audit_event(
 					AUDIT_RESP_ORIGIN_UNBLOCK_TIMED,
 					buf, !res);
@@ -111,4 +111,3 @@ void shutdown_timer_services(void)
 {
 	nvpair_list_clear(&jobs);
 }
-

@@ -6,7 +6,6 @@
  */
 
 #include "config.h"
-#include <arpa/inet.h> // inet_pton
 #include <libaudit.h>
 #include <string.h>
 #include <stdlib.h>
@@ -36,12 +35,9 @@ static void terminate_sessions(void)
 // is it a new session
 static void start_session(auparse_state_t *au, struct ids_conf *config)
 {
-	unsigned int a;
+	ids_address_t address;
 	const char *addr = auparse_find_field(au, "addr");
-	if (addr && *addr != '?')
-		inet_pton(AF_INET, addr, &a);
-	else
-		a = -1;
+	int have_address = ids_address_parse(addr, &address);
 
 	int service_acct = 0;
 	char *acct = NULL;
@@ -56,10 +52,10 @@ static void start_session(auparse_state_t *au, struct ids_conf *config)
 	}
 
 	// Have we seen this endpoint before?
-	origin_data_t *o = find_origin(a);
-	if (o == NULL) {
-		new_origin(a);
-		o = find_origin(a);
+	origin_data_t *o = find_origin(&address);
+	if (have_address && o == NULL) {
+		new_origin(&address);
+		o = find_origin(&address);
 	}
 
 	// Is this login a service account?
@@ -94,7 +90,7 @@ static void start_session(auparse_state_t *au, struct ids_conf *config)
 		unsigned int s = auparse_get_field_int(au);
 		if (s != UNSET) {
 			// new_session copies acct before storing it.
-			new_session(s, a, acct);
+			new_session(s, &address, acct);
 		// otherwise we have a strange daemon login
 		} else if (debug)
 		    my_printf("start_session: can't find session in serial %s",

@@ -25,11 +25,7 @@ static int cmp_origins(void *a, void *b)
 	const origin_data_t *left = a;
 	const origin_data_t *right = b;
 
-	if (left->address < right->address)
-		return -1;
-	if (left->address > right->address)
-		return 1;
-	return 0;
+	return ids_address_compare(&left->address, &right->address);
 }
 
 void init_origins(void)
@@ -48,9 +44,13 @@ static int dump_origin(void *entry, void *data)
 {
 	FILE *f = data;
 	origin_data_t *o = entry;
+	char address[INET6_ADDRSTRLEN];
 
 	fprintf(f, "\n");
-	fprintf(f, " address: %s\n", sockint_to_ipv4(o->address));
+	if (ids_address_format(&o->address, address, sizeof(address)))
+		fprintf(f, " address: %s\n", address);
+	else
+		fprintf(f, " address: ?\n");
 	fprintf(f, " karma: %u\n", o->karma);
 	fprintf(f, " blocked: %u\n", o->blocked);
 
@@ -72,11 +72,16 @@ static void free_origin(origin_data_t *o)
 	free(o);
 }
 
-void new_origin(unsigned int a)
+void new_origin(const ids_address_t *address)
 {
-	origin_data_t *tmp = (origin_data_t *)malloc(sizeof(origin_data_t));
+	origin_data_t *tmp;
+
+	if (!ids_address_is_valid(address))
+		return;
+
+	tmp = (origin_data_t *)malloc(sizeof(origin_data_t));
 	if (tmp) {
-		tmp->address = a;
+		tmp->address = *address;
 		tmp->karma = 0;
 		tmp->blocked = 0;
 		add_origin(tmp);
@@ -107,8 +112,12 @@ void destroy_origins(void)
 int add_origin(origin_data_t *o)
 {
 	origin_data_t *tmp;
-	if (debug)
-		my_printf("Adding origin %u", o->address);
+	if (debug) {
+		char address[INET6_ADDRSTRLEN];
+
+		if (ids_address_format(&o->address, address, sizeof(address)))
+			my_printf("Adding origin %s", address);
+	}
 
 	cur = NULL;
 	tmp = (origin_data_t *)avl_insert(&origins.index, (avl_t *)(o));
@@ -122,15 +131,20 @@ int add_origin(origin_data_t *o)
 		origins.count++;
 		cur = tmp;
 	} else if (debug)
-		my_printf("origin: failed inserting address %u", o->address);
+		my_printf("origin: failed inserting address");
 	return 0;
 }
 
-origin_data_t *find_origin(unsigned int addr)
+origin_data_t *find_origin(const ids_address_t *address)
 {
 	origin_data_t tmp;
 
-	tmp.address = addr;
+	if (!ids_address_is_valid(address)) {
+		cur = NULL;
+		return NULL;
+	}
+
+	tmp.address = *address;
 	cur = (origin_data_t *)avl_search(&origins.index, (avl_t *) &tmp);
 	return cur;
 }
@@ -140,18 +154,28 @@ origin_data_t *current_origin(void)
 	return cur;
 }
 
-int del_origin(unsigned int addr)
+int del_origin(const ids_address_t *address)
 {
 	origin_data_t tmp1, *tmp2;
-	tmp1.address = addr;
 
-	if (debug)
-		my_printf("Deleting %u", addr);
+	if (!ids_address_is_valid(address)) {
+		cur = NULL;
+		return 1;
+	}
+
+	tmp1.address = *address;
+
+	if (debug) {
+		char printable[INET6_ADDRSTRLEN];
+
+		if (ids_address_format(address, printable, sizeof(printable)))
+			my_printf("Deleting %s", printable);
+	}
 	cur = NULL;
 	tmp2 = (origin_data_t *)avl_remove(&origins.index, (avl_t *) &tmp1);
 	if (tmp2) {
 		origins.count--;
-		if (tmp2->address != addr) {
+		if (ids_address_compare(&tmp2->address, address) != 0) {
 			if (debug)
 				my_printf("origin: deleting unknown address");
 			return 1;
@@ -168,28 +192,6 @@ int del_origin(unsigned int addr)
 	return 0;
 }
 
-char *sockint_to_ipv4(unsigned int addr)
-{
-        unsigned char *uaddr = (unsigned char *)&(addr);
-        static char buf[16];
-
-        snprintf(buf, sizeof(buf), "%u.%u.%u.%u",
-                uaddr[0], uaddr[1], uaddr[2], uaddr[3]);
-        return buf;
-}
-
-unsigned int ipv4_to_sockint(const char *buf)
-{
-	unsigned int addr;
-	unsigned int ip[4] = {0, 0, 0, 0};
-
-	if (sscanf(buf, "%u.%u.%u.%u", &ip[3], &ip[2], &ip[1], &ip[0]) != 4)
-		return 0;
-
-	addr = ip[0] << 24 | ip[1] << 16 | ip[2] << 8 | ip[3];
-	return addr;
-}
-
 void bad_login_origin(origin_data_t *o, struct ids_conf *config)
 {	// We will just add a 1 for a bad login.
 	add_to_score_origin(o, config->option_bad_login_weight);
@@ -198,11 +200,14 @@ void bad_login_origin(origin_data_t *o, struct ids_conf *config)
 void bad_service_login_origin(origin_data_t *o, struct ids_conf *config,
 		const char *acct)
 {	// We will just add a 5 for a bad service login.
-	char buf[62];
-	const char *addr = sockint_to_ipv4(o->address);
-	// account names can be up to 32 characters. IPv4 can be 16
-	snprintf(buf, sizeof(buf), "acct=%.32s daddr=%.16s",
-			acct ? acct : "?", addr);
+	char address[INET6_ADDRSTRLEN] = "?";
+	char buf[96];
+
+	if (o)
+		ids_address_format(&o->address, address, sizeof(address));
+	// Account names can be up to 32 characters and IPv6 can use 45.
+	snprintf(buf, sizeof(buf), "acct=%.32s daddr=%.45s",
+			acct ? acct : "?", address);
 	log_audit_event(AUDIT_ANOM_LOGIN_SERVICE, buf, 1);
 
 	add_to_score_origin(o, config->option_service_login_weight);
@@ -211,10 +216,13 @@ void bad_service_login_origin(origin_data_t *o, struct ids_conf *config,
 void watched_login_origin(origin_data_t *o, struct ids_conf *config,
 		const char *acct)
 {	// We will just add a 5 for a watched login.
-	char buf[62];
-	const char *addr = sockint_to_ipv4(o->address);
-	snprintf(buf, sizeof(buf), "acct=%.32s daddr=%.16s",
-			acct ? acct : "?", addr);
+	char address[INET6_ADDRSTRLEN] = "?";
+	char buf[96];
+
+	if (o)
+		ids_address_format(&o->address, address, sizeof(address));
+	snprintf(buf, sizeof(buf), "acct=%.32s daddr=%.45s",
+			acct ? acct : "?", address);
 	log_audit_event(AUDIT_ANOM_LOGIN_ACCT, buf, 1);
 
 	add_to_score_origin(o, config->option_root_login_weight);
@@ -237,8 +245,12 @@ void add_to_score_origin(origin_data_t *o, unsigned int adj)
 // Returns 1 on success and 0 on failure
 int unblock_origin(const char *addr)
 {
-	unsigned int uaddr = ipv4_to_sockint(addr);
-	origin_data_t *o = find_origin(uaddr);
+	ids_address_t address;
+	origin_data_t *o;
+
+	if (!ids_address_parse(addr, &address))
+		return 0;
+	o = find_origin(&address);
 	if (o) {
 		o->blocked = 0;
 		return 1;

@@ -247,28 +247,61 @@ int lock_account_timed(const char *acct, unsigned long length)
 	return add_timer_job(UNLOCK_ACCOUNT, acct, length);
 }
 
-int block_ip_address(const char *addr)
+/*
+ * change_ip_address_rule - add or remove an IPv4 or IPv6 firewall rule
+ * Args:
+ *   address - source address to match
+ *   add     - nonzero to add a rule, zero to remove it
+ * Rtns:
+ *   0 on success, 1 on validation or command failure
+ */
+static int change_ip_address_rule(const ids_address_t *address, int add)
 {
+	char addr[INET6_ADDRSTRLEN];
+
+	if (!ids_address_format(address, addr, sizeof(addr)))
+		return 1;
+
 #ifdef USE_NFTABLES
+	const char *operation = add ? "add" : "delete";
+	const char *protocol = address->family == AF_INET ? "ip" : "ip6";
+
 	if (debug)
-		my_printf("reaction /sbin/nft add rule inet filter input ip saddr %s drop",
-			  addr);
+		my_printf("reaction /sbin/nft %s rule inet filter "
+			  "input %s saddr %s drop", operation, protocol, addr);
 	minipause();
-	return safe_exec("/usr/sbin/nft", "add", "rule", "inet", "filter",
-			"input", "ip", "saddr", addr, "drop", (char *)NULL);
+	return safe_exec("/usr/sbin/nft", operation, "rule", "inet", "filter",
+			"input", protocol, "saddr", addr, "drop",
+			(char *)NULL);
 #else
+	const char *operation = add ? "-I" : "-D";
+	const char *exe = address->family == AF_INET ?
+		"/usr/sbin/iptables" : "/usr/sbin/ip6tables";
+
 	if (debug)
-		my_printf("reaction /sbin/iptables -I INPUT -s %s -j DROP",
-			  addr);
+		my_printf("reaction %s %s INPUT -s %s -j DROP", exe,
+			  operation, addr);
 	minipause();
-	return safe_exec("/usr/sbin/iptables", "-I", "INPUT", "-s", addr,
-			 "-j","DROP", (char *)NULL);
+	return safe_exec(exe, operation, "INPUT", "-s", addr, "-j", "DROP",
+			(char *)NULL);
 #endif
 }
 
-int block_ip_address_timed(const char *addr, unsigned long length)
+int block_ip_address(const ids_address_t *address)
 {
-	int rc = block_ip_address(addr);
+	return change_ip_address_rule(address, 1);
+}
+
+int block_ip_address_timed(const ids_address_t *address,
+	unsigned long length)
+{
+	char addr[INET6_ADDRSTRLEN];
+	int rc;
+
+	if (!ids_address_format(address, addr, sizeof(addr)))
+		return 1;
+
+	rc = block_ip_address(address);
 	if (rc)
 		return rc;
 
@@ -279,27 +312,31 @@ static void block_address(unsigned int reaction, const char *reason)
 {
 	unsigned time_out = config.block_address_time;
 	int res;
-	char buf[80];
+	char addr[INET6_ADDRSTRLEN];
+	char buf[128];
 	origin_data_t *o = current_origin();
-	const char *addr = sockint_to_ipv4(o->address);
+
+	if (o == NULL ||
+		!ids_address_format(&o->address, addr, sizeof(addr)))
+		return;
 
 	if (debug)
 		my_printf("Blocking address %s b/c %s", addr, reason);
 
 	if (reaction == REACTION_BLOCK_ADDRESS)
-		res = block_ip_address(addr);
+		res = block_ip_address(&o->address);
 	else
-		res = block_ip_address_timed(addr, time_out);
+		res = block_ip_address_timed(&o->address, time_out);
 
 	if (res == 0) {
 		o->blocked = 1;
 		if (reaction == REACTION_BLOCK_ADDRESS) {
-			snprintf(buf, sizeof(buf), "daddr=%.16s reason=%s",
+			snprintf(buf, sizeof(buf), "daddr=%.45s reason=%s",
 				      addr, reason);
 			log_audit_event(AUDIT_RESP_ORIGIN_BLOCK, buf, 1);
 		} else {
 			snprintf(buf, sizeof(buf),
-				      "daddr=%.16s reason=%s time_out=%u",
+				      "daddr=%.45s reason=%s time_out=%u",
 				      addr, reason, time_out/MINUTES);
 			log_audit_event(AUDIT_RESP_ORIGIN_BLOCK_TIMED, buf, 1);
 		}
@@ -308,21 +345,11 @@ static void block_address(unsigned int reaction, const char *reason)
 
 int unblock_ip_address(const char *addr)
 {
-#ifdef USE_NFTABLES
-	if (debug)
-		my_printf("reaction /sbin/nft delete rule inet filter input ip saddr %s drop",
-			  addr);
-	minipause();
-	return safe_exec("/usr/sbin/nft", "delete", "rule", "inet", "filter",
-			"input", "ip", "saddr", addr, "drop", (char *)NULL);
-#else
-	if (debug)
-		my_printf("reaction /sbin/iptables -D INPUT -s %s -j DROP",
-			  addr);
-	minipause();
-	return safe_exec("/usr/sbin/iptables", "-D", "INPUT", "-s", addr,
-			"-j","DROP", (char *)NULL);
-#endif
+	ids_address_t address;
+
+	if (!ids_address_parse(addr, &address))
+		return 1;
+	return change_ip_address_rule(&address, 0);
 }
 
 int system_reboot(void)

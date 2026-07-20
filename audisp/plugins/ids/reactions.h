@@ -8,6 +8,8 @@
 #ifndef REACTIONS_HEADER
 #define REACTIONS_HEADER
 
+#include "address.h"
+
 struct session_data;
 
 int kill_process(pid_t pid);
@@ -17,8 +19,9 @@ int force_password_reset(const char *acct);
 int lock_account(const char *acct);
 int unlock_account(const char *acct);
 int lock_account_timed(const char *acct, unsigned long length);
-int block_ip_address(const char *addr);
-int block_ip_address_timed(const char *addr, unsigned long length);
+int block_ip_address(const ids_address_t *address);
+int block_ip_address_timed(const ids_address_t *address,
+	unsigned long length);
 int unblock_ip_address(const char *addr);
 int system_reboot(void);
 int system_single_user(void);

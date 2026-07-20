@@ -19,13 +19,13 @@ typedef struct session_data {
 	unsigned int session;
 	unsigned int score;
 	unsigned int killed;
-	unsigned int origin;	// This hack works for IPv4
+	ids_address_t origin;
 	const char *acct;	// Not used at the moment
 } session_data_t;
 
 
 void init_sessions(void);
-void new_session(unsigned int s, unsigned int o, const char *acct);
+void new_session(unsigned int s, const ids_address_t *o, const char *acct);
 void destroy_sessions(void);
 unsigned int get_num_sessions(void);
 void traverse_sessions(FILE *f);
@@ -37,4 +37,3 @@ int del_session(unsigned int s);
 void add_to_score_session(session_data_t *s, unsigned int adj);
 
 #endif
-

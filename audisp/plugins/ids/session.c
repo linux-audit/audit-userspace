@@ -53,12 +53,16 @@ static int dump_session(void *entry, void *data)
 {
 	FILE *f = data;
 	session_data_t *s = entry;
+	char address[INET6_ADDRSTRLEN];
 
 	fprintf(f, "\n");
 	fprintf(f, " session: %u\n", s->session);
 	fprintf(f, " score: %u\n", s->score);
 	fprintf(f, " killed: %u\n", s->killed);
-	fprintf(f, " origin: %s\n", sockint_to_ipv4(s->origin));
+	if (ids_address_format(&s->origin, address, sizeof(address)))
+		fprintf(f, " origin: %s\n", address);
+	else
+		fprintf(f, " origin: ?\n");
 	fprintf(f, " acct: %s\n", s->acct);
 
 	return 0;
@@ -100,10 +104,14 @@ static void destroy_session(void)
  * Rtns:
  *   void
  */
-void new_session(unsigned int s, unsigned int o, const char *acct)
+void new_session(unsigned int s, const ids_address_t *o, const char *acct)
 {
-	session_data_t *tmp = malloc(sizeof(session_data_t));
+	session_data_t *tmp;
 
+	if (o == NULL)
+		return;
+
+	tmp = malloc(sizeof(session_data_t));
 	if (tmp == NULL)
 		return;
 
@@ -116,7 +124,7 @@ void new_session(unsigned int s, unsigned int o, const char *acct)
 	tmp->session = s;
 	tmp->score = 0;
 	tmp->killed = 0;
-	tmp->origin = o;
+	tmp->origin = *o;
 	if (add_session(tmp))
 		return;
 
@@ -150,9 +158,9 @@ int add_session(session_data_t *s)
 		cur = tmp;
 
 		// Add origin info
-		origin_data_t *o = find_origin(s->origin);
-		if (o == NULL)
-			new_origin(s->origin);
+		origin_data_t *o = find_origin(&s->origin);
+		if (o == NULL && ids_address_is_valid(&s->origin))
+			new_origin(&s->origin);
 
 		// Add account info
 		account_data_t *a = find_account(s->acct);

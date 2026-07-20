@@ -29,10 +29,10 @@ prog_conf = ids.conf
 plugin_confdir=$(prog_confdir)/plugins.d
 plugin_conf = audisp-ids.conf
 sbin_PROGRAMS = audisp-ids
-check_PROGRAMS = test-nvpair test-reactions
+check_PROGRAMS = test-model-bad-event test-nvpair test-origin test-reactions
 TESTS = $(check_PROGRAMS)
 noinst_HEADERS = account.h avl.h ids_config.h ids.h \
-	model_bad_event.h model_behavior.h nvpair.h origin.h \
+	address.h model_bad_event.h model_behavior.h nvpair.h origin.h \
 	reactions.h session.h timer-services.h
 
 test_nvpair_SOURCES = test-nvpair.c nvpair.c
@@ -42,17 +42,34 @@ test_nvpair_CFLAGS += ${ASAN_FLAGS}
 test_nvpair_LDFLAGS = ${ASAN_FLAGS}
 endif
 
-test_reactions_SOURCES = test-reactions.c reactions.c
+test_model_bad_event_SOURCES = test-model-bad-event.c address.c avl.c \
+	model_bad_event.c origin.c
+test_model_bad_event_CFLAGS = -D_GNU_SOURCE ${WFLAGS}
+test_model_bad_event_LDADD = ${top_builddir}/auparse/libauparse.la \
+	${top_builddir}/lib/libaudit.la
+if HAVE_ASAN
+test_model_bad_event_CFLAGS += ${ASAN_FLAGS}
+test_model_bad_event_LDFLAGS = ${ASAN_FLAGS}
+endif
+
+test_origin_SOURCES = test-origin.c address.c avl.c origin.c
+test_origin_CFLAGS = -D_GNU_SOURCE ${WFLAGS}
+if HAVE_ASAN
+test_origin_CFLAGS += ${ASAN_FLAGS}
+test_origin_LDFLAGS = ${ASAN_FLAGS}
+endif
+
+test_reactions_SOURCES = test-reactions.c address.c reactions.c
 test_reactions_CFLAGS = -D_GNU_SOURCE ${WFLAGS}
-test_reactions_LDFLAGS = -Wl,--wrap=fork
+test_reactions_LDFLAGS = -Wl,--wrap=fork -Wl,--wrap=execve
 if HAVE_ASAN
 test_reactions_CFLAGS += ${ASAN_FLAGS}
 test_reactions_LDFLAGS += ${ASAN_FLAGS}
 endif
 
 audisp_ids_DEPENDENCIES = ${top_builddir}/lib/libaudit.la ${top_builddir}/auparse/libauparse.la ${top_builddir}/common/libaucommon.la ${top_builddir}/auplugin/libauplugin.la
-audisp_ids_SOURCES = account.c avl.c ids.c ids_config.c model_bad_event.c \
-	model_behavior.c nvpair.c origin.c reactions.c session.c \
+audisp_ids_SOURCES = account.c address.c avl.c ids.c ids_config.c \
+	model_bad_event.c model_behavior.c nvpair.c origin.c reactions.c session.c \
 	timer-services.c
 audisp_ids_CFLAGS = -D_GNU_SOURCE ${WFLAGS}
 audisp_ids_LDADD = ${top_builddir}/lib/libaudit.la \
