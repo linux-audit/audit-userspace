@@ -26,6 +26,7 @@
 #include <string.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <limits.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include "ausearch-time.h"
@@ -37,6 +38,26 @@ static void replace_date(struct tm *t1, struct tm *t2);
 
 
 time_t start_time = 0, end_time = 0;
+
+/*
+ * ausearch_parse_eoe_timeout - convert a timeout without narrowing it first
+ * @value: decimal timeout string
+ * @timeout: destination for a valid timeout
+ *
+ * Returns: 0 on success or -1 when value cannot safely bound event times.
+ */
+int ausearch_parse_eoe_timeout(const char *value, time_t *timeout)
+{
+	unsigned long parsed;
+
+	errno = 0;
+	parsed = strtoul(value, NULL, 10);
+	if (errno || parsed == 0 || parsed >= (unsigned long)LONG_MAX)
+		return -1;
+
+	*timeout = (time_t)parsed;
+	return 0;
+}
 
 struct nv_pair {
     int        value;
@@ -446,4 +467,3 @@ set_it:
 	}
 	return rc;
 }
-

@@ -774,9 +774,7 @@ int check_params(int count, char *vars[])
 				break;
 			}
 			if (isdigit((unsigned char)optarg[0])) {
-				errno = 0;
-				arg_eoe_timeout = (time_t)strtoul(optarg, NULL, 10);
-				if (errno || arg_eoe_timeout == 0) {
+				if (ausearch_parse_eoe_timeout(optarg, &arg_eoe_timeout)) {
 					fprintf(stderr,
 						"Illegal value for End of Event Timeout, was %s\n", optarg);
 					retval = -1;
@@ -817,4 +815,3 @@ int check_params(int count, char *vars[])
 
 	return retval;
 }
-

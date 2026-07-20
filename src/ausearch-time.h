@@ -31,6 +31,6 @@ enum {  T_NOW, T_RECENT, T_THIS_HOUR, T_BOOT, T_TODAY, T_YESTERDAY,
 int lookup_time(const char *name);
 int ausearch_time_start(const char *da, const char *ti);
 int ausearch_time_end(const char *da, const char *ti);
+int ausearch_parse_eoe_timeout(const char *value, time_t *timeout);
 
 #endif
-
