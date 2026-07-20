@@ -47,6 +47,14 @@ void init_config_manager(void)
 	audit_msg(LOG_DEBUG, "config_manager init complete");
 }
 
+/*
+ * start_config_manager - start parsing a configuration reload
+ * @e: signal information event owned by the caller
+ *
+ * The caller retains ownership of e when the request is rejected.
+ *
+ * Returns: 0 when the worker starts, 1 when busy or unable to start.
+ */
 int start_config_manager(struct auditd_event *e)
 {
 	int retval, rc = 0;
@@ -63,18 +71,30 @@ int start_config_manager(struct auditd_event *e)
 		                config_thread_main, e) > 0) {
 			audit_msg(LOG_ERR,
 			"Couldn't create config thread, no config changes");
-			cleanup_event(e);
 			pthread_mutex_unlock(&config_lock);
 		        rc = 1;
 	        }
 		pthread_attr_destroy(&detached);
 	} else {
 		audit_msg(LOG_ERR,
-			"Config thread already running, no config changes");
-		cleanup_event(e);
+			"Reconfiguration already in progress, no config changes");
 		rc = 1;
 	}
 	return rc;
+}
+
+/*
+ * finish_config_manager - allow another configuration reload to start
+ *
+ * The main thread calls this after consuming the worker's completion.
+ * Keeping the lock until then prevents a new reload from replacing a
+ * configuration that has been parsed but not yet applied.
+ *
+ * Returns: None.
+ */
+void finish_config_manager(void)
+{
+	pthread_mutex_unlock(&config_lock);
 }
 
 static void *config_thread_main(void *arg)
@@ -82,7 +102,6 @@ static void *config_thread_main(void *arg)
 	sigset_t sigs;
 	struct auditd_event *e = (struct auditd_event *)arg;
 	struct daemon_conf new_config;
-	extern int send_audit_event(int type, const char *str);
 
 	/* This is a worker thread. Don't handle signals. */
 	sigemptyset(&sigs);
@@ -106,19 +125,11 @@ static void *config_thread_main(void *arg)
 		memcpy(e->reply.msg.data, &new_config, sizeof(new_config));
 		e->reply.conf = (struct daemon_conf *)e->reply.msg.data;
 		e->reply.type = AUDIT_DAEMON_RECONFIG;
-		reconfig_ready();
 	} else {
-		// need to send a failed event message
-		char txt[MAX_AUDIT_MESSAGE_LENGTH];
-		audit_format_signal_info(txt, sizeof(txt),
-					 "reconfigure state=no-change",
-				         &e->reply, "failed");
-		send_audit_event(AUDIT_DAEMON_CONFIG, txt);
 		free_config(&new_config);
-		cleanup_event(e);
 	}
 
-	pthread_mutex_unlock(&config_lock);
+	/* The main thread owns the event and completes either outcome. */
+	reconfig_ready();
 	return NULL;
 }
-

@@ -103,6 +103,7 @@ int send_audit_event(int type, const char *str);
 static void clean_exit(void);
 static int get_reply(int fd, struct audit_reply *rep, int seq);
 static char *getsubj(char *subj);
+static void report_reconfigure_failure(struct auditd_event *e);
 /* Manage access to the preallocated event pool */
 static struct auditd_event *alloc_pool_event(void);
 int event_is_prealloc(struct auditd_event *e);
@@ -583,6 +584,23 @@ int event_is_prealloc(struct auditd_event *e)
 	return e == &event_pool[0] || e == &event_pool[1];
 }
 
+/*
+ * report_reconfigure_failure - record and release a rejected reload
+ * @e: signal information event for the rejected reload
+ *
+ * Returns: None.
+ */
+static void report_reconfigure_failure(struct auditd_event *e)
+{
+	char hup[MAX_AUDIT_MESSAGE_LENGTH];
+
+	audit_format_signal_info(hup, sizeof(hup),
+				 "reconfigure state=no-change", &e->reply,
+				 "failed");
+	send_audit_event(AUDIT_DAEMON_CONFIG, hup);
+	cleanup_event(e);
+}
+
 static void netlink_handler(struct ev_loop *loop, struct ev_io *io,
 			int revents)
 {
@@ -634,19 +652,17 @@ static void netlink_handler(struct ev_loop *loop, struct ev_io *io,
 				break;
 			case AUDIT_SIGNAL_INFO:
 				if (hup_info_requested) {
-					char hup[MAX_AUDIT_MESSAGE_LENGTH];
 					audit_msg(LOG_DEBUG,
 				    "HUP detected, starting config manager");
-					reconfig_ev = cur_event;
-					if (start_config_manager(cur_event)) {
-						audit_format_signal_info(hup,
-								 sizeof(hup),
-						 "reconfigure state=no-change",
-							 &cur_event->reply,
-								 "failed");
-					send_audit_event(AUDIT_DAEMON_CONFIG,
-							 hup);
-					}
+					if (reconfig_ev != NULL) {
+						audit_msg(LOG_ERR,
+						  "Reconfiguration already in progress, "
+						  "no config changes");
+						report_reconfigure_failure(cur_event);
+					} else if (start_config_manager(cur_event))
+						report_reconfigure_failure(cur_event);
+					else
+						reconfig_ev = cur_event;
 					cur_event = NULL;
 					hup_info_requested = 0;
 				} else if (usr1_info_requested) {
@@ -684,12 +700,24 @@ static void pipe_handler(struct ev_loop *loop, struct ev_io *io,
                         int revents)
 {
 	char buf[16];
+	struct auditd_event *e;
 
 	// Drain the pipe - won't block because libev sets non-blocking mode
 	if (read(pipefds[0], buf, sizeof(buf)) < 0)
 		; /* Intentionally blank - nothing we can do */
-	enqueue_event(reconfig_ev);
+	e = reconfig_ev;
+	if (e == NULL) {
+		audit_msg(LOG_ERR, "Unexpected config manager completion");
+		return;
+	}
+
+	if (e->reply.type == AUDIT_DAEMON_RECONFIG)
+		enqueue_event(e);
+	else
+		/* Parse failures retain the signal event for attribution. */
+		report_reconfigure_failure(e);
 	reconfig_ev = NULL;
+	finish_config_manager();
 }
 
 void reconfig_ready(void)

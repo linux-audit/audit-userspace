@@ -133,6 +133,7 @@ void init_config_manager(void);
 #ifdef AUDITD_EVENT_H
 int start_config_manager(struct auditd_event *e);
 #endif
+void finish_config_manager(void);
 void free_config(struct daemon_conf *config) __nonnull ((1));
 
 const char *failure_action_to_str(unsigned int action);
