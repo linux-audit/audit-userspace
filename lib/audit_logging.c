@@ -40,6 +40,9 @@
 #define TTY_PATH	32
 #define MAX_USER	((UT_NAMESIZE * 2) + 8)
 #define EXENAME_SIZE	((PATH_MAX * 2) + 1)
+/* Kernel TASK_COMM_LEN includes the terminating NUL. */
+#define AUDIT_COMM_LEN	16
+#define AUDIT_COMM_ENCODED_LEN	(((AUDIT_COMM_LEN - 1) * 2) + 1)
 
 // NOTE: The kernel fills in pid, uid, and loginuid of sender. Therefore,
 // these routines do not need to send them.
@@ -197,14 +200,17 @@ static char *_get_exename(char *exename, int size)
 }
 
 /*
- * Get the command line name 
- * NOTE: at the moment, this only escapes what the user sent
+ * Get the command line name which the kernel's limit is 15 chars + NUL.
  */
+static char *_get_commname(const char *comm, char *commname,
+			   unsigned int size)
+			__attr_access ((__read_only__, 1))
+			__attr_access ((__write_only__, 2, 3));
 static char *_get_commname(const char *comm, char *commname, unsigned int size)
 {
 	unsigned int len;
-	char tmp_comm[20];
-	
+	char tmp_comm[AUDIT_COMM_LEN];
+
 	if (comm == NULL) {
 		ssize_t ret;
 		int fd = open("/proc/self/comm", O_RDONLY|O_CLOEXEC);
@@ -223,7 +229,11 @@ static char *_get_commname(const char *comm, char *commname, unsigned int size)
 		comm = tmp_comm;
 	}
 
-	len = strlen(comm);
+	len = strnlen(comm, AUDIT_COMM_LEN);
+	if (len == AUDIT_COMM_LEN) {
+		errno = EINVAL;
+		return NULL;
+	}
 	if (audit_value_needs_encoding(comm, len))
 		audit_encode_value(commname, comm, len);
 	else
@@ -367,7 +377,7 @@ int audit_log_user_message(int audit_fd, int type, const char *message,
  * audit_fd - The fd returned by audit_open
  * type - type of message, ex: AUDIT_USER, AUDIT_USYS_CONFIG, AUDIT_USER_LOGIN
  * message - the message being sent
- * comm - the program command line name
+ * comm - the task name from /proc/self/comm, 15 bytes maximum
  * hostname - the hostname if known
  * addr - The network address of the user
  * tty - The tty of the user
@@ -382,7 +392,7 @@ int audit_log_user_comm_message(int audit_fd, int type, const char *message,
 	char buf[MAX_AUDIT_MESSAGE_LENGTH];
 	char addrbuf[INET6_ADDRSTRLEN];
 	static char exename[EXENAME_SIZE]="";
-	char commname[PATH_MAX*2];
+	char commname[AUDIT_COMM_ENCODED_LEN];
 	char ttyname[TTY_PATH];
 	const char *success;
 	int ret;
@@ -416,7 +426,8 @@ int audit_log_user_comm_message(int audit_fd, int type, const char *message,
 	else if (*tty == 0)
 		tty = NULL;
 
-	_get_commname(comm, commname, sizeof(commname));
+	if (_get_commname(comm, commname, sizeof(commname)) == NULL)
+		return -1;
 
 	/* Get the local name if we have a real tty */
 	if (hostname == NULL && tty)

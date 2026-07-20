@@ -481,6 +481,27 @@ test_audit_logging_encoding(void)
 	free(nv);
 }
 
+/*
+ * Test audit logging task command length validation.
+ * Input variables: none. Return codes: none, aborts on failure.
+ */
+static void
+test_audit_logging_comm_length(void)
+{
+	/* Sixteen content bytes exceed kernel TASK_COMM_LEN by one. */
+	char comm[17];
+	int rc;
+
+	memset(comm, 'a', sizeof(comm) - 1);
+	comm[0] = '"';
+	comm[sizeof(comm) - 1] = '\0';
+	errno = 0;
+	rc = audit_log_user_comm_message(0, AUDIT_USER, "test", comm,
+					 NULL, NULL, "", 1);
+	assert(rc == -1);
+	assert(errno == EINVAL);
+}
+
 int
 main(void)
 {
@@ -515,5 +536,6 @@ main(void)
 	test_msg_typetab();
 	test_optab();
 	test_audit_logging_encoding();
+	test_audit_logging_comm_length();
 	return EXIT_SUCCESS;
 }

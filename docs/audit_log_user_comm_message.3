@@ -22,12 +22,18 @@ This function will log a message to the audit system using a predefined message 
 \fIaudit_fd\fP - The fd returned by audit_open
 \fItype\fP - type of message, ex: AUDIT_USYS_CONFIG, AUDIT_USER_LOGIN
 \fImessage\fP - the message text being sent
-\fIcomm\fP - the program command line name, NULL if unknown
+\fIcomm\fP - the task command name from /proc/self/comm, NULL if unknown
 \fIhostname\fP - the hostname if known, NULL if unknown
 \fIaddr\fP - The network address of the user, NULL if unknown
 \fItty\fP - The tty of the user, if NULL will attempt to figure out
 \fIresult\fP - 1 is "success" and 0 is "failed"
 .fi
+
+The kernel task command name is limited to 15 bytes because
+.B TASK_COMM_LEN
+is 16 bytes including the terminating null byte. A non-NULL
+.I comm
+value longer than 15 bytes is malformed and is rejected.
 
 .SH "RETURN VALUE"
 
@@ -36,6 +42,11 @@ It returns the sequence number which is > 0 on success or <= 0 on error.
 .SH "ERRORS"
 
 This function returns \-1 on failure. Examine errno for more info.
+.TP
+.B EINVAL
+The
+.I comm
+value is longer than the kernel task command name limit of 15 bytes.
 
 .SH "SEE ALSO"
 
