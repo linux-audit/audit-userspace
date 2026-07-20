@@ -386,6 +386,42 @@ static void test_proctitle_nul_separator(void)
 	auparse_destroy(au);
 }
 
+/* test_sockaddr_short_lengths - reject incomplete fixed-layout addresses
+ *
+ * Return: none. Failures abort through assert().
+ */
+static void test_sockaddr_short_lengths(void)
+{
+	static const struct {
+		sa_family_t family;
+		const char *expected;
+	} tests[] = {
+		{ AF_AX25, "{ saddr_fam=ax25 sockaddr len too short }" },
+		{ AF_ATMPVC, "{ saddr_fam=atmpvc sockaddr len too short }" },
+	};
+	auparse_state_t *au;
+	idata id = {
+		.name = "saddr",
+	};
+	char value[2 * sizeof(sa_family_t) + 1];
+	char *out;
+	size_t i;
+
+	au = auparse_init(AUSOURCE_FILE, "/dev/null");
+	assert(au != NULL);
+	for (i = 0; i < sizeof(tests) / sizeof(tests[0]); i++) {
+		audit_encode_value(value, (const char *)&tests[i].family,
+				   sizeof(tests[i].family));
+		id.val = value;
+		out = auparse_do_interpretation(au, AUPARSE_TYPE_SOCKADDR, &id,
+						AUPARSE_ESC_RAW);
+		assert(out != NULL);
+		assert(strcmp(out, tests[i].expected) == 0);
+		free(out);
+	}
+	auparse_destroy(au);
+}
+
 /* check_key_escape - verify one escaped multi-key value
  * @au: parser state used for the interpretation
  * @mode: output escaping mode
@@ -530,6 +566,7 @@ int main(void)
 	test_single_char_field_values();
 	test_seccomp_action_full();
 	test_proctitle_nul_separator();
+	test_sockaddr_short_lengths();
 	test_key_escape_separators();
 	test_cur_event_matches_multirecord_event();
 	printf("extra auparse tests: all passed\n");

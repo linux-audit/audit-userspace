@@ -1539,6 +1539,12 @@ static const char *print_sockaddr(const char *val)
 					    str);
 			break;
 		case AF_AX25:
+			if (slen < sizeof(struct sockaddr_ax25)) {
+				rc = asprintf(&out,
+				    "{ saddr_fam=%s sockaddr len too short }",
+					     str);
+				break;
+			}
 			{
 				const struct sockaddr_ax25 *x =
 					   (const struct sockaddr_ax25 *)saddr;
@@ -1555,6 +1561,12 @@ static const char *print_sockaddr(const char *val)
 			}
 			break;
 		case AF_ATMPVC:
+			if (slen < sizeof(struct sockaddr_atmpvc)) {
+				rc = asprintf(&out,
+				    "{ saddr_fam=%s sockaddr len too short }",
+					     str);
+				break;
+			}
 			{
 				const struct sockaddr_atmpvc* at =
 					(const struct sockaddr_atmpvc *)saddr;
