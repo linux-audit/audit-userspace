@@ -415,7 +415,9 @@ static void term_handler(int sig, siginfo_t *info, void *ucontext)
 {
 	if (info && info->si_pid != getppid())
 		return;
-	kill(cpid, sig);
+	// Non-positive PIDs give kill() process-group or broadcast semantics.
+	if (cpid > 0)
+		kill(cpid, sig);
 	stop = 1;
 	auplugin_stop();
 }
@@ -425,7 +427,8 @@ static void term_handler(int sig, siginfo_t *info, void *ucontext)
  */
 static void hup_handler(int sig)
 {
-	kill(cpid, sig);
+	if (cpid > 0)
+		kill(cpid, sig);
 	hup = 1;
 }
 
