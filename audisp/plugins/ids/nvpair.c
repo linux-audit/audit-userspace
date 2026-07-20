@@ -48,7 +48,9 @@ void nvpair_list_create(nvlist *l)
 
 int nvpair_list_append(nvlist *l, nvnode *node)
 {
-	nvnode* newnode = malloc(sizeof(nvnode));
+	nvnode *newnode = malloc(sizeof(nvnode));
+	nvnode *tail;
+
 	if (newnode == NULL)
 		return 1;
 
@@ -62,11 +64,12 @@ int nvpair_list_append(nvlist *l, nvnode *node)
 		l->head = newnode;
 		l->prev = NULL;
 	} else { // Add pointer to newnode and make sure we are at the end
-		while (l->cur->next) {
-			l->prev = l->cur;
-			l->cur = l->cur->next;
-		}
-		l->cur->next = newnode;
+		// cur is search state, so locate the tail from the list head.
+		tail = l->head;
+		while (tail->next)
+			tail = tail->next;
+		tail->next = newnode;
+		l->prev = tail;
 	}
 
 	// make newnode current
@@ -91,6 +94,8 @@ int nvpair_list_find_job(nvlist *l, time_t t)
 			node = node->next;
 		}
 	}
+	l->cur = NULL;
+	l->prev = NULL;
 	return 0;
 }
 
@@ -107,6 +112,8 @@ void nvpair_list_delete_cur(nvlist *l)
 
 	free(l->cur->arg);
 	free(l->cur);
+	l->cur = NULL;
+	l->prev = NULL;
 	l->cnt--;
 }
 
@@ -127,4 +134,3 @@ void nvpair_list_clear(nvlist* l)
 	l->cur = NULL;
 	l->cnt = 0;
 }
-

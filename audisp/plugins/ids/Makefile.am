@@ -29,9 +29,18 @@ prog_conf = ids.conf
 plugin_confdir=$(prog_confdir)/plugins.d
 plugin_conf = audisp-ids.conf
 sbin_PROGRAMS = audisp-ids
+check_PROGRAMS = test-nvpair
+TESTS = $(check_PROGRAMS)
 noinst_HEADERS = account.h avl.h ids_config.h ids.h \
 	model_bad_event.h model_behavior.h nvpair.h origin.h \
 	reactions.h session.h timer-services.h
+
+test_nvpair_SOURCES = test-nvpair.c nvpair.c
+test_nvpair_CFLAGS = -D_GNU_SOURCE ${WFLAGS}
+if HAVE_ASAN
+test_nvpair_CFLAGS += ${ASAN_FLAGS}
+test_nvpair_LDFLAGS = ${ASAN_FLAGS}
+endif
 
 audisp_ids_DEPENDENCIES = ${top_builddir}/lib/libaudit.la ${top_builddir}/auparse/libauparse.la ${top_builddir}/common/libaucommon.la ${top_builddir}/auplugin/libauplugin.la
 audisp_ids_SOURCES = account.c avl.c ids.c ids_config.c model_bad_event.c \
