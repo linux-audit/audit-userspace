@@ -7,6 +7,7 @@
 #include <pwd.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #include "auparse.h"
 
@@ -15,6 +16,7 @@ const char *__real_auparse_find_field(auparse_state_t *au, const char *name);
 int __real_auparse_get_field_int(const auparse_state_t *au);
 
 static int passwd_returned;
+static struct tm test_tm;
 static struct passwd test_passwd = {
 	.pw_name = "test-user",
 	.pw_uid = 1234,
@@ -85,4 +87,17 @@ int __wrap_auparse_get_field_int(const auparse_state_t *au)
 	if (getenv("AULASTLOG_TEST_NULL_TIMESTAMP"))
 		return 1234;
 	return __real_auparse_get_field_int(au);
+}
+
+/*
+ * localtime - inject a calendar conversion failure for aulastlog tests
+ * @timer: timestamp to convert
+ *
+ * Return: NULL when requested by the test, otherwise the converted time.
+ */
+struct tm *localtime(const time_t *timer)
+{
+	if (getenv("AULASTLOG_TEST_LOCALTIME_FAIL"))
+		return NULL;
+	return localtime_r(timer, &test_tm);
 }

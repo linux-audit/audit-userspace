@@ -29,3 +29,18 @@ case "$output" in
 		exit 1
 		;;
 esac
+
+# Verify that an unrepresentable timestamp is reported without crashing.
+output=$(printf '%s\n' "$event" | AULASTLOG_TEST_LOCALTIME_FAIL=1 \
+	./aulastlog_test --stdin --user test-user) || {
+	echo "aulastlog failed when localtime rejected a timestamp"
+	exit 1
+}
+
+case "$output" in
+	*"test-user"*' ?') ;;
+	*)
+		echo "unexpected localtime-failure report: $output"
+		exit 1
+		;;
+esac

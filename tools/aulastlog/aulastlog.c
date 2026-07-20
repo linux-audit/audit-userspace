@@ -148,8 +148,11 @@ int main(int argc, char *argv[])
 			struct tm *btm;
 
 			btm = localtime(&cur->sec);
-			strftime(tmp, sizeof(tmp), "%x %T", btm);
-			c = tmp;
+			if (btm) {
+				strftime(tmp, sizeof(tmp), "%x %T", btm);
+				c = tmp;
+			} else
+				c = "?";
 		}
 		h = cur->host;
 		if (h == NULL)
