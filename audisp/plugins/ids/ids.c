@@ -1,5 +1,5 @@
 /* ids.c --
- * Copyright 202-25 Steve Grubb.
+ * Copyright 2021,2023,2025-26 Steve Grubb.
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify

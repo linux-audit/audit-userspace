@@ -1,6 +1,6 @@
 /*
 * nvpair.c - Minimal linked list library for arg-jobue pairs
-* Copyright (c) 2019 Steve Grubb.
+* Copyright (c) 2019,2021,2025-26 Steve Grubb.
 * All Rights Reserved. 
 *
 * This software may be freely redistributed and/or modified under the

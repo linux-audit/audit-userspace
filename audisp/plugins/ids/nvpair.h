@@ -1,6 +1,6 @@
 /*
 * nvpair.h - Header file for ausearch-nvpair.c
-* Copyright (c) 2019 Steve Grubb.
+* Copyright (c) 2019,2021,2025 Steve Grubb.
 * All Rights Reserved.
 *
 * This software may be freely redistributed and/or modified under the
@@ -59,4 +59,3 @@ void nvpair_list_clear(nvlist* l);
 int nvpair_list_find_job(nvlist *l, time_t t);
 
 #endif
-
