@@ -1,5 +1,5 @@
 /* access-modetab.h --
- * Copyright Red Hat Inc.
+ * Copyright 2025 Red Hat Inc.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or

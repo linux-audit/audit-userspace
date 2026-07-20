@@ -1,6 +1,6 @@
 /*
  * lru.h - Header file for lru.c
- * Copyright (c) 2016.2017 Red Hat Inc., Durham, North Carolina.
+ * Copyright (c) 2016-17 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
