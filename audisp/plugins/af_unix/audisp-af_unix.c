@@ -459,9 +459,10 @@ resolved:
 			}
 		}
 	} else {
+		// auplugin_fgets_more uses blen - 1 as its chunk threshold, so it
+		// must receive the same buffer length as auplugin_fgets.
 		do {
-			len = auplugin_fgets(rx_buf,
-					   MAX_AUDIT_EVENT_FRAME_SIZE + 1, ifd);
+			len = auplugin_fgets(rx_buf, sizeof(rx_buf), ifd);
 			if (len > 0) {
 				if (client && !stop) {
 					// in string - out string
@@ -503,7 +504,7 @@ resolved:
 			} else if (auplugin_fgets_eof())
 				stop = 1;
 		} while (!stop &&
-			 auplugin_fgets_more(MAX_AUDIT_EVENT_FRAME_SIZE));
+			 auplugin_fgets_more(sizeof(rx_buf)));
 	}
 }
 
