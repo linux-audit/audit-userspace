@@ -59,6 +59,7 @@ auditd_config_alloc_test_CFLAGS = -D_GNU_SOURCE -Wno-pointer-sign ${WFLAGS} \
 ausearch_checkpt_test_CFLAGS = ${AM_CFLAGS} -I${top_srcdir}/auparse
 ausearch_checkpt_test_SOURCES = ausearch_checkpt_test.c \
 	${top_srcdir}/src/ausearch-checkpt.c
+ausearch_time_test_CFLAGS = ${AM_CFLAGS} -I${top_srcdir}/auparse
 ausearch_time_test_LDADD = ${top_builddir}/src/ausearch-time.o
 ausearch_time_test_DEPENDENCIES = ${top_builddir}/src/ausearch-time.o
 auditd_dispatch_test_CFLAGS = ${AM_CFLAGS} -I${top_srcdir}/audisp \
