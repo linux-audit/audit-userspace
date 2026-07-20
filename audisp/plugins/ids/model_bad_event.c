@@ -166,7 +166,7 @@ void process_bad_event_model(auparse_state_t *au,
 							!o->blocked) {
 			//AUDIT_ANOM_ORIGIN_FAILURES
 			answer |= config->option_origin_failed_logins_reaction;
-			do_reaction(answer, "login_failures");
+			do_reaction(answer, "login_failures", NULL);
 		}
 	}
 }

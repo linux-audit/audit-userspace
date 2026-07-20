@@ -34,7 +34,7 @@ pid_t __wrap_fork(void)
 	return -1;
 }
 
-/* Return the test's simulated current session, which may be NULL. */
+/* Return the legacy global cursor, which reaction dispatch must not consult. */
 session_data_t *current_session(void)
 {
 	return current;
@@ -73,12 +73,27 @@ void my_printf(const char *fmt __attribute__((unused)), ...)
 {
 }
 
-/* Verify session termination tolerates an empty cursor and return success. */
+/* Verify reactions use only their explicit session and return success. */
 int main(void)
 {
+	session_data_t unrelated = { .session = 41, .acct = "unrelated" };
+	session_data_t triggering = { .session = 42, .acct = "triggering" };
+
+	// An origin-only reaction has no session target.
 	current = NULL;
 	fork_calls = 0;
-	do_reaction(REACTION_TERMINATE_SESSION, "no_session");
+	do_reaction(REACTION_TERMINATE_SESSION, "no_session", NULL);
 	assert(fork_calls == 0);
+
+	// A stale global cursor must not become an origin reaction target.
+	current = &unrelated;
+	fork_calls = 0;
+	do_reaction(REACTION_TERMINATE_SESSION, "stale_session", NULL);
+	assert(fork_calls == 0);
+
+	// A session reaction uses the session supplied by its caller.
+	fork_calls = 0;
+	do_reaction(REACTION_TERMINATE_SESSION, "session_bad", &triggering);
+	assert(fork_calls == 1);
 	return 0;
 }

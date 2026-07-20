@@ -8,6 +8,8 @@
 #ifndef REACTIONS_HEADER
 #define REACTIONS_HEADER
 
+struct session_data;
+
 int kill_process(pid_t pid);
 int kill_session(int session);
 int restricted_role(const char *acct);
@@ -21,6 +23,7 @@ int unblock_ip_address(const char *addr);
 int system_reboot(void);
 int system_single_user(void);
 int system_halt(void);
-void do_reaction(unsigned int answer, const char *reason);
+void do_reaction(unsigned int answer, const char *reason,
+	const struct session_data *session);
 
 #endif

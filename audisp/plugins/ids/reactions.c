@@ -341,24 +341,20 @@ int system_halt(void)
 }
 
 /*
- * get_reaction_account - fetch account name for current triggering session
- * Returns: account name from current session, or NULL if unavailable
+ * do_reaction - run the requested reactions for a triggering event
+ * Args:
+ *   answer  - bit mask of reactions to run
+ *   reason  - reason included in reaction audit events
+ *   session - triggering session, or NULL for an origin-only event
+ * Rtns:
+ *   void
  */
-static const char *get_reaction_account(void)
-{
-	session_data_t *s = current_session();
-
-	if (s == NULL)
-		return NULL;
-
-	return s->acct;
-}
-
-void do_reaction(unsigned int answer, const char *reason)
+void do_reaction(unsigned int answer, const char *reason,
+	const session_data_t *session)
 {
 //my_printf("Answer: %u", answer);
 	unsigned int num = 0;
-	const char *acct = get_reaction_account();
+	const char *acct = session ? session->acct : NULL;
 
 	do {
 		unsigned int tmp = 1 << num;
@@ -381,11 +377,8 @@ void do_reaction(unsigned int answer, const char *reason)
 					*/}
 					break;
 				case REACTION_TERMINATE_SESSION:
-					{
-					session_data_t *s = current_session();
-					if (s)
-						kill_session(s->session);
-					}
+					if (session)
+						kill_session(session->session);
 					break;
 				case REACTION_RESTRICT_ROLE:
 					{

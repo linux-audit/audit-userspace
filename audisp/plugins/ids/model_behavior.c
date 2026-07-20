@@ -116,7 +116,7 @@ void process_behavior_model(auparse_state_t *au, struct ids_conf *config)
 							s->killed == 0) {
 			//AUDIT_ANOM_SESSION
 			answer |= config->option_session_badness1_reaction;
-			do_reaction(answer, "session_bad");
+			do_reaction(answer, "session_bad", s);
 			if (s->killed >= 1)
 				add_to_score_origin(o, 5);
 			else
@@ -128,7 +128,7 @@ void process_behavior_model(auparse_state_t *au, struct ids_conf *config)
 							!o->blocked) {
 		//AUDIT_ANOM_ORIGIN_FAILURES
 		answer |= config->option_origin_failed_logins_reaction;
-			do_reaction(answer, "failed_login");
+		do_reaction(answer, "failed_login", NULL);
 	}
 }
 
