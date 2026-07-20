@@ -1,5 +1,7 @@
 /*
  * ausearch-checkpt.c - ausearch checkpointing feature
+ * Copyright 2014,2017,2023-24,2026 Red Hat Inc.
+ * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -273,4 +275,3 @@ int load_ChkPt(const char *fn)
 #endif	/* DBG */
 	return 0;
 }
-

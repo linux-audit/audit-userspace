@@ -1,5 +1,7 @@
 /*
  * aulastlog-test.c - Test overrides for aulastlog
+ * Copyright 2026 Red Hat Inc.
+ * All Rights Reserved.
  *
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
