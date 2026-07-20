@@ -30,7 +30,7 @@ check_PROGRAMS = ilist_test slist_test format_event_test \
 	auditd_config_alloc_test ausearch_checkpt_test auditd_dispatch_test \
 	ilist_alloc_test auditd_config_manager_test auditd_reconfigure_test \
 	lol_alloc_test auditctl_key_test auditctl_list_alloc_test \
-	delete_all_alloc_test ausearch_time_test
+	delete_all_alloc_test ausearch_time_test auditctl_rule_file_test
 TESTS = $(check_PROGRAMS)
 ilist_test_LDADD = ${top_builddir}/src/ausearch-int.o
 ilist_test_DEPENDENCIES = ${top_builddir}/src/ausearch-int.o
@@ -79,6 +79,14 @@ auditctl_list_alloc_test_SOURCES = auditctl_list_alloc_test.c \
 	${top_srcdir}/src/auditctl-llist.c
 auditctl_list_alloc_test_CFLAGS = ${AM_CFLAGS} -I${top_srcdir}/auparse
 auditctl_list_alloc_test_LDADD = ${top_builddir}/lib/libaudit.la \
+	${top_builddir}/auparse/libauparse.la \
+	${top_builddir}/common/libaucommon.la
+auditctl_rule_file_test_SOURCES = auditctl_rule_file_test.c \
+	${top_srcdir}/src/auditctl-llist.c ${top_srcdir}/src/delete_all.c \
+	${top_srcdir}/src/auditctl-listing.c
+auditctl_rule_file_test_CFLAGS = ${AM_CFLAGS} -I${top_srcdir}/auparse \
+	-I${top_srcdir}/common
+auditctl_rule_file_test_LDADD = ${top_builddir}/lib/libaudit.la \
 	${top_builddir}/auparse/libauparse.la \
 	${top_builddir}/common/libaucommon.la
 delete_all_alloc_test_SOURCES = delete_all_alloc_test.c

@@ -1625,7 +1625,8 @@ static int fileopt(const char *file)
 	/* Read until eof, lineno starts as 1 */
 	while (get_line(f, buf)) {
 		char *ptr, **fields;
-		unsigned int idx=0, nf = (strlen(buf)/3) + 3;
+		/* Each token needs a byte and, except for one, a separator. */
+		unsigned int idx = 0, nf = (strlen(buf) / 2) + 3;
 
 		/* Weed out blank lines */
 		while (buf[idx] == ' ')
@@ -1646,7 +1647,7 @@ static int fileopt(const char *file)
 			continue;
 		}
 		i = 0;
-		fields = malloc(nf * sizeof(char *));
+		fields = malloc(nf * sizeof(*fields));
 		if (fields == NULL) {
 			audit_msg(LOG_ERR, "Out of memory. Check %s file, %d line", __FILE__, __LINE__);
 			fclose(f);
@@ -1655,7 +1656,15 @@ static int fileopt(const char *file)
 		
 		fields[i++] = "auditctl";
 		fields[i++] = ptr;
-		while( (ptr=audit_strsplit(NULL)) && (i < nf-1)) {
+		while ((ptr = audit_strsplit(NULL))) {
+			if (i >= nf - 1) {
+				audit_msg(LOG_ERR,
+					"Too many fields in line %d of %s",
+					lineno, file);
+				free(fields);
+				fclose(f);
+				return -1;
+			}
 		        postprocess(ptr);
 			fields[i++] = ptr;
 		}
