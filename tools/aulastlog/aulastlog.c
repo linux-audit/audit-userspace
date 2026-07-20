@@ -137,7 +137,7 @@ int main(int argc, char *argv[])
 	printf( "Username         Port         From"
 		"                       Latest\n");
 	list_first(&l);
-	do {
+	while (list_get_cur(&l)) {
 		char tmp[48];
 		const char *c, *h, *t;
 		lnode *cur = list_get_cur(&l);
@@ -157,7 +157,8 @@ int main(int argc, char *argv[])
 		if (t == NULL)
 			t = "";
 		printf("%-16s %-12.12s %-26.26s %s\n", cur->name, t, h, c);
-	} while (list_next(&l));
+		list_next(&l);
+	}
 	
 	list_clear(&l);
 	return 0;
