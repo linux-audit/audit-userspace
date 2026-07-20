@@ -383,7 +383,8 @@ void do_reaction(unsigned int answer, const char *reason)
 				case REACTION_TERMINATE_SESSION:
 					{
 					session_data_t *s = current_session();
-					kill_session(s->session);
+					if (s)
+						kill_session(s->session);
 					}
 					break;
 				case REACTION_RESTRICT_ROLE:
