@@ -11,6 +11,7 @@
 
 #include "config.h"
 #include <assert.h>
+#include <limits.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -131,6 +132,29 @@ static int add_record(lol *lo, int serial)
 }
 
 /*
+ * test_timestamp_range - reject seconds that do not fit the signed event time
+ * @void: no input
+ *
+ * Returns: None. Failures abort through assert().
+ */
+static void test_timestamp_range(void)
+{
+	const unsigned long max_sec = (unsigned long)LONG_MAX -
+		(unsigned long)eoe_timeout - 1;
+	char timestamp[64];
+	event e;
+
+	assert(snprintf(timestamp, sizeof(timestamp), "%lu.999:1",
+		max_sec) > 0);
+	assert(str2event(timestamp, &e) == 0);
+	assert(e.sec == (time_t)max_sec);
+
+	assert(snprintf(timestamp, sizeof(timestamp), "%lu.000:1",
+		(unsigned long)LONG_MAX + 1) > 0);
+	assert(str2event(timestamp, &e) == -1);
+}
+
+/*
  * test_failed_record_append - discard a record whose list node cannot allocate
  *
  * Returns: None.
@@ -177,6 +201,7 @@ static void test_failed_table_growth(void)
 
 int main(void)
 {
+	test_timestamp_range();
 	test_failed_record_append();
 	test_failed_table_growth();
 	return 0;

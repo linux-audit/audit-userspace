@@ -113,11 +113,15 @@ static int lol_append(lol *lo, llist *l)
 static int str2event(char *s, event *e)
 {
 	char *ptr;
+	unsigned long sec;
 
 	errno = 0;
-	e->sec = strtoul(s, NULL, 10);
-	if (errno || e->sec > (LONG_MAX - eoe_timeout -1))
+	sec = strtoul(s, NULL, 10);
+	// Check the unsigned value before converting it to signed time_t.
+	if (errno || eoe_timeout < 0 || eoe_timeout >= LONG_MAX ||
+	    sec > (unsigned long)LONG_MAX - (unsigned long)eoe_timeout - 1)
 		return -1;
+	e->sec = (time_t)sec;
 	ptr = strchr(s, '.');
 	if (ptr) {
 		ptr++;

@@ -238,6 +238,40 @@ static void test_timestamp_milli(void)
 	auparse_destroy(au);
 }
 
+/* test_timestamp_range - reject seconds that do not fit signed event time
+ * @void: no input
+ *
+ * Return: none. Failures abort through assert().
+ */
+static void test_timestamp_range(void)
+{
+	const time_t timeout = 2;
+	const unsigned long max_sec = (unsigned long)LONG_MAX -
+		(unsigned long)timeout - 1;
+	char buf[128];
+	const au_event_t *e;
+	auparse_state_t *au;
+
+	assert(auparse_set_eoe_timeout(timeout) == 0);
+	assert(snprintf(buf, sizeof(buf),
+		"type=LOGIN msg=audit(%lu.999:1): pid=1\n", max_sec) > 0);
+	au = auparse_init(AUSOURCE_BUFFER, buf);
+	assert(au != NULL);
+	assert(auparse_next_event(au) > 0);
+	e = auparse_get_timestamp(au);
+	assert(e != NULL);
+	assert(e->sec == (time_t)max_sec);
+	auparse_destroy(au);
+
+	assert(snprintf(buf, sizeof(buf),
+		"type=LOGIN msg=audit(%lu.000:1): pid=1\n",
+		(unsigned long)LONG_MAX + 1) > 0);
+	au = auparse_init(AUSOURCE_BUFFER, buf);
+	assert(au != NULL);
+	assert(auparse_next_event(au) == 0);
+	auparse_destroy(au);
+}
+
 /* Fuzz path_norm via AUPARSE_TYPE_ESCAPED_FILE interpretations. */
 static void test_path_norm(void)
 {
@@ -561,6 +595,7 @@ int main(void)
 	test_normalize();
 	test_compare();
 	test_timestamp_milli();
+	test_timestamp_range();
 	test_path_norm();
 	test_path_norm_limit();
 	test_single_char_field_values();
