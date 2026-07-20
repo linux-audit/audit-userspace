@@ -1372,6 +1372,12 @@ more_messages:
 		if (major_status != GSS_S_COMPLETE) {
 			gss_failure("decrypting message", major_status,
 				minor_status);
+		} else if (utok.length > MAX_AUDIT_MESSAGE_LENGTH) {
+			/* Do not depend on mechanism-specific wrap overhead. */
+			audit_msg(LOG_ERR,
+				"GSS-API decrypted message from %s is too long",
+				sockaddr_to_addr(&io->addr));
+			(void) gss_release_buffer(&minor_status, &utok);
 		} else {
 			/* client_message() wants to NUL terminate it,
 			   so copy it to a bigger buffer.  Plus, we
