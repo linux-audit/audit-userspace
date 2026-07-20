@@ -113,7 +113,8 @@ int main(int argc, char *argv[])
 	// Now scan the logs and append events
 	while (ausearch_next_event(au) > 0) {
 		const au_event_t *e = auparse_get_timestamp(au);
-		if (auparse_find_field(au, "auid")) {
+		// Invalid or zero-second events do not have a timestamp object.
+		if (e && auparse_find_field(au, "auid")) {
 			uid_t u = auparse_get_field_int(au);
 			list_first(&l);
 			if (list_find_uid(&l, u)) {

@@ -38,3 +38,7 @@ aulastlog_DEPENDENCIES = ${top_builddir}/auparse/libauparse.la
 aulastlog_test_SOURCES = aulastlog.c aulastlog-llist.c aulastlog-test.c
 aulastlog_test_LDADD = ${top_builddir}/auparse/libauparse.la
 aulastlog_test_DEPENDENCIES = ${top_builddir}/auparse/libauparse.la
+aulastlog_test_LDFLAGS = \
+	-Wl,--wrap=auparse_get_timestamp \
+	-Wl,--wrap=auparse_find_field \
+	-Wl,--wrap=auparse_get_field_int

@@ -6,6 +6,13 @@
 
 #include <pwd.h>
 #include <stdlib.h>
+#include <string.h>
+
+#include "auparse.h"
+
+const au_event_t *__real_auparse_get_timestamp(const auparse_state_t *au);
+const char *__real_auparse_find_field(auparse_state_t *au, const char *name);
+int __real_auparse_get_field_int(const auparse_state_t *au);
 
 static int passwd_returned;
 static struct passwd test_passwd = {
@@ -37,4 +44,45 @@ struct passwd *getpwent(void)
 void endpwent(void)
 {
 	passwd_returned = 0;
+}
+
+/*
+ * __wrap_auparse_get_timestamp - inject a missing event timestamp
+ * @au: parser state to query
+ *
+ * Return: NULL when requested by the test, otherwise the parser timestamp.
+ */
+const au_event_t *__wrap_auparse_get_timestamp(const auparse_state_t *au)
+{
+	if (getenv("AULASTLOG_TEST_NULL_TIMESTAMP"))
+		return NULL;
+	return __real_auparse_get_timestamp(au);
+}
+
+/*
+ * __wrap_auparse_find_field - make the null-timestamp path reach the user
+ * @au: parser state to query
+ * @name: field name to find
+ *
+ * Return: a synthetic auid when testing, otherwise the parser field value.
+ */
+const char *__wrap_auparse_find_field(auparse_state_t *au, const char *name)
+{
+	if (getenv("AULASTLOG_TEST_NULL_TIMESTAMP") &&
+			strcmp(name, "auid") == 0)
+		return "1234";
+	return __real_auparse_find_field(au, name);
+}
+
+/*
+ * __wrap_auparse_get_field_int - return the synthetic test user's ID
+ * @au: parser state to query
+ *
+ * Return: the synthetic uid when testing, otherwise the current field value.
+ */
+int __wrap_auparse_get_field_int(const auparse_state_t *au)
+{
+	if (getenv("AULASTLOG_TEST_NULL_TIMESTAMP"))
+		return 1234;
+	return __real_auparse_get_field_int(au);
 }
