@@ -1,3 +1,5 @@
+4.2.1
+
 4.2
 - Put the bash completions in /usr/share/bash-completion/completions/
 - Add KillMode=mixed to the auditd unit file (Issue 272)
@@ -6,6 +8,7 @@
 - Propogate feed consumption errors into auparse_feed and auparse_flush_feed
 - Add TLS support for remote logging (Sergio Correia)
 - Add IPv6 support to IDS plugin
+- Many code cleanups
 
 4.1.4
 - Update syscalls and io_uring tables for the 7.0 kernel (Hilko Bengen)
