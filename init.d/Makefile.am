@@ -58,8 +58,12 @@ install-exec-hook:
 	$(INSTALL_SCRIPT) -D -m 644 ${builddir}/auditd.service ${DESTDIR}${initdir}
 	$(INSTALL_SCRIPT) -D -m 644 ${builddir}/audit-rules.service ${DESTDIR}${initdir}
 	chmod 0755 $(DESTDIR)$(sbindir)/augenrules
-	$(INSTALL_SCRIPT) -D -m 644 ${srcdir}/audit.bash_completion \
-		${DESTDIR}${bashcompdir}
+	$(INSTALL_DATA) -D -m 644 ${srcdir}/audit.bash_completion \
+		${DESTDIR}${bashcompdir}/auditctl
+	cd ${DESTDIR}${bashcompdir} && \
+		ln -sf auditctl ausearch && \
+		ln -sf auditctl aureport && \
+		ln -sf auditctl augenrules
 if INSTALL_LEGACY_ACTIONS
 	mkdir -p ${DESTDIR}${legacydir}
 	$(INSTALL_SCRIPT) -D -m 750 ${srcdir}/auditd.rotate ${DESTDIR}${legacydir}/rotate
@@ -85,4 +89,7 @@ if INSTALL_LEGACY_ACTIONS
 	rm ${DESTDIR}${legacydir}/condrestart
 endif
 	rm ${DESTDIR}$(prefix)/lib/tmpfiles.d/audit.conf
-	rm ${DESTDIR}${bashcompdir}/audit.bash_completion
+	rm ${DESTDIR}${bashcompdir}/auditctl
+	rm ${DESTDIR}${bashcompdir}/ausearch
+	rm ${DESTDIR}${bashcompdir}/aureport
+	rm ${DESTDIR}${bashcompdir}/augenrules
