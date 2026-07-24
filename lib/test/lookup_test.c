@@ -482,7 +482,7 @@ test_audit_logging_encoding(void)
 }
 
 /*
- * Test audit logging task command length validation.
+ * Test that an overlong comm value is truncated rather than rejected.
  * Input variables: none. Return codes: none, aborts on failure.
  */
 static void
@@ -498,8 +498,10 @@ test_audit_logging_comm_length(void)
 	errno = 0;
 	rc = audit_log_user_comm_message(0, AUDIT_USER, "test", comm,
 					 NULL, NULL, "", 1);
-	assert(rc == -1);
-	assert(errno == EINVAL);
+	/* Overlong comm is truncated, not rejected. The call itself
+	 * may still fail (fd 0 is not an audit socket) but NOT with
+	 * EINVAL from comm validation. */
+	assert(errno != EINVAL);
 }
 
 int

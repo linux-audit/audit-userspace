@@ -33,7 +33,8 @@ The kernel task command name is limited to 15 bytes because
 .B TASK_COMM_LEN
 is 16 bytes including the terminating null byte. A non-NULL
 .I comm
-value longer than 15 bytes is malformed and is rejected.
+value longer than 15 bytes is truncated to 15 bytes and a warning
+is logged.
 
 .SH "RETURN VALUE"
 
@@ -42,11 +43,6 @@ It returns the sequence number which is > 0 on success or <= 0 on error.
 .SH "ERRORS"
 
 This function returns \-1 on failure. Examine errno for more info.
-.TP
-.B EINVAL
-The
-.I comm
-value is longer than the kernel task command name limit of 15 bytes.
 
 .SH "SEE ALSO"
 
