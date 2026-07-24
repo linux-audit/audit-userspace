@@ -235,7 +235,10 @@ fi
 %attr(750,root,root) %{_libexecdir}/initscripts/legacy-actions/auditd/rotate
 %attr(750,root,root) %{_libexecdir}/initscripts/legacy-actions/auditd/state
 %attr(750,root,root) %{_libexecdir}/initscripts/legacy-actions/auditd/stop
-%attr(644,root,root) %{_datadir}/bash-completion/completions/audit.bash_completion
+%attr(644,root,root) %{_datadir}/bash-completion/completions/auditctl
+%{_datadir}/bash-completion/completions/ausearch
+%{_datadir}/bash-completion/completions/aureport
+%{_datadir}/bash-completion/completions/augenrules
 %ghost %{_runstatedir}/%{name}/auditd.state
 %attr(-,root,-) %dir %{_var}/log/audit
 %attr(750,root,root) %dir /etc/audit/plugins.d
