@@ -231,8 +231,10 @@ static char *_get_commname(const char *comm, char *commname, unsigned int size)
 
 	len = strnlen(comm, AUDIT_COMM_LEN);
 	if (len == AUDIT_COMM_LEN) {
-		errno = EINVAL;
-		return NULL;
+		audit_msg(LOG_WARNING,
+			"comm value truncated to %d bytes",
+			AUDIT_COMM_LEN - 1);
+		len = AUDIT_COMM_LEN - 1;
 	}
 	if (audit_value_needs_encoding(comm, len))
 		audit_encode_value(commname, comm, len);
