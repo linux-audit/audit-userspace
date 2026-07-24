@@ -46,6 +46,13 @@ sort -u "$page_list" -o "$page_list" || exit 1
 while IFS= read -r page; do
 	found=1
 
+	# .so-only stubs redirect to another page via a manpath-relative
+	# path (e.g. "man3/foo.3") that cannot resolve under man -l.
+	# Skip them; they work correctly once installed.
+	if grep -qx '\.so man[0-9]/.*' "$page" 2>/dev/null; then
+		continue
+	fi
+
 	output=$(
 		LC_ALL=C.UTF-8 MANROFFSEQ='' MANWIDTH=80 \
 			"$MAN" --warnings -E UTF-8 -l -Tutf8 -Z "$page" \
