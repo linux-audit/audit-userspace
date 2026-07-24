@@ -432,78 +432,6 @@ test_optab(void)
 #undef I2S
 }
 
-/*
- * Test audit logging encoding helpers.
- * Input variables: none. Return codes: none, aborts on failure.
- */
-static void
-test_audit_logging_encoding(void)
-{
-	char encoded[9];
-	char binary[] = { 'A', '\0', '"', (char)0xFF };
-	char high_bit[] = { (char)0x80 };
-	char embedded_nul[] = { 'a', '\0', 'b' };
-	char *nv;
-
-	printf("Testing audit logging encoding...\n");
-	assert(audit_value_needs_encoding(NULL, 1) == 0);
-	assert(audit_value_needs_encoding("abc", 3) == 0);
-	assert(audit_value_needs_encoding("a b", 3) == 1);
-	assert(audit_value_needs_encoding("\"", 1) == 1);
-	assert(audit_value_needs_encoding("\177", 1) == 1);
-	assert(audit_value_needs_encoding(high_bit, sizeof(high_bit)) == 1);
-
-	assert(audit_encode_value(encoded, binary, sizeof(binary)) == encoded);
-	assert(strcmp(encoded, "410022FF") == 0);
-	assert(audit_encode_value(encoded, NULL, sizeof(binary)) == encoded);
-	assert(strcmp(encoded, "") == 0);
-	assert(audit_encode_value(NULL, binary, sizeof(binary)) == NULL);
-
-	nv = audit_encode_nv_string("field", "abc", 0);
-	assert(nv != NULL);
-	assert(strcmp(nv, "field=\"abc\"") == 0);
-	free(nv);
-
-	nv = audit_encode_nv_string("field", "a b", 0);
-	assert(nv != NULL);
-	assert(strcmp(nv, "field=612062") == 0);
-	free(nv);
-
-	nv = audit_encode_nv_string("field", embedded_nul,
-				    sizeof(embedded_nul));
-	assert(nv != NULL);
-	assert(strcmp(nv, "field=610062") == 0);
-	free(nv);
-
-	nv = audit_encode_nv_string("field", NULL, 0);
-	assert(nv != NULL);
-	assert(strcmp(nv, "field=\"?\"") == 0);
-	free(nv);
-}
-
-/*
- * Test that an overlong comm value is truncated rather than rejected.
- * Input variables: none. Return codes: none, aborts on failure.
- */
-static void
-test_audit_logging_comm_length(void)
-{
-	/* Sixteen content bytes exceed kernel TASK_COMM_LEN by one. */
-	char comm[17];
-	int rc;
-
-	memset(comm, 'a', sizeof(comm) - 1);
-	comm[0] = '"';
-	comm[sizeof(comm) - 1] = '\0';
-	errno = 0;
-	rc = audit_log_user_comm_message(0, AUDIT_USER, "test", comm,
-					 NULL, NULL, "", 1);
-	/* Overlong comm is truncated, not rejected. The call itself
-	 * may still fail (fd 0 is not an audit socket) but NOT with
-	 * EINVAL from comm validation. */
-	assert(errno != EINVAL);
-}
-
 int
 main(void)
 {
@@ -537,7 +465,5 @@ main(void)
 	test_machinetab();
 	test_msg_typetab();
 	test_optab();
-	test_audit_logging_encoding();
-	test_audit_logging_comm_length();
 	return EXIT_SUCCESS;
 }

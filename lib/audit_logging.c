@@ -239,7 +239,7 @@ static char *_get_commname(const char *comm, char *commname, unsigned int size)
 	if (audit_value_needs_encoding(comm, len))
 		audit_encode_value(commname, comm, len);
 	else
-		snprintf(commname, size, "\"%s\"", comm);
+		snprintf(commname, size, "\"%.*s\"", (int)len, comm);
 
 	return commname;
 }

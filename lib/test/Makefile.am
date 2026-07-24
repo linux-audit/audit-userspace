@@ -26,8 +26,11 @@ if HAVE_ASAN
 AM_CFLAGS += ${ASAN_FLAGS}
 AM_LDFLAGS += ${ASAN_FLAGS}
 endif
-check_PROGRAMS = lookup_test
+check_PROGRAMS = lookup_test audit_logging_test
 TESTS = $(check_PROGRAMS)
 
 lookup_test_LDADD = ${top_builddir}/lib/libaudit.la
 lookup_test_DEPENDENCIES = ${top_builddir}/lib/libaudit.la
+
+audit_logging_test_LDADD = ${top_builddir}/lib/libaudit.la
+audit_logging_test_DEPENDENCIES = ${top_builddir}/lib/libaudit.la
