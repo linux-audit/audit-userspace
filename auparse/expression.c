@@ -24,6 +24,7 @@
 
 #include <assert.h>
 #include <errno.h>
+#include <inttypes.h>
 #include <limits.h>
 #include <stdlib.h>
 #include <string.h>
@@ -384,6 +385,9 @@ parse_escaped_field_name(enum field_id *dest, const char *name)
 static int
 parse_timestamp_value(struct expr *dest, struct parsing *p)
 {
+	const char *value;
+	unsigned long milli, serial = 0;
+	char *end;
 	intmax_t sec;
 
 	assert(p->token == T_STRING);
@@ -391,38 +395,33 @@ parse_timestamp_value(struct expr *dest, struct parsing *p)
 	 * On a timestamp field we will do all the parsing ourselves
 	 * rather than use lex(). At the end we will move the internal cursor.
 	 */
-	int ret;
+	value = p->token_start;
+	if (strncmp(value, "ts:", 3) != 0)
+		goto invalid;
+	value += 3;
 
-	ret = sscanf(p->token_start, "ts:%jd.%u:%u", &sec,
-		     &dest->v.p.value.timestamp_ex.milli,
-		     &dest->v.p.value.timestamp_ex.serial);
-	if (ret != 3) {
-		ret = sscanf(p->token_start, "ts:%jd.%u", &sec,
-			     &dest->v.p.value.timestamp.milli);
-		if (ret != 2) {
-			if (asprintf(p->error, "Invalid timestamp value `%.*s'",
-				     p->token_len, p->token_start) < 0)
-				*p->error = NULL;
-			return -1;
-		}
-		if (dest->v.p.value.timestamp.milli >= 1000) {
-			if (asprintf(p->error,
-				     "Millisecond out of range in `%.*s'",
-				     p->token_len, p->token_start) < 0)
-				*p->error = NULL;
-			return -1;
-		}
-	} else if (dest->v.p.value.timestamp_ex.milli >= 1000) {
-		if (asprintf(p->error,
-			     "Millisecond out of range in `%.*s'",
-			     p->token_len, p->token_start) < 0)
-			*p->error = NULL;
-		return -1;
+	errno = 0;
+	sec = strtoimax(value, &end, 10);
+	if (errno || end == value || *end != '.')
+		goto invalid;
+	value = end + 1;
+
+	errno = 0;
+	milli = strtoul(value, &end, 10);
+	if (errno || end == value)
+		goto invalid;
+	if (milli >= 1000)
+		goto milli_range;
+
+	if (dest->v.p.field.id == EF_TIMESTAMP_EX) {
+		if (*end != ':')
+			goto invalid;
+		value = end + 1;
+		errno = 0;
+		serial = strtoul(value, &end, 10);
+		if (errno || end == value || serial > UINT_MAX)
+			goto invalid;
 	}
-
-	/* Move the cursor past what we parsed. */
-	size_t num = strspn(p->token_start, "ts:0123456789.");
-	p->src = p->token_start + num;
 
 	dest->v.p.value.timestamp.sec = sec;
 	if (dest->v.p.value.timestamp.sec != sec) {
@@ -431,8 +430,26 @@ parse_timestamp_value(struct expr *dest, struct parsing *p)
 			*p->error = NULL;
 		return -1;
 	}
+	dest->v.p.value.timestamp.milli = milli;
+	if (dest->v.p.field.id == EF_TIMESTAMP_EX)
+		dest->v.p.value.timestamp_ex.serial = serial;
+
+	/* Leave lex() at the first character after the parsed timestamp. */
+	p->src = end;
 	dest->precomputed_value = 1;
 	return 0;
+
+milli_range:
+	if (asprintf(p->error, "Millisecond out of range in `%.*s'",
+		     p->token_len, p->token_start) < 0)
+		*p->error = NULL;
+	return -1;
+
+invalid:
+	if (asprintf(p->error, "Invalid timestamp value `%.*s'",
+		     p->token_len, p->token_start) < 0)
+		*p->error = NULL;
+	return -1;
 }
 
 /* Parse a \record_type field value in P->token_value to DEST.
@@ -464,12 +481,15 @@ parse_record_type_value(struct expr *dest, struct parsing *p)
 static int
 parse_unsigned_value(struct expr *dest, struct parsing *p)
 {
-	uint32_t val;
+	unsigned long val;
+	char *end;
 
 	assert(p->token == T_STRING);
 	errno = 0;
-	val = strtoul(p->token_value, NULL, 10);
-	if (errno) {
+	val = strtoul(p->token_value, &end, 10);
+	if (errno || end == p->token_value || *end != '\0' ||
+	    val > UINT32_MAX || p->token_value[0] < '0' ||
+	    p->token_value[0] > '9') {
 		if (asprintf(p->error, "Error converting number `%.*s'",
 			     p->token_len, p->token_start) < 0)
 			*p->error = NULL;

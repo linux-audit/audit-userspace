@@ -231,8 +231,33 @@ static void test_compare(void)
 	auparse_destroy(au);
 }
 
-/* Test parsing of timestamp expressions for millisecond range. */
-static void test_timestamp_milli(void)
+/*
+ * expect_expression_rejected - verify that an expression is invalid
+ * @au: parser state to receive the expression
+ * @expression: expression that must be rejected
+ *
+ * Return: none. Failures abort through assert().
+ */
+static void expect_expression_rejected(auparse_state_t *au,
+				       const char *expression)
+{
+	char *err = NULL;
+	int rc;
+
+	rc = ausearch_add_expression(au, expression, &err,
+				     AUSEARCH_RULE_CLEAR);
+	assert(rc == -1);
+	assert(err != NULL);
+	free(err);
+}
+
+/*
+ * test_timestamp_values - test timestamp syntax and millisecond range
+ * @void: no input
+ *
+ * Return: none. Failures abort through assert().
+ */
+static void test_timestamp_values(void)
 {
 	auparse_state_t *au;
 	char *err = NULL;
@@ -247,12 +272,43 @@ static void test_timestamp_milli(void)
 	assert(rc == 0);
 	assert(err == NULL);
 
-	rc = ausearch_add_expression(au,
-				"\\timestamp == ts:1.1000",
-				&err, AUSEARCH_RULE_CLEAR);
-	assert(rc == -1);
-	assert(err != NULL);
-	free(err);
+	rc = ausearch_add_expression(au, "\\timestamp_ex == ts:1.999:2",
+				     &err, AUSEARCH_RULE_CLEAR);
+	assert(rc == 0);
+	assert(err == NULL);
+
+	expect_expression_rejected(au, "\\timestamp == ts:1.1000");
+	expect_expression_rejected(au, "\\timestamp == ts:1.999.2");
+	expect_expression_rejected(au, "\\timestamp == ts:1.999:2");
+	expect_expression_rejected(au, "\\timestamp_ex == ts:1.999");
+	expect_expression_rejected(au, "\\timestamp_ex == ts:1.999:2.3");
+
+	auparse_destroy(au);
+}
+
+/*
+ * test_unsigned_expression_values - test numeric uid/gid values
+ * @void: no input
+ *
+ * Return: none. Failures abort through assert().
+ */
+static void test_unsigned_expression_values(void)
+{
+	auparse_state_t *au;
+	char *err = NULL;
+	int rc;
+
+	au = auparse_init(AUSOURCE_FILE, "./test.log");
+	assert(au != NULL);
+
+	rc = ausearch_add_expression(au, "uid == 4294967295", &err,
+				     AUSEARCH_RULE_CLEAR);
+	assert(rc == 0);
+	assert(err == NULL);
+
+	expect_expression_rejected(au, "uid == 1junk");
+	expect_expression_rejected(au, "uid == 4294967296");
+	expect_expression_rejected(au, "gid == -1");
 
 	auparse_destroy(au);
 }
@@ -613,7 +669,8 @@ int main(void)
 	test_feed_rejects_malformed_record();
 	test_normalize();
 	test_compare();
-	test_timestamp_milli();
+	test_timestamp_values();
+	test_unsigned_expression_values();
 	test_timestamp_range();
 	test_path_norm();
 	test_path_norm_limit();
