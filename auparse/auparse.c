@@ -300,6 +300,8 @@ static event_list_t *au_get_ready_event(auparse_state_t *au, int is_test)
 	if (lowest && lowest->status == EBS_COMPLETE) {
 		lowest->status = EBS_EMPTY;
 		au->au_ready--;
+		// fan_type applies only to fan_info in the same event.
+		au->last_type = 2;
 		return lowest->l;
 	}
 
@@ -606,6 +608,7 @@ auparse_state_t *auparse_init(ausource_t source, const void *b)
 	au->tmp_translation = NULL;
 	au->uid_cache = NULL;
 	au->gid_cache = NULL;
+	au->last_type = 2;
 	init_interpretation_list(au);
 	init_normalizer(&au->norm_data);
 
@@ -880,6 +883,7 @@ int auparse_reset(auparse_state_t *au)
 	au->parse_state = EVENT_EMPTY;
 	au->au_ready = 0;
 	au->le = NULL;
+	au->last_type = 2;
 
 	switch (au->source)
 	{

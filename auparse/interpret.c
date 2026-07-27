@@ -2707,30 +2707,29 @@ static const char *print_trust(const char *val)
 	return out;
 }
 
-// fan_type always precedes fan_info
-static int last_type = 2;
-static const char *print_fan_type(const char *val)
+// fan_type always precedes fan_info within the same event.
+static const char *print_fan_type(auparse_state_t *au, const char *val)
 {
 	const char *out;
 
 	if (strcmp(val, "0") == 0) {
 		out = strdup("none");
-		last_type = 0;
+		au->last_type = 0;
 	} else if (strcmp(val, "1") == 0) {
 		out = strdup("rule_info");
-		last_type = 1;
+		au->last_type = 1;
 	} else {
 		out = strdup("unknown");
-		last_type = 2;
+		au->last_type = 2;
 	}
 
 	return out;
 }
 
-static const char *print_fan_info(const char *val)
+static const char *print_fan_info(const auparse_state_t *au, const char *val)
 {
 	char *out;
-	if (last_type == 1) {
+	if (au->last_type == 1) {
 		errno = 0;
 		unsigned long info = strtoul(val, NULL, 16);
 		if (errno) {
@@ -3763,10 +3762,10 @@ unknown:
 			out = print_trust(id->val);
 			break;
 		case AUPARSE_TYPE_FAN_TYPE:
-			out = print_fan_type(id->val);
+			out = print_fan_type(au, id->val);
 			break;
 		case AUPARSE_TYPE_FAN_INFO:
-			out = print_fan_info(id->val);
+			out = print_fan_info(au, id->val);
 			break;
 		case AUPARSE_TYPE_ERRNO:
 			out = print_errno(id->val);

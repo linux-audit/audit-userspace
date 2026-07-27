@@ -183,6 +183,7 @@ struct opaque
 	nvlist interpretations;		// Per-parser interpretations list
 	Queue *uid_cache;               // per-parser UID cache
 	Queue *gid_cache;               // per-parser GID cache
+	int last_type;			// fan_type for interpreting fan_info
 };
 
 AUDIT_HIDDEN_START

@@ -440,6 +440,51 @@ static void test_single_char_field_values(void)
 	auparse_destroy(au);
 }
 
+/* test_fan_type_state - keep fan_info interpretation local to parser and event
+ *
+ * Return: none. Failures abort through assert().
+ */
+static void test_fan_type_state(void)
+{
+	const char first_buf[] =
+		"type=LOGIN msg=audit(1143146623.787:142): "
+		"fan_type=1 fan_info=10\n"
+		"type=LOGIN msg=audit(1143146624.787:143): fan_info=10\n";
+	const char second_buf[] =
+		"type=LOGIN msg=audit(1143146623.787:144): "
+		"fan_type=0 fan_info=10\n";
+	auparse_state_t *first, *second;
+	const char *value;
+
+	first = auparse_init(AUSOURCE_BUFFER, first_buf);
+	second = auparse_init(AUSOURCE_BUFFER, second_buf);
+	assert(first != NULL && second != NULL);
+	assert(auparse_next_event(first) > 0);
+	assert(auparse_next_event(second) > 0);
+
+	assert(auparse_find_field(first, "fan_type") != NULL);
+	value = auparse_interpret_field(first);
+	assert(value != NULL && strcmp(value, "rule_info") == 0);
+	assert(auparse_find_field(second, "fan_type") != NULL);
+	value = auparse_interpret_field(second);
+	assert(value != NULL && strcmp(value, "none") == 0);
+
+	assert(auparse_find_field(first, "fan_info") != NULL);
+	value = auparse_interpret_field(first);
+	assert(value != NULL && strcmp(value, "16") == 0);
+	assert(auparse_find_field(second, "fan_info") != NULL);
+	value = auparse_interpret_field(second);
+	assert(value != NULL && strcmp(value, "10") == 0);
+
+	assert(auparse_next_event(first) > 0);
+	assert(auparse_find_field(first, "fan_info") != NULL);
+	value = auparse_interpret_field(first);
+	assert(value != NULL && strcmp(value, "10") == 0);
+
+	auparse_destroy(second);
+	auparse_destroy(first);
+}
+
 /* test_seccomp_action_full - seccomp action lookup keeps the top action bit
  * @void: no inputs
  *
@@ -675,6 +720,7 @@ int main(void)
 	test_path_norm();
 	test_path_norm_limit();
 	test_single_char_field_values();
+	test_fan_type_state();
 	test_seccomp_action_full();
 	test_proctitle_nul_separator();
 	test_sockaddr_short_lengths();
