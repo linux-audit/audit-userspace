@@ -81,8 +81,22 @@ typedef struct ev_tcp {
 	unsigned int bufptr;
 	int client_active;
 #ifdef USE_GSSAPI
+	enum gss_handshake_state {
+		GSS_HANDSHAKE_READ_LENGTH,
+		GSS_HANDSHAKE_READ_TOKEN,
+		GSS_HANDSHAKE_WRITE_LENGTH,
+		GSS_HANDSHAKE_WRITE_TOKEN
+	} gss_state;
 	/* This holds the negotiated security context for this client.  */
 	gss_ctx_id_t gss_context;
+	gss_name_t gss_client_name;
+	gss_buffer_desc gss_token;
+	struct ev_timer gss_handshake_timer;
+	size_t gss_offset;
+	OM_uint32 gss_status;
+	unsigned char gss_length[4];
+	int gss_token_from_gss;
+	int in_gss_handshake_chain;
 	char *remote_name;
 	int remote_name_len;
 #endif
@@ -111,11 +125,17 @@ static int use_libwrap = 1;
 static int transport = T_TCP;
 static char msgbuf[MAX_AUDIT_MESSAGE_LENGTH + 1];
 static struct ev_tcp *client_chain = NULL;
+static void auditd_tcp_client_handler(struct ev_loop *loop,
+				      struct ev_io *_io, int revents);
 #ifdef USE_GSSAPI
 /* This is our global credentials */
 static gss_cred_id_t server_creds; // This is used to hold our own private key
 static char *my_service_name, *my_gss_realm;
 #define USE_GSS (transport == T_KRB5)
+static struct ev_tcp *gss_handshake_chain = NULL;
+static unsigned int gss_handshake_count = 0;
+static ev_tstamp gss_handshake_timeout = 5.0;
+#define MAX_GSS_HANDSHAKE_PENDING 32
 #endif
 #ifdef HAVE_TLS
 static SSL_CTX *tls_server_ctx = NULL;
@@ -358,6 +378,12 @@ static void release_client(struct ev_tcp *client)
 	client->pending_ack_len = 0;
 #endif
 #ifdef USE_GSSAPI
+	if (client->gss_context != GSS_C_NO_CONTEXT) {
+		OM_uint32 status;
+
+		gss_delete_sec_context(&status, &client->gss_context,
+				       GSS_C_NO_BUFFER);
+	}
 	if (client->remote_name)
 		free (client->remote_name);
 #endif
@@ -741,89 +767,23 @@ static int ar_write(int sock, const void *buf, int len)
 }
 
 #ifdef USE_GSSAPI
-static int ar_read(int sock, void *buf, int len)
+/*
+ * send_token - send one active-session GSS token
+ * @sock: connected client descriptor
+ * @tok: token to frame and send
+ *
+ * Handshake responses use the incremental writer below. Active sockets are
+ * already nonblocking, so this legacy data-path helper cannot stall auditd.
+ * Returns: 0 on success, -1 on error.
+ */
+static int send_token(int sock, gss_buffer_t tok)
 {
-	int rc = 0, r;
-	while (len > 0) {
-		do {
-			r = read(sock, buf, len);
-		} while (r < 0 && errno == EINTR);
-		if (r < 0)
-			return r;
-		if (r == 0)
-			break;
-		rc += r;
-		len -= r;
-		buf = (void *)((char *)buf + r);
-	}
-	return rc;
-}
-
-
-/* Communications under GSS is done by token exchanges.  Each "token"
-   may contain a message, perhaps signed, perhaps encrypted.  The
-   messages within are what we're interested in, but the network sees
-   the tokens.  The protocol we use for transferring tokens is to send
-   the length first, four bytes MSB first, then the token data.  We
-   return nonzero on error.  */
-static int recv_token(int s, gss_buffer_t tok)
-{
-	int ret;
-	unsigned char lenbuf[4];
-	uint32_t len;
-
-	ret = ar_read(s, (char *)lenbuf, 4);
-	if (ret < 0) {
-		audit_msg(LOG_ERR, "GSS-API error reading token length");
-		return -1;
-	} else if (!ret) {
-		return 0;
-	} else if (ret != 4) {
-		audit_msg(LOG_ERR, "GSS-API error reading token length");
-		return -1;
-	}
-
-	/* Cast before shifting so a high-bit wire byte never shifts an int. */
-	len = (((uint32_t)lenbuf[0] << 24)
-	       | ((uint32_t)lenbuf[1] << 16)
-	       | ((uint32_t)lenbuf[2] << 8)
-	       | (uint32_t)lenbuf[3]);
-	if (len > MAX_AUDIT_MESSAGE_LENGTH) {
-		audit_msg(LOG_ERR,
-			"GSS-API error: event length exceeds MAX_AUDIT_LENGTH");
-		return -1;
-	}
-	tok->length = len;
-
-	tok->value = (char *)malloc(tok->length ? tok->length : 1);
-	if (tok->length && tok->value == NULL) {
-		audit_msg(LOG_ERR, "Out of memory allocating token data");
-		return -1;
-	}
-
-	ret = ar_read(s, (char *)tok->value, tok->length);
-	if (ret < 0) {
-		audit_msg(LOG_ERR, "GSS-API error reading token data");
-		free(tok->value);
-		return -1;
-	} else if (ret != (int) tok->length) {
-		audit_msg(LOG_ERR, "GSS-API error reading token data");
-		free(tok->value);
-		return -1;
-	}
-
-	return 1;
-}
-
-/* Same here.  */
-static int send_token(int s, gss_buffer_t tok)
-{
-	int ret;
 	unsigned char lenbuf[4];
 	unsigned int len;
+	int ret;
 
 	if (sizeof(tok->length) > sizeof(uint32_t) &&
-	    tok->length > 0xffffffffUL)
+	    tok->length > UINT32_MAX)
 		return -1;
 	len = tok->length;
 	lenbuf[0] = (len >> 24) & 0xff;
@@ -831,27 +791,18 @@ static int send_token(int s, gss_buffer_t tok)
 	lenbuf[2] = (len >> 8) & 0xff;
 	lenbuf[3] = len & 0xff;
 
-	ret = ar_write(s, (char *) lenbuf, 4);
-	if (ret < 0) {
-		audit_msg(LOG_ERR, "GSS-API error sending token length");
-		return -1;
-	} else if (ret != 4) {
+	ret = ar_write(sock, lenbuf, sizeof(lenbuf));
+	if (ret != sizeof(lenbuf)) {
 		audit_msg(LOG_ERR, "GSS-API error sending token length");
 		return -1;
 	}
-
-	ret = ar_write(s, tok->value, tok->length);
-	if (ret < 0) {
-		audit_msg(LOG_ERR, "GSS-API error sending token data");
-		return -1;
-	} else if (ret != (int)tok->length) {
+	ret = ar_write(sock, tok->value, tok->length);
+	if (ret != (int)tok->length) {
 		audit_msg(LOG_ERR, "GSS-API error sending token data");
 		return -1;
 	}
-
 	return 0;
 }
-
 
 static void gss_failure_2(const char *msg, int status, int type)
 {
@@ -934,126 +885,495 @@ static int server_acquire_creds(const char *service_name,
 	return 0;
 }
 
-/* This is where we negotiate a security context with the client.  In
-   the case of Kerberos, this is where the key exchange happens.
-   FIXME: While everything else is strictly nonblocking, this
-   negotiation blocks.  */
-static int negotiate_credentials(ev_tcp *io)
+/*
+ * release_gss_handshake_token - release the token held by handshake state
+ * @client: pending GSS client
+ *
+ * Input tokens are allocated locally while output tokens belong to GSS.
+ * Returns: None.
+ */
+static void release_gss_handshake_token(struct ev_tcp *client)
 {
-	gss_buffer_desc send_tok, recv_tok;
-	gss_name_t client;
-	OM_uint32 maj_stat, min_stat, acc_sec_min_stat;
-	gss_ctx_id_t *context;
-	OM_uint32 sess_flags;
-	char *slashptr, *atptr;
+	OM_uint32 status;
 
-	context = & io->gss_context;
-	*context = GSS_C_NO_CONTEXT;
-	io->remote_name = NULL;
+	if (client->gss_token.value) {
+		if (client->gss_token_from_gss)
+			gss_release_buffer(&status, &client->gss_token);
+		else
+			free(client->gss_token.value);
+	}
+	client->gss_token = (gss_buffer_desc)GSS_C_EMPTY_BUFFER;
+	client->gss_token_from_gss = 0;
+}
 
-	maj_stat = GSS_S_CONTINUE_NEEDED;
-	do {
-		/* STEP 1 - get a token from the client.  */
+/*
+ * unlink_gss_handshake_client - remove a client from the pending GSS list
+ * @client: pending GSS client
+ *
+ * Returns: None.
+ */
+static void unlink_gss_handshake_client(struct ev_tcp *client)
+{
+	if (!client->in_gss_handshake_chain)
+		return;
 
-		if (recv_token(io->io.fd, &recv_tok) <= 0) {
-			audit_msg(LOG_ERR,
-			"TCP session from %s will be closed, error ignored",
-				  sockaddr_to_addr(&io->addr));
-			return -1;
-		}
-		if (recv_tok.length == 0) {
-			free(recv_tok.value);
-			recv_tok.value = NULL;
-			continue;
-		}
+	if (gss_handshake_chain == client)
+		gss_handshake_chain = client->next;
+	if (client->next)
+		client->next->prev = client->prev;
+	if (client->prev)
+		client->prev->next = client->next;
+	gss_handshake_count--;
+	client->in_gss_handshake_chain = 0;
+	client->next = NULL;
+	client->prev = NULL;
+}
 
-		/* STEP 2 - let GSS process that token.  */
+/*
+ * abort_gss_handshake - tear down an unaccepted GSS client
+ * @loop: libev event loop
+ * @client: pending GSS client
+ *
+ * Returns: None.
+ */
+static void abort_gss_handshake(struct ev_loop *loop, struct ev_tcp *client)
+{
+	OM_uint32 status;
 
-		maj_stat = gss_accept_sec_context(&acc_sec_min_stat,
-					context, server_creds,
-					&recv_tok,
-					GSS_C_NO_CHANNEL_BINDINGS, &client,
-					NULL, &send_tok, &sess_flags,
-					NULL, NULL);
-		if (recv_tok.value)
-			gss_release_buffer(&min_stat, &recv_tok);
+	ev_io_stop(loop, &client->io);
+	ev_timer_stop(loop, &client->gss_handshake_timer);
+	unlink_gss_handshake_client(client);
+	release_gss_handshake_token(client);
+	if (client->gss_client_name != GSS_C_NO_NAME)
+		gss_release_name(&status, &client->gss_client_name);
+	if (client->gss_context != GSS_C_NO_CONTEXT)
+		gss_delete_sec_context(&status, &client->gss_context,
+				       GSS_C_NO_BUFFER);
+	free(client->remote_name);
+	shutdown(client->io.fd, SHUT_RDWR);
+	close(client->io.fd);
+	free(client);
+}
 
-		if (maj_stat != GSS_S_COMPLETE
-		    && maj_stat != GSS_S_CONTINUE_NEEDED) {
-			gss_release_buffer(&min_stat, &send_tok);
-			if (*context != GSS_C_NO_CONTEXT)
-				gss_delete_sec_context(&min_stat, context,
-					GSS_C_NO_BUFFER);
-			gss_failure("accepting context", maj_stat,
-				    acc_sec_min_stat);
-			return -1;
-		}
+/*
+ * watch_gss_handshake - arm a pending GSS client for one I/O direction
+ * @loop: libev event loop
+ * @client: pending GSS client
+ * @events: EV_READ or EV_WRITE
+ *
+ * Returns: None.
+ */
+static void watch_gss_handshake(struct ev_loop *loop,
+				struct ev_tcp *client, int events)
+{
+	ev_io_stop(loop, &client->io);
+	ev_io_modify(&client->io, events);
+	ev_io_start(loop, &client->io);
+}
 
-		/* STEP 3 - send any tokens to the client that GSS may
-		   ask us to send.  */
+/*
+ * reset_gss_token_read - prepare to incrementally receive another token
+ * @loop: libev event loop
+ * @client: pending GSS client
+ *
+ * Returns: None.
+ */
+static void reset_gss_token_read(struct ev_loop *loop,
+				 struct ev_tcp *client)
+{
+	client->gss_state = GSS_HANDSHAKE_READ_LENGTH;
+	client->gss_offset = 0;
+	memset(client->gss_length, 0, sizeof(client->gss_length));
+	watch_gss_handshake(loop, client, EV_READ);
+}
 
-		if (send_tok.length != 0) {
-			if (send_token(io->io.fd, &send_tok) < 0) {
-				gss_release_buffer(&min_stat, &send_tok);
-				audit_msg(LOG_ERR,
-			"TCP session from %s will be closed, error ignored",
-					  sockaddr_to_addr(&io->addr));
-				if (*context != GSS_C_NO_CONTEXT)
-					gss_delete_sec_context(&min_stat,
-						context, GSS_C_NO_BUFFER);
-				gss_release_name(&min_stat, &client);
-				return -1;
-			}
-		}
-		gss_release_buffer(&min_stat, &send_tok);
-	} while (maj_stat == GSS_S_CONTINUE_NEEDED);
+/*
+ * gss_name_is_authorized - check the configured service and realm
+ * @name: displayed service/host@realm client name
+ * @service: configured service name
+ * @realm: server Kerberos realm
+ *
+ * Returns: 1 for an authorized name, 0 otherwise.
+ */
+static int gss_name_is_authorized(const char *name, const char *service,
+				   const char *realm)
+{
+	const char *slashptr, *atptr;
+	size_t service_len;
 
-	maj_stat = gss_display_name(&min_stat, client, &recv_tok, NULL);
-	gss_release_name(&min_stat, &client);
+	if (name == NULL || service == NULL || realm == NULL)
+		return 0;
+	slashptr = strchr(name, '/');
+	atptr = strchr(name, '@');
+	if (slashptr == NULL || atptr == NULL || slashptr >= atptr)
+		return 0;
 
-	if (maj_stat != GSS_S_COMPLETE) {
-		gss_failure("displaying name", maj_stat, min_stat);
+	service_len = slashptr - name;
+	if (strlen(service) != service_len ||
+	    strncmp(name, service, service_len))
+		return 0;
+	return strcmp(atptr + 1, realm) == 0;
+}
+
+/*
+ * authorize_gss_client - display and authorize the negotiated client name
+ * @client: pending GSS client with a completed security context
+ *
+ * Returns: 0 for an authorized client, -1 otherwise.
+ */
+static int authorize_gss_client(struct ev_tcp *client)
+{
+	gss_buffer_desc name = GSS_C_EMPTY_BUFFER;
+	OM_uint32 major_status, minor_status, release_status;
+
+	major_status = gss_display_name(&minor_status, client->gss_client_name,
+					&name, NULL);
+	gss_release_name(&release_status, &client->gss_client_name);
+	if (major_status != GSS_S_COMPLETE) {
+		gss_failure("displaying name", major_status, minor_status);
+		return -1;
+	}
+	if (name.length > INT_MAX) {
+		audit_msg(LOG_ERR, "GSS client name is too long");
+		gss_release_buffer(&minor_status, &name);
 		return -1;
 	}
 
-	if (asprintf(&io->remote_name, "%.*s", (int)recv_tok.length,
-		    (char *)recv_tok.value) < 0) {
-		io->remote_name = strdup("?");
-		io->remote_name_len = 1;
-	} else
-		io->remote_name_len = recv_tok.length;
-
-	audit_msg(LOG_INFO, "GSS-API Accepted connection from: %s", 
-		  io->remote_name);
-	gss_release_buffer(&min_stat, &recv_tok);
-
-	if (io->remote_name) {
-		slashptr = strchr(io->remote_name, '/');
-		atptr = strchr(io->remote_name, '@');
-	} else
-		slashptr = NULL;
-
-	if (!slashptr || !atptr) {
-		audit_msg(LOG_ERR, "Invalid GSS name from remote client: %s",
-			  io->remote_name);
+	client->remote_name = malloc(name.length + 1);
+	if (client->remote_name == NULL) {
+		audit_msg(LOG_ERR, "Out of memory allocating GSS client name");
+		gss_release_buffer(&minor_status, &name);
 		return -1;
 	}
+	memcpy(client->remote_name, name.value, name.length);
+	client->remote_name[name.length] = 0;
+	client->remote_name_len = name.length;
+	gss_release_buffer(&minor_status, &name);
 
-	*slashptr = 0;
-	if (strcmp(io->remote_name, my_service_name)) {
-		audit_msg(LOG_ERR, "Unauthorized GSS client name: %s (not %s)",
-			  io->remote_name, my_service_name);
+	audit_msg(LOG_INFO, "GSS-API authenticated connection from: %s",
+		  client->remote_name);
+	if (!gss_name_is_authorized(client->remote_name, my_service_name,
+				    my_gss_realm)) {
+		audit_msg(LOG_ERR, "Unauthorized GSS client name: %s",
+			  client->remote_name);
 		return -1;
 	}
-	*slashptr = '/';
-
-	if (strcmp(atptr+1, my_gss_realm)) {
-		audit_msg(LOG_ERR, "Unauthorized GSS client realm: %s (not %s)",
-			  atptr+1, my_gss_realm);
-		return -1;
-	}
-
 	return 0;
+}
+
+/*
+ * admit_gss_client - move an authorized GSS client to the active chain
+ * @loop: libev event loop
+ * @client: authorized GSS client
+ *
+ * Returns: None.
+ */
+static void admit_gss_client(struct ev_loop *loop, struct ev_tcp *client)
+{
+	char emsg[DEFAULT_BUF_SZ];
+
+	ev_io_stop(loop, &client->io);
+	ev_timer_stop(loop, &client->gss_handshake_timer);
+	unlink_gss_handshake_client(client);
+	ev_set_cb(&client->io, auditd_tcp_client_handler);
+	ev_io_modify(&client->io, EV_READ);
+	ev_io_start(loop, &client->io);
+
+	client->client_active = 1;
+	client->next = client_chain;
+	client->prev = NULL;
+	if (client->next)
+		client->next->prev = client;
+	client_chain = client;
+
+	snprintf(emsg, sizeof(emsg), "addr=%s port=%u res=success",
+		 sockaddr_to_string(&client->addr),
+		 sockaddr_to_port(&client->addr));
+	send_audit_event(AUDIT_DAEMON_ACCEPT, emsg);
+}
+
+/*
+ * finish_gss_output - continue after a complete nonblocking token write
+ * @loop: libev event loop
+ * @client: pending GSS client
+ *
+ * Returns: None.
+ */
+static void finish_gss_output(struct ev_loop *loop, struct ev_tcp *client)
+{
+	release_gss_handshake_token(client);
+	if (client->gss_status == GSS_S_COMPLETE) {
+		if (authorize_gss_client(client)) {
+			abort_gss_handshake(loop, client);
+			return;
+		}
+		admit_gss_client(loop, client);
+		return;
+	}
+	reset_gss_token_read(loop, client);
+}
+
+/*
+ * process_gss_token - pass one complete input token to GSS
+ * @loop: libev event loop
+ * @client: pending GSS client
+ *
+ * Returns: None.
+ */
+static void process_gss_token(struct ev_loop *loop, struct ev_tcp *client)
+{
+	gss_buffer_desc input = client->gss_token;
+	gss_buffer_desc output = GSS_C_EMPTY_BUFFER;
+	gss_name_t client_name = GSS_C_NO_NAME;
+	OM_uint32 major_status, minor_status, session_flags, release_status;
+	uint32_t len;
+
+	client->gss_token = (gss_buffer_desc)GSS_C_EMPTY_BUFFER;
+	client->gss_token_from_gss = 0;
+	major_status = gss_accept_sec_context(&minor_status,
+				&client->gss_context, server_creds, &input,
+				GSS_C_NO_CHANNEL_BINDINGS, &client_name, NULL,
+				&output, &session_flags, NULL, NULL);
+	free(input.value);
+
+	if (major_status != GSS_S_COMPLETE &&
+	    major_status != GSS_S_CONTINUE_NEEDED) {
+		if (output.value)
+			gss_release_buffer(&release_status, &output);
+		if (client_name != GSS_C_NO_NAME)
+			gss_release_name(&release_status, &client_name);
+		gss_failure("accepting context", major_status, minor_status);
+		abort_gss_handshake(loop, client);
+		return;
+	}
+
+	if (major_status == GSS_S_COMPLETE)
+		client->gss_client_name = client_name;
+	else if (client_name != GSS_C_NO_NAME)
+		gss_release_name(&release_status, &client_name);
+	client->gss_status = major_status;
+
+	if (output.length == 0) {
+		if (output.value)
+			gss_release_buffer(&release_status, &output);
+		if (major_status == GSS_S_COMPLETE) {
+			if (authorize_gss_client(client))
+				abort_gss_handshake(loop, client);
+			else
+				admit_gss_client(loop, client);
+		} else
+			reset_gss_token_read(loop, client);
+		return;
+	}
+	if (sizeof(output.length) > sizeof(uint32_t) &&
+	    output.length > UINT32_MAX) {
+		gss_release_buffer(&release_status, &output);
+		audit_msg(LOG_ERR, "GSS output token is too long");
+		abort_gss_handshake(loop, client);
+		return;
+	}
+
+	len = output.length;
+	client->gss_length[0] = (len >> 24) & 0xff;
+	client->gss_length[1] = (len >> 16) & 0xff;
+	client->gss_length[2] = (len >> 8) & 0xff;
+	client->gss_length[3] = len & 0xff;
+	client->gss_token = output;
+	client->gss_token_from_gss = 1;
+	client->gss_state = GSS_HANDSHAKE_WRITE_LENGTH;
+	client->gss_offset = 0;
+	watch_gss_handshake(loop, client, EV_WRITE);
+}
+
+/*
+ * read_gss_handshake - consume one currently available handshake fragment
+ * @loop: libev event loop
+ * @client: pending GSS client
+ *
+ * Returns: None.
+ */
+static void read_gss_handshake(struct ev_loop *loop, struct ev_tcp *client)
+{
+	unsigned char *buf;
+	size_t need;
+	ssize_t len;
+
+	if (client->gss_state == GSS_HANDSHAKE_READ_LENGTH) {
+		buf = client->gss_length;
+		need = sizeof(client->gss_length);
+	} else {
+		buf = client->gss_token.value;
+		need = client->gss_token.length;
+	}
+
+	len = read(client->io.fd, buf + client->gss_offset,
+		   need - client->gss_offset);
+	if (len < 0) {
+		if (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR)
+			return;
+		audit_msg(LOG_ERR, "GSS-API handshake read from %s failed",
+			  sockaddr_to_addr(&client->addr));
+		abort_gss_handshake(loop, client);
+		return;
+	}
+	if (len == 0) {
+		abort_gss_handshake(loop, client);
+		return;
+	}
+
+	client->gss_offset += len;
+	if (client->gss_offset < need)
+		return;
+
+	if (client->gss_state == GSS_HANDSHAKE_READ_TOKEN) {
+		process_gss_token(loop, client);
+		return;
+	}
+
+	need = (((uint32_t)client->gss_length[0] << 24)
+		| ((uint32_t)client->gss_length[1] << 16)
+		| ((uint32_t)client->gss_length[2] << 8)
+		| (uint32_t)client->gss_length[3]);
+	if (need > MAX_AUDIT_MESSAGE_LENGTH) {
+		audit_msg(LOG_ERR,
+			"GSS-API error: event length exceeds MAX_AUDIT_LENGTH");
+		abort_gss_handshake(loop, client);
+		return;
+	}
+	if (need == 0) {
+		reset_gss_token_read(loop, client);
+		return;
+	}
+
+	client->gss_token.value = malloc(need);
+	if (client->gss_token.value == NULL) {
+		audit_msg(LOG_ERR, "Out of memory allocating GSS token data");
+		abort_gss_handshake(loop, client);
+		return;
+	}
+	client->gss_token.length = need;
+	client->gss_token_from_gss = 0;
+	client->gss_state = GSS_HANDSHAKE_READ_TOKEN;
+	client->gss_offset = 0;
+}
+
+/*
+ * write_gss_handshake - write one currently accepted handshake fragment
+ * @loop: libev event loop
+ * @client: pending GSS client
+ *
+ * Returns: None.
+ */
+static void write_gss_handshake(struct ev_loop *loop, struct ev_tcp *client)
+{
+	const unsigned char *buf;
+	size_t need;
+	ssize_t len;
+
+	if (client->gss_state == GSS_HANDSHAKE_WRITE_LENGTH) {
+		buf = client->gss_length;
+		need = sizeof(client->gss_length);
+	} else {
+		buf = client->gss_token.value;
+		need = client->gss_token.length;
+	}
+
+	len = write(client->io.fd, buf + client->gss_offset,
+		    need - client->gss_offset);
+	if (len < 0) {
+		if (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR)
+			return;
+		audit_msg(LOG_ERR, "GSS-API handshake write to %s failed",
+			  sockaddr_to_addr(&client->addr));
+		abort_gss_handshake(loop, client);
+		return;
+	}
+	if (len == 0) {
+		abort_gss_handshake(loop, client);
+		return;
+	}
+
+	client->gss_offset += len;
+	if (client->gss_offset < need)
+		return;
+	if (client->gss_state == GSS_HANDSHAKE_WRITE_LENGTH) {
+		client->gss_state = GSS_HANDSHAKE_WRITE_TOKEN;
+		client->gss_offset = 0;
+		return;
+	}
+	finish_gss_output(loop, client);
+}
+
+/*
+ * gss_handshake_handler - advance a nonblocking GSS token exchange
+ * @loop: libev event loop
+ * @_io: pending GSS client watcher
+ * @revents: libev event flags
+ *
+ * Returns: None.
+ */
+static void gss_handshake_handler(struct ev_loop *loop,
+				   struct ev_io *_io, int revents)
+{
+	struct ev_tcp *client = (struct ev_tcp *)_io;
+
+	if (client->gss_state == GSS_HANDSHAKE_READ_LENGTH ||
+	    client->gss_state == GSS_HANDSHAKE_READ_TOKEN)
+		read_gss_handshake(loop, client);
+	else
+		write_gss_handshake(loop, client);
+}
+
+/*
+ * gss_handshake_timeout_cb - close a GSS exchange after its deadline
+ * @loop: libev event loop
+ * @timer: handshake timer whose data points to the client
+ * @revents: libev event flags
+ *
+ * Returns: None.
+ */
+static void gss_handshake_timeout_cb(struct ev_loop *loop,
+				      struct ev_timer *timer, int revents)
+{
+	struct ev_tcp *client = timer->data;
+
+	audit_msg(LOG_ERR, "GSS handshake timeout from %s",
+		  sockaddr_to_addr(&client->addr));
+	abort_gss_handshake(loop, client);
+}
+
+/*
+ * init_gss_handshake - initialize and schedule a pending GSS exchange
+ * @loop: libev event loop
+ * @client: newly accepted client
+ *
+ * Returns: None.
+ */
+static void init_gss_handshake(struct ev_loop *loop, struct ev_tcp *client)
+{
+	client->client_active = 0;
+	client->gss_context = GSS_C_NO_CONTEXT;
+	client->gss_client_name = GSS_C_NO_NAME;
+	client->gss_token = (gss_buffer_desc)GSS_C_EMPTY_BUFFER;
+	client->gss_status = GSS_S_CONTINUE_NEEDED;
+	client->gss_state = GSS_HANDSHAKE_READ_LENGTH;
+	client->gss_offset = 0;
+
+	ev_io_init(&client->io, gss_handshake_handler, client->io.fd, EV_READ);
+	ev_timer_init(&client->gss_handshake_timer,
+		      gss_handshake_timeout_cb, gss_handshake_timeout, 0.0);
+	client->gss_handshake_timer.data = client;
+
+	client->next = gss_handshake_chain;
+	client->prev = NULL;
+	if (client->next)
+		client->next->prev = client;
+	gss_handshake_chain = client;
+	gss_handshake_count++;
+	client->in_gss_handshake_chain = 1;
+
+	ev_io_start(loop, &client->io);
+	ev_timer_start(loop, &client->gss_handshake_timer);
 }
 #endif /* USE_GSSAPI */
 
@@ -1504,6 +1824,33 @@ static int check_num_connections(const struct sockaddr_storage *aaddr)
 		}
 		client = client->next;
 	}
+#ifdef USE_GSSAPI
+	client = gss_handshake_chain;
+	while (client) {
+		struct sockaddr_storage *cl_addr = &client->addr;
+
+		if (aaddr->ss_family == cl_addr->ss_family) {
+			int rc;
+
+			if (aaddr->ss_family == AF_INET)
+				rc = memcmp(
+					&((struct sockaddr_in *)aaddr)->sin_addr,
+					&((struct sockaddr_in *)cl_addr)->sin_addr,
+					sizeof(struct in_addr));
+			else
+				rc = memcmp(
+					&((struct sockaddr_in6 *)aaddr)->sin6_addr,
+					&((struct sockaddr_in6 *)cl_addr)->sin6_addr,
+					sizeof(struct in6_addr));
+			if (rc == 0) {
+				num++;
+				if (num >= max_per_addr)
+					return 1;
+			}
+		}
+		client = client->next;
+	}
+#endif
 #ifdef HAVE_TLS
 	client = handshake_chain;
 	while (client) {
@@ -1712,7 +2059,7 @@ static void auditd_tcp_listen_handler( struct ev_loop *loop,
 	struct ev_io *_io, int revents)
 {
 	int one=1;
-	int afd;
+	int afd, flags;
 	socklen_t aaddrlen;
 	struct sockaddr_storage aaddr;
 	struct ev_tcp *client;
@@ -1723,6 +2070,15 @@ static void auditd_tcp_listen_handler( struct ev_loop *loop,
 	afd = accept(_io->fd, (struct sockaddr *)&aaddr, &aaddrlen);
 	if (afd == -1) {
 		audit_msg(LOG_ERR, "Unable to accept TCP connection");
+		return;
+	}
+	flags = fcntl(afd, F_GETFL);
+	if (flags == -1 ||
+	    fcntl(afd, F_SETFL, flags | O_NONBLOCK | O_NDELAY) == -1) {
+		audit_msg(LOG_ERR,
+			  "Unable to make accepted TCP connection nonblocking");
+		shutdown(afd, SHUT_RDWR);
+		close(afd);
 		return;
 	}
 
@@ -1838,8 +2194,6 @@ static void auditd_tcp_listen_handler( struct ev_loop *loop,
 			return;
 		}
 
-		fcntl(afd, F_SETFL, O_NONBLOCK | O_NDELAY);
-
 		client->ssl = SSL_new(tls_server_ctx);
 		if (client->ssl == NULL ||
 		    SSL_set_fd(client->ssl, afd) != 1) {
@@ -1884,16 +2238,26 @@ static void auditd_tcp_listen_handler( struct ev_loop *loop,
 	}
 #endif
 #ifdef USE_GSSAPI
-	if (USE_GSS && negotiate_credentials (client)) {
-		shutdown(afd, SHUT_RDWR);
-		close(afd);
-		free(client->remote_name);
-		free(client);
+	if (USE_GSS) {
+		if (gss_handshake_count >= MAX_GSS_HANDSHAKE_PENDING) {
+			audit_msg(LOG_ERR,
+				"GSS handshake limit reached, rejecting %s",
+				sockaddr_to_addr(&aaddr));
+			snprintf(emsg, sizeof(emsg),
+				"op=handshake-limit addr=%s port=%u res=no",
+				sockaddr_to_string(&aaddr),
+				sockaddr_to_port(&aaddr));
+			send_audit_event(AUDIT_DAEMON_ACCEPT, emsg);
+			shutdown(afd, SHUT_RDWR);
+			close(afd);
+			free(client);
+			return;
+		}
+		init_gss_handshake(loop, client);
 		return;
 	}
 #endif
 
-	fcntl(afd, F_SETFL, O_NONBLOCK | O_NDELAY);
 	ev_io_start(loop, &(client->io));
 
 	/* Add the new connection to a linked list of active clients.  */
@@ -1908,6 +2272,170 @@ static void auditd_tcp_listen_handler( struct ev_loop *loop,
 		sockaddr_to_port(&aaddr));
 	send_audit_event(AUDIT_DAEMON_ACCEPT, emsg);
 }
+
+#if defined(USE_GSSAPI) && defined(AUDITD_LISTEN_TEST)
+/*
+ * auditd_gss_test_start_listener - start the real accept watcher for tests
+ * @loop: test event loop
+ * @fd: bound and listening TCP descriptor
+ * @per_address: pending and active client limit per address
+ *
+ * Returns: None.
+ */
+void auditd_gss_test_start_listener(struct ev_loop *loop, int fd,
+				    unsigned int per_address)
+{
+	transport = T_KRB5;
+	min_port = 0;
+	max_port = 65535;
+	max_per_addr = per_address;
+	ev_io_init(&tcp_listen_watcher, auditd_tcp_listen_handler, fd, EV_READ);
+	ev_io_start(loop, &tcp_listen_watcher);
+}
+
+/*
+ * auditd_gss_test_stop_listener - stop and clear GSS listener test state
+ * @loop: test event loop
+ *
+ * Returns: None.
+ */
+void auditd_gss_test_stop_listener(struct ev_loop *loop)
+{
+	ev_io_stop(loop, &tcp_listen_watcher);
+	while (gss_handshake_chain)
+		abort_gss_handshake(loop, gss_handshake_chain);
+	gss_handshake_timeout = 5.0;
+	transport = T_TCP;
+}
+
+/*
+ * auditd_gss_test_pending_count - return pending GSS handshakes
+ *
+ * Returns: Number of clients in the pending GSS chain.
+ */
+unsigned int auditd_gss_test_pending_count(void)
+{
+	return gss_handshake_count;
+}
+
+/*
+ * auditd_gss_test_pending_limit - return the GSS pending-client limit
+ *
+ * Returns: Maximum simultaneous pending GSS handshakes.
+ */
+unsigned int auditd_gss_test_pending_limit(void)
+{
+	return MAX_GSS_HANDSHAKE_PENDING;
+}
+
+/*
+ * auditd_gss_test_pending_fd - return the first pending GSS descriptor
+ *
+ * Returns: Descriptor number, or -1 when no handshake is pending.
+ */
+int auditd_gss_test_pending_fd(void)
+{
+	if (gss_handshake_chain == NULL)
+		return -1;
+	return gss_handshake_chain->io.fd;
+}
+
+/*
+ * auditd_gss_test_set_timeout - override the handshake timeout for tests
+ * @timeout: timer deadline in seconds
+ *
+ * Returns: None.
+ */
+void auditd_gss_test_set_timeout(ev_tstamp timeout)
+{
+	gss_handshake_timeout = timeout;
+}
+
+/*
+ * auditd_gss_test_queue_output - put a synthetic GSS output token in state
+ * @loop: test event loop
+ * @length: token body size
+ *
+ * This exercises the same incremental write path used for GSS-generated
+ * response tokens without requiring a test KDC.
+ * Returns: 0 on success, -1 on invalid state or allocation failure.
+ */
+int auditd_gss_test_queue_output(struct ev_loop *loop, size_t length)
+{
+	struct ev_tcp *client = gss_handshake_chain;
+	uint32_t len;
+
+	if (client == NULL || length == 0 || length > UINT32_MAX)
+		return -1;
+	release_gss_handshake_token(client);
+	client->gss_token.value = malloc(length);
+	if (client->gss_token.value == NULL)
+		return -1;
+	memset(client->gss_token.value, 'A', length);
+	client->gss_token.length = length;
+	client->gss_token_from_gss = 0;
+	client->gss_status = GSS_S_CONTINUE_NEEDED;
+
+	len = length;
+	client->gss_length[0] = (len >> 24) & 0xff;
+	client->gss_length[1] = (len >> 16) & 0xff;
+	client->gss_length[2] = (len >> 8) & 0xff;
+	client->gss_length[3] = len & 0xff;
+	client->gss_state = GSS_HANDSHAKE_WRITE_LENGTH;
+	client->gss_offset = 0;
+	watch_gss_handshake(loop, client, EV_WRITE);
+	return 0;
+}
+
+/*
+ * auditd_gss_test_feed_write - dispatch a pending GSS write in the test loop
+ * @loop: test event loop
+ *
+ * Returns: None.
+ */
+void auditd_gss_test_feed_write(struct ev_loop *loop)
+{
+	if (gss_handshake_chain)
+		ev_feed_event(loop, &gss_handshake_chain->io, EV_WRITE);
+}
+
+/*
+ * auditd_gss_test_output_offset - return current output progress
+ *
+ * Returns: Bytes written in the current framing component.
+ */
+size_t auditd_gss_test_output_offset(void)
+{
+	if (gss_handshake_chain == NULL)
+		return 0;
+	return gss_handshake_chain->gss_offset;
+}
+
+/*
+ * auditd_gss_test_is_reading - report whether the next token length is pending
+ *
+ * Returns: 1 in the initial read state, 0 otherwise.
+ */
+int auditd_gss_test_is_reading(void)
+{
+	return gss_handshake_chain != NULL &&
+		gss_handshake_chain->gss_state == GSS_HANDSHAKE_READ_LENGTH;
+}
+
+/*
+ * auditd_gss_test_name_authorized - exercise the GSS authorization gate
+ * @name: client principal
+ * @service: configured service
+ * @realm: configured realm
+ *
+ * Returns: 1 for an authorized principal, 0 otherwise.
+ */
+int auditd_gss_test_name_authorized(const char *name, const char *service,
+				     const char *realm)
+{
+	return gss_name_is_authorized(name, service, realm);
+}
+#endif
 
 static void auditd_set_ports(unsigned minp, unsigned maxp, unsigned max_p_addr)
 {
@@ -2495,6 +3023,10 @@ void auditd_tcp_listen_uninit(struct ev_loop *loop, struct daemon_conf *config)
 #ifdef HAVE_TLS
 	while (handshake_chain)
 		abort_handshake(loop, handshake_chain, "shutdown");
+#endif
+#ifdef USE_GSSAPI
+	while (gss_handshake_chain)
+		abort_gss_handshake(loop, gss_handshake_chain);
 #endif
 
 	while (client_chain) {
