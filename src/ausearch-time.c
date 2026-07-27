@@ -49,10 +49,12 @@ time_t start_time = 0, end_time = 0;
 int ausearch_parse_eoe_timeout(const char *value, time_t *timeout)
 {
 	unsigned long parsed;
+	char *end;
 
 	errno = 0;
-	parsed = strtoul(value, NULL, 10);
-	if (errno || parsed == 0 || parsed >= (unsigned long)LONG_MAX)
+	parsed = strtoul(value, &end, 10);
+	if (errno || *end != '\0' || parsed == 0 ||
+	    parsed >= (unsigned long)LONG_MAX)
 		return -1;
 
 	*timeout = (time_t)parsed;

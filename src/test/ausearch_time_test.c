@@ -49,6 +49,22 @@ static void test_eoe_timeout_range(void)
 }
 
 /*
+ * test_eoe_timeout_syntax - reject characters after a decimal timeout
+ * @void: no input
+ *
+ * Returns: None. Failures abort through assert().
+ */
+static void test_eoe_timeout_syntax(void)
+{
+	time_t timeout = 17;
+
+	assert(ausearch_parse_eoe_timeout("2garbage", &timeout) == -1);
+	assert(timeout == 17);
+	assert(ausearch_parse_eoe_timeout("2 ", &timeout) == -1);
+	assert(timeout == 17);
+}
+
+/*
  * main - run ausearch time parsing regression tests
  * @void: no input
  *
@@ -57,5 +73,6 @@ static void test_eoe_timeout_range(void)
 int main(void)
 {
 	test_eoe_timeout_range();
+	test_eoe_timeout_syntax();
 	return 0;
 }
