@@ -169,6 +169,35 @@ static void test_q_depth_parser_rejects_zero(void)
 	assert(config.q_depth == 1);
 }
 
+#ifdef USE_LISTENER
+/*
+ * test_tcp_client_ports_parser - reject multiple range separators
+ * @void: no input
+ *
+ * Returns: None. Failures abort through assert().
+ */
+static void test_tcp_client_ports_parser(void)
+{
+	struct daemon_conf config;
+	struct nv_pair nv = { "tcp_client_ports", "1000-2000", NULL };
+
+	memset(&config, 0, sizeof(config));
+	assert(tcp_client_ports_parser(&nv, 1, &config) == 0);
+	assert(config.tcp_client_min_port == 1000);
+	assert(config.tcp_client_max_port == 2000);
+
+	nv.value = "1000-1500-2000";
+	assert(tcp_client_ports_parser(&nv, 1, &config) == 1);
+	assert(config.tcp_client_min_port == 1000);
+	assert(config.tcp_client_max_port == 2000);
+
+	nv.value = "1000--2000";
+	assert(tcp_client_ports_parser(&nv, 1, &config) == 1);
+	assert(config.tcp_client_min_port == 1000);
+	assert(config.tcp_client_max_port == 2000);
+}
+#endif
+
 /*
  * test_legacy_tls_keywords_rejected - keep certificate options unsupported
  *
@@ -327,6 +356,9 @@ int main(void)
 	test_log_file_preserves_old_value();
 	test_set_config_dir_preserves_old_value();
 	test_q_depth_parser_rejects_zero();
+#ifdef USE_LISTENER
+	test_tcp_client_ports_parser();
+#endif
 	test_legacy_tls_keywords_rejected();
 #ifdef HAVE_TLS
 	test_tls_auth_parser();

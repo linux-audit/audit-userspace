@@ -1641,18 +1641,16 @@ static int tcp_client_ports_parser(const struct nv_pair *nv, int line,
 	/* check that all chars are numbers, with an optional inclusive '-'. */
 	for (i=0; ptr[i]; i++) {
 		if (i > 0 && ptr[i] == '-' && ptr[i+1] != '\0') {
+			if (saw_dash != NULL) {
+				audit_msg(LOG_ERR,
+					"Value %s should only be numbers, or "
+					"two numbers separated by a dash - line %d",
+					nv->value, line);
+				return 1;
+			}
 			saw_dash = ptr + i;
 			continue;
 		}
-		if (!isdigit((unsigned char)ptr[i])) {
-			audit_msg(LOG_ERR, 
-				"Value %s should only be numbers, or "
-				"two numbers separated by a dash - line %d",
-				nv->value, line);
-			return 1;
-		}
-	}
-	for (; ptr[i]; i++) {
 		if (!isdigit((unsigned char)ptr[i])) {
 			audit_msg(LOG_ERR, 
 				"Value %s should only be numbers, or "
