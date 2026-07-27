@@ -31,7 +31,8 @@ check_PROGRAMS = ilist_test slist_test format_event_test \
 	ilist_alloc_test auditd_config_manager_test auditd_reconfigure_test \
 	lol_alloc_test auditctl_key_test auditctl_list_alloc_test \
 	delete_all_alloc_test ausearch_time_test auditctl_rule_file_test
-TESTS = $(check_PROGRAMS)
+TESTS = $(check_PROGRAMS) ausearch_options_test.sh
+dist_check_SCRIPTS = ausearch_options_test.sh
 ilist_test_LDADD = ${top_builddir}/src/ausearch-int.o
 ilist_test_DEPENDENCIES = ${top_builddir}/src/ausearch-int.o
 ilist_alloc_test_SOURCES = ilist_alloc_test.c

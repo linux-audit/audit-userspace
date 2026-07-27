@@ -249,19 +249,78 @@ static void usage(void)
 	);
 }
 
+/*
+ * parse_unsigned_arg - parse a complete unsigned command-line argument
+ * @value: string to parse
+ * @base: numeric base passed to strtoul
+ * @max: largest value accepted by the destination
+ * @result: destination for a valid value
+ *
+ * Returns: 0 on success or -1 for invalid syntax or an out-of-range value.
+ */
+static int parse_unsigned_arg(const char *value, int base, unsigned long max,
+			      unsigned long *result)
+{
+	unsigned long parsed;
+	char *end;
+
+	errno = 0;
+	parsed = strtoul(value, &end, base);
+	if (errno)
+		return -1;
+	if (end == value || *end != '\0') {
+		errno = EINVAL;
+		return -1;
+	}
+	if (parsed > max) {
+		errno = ERANGE;
+		return -1;
+	}
+
+	*result = parsed;
+	return 0;
+}
+
+/*
+ * parse_signed_arg - parse a complete signed command-line argument
+ * @value: string to parse
+ * @base: numeric base passed to strtoll
+ * @result: destination for a valid value
+ *
+ * Returns: 0 on success or -1 for invalid syntax or an out-of-range value.
+ */
+static int parse_signed_arg(const char *value, int base, long long *result)
+{
+	long long parsed;
+	char *end;
+
+	errno = 0;
+	parsed = strtoll(value, &end, base);
+	if (errno)
+		return -1;
+	if (end == value || *end != '\0') {
+		errno = EINVAL;
+		return -1;
+	}
+
+	*result = parsed;
+	return 0;
+}
+
 static int convert_str_to_msg(const char *optarg)
 {
 	int tmp, retval = 0;
 
 	if (isdigit((unsigned char)optarg[0])) {
-		errno = 0;
-		tmp = strtoul(optarg, NULL, 10);
-		if (errno) {
+		unsigned long value;
+
+		if (parse_unsigned_arg(optarg, 10, INT_MAX, &value)) {
 			fprintf(stderr,
 			"Numeric message type conversion error (%s) for %s\n",
 				strerror(errno), optarg);
 			retval = -1;
-		}
+		} else
+			tmp = value;
 	} else {
 		tmp = audit_name_to_msg_type(optarg);
 		if (tmp < 0)
@@ -343,13 +402,15 @@ int check_params(int count, char *vars[])
 				break;
 			}
 			if (isdigit((unsigned char)optarg[0])) {
-				errno = 0;
-				event_id = strtoul(optarg, NULL, 10);
-				if (errno) {
+				unsigned long value;
+
+				if (parse_unsigned_arg(optarg, 10, UINT_MAX,
+						       &value)) {
 					fprintf(stderr,
-					"Illegal value for audit event ID");
+						"Illegal value for audit event ID");
 					retval = -1;
-				}
+				} else
+					event_id = value;
 				c++;
 			} else {
 				fprintf(stderr,
@@ -469,14 +530,16 @@ int check_params(int count, char *vars[])
 				break;
 			}
 			if (isdigit((unsigned char)optarg[0])) {
-				errno = 0;
-				event_gid = strtoul(optarg,NULL,10);
-				if (errno) {
+				unsigned long value;
+
+				if (parse_unsigned_arg(optarg, 10, UINT_MAX,
+						       &value)) {
 					fprintf(stderr,
 			"Numeric group ID conversion error (%s) for %s\n",
 						strerror(errno), optarg);
 					retval = -1;
-				}
+				} else
+					event_gid = value;
 			} else {
 				struct group *gr ;
 
@@ -503,14 +566,16 @@ int check_params(int count, char *vars[])
 				break;
 			}
 			if (isdigit((unsigned char)optarg[0])) {
-				errno = 0;
-				event_egid = strtoul(optarg,NULL,10);
-				if (errno) {
+				unsigned long value;
+
+				if (parse_unsigned_arg(optarg, 10, UINT_MAX,
+						       &value)) {
 					fprintf(stderr,
 			"Numeric group ID conversion error (%s) for %s\n",
 						strerror(errno), optarg);
 					retval = -1;
-				}
+				} else
+					event_egid = value;
 			} else {
 				struct group *gr ;
 
@@ -535,14 +600,16 @@ int check_params(int count, char *vars[])
 				break;
 			}
 			if (isdigit((unsigned char)optarg[0])) {
-				errno = 0;
-				event_gid = strtoul(optarg,NULL,10);
-				if (errno) {
+				unsigned long value;
+
+				if (parse_unsigned_arg(optarg, 10, UINT_MAX,
+						       &value)) {
 					fprintf(stderr,
 			"Numeric group ID conversion error (%s) for %s\n",
 						strerror(errno), optarg);
 					retval = -1;
-				}
+				} else
+					event_gid = value;
 			} else {
 				struct group *gr ;
 
@@ -661,10 +728,16 @@ int check_params(int count, char *vars[])
 				break;
 			}
 			if (isdigit((unsigned char)optarg[0])) {
-				errno = 0;
-				event_ppid = strtol(optarg,NULL,10);
-				if (errno)
+				unsigned long value;
+
+				if (parse_unsigned_arg(optarg, 10, INT_MAX,
+						       &value)) {
+					fprintf(stderr,
+				"Parent process id must be a numeric value, was %s\n",
+						optarg);
 					retval = -1;
+				} else
+					event_ppid = value;
 				c++;
 			} else {
 				fprintf(stderr,
@@ -682,10 +755,16 @@ int check_params(int count, char *vars[])
 				break;
 			}
 			if (isdigit((unsigned char)optarg[0])) {
-				errno = 0;
-				event_pid = strtol(optarg,NULL,10);
-				if (errno)
+				unsigned long value;
+
+				if (parse_unsigned_arg(optarg, 10, INT_MAX,
+						       &value)) {
+					fprintf(stderr,
+					"Process id must be a numeric value, was %s\n",
+						optarg);
 					retval = -1;
+				} else
+					event_pid = value;
 				c++;
 			} else {
 				fprintf(stderr,
@@ -809,14 +888,16 @@ int check_params(int count, char *vars[])
 				break;
 			}
 			if (isdigit((unsigned char)optarg[0])) {
-				errno = 0;
-				event_syscall = (int)strtoul(optarg, NULL, 10);
-				if (errno) {
+				unsigned long value;
+
+				if (parse_unsigned_arg(optarg, 10, INT_MAX,
+						       &value)) {
 					fprintf(stderr,
 			"Syscall numeric conversion error (%s) for %s\n",
 						strerror(errno), optarg);
 					retval = -1;
-				}
+				} else
+					event_syscall = value;
 			} else {
 				if (event_machine == -1) {
 	                                int machine;
@@ -908,22 +989,27 @@ int check_params(int count, char *vars[])
 			{
 			size_t len = strlen(optarg);
 			if (isdigit((unsigned char)optarg[0])) {
-				errno = 0;
-				unsigned long optval = strtoul(optarg,NULL,10);
-				if (errno || optval >= (1ul << 32))
-					retval = -1;
-				event_session_id = optval;
-				c++;
-                        } else if (len >= 2 && *(optarg)=='-' &&
-                                                (isdigit((unsigned char)optarg[1]))) {
-				errno = 0;
-				long optval = strtol(optarg, NULL, 0);
-				if (errno || optval < INT_MIN || optval > INT_MAX) {
+				unsigned long value;
+
+				if (parse_unsigned_arg(optarg, 10, UINT32_MAX,
+						       &value)) {
 					retval = -1;
 					fprintf(stderr, "Error converting %s\n",
 						optarg);
-				}
-				event_session_id = optval;
+				} else
+					event_session_id = value;
+				c++;
+                        } else if (len >= 2 && *(optarg)=='-' &&
+                                                (isdigit((unsigned char)optarg[1]))) {
+				long long value;
+
+				if (parse_signed_arg(optarg, 0, &value) ||
+				    value < INT_MIN || value > INT_MAX) {
+					retval = -1;
+					fprintf(stderr, "Error converting %s\n",
+						optarg);
+				} else
+					event_session_id = value;
 				c++;
 			} else {
 				fprintf(stderr,
@@ -948,18 +1034,14 @@ int check_params(int count, char *vars[])
 			{
 			size_t len = strlen(optarg);
                         if (isdigit((unsigned char)optarg[0])) {
-				errno = 0;
-                                event_exit = strtoll(optarg, NULL, 0);
-				if (errno) {
+				if (parse_signed_arg(optarg, 0, &event_exit)) {
 					retval = -1;
 					fprintf(stderr, "Error converting %s\n",
 						optarg);
 				}
                         } else if (len >= 2 && *(optarg)=='-' &&
                                                 (isdigit((unsigned char)optarg[1]))) {
-				errno = 0;
-                                event_exit = strtoll(optarg, NULL, 0);
-				if (errno) {
+				if (parse_signed_arg(optarg, 0, &event_exit)) {
 					retval = -1;
 					fprintf(stderr, "Error converting %s\n",
 						optarg);
@@ -1089,14 +1171,16 @@ int check_params(int count, char *vars[])
 				break;
 			}
 			if (isdigit((unsigned char)optarg[0])) {
-				errno = 0;
-				event_uid = strtoul(optarg,NULL,10);
-				if (errno) {
+				unsigned long value;
+
+				if (parse_unsigned_arg(optarg, 10, UINT_MAX,
+						       &value)) {
 					fprintf(stderr,
 			"Numeric user ID conversion error (%s) for %s\n",
 						strerror(errno), optarg);
 					retval = -1;
-				}
+				} else
+					event_uid = value;
 			} else {
 				struct passwd *pw;
 
@@ -1122,14 +1206,16 @@ int check_params(int count, char *vars[])
 				break;
 			}
 			if (isdigit((unsigned char)optarg[0])) {
-				errno = 0;
-				event_euid = strtoul(optarg,NULL,10);
-				if (errno) {
+				unsigned long value;
+
+				if (parse_unsigned_arg(optarg, 10, UINT_MAX,
+						       &value)) {
 					fprintf(stderr,
 			"Numeric user ID conversion error (%s) for %s\n",
 						strerror(errno), optarg);
 					retval = -1;
-				}
+				} else
+					event_euid = value;
 			} else {
 				struct passwd *pw ;
 
@@ -1155,14 +1241,16 @@ int check_params(int count, char *vars[])
 				break;
 			}
 			if (isdigit((unsigned char)optarg[0])) {
-				errno = 0;
-				event_uid = strtoul(optarg,NULL,10);
-				if (errno) {
+				unsigned long value;
+
+				if (parse_unsigned_arg(optarg, 10, UINT_MAX,
+						       &value)) {
 					fprintf(stderr,
 			"Numeric user ID conversion error (%s) for %s\n",
 						strerror(errno), optarg);
 					retval = -1;
-				}
+				} else
+					event_uid = value;
 			} else {
 				struct passwd *pw ;
 
@@ -1199,23 +1287,27 @@ int check_params(int count, char *vars[])
 			{
 			size_t len = strlen(optarg);
                         if (isdigit((unsigned char)optarg[0])) {
-				errno = 0;
-				event_loginuid = strtoul(optarg,NULL,10);
-				if (errno) {
+				unsigned long value;
+
+				if (parse_unsigned_arg(optarg, 10, UINT_MAX,
+						       &value)) {
 					fprintf(stderr,
 			"Numeric user ID conversion error (%s) for %s\n",
 						strerror(errno), optarg);
                                         retval = -1;
-				}
+				} else
+					event_loginuid = value;
                         } else if (len >= 2 && *(optarg)=='-' &&
                                                 (isdigit((unsigned char)optarg[1]))) {
-				errno = 0;
-                                event_loginuid = strtol(optarg, NULL, 0);
-				if (errno) {
+				long long value;
+
+				if (parse_signed_arg(optarg, 0, &value) ||
+				    value < INT_MIN || value > INT_MAX) {
 					retval = -1;
 					fprintf(stderr, "Error converting %s\n",
 						optarg);
-				}
+				} else
+					event_loginuid = value;
                         } else {
 				struct passwd *pw ;
 
