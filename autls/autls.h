@@ -87,6 +87,9 @@ struct autls_acl_entry {
 	char *identity;
 	size_t identity_len;
 	int enabled;
+	unsigned char *psk_key;
+	size_t psk_key_len;
+	char *key_file;
 	struct autls_acl_entry *next;
 };
 
@@ -94,11 +97,16 @@ struct autls_acl_table {
 	struct autls_acl_entry *entries;
 	int count;
 	int enabled_count;
+	int has_per_identity_keys;
 };
 
 int autls_acl_load(const char *path, struct autls_acl_table **table,
 		   autls_log_fn log_fn)
 	__nonnull((1, 2, 3)) __wur;
+const struct autls_acl_entry *autls_acl_lookup(
+		const struct autls_acl_table *table,
+		const unsigned char *identity, size_t len)
+	__nonnull((1, 2)) __wur;
 int autls_acl_check(const struct autls_acl_table *table,
 		    const unsigned char *identity, size_t len)
 	__nonnull((1, 2)) __wur;
