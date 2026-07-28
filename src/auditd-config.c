@@ -2243,18 +2243,27 @@ static int sanity_check(struct daemon_conf *config)
 	}
 #ifdef HAVE_TLS
 	if (config->transport == T_TLS) {
-		if (config->tls_psk_file == NULL) {
+		if (!config->tls_psk_file &&
+		    !config->tls_allowed_clients) {
 			audit_msg(LOG_ERR,
-				"transport=tls requires tls_psk_file");
+				"tls_psk_file or tls_allowed_clients "
+				"is required for TLS transport");
 			return 1;
 		}
-		if (!config->tls_psk_identity &&
+		if (config->tls_psk_file &&
+		    !config->tls_psk_identity &&
 		    !config->tls_allowed_clients) {
 			audit_msg(LOG_ERR,
 				"tls_psk_identity or tls_allowed_clients "
 				"is required when tls_psk_file is set");
 			return 1;
 		}
+		if (!config->tls_psk_file &&
+		    config->tls_allowed_clients)
+			audit_msg(LOG_NOTICE,
+				"tls_psk_file not set; "
+				"tls_allowed_clients must contain "
+				"per-identity key= entries");
 #ifndef HAVE_SSL_GROUP_TO_NAME
 		if (config->tls_require_pqc ||
 		    config->tls_crypto_profile == TLS_PROFILE_PQC) {
