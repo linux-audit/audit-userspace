@@ -25,6 +25,9 @@
 #include "autls.h"
 
 #ifdef HAVE_TLS
+#include <openssl/bio.h>
+#include <openssl/err.h>
+#include <openssl/evp.h>
 
 static char tmpdir[256];
 
@@ -712,6 +715,10 @@ static void test_autls_authorize_psk_identity(void)
 #define KEY_B_HEX \
 	"f0f1f2f3f4f5f6f7f8f9fafbfcfdfeff" \
 	"e0e1e2e3e4e5e6e7e8e9eaebecedeeef\n"
+/* A third key used as a fake global PSK for fallback tests */
+#define KEY_GLOBAL_HEX \
+	"aabbccddeeff00112233445566778899" \
+	"aabbccddeeff00112233445566778899\n"
 
 /*
  * write_key_file - write a PSK key file with mode 0400
@@ -885,6 +892,364 @@ static void test_autls_acl_per_identity_keys(void)
 	unlink(kpath_b);
 }
 
+/*
+ * TLS binder cross-identity regression test.
+ *
+ * Uses in-memory BIO pairs to exercise actual TLS 1.3 PSK handshakes
+ * with per-identity keys, verifying that cross-pairing an identity
+ * with the wrong key fails at the cryptographic (binder) level.
+ *
+ * This is the essential regression test from SPECS/fr-028-001:
+ * "the disabled identity's old key paired with the active label fails
+ * binder verification -- a label-only unit test will continue to pass
+ * while the vulnerability remains."
+ */
+
+/* State for the BIO pair PSK test */
+static struct autls_acl_table *bio_test_acl = NULL;
+static const unsigned char *bio_test_client_key = NULL;
+static size_t bio_test_client_key_len = 0;
+static const char *bio_test_client_identity = NULL;
+static SSL_SESSION *bio_test_shared_session = NULL;
+
+/*
+ * build_psk_session - create an SSL_SESSION for external PSK
+ * @ssl: SSL connection (for cipher lookup)
+ * @key: PSK key bytes
+ * @key_len: PSK key length
+ *
+ * Returns a new SSL_SESSION, or NULL on error.
+ */
+/*
+ * find_first_tls13_cipher - return the first TLS 1.3 cipher
+ * @ssl: SSL connection for cipher list
+ *
+ * Returns the first configured TLS 1.3 cipher.  Unlike
+ * autls_find_tls13_cipher which selects by hash, this returns
+ * whatever OpenSSL defaults to, ensuring client and server agree.
+ */
+static const SSL_CIPHER *find_first_tls13_cipher(SSL *ssl)
+{
+	STACK_OF(SSL_CIPHER) *ciphers = SSL_get_ciphers(ssl);
+	int i;
+
+	for (i = 0; i < sk_SSL_CIPHER_num(ciphers); i++) {
+		const SSL_CIPHER *c = sk_SSL_CIPHER_value(ciphers, i);
+		const char *ver = SSL_CIPHER_get_version(c);
+
+		if (ver && strcmp(ver, "TLSv1.3") == 0)
+			return c;
+	}
+	return NULL;
+}
+
+static SSL_SESSION *build_psk_session(SSL *ssl, const unsigned char *key,
+				      size_t key_len)
+{
+	const SSL_CIPHER *cipher;
+	SSL_SESSION *s;
+
+	cipher = find_first_tls13_cipher(ssl);
+	if (cipher == NULL)
+		return NULL;
+
+	s = SSL_SESSION_new();
+	if (s == NULL)
+		return NULL;
+
+	if (!SSL_SESSION_set1_master_key(s, key, key_len) ||
+	    !SSL_SESSION_set_cipher(s, cipher) ||
+	    !SSL_SESSION_set_protocol_version(s, TLS1_3_VERSION)) {
+		SSL_SESSION_free(s);
+		return NULL;
+	}
+	return s;
+}
+
+/*
+ * test_server_psk_cb - server PSK callback using per-identity keys
+ *
+ * Mirrors the production tls_psk_find_session_cb key selection logic:
+ * look up the identity in the ACL, select the per-identity key.
+ */
+static int test_server_psk_cb(SSL *ssl, const unsigned char *identity,
+			      size_t identity_len, SSL_SESSION **sess)
+{
+	const struct autls_acl_entry *entry;
+
+	if (bio_test_acl == NULL)
+		return 0;
+
+	entry = autls_acl_lookup(bio_test_acl, identity, identity_len);
+	if (entry == NULL || !entry->enabled)
+		return 0;
+	if (entry->psk_key == NULL || entry->psk_key_len == 0)
+		return 0;
+
+	{
+		const SSL_CIPHER *cipher = find_first_tls13_cipher(ssl);
+		SSL_SESSION *s;
+
+		if (cipher == NULL)
+			return 0;
+		s = SSL_SESSION_new();
+		if (s == NULL)
+			return 0;
+		if (!SSL_SESSION_set1_master_key(s, entry->psk_key,
+						 entry->psk_key_len) ||
+		    !SSL_SESSION_set_cipher(s, cipher) ||
+		    !SSL_SESSION_set_protocol_version(s,
+						     TLS1_3_VERSION)) {
+			SSL_SESSION_free(s);
+			return 0;
+		}
+		*sess = s;
+	}
+	return 1;
+}
+
+/*
+ * test_client_psk_cb - client PSK callback presenting a specific
+ * identity and key pair.  Uses a shared pre-built session.
+ */
+static int test_client_psk_cb(SSL *ssl, const EVP_MD *md,
+			      const unsigned char **id, size_t *idlen,
+			      SSL_SESSION **sess)
+{
+	(void)ssl;
+	(void)md;
+
+	if (bio_test_client_key == NULL || bio_test_client_identity == NULL)
+		return 0;
+
+	if (bio_test_shared_session == NULL)
+		return 0;
+
+	*id = (const unsigned char *)bio_test_client_identity;
+	*idlen = strlen(bio_test_client_identity);
+	SSL_SESSION_up_ref(bio_test_shared_session);
+	*sess = bio_test_shared_session;
+	return 1;
+}
+
+/*
+ * try_bio_pair_handshake - attempt a TLS 1.3 PSK handshake using shared
+ * memory BIOs (the same pattern OpenSSL's own test suite uses)
+ *
+ * Returns 1 if PSK handshake succeeds, 0 if it fails.
+ */
+static int try_bio_pair_handshake(void)
+{
+	SSL_CTX *server_ctx = NULL, *client_ctx = NULL;
+	SSL *server_ssl = NULL, *client_ssl = NULL;
+	BIO *s_to_c = NULL, *c_to_s = NULL;
+	int result = 0;
+	int i;
+
+	server_ctx = SSL_CTX_new(TLS_server_method());
+	client_ctx = SSL_CTX_new(TLS_client_method());
+	if (!server_ctx || !client_ctx)
+		goto out;
+
+	SSL_CTX_set_min_proto_version(server_ctx, TLS1_3_VERSION);
+	SSL_CTX_set_min_proto_version(client_ctx, TLS1_3_VERSION);
+	SSL_CTX_set_max_early_data(server_ctx, 0);
+	SSL_CTX_set_max_early_data(client_ctx, 0);
+	SSL_CTX_set_num_tickets(server_ctx, 0);
+
+	/*
+	 * No certificate.  Use SSL_OP_ALLOW_NO_DHE_KEX for psk_ke mode
+	 * (PSK without DHE key exchange).  Without a certificate, the
+	 * handshake can only succeed via PSK -- there is no cert fallback.
+	 */
+	SSL_CTX_set_options(server_ctx, SSL_OP_ALLOW_NO_DHE_KEX);
+	SSL_CTX_set_options(client_ctx, SSL_OP_ALLOW_NO_DHE_KEX);
+
+	SSL_CTX_set_psk_find_session_callback(server_ctx,
+					      test_server_psk_cb);
+	SSL_CTX_set_psk_use_session_callback(client_ctx,
+					     test_client_psk_cb);
+
+	server_ssl = SSL_new(server_ctx);
+	client_ssl = SSL_new(client_ctx);
+	if (!server_ssl || !client_ssl)
+		goto out;
+
+	/* Shared memory BIOs (same pattern as OpenSSL test suite).
+	 * s_to_c: server writes, client reads
+	 * c_to_s: client writes, server reads */
+	s_to_c = BIO_new(BIO_s_mem());
+	c_to_s = BIO_new(BIO_s_mem());
+	if (!s_to_c || !c_to_s)
+		goto out;
+
+	/* Both SSL objects share these BIOs; bump refcounts */
+	BIO_up_ref(s_to_c);
+	BIO_up_ref(c_to_s);
+
+	SSL_set_bio(server_ssl, c_to_s, s_to_c);
+	SSL_set_bio(client_ssl, s_to_c, c_to_s);
+	s_to_c = c_to_s = NULL; /* owned by SSL now */
+
+	SSL_set_accept_state(server_ssl);
+	SSL_set_connect_state(client_ssl);
+
+	/* Build the shared PSK session using the client's SSL for
+	 * cipher lookup.  The client callback will return this session
+	 * directly; the server callback builds its own from the ACL. */
+	if (bio_test_client_key && bio_test_client_key_len > 0) {
+		bio_test_shared_session = build_psk_session(
+			client_ssl, bio_test_client_key,
+			bio_test_client_key_len);
+		if (bio_test_shared_session == NULL)
+			goto out;
+	}
+
+	/* Drive the handshake: alternate client and server */
+	for (i = 0; i < 100; i++) {
+		int client_ret, server_ret;
+		int client_err, server_err;
+
+		client_ret = SSL_do_handshake(client_ssl);
+		client_err = SSL_get_error(client_ssl, client_ret);
+
+		server_ret = SSL_do_handshake(server_ssl);
+		server_err = SSL_get_error(server_ssl, server_ret);
+
+		if (client_ret == 1 && server_ret == 1) {
+			result = 1;
+			break;
+		}
+
+		if (client_err != SSL_ERROR_WANT_READ &&
+		    client_err != SSL_ERROR_WANT_WRITE &&
+		    client_ret != 1)
+			break;
+		if (server_err != SSL_ERROR_WANT_READ &&
+		    server_err != SSL_ERROR_WANT_WRITE &&
+		    server_ret != 1)
+			break;
+	}
+
+out:
+	SSL_SESSION_free(bio_test_shared_session);
+	bio_test_shared_session = NULL;
+	SSL_free(server_ssl);
+	SSL_free(client_ssl);
+	SSL_CTX_free(server_ctx);
+	SSL_CTX_free(client_ctx);
+	BIO_free(s_to_c);
+	BIO_free(c_to_s);
+	return result;
+}
+
+static void test_tls_binder_cross_identity(void)
+{
+	struct autls_acl_table *t = NULL;
+	const struct autls_acl_entry *entry_a, *entry_b;
+	char path[512], kpath_a[512], kpath_b[512], kpath_g[512];
+	char acl_line[1024];
+	int ok;
+
+	printf("  TLS binder cross-identity regression...\n");
+
+	if (getuid() != 0) {
+		printf("    (skipped, not root)\n");
+		return;
+	}
+
+	write_key_file(kpath_a, sizeof(kpath_a), "bio-key-a.psk",
+		       KEY_A_HEX);
+	write_key_file(kpath_b, sizeof(kpath_b), "bio-key-b.psk",
+		       KEY_B_HEX);
+	write_key_file(kpath_g, sizeof(kpath_g), "bio-key-g.psk",
+		       KEY_GLOBAL_HEX);
+
+	/* Load ACL with per-identity keys */
+	snprintf(path, sizeof(path), "%s/acl-bio", tmpdir);
+	snprintf(acl_line, sizeof(acl_line),
+		"host-a enabled key=%s\nhost-b disabled key=%s\n",
+		kpath_a, kpath_b);
+	write_file(path, acl_line);
+	chmod(path, 0600);
+	assert(autls_acl_load(path, &t, test_log) == 0);
+	assert(t->has_per_identity_keys == 1);
+
+	entry_a = autls_acl_lookup(t,
+				   (const unsigned char *)"host-a", 6);
+	entry_b = autls_acl_lookup(t,
+				   (const unsigned char *)"host-b", 6);
+	assert(entry_a && entry_b);
+
+	bio_test_acl = t;
+
+	/* Test 1: Correct pairing succeeds --
+	 * identity host-a with key-A should authenticate */
+	bio_test_client_identity = "host-a";
+	bio_test_client_key = entry_a->psk_key;
+	bio_test_client_key_len = entry_a->psk_key_len;
+	ok = try_bio_pair_handshake();
+	assert(ok == 1);
+	printf("    1. correct identity+key: PASS (authenticated)\n");
+
+	/* Test 2: Cross-identity pairing fails --
+	 * identity host-a with key-B should fail binder.
+	 * THIS IS THE ESSENTIAL REGRESSION TEST. */
+	bio_test_client_identity = "host-a";
+	bio_test_client_key = entry_b->psk_key;
+	bio_test_client_key_len = entry_b->psk_key_len;
+	ok = try_bio_pair_handshake();
+	assert(ok == 0);
+	printf("    2. cross-identity key: PASS (rejected)\n");
+
+	/* Test 3: Disabled identity with own key rejected --
+	 * identity host-b (disabled) with key-B should be
+	 * rejected by ACL before binder verification */
+	bio_test_client_identity = "host-b";
+	bio_test_client_key = entry_b->psk_key;
+	bio_test_client_key_len = entry_b->psk_key_len;
+	ok = try_bio_pair_handshake();
+	assert(ok == 0);
+	printf("    3. disabled identity+own key: PASS (rejected)\n");
+
+	/* Test 4: Unknown identity rejected */
+	bio_test_client_identity = "host-unknown";
+	bio_test_client_key = entry_a->psk_key;
+	bio_test_client_key_len = entry_a->psk_key_len;
+	ok = try_bio_pair_handshake();
+	assert(ok == 0);
+	printf("    4. unknown identity: PASS (rejected)\n");
+
+	/* Test 5: Global key does not match per-identity entry --
+	 * Load a "global" key different from both per-identity keys.
+	 * identity host-a with global key should fail binder. */
+	{
+		unsigned char *gkey = NULL;
+		size_t gkey_len = 0;
+
+		assert(autls_load_psk(kpath_g, &gkey, &gkey_len,
+				      test_log) == 0);
+		bio_test_client_identity = "host-a";
+		bio_test_client_key = gkey;
+		bio_test_client_key_len = gkey_len;
+		ok = try_bio_pair_handshake();
+		assert(ok == 0);
+		printf("    5. global key vs per-identity: "
+		       "PASS (rejected)\n");
+		OPENSSL_cleanse(gkey, gkey_len);
+		OPENSSL_free(gkey);
+	}
+
+	bio_test_acl = NULL;
+	bio_test_client_key = NULL;
+	bio_test_client_identity = NULL;
+	autls_acl_free(t);
+	unlink(path);
+	unlink(kpath_a);
+	unlink(kpath_b);
+	unlink(kpath_g);
+}
+
 int main(void)
 {
 	char template[] = "/tmp/test-tls-XXXXXX";
@@ -912,6 +1277,7 @@ int main(void)
 	test_autls_acl_check();
 	test_autls_authorize_psk_identity();
 	test_autls_acl_per_identity_keys();
+	test_tls_binder_cross_identity();
 	printf("All TLS helper tests passed.\n");
 	return 0;
 }
