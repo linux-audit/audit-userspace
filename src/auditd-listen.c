@@ -720,7 +720,9 @@ static void abort_handshake(struct ev_loop *loop,
 	}
 
 	emit_tls_audit_record(&client->addr, client->ssl,
-			      client->tls_profile_at_accept, ex_identity,
+			      client->tls_profile_at_accept,
+			      ex_identity ? ex_identity :
+			      client->accepted_identity,
 			      ex_reason ? ex_reason : op, "no");
 	/*
 	 * Do not emit AUDIT_CRYPTO_SESSION for failed collector handshakes.
@@ -1977,6 +1979,24 @@ static void tls_handshake_handler(struct ev_loop *loop,
 					ssl_ex_idx_identity, NULL);
 		}
 
+		/* Re-check against current ACL -- the table may have been
+		 * swapped by a SIGHUP between the PSK callback and now. */
+		if (acl_table && client->accepted_identity) {
+			int rc = autls_acl_check(acl_table,
+				(const unsigned char *)
+				client->accepted_identity,
+				strlen(client->accepted_identity));
+			if (rc != 1) {
+				audit_msg(LOG_NOTICE,
+					"TLS identity '%.128s' revoked "
+					"by ACL reload during handshake",
+					client->accepted_identity);
+				abort_handshake(loop, client,
+					"identity-revoked");
+				return;
+			}
+		}
+
 		if (!tls_client_authenticated(client)) {
 			audit_msg(LOG_ERR,
 				"TLS handshake from %s completed "
@@ -2512,10 +2532,18 @@ static int tls_psk_find_session_cb(SSL *ssl, const unsigned char *identity,
 {
 	SSL_SESSION *s;
 	const SSL_CIPHER *cipher;
+	const unsigned char *selected_key = NULL;
+	size_t selected_key_len = 0;
 	char safe_id[65];
 
-	if (server_psk_key == NULL)
+	if (server_psk_key == NULL &&
+	    (acl_table == NULL || !acl_table->has_per_identity_keys)) {
+		audit_msg(LOG_CRIT,
+			"TLS PSK callback invoked with no key "
+			"material (internal state error)");
+		set_psk_failure_reason(ssl, "no-key-material");
 		return 0;
+	}
 
 	/* Validate identity syntax before any authorization check */
 	if (autls_validate_psk_identity(identity, identity_len,
@@ -2532,9 +2560,10 @@ static int tls_psk_find_session_cb(SSL *ssl, const unsigned char *identity,
 
 	/* Authorization: ACL table supersedes single identity */
 	if (acl_table) {
-		int rc = autls_acl_check(acl_table, identity,
+		const struct autls_acl_entry *entry =
+			autls_acl_lookup(acl_table, identity,
 					 identity_len);
-		if (rc < 0) {
+		if (entry == NULL) {
 			sanitize_identity(identity, identity_len,
 					  safe_id, sizeof(safe_id));
 			audit_msg(LOG_ERR,
@@ -2544,7 +2573,7 @@ static int tls_psk_find_session_cb(SSL *ssl, const unsigned char *identity,
 					       "unknown-identity");
 			return 0;
 		}
-		if (rc == 0) {
+		if (!entry->enabled) {
 			sanitize_identity(identity, identity_len,
 					  safe_id, sizeof(safe_id));
 			audit_msg(LOG_ERR,
@@ -2553,6 +2582,25 @@ static int tls_psk_find_session_cb(SSL *ssl, const unsigned char *identity,
 			set_psk_failure_reason(ssl,
 					       "disabled-identity");
 			return 0;
+		}
+
+		/* Mode-aware key selection */
+		if (acl_table->has_per_identity_keys) {
+			if (entry->psk_key == NULL ||
+			    entry->psk_key_len == 0) {
+				audit_msg(LOG_CRIT,
+					"TLS PSK per-identity key "
+					"missing (loader "
+					"inconsistency)");
+				set_psk_failure_reason(ssl,
+					"missing-per-identity-key");
+				return 0;
+			}
+			selected_key = entry->psk_key;
+			selected_key_len = entry->psk_key_len;
+		} else {
+			selected_key = server_psk_key;
+			selected_key_len = server_psk_key_len;
 		}
 	} else if (expected_psk_identity) {
 		if (identity_len != strlen(expected_psk_identity) ||
@@ -2569,6 +2617,8 @@ static int tls_psk_find_session_cb(SSL *ssl, const unsigned char *identity,
 					       "unknown-identity");
 			return 0;
 		}
+		selected_key = server_psk_key;
+		selected_key_len = server_psk_key_len;
 	} else {
 		/* No authorization configured -- fail closed */
 		audit_msg(LOG_ERR,
@@ -2594,8 +2644,11 @@ static int tls_psk_find_session_cb(SSL *ssl, const unsigned char *identity,
 		return 0;
 	}
 
-	if (!SSL_SESSION_set1_master_key(s, server_psk_key,
-					server_psk_key_len) ||
+	/* set1 copies key material, so the ACL entry's psk_key can
+	 * be safely freed by a SIGHUP reload while OpenSSL still
+	 * uses this session for binder verification. */
+	if (!SSL_SESSION_set1_master_key(s, selected_key,
+					selected_key_len) ||
 	    !SSL_SESSION_set_cipher(s, cipher) ||
 	    !SSL_SESSION_set_protocol_version(s, TLS1_3_VERSION)) {
 		audit_msg(LOG_ERR,
@@ -2743,58 +2796,69 @@ static int init_tls_server_context(struct daemon_conf *config)
 		}
 	}
 
-	/* PSK mode */
+	/* Step 1: Load global PSK if configured */
 	if (config->tls_psk_file) {
 		if (autls_load_psk(config->tls_psk_file,
 				&server_psk_key, &server_psk_key_len,
 				audit_msg) != 0)
 			goto err;
+	}
+
+	/* Step 2: Load expected identity for non-ACL mode */
+	free(expected_psk_identity);
+	expected_psk_identity = NULL;
+	if (config->tls_psk_identity) {
+		if (autls_validate_psk_identity(
+				(const unsigned char *)
+				config->tls_psk_identity,
+				strlen(config->tls_psk_identity),
+				audit_msg) != 0)
+			goto err;
+		expected_psk_identity =
+			strdup(config->tls_psk_identity);
+		if (!expected_psk_identity) {
+			audit_msg(LOG_ERR,
+				"Out of memory for PSK identity");
+			goto err;
+		}
+	}
+
+	/* Step 3: Load client ACL (independent of tls_psk_file) */
+	if (config->tls_allowed_clients) {
+		if (acl_table) {
+			autls_acl_free(acl_table);
+			acl_table = NULL;
+		}
+		if (autls_acl_load(config->tls_allowed_clients,
+				   &acl_table, audit_msg) != 0)
+			goto err;
+		if (acl_table->enabled_count > 1 &&
+		    !acl_table->has_per_identity_keys) {
+			audit_msg(LOG_ERR,
+				"tls_allowed_clients has %d "
+				"enabled identities but "
+				"single-PSK mode allows at "
+				"most 1",
+				acl_table->enabled_count);
+			goto err;
+		}
+		if (acl_table->enabled_count == 0)
+			audit_msg(LOG_WARNING,
+				"tls_allowed_clients has no enabled "
+				"identities; all TLS connections "
+				"will be rejected");
+		if (expected_psk_identity)
+			audit_msg(LOG_NOTICE,
+				"tls_allowed_clients is "
+				"configured; tls_psk_identity "
+				"is ignored for authorization");
+	}
+
+	/* Step 4: Register PSK callback if any key material exists */
+	if (server_psk_key ||
+	    (acl_table && acl_table->has_per_identity_keys)) {
 		SSL_CTX_set_psk_find_session_callback(tls_server_ctx,
 						tls_psk_find_session_cb);
-		free(expected_psk_identity);
-		expected_psk_identity = NULL;
-		if (config->tls_psk_identity) {
-			if (autls_validate_psk_identity(
-					(const unsigned char *)
-					config->tls_psk_identity,
-					strlen(config->tls_psk_identity),
-					audit_msg) != 0)
-				goto err;
-			expected_psk_identity =
-				strdup(config->tls_psk_identity);
-			if (!expected_psk_identity) {
-				audit_msg(LOG_ERR,
-					"Out of memory for PSK identity");
-				goto err;
-			}
-		}
-
-		/* Load client ACL if configured */
-		if (config->tls_allowed_clients) {
-			if (acl_table) {
-				autls_acl_free(acl_table);
-				acl_table = NULL;
-			}
-			if (autls_acl_load(config->tls_allowed_clients,
-					   &acl_table, audit_msg) != 0)
-				goto err;
-			if (acl_table->enabled_count > 1) {
-				audit_msg(LOG_ERR,
-					"tls_allowed_clients has %d "
-					"enabled identities but "
-					"single-PSK mode allows at "
-					"most 1",
-					acl_table->enabled_count);
-				goto err;
-			}
-			if (expected_psk_identity)
-				audit_msg(LOG_NOTICE,
-					"tls_allowed_clients is "
-					"configured; tls_psk_identity "
-					"is ignored for authorization");
-		}
-
-		/* Register ex-data indices (once) */
 		if (ssl_ex_idx_identity < 0) {
 			ssl_ex_idx_identity =
 				SSL_get_ex_new_index(0, NULL,
@@ -2810,6 +2874,13 @@ static int init_tls_server_context(struct daemon_conf *config)
 				goto err;
 			}
 		}
+	} else if (config->tls_psk_file ||
+		   config->tls_allowed_clients) {
+		audit_msg(LOG_ERR,
+			"No PSK key material available (need "
+			"tls_psk_file or per-identity keys in "
+			"tls_allowed_clients)");
+		goto err;
 	}
 
 	return 0;
@@ -3099,6 +3170,14 @@ static void reload_tls_client_acl(const struct daemon_conf *nconf,
 		if (oconf->tls_allowed_clients == NULL)
 			return;
 
+		/* Per-identity mode has no fallback */
+		if (acl_table && acl_table->has_per_identity_keys) {
+			audit_msg(LOG_ERR,
+				"tls_allowed_clients removal ignored; "
+				"per-identity key mode has no fallback");
+			return;
+		}
+
 		if (server_psk_key && expected_psk_identity == NULL) {
 			audit_msg(LOG_ERR,
 				"tls_allowed_clients removal ignored; "
@@ -3128,11 +3207,35 @@ static void reload_tls_client_acl(const struct daemon_conf *nconf,
 		return;
 	}
 
-	if (server_psk_key && new_acl->enabled_count > 1) {
+	/* Reject mode transition (single-PSK <-> per-identity) */
+	if (acl_table &&
+	    new_acl->has_per_identity_keys !=
+	    acl_table->has_per_identity_keys) {
+		audit_msg(LOG_ERR,
+			"ACL mode change (single-PSK <-> per-identity) "
+			"requires restart; keeping current ACL");
+		autls_acl_free(new_acl);
+		free((void *)nconf->tls_allowed_clients);
+		return;
+	}
+
+	if (new_acl->enabled_count > 1 &&
+	    !new_acl->has_per_identity_keys) {
 		audit_msg(LOG_ERR,
 			"Reloaded ACL has %d enabled identities but "
 			"single-PSK mode allows at most 1; "
 			"keeping current ACL", new_acl->enabled_count);
+		autls_acl_free(new_acl);
+		free((void *)nconf->tls_allowed_clients);
+		return;
+	}
+
+	/* Reject single-PSK ACL with no global key */
+	if (!new_acl->has_per_identity_keys && server_psk_key == NULL) {
+		audit_msg(LOG_ERR,
+			"Reloaded ACL has no per-identity keys and "
+			"no tls_psk_file is configured; "
+			"keeping current ACL");
 		autls_acl_free(new_acl);
 		free((void *)nconf->tls_allowed_clients);
 		return;
@@ -3143,9 +3246,41 @@ static void reload_tls_client_acl(const struct daemon_conf *nconf,
 	acl_table = new_acl;
 	free((void *)oconf->tls_allowed_clients);
 	oconf->tls_allowed_clients = nconf->tls_allowed_clients;
+
+	if (new_acl->enabled_count == 0)
+		audit_msg(LOG_WARNING,
+			"Reloaded ACL has no enabled identities; "
+			"all new TLS connections will be rejected");
+
 	audit_msg(LOG_NOTICE,
 		"TLS client ACL reloaded (%d->%d enabled)",
 		old_enabled, new_acl->enabled_count);
+
+	/* Evict connected clients whose identity is now disabled */
+	{
+		struct ev_loop *loop = ev_default_loop(EVFLAG_AUTO);
+		struct ev_tcp *ev, *next;
+
+		for (ev = client_chain; ev; ev = next) {
+			next = ev->next;
+			if (ev->accepted_identity) {
+				int rc = autls_acl_check(acl_table,
+					(const unsigned char *)
+					ev->accepted_identity,
+					strlen(ev->accepted_identity));
+				if (rc != 1) {
+					audit_msg(LOG_NOTICE,
+						"Evicting TLS client "
+						"'%.128s': identity "
+						"disabled or removed",
+						ev->accepted_identity);
+					ev_io_stop(loop, &ev->io);
+					release_client(ev);
+					free(ev);
+				}
+			}
+		}
+	}
 }
 #endif
 
