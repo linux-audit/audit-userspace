@@ -705,6 +705,186 @@ static void test_autls_authorize_psk_identity(void)
 	autls_acl_free(t);
 }
 
+/* Two distinct 32-byte hex keys for per-identity tests */
+#define KEY_A_HEX \
+	"000102030405060708090a0b0c0d0e0f" \
+	"101112131415161718191a1b1c1d1e1f\n"
+#define KEY_B_HEX \
+	"f0f1f2f3f4f5f6f7f8f9fafbfcfdfeff" \
+	"e0e1e2e3e4e5e6e7e8e9eaebecedeeef\n"
+
+/*
+ * write_key_file - write a PSK key file with mode 0400
+ *
+ * Returns the full path via @path.
+ */
+static void write_key_file(char *path, size_t pathlen,
+			   const char *name, const char *hex)
+{
+	snprintf(path, pathlen, "%s/%s", tmpdir, name);
+	write_file(path, hex);
+	chmod(path, 0400);
+}
+
+static void test_autls_acl_per_identity_keys(void)
+{
+	struct autls_acl_table *t = NULL;
+	const struct autls_acl_entry *e;
+	char path[512], kpath_a[512], kpath_b[512];
+	char acl_line[1024];
+
+	printf("  autls_acl_load (per-identity keys)...\n");
+
+	if (getuid() != 0) {
+		printf("    (skipped, not root)\n");
+		return;
+	}
+
+	write_key_file(kpath_a, sizeof(kpath_a), "key-a.psk", KEY_A_HEX);
+	write_key_file(kpath_b, sizeof(kpath_b), "key-b.psk", KEY_B_HEX);
+
+	/* 1. Per-identity key loading succeeds */
+	snprintf(path, sizeof(path), "%s/acl-pikey", tmpdir);
+	snprintf(acl_line, sizeof(acl_line),
+		"host-a enabled key=%s\nhost-b disabled key=%s\n",
+		kpath_a, kpath_b);
+	write_file(path, acl_line);
+	chmod(path, 0600);
+
+	assert(autls_acl_load(path, &t, test_log) == 0);
+	assert(t != NULL);
+	assert(t->count == 2);
+	assert(t->enabled_count == 1);
+	assert(t->has_per_identity_keys == 1);
+
+	e = autls_acl_lookup(t, (const unsigned char *)"host-a", 6);
+	assert(e != NULL);
+	assert(e->enabled == 1);
+	assert(e->psk_key != NULL);
+	assert(e->psk_key_len == 32);
+	assert(e->key_file != NULL);
+
+	e = autls_acl_lookup(t, (const unsigned char *)"host-b", 6);
+	assert(e != NULL);
+	assert(e->enabled == 0);
+	assert(e->psk_key != NULL);
+	assert(e->psk_key_len == 32);
+
+	/* Keys are distinct */
+	e = autls_acl_lookup(t, (const unsigned char *)"host-a", 6);
+	{
+		const struct autls_acl_entry *e2 =
+			autls_acl_lookup(t,
+				(const unsigned char *)"host-b", 6);
+		assert(memcmp(e->psk_key, e2->psk_key, 32) != 0);
+	}
+
+	/* Unknown identity returns NULL */
+	assert(autls_acl_lookup(t,
+		(const unsigned char *)"host-c", 6) == NULL);
+
+	autls_acl_free(t);
+	t = NULL;
+	unlink(path);
+
+	/* 2. Mixed format rejected: one with key=, one without */
+	snprintf(path, sizeof(path), "%s/acl-mixed", tmpdir);
+	snprintf(acl_line, sizeof(acl_line),
+		"host-a enabled key=%s\nhost-b disabled\n", kpath_a);
+	write_file(path, acl_line);
+	chmod(path, 0600);
+	assert(autls_acl_load(path, &t, test_log) == -1);
+	assert(t == NULL);
+	unlink(path);
+
+	/* 3. Duplicate key paths rejected */
+	snprintf(path, sizeof(path), "%s/acl-dupkey", tmpdir);
+	snprintf(acl_line, sizeof(acl_line),
+		"host-a enabled key=%s\nhost-b disabled key=%s\n",
+		kpath_a, kpath_a);
+	write_file(path, acl_line);
+	chmod(path, 0600);
+	assert(autls_acl_load(path, &t, test_log) == -1);
+	assert(t == NULL);
+	unlink(path);
+
+	/* 4. Missing key file rejected */
+	snprintf(path, sizeof(path), "%s/acl-nokey", tmpdir);
+	write_file(path, "host-a enabled key=/nonexistent/key.psk\n");
+	chmod(path, 0600);
+	assert(autls_acl_load(path, &t, test_log) == -1);
+	assert(t == NULL);
+	unlink(path);
+
+	/* 5. Partial-load cleanup: 2nd entry has bad key */
+	snprintf(path, sizeof(path), "%s/acl-partial", tmpdir);
+	snprintf(acl_line, sizeof(acl_line),
+		"host-a enabled key=%s\n"
+		"host-b disabled key=/nonexistent/key.psk\n",
+		kpath_a);
+	write_file(path, acl_line);
+	chmod(path, 0600);
+	assert(autls_acl_load(path, &t, test_log) == -1);
+	assert(t == NULL);
+	unlink(path);
+
+	/* 6. Multiple enabled with per-identity keys accepted */
+	snprintf(path, sizeof(path), "%s/acl-multi", tmpdir);
+	snprintf(acl_line, sizeof(acl_line),
+		"host-a enabled key=%s\nhost-b enabled key=%s\n",
+		kpath_a, kpath_b);
+	write_file(path, acl_line);
+	chmod(path, 0600);
+	assert(autls_acl_load(path, &t, test_log) == 0);
+	assert(t->enabled_count == 2);
+	assert(t->has_per_identity_keys == 1);
+	autls_acl_free(t);
+	t = NULL;
+	unlink(path);
+
+	/* 7. Backward compat: no key= columns */
+	snprintf(path, sizeof(path), "%s/acl-compat", tmpdir);
+	write_file(path, "host-a enabled notes here\n"
+			 "host-b disabled retired\n");
+	chmod(path, 0600);
+	assert(autls_acl_load(path, &t, test_log) == 0);
+	assert(t->has_per_identity_keys == 0);
+	e = autls_acl_lookup(t, (const unsigned char *)"host-a", 6);
+	assert(e != NULL);
+	assert(e->psk_key == NULL);
+	assert(e->key_file == NULL);
+	autls_acl_free(t);
+	t = NULL;
+	unlink(path);
+
+	/* 8. Notes starting with key= but no / are treated as notes */
+	snprintf(path, sizeof(path), "%s/acl-notes", tmpdir);
+	write_file(path, "host-a enabled key=rotation-needed\n"
+			 "host-b disabled key=decommissioned\n");
+	chmod(path, 0600);
+	assert(autls_acl_load(path, &t, test_log) == 0);
+	assert(t->has_per_identity_keys == 0);
+	e = autls_acl_lookup(t, (const unsigned char *)"host-a", 6);
+	assert(e != NULL);
+	assert(e->psk_key == NULL);
+	autls_acl_free(t);
+	t = NULL;
+	unlink(path);
+
+	/* 9. Trailing tokens after key= rejected */
+	snprintf(path, sizeof(path), "%s/acl-trailing", tmpdir);
+	snprintf(acl_line, sizeof(acl_line),
+		"host-a enabled key=%s extra-notes\n", kpath_a);
+	write_file(path, acl_line);
+	chmod(path, 0600);
+	assert(autls_acl_load(path, &t, test_log) == -1);
+	assert(t == NULL);
+	unlink(path);
+
+	unlink(kpath_a);
+	unlink(kpath_b);
+}
+
 int main(void)
 {
 	char template[] = "/tmp/test-tls-XXXXXX";
@@ -731,6 +911,7 @@ int main(void)
 	test_autls_acl_load();
 	test_autls_acl_check();
 	test_autls_authorize_psk_identity();
+	test_autls_acl_per_identity_keys();
 	printf("All TLS helper tests passed.\n");
 	return 0;
 }
