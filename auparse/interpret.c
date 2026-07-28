@@ -832,10 +832,17 @@ uid_t lookup_uid_from_name(auparse_state_t *au, const char *name)
 		if (q_node->uid != (uid_t)-1)
 			uid = q_node->uid;
 		else {
-			struct passwd *pw = getpwnam(name);
-			if (pw) {
-				q_node->uid = pw->pw_uid;
-				unsigned int key = q_node->uid % au->uid_cache->total;
+			struct passwd pwd, *result;
+			char buf[NSS_BUFSIZE];
+			int rc;
+
+			rc = getpwnam_r(name, &pwd, buf, sizeof(buf),
+					&result);
+			if (rc == 0 && result) {
+				unsigned int key;
+
+				q_node->uid = result->pw_uid;
+				key = q_node->uid % au->uid_cache->total;
 				au->uid_cache->uid_hash->array[key] = q_node;
 				uid = q_node->uid;
 			}
@@ -867,14 +874,22 @@ static const char *aulookup_gid(auparse_state_t *au, gid_t gid,
 		if (q_node->uid == gid && q_node->name)
 			name = q_node->name;
 		else {
-			struct group *gr;
-			gr = getgrgid(gid);
-			if (gr) {
+			struct group gr, *result;
+			char buf[NSS_BUFSIZE];
+			int rc;
+
+			rc = getgrgid_r(gid, &gr, buf, sizeof(buf),
+					&result);
+			if (rc == 0 && result) {
+				unsigned int key;
+
 				free(q_node->name);
-				q_node->name = strdup(gr->gr_name);
+				q_node->name = strdup(result->gr_name);
 				if (q_node->name) {
-					unsigned int key = hash_name(q_node->name) % au->gid_cache->total;
-					au->gid_cache->name_hash->array[key] = q_node;
+					key = hash_name(q_node->name) %
+						au->gid_cache->total;
+					au->gid_cache->name_hash->array[key] =
+						q_node;
 					q_node->uid = gid;
 					name = q_node->name;
 				}

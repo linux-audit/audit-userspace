@@ -59,6 +59,19 @@ AC_CHECK_SIZEOF([unsigned int])
 AC_CHECK_SIZEOF([unsigned long])
 AC_CHECK_SIZEOF([long])
 AC_CHECK_SIZEOF([time_t])
+AC_CACHE_CHECK([for NSS lookup buffer size], [audit_cv_nss_bufsize], [
+	AC_COMPUTE_INT([audit_cv_nss_bufsize],
+		[(NSS_BUFLEN_PASSWD > NSS_BUFLEN_GROUP) ?
+		 NSS_BUFLEN_PASSWD : NSS_BUFLEN_GROUP],
+		[[
+#define _GNU_SOURCE
+#include <pwd.h>
+#include <grp.h>
+		]],
+		[audit_cv_nss_bufsize=1024])
+])
+AC_DEFINE_UNQUOTED([NSS_BUFSIZE], [$audit_cv_nss_bufsize],
+	[Working buffer size for reentrant NSS lookups])
 dnl; next is needed for old compilers and plugins/ids/Makefile.am
 AM_PROG_CC_C_O
 dnl Ensure runstatedir exists even with older autoconf
