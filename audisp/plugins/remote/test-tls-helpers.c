@@ -738,7 +738,8 @@ static void test_autls_acl_per_identity_keys(void)
 	struct autls_acl_table *t = NULL;
 	const struct autls_acl_entry *e;
 	char path[512], kpath_a[512], kpath_b[512];
-	char acl_line[1024];
+	// Allow two maximum-length key paths plus the ACL syntax.
+	char acl_line[2 * sizeof(kpath_a) + 64];
 
 	printf("  autls_acl_load (per-identity keys)...\n");
 
@@ -1148,7 +1149,8 @@ static void test_tls_binder_cross_identity(void)
 	struct autls_acl_table *t = NULL;
 	const struct autls_acl_entry *entry_a, *entry_b;
 	char path[512], kpath_a[512], kpath_b[512], kpath_g[512];
-	char acl_line[1024];
+	// Allow two maximum-length key paths plus the ACL syntax.
+	char acl_line[2 * sizeof(kpath_a) + 64];
 	int ok;
 
 	printf("  TLS binder cross-identity regression...\n");
