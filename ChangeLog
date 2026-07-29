@@ -1,3 +1,5 @@
+4.2.2
+
 4.2.1
 - Truncate overlong comm values instead of rejecting them
 - create /run/audit via tmpfiles
