@@ -1,4 +1,11 @@
 4.2.1
+- Truncate overlong comm values instead of rejecting them
+- create /run/audit via tmpfiles
+- install bash completions under per-command names
+- Better validate numeric values when parsing logs and config options
+- make GSS handshakes nonblocking
+- Fix a couple non-thread safe collision in libauparse
+- allow tls_psk_file to be optional with per-identity keys
 
 4.2
 - Put the bash completions in /usr/share/bash-completion/completions/
