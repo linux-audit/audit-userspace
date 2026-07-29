@@ -51,7 +51,10 @@ static void cleanup(void)
 	char cmd[768];
 
 	snprintf(cmd, sizeof(cmd), "rm -rf %s", tmpdir);
-	system(cmd);
+	if (system(cmd) != 0) {
+		fprintf(stderr, "Failed to remove %s\n", tmpdir);
+		_exit(EXIT_FAILURE);
+	}
 }
 
 static void test_autls_is_pqc_group(void)
@@ -311,7 +314,10 @@ static void test_autls_load_psk_validation(void)
 			"%s/psk-sym-link", tmpdir);
 		write_file(target, valid_hex);
 		chmod(target, 0400);
-		symlink(target, link_path);
+		if (symlink(target, link_path) != 0) {
+			perror("symlink");
+			exit(EXIT_FAILURE);
+		}
 		assert(autls_load_psk(link_path, &key, &key_len,
 			test_log) == -1);
 		unlink(link_path);
