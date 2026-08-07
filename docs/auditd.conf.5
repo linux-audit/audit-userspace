@@ -26,11 +26,20 @@ This yes/no keyword determines whether or not to write logs to the disk.
 Normally you want this so the default is yes.
 .TP
 .I log_format
-The log format describes how the information should be stored on disk. There are 2 options: raw and enriched. If set to
+The log format controls the contents of records stored on disk and delivered
+to audit event plugins. There are two options: raw and enriched. If set to
 .IR RAW ,
-the audit records will be stored in a format exactly as the kernel sends it. The
+the audit records retain the field values sent by the kernel without appended
+interpretations. The
 .IR ENRICHED
-option will resolve all uid, gid, syscall, architecture, and socket address information before writing the event to disk. This aids in making sense of events created on one system but reported/analyzed on another system.
+option resolves uid, gid, syscall, architecture, and socket address information
+before writing or distributing the event. This aids in making sense of events
+created on one system but reported or analyzed on another system.
+This option does not control whether a plugin receives string or binary input.
+Plugin delivery is selected by the
+.I format
+option described in
+.BR auditd-plugins (5).
 The 
 .I NOLOG
 option is now deprecated. If you were setting this format, now you should set
