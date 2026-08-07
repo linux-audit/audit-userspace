@@ -165,6 +165,26 @@ struct audit_dispatcher_header {
 	uint32_t	size;	/* Size of data following the header */
 };
 
+/*
+ * Dispatcher protocol versions apply only to binary plugin delivery.
+ *
+ * Version 0 payload:
+ *   The unformatted audit payload. The record type is carried in hdr.type.
+ *
+ * Version 1 payload:
+ *   A complete textual record beginning with node= and/or type=. It may
+ *   contain raw or enriched fields according to auditd configuration.
+ *
+ * Protocol selection:
+ *   local RAW, no node name        version 0
+ *   local ENRICHED                 version 1
+ *   local record with node name    version 1
+ *   network-originated record      version 1
+ *
+ * Plugin format=string converts either protocol into a complete textual
+ * record. Plugin format=binary exposes this header and payload unchanged.
+ */
+
 // Original protocol starts with msg='
 #define AUDISP_PROTOCOL_VER  0
 
