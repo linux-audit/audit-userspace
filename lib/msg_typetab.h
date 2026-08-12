@@ -22,7 +22,7 @@
 
 /*
  * This table is arranged from lowest number to highest number. The
- * items that are commented out are for completeness. The audit 
+ * items that are commented out are for completeness. The audit
  * daemon filters these and they never show up in the logs, therefore
  * they are not needed for reporting. Or they have been deprecated for
  * a long time.
@@ -93,6 +93,8 @@ _S(AUDIT_DAEMON_RESUME,              "DAEMON_RESUME"                 )
 _S(AUDIT_DAEMON_ACCEPT,              "DAEMON_ACCEPT"                 )
 _S(AUDIT_DAEMON_CLOSE,               "DAEMON_CLOSE"                  )
 _S(AUDIT_DAEMON_ERR,                 "DAEMON_ERR"                    )
+_S(AUDIT_LANDLOCK_ACCESS,            "LANDLOCK_ACCESS"               )
+_S(AUDIT_LANDLOCK_DOMAIN,            "LANDLOCK_DOMAIN"               )
 _S(AUDIT_SYSCALL,                    "SYSCALL"                       )
 //_S(AUDIT_FS_WATCH,                 "FS_WATCH"                      )
 _S(AUDIT_PATH,                       "PATH"                          )
