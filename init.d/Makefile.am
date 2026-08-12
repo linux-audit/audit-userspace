@@ -50,7 +50,7 @@ BUILT_SOURCES = auditd.service audit-rules.service augenrules
 install-data-hook:
 	$(INSTALL_DATA) -D -m 640 ${srcdir}/${libconfig} ${DESTDIR}${sysconfdir}
 	mkdir -p ${DESTDIR}$(prefix)/lib/tmpfiles.d/
-	$(INSTALL_DATA) -m 640 ${srcdir}/audit-tmpfiles.conf ${DESTDIR}$(prefix)/lib/tmpfiles.d/audit.conf
+	$(INSTALL_DATA) -m 644 ${srcdir}/audit-tmpfiles.conf ${DESTDIR}$(prefix)/lib/tmpfiles.d/audit.conf
 
 install-exec-hook:
 	mkdir -p ${DESTDIR}${initdir}
