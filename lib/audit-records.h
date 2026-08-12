@@ -104,6 +104,10 @@ extern "C" {
 #define AUDIT_LAST_EVENT        1399
 
 #define AUDIT_FIRST_SELINUX     1400
+#ifndef AUDIT_LANDLOCK_ACCESS
+#define AUDIT_LANDLOCK_ACCESS   1423
+#define AUDIT_LANDLOCK_DOMAIN   1424
+#endif
 #define AUDIT_LAST_SELINUX      1499
 
 #define AUDIT_FIRST_APPARMOR            1500
