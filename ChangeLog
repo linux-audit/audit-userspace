@@ -1,4 +1,9 @@
 4.2.2
+- Add Landlock audit types
+- init.d: Install tmpfiles config file under more relaxed perms
+- auditd: fix V0 dispatch truncating last 16 bytes of events
+- audit log permission repair is now more careful
+- Avoid unsolicited audit log directory permission changes
 
 4.2.1
 - Truncate overlong comm values instead of rejecting them
