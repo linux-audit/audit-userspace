@@ -10,6 +10,7 @@
 
 #include "config.h"
 #include <assert.h>
+#include <errno.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -21,6 +22,8 @@
 
 static const void *watched_free;
 static unsigned int watched_free_count;
+static unsigned int open_log_count;
+static unsigned int disk_error_count;
 
 /*
  * test_free - record whether the ownership test releases its allocation
@@ -66,6 +69,42 @@ void audit_msg(int priority, const char *fmt, ...)
 {
 	(void)priority;
 	(void)fmt;
+}
+
+/*
+ * fail_permission_repair - emulate rejecting an unsafe audit log directory
+ *
+ * Returns: 1 to report a failed permission repair.
+ */
+static int fail_permission_repair(void)
+{
+	errno = EPERM;
+	return 1;
+}
+
+/*
+ * count_log_open - record an unexpected log-open attempt
+ *
+ * Returns: 0 to emulate a successful log open.
+ */
+static int count_log_open(void)
+{
+	open_log_count++;
+	return 0;
+}
+
+/*
+ * count_disk_error - record reconfigure error handling
+ * @func: operation that reported the error
+ * @err: saved operation error
+ *
+ * Returns: None.
+ */
+static void count_disk_error(const char *func, int err)
+{
+	assert(strcmp(func, "reconfig") == 0);
+	assert(err == EPERM);
+	disk_error_count++;
 }
 
 /*
@@ -217,10 +256,38 @@ static void test_new_node_name_replaces_null_value(void)
 	free((void *)old_conf.action_mail_acct);
 }
 
+/*
+ * test_permission_repair_failure_stops_reopen - fail closed on unsafe paths
+ *
+ * Returns: None.
+ */
+static void test_permission_repair_failure_stops_reopen(void)
+{
+	struct auditd_reconfigure_context ctx;
+	FILE *log_file = NULL;
+	int logging_suspended = 0;
+
+	memset(&ctx, 0, sizeof(ctx));
+	ctx.state.log_file = &log_file;
+	ctx.state.logging_suspended = &logging_suspended;
+	ctx.ops.fix_disk_permissions = fail_permission_repair;
+	ctx.ops.open_audit_log = count_log_open;
+	ctx.ops.do_disk_error_action = count_disk_error;
+	open_log_count = 0;
+	disk_error_count = 0;
+
+	reopen_log_file(&ctx);
+
+	assert(open_log_count == 0);
+	assert(disk_error_count == 1);
+	assert(logging_suspended == 1);
+}
+
 int main(void)
 {
 	test_matching_node_name_is_released();
 	test_node_name_nullness_replaces_active_value();
 	test_new_node_name_replaces_null_value();
+	test_permission_repair_failure_stops_reopen();
 	return 0;
 }

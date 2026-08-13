@@ -153,8 +153,7 @@ static void reopen_log_file(struct auditd_reconfigure_context *ctx)
 	if (*ctx->state.log_file)
 		fclose(*ctx->state.log_file);
 	*ctx->state.log_file = NULL;
-	ctx->ops.fix_disk_permissions();
-	if (ctx->ops.open_audit_log()) {
+	if (ctx->ops.fix_disk_permissions() || ctx->ops.open_audit_log()) {
 		int saved_errno = errno;
 
 		audit_msg(LOG_ERR,

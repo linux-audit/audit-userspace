@@ -26,7 +26,7 @@ struct auditd_reconfigure_state {
 struct auditd_reconfigure_ops {
 	void (*check_log_file_size)(void);
 	void (*check_space_left)(void);
-	void (*fix_disk_permissions)(void);
+	int (*fix_disk_permissions)(void);
 	void (*check_excess_logs)(void);
 	void (*do_disk_error_action)(const char *func, int err);
 	int (*open_audit_log)(void);

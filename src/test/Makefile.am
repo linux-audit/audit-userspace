@@ -28,7 +28,8 @@ AM_LDFLAGS += ${ASAN_FLAGS}
 endif
 check_PROGRAMS = ilist_test slist_test format_event_test \
 	auditd_config_alloc_test ausearch_checkpt_test auditd_dispatch_test \
-	ilist_alloc_test auditd_config_manager_test auditd_reconfigure_test \
+	ilist_alloc_test auditd_config_manager_test auditd_log_test \
+	auditd_reconfigure_test \
 	lol_alloc_test auditctl_key_test auditctl_list_alloc_test \
 	delete_all_alloc_test ausearch_time_test auditctl_rule_file_test
 TESTS = $(check_PROGRAMS) ausearch_options_test.sh
@@ -47,6 +48,7 @@ format_event_test_CFLAGS = ${AM_CFLAGS} -D_REENTRANT -fno-strict-aliasing \
 format_event_test_SOURCES = format_event_test.c \
 	${top_srcdir}/src/auditd-children.c \
 	${top_srcdir}/src/auditd-event.c \
+	${top_srcdir}/src/auditd-log.c \
 	${top_srcdir}/src/auditd-reconfigure.c \
 	${top_srcdir}/src/auditd-config.c \
 	${top_srcdir}/src/auditd-sendmail.c \
@@ -71,6 +73,7 @@ auditd_dispatch_test_SOURCES = auditd_dispatch_test.c \
 	${top_srcdir}/src/auditd-dispatch.c
 auditd_config_manager_test_SOURCES = auditd_config_manager_test.c
 auditd_config_manager_test_LDADD = -lpthread
+auditd_log_test_SOURCES = auditd_log_test.c ${top_srcdir}/src/auditd-log.c
 auditd_reconfigure_test_CFLAGS = ${AM_CFLAGS} -I${top_srcdir}/src/libev
 auditd_reconfigure_test_SOURCES = auditd_reconfigure_test.c
 auditctl_key_test_SOURCES = auditctl_key_test.c \

@@ -32,8 +32,8 @@
 #include <string.h>
 #include <sys/vfs.h>
 #include <ctype.h>	/* toupper */
-#include <libgen.h>	/* dirname */
 #include "auditd-event.h"
+#include "auditd-log.h"
 #include "auditd-children.h"
 #include "auditd-reconfigure.h"
 #include "libaudit.h"
@@ -64,7 +64,7 @@ static void check_space_left(void);
 static void do_space_left_action(int admin);
 static void do_disk_full_action(void);
 static void do_disk_error_action(const char *func, int err);
-static void fix_disk_permissions(void);
+static int fix_disk_permissions(void);
 static void check_excess_logs(void);
 static void rotate_logs_now(void);
 static void rotate_logs(unsigned int num_logs, unsigned int keep_logs);
@@ -172,7 +172,8 @@ int init_event(struct daemon_conf *conf)
 
 	/* Now open the log */
 	if (config->daemonize == D_BACKGROUND) {
-		fix_disk_permissions();
+		if (fix_disk_permissions())
+			return 1;
 		if (open_audit_log())
 			return 1;
 		setup_percentages(config, AUDIT_ATOMIC_LOAD(log_fd));
@@ -733,8 +734,7 @@ void resume_logging(void)
 	// Need to reopen here to recreate the file if the
 	// script deleted or moved it.
 	if (log_file == NULL) {
-		fix_disk_permissions();
-		if (open_audit_log()) {
+		if (fix_disk_permissions() || open_audit_log()) {
 			int saved_errno = errno;
 			audit_msg(LOG_WARNING,
 				"Could not reopen a log after resume logging");
@@ -1185,44 +1185,41 @@ static void check_excess_logs(void)
 	free(name);
 }
 
-static void fix_disk_permissions(void)
+/*
+ * fix_disk_permissions - repair trusted audit log directory and archive modes
+ *
+ * Returns 0 on success and 1 when the configured path is unsafe or a
+ * permission repair fails.
+ */
+static int fix_disk_permissions(void)
 {
-	char *path, *dir;
-	unsigned int i, len;
+	struct auditd_log_path log_path;
+	struct auditd_log_policy policy;
+	int rc, saved_errno;
 
 	if (config == NULL || config->log_file == NULL)
-		return;
+		return 0;
 
-	len = strlen(config->log_file) + 16;
-
-	path = malloc(len);
-	if (path == NULL)
-		return;
-
-	// Start with the directory
-	strcpy(path, config->log_file);
-	dir = dirname(path);
-	if (chmod(dir,config->log_group ? S_IRWXU|S_IRGRP|S_IXGRP: S_IRWXU) < 0)
-		audit_msg(LOG_WARNING, "Couldn't change access mode of "
-			"%s (%s)", dir, strerror(errno));
-	if (chown(dir, 0, config->log_group ? config->log_group : 0) < 0)
-		audit_msg(LOG_WARNING, "Couldn't change ownership of "
-			"%s (%s)", dir, strerror(errno));
-
-	// Now, for each file...
-	for (i = 1; i < config->num_logs; i++) {
-		int rc;
-		snprintf(path, len, "%s.%u", config->log_file, i);
-		rc = chmod(path, config->log_group ? S_IRUSR|S_IRGRP : S_IRUSR);
-		if (rc && errno == ENOENT)
-			break;
+	policy.owner = 0;
+	policy.group = config->log_group;
+	policy.num_logs = config->num_logs;
+	if (auditd_log_path_open(&log_path, config->log_file, &policy) < 0) {
+		saved_errno = errno;
+		audit_msg(LOG_ERR, "Unsafe audit log directory for %s (%s)",
+			config->log_file, strerror(saved_errno));
+		errno = saved_errno;
+		return 1;
 	}
-
-	// Now the current file
-	chmod(config->log_file, config->log_group ? S_IWUSR|S_IRUSR|S_IRGRP :
-			S_IWUSR|S_IRUSR);
-
-	free(path);
+	rc = auditd_log_repair_permissions(&log_path, &policy);
+	saved_errno = errno;
+	auditd_log_path_close(&log_path);
+	if (rc < 0) {
+		audit_msg(LOG_ERR, "Couldn't repair audit log permissions for "
+			"%s (%s)", config->log_file, strerror(saved_errno));
+		errno = saved_errno;
+		return 1;
+	}
+	return 0;
 }
 
 static void rotate_logs(unsigned int num_logs, unsigned int keep_logs)
