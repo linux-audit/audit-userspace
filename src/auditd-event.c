@@ -1197,7 +1197,7 @@ static int fix_disk_permissions(void)
 	struct auditd_log_policy policy;
 	int rc, saved_errno;
 
-	if (config == NULL || config->log_file == NULL)
+	if (config == NULL || config->log_file == NULL || !config->write_logs)
 		return 0;
 
 	policy.owner = 0;
@@ -1219,6 +1219,10 @@ static int fix_disk_permissions(void)
 		errno = saved_errno;
 		return 1;
 	}
+	if (rc > 0)
+		audit_msg(LOG_NOTICE,
+			"Adjusted audit log directory permissions for %s",
+			config->log_file);
 	return 0;
 }
 

@@ -46,7 +46,14 @@ option is now deprecated. If you were setting this format, now you should set
 the write_logs option to no.
 .TP
 .I log_group
-This keyword specifies the group that is applied to the log file's permissions. The default is root. The group name can be either numeric or spelled out.
+This keyword specifies the group that is applied to the log file's permissions.
+The default is root. The group name can be either numeric or spelled out.
+When a non-root group is specified, auditd also changes the log directory to
+be owned by root and that group with mode 0750. This permits group members to
+search the directory and read audit logs. The directory must be dedicated to
+audit logs, owned by root, and not writable by group or other users before
+auditd will adjust it. When the root group is specified, auditd does not change
+the log directory's ownership or mode.
 .TP
 .I priority_boost
 This is a non-negative number that tells the audit daemon how much of a priority boost it should take. The default is 4. No change is 0.

@@ -28,6 +28,7 @@ int auditd_log_path_open(struct auditd_log_path *path, const char *file,
 		const struct auditd_log_policy *policy);
 int auditd_log_path_openat(struct auditd_log_path *path, int root_fd,
 		const char *file, const struct auditd_log_policy *policy);
+/* Returns 1 when the directory changed, 0 when unchanged, and -1 on error. */
 int auditd_log_repair_permissions(const struct auditd_log_path *path,
 		const struct auditd_log_policy *policy);
 void auditd_log_path_close(struct auditd_log_path *path);

@@ -22,11 +22,12 @@
  * validate_directory - verify that only the trusted owner can modify a dir
  * @dir_fd: descriptor for the directory to validate
  * @policy: ownership policy for the audit log hierarchy
+ * @result: optional output for the directory metadata
  *
  * Returns 0 for a trusted directory and -1 with errno set otherwise.
  */
 static int validate_directory(int dir_fd,
-		const struct auditd_log_policy *policy)
+		const struct auditd_log_policy *policy, struct stat *result)
 {
 	struct stat st;
 
@@ -41,6 +42,8 @@ static int validate_directory(int dir_fd,
 		errno = EPERM;
 		return -1;
 	}
+	if (result)
+		*result = st;
 	return 0;
 }
 
@@ -61,7 +64,7 @@ static int open_directory(int dir_fd, const char *name,
 		O_RDONLY|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC);
 	if (fd < 0)
 		return -1;
-	if (validate_directory(fd, policy) < 0) {
+	if (validate_directory(fd, policy, NULL) < 0) {
 		int saved_errno = errno;
 
 		close(fd);
@@ -88,7 +91,7 @@ static int open_trusted_directory(int root_fd, const char *directory,
 	dir_fd = fcntl(root_fd, F_DUPFD_CLOEXEC, 0);
 	if (dir_fd < 0)
 		return -1;
-	if (validate_directory(dir_fd, policy) < 0)
+	if (validate_directory(dir_fd, policy, NULL) < 0)
 		goto bad_dir;
 
 	copy = strdup(directory);
@@ -213,17 +216,16 @@ int auditd_log_path_open(struct auditd_log_path *path, const char *file,
  * validate_log_file - require an opened historical log to be trusted
  * @fd: descriptor for the historical log
  * @policy: ownership policy for audit log objects
+ * @result: output for the log metadata
  *
  * Returns 0 for a trusted regular file and -1 otherwise.
  */
 static int validate_log_file(int fd,
-		const struct auditd_log_policy *policy)
+		const struct auditd_log_policy *policy, struct stat *result)
 {
-	struct stat st;
-
-	if (fstat(fd, &st) < 0)
+	if (fstat(fd, result) < 0)
 		return -1;
-	if (!S_ISREG(st.st_mode) || st.st_uid != policy->owner) {
+	if (!S_ISREG(result->st_mode) || result->st_uid != policy->owner) {
 		errno = EPERM;
 		return -1;
 	}
@@ -235,30 +237,42 @@ static int validate_log_file(int fd,
  * @path: pinned audit log directory and current-log name
  * @policy: desired owner, group, and numbered-log count
  *
- * Returns 0 on success and -1 with errno set on failure.
+ * Returns 1 when the directory changed, 0 when it did not, and -1 with errno
+ * set on failure.
  */
 int auditd_log_repair_permissions(const struct auditd_log_path *path,
 		const struct auditd_log_policy *policy)
 {
 	mode_t dir_mode = policy->group ? 0750 : 0700;
 	mode_t log_mode = policy->group ? 0440 : 0400;
+	struct stat dir_st;
 	size_t name_len;
 	char *name;
-	unsigned int i;
+	unsigned int directory_changed = 0, i;
 
 	/* Never repair a directory that was writable by an untrusted user. */
-	if (validate_directory(path->dir_fd, policy) < 0)
+	if (validate_directory(path->dir_fd, policy, &dir_st) < 0)
 		return -1;
-	if (fchown(path->dir_fd, policy->owner, policy->group) < 0)
-		return -1;
-	if (fchmod(path->dir_fd, dir_mode) < 0)
-		return -1;
+	/* A non-root log_group explicitly opts into directory repair. */
+	if (policy->group) {
+		if (dir_st.st_gid != policy->group) {
+			if (fchown(path->dir_fd, (uid_t)-1, policy->group) < 0)
+				return -1;
+			directory_changed = 1;
+		}
+		if ((dir_st.st_mode & 07777) != dir_mode) {
+			if (fchmod(path->dir_fd, dir_mode) < 0)
+				return -1;
+			directory_changed = 1;
+		}
+	}
 
 	name_len = strlen(path->file_name) + 16;
 	name = malloc(name_len);
 	if (name == NULL)
 		return -1;
 	for (i = 1; i < policy->num_logs; i++) {
+		struct stat st;
 		int fd;
 
 		snprintf(name, name_len, "%s.%u", path->file_name, i);
@@ -268,8 +282,9 @@ int auditd_log_repair_permissions(const struct auditd_log_path *path,
 			break;
 		if (fd < 0)
 			goto bad;
-		if (validate_log_file(fd, policy) < 0 ||
-				fchmod(fd, log_mode) < 0) {
+		if (validate_log_file(fd, policy, &st) < 0 ||
+				(((st.st_mode & 07777) != log_mode) &&
+				fchmod(fd, log_mode) < 0)) {
 			int saved_errno = errno;
 
 			close(fd);
@@ -279,7 +294,7 @@ int auditd_log_repair_permissions(const struct auditd_log_path *path,
 		close(fd);
 	}
 	free(name);
-	return 0;
+	return directory_changed;
 
 bad:
 	{

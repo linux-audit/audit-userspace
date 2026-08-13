@@ -111,6 +111,8 @@ static void setup_tree(const char *root)
 	make_directory(path, 0700);
 	make_path(path, sizeof(path), root, "trusted/victim-dir");
 	make_directory(path, 0700);
+	make_path(path, sizeof(path), root, "trusted/shared-dir");
+	make_directory(path, 0755);
 	make_path(path, sizeof(path), root, "trusted/log-link");
 	assert(symlink("/trusted/log-dir", path) == 0);
 
@@ -149,7 +151,7 @@ static void test_group_repair_and_leaf_symlinks(const char *root,
 
 	assert(auditd_log_path_openat(&log_path, root_fd,
 		"/trusted/log-dir/audit.log", policy) == 0);
-	assert(auditd_log_repair_permissions(&log_path, policy) == 0);
+	assert(auditd_log_repair_permissions(&log_path, policy) == 1);
 	errno = 0;
 	assert(openat(log_path.dir_fd, log_path.file_name,
 		O_WRONLY|O_NOFOLLOW|O_CLOEXEC) == -1);
@@ -205,6 +207,37 @@ static void test_untrusted_components_are_rejected(const char *root,
 }
 
 /*
+ * test_root_group_preserves_directory - avoid changing an ordinary parent
+ * @root: disposable test-root pathname
+ * @root_fd: descriptor treated as the test resolution root
+ * @policy: ownership policy for the test
+ *
+ * Returns 1 when repair succeeds without changing the directory and 0
+ * otherwise.
+ */
+static int test_root_group_preserves_directory(const char *root, int root_fd,
+		const struct auditd_log_policy *policy)
+{
+	struct auditd_log_policy root_policy = *policy;
+	struct auditd_log_path log_path;
+	char directory[PATH_MAX];
+	mode_t mode;
+	gid_t group;
+	int rc;
+
+	root_policy.group = 0;
+	root_policy.num_logs = 1;
+	make_path(directory, sizeof(directory), root, "trusted/shared-dir");
+	group = object_group(directory);
+	assert(auditd_log_path_openat(&log_path, root_fd,
+		"/trusted/shared-dir/audit.log", &root_policy) == 0);
+	rc = auditd_log_repair_permissions(&log_path, &root_policy);
+	auditd_log_path_close(&log_path);
+	mode = object_mode(directory);
+	return rc == 0 && mode == 0755 && object_group(directory) == group;
+}
+
+/*
  * cleanup_tree - remove every disposable test fixture
  * @root: disposable test-root pathname
  *
@@ -232,6 +265,8 @@ static void cleanup_tree(const char *root)
 	assert(rmdir(path) == 0);
 	make_path(path, sizeof(path), root, "trusted/victim-dir");
 	assert(rmdir(path) == 0);
+	make_path(path, sizeof(path), root, "trusted/shared-dir");
+	assert(rmdir(path) == 0);
 	make_path(path, sizeof(path), root, "trusted");
 	assert(rmdir(path) == 0);
 	make_path(path, sizeof(path), root, "unsafe/log-dir");
@@ -254,7 +289,7 @@ int main(void)
 		.num_logs = 4,
 	};
 	char root[] = "auditd-log-test-XXXXXX";
-	int root_fd;
+	int root_fd, root_group_preserved;
 
 	assert(mkdtemp(root) != NULL);
 	assert(chmod(root, 0700) == 0);
@@ -262,8 +297,11 @@ int main(void)
 	assert(root_fd >= 0);
 	setup_tree(root);
 	test_untrusted_components_are_rejected(root, root_fd, &policy);
+	root_group_preserved = test_root_group_preserves_directory(root,
+		root_fd, &policy);
 	test_group_repair_and_leaf_symlinks(root, root_fd, &policy);
 	assert(close(root_fd) == 0);
 	cleanup_tree(root);
+	assert(root_group_preserved);
 	return EXIT_SUCCESS;
 }
