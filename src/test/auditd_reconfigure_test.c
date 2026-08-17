@@ -47,12 +47,14 @@ void update_report_timer(unsigned int interval)
 	(void)interval;
 }
 
+#ifdef USE_LISTENER
 void auditd_tcp_listen_reconfigure(const struct daemon_conf *nconf,
 				   struct daemon_conf *oconf)
 {
 	(void)nconf;
 	(void)oconf;
 }
+#endif
 
 void reconfigure_dispatcher(const struct daemon_conf *config)
 {

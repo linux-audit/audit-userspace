@@ -48,7 +48,8 @@ static inline void auditd_tcp_listen_uninit ( struct ev_loop *loop,
 	return;
 }
 
-static inline void auditd_tcp_listen_reconfigure ( struct daemon_conf *nconf,
+static inline void auditd_tcp_listen_reconfigure (
+						   const struct daemon_conf *nconf,
 						   struct daemon_conf *oconf )
 {
 	return;
