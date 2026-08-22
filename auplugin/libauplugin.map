@@ -1,0 +1,27 @@
+/* Avoid modifying a symbol set after it has been released
+   When adding features in a new release, add a new set
+   Removing features is a breaking change */
+LIBAUDIT_4.1 {
+  global:
+    auplugin_event_feed;
+    auplugin_event_loop;
+    auplugin_fgets;
+    auplugin_fgets_clear;
+    auplugin_fgets_clear_r;
+    auplugin_fgets_destroy;
+    auplugin_fgets_eof;
+    auplugin_fgets_eof_r;
+    auplugin_fgets_init;
+    auplugin_fgets_more;
+    auplugin_fgets_more_r;
+    auplugin_fgets_r;
+    auplugin_init;
+    auplugin_queue_depth;
+    auplugin_queue_max_depth;
+    auplugin_queue_overflow;
+    auplugin_register_stats_callback;
+    auplugin_report_stats;
+    auplugin_setvbuf;
+    auplugin_setvbuf_r;
+    auplugin_stop;
+};
