@@ -62,5 +62,6 @@ _S(54,  "fixed_fd_install")
 _S(55,  "ftruncate")
 _S(56,  "bind")
 _S(57,  "listen")
+_S(63,  "pipe")
 _S(64, "uring_cmd128")
 
