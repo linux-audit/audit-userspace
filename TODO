@@ -1,6 +1,8 @@
 Future roadmap (subject to change):
 ===================================
 4.2.x
+* Consolidate tests into a testing dir to speed up the build
+* Post the corrected TLS specfication to the wiki
 * Copy audisp-remote persistence method to audisp/queue.c
 * Multi-thread audisp-remote
 * Look into lazy parsing of audit records in auparse
