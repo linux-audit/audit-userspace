@@ -28,6 +28,7 @@
 #include <sys/select.h>
 #include <errno.h>
 #include <syslog.h>
+#include <unistd.h>
 #include <stdlib.h>
 #ifdef HAVE_LIBCAP_NG
 #include <cap-ng.h>
