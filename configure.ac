@@ -39,6 +39,7 @@ AC_CONFIG_MACRO_DIR([m4])
 AC_CANONICAL_TARGET
 AM_INIT_AUTOMAKE([subdir-objects foreign])
 LT_INIT
+gl_LD_VERSION_SCRIPT
 AC_SUBST(LIBTOOL_DEPS)
 OLDLIBS="$LIBS"
 m4_include([src/libev/libev.m4])
