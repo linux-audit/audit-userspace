@@ -57,6 +57,9 @@ endif
 if USE_RISCV
 BUILT_SOURCES += riscv64_tables.h riscv32_tables.h
 endif
+if USE_LOONGARCH64
+BUILT_SOURCES += loongarch64_tables.h
+endif
 noinst_PROGRAMS = gen_actiontabs_h gen_errtabs_h gen_fieldtabs_h \
 	gen_flagtabs_h gen_fstypetabs_h gen_ftypetabs_h gen_i386_tables_h \
 	gen_machinetabs_h gen_msg_typetabs_h gen_optabs_h \
@@ -70,6 +73,9 @@ noinst_PROGRAMS += gen_aarch64_tables_h
 endif
 if USE_RISCV
 noinst_PROGRAMS += gen_riscv64_tables_h gen_riscv32_tables_h
+endif
+if USE_LOONGARCH64
+noinst_PROGRAMS += gen_loongarch64_tables_h
 endif
 include $(top_srcdir)/lib/gen_tables.mk
 
@@ -102,6 +108,13 @@ gen_riscv32_tables_h_SOURCES = gen_tables.c gen_tables.h riscv32_table.h
 gen_riscv32_tables_h_CFLAGS = '-DTABLE_H="riscv32_table.h"'
 riscv32_tables.h: gen_riscv32_tables_h Makefile
 	./gen_riscv32_tables_h --lowercase --i2s --s2i riscv32_syscall > $@
+endif
+
+if USE_LOONGARCH64
+gen_loongarch64_tables_h_SOURCES = gen_tables.c gen_tables.h loongarch64_table.h
+gen_loongarch64_tables_h_CFLAGS = '-DTABLE_H="loongarch64_table.h"'
+loongarch64_tables.h: gen_loongarch64_tables_h Makefile
+	./gen_loongarch64_tables_h --lowercase --i2s --s2i loongarch64_syscall > $@
 endif
 
 gen_errtabs_h_SOURCES = gen_tables.c gen_tables.h errtab.h

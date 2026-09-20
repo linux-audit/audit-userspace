@@ -189,6 +189,25 @@ test_riscv32_table(void)
 
 #endif
 
+#ifdef WITH_LOONGARCH64
+static void
+test_loongarch64_table(void)
+{
+	static const struct entry t[] = {
+#include "../loongarch64_table.h"
+	};
+
+	printf("Testing loongarch64_table...\n");
+#define I2S(I) audit_syscall_to_name((I), MACH_LOONGARCH64)
+#define S2I(S) audit_name_to_syscall((S), MACH_LOONGARCH64)
+	TEST_I2S(0);
+	TEST_S2I(-1);
+#undef I2S
+#undef S2I
+}
+
+#endif
+
 
 static void
 test_i386_table(void)
@@ -447,6 +466,9 @@ main(void)
 #ifdef WITH_RISCV
 	test_riscv64_table();
 	test_riscv32_table();
+#endif
+#ifdef WITH_LOONGARCH64
+	test_loongarch64_table();
 #endif
 	test_i386_table();
 	test_ppc_table();
