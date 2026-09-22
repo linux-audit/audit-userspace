@@ -173,6 +173,10 @@ long time_string_to_seconds(const char *time_string,
 		return -1;
 	}
 	switch (*end) {
+		
+	case 's':
+		break;
+		
 	case 'm':
 		if (i > LONG_MAX / MINUTES || i < LONG_MIN / MINUTES)
 			return -1;
