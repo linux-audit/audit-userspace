@@ -518,17 +518,29 @@ static int block_address_time_parser(struct nv_pair *nv, int line,
 
 	switch (*end) {
 		case 'm':
+			if (i > ULONG_MAX / MINUTES)
+				return 1;
 			i *= MINUTES;
 			break;
+
 		case 'h':
+			if (i > ULONG_MAX / HOURS)
+				return 1;
 			i *= HOURS;
 			break;
+
 		case 'd':
+			if (i > ULONG_MAX / DAYS)
+				return 1;
 			i *= DAYS;
 			break;
+
 		case 'M':
+			if (i > ULONG_MAX / MONTHS)
+				return 1;
 			i *= MONTHS;
 			break;
+
 		case '\0':
 			break;
 		default:
