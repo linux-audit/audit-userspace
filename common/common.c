@@ -173,20 +173,34 @@ long time_string_to_seconds(const char *time_string,
 		return -1;
 	}
 	switch (*end) {
+		
 	case 's':
 		break;
+		
 	case 'm':
+		if (i > LONG_MAX / MINUTES || i < LONG_MIN / MINUTES)
+			return -1;
 		i *= MINUTES;
 		break;
+
 	case 'h':
+		if (i > LONG_MAX / HOURS || i < LONG_MIN / HOURS)
+			return -1;
 		i *= HOURS;
 		break;
+
 	case 'd':
+		if (i > LONG_MAX / DAYS || i < LONG_MIN / DAYS)
+			return -1;
 		i *= DAYS;
 		break;
+
 	case 'M':
+		if (i > LONG_MAX / MONTHS || i < LONG_MIN / MONTHS)
+			return -1;
 		i *= MONTHS;
 		break;
+
 	case '\0':
 		break;
 	default:
