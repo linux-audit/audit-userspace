@@ -13,8 +13,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        container: ["ubuntu:latest", "fedora:latest"]
+        container: ["ubuntu:latest", "fedora:latest", "alpine:latest"]
         compiler: [gcc, clang]
+        exclude:
+          - container: "alpine:latest"
+            compiler: clang
 
     steps:
       - name: Checkout code
@@ -47,6 +50,19 @@ jobs:
             python3-devel python-unversioned-command swig \
             openldap-devel \
             openssl-devel
+
+      - name: Install dependencies (Alpine/musl)
+        if: matrix.container == 'alpine:latest'
+        run: |
+          apk add --no-cache \
+            gawk diffutils coreutils autoconf automake libtool \
+            build-base musl-dev \
+            linux-headers \
+            krb5-dev \
+            libcap-ng-dev \
+            python3-dev swig \
+            openldap-dev \
+            openssl-dev
 
       - name: Set compiler
         run: |
