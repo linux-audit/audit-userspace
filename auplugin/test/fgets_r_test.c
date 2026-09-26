@@ -27,6 +27,22 @@
 #include <fcntl.h>
 #include <auplugin.h>
 
+/*
+ * Write all of data to fd. Returns nothing; asserts that each write
+ * succeeds.
+ */
+static void write_all(int fd, const char *data)
+{
+	size_t done = 0, len = strlen(data);
+
+	while (done < len) {
+		ssize_t rc = write(fd, data + done, len - done);
+
+		assert(rc > 0);
+		done += (size_t)rc;
+	}
+}
+
 static void test_basic_state(void)
 {
 	int fds[2];
@@ -99,6 +115,47 @@ static void test_deferred_compaction(void)
 	auplugin_fgets_destroy(st);
 }
 
+/*
+ * Verify that an incomplete line left after earlier records advanced the
+ * read pointer is compacted before reading more data. Returns nothing;
+ * assertions ensure the allocation boundary does not split the line.
+ */
+static void test_compaction_before_partial_read(void)
+{
+	int fds[2];
+	char buf[64];
+	char *custom;
+	auplugin_fgets_state_t *st;
+
+	assert(pipe(fds) == 0);
+	st = auplugin_fgets_init();
+	assert(st);
+	custom = malloc(33);
+	assert(custom);
+	assert(auplugin_setvbuf_r(st, custom, 33, MEM_MALLOC) == 0);
+
+	write_all(fds[1], "first\nsecond\nthird\npart");
+	assert(auplugin_fgets_r(st, buf, sizeof(buf), fds[0]) == 6);
+	assert(strcmp(buf, "first\n") == 0);
+	assert(auplugin_fgets_r(st, buf, sizeof(buf), fds[0]) == 7);
+	assert(strcmp(buf, "second\n") == 0);
+	assert(auplugin_fgets_r(st, buf, sizeof(buf), fds[0]) == 6);
+	assert(strcmp(buf, "third\n") == 0);
+
+	write_all(fds[1], "ial-record\nnext\n");
+	close(fds[1]);
+
+	assert(auplugin_fgets_r(st, buf, sizeof(buf), fds[0]) == 15);
+	assert(strcmp(buf, "partial-record\n") == 0);
+	assert(auplugin_fgets_r(st, buf, sizeof(buf), fds[0]) == 5);
+	assert(strcmp(buf, "next\n") == 0);
+	assert(auplugin_fgets_r(st, buf, sizeof(buf), fds[0]) == 0);
+	assert(auplugin_fgets_eof_r(st) == 1);
+
+	close(fds[0]);
+	auplugin_fgets_destroy(st);
+}
+
 static void test_reject_self_managed_override(void)
 {
 	auplugin_fgets_state_t *st;
@@ -126,6 +183,55 @@ static void test_read_error_preserves_caller_state(void)
 	assert(strcmp(buf, "unchanged") == 0);
 	assert(auplugin_fgets_eof_r(st) == 0);
 	auplugin_fgets_destroy(st);
+}
+
+/*
+ * Verify that a read-only file mapping without a trailing newline is never
+ * compacted after the read pointer advances. Returns nothing; assertions
+ * check that the final partial line is delivered without writing the map.
+ */
+static void test_mmap_file_no_trailing_newline(void)
+{
+	char template[] = "/tmp/auplugin_fgets_mmap_no_nlXXXXXX";
+	const char *line =
+		"0123456789abcdef0123456789abcdefQRSTUVWX";
+	size_t line_len = strlen(line);
+	auplugin_fgets_state_t *st;
+	struct stat sb;
+	char buf[64];
+	void *base;
+	int fd;
+	int len;
+
+	fd = mkstemp(template);
+	assert(fd >= 0);
+	assert(unlink(template) == 0);
+	write_all(fd, line);
+	assert(lseek(fd, 0, SEEK_SET) == 0);
+	assert(fstat(fd, &sb) == 0);
+
+	base = mmap(NULL, sb.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
+	assert(base != MAP_FAILED);
+
+	st = auplugin_fgets_init();
+	assert(st);
+	assert(auplugin_setvbuf_r(st, base, sb.st_size,
+				 MEM_MMAP_FILE) == 0);
+
+	len = auplugin_fgets_r(st, buf, 33, fd);
+	assert(len == 32);
+	assert(strncmp(buf, line, (size_t)len) == 0);
+
+	len = auplugin_fgets_r(st, buf, sizeof(buf), fd);
+	assert(len == (int)(line_len - 32));
+	assert(strcmp(buf, line + 32) == 0);
+
+	len = auplugin_fgets_r(st, buf, sizeof(buf), fd);
+	assert(len == 0);
+	assert(auplugin_fgets_eof_r(st) == 1);
+
+	auplugin_fgets_destroy(st);
+	close(fd);
 }
 
 static void test_mmap_file(void)
@@ -170,8 +276,10 @@ int main(void)
 {
 	test_basic_state();
 	test_deferred_compaction();
+	test_compaction_before_partial_read();
 	test_reject_self_managed_override();
 	test_read_error_preserves_caller_state();
+	test_mmap_file_no_trailing_newline();
 	test_mmap_file();
 	printf("audit-fgets_r tests: all passed\n");
 	return 0;

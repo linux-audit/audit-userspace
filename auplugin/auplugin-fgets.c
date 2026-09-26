@@ -38,8 +38,8 @@
  * the string with a 0 and returns it. It updates current to point
  * to where it left off. On the next read it starts there and tries to
  * find a '\n'. If it can't find one, it advances the buffer pointer
- * and only compacts the unread data when there is no room left for
- * the next read. If the descriptor becomes invalid or there is an
+ * and only compacts the unread data when a partial line needs more
+ * input. If the descriptor becomes invalid or there is an
  * error reading, it returns -1 without changing state or the caller buffer.
  * The variable eptr marks the end of the buffer. It never changes.
  */
@@ -158,7 +158,8 @@ int auplugin_fgets_r(struct auplugin_fgets_state *st, char *buf, size_t blen, in
 
 	/* 2) If not, and we still can read more, pull in more data */
 	if (line_end == NULL && !st->eof) {
-		if (st->current == st->eptr && st->buffer != st->orig) {
+		if (st->mem_type != MEM_MMAP_FILE &&
+		    st->buffer != st->orig) {
 			size_t used = (size_t)(st->current - st->buffer);
 
 			memmove(st->orig, st->buffer, used);
@@ -218,8 +219,8 @@ int auplugin_fgets_r(struct auplugin_fgets_state *st, char *buf, size_t blen, in
 
 	size_t remainder = avail - line_len;
 	/* For MEM_MMAP_FILE we advance over the returned data permanently.
-	 * For other modes we defer compaction until there is no write room
-	 * left for the next read. */
+	 * For other modes we defer compaction until an incomplete line needs
+	 * more input. */
 	if (st->mem_type == MEM_MMAP_FILE) {
 		st->buffer += line_len;
 		if (st->buffer >= st->eptr)
@@ -304,4 +305,3 @@ int auplugin_setvbuf(void *buf, size_t buff_size, enum auplugin_mem how)
         auplugin_fgets_ensure_global();
         return auplugin_setvbuf_r(&global_state, buf, buff_size, how);
 }
-
