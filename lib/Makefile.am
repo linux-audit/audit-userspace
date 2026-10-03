@@ -42,6 +42,9 @@ libaudit_la_SOURCES = libaudit.c netlink.c \
 libaudit_la_LIBADD = $(CAPNG_LDADD) ${top_builddir}/common/libaucommon.la
 libaudit_la_DEPENDENCIES = $(libaudit_la_SOURCES) ../config.h ${top_builddir}/common/libaucommon.la
 libaudit_la_LDFLAGS = -Wl,-z,relro -version-info $(VERSION_INFO)
+if HAVE_LD_VERSION_SCRIPT
+libaudit_la_LDFLAGS += -Wl,--version-script=$(srcdir)/libaudit.map
+endif
 nodist_libaudit_la_SOURCES = $(BUILT_SOURCES)
 
 BUILT_SOURCES = actiontabs.h errtabs.h fieldtabs.h flagtabs.h \
