@@ -2250,18 +2250,20 @@ inline_size int
 array_nextsize (int elem, int cur, int cnt)
 {
   int ncur = cur + 1;
+  long size;
 
   do
     ncur <<= 1;
   while (cnt > ncur);
 
+  size = (long)elem * ncur;
+
   /* if size is large, round to MALLOC_ROUND - 4 * longs to accommodate malloc overhead */
-  if (elem * ncur > MALLOC_ROUND - sizeof (void *) * 4)
+  if (size > MALLOC_ROUND - sizeof (void *) * 4)
     {
-      ncur *= elem;
-      ncur = (ncur + elem + (MALLOC_ROUND - 1) + sizeof (void *) * 4) & ~(MALLOC_ROUND - 1);
-      ncur = ncur - sizeof (void *) * 4;
-      ncur /= elem;
+      size = (size + elem + (MALLOC_ROUND - 1) + sizeof (void *) * 4) & ~(MALLOC_ROUND - 1);
+      size = size - sizeof (void *) * 4;
+      ncur = (int)(size / elem);
     }
 
   return ncur;
