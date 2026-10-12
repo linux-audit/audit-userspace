@@ -212,7 +212,8 @@ typedef enum {
 	MACH_PPC64LE,
 	MACH_IO_URING,
 	MACH_RISCV32,
-	MACH_RISCV64
+	MACH_RISCV64,
+	MACH_LOONGARCH64
 } machine_t;
 
 /* These are the valid audit failure tunable enum values */

@@ -448,6 +448,18 @@ AM_CONDITIONAL(USE_RISCV, test x$use_riscv = xyes)
 AC_MSG_RESULT($use_riscv)
 
 withval=""
+AC_MSG_CHECKING(whether to include loongarch64 processor support)
+AC_ARG_WITH(loongarch64,
+AS_HELP_STRING([--with-loongarch64],[enable LoongArch64 processor support]),
+use_loongarch64=$withval,
+use_loongarch64=no)
+if test x$use_loongarch64 != xno ; then
+      AC_DEFINE(WITH_LOONGARCH64,1,[Define if you want to enable LoongArch64 processor support.])
+fi
+AM_CONDITIONAL(USE_LOONGARCH64, test x$use_loongarch64 = xyes)
+AC_MSG_RESULT($use_loongarch64)
+
+withval=""
 AC_MSG_CHECKING(whether to use apparmor)
 AC_ARG_WITH(apparmor,
 AS_HELP_STRING([--with-apparmor],[enable AppArmor events]),
