@@ -79,3 +79,6 @@ jobs:
 
       - name: Run tests
         run: make check
+
+      - name: Check for unversioned symbols
+        run: ./.github/scripts/check-versioned-symbols.sh

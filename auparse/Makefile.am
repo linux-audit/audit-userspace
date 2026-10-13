@@ -50,6 +50,9 @@ nodist_libauparse_la_SOURCES = $(BUILT_SOURCES)
 libauparse_la_LIBADD = ${top_builddir}/lib/libaudit.la ${top_builddir}/common/libaucommon.la
 libauparse_la_DEPENDENCIES = $(libauparse_la_SOURCES) ${top_builddir}/config.h ${top_builddir}/common/libaucommon.la
 libauparse_la_LDFLAGS = -Wl,-z,relro
+if HAVE_LD_VERSION_SCRIPT
+libauparse_la_LDFLAGS += -Wl,--version-script=$(srcdir)/libauparse.map
+endif
 
 message.c:
 	cp ${top_srcdir}/lib/message.c .
