@@ -2037,19 +2037,21 @@ static int parse_avc(const lnode *n, search_items *s)
 			term = n->message;
 			goto other_avc;
 		}
-		// Do not override syscall success if already set.
-		// Syscall pass/fail is the authoritative value.
-		if (event_success != S_UNSET && s->success == S_UNSET) {
-			*term = 0;
-			if (strstr(str, "denied")) {
+		// Always record the AVC verdict (denied/granted) from the record.
+		// Only propagate it to s->success when a success filter is active
+		// and s->success hasn't been set yet; syscall pass/fail is the
+		// authoritative value and must not be overwritten.
+		*term = 0;
+		if (strstr(str, "denied")) {
+			an.avc_result = AVC_DENIED;
+			if (event_success != S_UNSET && s->success == S_UNSET)
 				s->success = S_FAILED;
-				an.avc_result = AVC_DENIED;
-			} else {
+		} else {
+			an.avc_result = AVC_GRANTED;
+			if (event_success != S_UNSET && s->success == S_UNSET)
 				s->success = S_SUCCESS;
-				an.avc_result = AVC_GRANTED;
-			}
-			*term = '{';
 		}
+		*term = '{';
 
 		// Now get permission
 		str = term + 1;
