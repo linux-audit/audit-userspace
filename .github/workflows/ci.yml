@@ -27,10 +27,11 @@ jobs:
         if: matrix.container == 'ubuntu:latest'
         run: |
           apt-get update
+          # Use UAPI headers without depending on a specific kernel build.
           apt-get install -y \
             gawk diffutils autoconf automake libtool \
             ${{ matrix.compiler }} \
-            linux-headers-generic \
+            linux-libc-dev \
             build-essential \
             libkrb5-dev \
             libcap-ng-dev \
