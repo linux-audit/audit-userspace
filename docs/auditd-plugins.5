@@ -60,6 +60,8 @@ auditd has an internal queue to hold events for plugins. (See the \fIq_depth\fP 
 
 auditctl --signal cont ; sleep 1 ; cat /run/audit/auditd.state
 
+The plugin events dropped line counts events that did not reach every plugin while the dispatcher was running, for example because the queue was full or a plugin failed. It is not reset by a reconfiguration.
+
 Plugins using
 .BR libauplugin
 can retrieve their own queue metrics with

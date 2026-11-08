@@ -165,7 +165,7 @@ void increment_plugin_dropped(void)
 	atomic_fetch_add_explicit(&plugin_events_dropped, 1,
 		memory_order_relaxed);
 #else
-	plugin_events_dropped++;
+	__atomic_fetch_add(&plugin_events_dropped, 1, __ATOMIC_RELAXED);
 #endif
 }
 
@@ -639,8 +639,13 @@ void write_queue_state(FILE *f)
 	fprintf(f, "plugin queueing suspended = %s\n",
 				AUDIT_ATOMIC_LOAD(processing_suspended) ?
 				"yes" : "no");
+#ifdef HAVE_ATOMIC
 	fprintf(f, "plugin events dropped = %lu\n",
 				AUDIT_ATOMIC_LOAD(plugin_events_dropped));
+#else
+	fprintf(f, "plugin events dropped = %lu\n",
+		__atomic_load_n(&plugin_events_dropped, __ATOMIC_RELAXED));
+#endif
 }
 
 void resume_queue(void)
