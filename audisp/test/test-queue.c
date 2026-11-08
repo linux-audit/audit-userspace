@@ -22,6 +22,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <syslog.h>
 #include <unistd.h>
 #include <sys/stat.h>
 #include "queue.h"
@@ -514,6 +515,77 @@ out_q:
 	return rc;
 }
 
+static long read_dropped(void)
+{
+	char *buf = NULL;
+	size_t len = 0;
+	unsigned long cnt;
+	const char *p;
+	long rc = -1;
+	FILE *f = open_memstream(&buf, &len);
+
+	if (f == NULL)
+		return rc;
+	write_queue_state(f);
+	fclose(f);
+	p = strstr(buf, "plugin events dropped = ");
+	if (p && sscanf(p, "plugin events dropped = %lu", &cnt) == 1)
+		rc = cnt;
+	free(buf);
+	return rc;
+}
+
+static int dropped_count_test(int action)
+{
+	/*
+	 * Overflow a queue nobody drains by 10 events. The count must survive
+	 * a resize and a teardown, which both clear the overflow flag.
+	 */
+	struct disp_conf conf;
+	long base = -1;
+	int i, mask, rc = 1;
+	event_t *e;
+
+	memset(&conf, 0, sizeof(conf));
+	conf.overflow_action = action;
+	/* O_SUSPEND logs an alert, keep it out of the system log. */
+	mask = setlogmask(LOG_MASK(LOG_EMERG));
+	if (init_queue(4))
+		goto out_q;
+	/* Earlier tests may have dropped events, so work with a delta. */
+	base = read_dropped();
+	for (i = 0; i < 14; i++) {
+		e = make_event("dropped");
+		if (!e || enqueue(e, &conf) != (i >= 4))
+			goto out_q;
+	}
+	if (base < 0 || read_dropped() != base + 10 || !queue_overflowed_p())
+		goto out_q;
+
+	increase_queue_depth(8);
+	reset_suspended();
+	if (read_dropped() != base + 10 || queue_overflowed_p())
+		goto out_q;
+
+	destroy_queue();
+	if (init_queue(4) || read_dropped() != base + 10)
+		goto out_q;
+
+	destroy_queue();
+	e = make_event("dropped");
+	if (!e || enqueue(e, &conf) != -1 || read_dropped() != base + 10)
+		goto out_q;
+	rc = 0;
+out_q:
+	if (rc)
+		fprintf(stderr,
+			"dropped_count_test: action %d, base %ld, now %ld\n",
+			action, base, read_dropped());
+	destroy_queue();
+	setlogmask(mask);
+	return rc;
+}
+
 int main(void)
 {
 	const char *srcdir = getenv("srcdir") ? getenv("srcdir") : ".";
@@ -529,6 +601,10 @@ int main(void)
 	if (persist_test(path))
 		return 1;
 	if (resize_handshake_test())
+		return 1;
+	if (dropped_count_test(O_IGNORE))
+		return 1;
+	if (dropped_count_test(O_SUSPEND))
 		return 1;
 	if (concurrency_test(path))
 		return 1;

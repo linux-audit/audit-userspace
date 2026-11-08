@@ -100,6 +100,11 @@ static ATOMIC_UNSIGNED q_depth, overflowed;
 static ATOMIC_UNSIGNED processing_suspended;
 static ATOMIC_UNSIGNED enqueue_in_progress;
 static ATOMIC_UNSIGNED currently_used, max_used;
+#ifdef HAVE_ATOMIC
+static atomic_ulong plugin_events_dropped;
+#else
+static unsigned long plugin_events_dropped;
+#endif
 static ATOMIC_UNSIGNED queue_initialized;
 static int queue_full_warning = 0;
 static int persist_fd = -1;
@@ -147,6 +152,20 @@ static void decrease_used_count(void)
 	atomic_fetch_sub_explicit(&currently_used, 1, memory_order_relaxed);
 #else
 	currently_used--;
+#endif
+}
+
+/*
+ * Count an event that did not reach the plugins. Never reset, unlike
+ * overflowed.
+ */
+static void increment_plugin_dropped(void)
+{
+#ifdef HAVE_ATOMIC
+	atomic_fetch_add_explicit(&plugin_events_dropped, 1,
+		memory_order_relaxed);
+#else
+	plugin_events_dropped++;
 #endif
 }
 
@@ -349,6 +368,7 @@ int enqueue(event_t *e, struct disp_conf *config)
 		atomic_store_explicit(&enqueue_in_progress, 0,
 			memory_order_seq_cst);
 		free(e);
+		increment_plugin_dropped();
 		return 1;
 	}
 #else
@@ -356,6 +376,7 @@ int enqueue(event_t *e, struct disp_conf *config)
 	if (processing_suspended) {
 		enqueue_in_progress = 0;
 		free(e);
+		increment_plugin_dropped();
 		return 1;
 	}
 #endif
@@ -370,6 +391,7 @@ retry:
 		enqueue_in_progress = 0;
 #endif
 		free(e);
+		increment_plugin_dropped();
 		do_overflow_action(config);
 		return 1;
 	}
@@ -617,6 +639,8 @@ void write_queue_state(FILE *f)
 	fprintf(f, "plugin queueing suspended = %s\n",
 				AUDIT_ATOMIC_LOAD(processing_suspended) ?
 				"yes" : "no");
+	fprintf(f, "plugin events dropped = %lu\n",
+				AUDIT_ATOMIC_LOAD(plugin_events_dropped));
 }
 
 void resume_queue(void)

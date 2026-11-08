@@ -248,6 +248,7 @@ max plugin queue depth used = 5
 plugin queue size = 2000
 plugin queue overflow detected = no
 plugin queueing suspended = no
+plugin events dropped = 0
 listening for network connections = no
 glibc arena (total memory) is: 388 KiB, was: 388 KiB
 glibc uordblks (in use memory) is: 92 KiB, was: 90 KiB
