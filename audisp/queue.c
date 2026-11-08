@@ -159,7 +159,7 @@ static void decrease_used_count(void)
  * Count an event that did not reach the plugins. Never reset, unlike
  * overflowed.
  */
-static void increment_plugin_dropped(void)
+void increment_plugin_dropped(void)
 {
 #ifdef HAVE_ATOMIC
 	atomic_fetch_add_explicit(&plugin_events_dropped, 1,
