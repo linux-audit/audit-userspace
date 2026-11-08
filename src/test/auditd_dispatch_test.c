@@ -17,27 +17,63 @@
 #include "libdisp.h"
 
 static event_t *queued_event;
+static int plugins_active = 1;
+static int enqueue_rc;
+static int fail_alloc;
+static unsigned int plugin_dropped;
 
 /*
- * libdisp_active - make the dispatcher available to the unit under test
+ * test_malloc - fail the event allocation when directed by a test
+ * @size: requested allocation size
  *
- * Returns: Non-zero.
+ * Returns: Allocated memory, or NULL when failure injection is enabled.
+ */
+static void *test_malloc(size_t size)
+{
+	if (fail_alloc)
+		return NULL;
+	return malloc(size);
+}
+
+#define malloc test_malloc
+#include "../auditd-dispatch.c"
+#undef malloc
+
+/*
+ * libdisp_active - report whether plugins are configured
+ *
+ * Returns: Non-zero unless a test disabled the plugins.
  */
 int libdisp_active(void)
 {
-	return 1;
+	return plugins_active;
 }
 
 /*
  * libdisp_enqueue - capture a dispatched event for assertions
  * @e: event transferred by the dispatcher
  *
- * Returns: Success.
+ * Returns: The result chosen by the test. Like the queue, the event is
+ * released when it is not accepted.
  */
 int libdisp_enqueue(event_t *e)
 {
+	if (enqueue_rc) {
+		free(e);
+		return enqueue_rc;
+	}
 	queued_event = e;
 	return 0;
+}
+
+/*
+ * increment_plugin_dropped - record that the dispatcher counted a drop
+ *
+ * Returns: None.
+ */
+void increment_plugin_dropped(void)
+{
+	plugin_dropped++;
 }
 
 /*
@@ -119,8 +155,67 @@ static void test_invalid_netlink_length(void)
 	memset(&rep, 0, sizeof(rep));
 	rep.nlh = &rep.msg.nlh;
 	rep.msg.nlh.nlmsg_len = sizeof(rep.msg.data) + 1;
+	plugin_dropped = 0;
 	assert(dispatch_event(&rep, AUDISP_PROTOCOL_VER) == -1);
 	assert(queued_event == NULL);
+	assert(plugin_dropped == 1);
+}
+
+/*
+ * test_dispatch_drops - count records the queue does not count itself
+ *
+ * An uninitialized queue rejects the record without counting it.
+ */
+static void test_dispatch_drops(void)
+{
+	struct audit_reply rep;
+
+	memset(&rep, 0, sizeof(rep));
+	rep.msg.nlh.nlmsg_len = 2;
+	plugin_dropped = 0;
+
+	fail_alloc = 1;
+	assert(dispatch_event(&rep, AUDISP_PROTOCOL_VER) == -1);
+	fail_alloc = 0;
+	assert(plugin_dropped == 1);
+
+	assert(dispatch_event(&rep, AUDISP_PROTOCOL_VER2 + 1) == 0);
+	assert(plugin_dropped == 2);
+
+	enqueue_rc = -1;
+	assert(dispatch_event(&rep, AUDISP_PROTOCOL_VER) == -1);
+	enqueue_rc = 0;
+	assert(plugin_dropped == 3);
+	assert(queued_event == NULL);
+}
+
+/*
+ * test_uncounted_returns - leave no plugins and queue drops uncounted
+ *
+ * The queue counts its own drops, so the dispatcher must not count them
+ * a second time.
+ */
+static void test_uncounted_returns(void)
+{
+	struct audit_reply rep;
+
+	memset(&rep, 0, sizeof(rep));
+	rep.msg.nlh.nlmsg_len = 2;
+	plugin_dropped = 0;
+
+	plugins_active = 0;
+	fail_alloc = 1;
+	assert(dispatch_event(&rep, AUDISP_PROTOCOL_VER) == 0);
+	fail_alloc = 0;
+	plugins_active = 1;
+
+	enqueue_rc = 1;
+	assert(dispatch_event(&rep, AUDISP_PROTOCOL_VER) == 1);
+	enqueue_rc = 0;
+
+	assert(dispatch_event(&rep, AUDISP_PROTOCOL_VER) == 0);
+	free_queued_event();
+	assert(plugin_dropped == 0);
 }
 
 /*
@@ -205,5 +300,7 @@ int main(void)
 	test_synthetic_payload_length();
 	test_realistic_user_event();
 	test_v2_protocol_uses_rep_len();
+	test_dispatch_drops();
+	test_uncounted_returns();
 	return 0;
 }

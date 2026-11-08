@@ -24,6 +24,7 @@
 #include <stdio.h>
 #include "libaudit.h"
 #include "auditd-config.h"
+#include "dso.h"
 
 typedef struct event
 {
@@ -41,5 +42,9 @@ int libdisp_active(void);
 void libdisp_nudge_queue(void);
 void libdisp_write_queue_state(FILE *f);
 void libdisp_resume(void);
+
+AUDIT_HIDDEN_START
+void increment_plugin_dropped(void);
+AUDIT_HIDDEN_END
 
 #endif

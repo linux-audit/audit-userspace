@@ -61,14 +61,17 @@ void reconfigure_dispatcher(const struct daemon_conf *config)
 int dispatch_event(const struct audit_reply *rep, int protocol_ver)
 {
 	event_t *e;
+	int rc;
 
 	if (!libdisp_active())
 		return 0;
 
 	// Translate event into dispatcher format
 	e = malloc(sizeof(event_t));
-	if (e == NULL)
+	if (e == NULL) {
+		increment_plugin_dropped();
 		return -1;
+	}
 
 	e->hdr.ver = protocol_ver;
 	e->hdr.hlen = sizeof(struct audit_dispatcher_header);
@@ -80,6 +83,7 @@ int dispatch_event(const struct audit_reply *rep, int protocol_ver)
 		 * message length. */
 		if (rep->msg.nlh.nlmsg_len > sizeof(e->data)) {
 			free(e);
+			increment_plugin_dropped();
 			return -1;
 		}
 		e->hdr.size = rep->msg.nlh.nlmsg_len;
@@ -89,7 +93,11 @@ int dispatch_event(const struct audit_reply *rep, int protocol_ver)
 		memcpy(e->data, (void*)rep->message, e->hdr.size);
 	} else {
 		free(e);
+		increment_plugin_dropped();
 		return 0;
 	}
-	return libdisp_enqueue(e);
+	rc = libdisp_enqueue(e);
+	if (rc < 0)
+		increment_plugin_dropped();
+	return rc;
 }
