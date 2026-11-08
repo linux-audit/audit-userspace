@@ -694,7 +694,7 @@ static int event_loop(void)
 	while (AUDIT_ATOMIC_LOAD(stop) == 0) {
 		event_t *e;
 		char *ptr, unknown[32];
-		int len;
+		int len, undelivered = 0;
 		lnode *conf;
 
 		/* A child can exit before the queue is ready to be nudged. */
@@ -740,6 +740,7 @@ static int event_loop(void)
 			len = 0;
 		if (len <= 0) {
 			free(e); /* Either corrupted event or no memory */
+			increment_plugin_dropped();
 			continue;
 		}
 
@@ -758,8 +759,10 @@ static int event_loop(void)
 		do {
 			if (conf == NULL || conf->p == NULL)
 				continue;
-			if (conf->p->active == A_NO || AUDIT_ATOMIC_LOAD(stop))
+			if (conf->p->active == A_NO || AUDIT_ATOMIC_LOAD(stop)) {
+				undelivered = 1;
 				continue;
+			}
 
 			/* Now send the event to the child */
 			if (conf->p->type == S_ALWAYS &&
@@ -789,10 +792,16 @@ static int event_loop(void)
 						finish_plugin_restart(e, fmt_buf, len,
 								      conf);
 					}
-				}
+					if (conf->p->active == A_NO)
+						undelivered = 1;
+				} else if (rc < 0)
+					undelivered = 1;
 			}
 		} while (!AUDIT_ATOMIC_LOAD(stop) &&
 			 (conf = plist_next(&plugin_conf)));
+
+		if (undelivered && !AUDIT_ATOMIC_LOAD(stop))
+			increment_plugin_dropped();
 
 		/* Done with the memory...release it */
 		free(e);
