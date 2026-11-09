@@ -49,4 +49,7 @@ _S(MACH_IO_URING,   "uring")
 _S(MACH_RISCV32,   "riscv32")
 _S(MACH_RISCV64,   "riscv64")
 #endif
+#ifdef WITH_LOONGARCH64
+_S(MACH_LOONGARCH64, "loongarch64")
+#endif
 
