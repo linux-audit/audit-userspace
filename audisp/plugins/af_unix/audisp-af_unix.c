@@ -331,43 +331,47 @@ static int event_to_string(struct audit_dispatcher_header *hdr,
  *
  * This function reads exactly sizeof(*hdr) bytes followed by hdr->size
  * bytes from @fd.  It returns the total bytes read or -1 on error and
- * 0 when EOF is reached.
+ * 0 when EOF is reached. EAGAIN preserves partial input; the caller must
+ * reuse the same header and data storage until the record is complete.
  */
 static int read_binary_record(int fd, struct audit_dispatcher_header *hdr,
 			      char *data)
 {
-	size_t len = sizeof(*hdr);
-	char *ptr = (char *)hdr;
+	/* stdin is a nonblocking stream; a record may span poll callbacks. */
+	static size_t header_read, data_read;
 	ssize_t rc;
 
-	while (len) {
-		rc = read(fd, ptr, len);
+	while (header_read < sizeof(*hdr)) {
+		rc = read(fd, (char *)hdr + header_read,
+			  sizeof(*hdr) - header_read);
 		if (rc <= 0) {
 			if (rc < 0 && errno == EINTR)
 				continue;
-			return rc;
+			goto incomplete;
 		}
-		ptr += rc;
-		len -= rc;
+		header_read += rc;
 	}
 
 	if (hdr->size > MAX_AUDIT_MESSAGE_LENGTH)
 		hdr->size = MAX_AUDIT_MESSAGE_LENGTH;
 
-	len = hdr->size;
-	ptr = data;
-	while (len) {
-		rc = read(fd, ptr, len);
+	while (data_read < hdr->size) {
+		rc = read(fd, data + data_read, hdr->size - data_read);
 		if (rc <= 0) {
 			if (rc < 0 && errno == EINTR)
 				continue;
-			return rc;
+			goto incomplete;
 		}
-		ptr += rc;
-		len -= rc;
+		data_read += rc;
 	}
 
+	header_read = data_read = 0;
 	return sizeof(*hdr) + hdr->size;
+
+incomplete:
+	if (rc == 0 || (errno != EAGAIN && errno != EWOULDBLOCK))
+		header_read = data_read = 0;
+	return rc;
 }
 
 int failed_append = 0;

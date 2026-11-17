@@ -34,12 +34,23 @@ plugin_conf = af_unix.conf
 sbin_PROGRAMS = audisp-af_unix
 noinst_HEADERS = queue.h
 man_MANS = audisp-af_unix.8
+check_PROGRAMS = test-af-unix
+TESTS = $(check_PROGRAMS)
 
 audisp_af_unix_DEPENDENCIES = ${top_builddir}/lib/libaudit.la ${top_builddir}/auplugin/libauplugin.la
 audisp_af_unix_SOURCES = audisp-af_unix.c queue.c
 audisp_af_unix_CFLAGS = -fPIE -DPIE -g -D_GNU_SOURCE -Wundef ${WFLAGS}
 audisp_af_unix_LDFLAGS = -pie -Wl,-z,relro -Wl,-z,now
 audisp_af_unix_LDADD = $(CAPNG_LDADD) ${top_builddir}/lib/libaudit.la ${top_builddir}/auplugin/libauplugin.la
+
+test_af_unix_SOURCES = test-af-unix.c queue.c
+test_af_unix_CFLAGS = $(audisp_af_unix_CFLAGS)
+test_af_unix_LDFLAGS = $(audisp_af_unix_LDFLAGS)
+test_af_unix_LDADD = $(audisp_af_unix_LDADD)
+if HAVE_ASAN
+test_af_unix_CFLAGS += ${ASAN_FLAGS}
+test_af_unix_LDFLAGS += ${ASAN_FLAGS}
+endif
 
 install-data-hook:
 	mkdir -p -m 0750 ${DESTDIR}${plugin_confdir}
