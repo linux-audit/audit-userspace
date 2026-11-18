@@ -97,6 +97,12 @@ int main(int argc, char *argv[])
 					stderr);
 			exit(1);
 #endif
+#ifndef WITH_LOONGARCH64
+		} else if (strcmp("loongarch64", argv[i]) == 0) {
+			fputs("LoongArch64 processor support is not enabled\n",
+					stderr);
+			exit(1);
+#endif
 		} else {
 			if (name != NULL) {
 				fputs("Two syscall names not allowed\n",stderr);
