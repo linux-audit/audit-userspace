@@ -120,6 +120,8 @@ int slist_add_if_uniq(slist *l, const char *str)
 
 	/* No matches, append to the end */
 	sn.str = strdup(str);
+	if (sn.str == NULL)
+		return -1;
 	sn.key = NULL;
 	sn.hits = 1;
 	if (slist_append(l, &sn)) {
