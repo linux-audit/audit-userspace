@@ -49,7 +49,8 @@ while IFS= read -r page; do
 	# .so-only stubs redirect to another page via a manpath-relative
 	# path (e.g. "man3/foo.3") that cannot resolve under man -l.
 	# Skip them; they work correctly once installed.
-	if grep -qx '\.so man[0-9]/.*' "$page" 2>/dev/null; then
+	if grep -qx '\.so man[0-9]/.*' "$page" 2>/dev/null &&
+		! grep -qvx '\.so man[0-9]/.*' "$page" 2>/dev/null; then
 		continue
 	fi
 
