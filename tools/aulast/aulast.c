@@ -344,6 +344,11 @@ static void update_session_login(auparse_state_t *au)
 		// create the record and report it.
 		lnode n;
 
+		if (user && (tacct == NULL || strcmp(user, tacct)))
+			return;
+		if (cterm && strstr(term, cterm) == NULL)
+			return;
+
 		n.start = start;
 		n.end = start;
 		n.auid = uid;
