@@ -96,6 +96,10 @@ int delete_all_rules(int fd)
 
 		}
 	}
+	if (i == timeout) {
+		list_clear(&l);
+		return -1;
+	}
 	list_first(&l);
 	n = l.cur;
 	while (n) {
