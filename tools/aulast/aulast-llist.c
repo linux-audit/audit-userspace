@@ -47,7 +47,9 @@ static void list_append(llist *l, lnode *node)
 	// if we are at top, fix this up
 	if (l->head == NULL)
 		l->head = node;
-	else if (l->cur) {
+	else {
+		if (l->cur == NULL)
+			l->cur = l->head;
 		// Make sure we are at the end
 		while (l->cur->next)
 			l->cur = l->cur->next;
