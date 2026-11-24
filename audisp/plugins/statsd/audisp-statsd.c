@@ -142,11 +142,19 @@ static int load_config(void)
 		switch (buf[0])
 		{
 		case 'a':
-			sscanf(buf, "address = %64s", d.address);
+			if (sscanf(buf, "address = %64s", d.address) != 1) {
+				fprintf(stderr, "bad address format\n");
+				fclose(f);
+				return 1;
+			}
 			status |= 0x01;
 			break;
 		case 'p':
-			sscanf(buf, "port = %u", &d.port);
+			if (sscanf(buf, "port = %u", &d.port) != 1) {
+				fprintf(stderr, "bad port format\n");
+				fclose(f);
+				return 1;
+			}
 			status |= 0x02;
 			break;
 		case 'i':
