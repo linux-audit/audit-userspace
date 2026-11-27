@@ -452,6 +452,63 @@ test_complex_session_management(void)
 	return 1;
 }
 
+/*
+ * Verify appending after iteration reaches the end of a nonempty list.
+ * With simple set, use a caller-allocated node; otherwise let the list
+ * allocate it. Returns 1 on success and 0 on failure.
+ */
+static int
+test_append_after_iteration(int simple)
+{
+	llist l;
+	lnode *first, *second, *added;
+
+	TEST_START(simple ? "append_simple_after_iteration" :
+			   "append_after_iteration");
+
+	list_create(&l);
+	if (!list_create_session(&l, 1000, 12345, 1001, 200001))
+		TEST_FAIL("could not create first session");
+	first = list_get_cur(&l);
+	if (!list_create_session(&l, 1001, 12346, 1002, 200002))
+		TEST_FAIL("could not create second session");
+	second = list_get_cur(&l);
+
+	// Exhaust iteration so cur is NULL while both sessions remain.
+	list_first(&l);
+	while (list_next(&l))
+		;
+
+	if (simple) {
+		added = calloc(1, sizeof(*added));
+		if (added == NULL)
+			TEST_FAIL("could not allocate new session");
+		added->session = 1003;
+		if (!list_create_session_simple(&l, added))
+			TEST_FAIL("could not append new session");
+	} else {
+		if (!list_create_session(&l, 1002, 12347, 1003, 200003))
+			TEST_FAIL("could not create new session");
+		added = list_get_cur(&l);
+	}
+	if (list_get_cur(&l) != added)
+		TEST_FAIL("new session should be current");
+
+	// A current node must also be reachable from head in insertion order.
+	list_first(&l);
+	if (list_get_cur(&l) != first || list_next(&l) != second ||
+	    list_next(&l) != added || list_next(&l) != NULL)
+		TEST_FAIL("append should preserve all sessions in order");
+	if (list_find_session(&l, 1003) != added)
+		TEST_FAIL("should find appended session");
+
+	list_clear(&l);
+	if (l.head != NULL || list_get_cur(&l) != NULL)
+		TEST_FAIL("list should be empty after cleanup");
+	TEST_PASS();
+	return 1;
+}
+
 int
 main(void)
 {
@@ -460,6 +517,8 @@ main(void)
 	test_update_operations_verification();
 	test_repeated_add_remove_with_find();
 	test_complex_session_management();
+	test_append_after_iteration(0);
+	test_append_after_iteration(1);
 
 	printf("\nTest Results: %d/%d tests passed\n", test_passed, test_count);
 
