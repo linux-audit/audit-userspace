@@ -97,6 +97,7 @@ int delete_all_rules(int fd)
 		}
 	}
 	if (i == timeout) {
+		audit_msg(LOG_ERR, "Timed out receiving audit rules list");
 		list_clear(&l);
 		return -1;
 	}
