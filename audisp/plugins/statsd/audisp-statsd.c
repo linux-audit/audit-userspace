@@ -24,6 +24,7 @@
 #include <stdio.h>
 #include <stdio_ext.h>
 #include <string.h>
+#include <stdlib.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/socket.h>
@@ -142,21 +143,42 @@ static int load_config(void)
 		switch (buf[0])
 		{
 		case 'a':
-			if (sscanf(buf, "address = %64s", d.address) != 1) {
+		{
+			char extra;
+
+			/* Reject text after the address, including truncation. */
+			if (sscanf(buf, "address = %64s %c", d.address,
+				   &extra) != 1) {
 				fprintf(stderr, "bad address format\n");
 				fclose(f);
 				return 1;
 			}
 			status |= 0x01;
 			break;
+		}
 		case 'p':
-			if (sscanf(buf, "port = %u", &d.port) != 1) {
+		{
+			char port[64], extra;
+			unsigned long value;
+
+			/* Accept only decimal digits and no trailing text. */
+			if (sscanf(buf, "port = %63[0-9] %c", port,
+				   &extra) != 1) {
 				fprintf(stderr, "bad port format\n");
 				fclose(f);
 				return 1;
 			}
+			errno = 0;
+			value = strtoul(port, NULL, 10);
+			if (errno || value == 0 || value > 65535UL) {
+				fprintf(stderr, "bad port format\n");
+				fclose(f);
+				return 1;
+			}
+			d.port = (unsigned int)value;
 			status |= 0x02;
 			break;
+		}
 		case 'i':
 		{
 			char tstr[64];
