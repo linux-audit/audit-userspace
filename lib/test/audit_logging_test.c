@@ -26,25 +26,31 @@
 #include "libaudit.h"
 #include "private.h"
 
+/* Keep calls to the send stub in this binary when libaudit uses local binding. */
+#include "../audit_logging.c"
+
 static char sent_message[MAX_AUDIT_MESSAGE_LENGTH];
 static unsigned int send_count;
 
 /*
- * Capture the message that audit_send_user_message would send to the kernel.
- * Input variables: audit descriptor, message type, data, and data size.
+ * Capture the message from the logging code linked into this test.
+ * Input variables: audit descriptor, message type, error policy, and message.
  * Return codes: 1 to report a successful synthetic send.
  */
 int
-audit_send(int fd, int type, const void *data, unsigned int size)
+audit_send_user_message(int fd, int type, hide_t hide_error,
+			const char *message)
 {
+	size_t size;
+
 	(void)fd;
 	(void)type;
+	(void)hide_error;
 
-	assert(data != NULL);
-	assert(size > 0);
+	assert(message != NULL);
+	size = strlen(message) + 1;
 	assert(size <= sizeof(sent_message));
-	memcpy(sent_message, data, size);
-	assert(sent_message[size - 1] == '\0');
+	memcpy(sent_message, message, size);
 	send_count++;
 	return 1;
 }
