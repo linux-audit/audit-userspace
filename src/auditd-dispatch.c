@@ -89,6 +89,12 @@ int dispatch_event(const struct audit_reply *rep, int protocol_ver)
 		e->hdr.size = rep->msg.nlh.nlmsg_len;
 		memcpy(e->data, (void*)rep->msg.data, e->hdr.size);
 	} else if (protocol_ver == AUDISP_PROTOCOL_VER2) {
+		/* A formatted message may report its pre-truncation length. */
+		if (rep->len > sizeof(e->data)) {
+			free(e);
+			increment_plugin_dropped();
+			return -1;
+		}
 		e->hdr.size = rep->len;
 		memcpy(e->data, (void*)rep->message, e->hdr.size);
 	} else {

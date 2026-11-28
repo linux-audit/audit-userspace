@@ -293,6 +293,33 @@ static void test_v2_protocol_uses_rep_len(void)
 	free_queued_event();
 }
 
+/*
+ * test_v2_protocol_length_bounds - accept the full buffer and reject overflow
+ *
+ * Returns: None.
+ */
+static void test_v2_protocol_length_bounds(void)
+{
+	struct audit_reply rep;
+	char payload[MAX_AUDIT_MESSAGE_LENGTH + 1];
+
+	memset(&rep, 0, sizeof(rep));
+	memset(payload, 'a', sizeof(payload));
+	rep.type = AUDIT_USER;
+	rep.message = payload;
+	rep.len = MAX_AUDIT_MESSAGE_LENGTH;
+	assert(dispatch_event(&rep, AUDISP_PROTOCOL_VER2) == 0);
+	assert(queued_event != NULL);
+	assert(queued_event->hdr.size == rep.len);
+	free_queued_event();
+
+	rep.len++;
+	plugin_dropped = 0;
+	assert(dispatch_event(&rep, AUDISP_PROTOCOL_VER2) == -1);
+	assert(queued_event == NULL);
+	assert(plugin_dropped == 1);
+}
+
 int main(void)
 {
 	test_netlink_payload_length();
@@ -300,6 +327,7 @@ int main(void)
 	test_synthetic_payload_length();
 	test_realistic_user_event();
 	test_v2_protocol_uses_rep_len();
+	test_v2_protocol_length_bounds();
 	test_dispatch_drops();
 	test_uncounted_returns();
 	return 0;
