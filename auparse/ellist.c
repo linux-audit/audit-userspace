@@ -415,7 +415,16 @@ int aup_list_append(event_list_t *l, char *record, int list_idx,
 		rc = -1;
 
 	if (r->cwd) {
-		// Should never be 2 cwd records unless log is corrupted
+		/* Record cwd pointers borrow the event cwd. A duplicate CWD
+		 * replaces it, so move every existing alias before freeing it.
+		 */
+		if (l->cwd) {
+			rnode *node;
+			for (node = l->head; node; node = node->next) {
+				if (node->cwd == l->cwd)
+					node->cwd = r->cwd;
+			}
+		}
 		free((void *)l->cwd);
 		l->cwd = r->cwd;
 	}

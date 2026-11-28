@@ -540,6 +540,42 @@ static void test_proctitle_nul_separator(void)
 	auparse_destroy(au);
 }
 
+/* test_duplicate_cwd_search - a later CWD must not leave earlier records
+ * referring to the replaced event cwd during interpreted searches.
+ *
+ * Return: none. Failures abort through assert().
+ */
+static void test_duplicate_cwd_search(void)
+{
+	const char single[] =
+		"type=CWD msg=audit(1710000000.001:199): "
+		"cwd=\"/only\" name=\"relative\"\n";
+	const char buf[] =
+		"type=CWD msg=audit(1710000000.001:200): "
+		"cwd=\"/old\" name=\"relative\"\n"
+		"type=CWD msg=audit(1710000000.001:200): "
+		"cwd=\"/new\"\n";
+	auparse_state_t *au = auparse_init(AUSOURCE_BUFFER, single);
+	char *err = NULL;
+
+	assert(au != NULL);
+	assert(ausearch_add_expression(au, "name i= \"/only/relative\"",
+				&err, AUSEARCH_RULE_CLEAR) == 0);
+	assert(err == NULL);
+	assert(auparse_next_event(au) > 0);
+	assert(ausearch_cur_event(au) == 1);
+	auparse_destroy(au);
+
+	au = auparse_init(AUSOURCE_BUFFER, buf);
+	assert(au != NULL);
+	assert(ausearch_add_expression(au, "name i= \"/new/relative\"",
+				&err, AUSEARCH_RULE_CLEAR) == 0);
+	assert(err == NULL);
+	assert(auparse_next_event(au) > 0);
+	assert(ausearch_cur_event(au) == 1);
+	auparse_destroy(au);
+}
+
 /* test_sockaddr_short_lengths - reject incomplete fixed-layout addresses
  *
  * Return: none. Failures abort through assert().
@@ -723,6 +759,7 @@ int main(void)
 	test_fan_type_state();
 	test_seccomp_action_full();
 	test_proctitle_nul_separator();
+	test_duplicate_cwd_search();
 	test_sockaddr_short_lengths();
 	test_key_escape_separators();
 	test_cur_event_matches_multirecord_event();
