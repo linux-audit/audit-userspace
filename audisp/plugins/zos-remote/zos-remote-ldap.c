@@ -23,7 +23,6 @@
 
 #include "zos-remote-ldap.h"
 
-#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -182,19 +181,6 @@ static int _zos_remote_init(ZOS_REMOTE *zos_remote)
         int version, rc;
         char *uri = NULL;
             
-#ifdef LDAP_DEPRECATED
-
-        log_debug("Initializing z/OS Remote-services LDAP connection at ldap://%s:%d",
-                  zos_remote->server, zos_remote->port);
-        zos_remote->ld = ldap_init(zos_remote->server
-                             zos_remote->port ? zos_remote->port : LDAP_PORT);
-        if (zos_remote->ld == NULL) {
-                log_err("Error initializing LDAP session: %s",
-                        strerror(errno));
-                rc = ICTX_E_FATAL;
-                goto end;
-        }
-#else
         /* build ldap URI */
         if (zos_remote->port == 0 || zos_remote->port == LDAP_PORT)
                 rc = asprintf(&uri, "ldap://%s", zos_remote->server);
@@ -218,8 +204,6 @@ static int _zos_remote_init(ZOS_REMOTE *zos_remote)
                 rc = ICTX_E_FATAL;
                 goto free_uri;
         }
-#endif
-
         /* 
          * Ensure the LDAP protocol version supported by the client
          * to 3. (Extended operations are part of version 3). 
@@ -313,11 +297,7 @@ static void zos_remote_disconnect(ZOS_REMOTE *zos_remote)
         if (zos_remote->ld) {
                 log_debug("Unbinding LDAP session");
 
-#ifdef LDAP_DEPRECATED
-                ldap_unbind(zos_remote->ld);
-#else
                 ldap_unbind_ext_s(zos_remote->ld, NULL, NULL);
-#endif
         }
         zos_remote->connected = 0;
         
