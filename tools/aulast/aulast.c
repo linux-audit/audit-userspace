@@ -388,6 +388,8 @@ static void update_session_login(auparse_state_t *au)
 		n.user_login_proof = auparse_get_serial(au);
 		n.user_end_proof = 0;
 		report_session(&n); 
+		// The bad-login extract should contain only reported records.
+		extract_record(au);
 	} else if (debug)
 		printf("Session not found or updated\n");
 }
@@ -605,27 +607,33 @@ int main(int argc, char *argv[])
 		{
 			case AUDIT_LOGIN:
 				create_new_session(au);
-				extract_record(au);
+				if (!bad)
+					extract_record(au);
 				break;
 			case AUDIT_USER_LOGIN:
 				update_session_login(au);
-				extract_record(au);
+				if (!bad)
+					extract_record(au);
 				break;
 			case AUDIT_USER_END:
 				update_session_logout(au);
-				extract_record(au);
+				if (!bad)
+					extract_record(au);
 				break;
 			case AUDIT_SYSTEM_BOOT:
 				process_bootup(au);
-				extract_record(au);
+				if (!bad)
+					extract_record(au);
 				break;
 			case AUDIT_SYSTEM_SHUTDOWN:
 				process_shutdown(au);
-				extract_record(au);
+				if (!bad)
+					extract_record(au);
 				break;
 			case AUDIT_DAEMON_START:
 				process_kernel(au);
-				extract_record(au);
+				if (!bad)
+					extract_record(au);
 				break;
 		}
 	}

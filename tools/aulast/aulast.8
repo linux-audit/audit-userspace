@@ -22,7 +22,10 @@ Print debug messages to stderr.
 
 .TP
 .B \-\-extract
-Write raw audit records used to create the displayed report into a file aulast.log in the current working directory.
+Write raw audit records into aulast.log in the current working directory.
+With \fB\-\-bad\fP, only failed login records included in the displayed
+report are written. Otherwise, records processed while reconstructing
+sessions are written.
 
 .TP
 .BI \-f\  file
