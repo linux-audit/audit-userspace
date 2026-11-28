@@ -586,6 +586,69 @@ out_q:
 	return rc;
 }
 
+struct teardown_arg {
+	pthread_barrier_t *start;
+	struct disp_conf *conf;
+	event_t *event;
+	int result;
+};
+
+/* Enqueue EVENT when START releases the producer; return no thread result. */
+static void *teardown_producer(void *arg)
+{
+	struct teardown_arg *pa = arg;
+
+	pthread_barrier_wait(pa->start);
+	pa->result = enqueue(pa->event, pa->conf);
+	return NULL;
+}
+
+/* Race one enqueue with teardown repeatedly; return 0 on success. */
+static int teardown_handshake_test(void)
+{
+	struct disp_conf conf = {0};
+	unsigned int i;
+
+	conf.overflow_action = O_IGNORE;
+	for (i = 0; i < 256; i++) {
+		pthread_barrier_t start;
+		struct teardown_arg pa;
+		pthread_t prod;
+
+		if (init_queue(4))
+			return 1;
+		pa.event = make_event("teardown");
+		if (pa.event == NULL) {
+			destroy_queue();
+			return 1;
+		}
+		pa.start = &start;
+		pa.conf = &conf;
+		pa.result = -2;
+		if (pthread_barrier_init(&start, NULL, 2)) {
+			free(pa.event);
+			destroy_queue();
+			return 1;
+		}
+		if (pthread_create(&prod, NULL, teardown_producer, &pa)) {
+			pthread_barrier_destroy(&start);
+			free(pa.event);
+			destroy_queue();
+			return 1;
+		}
+		pthread_barrier_wait(&start);
+		destroy_queue();
+		pthread_join(prod, NULL);
+		pthread_barrier_destroy(&start);
+		if (pa.result < -1 || pa.result > 1) {
+			fprintf(stderr, "teardown_handshake_test: bad result %d\n",
+				pa.result);
+			return 1;
+		}
+	}
+	return 0;
+}
+
 int main(void)
 {
 	const char *srcdir = getenv("srcdir") ? getenv("srcdir") : ".";
@@ -601,6 +664,8 @@ int main(void)
 	if (persist_test(path))
 		return 1;
 	if (resize_handshake_test())
+		return 1;
+	if (teardown_handshake_test())
 		return 1;
 	if (dropped_count_test(O_IGNORE))
 		return 1;

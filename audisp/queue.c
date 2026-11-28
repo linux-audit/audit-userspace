@@ -660,6 +660,19 @@ void destroy_queue(void)
 	if (!AUDIT_ATOMIC_LOAD(queue_initialized))
 		return;
 
+	/* A producer that passed queue_initialized must leave the ring first. */
+#ifdef HAVE_ATOMIC
+	atomic_store_explicit(&processing_suspended, 1,
+		memory_order_seq_cst);
+	while (atomic_load_explicit(&enqueue_in_progress,
+		memory_order_seq_cst))
+		sched_yield();
+#else
+	processing_suspended = 1;
+	while (enqueue_in_progress)
+		sched_yield();
+#endif
+
 	for (i=0; i<AUDIT_ATOMIC_LOAD(q_depth); i++)
 		free((void *)q[i]);
 
