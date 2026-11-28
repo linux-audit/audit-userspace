@@ -300,17 +300,19 @@ static struct queue *q_open_no_resize(int q_flags, const char *path,
 	q->queue_head = 0;
 	q->queue_length = 0;
 
-	if ((q_flags & Q_IN_MEMORY) != 0) {
-		size_t sz = num_entries * sizeof(*q->memory);
-
-		q->memory = malloc(sz);
-		if (q->memory == NULL)
-			goto err;
-		memset(q->memory, 0, sz);
-	}
-
 	if ((q_flags & Q_IN_FILE) != 0 && q_open_file(q, path) != 0)
 		goto err;
+
+	if ((q_flags & Q_IN_MEMORY) != 0) {
+		/* An existing spool may have a different depth from num_entries. */
+		if (q->num_entries > SIZE_MAX / sizeof(*q->memory)) {
+			errno = EINVAL;
+			goto err;
+		}
+		q->memory = calloc(q->num_entries, sizeof(*q->memory));
+		if (q->memory == NULL)
+			goto err;
+	}
 
 	return q;
 
@@ -500,11 +502,19 @@ struct queue *q_open(int q_flags, const char *path, size_t num_entries,
 		return q;
 
 	if ((q->flags & Q_RESIZE) == 0) {
+		syslog(LOG_ERR, "Queue %s has %zu slots, but %zu were requested; "
+		       "use a matching queue depth",
+		       path, q->num_entries, num_entries);
 		saved_errno = EINVAL;
 		goto err_errno_q;
 	}
 
 	if (q->queue_length > num_entries) {
+		syslog(LOG_ERR, "Cannot resize queue %s to queue_depth=%zu: "
+		       "%zu records remain in the saved queue. Set "
+		       "queue_depth to at least %zu, let the queue drain, "
+		       "then retry the reduction",
+		       path, num_entries, q->queue_length, q->queue_length);
 		saved_errno = ENOSPC;
 		goto err_errno_q;
 	}

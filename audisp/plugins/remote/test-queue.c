@@ -281,9 +281,9 @@ test_run(int flags)
 }
 
 static void
-test_resizing(void)
+test_resizing(int flags)
 {
-	q = q_open(Q_IN_FILE | Q_CREAT | Q_EXCL, filename, NUM_ENTRIES,
+	q = q_open(flags | Q_CREAT | Q_EXCL, filename, NUM_ENTRIES,
 		   ENTRY_SIZE);
 	if (q == NULL)
 		err("q_open");
@@ -295,19 +295,19 @@ test_resizing(void)
 	q_close(q);
 
 	/* Verify num_entries is validated */
-	q = q_open(Q_IN_FILE, filename, NUM_ENTRIES + 1, ENTRY_SIZE);
+	q = q_open(flags, filename, NUM_ENTRIES + 1, ENTRY_SIZE);
 	if (q != NULL)
 		die("q_open didn't fail");
 	if (errno != EINVAL)
 		err("q_open");
-	q = q_open(Q_IN_FILE, filename, NUM_ENTRIES - 1, ENTRY_SIZE);
+	q = q_open(flags, filename, NUM_ENTRIES - 1, ENTRY_SIZE);
 	if (q != NULL)
 		die("q_open didn't fail");
 	if (errno != EINVAL)
 		err("q_open");
 
 	/* Test increasing size */
-	q = q_open(Q_IN_FILE | Q_RESIZE, filename, 2 * NUM_ENTRIES, ENTRY_SIZE);
+	q = q_open(flags | Q_RESIZE, filename, 2 * NUM_ENTRIES, ENTRY_SIZE);
 	if (q == NULL)
 		err("q_open");
 	verify_sample_entries(NUM_ENTRIES);
@@ -316,12 +316,12 @@ test_resizing(void)
 	q_close(q);
 
 	/* Test decreasing size */
-	q = q_open(Q_IN_FILE | Q_RESIZE, filename, NUM_ENTRIES / 2, ENTRY_SIZE);
+	q = q_open(flags | Q_RESIZE, filename, NUM_ENTRIES / 2, ENTRY_SIZE);
 	if (q != NULL)
 		die("q_open didn't fail");
 	if (errno != ENOSPC)
 		err("q_open");
-	q = q_open(Q_IN_FILE | Q_RESIZE, filename, NUM_ENTRIES, ENTRY_SIZE);
+	q = q_open(flags | Q_RESIZE, filename, NUM_ENTRIES, ENTRY_SIZE);
 	if (q == NULL)
 		err("q_open");
 	verify_sample_entries(NUM_ENTRIES);
@@ -359,7 +359,9 @@ main(void)
 	for (i = 0; i < sizeof(flags) / sizeof(*flags); i++)
 		test_run(flags[i]);
 
-	test_resizing();
+	/* Resizing a spool must also work with an in-memory cache. */
+	test_resizing(Q_IN_FILE);
+	test_resizing(Q_IN_FILE | Q_IN_MEMORY);
 
 	free_sample_entries();
 
