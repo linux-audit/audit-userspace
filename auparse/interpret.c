@@ -1252,13 +1252,6 @@ err_out:
 		return print_escaped(id->val);
 }
 
-// rawmemchr is faster. Let's use it if we have it.
-#ifdef HAVE_RAWMEMCHR
-#define STRCHR rawmemchr
-#else
-#define STRCHR strchr
-#endif
-
 static const char *print_proctitle(const char *val)
 {
 	char *out = (char *)print_escaped(val);
@@ -1268,14 +1261,28 @@ static const char *print_proctitle(const char *val)
 		return NULL;
 
 	if (*val != '"') {
-		size_t len = strlen(val) / 2;
-		const char *end = out + len;
+		const char *hex = val;
+		size_t len = 0;
+		char *end;
 		char *ptr = out;
+
+		/* print_escaped strips a leading 00. Parenthesized values are
+		 * already text, so only the actual hex run has NUL separators.
+		 */
+		if (hex[0] == '0' && hex[1] == '0')
+			hex += 2;
+		if (*hex == '(')
+			return out;
+		while (isxdigit((unsigned char)hex[len]))
+			len++;
+		len = len / 2 + len % 2;
+		end = out + len;
 		// Proctitle has arguments separated by NUL bytes
 		// We need to write over the NUL bytes with a space
 		// so that we can see the arguments
-		while ((ptr  = STRCHR(ptr, '\0'))) {
-			if (ptr >= end)
+		while (ptr < end) {
+			ptr = memchr(ptr, '\0', end - ptr);
+			if (ptr == NULL)
 				break;
 			*ptr = ' ';
 			ptr++;

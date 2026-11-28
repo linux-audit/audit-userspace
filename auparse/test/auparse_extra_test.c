@@ -540,6 +540,36 @@ static void test_proctitle_nul_separator(void)
 	auparse_destroy(au);
 }
 
+/* test_proctitle_decoded_bounds - malformed values must not make the
+ * separator scan extend beyond the decoded string.
+ *
+ * Return: none. Failures abort through assert().
+ */
+static void test_proctitle_decoded_bounds(void)
+{
+	auparse_state_t *au = auparse_init(AUSOURCE_FILE, "/dev/null");
+	idata id = {
+		.name = "proctitle",
+		.val = "(a)bbbbbbbb",
+	};
+	char *out;
+
+	assert(au != NULL);
+	out = auparse_do_interpretation(au, AUPARSE_TYPE_PROCTITLE, &id,
+					AUPARSE_ESC_RAW);
+	assert(out != NULL);
+	assert(strcmp(out, "(a)") == 0);
+	free(out);
+
+	id.val = "00666F6F00626172";
+	out = auparse_do_interpretation(au, AUPARSE_TYPE_PROCTITLE, &id,
+					AUPARSE_ESC_RAW);
+	assert(out != NULL);
+	assert(strcmp(out, "foo bar") == 0);
+	free(out);
+	auparse_destroy(au);
+}
+
 /* test_duplicate_cwd_search - a later CWD must not leave earlier records
  * referring to the replaced event cwd during interpreted searches.
  *
@@ -759,6 +789,7 @@ int main(void)
 	test_fan_type_state();
 	test_seccomp_action_full();
 	test_proctitle_nul_separator();
+	test_proctitle_decoded_bounds();
 	test_duplicate_cwd_search();
 	test_sockaddr_short_lengths();
 	test_key_escape_separators();
