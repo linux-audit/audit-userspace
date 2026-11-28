@@ -1,6 +1,7 @@
 CONFIG_CLEAN_FILES = *.loT *.rej *.orig
+EXTRA_DIST = aulast_filters_test.sh
 noinst_PROGRAMS = aulast_llist_test
-TESTS = aulast_llist_test
+TESTS = aulast_llist_test aulast_filters_test.sh
 
 AM_CPPFLAGS = -I${top_srcdir}/tools/aulast
 

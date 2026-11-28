@@ -38,7 +38,10 @@ Take audit records from stdin. The audit events must be in the raw format.
 
 .TP
 .BI \-\-tty\  tty
-Limit the report to a specific tty's activity. The names of ttys can be abbreviated. For example, 0 is the same as tty0.
+Limit the report to a specific tty's activity. Full names match exactly,
+with an optional /dev/ prefix. A bare suffix must match a whole terminal
+component, so 0 matches tty0 or pts/0. For example, pts/1 does not match
+pts/12.
 
 .TP
 .BI \-\-user\  name

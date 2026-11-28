@@ -42,6 +42,33 @@ static char *kernel = NULL;
 static int bad = 0, proof = 0, debug = 0;
 static char *cterm = NULL, *user = NULL;
 
+/*
+ * Match a terminal against --tty without matching part of another tty.
+ * term is the recorded terminal; requested is the command line argument.
+ * Return 1 for an exact name or whole-component abbreviation, 0 otherwise.
+ */
+static int tty_matches(const char *term, const char *requested)
+{
+	const char *name = term;
+	const char *component;
+
+	if (strncmp(name, "/dev/", 5) == 0)
+		name += 5;
+	if (strncmp(requested, "/dev/", 5) == 0)
+		requested += 5;
+	if (*requested == '\0')
+		return 0;
+	if (strcmp(name, requested) == 0)
+		return 1;
+	if (strchr(requested, '/'))
+		return 0;
+	if (strncmp(name, "tty", 3) == 0 &&
+	    strcmp(name + 3, requested) == 0)
+		return 1;
+	component = strrchr(name, '/');
+	return component && strcmp(component + 1, requested) == 0;
+}
+
 void usage(void)
 {
 	fprintf(stderr,
@@ -326,7 +353,7 @@ static void update_session_login(auparse_state_t *au)
 		// If we are limited to a specific terminal and
 		// we find out the session is not associated with
 		// the terminal of interest, delete the current node
-		if (cterm && strstr(term, cterm) == NULL) {
+		if (cterm && !tty_matches(term, cterm)) {
 			list_delete_cur(&l);
 			if (debug)
 				fprintf(stderr,
@@ -346,7 +373,7 @@ static void update_session_login(auparse_state_t *au)
 
 		if (user && (tacct == NULL || strcmp(user, tacct)))
 			return;
-		if (cterm && strstr(term, cterm) == NULL)
+		if (cterm && !tty_matches(term, cterm))
 			return;
 
 		n.start = start;
