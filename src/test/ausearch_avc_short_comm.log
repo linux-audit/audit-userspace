@@ -1,0 +1,4 @@
+type=AVC msg=audit(1710000000.001:200): avc: denied { read } for pid=1 comm=41
+type=AVC msg=audit(1710000003.001:201): avc: denied { read } for pid=2 comm=41 name="x" tclass=file
+type=AVC msg=audit(1710000006.001:202): avc: denied { read } for pid=3 comm="A" name="x" tclass=file
+type=USER_LOGIN msg=audit(1710000009.001:203): pid=4 uid=0 res=success

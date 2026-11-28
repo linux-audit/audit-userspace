@@ -2128,7 +2128,12 @@ other_avc:
 				rc = 11;
 				goto err;
 			}
-			term = str + 6;
+			/* Continue after the encoded value, which may be shorter
+			 * than six bytes or end at the record terminator.
+			 */
+			term = str;
+			while (isxdigit((unsigned char)*term))
+				term++;
 		}
 	}
 	if (event_filename) {
