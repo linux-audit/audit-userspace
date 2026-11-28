@@ -2375,9 +2375,13 @@ static int recv_msg_tcp (unsigned char *header, char *msg, uint32_t *mlen)
 		return -1;
 	}
 
-	if (rlen > 0 && ar_read (sock, msg, rlen) < rlen) {
-		sync_error_handler ("ran out of data reading reply");
-		return -1;
+	if (rlen > 0) {
+		/* Compare as signed: ar_read returns -1 on error or timeout. */
+		rc = ar_read(sock, msg, rlen);
+		if (rc != (int)rlen) {
+			sync_error_handler ("ran out of data reading reply");
+			return -1;
+		}
 	}
 	return 0;
 }
