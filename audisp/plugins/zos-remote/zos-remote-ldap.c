@@ -348,7 +348,13 @@ int submit_xop_s(ZOS_REMOTE *zos_remote, struct berval *bv)
 
         if (rc == -1) {
                 /* error in ldap operation */
-                ldap_get_option(zos_remote->ld, LDAP_OPT_ERROR_NUMBER, &errcode);
+                if (ldap_get_option(zos_remote->ld, LDAP_OPT_ERROR_NUMBER,
+                                    &errcode) != LDAP_OPT_SUCCESS) {
+                        /* No error code is available to classify a retry. */
+                        log_err("Failed to read LDAP error after ldap_result failure");
+                        rc = ICTX_E_ABORT;
+                        goto end;
+                }
                 switch (errcode) {
                 case LDAP_SERVER_DOWN:
                         /* Connection may have timed out, let's retry */
@@ -357,7 +363,7 @@ int submit_xop_s(ZOS_REMOTE *zos_remote, struct berval *bv)
                         break;
                 default:
                         log_err("ldap_result unexpected failure: %s (0x%x)",
-                                ldap_err2string(rc), rc);
+                                ldap_err2string(errcode), errcode);
                         rc = ICTX_E_ABORT;
                 }
                 goto end;
